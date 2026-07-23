@@ -1,0 +1,48 @@
+TASK: Use the calculator tool to compute (2 ** 10 + sqrt(144)) * 3 - 100.
+  -- step 1 --
+  CODE:
+    answer = calculator(f"({2 ** 10 + sqrt(144)} * 3) - 100")
+    final_answer(answer)
+  OBS: Execution logs:
+Last output from code snippet:
+3008
+ANSWER: 3008
+======================================================================
+TASK: Look up the speed of light in the knowledge base and report the value.
+  -- step 1 --
+  CODE:
+    speed_of_light = kb_lookup("speed of light")
+    final_answer(speed_of_light)
+  OBS: Execution logs:
+Last output from code snippet:
+299792458 meters per second
+ANSWER: 299792458 meters per second
+======================================================================
+TASK: Look up 'seconds in a day' in the knowledge base, then multiply that number by 3 using the calculator.
+  -- step 1 --
+  CODE:
+    seconds_in_day = kb_lookup("seconds in a day")
+    result = calculator(f"{seconds_in_day} * 3")
+    final_answer(result)
+  OBS: Execution logs:
+Last output from code snippet:
+259200
+ANSWER: 259200
+======================================================================
+TASK: List the files in the module's 'exercises' directory.
+  -- step 1 --
+  CODE:
+    files = list_module_files('exercises')
+    print(files)
+  OBS: Execution logs:
+exercises: exercise_a_unit_tool.py, exercise_b_break_fix.py, exercise_c_memory.py
+Last output from code snippet:
+None
+  -- step 2 --
+  CODE:
+    final_answer(files)
+  OBS: Execution logs:
+Last output from code snippet:
+exercises: exercise_a_unit_tool.py, exercise_b_break_fix.py, exercise_c_memory.py
+ANSWER: exercises: exercise_a_unit_tool.py, exercise_b_break_fix.py, exercise_c_memory.py
+======================================================================
