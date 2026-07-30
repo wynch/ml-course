@@ -10,6 +10,10 @@ industrial way with Hugging Face `diffusers` — and closes with the road to
 Stable Diffusion. It adapts units 1–2 of the
 [HF Diffusion Models Course](https://huggingface.co/learn/diffusion-course).
 
+**🕹 Interactive:** [Diffusion on a spiral](../../explorables/09-diffusion.html) —
+scrub a 2D spiral into pure noise, then run this module's trained denoiser live
+in your browser to pull the spiral back out.
+
 ## Goals
 
 By the end you will be able to:

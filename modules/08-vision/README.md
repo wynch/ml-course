@@ -13,6 +13,10 @@ classifying images it was never trained to classify.
 We follow the [Hugging Face Community Computer Vision Course](https://huggingface.co/learn/computer-vision-course)
 (units 1–3) and keep everything hands-on and graphical.
 
+**🕹 Interactive:** [Convolution vs patches](../../explorables/08-conv-vs-patches.html) —
+slide this module's real kernels over a real image and watch the feature map
+paint in, then watch the same image become a ViT's patch sequence.
+
 ## Goals
 
 By the end you will be able to:

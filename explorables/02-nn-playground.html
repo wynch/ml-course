@@ -1,0 +1,920 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neural-net playground · ML course explorable</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d; --track:#453781; --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67; --grid:rgba(28,36,34,.10);
+  --warn:#c1121f; --soft:rgba(31,145,141,.10); --cls1:#ff7a3d;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --grid:rgba(232,238,236,.12); --track:#6b5ac0; --warn:#ff8f85;
+    --soft:rgba(31,145,141,.16);
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;background:var(--track);color:var(--track-ink);
+  padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.topbar .spacer{flex:1 1 auto}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 3rem}
+.intro{max-width:70ch}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .7rem}
+h3{font-family:var(--display);font-size:.82rem;letter-spacing:.03em;text-transform:uppercase;
+  color:var(--muted);margin:.2rem 0 .35rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.8rem,2vw,1.2rem);margin:1.4rem 0}
+.stage{display:flex;flex-wrap:wrap;gap:1.1rem}
+.stage .viz{flex:1 1 400px;min-width:280px}
+.stage .charts{flex:1 1 330px;min-width:270px;display:flex;flex-direction:column;gap:.5rem}
+canvas{display:block;width:100%;height:auto;border-radius:10px;touch-action:none}
+canvas.field{border:1px solid var(--line)}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:.6rem .95rem;margin-top:1rem;border-top:1px solid var(--line);padding-top:.9rem}
+.ctrl{display:flex;flex-direction:column;gap:.15rem;font-size:.83rem}
+.ctrl .row{display:flex;justify-content:space-between;align-items:baseline;gap:.5rem}
+.ctrl .row b{font-weight:600}
+.ctrl .row .val{font-family:var(--mono);font-size:.82rem;color:var(--accent)}
+.ctrl input[type=range]{width:100%;accent-color:var(--accent);margin:0}
+select{font-family:var(--body);font-size:.83rem;color:var(--ink);background:var(--panel);
+  border:1px solid var(--line);border-radius:8px;padding:.25rem .4rem}
+.btns{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
+button{font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:.34rem .82rem;cursor:pointer}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{color:#fff;filter:brightness(1.06)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:.5rem .9rem;
+  margin-top:.9rem;border-top:1px solid var(--line);padding-top:.7rem}
+.metric{display:flex;flex-direction:column}
+.metric span{font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.metric b{font-family:var(--mono);font-size:1.02rem;font-weight:500}
+.status{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.03em;
+  text-transform:uppercase;border-radius:999px;padding:.2rem .6rem;display:inline-block;
+  border:1px solid var(--line)}
+.status.ok{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.status.warn{color:var(--warn);border-color:var(--warn)}
+.legend{display:flex;flex-wrap:wrap;gap:.85rem;font-size:.78rem;color:var(--muted);margin-top:.5rem}
+.legend i{display:inline-block;width:.72rem;height:.72rem;border-radius:50%;margin-right:.32rem;
+  vertical-align:-1px;border:1px solid rgba(0,0,0,.35)}
+.legend i.sq{border-radius:3px;border:0}
+.hint{font-size:.78rem;color:var(--muted);margin:.35rem 0 0}
+.notice ul{margin:0;padding-left:1.15rem}
+.notice li{margin:.35rem 0;max-width:74ch}
+.notice code,.mono{font-family:var(--mono);font-size:.92em}
+.arch{display:flex;flex-wrap:wrap;gap:.35rem .5rem;font-family:var(--mono);font-size:.8rem;
+  color:var(--muted);margin:.2rem 0 0}
+.arch b{color:var(--ink);font-weight:500}
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+@media (max-width:700px){
+  .stage .charts{flex:1 1 100%}
+  .topbar h1{font-size:.98rem}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Neural-net playground: train module 02's MLP in your browser</h1>
+  <span class="pill">Module 02 · Foundations</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">← All explorables</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">This is module 02's from-scratch net, ported line-for-line to JavaScript and
+      training live: <b>2 → 16 → 16 → 2</b> with He-initialised <span class="mono">Linear</span> layers,
+      ReLU, a fused softmax + cross-entropy loss and mini-batch
+      <span class="mono">SGD(momentum=0.9)</span> over batches of 32 — the architecture, loss, optimiser
+      and data of <span class="mono">python/train_toy.py</span>, 354 parameters and all.</p>
+    <p>The data is <span class="mono">make_moons(n=600, noise=0.2)</span>, standardised per feature just
+      as <span class="mono">src/data.py</span> does, generated here with a seeded PRNG so every reload is
+      identical. Press play and watch the boundary bend around the moons; the dashed curves are the
+      <em>real Python run's</em> loss and validation accuracy, so you can see whether your in-browser
+      twin lands in the same place (it reached <b>97.2%</b> on the full set after 120 epochs).</p>
+  </section>
+
+  <!-- ══════════════════ the stage ══════════════════ -->
+  <section class="panel">
+    <h2>Live training</h2>
+    <div class="stage">
+      <div class="viz">
+        <canvas id="field" class="field" width="720" height="720"
+                aria-label="Decision boundary heatmap over the two-moons dataset"></canvas>
+        <div class="legend">
+          <span><i class="sq" style="background:#440154"></i>P(class 1) = 0</span>
+          <span><i class="sq" style="background:#21918c"></i>0.5</span>
+          <span><i class="sq" style="background:#fde725"></i>1</span>
+          <span><i style="background:#ffffff"></i>class 0</span>
+          <span><i style="background:#ff7a3d"></i>class 1</span>
+          <span>white line = the 0.5 boundary</span>
+        </div>
+        <p class="hint">Space = play/pause. Hidden size, activation and seed rebuild the net (same seed ⇒
+          same run every reload). The Python script used <span class="mono">lr = 0.3</span>; in the browser
+          that sits right on the edge of stability — set the slider to <span class="mono">0.300</span> to
+          reproduce its spiky curve, and see the notes below for why the default here is
+          <span class="mono">0.100</span>.</p>
+      </div>
+      <div class="charts">
+        <div>
+          <h3>Loss &amp; accuracy per epoch</h3>
+          <canvas id="curve" width="720" height="330"
+                  aria-label="Training and validation loss per epoch with the Python reference run"></canvas>
+          <div class="legend">
+            <span><i class="sq" style="background:#1f918d"></i>train loss (JS)</span>
+            <span><i class="sq" style="background:#c1121f"></i>val loss (JS)</span>
+            <span><i class="sq" style="background:#453781"></i>val acc (JS)</span>
+            <span>dashed = real Python run</span>
+          </div>
+        </div>
+        <div>
+          <h3>Weight histogram</h3>
+          <canvas id="hist" width="720" height="260"
+                  aria-label="Histogram of the network's weights"></canvas>
+          <div class="legend"><span id="hist-cap">all Linear weights</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="ctrl">
+        <div class="row"><b>hidden size</b><span class="val" id="p-h-v">16</span></div>
+        <input type="range" id="p-h" min="2" max="24" step="1" value="16">
+      </div>
+      <div class="ctrl">
+        <div class="row"><b>learning rate</b><span class="val" id="p-lr-v">0.100</span></div>
+        <input type="range" id="p-lr" min="-2" max="0.301" step="0.008" value="-1">
+      </div>
+      <div class="ctrl">
+        <div class="row"><b>momentum</b><span class="val" id="p-mu-v">0.90</span></div>
+        <input type="range" id="p-mu" min="0" max="0.95" step="0.01" value="0.9">
+      </div>
+      <div class="ctrl">
+        <div class="row"><b>epochs / second</b><span class="val" id="p-sp-v">8</span></div>
+        <input type="range" id="p-sp" min="1" max="30" step="1" value="8">
+      </div>
+      <div class="ctrl">
+        <div class="row"><b>activation</b></div>
+        <select id="p-act">
+          <option value="relu" selected>ReLU (module 02)</option>
+          <option value="tanh">tanh (module 01)</option>
+        </select>
+      </div>
+      <div class="ctrl">
+        <div class="row"><b>histogram layer</b></div>
+        <select id="p-hl">
+          <option value="-1" selected>all Linear weights</option>
+          <option value="0">layer 1 · 2 → h</option>
+          <option value="1">layer 2 · h → h</option>
+          <option value="2">layer 3 · h → 2</option>
+        </select>
+      </div>
+      <div class="ctrl">
+        <div class="row"><b>data / init seed</b><span class="val" id="p-sd-v">0</span></div>
+        <input type="range" id="p-sd" min="0" max="9" step="1" value="0">
+      </div>
+      <div class="ctrl" style="justify-content:flex-end">
+        <div class="btns">
+          <button id="p-play" class="primary">▶ Play</button>
+          <button id="p-epoch">+1 epoch</button>
+          <button id="p-restart">Restart</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="metrics">
+      <div class="metric"><span>epoch</span><b id="m-ep">0 / 120</b></div>
+      <div class="metric"><span>train loss</span><b id="m-tl">—</b></div>
+      <div class="metric"><span>train acc</span><b id="m-ta">—</b></div>
+      <div class="metric"><span>val acc</span><b id="m-va">—</b></div>
+      <div class="metric"><span>parameters</span><b id="m-np">354</b></div>
+      <div class="metric"><span>status</span><b><span class="status ok" id="m-st">ready</span></b></div>
+    </div>
+    <p class="arch" id="m-arch"></p>
+  </section>
+
+  <!-- ══════════════════ what to notice ══════════════════ -->
+  <section class="panel notice">
+    <h2>What to notice</h2>
+    <ul>
+      <li><b>The boundary is built out of straight cuts.</b> With ReLU each hidden unit contributes one
+        hyperplane; the curve you see is a piecewise-linear stitching of them. Switch the activation to
+        <code>tanh</code> and the same net produces visibly <em>smoother</em> bends — that is the only
+        thing you changed.</li>
+      <li><b>Capacity shows up as a kink budget.</b> With ReLU, <code>hidden = 2</code> usually collapses
+        to a single class — two units, and a big early step can kill both (the classic dying-ReLU
+        failure); <code>3–4</code> gets ~85–90%; from <code>6</code> upward it fits, and
+        <code>16</code> (the module's choice, 354 parameters) mostly buys margin. Switch to
+        <code>tanh</code> and even <code>hidden = 2</code> manages ~88%, because tanh units never die.</li>
+      <li><b>Noise sets the accuracy ceiling.</b> The moons overlap at <code>noise = 0.2</code>, so ~97%
+        is the honest maximum — the real Python run scored <code>97.2%</code> on the full 600 points and
+        this JS twin lands in the same band (96–98% across seeds). Module 01's net hit <em>100%</em>
+        only because it used <code>noise = 0.1</code> with 100 points.</li>
+      <li><b>Momentum multiplies your learning rate.</b> The effective step is about
+        <code>lr/(1−μ)</code>, so <code>lr = 0.3</code> with <code>μ = 0.9</code> steps like
+        <code>3.0</code> — right on the edge. Set the slider there and the loss curve gets the same
+        spikes as the real Python curve (look at its epoch-83 blow-out); on some seeds it never recovers,
+        which is exactly why the default here is the calmer <code>0.1</code>.</li>
+      <li><b>Weights spread out as the net commits.</b> The histogram starts as the He-init Gaussian
+        (<code>σ = √(2/fan_in)</code>) and grows heavy tails where units have specialised. Watch layer 1
+        in particular: those 2 → h weights <em>are</em> the directions of the cuts you see in the plot.</li>
+      <li><b>Push the learning rate to 1.0+</b> and the same thing happens as in module 01's loss-surface
+        explorable: the loss stops falling, the boundary thrashes, and accuracy collapses to 50% — the
+        multi-dimensional version of the ball flying off the chart.</li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  <p class="paths">module → <a href="../modules/02-neural-networks/README.md">../modules/02-neural-networks/README.md</a>
+    · library → <a href="../modules/02-neural-networks/python/src/nn.py">../modules/02-neural-networks/python/src/nn.py</a></p>
+  <p>Hugging Face LLM Course, Datasets chapter —
+    <a href="https://huggingface.co/learn/llm-course/chapter5">huggingface.co/learn/llm-course/chapter5</a></p>
+</footer>
+
+<script>
+"use strict";
+/* ═════════════════════════ PURE LOGIC START ═════════════════════════
+   A line-for-line JS port of modules/02-neural-networks/python/src/
+   {data,nn,optim,train}.py. No DOM here: the explorables verification
+   script runs this block under `node` and asserts that the loss falls.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* --- deterministic RNG (mulberry32) + standard normal (Box-Muller) ----- */
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), 1 | t);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function makeRandn(rng) {
+  let spare = null;
+  return function () {
+    if (spare !== null) { const s = spare; spare = null; return s; }
+    let u = 0, v = 0, s = 0;
+    do { u = rng() * 2 - 1; v = rng() * 2 - 1; s = u * u + v * v; } while (s === 0 || s >= 1);
+    const m = Math.sqrt(-2 * Math.log(s) / s);
+    spare = v * m;
+    return u * m;
+  };
+}
+
+/* --- viridis colormap, 17 control points sampled from matplotlib ------- */
+const VIRIDIS = [[68,1,84],[72,24,106],[71,45,123],[66,64,134],[59,82,139],[51,99,141],
+  [44,114,142],[38,130,142],[33,145,140],[31,160,136],[40,174,128],[63,188,115],
+  [94,201,98],[132,212,75],[173,220,48],[216,226,25],[253,231,37]];
+function viridis(t) {
+  const u = Math.min(1, Math.max(0, t)) * (VIRIDIS.length - 1);
+  const i = Math.min(VIRIDIS.length - 2, Math.floor(u)), f = u - i;
+  const a = VIRIDIS[i], b = VIRIDIS[i + 1];
+  return [Math.round(a[0] + (b[0] - a[0]) * f),
+          Math.round(a[1] + (b[1] - a[1]) * f),
+          Math.round(a[2] + (b[2] - a[2]) * f)];
+}
+
+/* --- data: make_moons + per-feature standardisation ------------------
+   Same construction as sklearn.datasets.make_moons (outer half-circle
+   class 0, inner shifted half-circle class 1, isotropic Gaussian noise)
+   with module 02's parameters: n = 600, noise = 0.2. The RNG differs
+   from numpy's Mersenne twister, so the individual points are not the
+   same draws as the Python run — the distribution and preprocessing are.
+   ------------------------------------------------------------------- */
+const DATA_N = 600, DATA_NOISE = 0.2, BATCH = 32, VAL_FRAC = 0.25, EPOCHS = 120;
+function makeMoons(n, noise, seed) {
+  const rng = mulberry32(seed * 7919 + 13), randn = makeRandn(rng);
+  const nOut = Math.floor(n / 2), nIn = n - nOut;
+  const X = new Float64Array(n * 2), y = new Int32Array(n);
+  for (let i = 0; i < nOut; i++) {
+    const t = Math.PI * i / (nOut - 1);
+    X[2 * i] = Math.cos(t); X[2 * i + 1] = Math.sin(t); y[i] = 0;
+  }
+  for (let i = 0; i < nIn; i++) {
+    const t = Math.PI * i / (nIn - 1), j = nOut + i;
+    X[2 * j] = 1 - Math.cos(t); X[2 * j + 1] = 1 - Math.sin(t) - 0.5; y[j] = 1;
+  }
+  for (let i = 0; i < n * 2; i++) X[i] += noise * randn();
+  for (let c = 0; c < 2; c++) {                       // standardize (src/data.py)
+    let m = 0;
+    for (let i = 0; i < n; i++) m += X[2 * i + c];
+    m /= n;
+    let s = 0;
+    for (let i = 0; i < n; i++) { const d = X[2 * i + c] - m; s += d * d; }
+    s = Math.sqrt(s / n) || 1;
+    for (let i = 0; i < n; i++) X[2 * i + c] = (X[2 * i + c] - m) / s;
+  }
+  return { X: X, y: y, n: n };
+}
+function permutation(n, rng) {
+  const idx = new Int32Array(n);
+  for (let i = 0; i < n; i++) idx[i] = i;
+  for (let i = n - 1; i > 0; i--) {                    // Fisher-Yates
+    const j = Math.floor(rng() * (i + 1));
+    const t = idx[i]; idx[i] = idx[j]; idx[j] = t;
+  }
+  return idx;
+}
+function gather(X, y, idx) {
+  const n = idx.length, ox = new Float64Array(n * 2), oy = new Int32Array(n);
+  for (let i = 0; i < n; i++) {
+    ox[2 * i] = X[2 * idx[i]]; ox[2 * i + 1] = X[2 * idx[i] + 1]; oy[i] = y[idx[i]];
+  }
+  return { X: ox, y: oy, n: n };
+}
+function trainValSplit(ds, valFrac, rng) {            // src/train.py
+  const idx = permutation(ds.n, rng), nVal = Math.floor(ds.n * valFrac);
+  return { val: gather(ds.X, ds.y, idx.slice(0, nVal)),
+           train: gather(ds.X, ds.y, idx.slice(nVal)) };
+}
+
+/* --- layers (src/nn.py) ---------------------------------------------- */
+function Linear(inF, outF, randn) {
+  const scale = Math.sqrt(2.0 / inF);                 // He init
+  const W = new Float64Array(inF * outF);
+  for (let i = 0; i < W.length; i++) W[i] = scale * randn();
+  return { kind: "linear", inF: inF, outF: outF, W: W,
+           b: new Float64Array(outF),
+           dW: new Float64Array(inF * outF), db: new Float64Array(outF),
+           x: null, N: 0 };
+}
+function linForward(L, x, N, cache) {
+  const out = new Float64Array(N * L.outF);
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < L.outF; j++) {
+      let s = L.b[j];
+      for (let k = 0; k < L.inF; k++) s += x[i * L.inF + k] * L.W[k * L.outF + j];
+      out[i * L.outF + j] = s;
+    }
+  }
+  if (cache) { L.x = x; L.N = N; }
+  return out;
+}
+function linBackward(L, g) {
+  const N = L.N, x = L.x;
+  L.dW.fill(0); L.db.fill(0);
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < L.outF; j++) {
+      const gij = g[i * L.outF + j];
+      L.db[j] += gij;
+      for (let k = 0; k < L.inF; k++) L.dW[k * L.outF + j] += x[i * L.inF + k] * gij;
+    }
+  }
+  const dx = new Float64Array(N * L.inF);
+  for (let i = 0; i < N; i++) {
+    for (let k = 0; k < L.inF; k++) {
+      let s = 0;
+      for (let j = 0; j < L.outF; j++) s += g[i * L.outF + j] * L.W[k * L.outF + j];
+      dx[i * L.inF + k] = s;
+    }
+  }
+  return dx;
+}
+function Act(kind) { return { kind: kind, cache: null }; }
+function actForward(A, x, N, cache) {
+  const out = new Float64Array(x.length);
+  if (A.kind === "relu") for (let i = 0; i < x.length; i++) out[i] = x[i] > 0 ? x[i] : 0;
+  else for (let i = 0; i < x.length; i++) out[i] = Math.tanh(x[i]);
+  if (cache) A.cache = A.kind === "relu" ? x : out;
+  return out;
+}
+function actBackward(A, g) {
+  const c = A.cache, out = new Float64Array(g.length);
+  if (A.kind === "relu") for (let i = 0; i < g.length; i++) out[i] = c[i] > 0 ? g[i] : 0;
+  else for (let i = 0; i < g.length; i++) out[i] = g[i] * (1 - c[i] * c[i]);
+  return out;
+}
+function softmaxRows(logits, N, C) {
+  const p = new Float64Array(logits.length);
+  for (let i = 0; i < N; i++) {
+    let mx = -Infinity;
+    for (let j = 0; j < C; j++) mx = Math.max(mx, logits[i * C + j]);
+    let s = 0;
+    for (let j = 0; j < C; j++) { const e = Math.exp(logits[i * C + j] - mx); p[i * C + j] = e; s += e; }
+    for (let j = 0; j < C; j++) p[i * C + j] /= s;
+  }
+  return p;
+}
+/* fused softmax + cross-entropy: dL/dlogits = (p - onehot)/N */
+function softmaxCE(logits, y, N, C) {
+  const p = softmaxRows(logits, N, C);
+  let loss = 0;
+  for (let i = 0; i < N; i++) loss -= Math.log(Math.max(p[i * C + y[i]], 1e-12));
+  loss /= N;
+  const g = new Float64Array(logits.length);
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < C; j++) g[i * C + j] = (p[i * C + j] - (j === y[i] ? 1 : 0)) / N;
+  }
+  return { loss: loss, grad: g, probs: p };
+}
+
+/* --- the network + SGD (src/nn.py, src/optim.py) ---------------------- */
+function MLP(sizes, randn, act) {
+  const layers = [];
+  for (let i = 0; i < sizes.length - 1; i++) {
+    layers.push(Linear(sizes[i], sizes[i + 1], randn));
+    if (i < sizes.length - 2) layers.push(Act(act));
+  }
+  return { layers: layers, sizes: sizes };
+}
+function mlpForward(m, x, N, cache) {
+  let h = x;
+  for (const L of m.layers) h = L.kind === "linear" ? linForward(L, h, N, cache) : actForward(L, h, N, cache);
+  return h;
+}
+function mlpBackward(m, g) {
+  for (let i = m.layers.length - 1; i >= 0; i--) {
+    const L = m.layers[i];
+    g = L.kind === "linear" ? linBackward(L, g) : actBackward(L, g);
+  }
+}
+function paramCount(m) {
+  let n = 0;
+  for (const L of m.layers) if (L.kind === "linear") n += L.W.length + L.b.length;
+  return n;
+}
+function SGD(m, lr, momentum) {
+  const vel = [];
+  for (const L of m.layers) {
+    if (L.kind === "linear") vel.push(new Float64Array(L.W.length), new Float64Array(L.b.length));
+  }
+  return { lr: lr, momentum: momentum, vel: vel, model: m };
+}
+function sgdStep(opt) {
+  let vi = 0;
+  for (const L of opt.model.layers) {
+    if (L.kind !== "linear") continue;
+    const pairs = [[L.W, L.dW], [L.b, L.db]];
+    for (const pr of pairs) {
+      const p = pr[0], g = pr[1], v = opt.vel[vi++];
+      if (opt.momentum) {
+        for (let i = 0; i < p.length; i++) { v[i] = opt.momentum * v[i] - opt.lr * g[i]; p[i] += v[i]; }
+      } else {
+        for (let i = 0; i < p.length; i++) p[i] -= opt.lr * g[i];
+      }
+    }
+  }
+}
+function accuracy(m, ds) {
+  const logits = mlpForward(m, ds.X, ds.n, false);
+  let ok = 0;
+  for (let i = 0; i < ds.n; i++) if ((logits[2 * i + 1] > logits[2 * i] ? 1 : 0) === ds.y[i]) ok++;
+  return ok / ds.n;
+}
+function evalLoss(m, ds) {
+  const logits = mlpForward(m, ds.X, ds.n, false);
+  return softmaxCE(logits, ds.y, ds.n, 2).loss;
+}
+/* one epoch of shuffled mini-batch SGD (src/train.py) */
+function runEpoch(run) {
+  const ds = run.train, idx = permutation(ds.n, run.rng);
+  let sum = 0, nb = 0;
+  for (let start = 0; start < ds.n; start += BATCH) {
+    const bi = idx.subarray(start, Math.min(start + BATCH, ds.n)), N = bi.length;
+    const xb = new Float64Array(N * 2), yb = new Int32Array(N);
+    for (let i = 0; i < N; i++) {
+      xb[2 * i] = ds.X[2 * bi[i]]; xb[2 * i + 1] = ds.X[2 * bi[i] + 1]; yb[i] = ds.y[bi[i]];
+    }
+    const logits = mlpForward(run.model, xb, N, true);
+    const L = softmaxCE(logits, yb, N, 2);
+    sum += L.loss; nb++;
+    mlpBackward(run.model, L.grad);
+    sgdStep(run.opt);
+  }
+  run.epoch++;
+  run.trainLoss.push(sum / nb);
+  run.valLoss.push(evalLoss(run.model, run.val));
+  run.trainAcc.push(accuracy(run.model, run.train));
+  run.valAcc.push(accuracy(run.model, run.val));
+  return run;
+}
+function newRun(cfg) {
+  const hidden = cfg.hidden, seed = cfg.seed;
+  const ds = makeMoons(DATA_N, DATA_NOISE, seed);
+  const splitRng = mulberry32(seed * 104729 + 7);
+  const sp = trainValSplit(ds, VAL_FRAC, splitRng);
+  const initRandn = makeRandn(mulberry32(seed * 2654435761 + 101));
+  const model = MLP([2, hidden, hidden, 2], initRandn, cfg.act);
+  return { all: ds, train: sp.train, val: sp.val, model: model,
+           opt: SGD(model, cfg.lr, cfg.momentum), rng: mulberry32(seed * 40503 + 991),
+           epoch: 0, trainLoss: [], valLoss: [], trainAcc: [], valAcc: [],
+           params: paramCount(model), cfg: cfg };
+}
+/* probability of class 1 over a grid — used for the boundary heatmap */
+function probField(m, x0, x1, y0, y1, res) {
+  const pts = new Float64Array(res * res * 2);
+  for (let j = 0; j < res; j++) {
+    const yy = y1 - (y1 - y0) * (j / (res - 1));
+    for (let i = 0; i < res; i++) {
+      const xx = x0 + (x1 - x0) * (i / (res - 1));
+      pts[2 * (j * res + i)] = xx; pts[2 * (j * res + i) + 1] = yy;
+    }
+  }
+  const logits = mlpForward(m, pts, res * res, false);
+  const p = softmaxRows(logits, res * res, 2);
+  const out = new Float64Array(res * res);
+  for (let i = 0; i < res * res; i++) out[i] = p[2 * i + 1];
+  return out;
+}
+/* marching squares: segments of the level set, in grid coordinates */
+function isoSegments(field, res, level) {
+  const segs = [];
+  const at = function (i, j) { return field[j * res + i]; };
+  const ip = function (a, b) { return (level - a) / ((b - a) || 1e-12); };
+  for (let j = 0; j < res - 1; j++) {
+    for (let i = 0; i < res - 1; i++) {
+      const v = [at(i, j), at(i + 1, j), at(i + 1, j + 1), at(i, j + 1)];
+      let code = 0;
+      for (let k = 0; k < 4; k++) if (v[k] > level) code |= (1 << k);
+      if (code === 0 || code === 15) continue;
+      const top = [i + ip(v[0], v[1]), j], right = [i + 1, j + ip(v[1], v[2])];
+      const bottom = [i + ip(v[3], v[2]), j + 1], left = [i, j + ip(v[0], v[3])];
+      const push = function (a, b) { segs.push([a[0], a[1], b[0], b[1]]); };
+      switch (code) {
+        case 1: case 14: push(left, top); break;
+        case 2: case 13: push(top, right); break;
+        case 3: case 12: push(left, right); break;
+        case 4: case 11: push(right, bottom); break;
+        case 6: case 9: push(top, bottom); break;
+        case 7: case 8: push(left, bottom); break;
+        case 5: push(left, top); push(right, bottom); break;
+        case 10: push(top, right); push(left, bottom); break;
+      }
+    }
+  }
+  return segs;
+}
+
+/* --- real data inlined from the course -------------------------------
+   modules/02-neural-networks — python/train_toy.py re-run verbatim
+   (moons, n=600, noise=0.2, seed=0, MLP [2,16,16,2], SGD lr=0.3 mu=0.9,
+   batch 32, 120 epochs). Final full-set accuracy 0.9717, 354 params.  */
+const PY_TRAIN_LOSS = [0.3864,0.2571,0.2046,0.1291,0.1227,0.1803,0.1148,0.1170,0.1285,0.1054,0.1237,0.4679,0.2704,0.2235,0.1726,0.2382,0.2421,0.2114,0.2475,0.1535,0.1265,0.2349,0.3248,0.2956,0.1801,0.3740,0.2438,0.1767,0.1575,0.4348,0.2457,0.1306,0.1331,0.1978,0.1624,0.1357,0.1270,0.2168,0.2628,0.1485,0.1657,0.1207,0.1252,0.1454,0.1584,0.1405,0.0996,0.0971,0.0889,0.0869,0.1168,0.1438,0.1699,0.1326,0.0971,0.0994,0.0901,0.1034,0.1085,0.1232,0.0714,0.0733,0.0955,0.1100,0.0823,0.0830,0.0831,0.0629,0.2359,0.2875,0.3480,0.4738,0.3331,0.3147,0.2796,0.2547,0.2421,0.2465,0.2307,0.1915,0.1643,0.2126,0.8811,0.3008,0.2385,0.2755,0.2544,0.1913,0.2661,0.2948,0.2238,0.1467,0.1365,0.1868,0.3673,0.1792,0.1436,0.3156,0.1765,0.2713,0.3347,0.2316,0.1834,0.1333,0.1144,0.1244,0.1129,0.1972,0.1563,0.1197,0.1022,0.1066,0.0995,0.1033,0.0910,0.0863,0.0873,0.1063,0.1344,0.1032];
+const PY_VAL_ACC = [0.7000,0.9533,0.9667,0.9733,0.9800,0.9800,0.9600,0.9800,0.9667,0.9867,0.9600,0.8867,0.9467,0.9467,0.9400,0.8200,0.9800,0.8133,0.9800,0.9333,0.9467,0.9600,0.8600,0.8933,0.9733,0.8733,0.9333,0.9733,0.9800,0.7267,0.9733,0.9800,0.9533,0.9600,0.9600,0.9733,0.9667,0.9867,0.9333,0.9800,0.9867,0.9800,0.9867,0.9467,0.9667,0.9733,0.9867,0.9867,0.9867,0.9867,0.9667,0.9867,0.9800,0.9800,0.9933,0.9733,0.9533,0.9800,0.9800,0.9867,0.9933,0.9733,0.9933,0.9867,0.9867,0.9933,0.9933,0.9867,0.9867,0.9467,0.5600,0.9000,0.9000,0.9000,0.9267,0.9333,0.9400,0.9400,0.9533,0.9600,0.9600,0.9067,0.9133,0.9467,0.9267,0.9533,0.9400,0.9533,0.9533,0.9733,0.9467,0.9667,0.9867,0.9800,0.9533,0.9867,0.9867,0.8800,0.9667,0.9400,0.9867,0.9933,0.9800,0.9800,0.9867,0.9867,0.9933,0.9733,0.9467,0.9800,0.9800,0.9667,0.9867,0.9733,0.9800,0.9867,0.9733,0.9733,0.9800,0.9733];
+const PY_FINAL_ACC = 0.9717;
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { mulberry32, makeRandn, viridis, makeMoons, trainValSplit, MLP, SGD,
+                     mlpForward, mlpBackward, softmaxCE, runEpoch, newRun, accuracy,
+                     evalLoss, paramCount, probField, isoSegments,
+                     PY_TRAIN_LOSS, PY_VAL_ACC, PY_FINAL_ACC, EPOCHS, BATCH };
+}
+/* ══════════════════════════ PURE LOGIC END ══════════════════════════ */
+
+/* ═════════════════════════ DOM / rendering ═════════════════════════ */
+(function () {
+  if (typeof document === "undefined") return;
+  const $ = function (id) { return document.getElementById(id); };
+  const css = function (n) {
+    return getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  };
+  let THEME = {};
+  function readTheme() {
+    THEME = { ink: css("--ink"), muted: css("--muted"), accent: css("--accent"),
+              line: css("--line"), panel: css("--panel"), warn: css("--warn"),
+              track: css("--track"), cls1: css("--cls1") };
+  }
+  readTheme();
+  const dark = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+  const MONO = '"SF Mono", ui-monospace, Menlo, monospace';
+
+  function fitCanvas(cv, cssH) {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = cv.clientWidth || 360;
+    cv.style.height = cssH + "px";
+    cv.width = Math.max(1, Math.round(w * dpr));
+    cv.height = Math.max(1, Math.round(cssH * dpr));
+    const ctx = cv.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx: ctx, w: w, h: cssH };
+  }
+
+  const RES = 64;                       // boundary mesh resolution
+  let S = { run: null, playing: false, last: 0, acc: 0, sps: 8, field: null,
+            bounds: null, histLayer: -1,
+            cfg: { hidden: 16, lr: 0.1, momentum: 0.9, act: "relu", seed: 0 } };
+
+  function restart() {
+    S.run = newRun({ hidden: S.cfg.hidden, lr: S.cfg.lr, momentum: S.cfg.momentum,
+                     act: S.cfg.act, seed: S.cfg.seed });
+    const X = S.run.all.X;
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (let i = 0; i < S.run.all.n; i++) {
+      x0 = Math.min(x0, X[2 * i]); x1 = Math.max(x1, X[2 * i]);
+      y0 = Math.min(y0, X[2 * i + 1]); y1 = Math.max(y1, X[2 * i + 1]);
+    }
+    S.bounds = { x0: x0 - 0.5, x1: x1 + 0.5, y0: y0 - 0.5, y1: y1 + 0.5 };
+    S.acc = 0;
+    recomputeField();
+    $("m-np").textContent = String(S.run.params);
+    $("m-arch").innerHTML = "";
+    const arch = "architecture: 2 → " + S.cfg.hidden + " → " + S.cfg.hidden +
+      " → 2  ·  " + (S.cfg.act === "relu" ? "ReLU" : "tanh") +
+      "  ·  softmax + cross-entropy  ·  SGD(lr=" + S.cfg.lr.toFixed(3) +
+      ", momentum=" + S.cfg.momentum.toFixed(2) + ")  ·  batch " + BATCH +
+      "  ·  train " + S.run.train.n + " / val " + S.run.val.n +
+      "  ·  make_moons(n=" + DATA_N + ", noise=" + DATA_NOISE + ", seed=" + S.cfg.seed + ")";
+    $("m-arch").appendChild(document.createTextNode(arch));
+    drawAll();
+  }
+
+  function recomputeField() {
+    const b = S.bounds;
+    S.field = probField(S.run.model, b.x0, b.x1, b.y0, b.y1, RES);
+  }
+
+  function drawField() {
+    const size = Math.min(Math.max(240, $("field").clientWidth || 420), 470);
+    const g = fitCanvas($("field"), size);
+    const ctx = g.ctx, w = g.w, h = g.h, b = S.bounds;
+    ctx.clearRect(0, 0, w, h);
+    /* heatmap */
+    const off = document.createElement("canvas");
+    off.width = RES; off.height = RES;
+    const octx = off.getContext("2d");
+    const img = octx.createImageData(RES, RES);
+    for (let i = 0; i < RES * RES; i++) {
+      const c = viridis(S.field[i]);
+      img.data[4 * i] = c[0]; img.data[4 * i + 1] = c[1];
+      img.data[4 * i + 2] = c[2]; img.data[4 * i + 3] = 255;
+    }
+    octx.putImageData(img, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(off, 0, 0, w, h);
+
+    /* 0.5 contour */
+    const segs = isoSegments(S.field, RES, 0.5);
+    ctx.strokeStyle = "rgba(255,255,255,.95)"; ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (const s of segs) {
+      ctx.moveTo(s[0] / (RES - 1) * w, s[1] / (RES - 1) * h);
+      ctx.lineTo(s[2] / (RES - 1) * w, s[3] / (RES - 1) * h);
+    }
+    ctx.stroke();
+
+    /* points */
+    const X = S.run.all.X, y = S.run.all.y;
+    const px = function (v) { return (v - b.x0) / (b.x1 - b.x0) * w; };
+    const py = function (v) { return h - (v - b.y0) / (b.y1 - b.y0) * h; };
+    for (let i = 0; i < S.run.all.n; i++) {
+      ctx.beginPath();
+      ctx.arc(px(X[2 * i]), py(X[2 * i + 1]), 2.9, 0, 6.2832);
+      ctx.fillStyle = y[i] === 0 ? "#ffffff" : "#ff7a3d";
+      ctx.fill();
+      ctx.lineWidth = 0.8; ctx.strokeStyle = "rgba(15,20,18,.75)"; ctx.stroke();
+    }
+    /* axes */
+    ctx.font = "11px " + MONO;
+    ctx.fillStyle = "rgba(255,255,255,.8)";
+    ctx.fillText("x₁ (standardised) →", 8, h - 8);
+    ctx.save(); ctx.translate(13, 20); ctx.rotate(-Math.PI / 2);
+    ctx.fillText("x₂ →", -46, 0); ctx.restore();
+    const ep = S.run.epoch;
+    const cap = "epoch " + ep + (ep ? "  ·  val acc " + (S.run.valAcc[ep - 1] * 100).toFixed(1) + "%" : "  ·  untrained");
+    ctx.font = '600 12px "Avenir Next", "Helvetica Neue", sans-serif';
+    const tw = ctx.measureText(cap).width;
+    ctx.fillStyle = "rgba(12,16,15,.62)";
+    ctx.fillRect(w - tw - 18, 8, tw + 12, 21);
+    ctx.fillStyle = "#fff";
+    ctx.fillText(cap, w - tw - 12, 23);
+  }
+
+  function drawCurve() {
+    const g = fitCanvas($("curve"), 168);
+    const ctx = g.ctx, w = g.w, h = g.h;
+    ctx.clearRect(0, 0, w, h);
+    const pad = { l: 40, r: 38, t: 12, b: 22 };
+    const iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+    ctx.strokeStyle = THEME.line; ctx.lineWidth = 1;
+    ctx.strokeRect(pad.l, pad.t, iw, ih);
+    ctx.font = "10px " + MONO;
+    const lmax = 1.0;
+    const X = function (i) { return pad.l + iw * i / (EPOCHS - 1); };
+    const YL = function (v) { return pad.t + ih * (1 - Math.min(1, v / lmax)); };
+    const YA = function (v) { return pad.t + ih * (1 - (Math.max(0.4, v) - 0.4) / 0.62); };
+    /* gridlines */
+    ctx.strokeStyle = css("--grid");
+    [0.25, 0.5, 0.75].forEach(function (v) {
+      ctx.beginPath(); ctx.moveTo(pad.l, YL(v)); ctx.lineTo(w - pad.r, YL(v)); ctx.stroke();
+    });
+    function line(arr, color, dashed, Y, n) {
+      if (!arr.length) return;
+      ctx.beginPath();
+      const N = n === undefined ? arr.length : n;
+      for (let i = 0; i < N; i++) {
+        const v = arr[i];
+        if (!isFinite(v)) continue;
+        i ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v));
+      }
+      ctx.strokeStyle = color;
+      ctx.lineWidth = dashed ? 1.2 : 1.8;
+      ctx.setLineDash(dashed ? [4, 3] : []);
+      ctx.globalAlpha = dashed ? 0.75 : 1;
+      ctx.stroke();
+      ctx.setLineDash([]); ctx.globalAlpha = 1;
+    }
+    line(PY_TRAIN_LOSS, THEME.accent, true, YL);      // real Python reference
+    line(PY_VAL_ACC, THEME.track, true, YA);
+    line(S.run.valAcc, THEME.track, false, YA);
+    line(S.run.valLoss, THEME.warn, false, YL);
+    line(S.run.trainLoss, THEME.accent, false, YL);
+    ctx.fillStyle = THEME.muted;
+    ctx.fillText("loss", 6, pad.t + 9);
+    ctx.fillText("1.0", 6, YL(1) + 10);
+    ctx.fillText("0.0", 6, YL(0) - 2);
+    ctx.fillText("acc", w - pad.r + 5, pad.t + 9);
+    ctx.fillText("100%", w - pad.r + 5, YA(1.02) + 8);
+    ctx.fillText("40%", w - pad.r + 5, YA(0.4) + 3);
+    ctx.fillText("epoch 0", pad.l, h - 7);
+    ctx.fillText(String(EPOCHS), w - pad.r - 16, h - 7);
+  }
+
+  function drawHist() {
+    const g = fitCanvas($("hist"), 132);
+    const ctx = g.ctx, w = g.w, h = g.h;
+    ctx.clearRect(0, 0, w, h);
+    const pad = { l: 30, r: 8, t: 10, b: 20 };
+    const iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+    /* collect weights */
+    const lin = S.run.model.layers.filter(function (L) { return L.kind === "linear"; });
+    let vals = [];
+    if (S.histLayer < 0) lin.forEach(function (L) { vals = vals.concat(Array.from(L.W)); });
+    else if (lin[S.histLayer]) vals = Array.from(lin[S.histLayer].W);
+    let mx = 0.001;
+    vals.forEach(function (v) { mx = Math.max(mx, Math.abs(v)); });
+    mx = Math.ceil(mx * 10) / 10;
+    const BINS = 25, counts = new Array(BINS).fill(0);
+    vals.forEach(function (v) {
+      let k = Math.floor((v + mx) / (2 * mx) * BINS);
+      k = Math.max(0, Math.min(BINS - 1, k));
+      counts[k]++;
+    });
+    const cmax = Math.max.apply(null, counts) || 1;
+    ctx.strokeStyle = THEME.line; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad.l, pad.t + ih); ctx.lineTo(w - pad.r, pad.t + ih); ctx.stroke();
+    const bw = iw / BINS;
+    for (let k = 0; k < BINS; k++) {
+      const bh = ih * counts[k] / cmax;
+      const centre = -mx + (2 * mx) * (k + 0.5) / BINS;
+      const c = viridis(Math.min(1, Math.abs(centre) / mx));
+      ctx.fillStyle = "rgb(" + c[0] + "," + c[1] + "," + c[2] + ")";
+      ctx.fillRect(pad.l + k * bw + 0.5, pad.t + ih - bh, Math.max(1, bw - 1), bh);
+    }
+    /* zero line */
+    ctx.strokeStyle = THEME.muted; ctx.setLineDash([3, 3]);
+    const zx = pad.l + iw / 2;
+    ctx.beginPath(); ctx.moveTo(zx, pad.t); ctx.lineTo(zx, pad.t + ih); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font = "10px " + MONO; ctx.fillStyle = THEME.muted;
+    ctx.fillText((-mx).toFixed(1), pad.l - 2, h - 6);
+    ctx.fillText("0", zx - 3, h - 6);
+    ctx.fillText("+" + mx.toFixed(1), w - pad.r - 22, h - 6);
+    ctx.fillText(String(cmax), 4, pad.t + 8);
+    ctx.fillText("count", 4, pad.t + 20);
+    $("hist-cap").textContent = (S.histLayer < 0 ? "all Linear weights" :
+      "layer " + (S.histLayer + 1) + " weights") + " · n = " + vals.length +
+      " · max |w| = " + mx.toFixed(2);
+  }
+
+  function drawMetrics() {
+    const r = S.run, e = r.epoch;
+    $("m-ep").textContent = e + " / " + EPOCHS;
+    $("m-tl").textContent = e ? r.trainLoss[e - 1].toFixed(4) : "—";
+    $("m-ta").textContent = e ? (r.trainAcc[e - 1] * 100).toFixed(1) + "%" : "—";
+    $("m-va").textContent = e ? (r.valAcc[e - 1] * 100).toFixed(1) + "%" : "—";
+    const st = $("m-st");
+    let label = "ready", warn = false;
+    if (e >= EPOCHS) {
+      label = "done · full-set " + (accuracy(r.model, r.all) * 100).toFixed(1) + "%";
+    } else if (S.playing) {
+      label = "training";
+    } else if (e > 0) label = "paused";
+    if (e > 6) {
+      const recent = r.trainLoss.slice(-4).reduce(function (p, c) { return p + c; }, 0) / 4;
+      if (!isFinite(recent) || recent > 0.6) { label = "not converging"; warn = true; }
+    }
+    st.textContent = label;
+    st.className = "status " + (warn ? "warn" : "ok");
+  }
+
+  function drawAll() { drawField(); drawCurve(); drawHist(); drawMetrics(); }
+
+  function setPlay(on) {
+    if (on && S.run.epoch >= EPOCHS) return;
+    S.playing = on;
+    $("p-play").textContent = on ? "❚❚ Pause" : "▶ Play";
+    if (on) S.last = performance.now();
+    drawMetrics();
+  }
+
+  function stepEpoch() {
+    if (S.run.epoch >= EPOCHS) { setPlay(false); return false; }
+    runEpoch(S.run);
+    return true;
+  }
+
+  /* ── controls ── */
+  function bindRange(id, fmtFn, onChange) {
+    const el = $(id), out = $(id + "-v");
+    el.addEventListener("input", function () {
+      const v = parseFloat(el.value);
+      out.textContent = fmtFn(v);
+      onChange(v);
+    });
+    out.textContent = fmtFn(parseFloat(el.value));
+  }
+  bindRange("p-h", function (v) { return String(v); }, function (v) {
+    S.cfg.hidden = v; setPlay(false); restart();
+  });
+  bindRange("p-lr", function (v) { return Math.pow(10, v).toFixed(3); }, function (v) {
+    S.cfg.lr = Math.pow(10, v);
+    S.run.opt.lr = S.cfg.lr;
+    if (S.run.epoch === 0) restart(); else drawMetrics();
+  });
+  bindRange("p-mu", function (v) { return v.toFixed(2); }, function (v) {
+    S.cfg.momentum = v;
+    S.run.opt.momentum = v;
+    if (S.run.epoch === 0) restart();
+  });
+  bindRange("p-sp", function (v) { return String(v); }, function (v) { S.sps = v; });
+  bindRange("p-sd", function (v) { return String(v); }, function (v) {
+    S.cfg.seed = v; setPlay(false); restart();
+  });
+  $("p-act").addEventListener("change", function (e) {
+    S.cfg.act = e.target.value; setPlay(false); restart();
+  });
+  $("p-hl").addEventListener("change", function (e) {
+    S.histLayer = parseInt(e.target.value, 10); drawHist();
+  });
+  $("p-play").addEventListener("click", function () { setPlay(!S.playing); });
+  $("p-epoch").addEventListener("click", function () {
+    setPlay(false);
+    if (stepEpoch()) { recomputeField(); drawAll(); }
+  });
+  $("p-restart").addEventListener("click", function () { setPlay(false); restart(); });
+
+  window.addEventListener("keydown", function (e) {
+    if (e.code !== "Space" || /input|select|textarea|button/i.test(e.target.tagName)) return;
+    e.preventDefault();
+    setPlay(!S.playing);
+  });
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) setPlay(false);
+  });
+
+  function redrawAll() { readTheme(); drawAll(); }
+  let rt = null;
+  window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(redrawAll, 120); });
+  if (dark && dark.addEventListener) dark.addEventListener("change", redrawAll);
+
+  function frame(now) {
+    if (S.playing) {
+      const dt = (now - S.last) / 1000;
+      S.last = now;
+      S.acc += dt * S.sps;
+      let did = 0;
+      while (S.acc >= 1 && did < 12) {
+        if (!stepEpoch()) break;
+        S.acc -= 1; did++;
+      }
+      if (did) { recomputeField(); drawAll(); }
+      if (S.run.epoch >= EPOCHS) { setPlay(false); drawMetrics(); }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  restart();
+  requestAnimationFrame(function (t) { S.last = t; frame(t); });
+})();
+</script>
+<!-- built for ml-course explorables v1 -->
+</html>

@@ -21,6 +21,10 @@ so the core computation is legible before PyTorch hides it.
 This is a from-scratch reconstruction in the spirit of Karpathy's
 [nanoGPT](https://github.com/karpathy/nanoGPT), graphical-first.
 
+**🕹 Interactive:** [Attention, one query at a time](../../explorables/04-attention.html) —
+a Q·Kᵀ heatmap you can drive, with causal mask, temperature, and the real
+attention heads of the tiny GPT you are about to train.
+
 ## Goals
 
 By the end you can:

@@ -11,6 +11,10 @@ you can rent a GPU for when your Mac isn't enough.
 This module adapts the Hugging Face [smol-course](https://huggingface.co/learn/smol-course)
 and [LLM Course chapter 11](https://huggingface.co/learn/llm-course/chapter11).
 
+**🕹 Interactive:** [Low rank: what LoRA actually trains](../../explorables/06-lora-rank.html) —
+drag the rank slider and watch this module's real trained ΔW rebuild itself from
+7 singular directions while a frozen weight needs 28.
+
 ## Goals
 
 By the end you will be able to:

@@ -13,6 +13,10 @@ that choice, at which layer it "decides" on an answer, and how its embedding
 space already knows that July is a month and `def` is code. Everything is a
 picture, and every picture comes from the real model running on your Mac.
 
+**🕹 Interactive:** [Anatomy of a transformer](../../explorables/05-transformer-anatomy.html) —
+watch a pulse carry one token up the decoder stack, hover any component for its
+real tensor shapes, and read SmolLM2's logit lens layer by layer.
+
 ## Goals
 
 By the end you will be able to:

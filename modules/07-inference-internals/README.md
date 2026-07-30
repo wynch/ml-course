@@ -14,6 +14,10 @@ Zig engine loads that blob and reproduces PyTorch's logits to a **max absolute
 difference of ~3e-6** — then we use that trustworthy engine to *see* the two
 things frameworks hide most completely: the **KV cache** and **quantization**.
 
+**🕹 Interactive:** [KV cache & int8](../../explorables/07-kv-cache.html) —
+the same 128-token decode with the cache on and off, every attention cell
+counted, plus this module's measured throughput curve and int8 quantization.
+
 ## Goals
 
 By the end you can:

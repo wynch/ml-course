@@ -1,0 +1,1019 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gradient descent &amp; backprop · ML course explorable</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d; --track:#453781; --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67; --grid:rgba(28,36,34,.10);
+  --warn:#c1121f; --soft:rgba(31,145,141,.10);
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --grid:rgba(232,238,236,.12); --track:#6b5ac0; --warn:#ff8f85;
+    --soft:rgba(31,145,141,.16);
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;background:var(--track);color:var(--track-ink);
+  padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.topbar .spacer{flex:1 1 auto}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 3rem}
+.intro{max-width:70ch;color:var(--ink)}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .7rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.8rem,2vw,1.2rem);margin:1.4rem 0}
+.stage{display:flex;flex-wrap:wrap;gap:1.1rem}
+.stage .viz{flex:1 1 380px;min-width:280px}
+.stage .side{flex:0 1 268px;min-width:238px;display:flex;flex-direction:column;gap:.7rem}
+canvas{display:block;width:100%;height:auto;border-radius:10px;touch-action:none}
+canvas.field{border:1px solid var(--line);cursor:crosshair}
+.ctrl{display:flex;flex-direction:column;gap:.15rem;font-size:.83rem}
+.ctrl .row{display:flex;justify-content:space-between;align-items:baseline;gap:.5rem}
+.ctrl .row b{font-weight:600}
+.ctrl .row .val{font-family:var(--mono);font-size:.82rem;color:var(--accent)}
+.ctrl input[type=range]{width:100%;accent-color:var(--accent);margin:0}
+.btns{display:flex;flex-wrap:wrap;gap:.4rem}
+button{font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:.34rem .82rem;cursor:pointer}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{color:#fff;filter:brightness(1.06)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+label.check{display:flex;gap:.45rem;align-items:flex-start;font-size:.82rem;line-height:1.35}
+label.check input{accent-color:var(--accent);margin:.2rem 0 0}
+.readout{display:grid;grid-template-columns:auto 1fr;gap:.15rem .6rem;font-family:var(--mono);
+  font-size:.82rem;border-top:1px solid var(--line);padding-top:.55rem}
+.readout dt{color:var(--muted)}
+.readout dd{margin:0;text-align:right}
+.status{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.03em;
+  text-transform:uppercase;border-radius:999px;padding:.2rem .6rem;display:inline-block;
+  border:1px solid var(--line)}
+.status.ok{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.status.warn{color:var(--warn);border-color:var(--warn)}
+.hint{font-size:.78rem;color:var(--muted);margin:.35rem 0 0}
+.narr{font-family:var(--mono);font-size:.84rem;background:var(--soft);border-radius:10px;
+  padding:.6rem .75rem;min-height:4.6em}
+.narr .step{display:block;font-family:var(--display);font-size:.74rem;font-weight:600;
+  letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:.25rem}
+.legend{display:flex;flex-wrap:wrap;gap:.9rem;font-size:.78rem;color:var(--muted);margin-top:.5rem}
+.legend i{display:inline-block;width:.72rem;height:.72rem;border-radius:3px;margin-right:.32rem;
+  vertical-align:-1px}
+svg.graph{display:block;width:100%;height:auto;overflow:visible}
+svg.graph text{font-family:var(--mono);font-size:15px}
+svg.graph text.lbl{font-family:var(--display);font-weight:600;font-size:15px;fill:var(--ink)}
+svg.graph text.op{font-family:var(--mono);font-size:13px;fill:var(--muted)}
+.sliders{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.55rem .9rem}
+.notice ul{margin:0;padding-left:1.15rem}
+.notice li{margin:.35rem 0;max-width:74ch}
+.notice code,.mono{font-family:var(--mono);font-size:.92em}
+.realcard{display:flex;flex-wrap:wrap;gap:1rem;align-items:center}
+.realcard .txt{flex:1 1 260px;font-size:.86rem;color:var(--muted)}
+.realcard .txt b{color:var(--ink)}
+.realcard .spark{flex:1 1 300px;min-width:240px}
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+@media (max-width:700px){
+  .stage .side{flex:1 1 100%}
+  .topbar h1{font-size:.98rem}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Gradient descent, and the graph that computes the gradient</h1>
+  <span class="pill">Module 01 · Foundations</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">← All explorables</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">Two halves of one idea. On the left, <b>what a gradient is for</b>: a ball rolls
+      downhill on a non-convex loss surface, one <span class="mono">p ← p − lr·∇f</span> step at a time.
+      Below it, <b>where the gradient comes from</b>: the exact computation graph from module 01,
+      <span class="mono">o = tanh(x1·w1 + x2·w2 + b)</span>, stepped forward then backward.</p>
+    <p>Try this: push the learning rate past <span class="mono">0.35</span> and watch the ball stop
+      settling; past <span class="mono">1.3</span> and watch it leave the chart entirely. Add momentum
+      and it can roll straight through a shallow local minimum. Then click through the graph panel
+      one step at a time and check the arithmetic — the numbers are the module's real ones.</p>
+  </section>
+
+  <!-- ══════════════════ PANEL 1 — loss surface ══════════════════ -->
+  <section class="panel">
+    <h2>Panel 1 · Descending a loss surface</h2>
+    <div class="stage">
+      <div class="viz">
+        <canvas id="field" class="field" width="720" height="720" aria-label="Loss surface contour with the descent path"></canvas>
+        <div class="legend">
+          <span><i style="background:#440154"></i>low loss</span>
+          <span><i style="background:#21918c"></i>mid</span>
+          <span><i style="background:#fde725"></i>high loss</span>
+          <span>× marks a minimum · ○ the current parameters · arrow is <span class="mono">−∇f</span></span>
+        </div>
+        <p class="hint">Click or drag anywhere on the surface to drop the ball there. Space = play/pause.</p>
+        <canvas id="losschart" width="720" height="200" aria-label="Loss versus step for the current run"></canvas>
+      </div>
+      <div class="side">
+        <div class="btns">
+          <button id="a-play" class="primary">▶ Play</button>
+          <button id="a-step">Step</button>
+          <button id="a-reset">Reset</button>
+        </div>
+        <div class="ctrl">
+          <div class="row"><b>learning rate</b><span class="val" id="a-lr-v">0.080</span></div>
+          <input type="range" id="a-lr" min="-2.301" max="0.301" step="0.005" value="-1.097">
+        </div>
+        <div class="ctrl">
+          <div class="row"><b>momentum</b><span class="val" id="a-mu-v">0.00</span></div>
+          <input type="range" id="a-mu" min="0" max="0.98" step="0.01" value="0">
+        </div>
+        <div class="ctrl">
+          <div class="row"><b>steps / second</b><span class="val" id="a-sp-v">12</span></div>
+          <input type="range" id="a-sp" min="1" max="60" step="1" value="12">
+        </div>
+        <label class="check"><input type="checkbox" id="a-sched">
+          <span>module 01 decay schedule<br><span class="mono" style="font-size:.76rem">lr·(1 − 0.9k/100)</span></span></label>
+        <dl class="readout">
+          <dt>step k</dt><dd id="a-k">0</dd>
+          <dt>θ₁, θ₂</dt><dd id="a-xy">−2.050, +1.950</dd>
+          <dt>f(θ)</dt><dd id="a-f">+1.6060</dd>
+          <dt>‖∇f‖</dt><dd id="a-g">1.8069</dd>
+          <dt>lr used</dt><dd id="a-lru">0.080</dd>
+        </dl>
+        <div><span class="status ok" id="a-status">ready</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ PANEL 2 — computation graph ══════════════════ -->
+  <section class="panel">
+    <h2>Panel 2 · The computation graph, forward then backward</h2>
+    <div class="stage">
+      <div class="viz">
+        <svg id="graph" class="graph" viewBox="0 0 1180 470" role="img"
+             aria-label="Computation graph of one tanh neuron with values and gradients"></svg>
+        <div class="legend">
+          <span><i style="background:#1f918d"></i>forward value <span class="mono">data</span></span>
+          <span><i style="background:#c1121f"></i>backward <span class="mono">grad</span> = ∂o/∂node</span>
+          <span>edge labels are local derivatives</span>
+        </div>
+      </div>
+      <div class="side">
+        <div class="btns">
+          <button id="b-play" class="primary">▶ Play</button>
+          <button id="b-prev">◀</button>
+          <button id="b-next">▶</button>
+          <button id="b-reset">Reset</button>
+        </div>
+        <div class="narr" id="b-narr"><span class="step">step 0 / 11 · start</span>Only the leaves are known. Press ▶ to run the forward pass.</div>
+        <div class="sliders">
+          <div class="ctrl">
+            <div class="row"><b>x1</b><span class="val" id="g-x1-v">+2.00</span></div>
+            <input type="range" id="g-x1" min="-3" max="3" step="0.05" value="2">
+          </div>
+          <div class="ctrl">
+            <div class="row"><b>w1</b><span class="val" id="g-w1-v">−3.00</span></div>
+            <input type="range" id="g-w1" min="-3" max="3" step="0.05" value="-3">
+          </div>
+          <div class="ctrl">
+            <div class="row"><b>x2</b><span class="val" id="g-x2-v">+0.00</span></div>
+            <input type="range" id="g-x2" min="-3" max="3" step="0.05" value="0">
+          </div>
+          <div class="ctrl">
+            <div class="row"><b>w2</b><span class="val" id="g-w2-v">+1.00</span></div>
+            <input type="range" id="g-w2" min="-3" max="3" step="0.05" value="1">
+          </div>
+          <div class="ctrl">
+            <div class="row"><b>b</b><span class="val" id="g-b-v">+6.8814</span></div>
+            <input type="range" id="g-b" min="-8" max="8" step="0.05" value="6.8813735870195432">
+          </div>
+        </div>
+        <div class="btns"><button id="b-module">Reset to module 01 values</button></div>
+        <p class="hint">Defaults are exactly <span class="mono">scripts/computation_graph.py</span>:
+          <span class="mono">b = 6.8813735870195</span> is chosen so that
+          <span class="mono">o = tanh(0.8814) = 0.7071</span> and every gradient is a round number.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ real run card ══════════════════ -->
+  <section class="panel realcard">
+    <div class="txt">
+      <h2 style="margin-bottom:.4rem">Real run · <span class="mono" style="text-transform:none;letter-spacing:0">scripts/train_moons.py</span></h2>
+      <p style="margin:.2rem 0">The same engine, 337 parameters (<span class="mono">MLP(2,[16,16,1])</span>, tanh),
+      trained on <span class="mono">make_moons(n_samples=100, noise=0.1, random_state=1337)</span> with the
+      max-margin loss and the decaying schedule above. <b>Loss 0.8047 → 0.0151, accuracy 76% → 100%
+      in 100 steps.</b> The curve here is that run's actual loss history, inlined from a re-run of the
+      module's script.</p>
+    </div>
+    <div class="spark"><canvas id="realchart" width="640" height="240" aria-label="Real training loss from module 01"></canvas></div>
+  </section>
+
+  <!-- ══════════════════ what to notice ══════════════════ -->
+  <section class="panel notice">
+    <h2>What to notice</h2>
+    <ul>
+      <li><b>The gradient only knows the slope under the ball.</b> Drop it in the upper-left basin at
+        <code>lr = 0.08</code>, <code>momentum = 0</code> and it settles into the <em>local</em> minimum at
+        <code>f = −0.750</code> — never learning that <code>f = −1.097</code> exists two ridges away.</li>
+      <li><b>Momentum is a velocity, not a bigger step.</b> With <code>momentum = 0.9</code> the same run
+        carries speed over the ridge and lands somewhere else entirely. It is the same
+        <code>v ← μv − lr·g; p ← p + v</code> rule as module 02's <code>SGD(momentum=0.9)</code>.</li>
+      <li><b>Too-high learning rates fail in two distinct ways.</b> Around <code>lr ≈ 0.35–1.2</code> the ball
+        oscillates across a basin forever (the step overshoots the curvature, <code>|1 − lr·λ| &gt; 1</code>);
+        above <code>lr ≈ 1.3</code> it leaves the chart and the loss runs away to infinity.</li>
+      <li><b>The decay schedule buys you both.</b> Module 01 starts at <code>lr = 1.0</code> and ends at
+        <code>0.1</code>: big early steps to travel, small late steps to settle. Turn the checkbox on with a
+        high starting rate and watch the trail tighten as k grows.</li>
+      <li><b>Backward is one rule applied everywhere.</b> In panel 2 every backward step multiplies the
+        gradient arriving from above by a local derivative: <code>×1</code> for a sum (it just routes),
+        <code>×(the other input)</code> for a product, <code>×(1 − o²)</code> for tanh. That is why
+        <code>w2.grad = 0</code> — its partner <code>x2</code> is 0, so nothing the weight does matters here.</li>
+      <li><b>Reverse topological order is not optional.</b> Step through backward and watch
+        <code>x1w1+x2w2</code> receive its gradient <em>before</em> it passes anything to <code>x1·w1</code>.
+        Visit a node early and you would hand on an incomplete sum.</li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  <p class="paths">module → <a href="../modules/01-autograd/README.md">../modules/01-autograd/README.md</a>
+    · engine → <a href="../modules/01-autograd/python/src/micrograd/engine.py">../modules/01-autograd/python/src/micrograd/engine.py</a></p>
+  <p>Next in the course: Hugging Face LLM Course, Chapter 1 —
+    <a href="https://huggingface.co/learn/llm-course/chapter1">huggingface.co/learn/llm-course/chapter1</a></p>
+</footer>
+
+<script>
+"use strict";
+/* ═════════════════════════ PURE LOGIC START ═════════════════════════
+   Everything between these markers is dependency-free and is executed
+   under `node` by the explorables verification script (no DOM access).
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* --- deterministic RNG (mulberry32) — unused by panel 1/2 maths but kept
+   here so every explorable shares one seeded generator. ---------------- */
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), 1 | t);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* --- viridis colormap, 17 control points sampled from matplotlib ------- */
+const VIRIDIS = [[68,1,84],[72,24,106],[71,45,123],[66,64,134],[59,82,139],[51,99,141],
+  [44,114,142],[38,130,142],[33,145,140],[31,160,136],[40,174,128],[63,188,115],
+  [94,201,98],[132,212,75],[173,220,48],[216,226,25],[253,231,37]];
+function viridis(t) {
+  const u = Math.min(1, Math.max(0, t)) * (VIRIDIS.length - 1);
+  const i = Math.min(VIRIDIS.length - 2, Math.floor(u)), f = u - i;
+  const a = VIRIDIS[i], b = VIRIDIS[i + 1];
+  return [Math.round(a[0] + (b[0] - a[0]) * f),
+          Math.round(a[1] + (b[1] - a[1]) * f),
+          Math.round(a[2] + (b[2] - a[2]) * f)];
+}
+
+/* --- the loss surface -------------------------------------------------
+   A synthetic non-convex surface (an analytic function, not module data:
+   module 01's real loss lives in a 337-dimensional space and cannot be
+   drawn as a contour map — its real 1-D loss history is inlined further
+   down instead). Three Gaussian wells + a ridge bump inside a quadratic
+   bowl with a quartic rim, tuned so that: lr <= 0.3 converges,
+   lr ~ 0.35-1.2 oscillates without settling, lr >= 1.3 leaves the view
+   and blows up to infinity. ------------------------------------------ */
+const SURF = {
+  a2: 0.08, a4: 0.030, view: 2.7, escape: 3.1,
+  wells: [
+    { c: -1.50, px:  1.35, py:  1.15, s: 0.42 },
+    { c: -1.15, px: -1.55, py: -0.65, s: 0.40 },
+    { c: -0.90, px:  0.25, py: -1.70, s: 0.36 },
+    { c:  0.60, px: -0.30, py:  0.50, s: 0.90 }
+  ],
+  fmin: -1.10, fmax: 4.36,
+  minima: [
+    { x:  1.296, y:  1.106, f: -1.097, kind: "global min" },
+    { x: -1.457, y: -0.641, f: -0.750, kind: "local min" },
+    { x:  0.242, y: -1.555, f: -0.471, kind: "local min" }
+  ],
+  start: { x: -2.05, y: 1.95 }
+};
+function surfaceF(x, y) {
+  let v = SURF.a2 * (x * x + y * y) + SURF.a4 * (x * x * x * x + y * y * y * y);
+  for (const w of SURF.wells) {
+    v += w.c * Math.exp(-(((x - w.px) * (x - w.px) + (y - w.py) * (y - w.py)) / w.s));
+  }
+  return v;
+}
+function surfaceGrad(x, y) {
+  let gx = 2 * SURF.a2 * x + 4 * SURF.a4 * x * x * x;
+  let gy = 2 * SURF.a2 * y + 4 * SURF.a4 * y * y * y;
+  for (const w of SURF.wells) {
+    const e = w.c * Math.exp(-(((x - w.px) * (x - w.px) + (y - w.py) * (y - w.py)) / w.s));
+    gx += e * (-2 * (x - w.px) / w.s);
+    gy += e * (-2 * (y - w.py) / w.s);
+  }
+  return [gx, gy];
+}
+/* module 01's schedule, verbatim from scripts/train_moons.py:
+   lr = 1.0 - 0.9 * k / steps   (steps = 100), rescaled by the slider's lr0 */
+function scheduleLR(lr0, k) { return lr0 * (1 - 0.9 * Math.min(k, 99) / 100); }
+
+function newDescent(x, y) {
+  return { x: x, y: y, vx: 0, vy: 0, k: 0, gx: 0, gy: 0, gnorm: NaN,
+           f: surfaceF(x, y), status: "ready", history: [surfaceF(x, y)] };
+}
+/* one SGD(+classical momentum) step, same rule as module 02's src/optim.py */
+function descentStep(s, lr0, momentum, useSchedule) {
+  if (s.status === "diverged") return s;
+  const lr = useSchedule ? scheduleLR(lr0, s.k) : lr0;
+  const g = surfaceGrad(s.x, s.y);
+  s.gx = g[0]; s.gy = g[1];
+  s.gnorm = Math.hypot(g[0], g[1]);
+  s.lrUsed = lr;
+  s.vx = momentum * s.vx - lr * g[0];
+  s.vy = momentum * s.vy - lr * g[1];
+  s.x += s.vx; s.y += s.vy; s.k += 1;
+  s.f = surfaceF(s.x, s.y);
+  s.history.push(s.f);
+  if (s.history.length > 400) s.history.shift();
+  if (!isFinite(s.x) || !isFinite(s.y) || !isFinite(s.f) ||
+      Math.abs(s.x) > 1e6 || Math.abs(s.y) > 1e6) {
+    s.status = "diverged";
+  } else if (Math.abs(s.x) > SURF.escape || Math.abs(s.y) > SURF.escape) {
+    s.status = "off chart";
+  } else if (s.gnorm < 1e-3) {
+    s.status = "converged";
+  } else {
+    const h = s.history;
+    const n = h.length;
+    if (n > 40) {
+      const recent = h.slice(n - 20), older = h.slice(n - 40, n - 20);
+      const mr = recent.reduce((p, c) => p + c, 0) / recent.length;
+      const mo = older.reduce((p, c) => p + c, 0) / older.length;
+      s.status = (mr >= mo - 1e-4 && s.gnorm > 0.15) ? "oscillating" : "descending";
+    } else s.status = "descending";
+  }
+  return s;
+}
+
+/* --- micrograd port: the Value class from
+   modules/01-autograd/python/src/micrograd/engine.py ------------------- */
+function Val(data, children, op, label) {
+  return { data: data, grad: 0, prev: children || [], op: op || "",
+           label: label || "", back: null };
+}
+function vAdd(a, b, label) {
+  const out = Val(a.data + b.data, [a, b], "+", label);
+  out.back = function () { a.grad += 1 * out.grad; b.grad += 1 * out.grad; };
+  return out;
+}
+function vMul(a, b, label) {
+  const out = Val(a.data * b.data, [a, b], "*", label);
+  out.back = function () { a.grad += b.data * out.grad; b.grad += a.data * out.grad; };
+  return out;
+}
+function vTanh(a, label) {
+  const t = Math.tanh(a.data);
+  const out = Val(t, [a], "tanh", label);
+  out.back = function () { a.grad += (1 - t * t) * out.grad; };
+  return out;
+}
+function vBackward(root) {
+  const topo = [], seen = new Set();
+  (function build(v) {
+    if (seen.has(v)) return;
+    seen.add(v);
+    for (const c of v.prev) build(c);
+    topo.push(v);
+  })(root);
+  root.grad = 1;
+  for (let i = topo.length - 1; i >= 0; i--) if (topo[i].back) topo[i].back();
+  return topo;
+}
+/* the module's example expression: o = tanh(x1*w1 + x2*w2 + b) */
+function neuronGraph(x1v, w1v, x2v, w2v, bv) {
+  const x1 = Val(x1v, [], "", "x1"), w1 = Val(w1v, [], "", "w1");
+  const x2 = Val(x2v, [], "", "x2"), w2 = Val(w2v, [], "", "w2");
+  const b = Val(bv, [], "", "b");
+  const x1w1 = vMul(x1, w1, "x1*w1");
+  const x2w2 = vMul(x2, w2, "x2*w2");
+  const sum = vAdd(x1w1, x2w2, "x1w1+x2w2");
+  const n = vAdd(sum, b, "n");
+  const o = vTanh(n, "o = tanh(n)");
+  vBackward(o);
+  return { x1: x1, w1: w1, x2: x2, w2: w2, b: b, x1w1: x1w1, x2w2: x2w2,
+           sum: sum, n: n, o: o };
+}
+
+/* --- real data inlined from the course ------------------------------- */
+/* modules/01-autograd — scripts/train_moons.py, re-run verbatim (seed 1337):
+   per-step total loss (max-margin + 1e-4 L2) and accuracy, 100 steps.     */
+const M01_LOSS = [0.8047,1.0194,0.5968,0.4089,0.5032,0.4602,0.5713,0.3204,0.3229,0.3329,0.4799,0.3072,0.3337,0.3212,0.4224,0.2731,0.3190,0.2789,0.3393,0.2520,0.2842,0.2470,0.3021,0.2215,0.2177,0.1772,0.2024,0.1536,0.1660,0.1416,0.1744,0.1740,0.2244,0.1415,0.1181,0.0818,0.0890,0.0869,0.1301,0.0934,0.1010,0.0516,0.0675,0.0805,0.1808,0.0700,0.0581,0.0492,0.0497,0.0711,0.0347,0.0376,0.0439,0.0818,0.0377,0.0378,0.0585,0.0284,0.0272,0.0338,0.0543,0.0299,0.0247,0.0304,0.0422,0.0215,0.0215,0.0393,0.0518,0.0275,0.0248,0.0395,0.0242,0.0227,0.0372,0.0221,0.0222,0.0337,0.0206,0.0172,0.0221,0.0177,0.0229,0.0165,0.0180,0.0174,0.0206,0.0162,0.0185,0.0186,0.0152,0.0152,0.0160,0.0169,0.0155,0.0155,0.0159,0.0150,0.0154,0.0151];
+const M01_ACC = [0.76,0.81,0.85,0.85,0.84,0.82,0.83,0.88,0.86,0.86,0.84,0.89,0.87,0.85,0.85,0.90,0.88,0.87,0.88,0.89,0.89,0.90,0.89,0.91,0.92,0.92,0.92,0.94,0.95,0.96,0.94,0.95,0.92,0.96,0.95,0.99,0.96,1.00,0.95,0.99,0.96,0.99,0.97,1.00,0.95,0.98,1.00,0.98,1.00,0.97,1.00,0.99,1.00,0.97,0.99,1.00,0.97,1.00,1.00,1.00,0.98,1.00,1.00,1.00,0.98,1.00,1.00,1.00,0.98,1.00,1.00,0.99,1.00,1.00,0.99,1.00,1.00,0.99,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00];
+
+/* --- the 12-step forward/backward script for panel 2 ------------------ */
+function fmt(v, d) {
+  if (!isFinite(v)) return String(v);
+  const s = (v < 0 ? "−" : "+") + Math.abs(v).toFixed(d === undefined ? 4 : d);
+  return s;
+}
+function graphSteps(G) {
+  const o = G.o.data, n = G.n.data;
+  return [
+    { phase: "start", title: "step 0 / 11 · start",
+      text: "Only the leaves are known. Press ▶ to run the forward pass.",
+      data: ["x1", "w1", "x2", "w2", "b"], grad: [], hi: ["x1", "w1", "x2", "w2", "b"], edges: [] },
+    { phase: "fwd", title: "step 1 / 11 · forward",
+      text: "x1*w1 = " + fmt(G.x1.data, 2) + " × " + fmt(G.w1.data, 2) + " = " + fmt(G.x1w1.data),
+      data: ["x1w1"], grad: [], hi: ["x1w1"], edges: [["x1", "x1w1"], ["w1", "x1w1"]] },
+    { phase: "fwd", title: "step 2 / 11 · forward",
+      text: "x2*w2 = " + fmt(G.x2.data, 2) + " × " + fmt(G.w2.data, 2) + " = " + fmt(G.x2w2.data),
+      data: ["x2w2"], grad: [], hi: ["x2w2"], edges: [["x2", "x2w2"], ["w2", "x2w2"]] },
+    { phase: "fwd", title: "step 3 / 11 · forward",
+      text: "x1w1+x2w2 = " + fmt(G.x1w1.data) + " " + (G.x2w2.data < 0 ? "−" : "+") + " " +
+            Math.abs(G.x2w2.data).toFixed(4) + " = " + fmt(G.sum.data),
+      data: ["sum"], grad: [], hi: ["sum"], edges: [["x1w1", "sum"], ["x2w2", "sum"]] },
+    { phase: "fwd", title: "step 4 / 11 · forward",
+      text: "n = (x1w1+x2w2) + b = " + fmt(G.sum.data) + " " + (G.b.data < 0 ? "−" : "+") + " " +
+            Math.abs(G.b.data).toFixed(4) + " = " + fmt(G.n.data),
+      data: ["n"], grad: [], hi: ["n"], edges: [["sum", "n"], ["b", "n"]] },
+    { phase: "fwd", title: "step 5 / 11 · forward",
+      text: "o = tanh(n) = tanh(" + fmt(n) + ") = " + fmt(o) + "   ← forward pass done",
+      data: ["o"], grad: [], hi: ["o"], edges: [["n", "o"]] },
+    { phase: "bwd", title: "step 6 / 11 · backward · seed",
+      text: "o.grad = ∂o/∂o = +1.0000   (the seed of the whole backward pass)",
+      data: [], grad: ["o"], hi: ["o"], edges: [] },
+    { phase: "bwd", title: "step 7 / 11 · backward · tanh",
+      text: "n.grad += (1 − o²)·o.grad = (1 − " + Math.abs(o).toFixed(4) + "²)·1 = " + fmt(G.n.grad),
+      data: [], grad: ["n"], hi: ["n"], edges: [["n", "o"]] },
+    { phase: "bwd", title: "step 8 / 11 · backward · sum",
+      text: "a + b routes the gradient unchanged: sum.grad += 1·n.grad = " + fmt(G.sum.grad) +
+            ",  b.grad += 1·n.grad = " + fmt(G.b.grad),
+      data: [], grad: ["sum", "b"], hi: ["sum", "b"], edges: [["sum", "n"], ["b", "n"]] },
+    { phase: "bwd", title: "step 9 / 11 · backward · sum",
+      text: "again ×1 each: x1w1.grad = " + fmt(G.x1w1.grad) + ",  x2w2.grad = " + fmt(G.x2w2.grad),
+      data: [], grad: ["x1w1", "x2w2"], hi: ["x1w1", "x2w2"],
+      edges: [["x1w1", "sum"], ["x2w2", "sum"]] },
+    { phase: "bwd", title: "step 10 / 11 · backward · product",
+      text: "product rule: x1.grad += w1·" + Math.abs(G.x1w1.grad).toFixed(4) + " = " + fmt(G.x1.grad) +
+            ",  w1.grad += x1·" + Math.abs(G.x1w1.grad).toFixed(4) + " = " + fmt(G.w1.grad),
+      data: [], grad: ["x1", "w1"], hi: ["x1", "w1"], edges: [["x1", "x1w1"], ["w1", "x1w1"]] },
+    { phase: "bwd", title: "step 11 / 11 · backward · product",
+      text: "x2.grad += w2·" + Math.abs(G.x2w2.grad).toFixed(4) + " = " + fmt(G.x2.grad) +
+            ",  w2.grad += x2·" + Math.abs(G.x2w2.grad).toFixed(4) + " = " + fmt(G.w2.grad) +
+            "   ← every leaf now has ∂o/∂leaf",
+      data: [], grad: ["x2", "w2"], hi: ["x2", "w2"], edges: [["x2", "x2w2"], ["w2", "x2w2"]] }
+  ];
+}
+
+/* export for the node-based verification harness */
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { mulberry32, viridis, SURF, surfaceF, surfaceGrad, scheduleLR,
+                     newDescent, descentStep, neuronGraph, graphSteps, M01_LOSS, M01_ACC };
+}
+/* ══════════════════════════ PURE LOGIC END ══════════════════════════ */
+
+/* ═════════════════════════ DOM / rendering ═════════════════════════ */
+(function () {
+  if (typeof document === "undefined") return;   // running under node
+  const $ = function (id) { return document.getElementById(id); };
+  const css = function (name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  };
+  let THEME = {};
+  function readTheme() {
+    THEME = { ink: css("--ink"), muted: css("--muted"), accent: css("--accent"),
+              line: css("--line"), panel: css("--panel"), warn: css("--warn"),
+              track: css("--track") };
+  }
+  readTheme();
+  const dark = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+
+  function fitCanvas(cv, cssH) {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = cv.clientWidth || cv.width;
+    cv.style.height = cssH + "px";
+    cv.width = Math.max(1, Math.round(w * dpr));
+    cv.height = Math.max(1, Math.round(cssH * dpr));
+    const ctx = cv.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx: ctx, w: w, h: cssH };
+  }
+
+  /* ───────────────── PANEL 1 ───────────────── */
+  const fieldCv = $("field"), lossCv = $("losschart");
+  let fieldBmp = null, fieldSize = 0;
+  const FIELD_N = 300;
+  let A = {
+    lr0: 0.08, mu: 0, sps: 12, sched: false, playing: false,
+    s: newDescent(SURF.start.x, SURF.start.y), acc: 0, last: 0
+  };
+
+  function buildFieldBitmap() {
+    const off = document.createElement("canvas");
+    off.width = FIELD_N; off.height = FIELD_N;
+    const octx = off.getContext("2d");
+    const img = octx.createImageData(FIELD_N, FIELD_N);
+    const V = SURF.view, BANDS = 15;
+    for (let j = 0; j < FIELD_N; j++) {
+      const y = V - 2 * V * (j / (FIELD_N - 1));
+      for (let i = 0; i < FIELD_N; i++) {
+        const x = -V + 2 * V * (i / (FIELD_N - 1));
+        let u = (surfaceF(x, y) - SURF.fmin) / (SURF.fmax - SURF.fmin);
+        u = Math.pow(Math.min(1, Math.max(0, u)), 0.55);
+        const band = Math.round(u * BANDS) / BANDS;      // banded => visible contours
+        const c = viridis(band);
+        const p = 4 * (j * FIELD_N + i);
+        img.data[p] = c[0]; img.data[p + 1] = c[1]; img.data[p + 2] = c[2]; img.data[p + 3] = 255;
+      }
+    }
+    octx.putImageData(img, 0, 0);
+    fieldBmp = off;
+  }
+
+  function dataToPx(x, y, w, h) {
+    const V = SURF.view;
+    return [(x + V) / (2 * V) * w, (V - y) / (2 * V) * h];
+  }
+  function pxToData(px, py, w, h) {
+    const V = SURF.view;
+    return [px / w * 2 * V - V, V - py / h * 2 * V];
+  }
+
+  function drawField() {
+    const size = Math.min(fieldCv.clientWidth || 420, 460);
+    const g = fitCanvas(fieldCv, size);
+    const ctx = g.ctx, w = g.w, h = g.h;
+    if (!fieldBmp) buildFieldBitmap();
+    ctx.clearRect(0, 0, w, h);
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(fieldBmp, 0, 0, w, h);
+
+    /* axes ticks */
+    ctx.font = '11px ' + '"SF Mono", ui-monospace, Menlo, monospace';
+    ctx.fillStyle = "rgba(255,255,255,.75)";
+    ctx.strokeStyle = "rgba(255,255,255,.35)";
+    ctx.lineWidth = 1;
+    for (let t = -2; t <= 2; t++) {
+      const p = dataToPx(t, -SURF.view, w, h);
+      ctx.beginPath(); ctx.moveTo(p[0], h); ctx.lineTo(p[0], h - 6); ctx.stroke();
+      if (t !== 0) ctx.fillText(String(t), p[0] - 4, h - 9);
+      const q = dataToPx(-SURF.view, t, w, h);
+      ctx.beginPath(); ctx.moveTo(0, q[1]); ctx.lineTo(6, q[1]); ctx.stroke();
+      if (t !== 0) ctx.fillText(String(t), 9, q[1] + 4);
+    }
+    ctx.fillText("θ₁ →", w - 38, h - 9);
+    ctx.save(); ctx.translate(12, 40); ctx.rotate(-Math.PI / 2); ctx.fillText("θ₂ →", 0, 0); ctx.restore();
+
+    /* minima */
+    SURF.minima.forEach(function (m) {
+      const p = dataToPx(m.x, m.y, w, h);
+      ctx.strokeStyle = "rgba(255,255,255,.9)"; ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(p[0] - 5, p[1] - 5); ctx.lineTo(p[0] + 5, p[1] + 5);
+      ctx.moveTo(p[0] + 5, p[1] - 5); ctx.lineTo(p[0] - 5, p[1] + 5);
+      ctx.stroke();
+      ctx.fillStyle = "rgba(255,255,255,.9)";
+      const lab = m.kind + " " + m.f.toFixed(3);
+      const tw = ctx.measureText(lab).width;
+      let tx = p[0] + 9;
+      if (tx + tw > w - 4) tx = p[0] - 9 - tw;
+      ctx.fillText(lab, tx, p[1] + 4);
+    });
+
+    /* trail */
+    const tr = A.s.trail || [];
+    if (tr.length > 1) {
+      ctx.lineWidth = 1.8;
+      for (let i = 1; i < tr.length; i++) {
+        const p0 = dataToPx(tr[i - 1][0], tr[i - 1][1], w, h);
+        const p1 = dataToPx(tr[i][0], tr[i][1], w, h);
+        const a = 0.25 + 0.75 * (i / tr.length);
+        ctx.strokeStyle = "rgba(255,255,255," + a.toFixed(3) + ")";
+        ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.lineTo(p1[0], p1[1]); ctx.stroke();
+      }
+    }
+    /* ball + negative gradient arrow */
+    if (isFinite(A.s.x) && isFinite(A.s.y)) {
+      const p = dataToPx(A.s.x, A.s.y, w, h);
+      if (isFinite(A.s.gnorm) && A.s.gnorm > 1e-4) {
+        const sc = Math.min(0.9, 0.35 + 0.2 * A.s.gnorm) / Math.max(A.s.gnorm, 1e-6);
+        const q = dataToPx(A.s.x - A.s.gx * sc, A.s.y - A.s.gy * sc, w, h);
+        ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke();
+        const ang = Math.atan2(q[1] - p[1], q[0] - p[0]);
+        ctx.beginPath();
+        ctx.moveTo(q[0], q[1]);
+        ctx.lineTo(q[0] - 7 * Math.cos(ang - 0.4), q[1] - 7 * Math.sin(ang - 0.4));
+        ctx.lineTo(q[0] - 7 * Math.cos(ang + 0.4), q[1] - 7 * Math.sin(ang + 0.4));
+        ctx.closePath(); ctx.fillStyle = "#ffffff"; ctx.fill();
+      }
+      ctx.beginPath(); ctx.arc(p[0], p[1], 6.5, 0, 6.2832);
+      ctx.fillStyle = "#ff7a3d"; ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = "#ffffff"; ctx.stroke();
+    }
+    if (A.s.status === "diverged" || A.s.status === "off chart") {
+      const msg = A.s.status === "diverged"
+        ? "DIVERGED — loss ran away to infinity"
+        : "off the chart — step size beats the basin";
+      ctx.font = '600 13px "Avenir Next", "Helvetica Neue", sans-serif';
+      const tw = ctx.measureText(msg).width;
+      ctx.fillStyle = "rgba(193,18,31,.92)";
+      ctx.fillRect((w - tw) / 2 - 10, 10, tw + 20, 24);
+      ctx.fillStyle = "#fff";
+      ctx.fillText(msg, (w - tw) / 2, 26);
+    }
+  }
+
+  function drawLossChart() {
+    const g = fitCanvas(lossCv, 110);
+    const ctx = g.ctx, w = g.w, h = g.h;
+    ctx.clearRect(0, 0, w, h);
+    const pad = { l: 44, r: 8, t: 12, b: 20 };
+    const hist = A.s.history.filter(function (v) { return isFinite(v); });
+    ctx.strokeStyle = THEME.line; ctx.lineWidth = 1;
+    ctx.strokeRect(pad.l, pad.t, w - pad.l - pad.r, h - pad.t - pad.b);
+    ctx.font = '10px "SF Mono", ui-monospace, Menlo, monospace';
+    ctx.fillStyle = THEME.muted;
+    ctx.fillText("f(θ)", 6, pad.t + 9);
+    ctx.fillText("step", w / 2 - 12, h - 6);
+    if (hist.length < 2) return;
+    let lo = Math.min.apply(null, hist), hi = Math.max.apply(null, hist);
+    if (hi - lo < 1e-6) { hi = lo + 1; }
+    const n = A.s.history.length;
+    const X = function (i) { return pad.l + (w - pad.l - pad.r) * (n < 2 ? 0 : i / (n - 1)); };
+    const Y = function (v) { return pad.t + (h - pad.t - pad.b) * (1 - (v - lo) / (hi - lo)); };
+    ctx.fillText(hi.toFixed(2), 6, pad.t + 20);
+    ctx.fillText(lo.toFixed(2), 6, h - pad.b - 2);
+    ctx.beginPath();
+    let started = false;
+    for (let i = 0; i < n; i++) {
+      const v = A.s.history[i];
+      if (!isFinite(v)) { started = false; continue; }
+      if (!started) { ctx.moveTo(X(i), Y(v)); started = true; }
+      else ctx.lineTo(X(i), Y(v));
+    }
+    ctx.strokeStyle = THEME.accent; ctx.lineWidth = 1.8; ctx.stroke();
+  }
+
+  function updateReadouts() {
+    $("a-k").textContent = String(A.s.k);
+    $("a-xy").textContent = isFinite(A.s.x)
+      ? fmt(A.s.x, 3).replace("+", "+") + ", " + fmt(A.s.y, 3)
+      : "—";
+    $("a-f").textContent = isFinite(A.s.f) ? fmt(A.s.f) : "∞";
+    $("a-g").textContent = isFinite(A.s.gnorm) ? A.s.gnorm.toFixed(4) : "—";
+    $("a-lru").textContent = (A.s.lrUsed === undefined
+      ? (A.sched ? scheduleLR(A.lr0, 0) : A.lr0) : A.s.lrUsed).toFixed(3);
+    const st = $("a-status");
+    st.textContent = A.s.status;
+    st.className = "status " + ((A.s.status === "diverged" || A.s.status === "off chart" ||
+      A.s.status === "oscillating") ? "warn" : "ok");
+  }
+
+  function resetDescent(x, y) {
+    A.s = newDescent(x === undefined ? SURF.start.x : x, y === undefined ? SURF.start.y : y);
+    A.s.trail = [[A.s.x, A.s.y]];
+    const g0 = surfaceGrad(A.s.x, A.s.y);
+    A.s.gx = g0[0]; A.s.gy = g0[1]; A.s.gnorm = Math.hypot(g0[0], g0[1]);
+    A.acc = 0;
+    drawField(); drawLossChart(); updateReadouts();
+  }
+
+  function stepDescent() {
+    descentStep(A.s, A.lr0, A.mu, A.sched);
+    if (!A.s.trail) A.s.trail = [];
+    if (isFinite(A.s.x) && isFinite(A.s.y)) {
+      A.s.trail.push([Math.max(-9, Math.min(9, A.s.x)), Math.max(-9, Math.min(9, A.s.y))]);
+      if (A.s.trail.length > 260) A.s.trail.shift();
+    }
+    /* stop the loop once there is nothing left to animate */
+    if (A.s.status === "diverged" || A.s.status === "converged") setPlayA(false);
+  }
+
+  function setPlayA(on) {
+    A.playing = on;
+    $("a-play").textContent = on ? "❚❚ Pause" : "▶ Play";
+    if (on) A.last = performance.now();
+  }
+
+  /* ───────────────── PANEL 2 ───────────────── */
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  const NODES = {
+    x1:   { x: 15,  y: 20,  t: "x1" },
+    w1:   { x: 15,  y: 92,  t: "w1" },
+    x2:   { x: 15,  y: 190, t: "x2" },
+    w2:   { x: 15,  y: 262, t: "w2" },
+    b:    { x: 15,  y: 380, t: "b" },
+    x1w1: { x: 275, y: 56,  t: "x1·w1", op: "*" },
+    x2w2: { x: 275, y: 226, t: "x2·w2", op: "*" },
+    sum:  { x: 515, y: 141, t: "x1w1+x2w2", op: "+" },
+    n:    { x: 755, y: 230, t: "n", op: "+" },
+    o:    { x: 995, y: 230, t: "o = tanh(n)", op: "tanh" }
+  };
+  const NW = 150, NH = 58;
+  const EDGES = [
+    ["x1", "x1w1", "×w1"], ["w1", "x1w1", "×x1"],
+    ["x2", "x2w2", "×w2"], ["w2", "x2w2", "×x2"],
+    ["x1w1", "sum", "×1"], ["x2w2", "sum", "×1"],
+    ["sum", "n", "×1"], ["b", "n", "×1"],
+    ["n", "o", "×(1−o²)"]
+  ];
+  let B = { i: 0, playing: false, last: 0, G: null, steps: null,
+            vals: { x1: 2, w1: -3, x2: 0, w2: 1, b: 6.8813735870195432 } };
+  const svg = $("graph");
+  const gEls = {};   // id -> {g, rect, data, grad}
+  const eEls = [];   // {path, label, from, to}
+
+  function buildSvg() {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const defs = document.createElementNS(SVG_NS, "defs");
+    const marker = document.createElementNS(SVG_NS, "marker");
+    marker.setAttribute("id", "arw");
+    marker.setAttribute("viewBox", "0 0 10 10");
+    marker.setAttribute("refX", "9");
+    marker.setAttribute("refY", "5");
+    marker.setAttribute("markerWidth", "7");
+    marker.setAttribute("markerHeight", "7");
+    marker.setAttribute("orient", "auto-start-reverse");
+    const mpath = document.createElementNS(SVG_NS, "path");
+    mpath.setAttribute("d", "M0,0 L10,5 L0,10 z");
+    mpath.setAttribute("fill", "currentColor");
+    marker.appendChild(mpath);
+    defs.appendChild(marker);
+    svg.appendChild(defs);
+
+    EDGES.forEach(function (e) {
+      const a = NODES[e[0]], b = NODES[e[1]];
+      const x1 = a.x + NW, y1 = a.y + NH / 2, x2 = b.x, y2 = b.y + NH / 2;
+      const mx = (x1 + x2) / 2;
+      const p = document.createElementNS(SVG_NS, "path");
+      p.setAttribute("d", "M" + x1 + "," + y1 + " C" + mx + "," + y1 + " " + mx + "," + y2 + " " + x2 + "," + y2);
+      p.setAttribute("fill", "none");
+      p.setAttribute("stroke-width", "1.6");
+      p.setAttribute("marker-end", "url(#arw)");
+      svg.appendChild(p);
+      const t = document.createElementNS(SVG_NS, "text");
+      t.setAttribute("class", "op");
+      t.setAttribute("x", String(mx - 6));
+      t.setAttribute("y", String((y1 + y2) / 2 - 6));
+      t.setAttribute("text-anchor", "middle");
+      t.textContent = e[2];
+      svg.appendChild(t);
+      eEls.push({ path: p, label: t, from: e[0], to: e[1] });
+    });
+
+    Object.keys(NODES).forEach(function (id) {
+      const nd = NODES[id];
+      const g = document.createElementNS(SVG_NS, "g");
+      const r = document.createElementNS(SVG_NS, "rect");
+      r.setAttribute("x", String(nd.x)); r.setAttribute("y", String(nd.y));
+      r.setAttribute("width", String(NW)); r.setAttribute("height", String(NH));
+      r.setAttribute("rx", "10"); r.setAttribute("stroke-width", "1.4");
+      g.appendChild(r);
+      const lab = document.createElementNS(SVG_NS, "text");
+      lab.setAttribute("class", "lbl");
+      lab.setAttribute("x", String(nd.x + 10)); lab.setAttribute("y", String(nd.y + 19));
+      lab.textContent = nd.t + (nd.op ? "  " + nd.op : "");
+      g.appendChild(lab);
+      const dv = document.createElementNS(SVG_NS, "text");
+      dv.setAttribute("x", String(nd.x + 10)); dv.setAttribute("y", String(nd.y + 38));
+      g.appendChild(dv);
+      const gv = document.createElementNS(SVG_NS, "text");
+      gv.setAttribute("x", String(nd.x + 10)); gv.setAttribute("y", String(nd.y + 53));
+      g.appendChild(gv);
+      svg.appendChild(g);
+      gEls[id] = { g: g, rect: r, data: dv, grad: gv };
+    });
+  }
+
+  function rebuildGraph() {
+    B.G = neuronGraph(B.vals.x1, B.vals.w1, B.vals.x2, B.vals.w2, B.vals.b);
+    B.steps = graphSteps(B.G);
+    renderGraph();
+  }
+
+  function renderGraph() {
+    const upto = B.i;
+    const shownData = {}, shownGrad = {}, hi = {}, hiEdge = {};
+    for (let s = 0; s <= upto; s++) {
+      B.steps[s].data.forEach(function (id) { shownData[id] = true; });
+      B.steps[s].grad.forEach(function (id) { shownGrad[id] = true; });
+    }
+    B.steps[upto].hi.forEach(function (id) { hi[id] = true; });
+    B.steps[upto].edges.forEach(function (e) { hiEdge[e[0] + ">" + e[1]] = true; });
+    const phase = B.steps[upto].phase;
+
+    Object.keys(NODES).forEach(function (id) {
+      const el = gEls[id], v = B.G[id];
+      el.rect.setAttribute("fill", hi[id] ? (phase === "bwd" ? "rgba(193,18,31,.10)" : "rgba(31,145,141,.12)") : THEME.panel);
+      el.rect.setAttribute("stroke", hi[id] ? (phase === "bwd" ? THEME.warn : THEME.accent) : THEME.line);
+      el.data.setAttribute("fill", THEME.accent);
+      el.grad.setAttribute("fill", THEME.warn);
+      el.data.textContent = shownData[id] ? "data " + fmt(v.data) : "data  ·";
+      el.grad.textContent = shownGrad[id] ? "grad " + fmt(v.grad) : "grad  ·";
+      el.data.setAttribute("opacity", shownData[id] ? "1" : ".35");
+      el.grad.setAttribute("opacity", shownGrad[id] ? "1" : ".28");
+    });
+    eEls.forEach(function (e) {
+      const on = hiEdge[e.from + ">" + e.to];
+      e.path.setAttribute("stroke", on ? (phase === "bwd" ? THEME.warn : THEME.accent) : THEME.line);
+      e.path.setAttribute("stroke-width", on ? "2.6" : "1.4");
+      e.path.setAttribute("color", on ? (phase === "bwd" ? THEME.warn : THEME.accent) : THEME.line);
+      e.path.setAttribute("stroke-dasharray", phase === "bwd" && on ? "6 4" : "none");
+      e.label.setAttribute("opacity", on && phase === "bwd" ? "1" : (phase === "bwd" ? ".5" : ".28"));
+      e.label.setAttribute("fill", on && phase === "bwd" ? THEME.warn : THEME.muted);
+    });
+    const st = B.steps[upto];
+    $("b-narr").innerHTML = '<span class="step"></span>';
+    $("b-narr").firstChild.textContent = st.title;
+    $("b-narr").appendChild(document.createTextNode(st.text));
+  }
+
+  function setPlayB(on) {
+    B.playing = on;
+    $("b-play").textContent = on ? "❚❚ Pause" : "▶ Play";
+    if (on) B.last = performance.now();
+  }
+
+  /* ───────────────── real-run sparkline ───────────────── */
+  function drawRealChart() {
+    const cv = $("realchart");
+    const g = fitCanvas(cv, 150);
+    const ctx = g.ctx, w = g.w, h = g.h;
+    ctx.clearRect(0, 0, w, h);
+    const pad = { l: 40, r: 40, t: 14, b: 24 };
+    const iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+    ctx.strokeStyle = THEME.line; ctx.lineWidth = 1;
+    ctx.strokeRect(pad.l, pad.t, iw, ih);
+    ctx.font = '10px "SF Mono", ui-monospace, Menlo, monospace';
+    const lmax = 1.05, lmin = 0;
+    const X = function (i) { return pad.l + iw * i / (M01_LOSS.length - 1); };
+    const YL = function (v) { return pad.t + ih * (1 - (v - lmin) / (lmax - lmin)); };
+    const YA = function (v) { return pad.t + ih * (1 - (v - 0.7) / 0.32); };
+    /* accuracy (right axis, 70..102%) */
+    ctx.beginPath();
+    M01_ACC.forEach(function (v, i) { i ? ctx.lineTo(X(i), YA(v)) : ctx.moveTo(X(i), YA(v)); });
+    ctx.strokeStyle = THEME.track; ctx.lineWidth = 1.4; ctx.setLineDash([4, 3]); ctx.stroke();
+    ctx.setLineDash([]);
+    /* loss (left axis) */
+    ctx.beginPath();
+    M01_LOSS.forEach(function (v, i) { i ? ctx.lineTo(X(i), YL(v)) : ctx.moveTo(X(i), YL(v)); });
+    ctx.strokeStyle = THEME.warn; ctx.lineWidth = 1.9; ctx.stroke();
+    ctx.fillStyle = THEME.warn; ctx.fillText("loss", 6, pad.t + 10);
+    ctx.fillText("1.00", 6, YL(1.0) + 10);
+    ctx.fillText("0.00", 6, YL(0) - 2);
+    ctx.fillStyle = THEME.track;
+    ctx.fillText("acc", w - pad.r + 6, pad.t + 10);
+    ctx.fillText("100%", w - pad.r + 6, YA(1.0) + 4);
+    ctx.fillText("70%", w - pad.r + 6, YA(0.7) + 4);
+    ctx.fillStyle = THEME.muted;
+    ctx.fillText("step 0", pad.l, h - 8);
+    ctx.fillText("99", w - pad.r - 14, h - 8);
+  }
+
+  /* ───────────────── wiring ───────────────── */
+  function bindRange(id, fmtFn, onChange) {
+    const el = $(id), out = $(id + "-v");
+    function apply() { out.textContent = fmtFn(parseFloat(el.value)); onChange(parseFloat(el.value)); }
+    el.addEventListener("input", apply);
+    apply();
+  }
+
+  bindRange("a-lr", function (v) { return Math.pow(10, v).toFixed(3); },
+    function (v) { A.lr0 = Math.pow(10, v); updateReadouts(); });
+  bindRange("a-mu", function (v) { return v.toFixed(2); }, function (v) { A.mu = v; });
+  bindRange("a-sp", function (v) { return String(v); }, function (v) { A.sps = v; });
+  $("a-sched").addEventListener("change", function (e) {
+    A.sched = e.target.checked; updateReadouts();
+  });
+  $("a-play").addEventListener("click", function () { setPlayA(!A.playing); });
+  $("a-step").addEventListener("click", function () {
+    setPlayA(false); stepDescent(); drawField(); drawLossChart(); updateReadouts();
+  });
+  $("a-reset").addEventListener("click", function () { setPlayA(false); resetDescent(); });
+
+  let dragging = false;
+  function dropBall(ev) {
+    const r = fieldCv.getBoundingClientRect();
+    const px = (ev.touches ? ev.touches[0].clientX : ev.clientX) - r.left;
+    const py = (ev.touches ? ev.touches[0].clientY : ev.clientY) - r.top;
+    const d = pxToData(px, py, r.width, r.height);
+    resetDescent(Math.max(-SURF.view, Math.min(SURF.view, d[0])),
+                 Math.max(-SURF.view, Math.min(SURF.view, d[1])));
+  }
+  fieldCv.addEventListener("pointerdown", function (e) {
+    dragging = true; setPlayA(false); dropBall(e); e.preventDefault();
+  });
+  fieldCv.addEventListener("pointermove", function (e) { if (dragging) dropBall(e); });
+  window.addEventListener("pointerup", function () { dragging = false; });
+
+  ["x1", "w1", "x2", "w2", "b"].forEach(function (k) {
+    const el = $("g-" + k), out = $("g-" + k + "-v");
+    out.textContent = fmt(B.vals[k], k === "b" ? 4 : 2);
+    el.addEventListener("input", function () {
+      B.vals[k] = parseFloat(el.value);
+      out.textContent = fmt(B.vals[k], k === "b" ? 4 : 2);
+      rebuildGraph();
+    });
+  });
+  $("b-module").addEventListener("click", function () {
+    B.vals = { x1: 2, w1: -3, x2: 0, w2: 1, b: 6.8813735870195432 };
+    ["x1", "w1", "x2", "w2", "b"].forEach(function (k) {
+      $("g-" + k).value = String(B.vals[k]);
+      $("g-" + k + "-v").textContent = fmt(B.vals[k], k === "b" ? 4 : 2);
+    });
+    B.i = 0; rebuildGraph();
+  });
+  $("b-play").addEventListener("click", function () { setPlayB(!B.playing); });
+  $("b-next").addEventListener("click", function () {
+    setPlayB(false); B.i = Math.min(B.steps.length - 1, B.i + 1); renderGraph();
+  });
+  $("b-prev").addEventListener("click", function () {
+    setPlayB(false); B.i = Math.max(0, B.i - 1); renderGraph();
+  });
+  $("b-reset").addEventListener("click", function () { setPlayB(false); B.i = 0; renderGraph(); });
+
+  /* space = play/pause of the panel you last touched */
+  let focusPanel = "a";
+  document.querySelectorAll(".panel").forEach(function (p, idx) {
+    p.addEventListener("pointerdown", function () { focusPanel = idx === 1 ? "b" : "a"; });
+  });
+  window.addEventListener("keydown", function (e) {
+    if (e.code !== "Space" || /input|select|textarea|button/i.test(e.target.tagName)) return;
+    e.preventDefault();
+    if (focusPanel === "b") setPlayB(!B.playing); else setPlayA(!A.playing);
+  });
+
+  /* pause everything when the tab is hidden */
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) { setPlayA(false); setPlayB(false); }
+  });
+
+  /* theme + resize */
+  function redrawAll() {
+    readTheme(); fieldBmp = null;
+    drawField(); drawLossChart(); drawRealChart(); renderGraph();
+  }
+  let rt = null;
+  window.addEventListener("resize", function () {
+    clearTimeout(rt); rt = setTimeout(redrawAll, 120);
+  });
+  if (dark && dark.addEventListener) dark.addEventListener("change", redrawAll);
+
+  /* main loop */
+  function frame(now) {
+    if (A.playing) {
+      const dt = (now - A.last) / 1000;
+      A.last = now;
+      A.acc += dt * A.sps;
+      let did = 0;
+      while (A.acc >= 1 && did < 200) { stepDescent(); A.acc -= 1; did++; if (!A.playing) break; }
+      if (did) { drawField(); drawLossChart(); updateReadouts(); }
+    }
+    if (B.playing && now - B.last > 1100) {
+      B.last = now;
+      B.i = B.i + 1;
+      if (B.i >= B.steps.length) { B.i = 0; }
+      renderGraph();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  buildSvg();
+  rebuildGraph();
+  resetDescent();
+  drawRealChart();
+  requestAnimationFrame(function (t) { A.last = t; B.last = t; frame(t); });
+})();
+</script>
+<!-- built for ml-course explorables v1 -->
+</html>

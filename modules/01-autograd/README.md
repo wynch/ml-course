@@ -15,6 +15,10 @@ This is a from-scratch reconstruction of Karpathy's
 [micrograd](https://github.com/karpathy/micrograd), extended with a second
 language lane and a graphical-first treatment.
 
+**🕹 Interactive:** [Gradient descent & backprop](../../explorables/01-gradient-descent.html) —
+roll a ball down a loss surface at the learning rate you pick, then step this
+module's computation graph forward and backward in your browser.
+
 ## Goals
 
 By the end you can:

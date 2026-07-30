@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Convolution vs patches — ML course explorable 08</title>
+<style>
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --panel:#ffffff; --panel-2:#eef2f0;
+  --line:#d5ddda; --muted:#5d6b67; --accent:#1f918d;
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d;
+  --track:#3fa34d;
+  --hot:#d2562f; --dim:#b6c2be; --grid:#e3e9e7;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:"SF Mono",ui-monospace,Menlo,Monaco,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --panel-2:#141c1a;
+    --line:#2c3a36; --muted:#9aaba6; --dim:#3a4a45; --grid:#243029;
+    --hot:#f0764a;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:var(--body); font-size:15px; line-height:1.6;
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:1000px;margin:0 auto;padding:0 20px 60px}
+header.top{border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5}
+header.top .inner{
+  max-width:1000px;margin:0 auto;padding:12px 20px;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+h1{font-family:var(--display);font-size:19px;font-weight:600;margin:0;letter-spacing:-0.01em}
+.pill{
+  font-family:var(--display);font-size:11.5px;font-weight:600;
+  letter-spacing:0.04em;text-transform:uppercase;
+  color:#fff;background:var(--track);padding:3px 10px;border-radius:999px;white-space:nowrap;
+}
+.back{margin-left:auto;font-size:13px;color:var(--muted);text-decoration:none;white-space:nowrap}
+.back:hover{color:var(--track)}
+.intro{margin:26px 0 6px;max-width:74ch}
+.intro p{margin:0 0 10px}
+h2{font-family:var(--display);font-size:17px;font-weight:600;margin:34px 0 4px;letter-spacing:-0.01em}
+h2 .num{color:var(--track);font-variant-numeric:tabular-nums;margin-right:8px}
+.lede{color:var(--muted);margin:0 0 14px;max-width:78ch;font-size:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+.stage{display:grid;gap:16px}
+.conv3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+canvas{display:block;width:100%;border-radius:6px}
+.cap{
+  font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:0.03em;
+  text-transform:uppercase;color:var(--muted);margin:0 0 6px;
+}
+.controls{
+  display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;
+  margin-top:14px;padding-top:14px;border-top:1px solid var(--line);
+}
+button{
+  font-family:var(--display);font-size:13px;font-weight:600;color:var(--ink);
+  background:transparent;border:1.5px solid var(--line);border-radius:999px;
+  padding:6px 15px;cursor:pointer;
+}
+button:hover{border-color:var(--track);color:var(--track)}
+button.primary{border-color:var(--track);color:var(--track)}
+button.on{border-color:var(--track);background:var(--track);color:#fff}
+button:focus-visible{outline:2px solid var(--track);outline-offset:2px}
+.kbuttons{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px}
+.kbuttons button{font-size:12px;padding:5px 11px}
+label.ctl{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+label.ctl b{font-family:var(--mono);font-size:12.5px;color:var(--ink);min-width:3.4em;text-align:right}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;height:4px;border-radius:2px;
+  background:var(--line);width:130px;outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+  background:var(--track);cursor:pointer;border:none;
+}
+input[type=range]::-moz-range-thumb{
+  width:14px;height:14px;border-radius:50%;background:var(--track);cursor:pointer;border:none;
+}
+.readout{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:1px;background:var(--line);border:1px solid var(--line);
+  border-radius:8px;overflow:hidden;margin-top:14px;
+}
+.cell{background:var(--panel-2);padding:8px 10px}
+.cell .k{
+  font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);
+  font-family:var(--display);font-weight:600;
+}
+.cell .v{font-family:var(--mono);font-size:15px;font-variant-numeric:tabular-nums;margin-top:2px}
+.cell .v small{font-size:11px;color:var(--muted)}
+.cell.acc .v{color:var(--track)}
+.eq{font-family:var(--mono);font-size:12.5px;color:var(--muted);margin-top:12px;overflow-wrap:anywhere}
+.eq b{color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.bars{margin-top:6px}
+.bar{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:13px}
+.bar .lab{width:170px;flex:none;color:var(--muted)}
+.bar .track2{display:block;flex:1;height:18px;background:var(--panel-2);border-radius:4px;overflow:hidden;border:1px solid var(--line)}
+.bar .fill{display:block;height:100%;border-radius:3px 0 0 3px}
+.bar .num{width:64px;flex:none;text-align:right;font-family:var(--mono);font-weight:600}
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:6px}
+th,td{padding:6px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{
+  font-family:var(--display);font-size:11px;letter-spacing:0.05em;text-transform:uppercase;
+  color:var(--muted);font-weight:600;
+}
+td.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.notice{margin-top:18px}
+.notice ul{margin:6px 0 0;padding-left:20px}
+.notice li{margin:6px 0;max-width:80ch}
+kbd{
+  font-family:var(--mono);font-size:11px;border:1px solid var(--line);border-bottom-width:2px;
+  border-radius:4px;padding:1px 5px;background:var(--panel-2);
+}
+footer.bot{
+  border-top:1px solid var(--line);margin-top:44px;padding-top:16px;font-size:13px;
+  color:var(--muted);display:flex;flex-wrap:wrap;gap:8px 22px;
+}
+footer.bot a{color:var(--track);text-decoration:none}
+footer.bot a:hover{text-decoration:underline}
+footer.bot code{font-family:var(--mono);font-size:12.5px}
+.src{font-size:12px;color:var(--muted);margin-top:10px}
+.src code{font-family:var(--mono);font-size:11.5px}
+@media (max-width:700px){
+  .wrap{padding:0 14px 48px}
+  header.top .inner{padding:10px 14px}
+  h1{font-size:17px}
+  input[type=range]{width:100px}
+  .bar .lab{width:120px}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <h1>Two ways to see an image</h1>
+    <span class="pill">Module 08 · Vision</span>
+    <a class="back" href="index.html">← All explorables</a>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="intro">
+  <p>A convolution assumes structure: features are <b>local</b>, and the same small weight grid
+  slides <b>everywhere</b>. A Vision Transformer assumes almost nothing: it chops the image into
+  patches, calls each one a token, and lets self-attention decide which patches matter.
+  Two inductive biases, one image.</p>
+  <p>The image below is real &mdash; test image 0 of the
+  <code>AI-Lab-Makerere/beans</code> dataset (<i>angular_leaf_spot</i>), the same dataset module 08
+  fine-tunes ViT-tiny on. Watch a kernel slide over it, then watch it become a sequence of tokens.
+  Press <kbd>space</kbd> to play or pause the convolution.</p>
+</div>
+
+<h2><span class="num">1</span>Convolution — a sliding weighted sum</h2>
+<p class="lede">The kernel is a small grid of weights. At each position, multiply it element-wise
+against the pixels underneath and add everything up; that single number is one pixel of the feature
+map. Nothing more. Zero padding at the border keeps the output the same size (<code>same</code>
+padding, as in module 08's <code>conv2d</code>).</p>
+
+<div class="panel">
+  <div class="stage conv3">
+    <div>
+      <p class="cap">source · beans test[0], 48×48 grayscale</p>
+      <canvas id="convSrc" aria-label="Source image with the sliding kernel window"></canvas>
+    </div>
+    <div>
+      <p class="cap">the arithmetic at this position</p>
+      <canvas id="convMath" aria-label="Kernel weights times the patch underneath"></canvas>
+    </div>
+    <div>
+      <p class="cap">feature map (viridis, painting in)</p>
+      <canvas id="convOut" aria-label="Feature map being painted in"></canvas>
+    </div>
+  </div>
+
+  <div class="kbuttons" id="kbtns"></div>
+
+  <div class="readout">
+    <div class="cell"><div class="k">position (row, col)</div><div class="v" id="cPos">—</div></div>
+    <div class="cell"><div class="k">pixels done</div><div class="v" id="cDone">0<small> / 2304</small></div></div>
+    <div class="cell acc"><div class="k">output at this pixel</div><div class="v" id="cVal">—</div></div>
+    <div class="cell"><div class="k">output range</div><div class="v" id="cRange" style="font-size:12.5px">—</div></div>
+    <div class="cell"><div class="k">multiply–adds so far</div><div class="v" id="cMac">0</div></div>
+  </div>
+
+  <p class="eq" id="cEq"></p>
+
+  <div class="controls">
+    <button id="cPlay" class="primary">▶ Play</button>
+    <button id="cStep">Step ›</button>
+    <button id="cFinish">Finish ⏭</button>
+    <button id="cReset">Reset</button>
+    <label class="ctl">speed
+      <input type="range" id="cSpd" min="1" max="60" step="1" value="14">
+      <b id="cSpdv">14</b>
+    </label>
+  </div>
+  <p class="src">Kernels are verbatim from
+  <code>modules/08-vision/python/src/conv.py</code> (<code>KERNELS</code>), including the
+  5×5 σ=1.2 Gaussian. The <b>learned 5×5</b> is not hand-designed: it is filter 0 of
+  <code>conv1.weight</code> from module 08's <code>TinyCNN</code> after
+  <code>train_tiny_cnn()</code> with <code>seed=0</code> (6 epochs on a FashionMNIST subset,
+  79.3% test accuracy). Nobody told it to become a vertical-edge detector.</p>
+</div>
+
+<h2><span class="num">2</span>Patchify — the same image as a sequence of tokens</h2>
+<p class="lede">A ViT has no sliding window and no locality prior. It cuts the image into a grid of
+non-overlapping patches in raster order, flattens each one, projects it linearly to a
+<i>d</i>-dimensional vector, adds a learned position embedding, prepends a <code>[CLS]</code>
+token &mdash; and hands the result to exactly the encoder you built for text in module 05. Drag the
+timeline, or press play.</p>
+
+<div class="panel">
+  <canvas id="vit" aria-label="Image being cut into patches and turned into a token sequence"></canvas>
+  <div class="controls">
+    <button id="vPlay" class="primary">▶ Play</button>
+    <button id="vReset">Reset</button>
+    <label class="ctl">timeline
+      <input type="range" id="vT" min="0" max="1000" step="1" value="1000">
+      <b id="vTv">100%</b>
+    </label>
+    <label class="ctl">patch size
+      <button id="vP8" class="on">8 px</button>
+      <button id="vP16">16 px</button>
+    </label>
+  </div>
+  <div class="readout">
+    <div class="cell"><div class="k">input</div><div class="v" id="vIn" style="font-size:13px">—</div></div>
+    <div class="cell"><div class="k">patch grid</div><div class="v" id="vGrid" style="font-size:13px">—</div></div>
+    <div class="cell"><div class="k">flattened patch</div><div class="v" id="vFlat" style="font-size:13px">—</div></div>
+    <div class="cell"><div class="k">sequence to the encoder</div><div class="v" id="vSeq" style="font-size:13px">—</div></div>
+  </div>
+  <p class="src">This is module 08's <code>patch_sequence()</code> made visible, at 64×64 instead of
+  224×224 so the patches stay big enough to see. The real <b>ViT-tiny</b> the module fine-tunes
+  (<code>WinKawaks/vit-tiny-patch16-224</code>) does the identical thing at scale: 224×224 → a
+  <b>14×14</b> grid of 16×16 patches → 196 flattened 768-vectors → linear → <b>(197, 192)</b> with
+  <code>[CLS]</code>, then 12 encoder layers, 3 heads, MLP 768. 5.7M parameters.</p>
+</div>
+
+<h2><span class="num">3</span>Which bias wins? Module 08's real numbers</h2>
+<p class="lede">Both panels above describe ways of <i>tokenizing</i> pixels. Module 08 then asks an
+honest question on the beans test set (128 images, 3 classes): does a giant generalist pretrain
+replace one minute of task-specific fine-tuning?</p>
+
+<div class="panel">
+  <div class="bars">
+    <div class="bar">
+      <span class="lab">ViT-tiny fine-tuned</span>
+      <span class="track2"><span class="fill" style="width:95.31%;background:var(--track)"></span></span>
+      <span class="num" style="color:var(--track)">95.31%</span>
+    </div>
+    <div class="bar">
+      <span class="lab">CLIP zero-shot</span>
+      <span class="track2"><span class="fill" style="width:43.75%;background:var(--hot)"></span></span>
+      <span class="num" style="color:var(--hot)">43.75%</span>
+    </div>
+    <div class="bar">
+      <span class="lab">chance (3 classes)</span>
+      <span class="track2"><span class="fill" style="width:33.33%;background:var(--dim)"></span></span>
+      <span class="num">33.33%</span>
+    </div>
+  </div>
+  <div class="readout">
+    <div class="cell acc"><div class="k">ViT-tiny, 4 epochs, ~55 s</div><div class="v">122<small> / 128 correct</small></div></div>
+    <div class="cell"><div class="k">CLIP zero-shot, no training</div><div class="v">56<small> / 128 correct</small></div></div>
+    <div class="cell"><div class="k">ViT-tiny parameters</div><div class="v">5.7<small> M</small></div></div>
+    <div class="cell"><div class="k">beans train images</div><div class="v">1034</div></div>
+  </div>
+  <table>
+    <thead><tr><th>class</th><th>CLIP's text prompt (module 08's real prompts)</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">angular_leaf_spot</td><td>"a leaf with grey angular dead patches"</td></tr>
+      <tr><td class="mono">bean_rust</td><td>"a leaf with small orange-brown rust pustules"</td></tr>
+      <tr><td class="mono">healthy</td><td>"a uniformly green healthy leaf"</td></tr>
+    </tbody>
+  </table>
+  <p class="src">A fair attempt &mdash; the prompts describe visible symptoms rather than the
+  agricultural jargon CLIP has never read. It still lands at 43.75%, barely over chance, because
+  fine-grained bean-leaf disease is nothing like CLIP's caption distribution. The lesson is not
+  "CLIP is bad": scale and fine-tuning are complements, not substitutes.</p>
+</div>
+
+<div class="notice panel">
+  <p class="cap" style="margin-bottom:2px">What to notice</p>
+  <ul>
+    <li>Switch between <b>sobel_x</b> and <b>sobel_y</b>. The <i>same</i> image produces two
+    completely different feature maps: one lights up on vertical boundaries, the other on horizontal
+    ones. All that changed is nine numbers.</li>
+    <li><b>identity</b> is a sanity check &mdash; the feature map is the input, pixel for pixel. That
+    is exactly the assertion module 08's <code>conv.py</code> runs on itself.</li>
+    <li>Compare <b>gaussian blur</b> (all weights positive, summing to 1 &mdash; a local average) with
+    <b>laplacian</b> (weights summing to 0 &mdash; a difference, so flat regions go to zero and only
+    edges survive). Sign structure, not magnitude, is what a kernel <i>means</i>.</li>
+    <li>The <b>learned 5×5</b> filter was never told what an edge is. Its left half is positive and
+    its right half negative, which is a vertical-edge detector by any other name. Gradient descent
+    rediscovered Sobel.</li>
+    <li>Note the multiply–add counter: 2304 output pixels × 9 weights = <b>20,736</b> MACs for one
+    3×3 kernel &mdash; and every one of those 2304 positions reuses the <i>same</i> nine weights. That
+    reuse is the convolutional inductive bias, and it is why CNNs learn from modest data.</li>
+    <li>In panel 2, switch to <b>16 px</b> patches. The sequence gets 4× shorter and each token
+    carries 4× more pixels &mdash; the classic ViT trade: attention cost falls with the square of the
+    patch size, spatial detail falls with it.</li>
+    <li>Once patches are a sequence, nothing downstream knows they came from an image. That is why
+    the <b>position embedding</b> is not optional: without it, shuffling the patches would not
+    change a single logit.</li>
+  </ul>
+</div>
+
+<footer class="bot">
+  <span>Module source: <a href="../modules/08-vision/README.md"><code>../modules/08-vision/README.md</code></a></span>
+  <span>Code: <a href="../modules/08-vision/python/src/conv.py"><code>python/src/conv.py</code></a>, <a href="../modules/08-vision/python/src/vit_anatomy.py"><code>vit_anatomy.py</code></a></span>
+  <span><a href="https://huggingface.co/learn/computer-vision-course">HF Community CV Course</a></span>
+</footer>
+
+</div>
+
+<script>
+"use strict";
+(function(){
+
+// ---------------------------------------------------------------- palette ----
+var VIRIDIS = [[68,1,84],[72,40,120],[62,73,137],[49,104,142],[38,130,142],
+               [31,158,137],[53,183,121],[110,206,88],[181,222,43],[253,231,37]];
+function viridisRGB(t){
+  if(!(t>0)) t=0; if(t>1) t=1;
+  var x=t*(VIRIDIS.length-1), i=Math.floor(x), f=x-i;
+  if(i>=VIRIDIS.length-1) return VIRIDIS[VIRIDIS.length-1].slice();
+  var a=VIRIDIS[i], b=VIRIDIS[i+1];
+  return [Math.round(a[0]+(b[0]-a[0])*f),
+          Math.round(a[1]+(b[1]-a[1])*f),
+          Math.round(a[2]+(b[2]-a[2])*f)];
+}
+function viridis(t){ return 'rgb(' + viridisRGB(t).join(',') + ')'; }
+function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function fit(cv, cssH){
+  var dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+  var w = cv.clientWidth || (cv.parentNode && cv.parentNode.clientWidth) || 320;
+  if(w < 80) w = 320;
+  cv.width = Math.round(w*dpr); cv.height = Math.round(cssH*dpr);
+  cv.style.height = cssH + 'px';
+  var ctx = cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,w,cssH);
+  return { ctx:ctx, w:w, h:cssH };
+}
+
+// ================================================================== DATA =====
+// REAL image data. Source: AI-Lab-Makerere/beans, split "test", index 0
+// (label angular_leaf_spot, 500x500 JPEG). Centre-cropped to square, then
+// resized with PIL LANCZOS. Hex, row-major, one byte per channel.
+var GRAY48_HEX = "6f625c5a646e62635f655c6a635763636a76646c85858c8e9d79747268776e51555760685c3b464b346c68623a323f3d685a606a62856760616a68655760644867796e7f90817b9bafa67a72647a63613b58687059525e3e4c482d3e365451325f5363655b6e67625d58645163695d6566747b726e7484a0b0af986c666c6e8e6f767e5f6451623d77825d2d5877695c585e607165676256595e6d6e5d5a718072796d71726978b1b3a5a57f74696e744a4c575e5b5c4c70705b46587b5a5957605c5f6b626562656572726b5d7d79796463727a8278aab3a8a4a2977f6e5e5550606a56455f7d745c475e615b4866605e61645d6563686d776c6b606e8a6169667a787c6682b2aaa0a4a09a89754f3668735e202b476c617264634e48584c416c68625a656a6473726f6c6e72695e64705d5e79899eb4a6a1a39d998f6a5758544f5f55594b544e526d544d5366625d7a837b67666a7674686c6b7f80656c7160545f6d7fb1b5b2a6a0a199938066637f838482726c63596547476b5b60706b6f737e756b7a7b6671755e697a826d66516a6d74999da8a6a1a49e9b96816055485c6a73585e616066595f695e6c8a7a636b6c646770696a6d6d6e66746c555f526f6396b4a59ca29d9898977c877d61626d52684c4151515a69686543577c7c62534b5766676562646d64686c584f535a7694afb7b1a09c9796988082ab8a6c746f634e3c2d7072806b66814d6b6a7c41444c6066716c5a63706a72695853675e72b9b2b3afa09e95939583979a8176768387787b76807b6d6b68513f425d566d68696c726c6c5f6865716c5f485f7361a8b3ab9c9699958d978e888a84807f7d776e6674766f756e60695c5b594d3e646a716e78665f594f6c4b4e6653575d85b5a5908183898287858784807f747b736e677f85606b5f6c5f7a7c66765c3d686e69726d52565c585155626a5e5c5d96aaa28c8e90969295978e7f837c737e6b7970746d7880707a704c4e5e625e5f6c6669615d6060555359684d58685a7d979a99888e989f8b8b90848284777a786d888c7c9673747a6d65615e7571524e64625e636c63625146606246585e6abca390899177868c82868281867c777d68748d989d8272708577777c63707661665a5c666a725e575a4e5c5c4f666398b9b29daa8f5d7e867e7c7b807c70786f707f8c858180826a6c7b8154685c444d495967636e6c685c42556757425d75bcacb8949179686d7b7b78847b6c78746f8083827b858d87767c7d695e6c4e47585861615f7061363c294357404161a0a7b696526b7e6d68738d7b6f69757c7f7f837c787e867d79747677765f69747868665b6471694d414642513e424e6e9d796e5d4f58726664807e7a737776787f7c7e7a78766f7277747974756b60767c6a638e9da4812e2f4f4e535359525b7771665b56696f665b7a7d797d6e6d676f727975676e777e7885876b5d746a7162665faeb3b7bf823a356142494734414e545a4b637164695d777276716b69777f78736e6f777c7674756c5865654c958c6c64b3c1acb2bb7a264749432f42493e41465d656e717173566a76767a7c7a6e6c6d6a746e666c737777876f57514880a28399c3aea5b3aa523634394c484336454f5a6f7170777d707973787a6a6366716f6e6c61596c857e78675c5e6959465f936db1c2b399a8a25f2b1c373f3c57524f666a5e5f76767f7d6c6c656a77756c6b645e737774756c6774656e765d684b474e84c3bea6969b967a4e2f51455c4e7965676e5d67707f83796f67707573636671738c84807a6969788b5e59636c685f54578bb5beb2a09f968f797560456593885a6b6878747c767c847671746a58768a746f6d696368805a7a665f6c796360635b666798a89a9caeafa392936f5d74674252646f746e6c827f76846e6b6f8887717a6e76606c6d6a665469745f546667675b768c5b38394a63384c50523d552342555e82847772847f767570727282765a6e786972896a54645c89746a74676a6a6c68af64292e433f254b482e45545b7b7e969999979592768d917d6e6b6b5f5a5f767674797566738c6763665a6266695d5f91775d57514e4d48405a7c8a9b62479089879191938b87837e7c7b86787087867779745b69716c614f60507239313e4c2e454f4641374647719e979b958e969e9c7d8b938c8c7a7e908d949893818d89858480777577756e5f66495f40253a585b5254502f2a344198a49da39e9592919a929092757888908e9690908c8d8c8f8c85827a4d85835b5d493c37384051524b8b694a3945508fa4a2a4a397989490888f937e8488959e8e8f8a88867f7c7181877b7e6d9b5e454e433b41265e636761674b3f4a5159a29d9e98908f8a878f9188726a7585929395979b8f93a3593e898b857b7983364242372843447a6a5a62513a3e504f829a92939895918a92847d795d6d52608e958a888e959792716589888d8a7f6e30464246544957817f78744c25473b8ea69a9aa5a29d96965f6f6866676f6a5083989b705f39748a82868987888f7c50303c494c7265788388796549405d437cafabb6aa9fa38f64596d70705d7779565e75838f8b4f38897a7897957f85875f5d645d68797c5c7d6575703d4460493f9fb4b09fa69a7b6b7468646e5f67676358537f8f96812d5979708b948e8d916865716d6c686a5c574e5a39464d9363528893abaa71627d605c78755a4d545a534b5470706e8972225078888e9d8a644c666268645e5b7b576c601f646a98905e6e6977575054634b63887b5351988e715f6876756a738d423474799d8a3b373f676562605f59876f7454515761859e6e5d62514d6e7b4d2f6c6b5b504f788c68493c433e818a543b2a618b9c653731495a6b6356505168757e74554556829584526b4a678a89461d55567a9c776b98a59982495d88677e3f1e385f482131283b3d536b534e4c5f5287963a2544768b9278665f897b7f4c154c629ca8655d6985949a998c4029867d665c535d6052565251566d5e4b4b6e6fa385382f527d8c919574809e7d7d7c30284a48514b3f49433638615a2543726e69966e6f8d8d9697969196995b423f7ca87c4524548587848e82699a81748637426b424447545a4435314866251f465e49515d4a2d2b3a4a444e4d4b5849478e977e52225c6082818a854f6ba1865b172f6646324b515a5041325c752f222d2926585e6f5e2e32414344555c4756";   // 48x48, luminance
+var RGB64_HEX  = "6b8e24547d0c6e66218b4f387d472a8a52378a53378d55378b54348e5837915a378a5432905b38895638845235955f3f98623e814d2a8b542f7e4b2b935d398d58349464449e67428f5b3085502b9f653db2754cb4774fb67f53b58151a0864396af41a5814d955a39a271489d6e488859389a6744996646a4704e774b2988542e78462685522f8e5b358d552c8b552f7949264d280f43330b5555177b5b2c5e3816674016ad744597603986512e7a482b492612482c15633e21542f136a43225778125a7f1259611488503a935d388c53339e684abb855f8d5435895433814e2e8753328e59338d5838805032935f3c88502e6b391d925a3794613f774728834f2fa26b42a96d47985f389f673fbd8354bc8357b57d4fa1683fbe9161b8945eaabc4fafb74aa17b3ea067439d6740905b358d5b3aa4735698664864391f7e512f5d33187644237b4a298e5b2c9c782b937130806831624b22614a1e5e351d2b11056e5020663b196a3d207f4c2985522e562e164c2b14754826542c1346270e60811950770b4b610e8c6239916237875135895235ae744d945b398e5635925b39925a398e5736a46f4d8b57378c563387502d8a54309f67417644286b3a2284513293603ca56a449a603ca66f479b683bb28357b58050905a34b08463b98c6ab7be54bec558b3af569d763fa66a45915a31915c3d98794a71582493814872692c5529108b5d359d6a3d95761e7d650d5a3e084b450a555e1a83703276451f703f219e7f4047401336210d4028112c11025d351a99633d915b377648265d361751790a4369064c6d0a7e5b2e9660407a452b945d3998613c935a378a53308c5633824d2b6c3b22945f3e73432676452a8a55368a5430925e3c8552329e653f8f593291603f9e6744a86f48a26b4399623d945d3896603aae7b57b78b66c99a75b5bb6babc159a7bd5399a5479b633c8a573291643f8d5c3478752d8b853e919e49977d4096673cb48f3788680e805a2ba2834d5d4f1768731d76522649210a8a5a359774348c943b878745513619673f1f945c359f653e9b653d8e5933875a29436a084f730c4d770a746028a06444915b3b925b389056349058347d4829804c2c814e2d7f4e33935c3d915c3997613f905c3a87533284512e905b3baa7247a46c459b643dac754f97603ca26c4498623b9d66429b65407b4829b28661d6a988b8c0709cc45094b75098bc559380409a654194663f985c378a6d328183367e83375e401964391b8450267a43237c4f247b5a287649218d612d6f401b91613aa67b458a7b2e78752d5a492163341a915b32a56b4086502d804e2a714b2368550d53780a547b09487307686a1e9f664a8e5b378a53339a623f8c57358852328c56348a5532915e3e9e6946a170499f6a44693a1f885737965e39bc865aa9744899623e925e3c9162448b553498623c9d6744a7734ca26a47a37c4bbabd69b5b370aac17297be5d96bc5694bb508bad48927a43a278578d5934885f326d611c6446174b2b0c755432754623925e33885c355f3c19804c297f48297a4c2ba4784d885c2a56301046260860391a89552d955d2ea168397843247850287c76196c64085077044d72034d7507606f168c56398c5538905b3986513289523599603d905832965f3ba36d4a945f3b925b378955328a5737cb8d5dab6d44895634a26d418f59338a5635895537aa744eb0784fab754baf785298663fa1b455a1d2689fc76e8fb7698bbd608fbc528eba4d86b54d8aa04699704391643c855a375f40228265388a65358863379d7446865c2f4e31105a3b1e7948289e6a3cc49667915d308766338c7d3c905b319e6438925d34713f1a703f1b6a3a1f6a551c7870216a4a2751770854790d54830a67721a8950358954388f573c8f573b975f3f965d3a9a6441a6734f8b593492613d98623f925b3787532fc280499f643b905c3e98603888522e955e3bb27950966640a26c439c6641865030997146aac15798c75d99c16092b45f8abf668bbd578bbb5186b04b82ab4e908544a06b40714e2e502b145332178f72458c6c3c94713d533312321b063d210c4c2b117048287f522d8b56298a6337757328644d1c71692f65481c7845236e3d1f7f57256c54144d351c5e3b206482115b7b0f5d73127c5f2e884e348852379b6345955f418550319b63429e664298644198654093603c945e3a8a5430935c379b633a8e58367e4d2d83502f9c653dab754881532c764729a66f47a16c46b98468b1825db5c35caeba62b8a36a9da86788bf5b8eba5583b75386b5537ea9437e9c437f572d754e306e41237443235d35185831156c40256a4a31633a2275472f6a3f225f34167d4d267649226432168369377773355a63265b431a864d2a7b4a24785923977b336b3d1a86592f7688187e8720967d2f8e5d33884c3390563c824e31945f41945e3da16a469c6441955f3e9c664199623e9a633db98259bc805499623c8d5733925c3aa77048835431774a2f6d3f2382502eaa7249965d3cb89164b0c054aad05cbac368c4af89aaaf7a8ac06387b85a87ba5782b64c84af467da43c767b30875b3d946c46a27045b57d53ae754db77e51b87e51ad7146ad7047985f3b9965408e5a357746268257396c522772622a685722724c217a512b724b1c8150268f62349c663e9a67417a8f1c7b901b899e178b971c867424986241965f449c6748a7704f9e664298614190593b955e3b925c37905c399e653ba769409b5f3c935a3a99623e98603b8656399263428653327e4a2d99633c7f602a8d8c3995c44799c55aa2cd619fc26aa1ae7288b86389bc628abe5d7db44f82b14d7fa43a869839805e3768462a7e4c29925f3c9e6941a36c41a06339ab6f47965a35874f2b955f3b7b4d2d744f30906a4a77502b52310f562f0e8368368e7c42815223925a319c63379b653d87563569840f6e7e0c7587137b8b197484128375268f573cab7352a56e4e925e438b563ca36d4ca8714b8a533089522e99643fa26e54b97951ae724f955e3b905b36774526703d1d9a6947a16b5081643982a53d94c05b81b24289c25789c27089bc6b8db5668abe6b8bbd5e81b75982b1508cb9477d9e379583497b583086593b7d4b2b5f3317804e2b8a58349e6840985f39824d2d734122915b347e583776583b895e408d56308663357a6a3482642a7c58217f592d8d6039ad7f55b88a5ba2754d586c106377126f7f10757c16767e106d6316a169469c65459560409664498d5a3c9a644097603e9d664497603a8f5937986342b3784f83502d7d4a2c97634086502c84513496614189523387794b97c06197c56497c7559da55596b56383ba5f88b8667eb76879b1577cb35c83b15379b23d737e32b180649d71458958398351319056319e6848683d248b57339f643e804a2c7a482a6f4225735135754d3273462c84502c8e5d327d6f348163227654214f41196b401ba36d3eaa7346a06b446e800e6f7f0c606e0c58680b55650c81593296543b8e5634854f2f8f58378f5b39965f3c8e5734935e3a8e5835905a379a6140854f2f7442267c4a3367381f7240227d4a2eb279589f6141989a53a3d1709ccf6eb2bd6dc68874a9b05a7dba5981af6676ad617cb3627eb35a7ba247757f318e8346b5ae5aa1944c966547925b389b5d37ab744d875331824e2e6c3c1e562d133b1c0c371e0e8d623c6b3f239665419e704b8a5f3d794b2ba272539d6a4c582e1695643e97623d925d37b27d534c6204445702374d01445209596511666c1b876b369b60419b63468c5739854f31895334a069449c643e87512e99623d9e6846864f318e5433693b238955389c6341854e2da26b4cbbb06d9fcb6699cd6e99cf79b9c672cc9e80b8996b8dad5582ae6079b06275ae587ab2498593399a72529dbf6498c1478e9b3b92634aa56944a86a3f8f5a34a067408e58357f4e2f83523161361e8b5937bb8451a7794dac88648e664592633f93603d9f6c4f925f446a3d218a5b3c8b56329c684098654141430e4e491a5d461877472686563183602b786d24876e3898623f854f318954368c57379a643f8f56369a63429c623c8f58388c56356f402485523a8c5637915b387e452b9c7c45aeca6ba0c76b98cd6e94ca7c95c96c96b655a3aa6191b65f79ad5776ad5976ae577db24b868e3f8f96557db64b7bad3d7c9b3789704493783f9c6640b17b56c0885dae754aac7248af744caa714aa16b469e6c4c9d683f8b5833945f3c945d3a925c377f4c2c60341e5b321c522b157b4b297747296f3f2680780f936b3d955c409659409b5e469d5f469a60458d6235896835884f347f4b2f9e67448d54319c6444ac75539b65468a5438814f305a321d8c56399b633f8a522f945939b9c467acc5629ac46d8dc86880ba627db86170b0537abb5572b04d6fa64f77b15e7fb15474a74680994078a54872a6456a9f376ca0337991347c9535907c4ab07754955e38a16c49835032a16744ae724c97603ea47253a26f4ba36c44a26d44895433915d3b87543178482d824f35804c2b7443267c4b2d693e25727700706e08775b2a8a76298861349e6748a66f4d9458388f64399568408a52377d492c935b3b8a5337653a227c4d327b492c814f316f4025925a38a9734f864e2fafac5a97ca638dc5618ec66171af4466a63c68a64174af5274b04c64aa3e6aa14e6ea75f6ca64a6fa13a71a545659b3d689d3a6798325f912f62942f6a902f708240955e3c89532f945e3a996641a26b42a0633c8a54319259358d5a3a8957387c4d3379482a9e6a41a5724899623b905b359b64438b5734572e163d2011686510817e178a792086771e7d7d1386791d996633874d2c71422570502a67371e7a462b8f5c3a8b5436623621895335965e3c96604164371e78482c7c4229755e3199cd5e96c651a0be53889b4b6ba2316ba02b669e2e6a9f3490854b888749779f4a6a9f49858f4674a73e619e35649e40649d3c639b38568e2d64932c6795335a7f348e7c459c603ba06743b67a52bf895e925d3c84543daa734f7e49289c6744a6724d925d389b653ea7734c8f5e3d8856349b66459b6440875335794b30737c0d767215727613786a177b790a84880a755f1674472b774b1f8e6432844d2d8551366d3d237342248451338e58378d573b935c3c834d2f925c3c8f4f3492914288c3468fc45792bd508bab516daa3177b33577af3c89b245aba7539ca0598eaa4f8eb35193ac3b7aa734649d3b5f9c3b67a13f5a9631528e276d992c628e2d527d3367903b89723b9b5d3da2663f834d2e966646ae795aab734ea46b42a56e449e693d9a653d673a1e5b33186f462b84553586583c784b3080523777523f777e0e6d71096c760c777d0a71700872670d6c5c147e5c2e84552f87512f7e472a7e4a2b7f4b2d8852349a623e6d3e237c4a2c9158378f5634865031925b3cb28d5a8fa63f80bc4b89ba4485a4388d9a3ba09c4393a64685c1577fb74464a93a6da14680af4475af346aa133669d3368a13a659e3554952f5a912d689b2c61892c558232679d3f7cac47927e419e6142c69072b8846c8f5838a774539562429b643d8a55348854338653327c4d2f895632a06a4099684a77543d6a442c6e46306a75077079076d7605636c035f6c0b6864108077177c5d1f8f584378452f69381f723f238c55319760417e492c5d3117824f319058398a52327f482dbfb455adae46a4ac387fb23278b4279b843fb27a68ac6e54a284527caf486ca73f65a24272a24766a23f609a39639f3569a53563a03b629c3453902d689b326290236e712d7f7d4478a54279aa4b86b754b2a163c081649863498e5a3a986241b37f5cad77549c6542a46d4aa76e4ba36946955d3aa26c48a46f4b7e553e7d553c804f3268720464670863690663710c6c7a0c7a820b79770d79551e915a4f7b493288523261331b865032865234885237703f2779462d905a3e82442caa874bc8e2629aca3ba3b73fa18950849b309bb647889b468e5d369c834079aa2f6ea0375d9e37699b406aa34b609e3e64a13864a13c609b3152912567942968951f657c1c856238a4685a8d944d71b14a7aad4a78ab41987b3faa6b4bac7852945c3dad73509d6543a06645a16845a06b497f4e3283503198603b98613e915c39855333905e425e690359680767711075701572720d7a7f097f790f7251247a4530814b2e7341237241268f583a7744278d583b613824946044995e40965d3cc2a669b6c35dacca5aaac652bc9367b2c25b88c24251911658651d7d872871a925689e2d61a12e6394385c933c579435649c38619830548e29548e2a65972552871f5f8d218d763a9f81527fa4396ea23c659a3c619b3d7c9743a96c47a96f498e593a915b3bac7153aa7251b57f5a72412572482ca4744d724529562f1762381d673a225c331e5163046674086b7c0566700b76760c7c7e047e74117b714b7c694d6e3e24855035814e33935b3989523475462b5e341e925d3e83472faa9958bcd26bb3a469c0bd71c0be6fb68f67a0ad3f71972257911e44871c558a285a9722619c245d91265d8d2e659c4466a13b639b31518c20548a2763992e538f1f528a205c952b70983b719d2c699f316b982c5b923072a23b74a63fa9905fb6745396603c9e6642ac73509c664987543a905b3a99623f9864475a311e62371b7d4e2d8451357a4d316372046a7803627302696f06787e028a890c6946115d3d2a525332381d0b421e0b6439228c57387b5037553522613620834c33986345afb55ea3cd4dbad259c5c358a5904d7e4f35916e367c9c2b5a931d498c196976267d6a34739b227da524699329619c405d982f50861c5c8527748931649a285e92245c9329629d3565a53b6298306199315f992d6fa23978a5366e9f3476923da46a48ae7652b67e5aa36b47a6704b9a62447a472d845131804d309b65449861447e4e2f88543586543c606f01676805686f0369730274690c86760d653a21552b17502f165f372253311d76492d673a23623821512e1971452c8f523ba79755b6c453ab864fb8ab4d9ba62e5b870640590967671d649816698e135984107e71208666278e8e2c82a2186e911d5486334174205b862968972f6d832c709f2571a02669a0336aa038609b315b9632589531559329639928649930588e30649839916c3d95583a965c3c945a3cae734da46b46875339a274548d6041a7724da16c51a5724c915d3b955e405a68036a710a727707858d088780117d5123653722663d2573422b63351e683f29704830572e186d40265c362078492f90573c89993f8eaa36886533637c104077033b6c083d71054c60115f871e548916557c125e680f6b9614819d26609624768e2f7b893d5c98335a992d5a9125559426609824679c216990286c99335f9a2d5d983758972f6095295f902354872352892f5d9739876e3ab06e4daf7551a7694a9c6345a26847925a3a8d593e754529b27a55a36a4e8e5a39915c398452328b8e23b0b624aa9b2bb49b4b92782d54281a442310502a1679462f64351e74482e7b4a3178472e744c36745541714f387e4834818038629b165b8a105a82144f790e4c790c59521277592865842554881c538510497b0a5b8a1c639b225d9b2662922f8389375f942d4d8727508b2849852451841c588c196a77267585245a962657942f4985274f83215f87215d8f2b619b38639636907444bc7b5dad7558ac725889553d88533a98613fa069488f5737985e409962478954349762417d4f35aeaf2cbcbf42b5b528e1d154e2d4569d852e562f1547230f643a2475432b9c64445229147a4a367a4c38643a275936226b3f2c734f366a662560781d52860c4c69084a59096c7c1b73982054871558831d5d7e1562461d747b276d9f1c6497235c8d27718e37657a26687c246581235a7d20578f256496266d9a2660942660922e4c8e254b8221538a285d972c669e325d992f6190359e734cac6e4e9e664b94624d683c27905d41a16b4d78482f9f6b46bd82578d57368f5b3b8f5b42815340bec32acccb49c7c93db8ba24b8bd2bcccb3ba18d2b73432446200f663923865234572f1a67382060361e58301a49261759341f6035226a392b61392361481e63521b5d5517716a225a7919477f13487f1d6482286e771e6c811774731c796b275f93265f8a31538a2b538d27706d2882803062a32d609b2e528f1a4e8a26598922677b2460932555952e58962d578f2a548d22767d38975d459f6545955e40844f349761478b563d8e5b415b301c75482cbf8a61d99f6fbb805896614197654bc5c037cecd3ad0d046b9bb30c9cd36c7c535c4c33089781d4622104e2b1571462b643922653d274e2b17482614684c39643f2a69422f4d301f6c402b6d382578463078772c696e206d81265e9921648a205f8e215c9420675d1e7e442f807e2a618c24648d335b98315c9c36689c2c6e9824588d1b528719578523538d285885236777245b921c5587214b871b487d214f801e9873429e6047a96f53a46846bb805cb4785690594186543c77482e7e4f314422108e6040c99166d39b6c9a6a4da19d1cd2ce3bd2d23eb8b431aead2acccc39b7bd27adb71e614d0e452216674126482c165642355f41316f402a653d276339255f38253f21126e402675462f6f3e2b8b4e3e8e6b3c7382265792185e8916747a29709a2b788229797a247d8c297a7b24718b2c5c9a2b5e992355901c4b871754761761761f548e245088254b87224f8922598b1f528121447e1b43781c766e36ac7355b68161a86f53a86c4e9f66448d563c815036824f3584503494603f7d4c315f372077482da8744ecea37e7f7e11cbc43dcbc63cd1ca47bab538b3b52ec0b140cac143b3a927774c24522617331b0b221002512e1a76452c5a2e165b301864321d7c452e74412a693b278f5c3f945940a05c49925340695b276587256f9e24788e268974327a903066921b5d91137772296c8323568a124674104d791c5e8a264f8f284c8f25589423589121558a22477e1b447a15557b26685d31935a46ab6a4c9962449a64438f5b44975f427b472e8e5a3d8c5735a46f4d8853368a543789553b744733512c188759396162028d8820d9cf4dd3cd49d3cf46bab2359e9224b1a639b7b737a49c2a896e1e5634124b261734180e512d17693a225f341f7e48328e563d72412c784a3587563e89503b945b4793563f8749388e563d8464328a7040808d33779f21689d274e89156a80215e7e10616a1c708f2d5fa03260a12656912a4b8723428019407d164b73185c6824867640ba8667bb7a66a66d54a76b50a2694d905d448a59469a664cbd86678d563d8b593da77255935d41834f35905d3f8c5b427b4c37633a2c565b036c6e01b5ab3dd6d04dc8c53fcfc34bb1af30a8aa26a7a62ca0a127a5a627928d1c75681149310d623423864f39613123864f3a7746336e3e2aad76619f6755834b399a5f499d5f49925842874c38a75f48965d4284803d70962e6f9f277c8f2e718022797131935f4b7c683569832a677a2f638b27537e1d58722382793d9f6d4da26451bc7964b37660a66b53ad745da36954a46b52855039976550875840ac7a5fb984648b573c6a3c25824f348b55359e6846875138955f458755415d5d04545d046d7307a8a431d9ce51d1be55d2c854b5b22eaeab2bb3b134a293329e972c959a158c89147c6b148676186f5715673d2463362695604bba826cbe8471a069577e47359f614d874d3a955a45a4644ba16147a65f51b072609b6c4d9675469c8e40a9746097624e935b46935a45af715d8a5b436d462d975c44ac6753c28362985f43955e449f6449945a43955f49925c4786503c97624ab07f6687584378462fae785a8d583e824f348f5939935e3ba16a499761468a563f80503e706e045b61056e730a7f7e06927c2eb5a042cec842d4cb4db6b232b3b22dc8c146bcba3ab6b335b6b235a8aa24a19e249c99228d7b21754c219a6451a8715faa7364935e4c66362591574492573fae6f51a86a51a86a52ae71569f624c9d594c9f6c4994932e9a604ca86d57c48d729d654e9960488c523d935641a76950b5755aae6f55ad7251985d46a469519a6048965f4b8d5b4682503c905d4694644a94664f935c4299664a8a573e84533a976951976245a972527b4a367e4d368858456f7003707203596404757015715b1489801e9f9c239982359c88368d7d28978e2daca839bcb441a99e37a08c37a27c41a18542a38c3078541c70452f865b477d4d3b6238285d35236a37228047317e42309e5c4a9e5e4b975543975442a86153ab7b5492912dad71609d5e4f9c5e4ea3684f905741a56652a2624ca86951c98670b77761814c38b17757a1654c925842b0766088553e8e5a3ea36e51946449804f3a9661437d4c3570412c8250369d6b4f96644678493371412a9462478b5942757402777705757306695318988f2a9a8c2ca897386137244c241c4622144826154b2b147b4f2e3c260e3c1e0f673a25532c1a6f42325c36275130217c5844442618341409784231734d3372472e9572478d9856899b598d8951877a4b90654aa4794d908d2ea76759976c508c7e4c717c4a687a48777a4b8d684a9c6f53a9775e935f477f4f3c905c43975c44b57558844f3a915945b1775bb47e6399624d7041307849338d5c497f4c38a67152bb876791614496674baa7c5b8c5c448f5a447972057778027c6e118e78286a4829a59341bfb9456d49224321153e24124e2a186a3e2973462f43271d4e2b197f4e387748355430204c2916603c2f71483a663c30725a3b8a84518f935990a75c96a65c95ac6093a2637ab05e7eaf637faa6386ac5389832c9b6a5383a55a78a8566b9d5b5590504b8144577c466277466b673e78583c72423175422f7d5c3d837d4c7d7e4c9d7c5d925c48aa7259a36e5397695390624ba4745bb28261b186667f513a8f61487b59417e583f764c368a5b4177700885800277691481701e866133beac4aafac2f79611d6b4b1f674a305b3b2a7647326338214a28195d33246638285b35255f3523633723866348876d4b89894d99a858756741622f2188825777ac5e7998557ea26378ae687fa36073aa647cb05a89953383925272a25470a95e5f9652658c55807958956450986c538d7a52825f41a167539e775480844b768c41698043657947757b51956c4e83513b794f3b89564285563ba37758673d30754a376e48357f5d466b4d387a4f3a96654a6a610b776113715b13624f1b5e431c6f5023987f31886e1a81632274572a7656336342237751317e51327f51346b432a6135258e64488e8b51989e5d8ea56288b35e968b5d72503770522d88864d7fb5566aa557668e4e789e6371aa5d72aa5e84ab4f81a13875a85368924d738b516b915783925d917e549a8756938d5e75ad5774954f87523c8a8b557c9d59819d56808456848757679456648556725e4598634ba26b54a373539462419d684e9a69545e37238c654d664533794933a26c54492b193a201347231a59312c71562f442b123512086139286b4d37492c1c60402f4f311e3b1e0d59331e53331b6a48288c6c439eab5e85b45779ac568dad5784b35675aa5c93b564a5ae6996b46384b6607cbd586a9b3d65954e7aae5885a54d8c9941919b3d729c4d5791418184587d9f5d6fb0537aa3556fb4587aaf5d7baf5c7aad5d8a93587ba25c6aa44f6aa05177984f8189517694526798516a8b50927454985f4a9d6a48a576558252399561478452388e634a6a493469402b85523b6c4130372411381e105c30257b542e856556735040633421673a2b85513f62362649281a4826194924175228184e24199998558fc35390b75598ae5a9cac5193bd5385ae517aa650859a5789a45484ac6598af6daf946a95875994ab5588a0418c76368b7d378a7a577e9c518a9b588aa35796955d82b15878ab5e7ca95f81a66172a25d6cac5988955ba291677e9f5d78a65082995174965372944e6b8d4b5f633a673a26b98664ac7f6785564181513b85543d653e2c5a3b2b4e302057301b5c33255631215f34236b3e247044224e221a8d6558a9877494614e8652435a322549281d4f2c1f613827854a3b9385529fb0599cb457a7aa57a3b6599cc15bada1649ba05e85b05576b2536ba453719f51719d5883a0619f9866ad8a6b9f88588a7d38868030aa7b6cac86679da0568e9858928b5f7eab596fa152649e4d65a6506b984e7e8e509c7555bd7661a3795e7595556d9f50639453698d556d9154658245805738d7a481906452784e3b704631744630683d2b603622542f1c59351e4f2e1f4d261b854c37764523975e4980483b7d4839a3776a7852476c3d3263392e61372a7146396f41377e563f9bbb5f8fb55b8db85f91bc62a1a96696ae6288a35b83b05c7aac5886a45d81ab5c82ac52849b49809d477eac458b8b437e6f2f9a9233a19c3faa8368a6a2699ab9567cb3546cb2556caa566cad5a80a45c83945874a35586995396694c98634d7744357b8c4d71ab4f669c505e955069905665814b937b51c58e716c4332542f1f633c276d412f5b3325562f1a55321c6341292e110775443a985d4e8d534191584b875147935d518d564a65403557322960382e683d3270463b75413b8b734b99c46285ad6397ac6a8fab6685a76277ab5569a55a75a75967a04d659b4f71a64570a53a87a83f8b983f8b713f8f5840946644846a33848738889145a1956191974f81aa5688b0627eb2607ab45ca0965fa1816181b0678acb6e8f7f4b572a215d362785975a6da84d6da34b67a152679553627f478d8759a3725d442718603b28623c285934254d332640240f3b200c6344265228219e625a9c625995594a79443683514474413371403671493c3b231a6c4f347048366c3b338458489f8c6494ab5f8c9e57919a5f77ae5574b5566eae5d78ac5c6bac4c66a54f6fae5760a94268a6457e9042a1795390564a8c53439b5f4a774333564e1c778c3190954c83ad45719d32689a3b71a75383aa619fb16d89b36278ab5d929d6c96865a7a493a895d43819f5464a14471a64b6aa5536ba75765954d738e598c6d593e2212613b2a643b2c5a3524624d3b5443276a574a593c2968392f985f59b2756e9a5e50985c4fac7262975a476e403535160f342d1b644f2b592b227d654798a95a92ae5382ad4e85af5186b35390b5559cad658fb45f7eb5536bad4f6fb3567a974c7d84468672438b513ea264567e4b3a955e4b9359459b604d7746336878277eb13c96a949a3c8527ea73e767a44796a4b6d483b79634890a264838f506e99547f924e9a765793855d878a5784a1516ca7556aa85b66a4556280446d5237492317523221613b2f613b2d5d3b286b4a2c946f5b5c38297f4d41a16661b47770b67569ae6f6294574890594a5e362b44241e555025613c205c2b2796aa5eacb5689bb75c89bd5087b64f95c556a4b961aea5698bb74c72b35971b75885a44f54321e884c449e6153955f4e9159458e53419d6451985e4c9960507f473c654623709932859d46878b4c8ba45168693375834b563d294c1e19795f477ba9555b9a4961964485924aae876c9499536f9443669f5868a95668a54f716f414a4e30453a24562e23683f2e6d443773432fa36a4f9d674ea06c55a76b63ac6d69af726caf6f64a6675a955b4e8350426a3b334b2d2067632786543f65332676593eaac46795bd5da3c65bb4d26398ca6e83c06b7cba5a83bf5c82c056817f457b4a307e4d3fa56f5d825041a06a5a9b66568653447f4a38a66d5dbb82746b3c329a6150504d158f78547f7355879f5f8ca94c8a99507e874b573129552c239089625e9a4954903f6d8340a9946784b65674ac486e8c47699a546dab51719347466e3a4f81465d6e4687745474503a875a44a56b589f6351a66f5a814840aa6e6caf726a965a52ad7067a5685e855042633329523e2563632877413673443253241d8d824da0cb5ca1ca5ba5c8758bbf6c81b4618fc37486c46689814d97584a946745975f4daa71607e4937965c49925f508f60537c473799604e9b64546e4032ac6c5b674925535e1a7a9059848c5eaf946bb98974a0a66458502d441e178151427b8d574f8d3e5b87407d9f4a78ac4d7fb44b9b884e868d4c69a24576a54d446c2f477941528649557e49677a51657b50627549746f4c86664b73382e8f5451763f396c352f82483d7f4a4178443b562a1f45231a8f8e517d65347742346a3c2c95655cb1b766b1a669b7ac7a8fba6591ba7497875f87744cad756bb2886e87563e8a4f3f925947985f4f975e4d89524187513f7e4b3b80493a834d3c844d3d783f347044324245046d682e6b7a4a73893c817a4c81875386a250573827411d185f4732618442548b3c6aa44378a24b7fa34aa5a4629ebb5974a447708448635b364c7d444b7a43507e454d7a4549794344783c44703f4b6f418a4a43a666625f2b23965953a667582a0d07593028864e3d783e3996926397ac51976456814c3c8d5648b47d6b98694ea8af679dcc71897f5481433981483c84503f87583f794537774435ad7262a66d5da56b5a865141572d237341387f56437f5b4577563c6451305d51286b622e8b7d406f7e3e6e8028677b30727c4d8b9454918f5243291e3a1a116e6742589041799b497da7477db45389b05a6e6b3d6a4c34523725562f2867704840793f467242517c4c4c774545763d496e3f476741a36b66a766616f362e9e615faa6c652005027744398d524390544c918b6685b3559f9165844b43955c4b965c499056449661506542316c3b2f7e48387945348b564790584a6b3d2e6f453abe8982985e4fa96d60855240513e20938655acb86c9fae5e8194426f823464752c6e6a38876d438c724a7787326283156676357f88408c94426a4f303a1b1268463b678c427f733e9b904c8bc35271854452251e5c3627512e21683c2d7d5a41557f434477404677404770424870444b6e45466541a77775965c50864a47a1615b814c444d27228b544b7141358a4f488b766079a75596b56191644c8951438a54428451418853476b392c804b3b915849a167578e574756312449251b9a6354986154965f4f874f4379493f52352769593a7e7a4e87924c6a793951592b3b3b174131146a3b2e6935315238247188208ca331707f2c614c30643f30321a0e5936307c634685854189ae4787b8556d693c5f392b3e24175230246f4433834d3f7c6e4c4c7f454c78443d6a3f36623740603c3c5f3da3706fae817fab7777a36e6a965d558e574b75463d75443c854a4488675982a25f82ad528798536b3b2c915b4c8554466435297c4839996151b77b6bb278699a61522e150a45281e804d40804d3f7d44357a4e3884755179704a69694173783b99af5e889b5282994a748e3f646d35584c293f380f574f12939d408da835738b25765b35562c3042271d3c23197a564892895580954c64553643261a4d2f21472b1e492b205c382c613a2e6f4234666e47566e4643654135603c355c38385f38713d38804a4b834b48b07670aa6c648d50465229215b322a6a37308d6459819b6079a04a86b6576d5d368b5146955d4d895142713e33b77d6ea96e5fab6f5ea3695832180e2d19116c3e32814c3d825d45b0b17ab6d07d8f9b5d7f6f4c8062438e865dadb673a4bd669bb46199ad5e7d8e4558511b888947918f4f3d261177763696a6326a5a1f3f20203a1a163f20175531284d262049251e361910532c2447221c401e15643a305c332b5f3528855a4a816f5348613c355f3d375f3a2e59368c544f895351854745c58381ce908c874e4535150d41201767362a774b3e879965759b4977a84f8f9e58965d5392584b7c4839a87867bb80759c6152a96e5f95605040211428140a643f368a554a89634da3a76ba6b9677e6d40754f3c7a5b41765a3e82744b84844193a24f90a351a7a966b5a76d918f55463a14311f0b4e3818869a3180a71b75871c7b7f486968446c6c3b67653a786f47706b4656502e695a3a6b5537604a2e62483164452f6e4b38845a49686240385835345b38335938a2767e7e4c4caf7274c98989bf808179453f43201a4e2b2379443c81564882956486964c86a24c8bb056a3815ca15f5492634fb1a66eb3796db07668a16857ae74638853442a120935211a5d362d67392e693f2e6742387248395c4924463f14563e1e5b502146391136480d3142094f52237d7a4d604c2c2d3001334c075a781480962a686f2d7972388ca12e9fbd5b6c754a7c7f4f9c9f729eab80a1b17eabb785a6b780a9ba81a7b984a6b7849eb27ba2b37ea6b47a6e87502b562f2e56365f383d8f5153c0838ad5989cad6c6978403c5128223d1f196f3a359e716081a0687f9756829a4e7ba54a8e9852ac7066a76a669a9c5faa9f659f5f58a66e5aa76d5cb67868522d25381e158a584a693c2d6939316d47304e52133c4b0b5d472273522d5c561e3b430b233d033b37133d30175465325b5f34361e132b1a0d3b291468532f7877255955183c29106c6719727716492d125024294f33304136294d312e5e4c42674a3f654738654a3a674f3b785d487760487e6645515a3625523056292a8e5255bc7e86cd8f93b171728f54545027223118147b494491594e7690526f9654719350729a4b7ea9509773557d433f8f675599b6669b7c589f6055aa7061905a4c1f0b065a382ea66a608351414f401b40400f51391a6b5c3373553961632255541c44420f4d3e1740420c3b36116a7c45637637372c1435191544231e6638376c403858521e637225615d295756177989176a5f1e4126223b2d263831235644415d423d613a2d714637704535683c2d5b3327633d2f724b394a54325f2e2da76d78c98c95bb7c81a26669995f615027213b1c19824f4c8747436a6940789a597792516c94487ca949918a4a7f463f703e3a7f8b549bb966b4836a9a5e524d2b212e160c2312086b50316c5d2653451b442620643c2c4d4c22495a254c6118895f43494011623e2e45301737410b768f4c637b3440331b381d14301a0f3d1f144020182009082b1a0e67653064733b58582679871a68721b392d1d35281e422f254a3833593b335132275e3a2a7b5540836550624a3b5d3c2d735743";    // 64x64, RGB
+
+function unhex(hex){
+  var out = new Uint8Array(hex.length/2);
+  for(var i=0;i<out.length;i++) out[i] = parseInt(hex.substr(i*2,2), 16);
+  return out;
+}
+var IMG_N = 48;
+var GRAY = (function(){
+  var b = unhex(GRAY48_HEX), a = new Float64Array(IMG_N*IMG_N);
+  for(var i=0;i<a.length;i++) a[i] = b[i];   // keep 0..255, like PIL "L"
+  return a;
+})();
+var RGB_N = 64;
+var RGB = unhex(RGB64_HEX);
+
+// Kernels: verbatim from modules/08-vision/python/src/conv.py KERNELS.
+function gaussianKernel(size, sigma){
+  var k = [], sum = 0, c = (size-1)/2, i, j;
+  for(i=0;i<size;i++){
+    k.push([]);
+    for(j=0;j<size;j++){
+      var dx = j - c, dy = i - c;
+      var v = Math.exp(-(dx*dx + dy*dy)/(2*sigma*sigma));
+      k[i].push(v); sum += v;
+    }
+  }
+  for(i=0;i<size;i++) for(j=0;j<size;j++) k[i][j] /= sum;
+  return k;
+}
+var KERNELS = [
+  { id:'identity', name:'identity', k:[[0,0,0],[0,1,0],[0,0,0]],
+    note:'a no-op — the module asserts exactly this' },
+  { id:'sobel_x', name:'sobel_x · vertical edges', k:[[-1,0,1],[-2,0,2],[-1,0,1]],
+    note:'left minus right ⇒ vertical boundaries' },
+  { id:'sobel_y', name:'sobel_y · horizontal edges', k:[[-1,-2,-1],[0,0,0],[1,2,1]],
+    note:'top minus bottom ⇒ horizontal boundaries' },
+  { id:'laplacian', name:'laplacian · all edges', k:[[0,1,0],[1,-4,1],[0,1,0]],
+    note:'weights sum to 0 ⇒ flat regions vanish' },
+  { id:'blur', name:'gaussian blur 5×5 σ=1.2', k:gaussianKernel(5,1.2),
+    note:'all positive, sums to 1 ⇒ a local average' },
+  { id:'sharpen', name:'sharpen', k:[[0,-1,0],[-1,5,-1],[0,-1,0]],
+    note:'identity plus a laplacian ⇒ boosts local contrast' },
+  // Real weights: TinyCNN.conv1.weight[0,0] after train_tiny_cnn(seed=0),
+  // modules/08-vision/python/src/cnn.py. 6 epochs, 79.3% FashionMNIST test acc.
+  { id:'learned', name:'learned 5×5 (real CNN filter)', k:[
+      [ 0.0783,  0.1890, -0.1143, -0.2874, -0.1822],
+      [ 0.1199,  0.0738,  0.2182, -0.1682, -0.0714],
+      [ 0.0368,  0.0705, -0.0950, -0.2615, -0.1963],
+      [ 0.1052,  0.1939,  0.2246, -0.2488, -0.1952],
+      [ 0.1494,  0.2572,  0.0537,  0.1002, -0.1220]],
+    note:'nobody designed this — gradient descent found it' }
+];
+
+// ================================================================== PURE =====
+// Cross-correlation, ML convention (kernel NOT flipped) — same as conv.py.
+function conv2d(image, n, kernel, padding){
+  var kH = kernel.length, kW = kernel[0].length;
+  var pi = (kH-1)/2, pj = (kW-1)/2;
+  var outH, outW, oi0, oj0;
+  if(padding === 'valid'){ outH = n-kH+1; outW = n-kW+1; oi0 = pi; oj0 = pj; }
+  else { outH = n; outW = n; oi0 = 0; oj0 = 0; }
+  var out = new Float64Array(outH*outW);
+  for(var oi=0;oi<outH;oi++){
+    for(var oj=0;oj<outW;oj++){
+      var s = 0;
+      for(var a=0;a<kH;a++){
+        var ii = oi + oi0 + a - pi;
+        if(ii < 0 || ii >= n) continue;
+        for(var b=0;b<kW;b++){
+          var jj = oj + oj0 + b - pj;
+          if(jj < 0 || jj >= n) continue;
+          s += image[ii*n+jj] * kernel[a][b];
+        }
+      }
+      out[oi*outW+oj] = s;
+    }
+  }
+  return { data:out, h:outH, w:outW };
+}
+function minMax(a){
+  var lo = Infinity, hi = -Infinity;
+  for(var i=0;i<a.length;i++){ if(a[i]<lo) lo=a[i]; if(a[i]>hi) hi=a[i]; }
+  return [lo, hi];
+}
+function normalize01(a){
+  var mm = minMax(a), lo = mm[0], hi = mm[1];
+  var out = new Float64Array(a.length);
+  if(hi - lo < 1e-12) return out;
+  for(var i=0;i<a.length;i++) out[i] = (a[i]-lo)/(hi-lo);
+  return out;
+}
+// Module 08's patchify, index arithmetic only: patch (pi,pj) of an n x n image.
+function patchGrid(n, patch){
+  if(n % patch) throw new Error('image ' + n + ' not divisible by patch ' + patch);
+  return { nh: n/patch, nw: n/patch, count: (n/patch)*(n/patch), flat: patch*patch*3 };
+}
+// Sequence index of the patch at grid (row, col) — raster order, as in
+// patch_sequence(): grid.reshape(n_h*n_w, -1).
+function patchSeqIndex(row, col, nw){ return row*nw + col; }
+
+// =================================================== 1. convolution panel ====
+var srcCv = document.getElementById('convSrc');
+var mathCv = document.getElementById('convMath');
+var outCv = document.getElementById('convOut');
+
+var C = { kIdx:1, i:0, j:0, done:0, playing:false, acc:0, last:0, rate:14,
+          res:null, norm:null, mm:null };
+
+// offscreen source image (48x48, grayscale) — drawn once
+var srcOff = document.createElement('canvas');
+srcOff.width = IMG_N; srcOff.height = IMG_N;
+(function(){
+  var c = srcOff.getContext('2d');
+  var id = c.createImageData(IMG_N, IMG_N);
+  for(var p=0;p<IMG_N*IMG_N;p++){
+    var v = GRAY[p];
+    id.data[p*4] = v; id.data[p*4+1] = v; id.data[p*4+2] = v; id.data[p*4+3] = 255;
+  }
+  c.putImageData(id, 0, 0);
+})();
+// offscreen feature map, painted in progressively
+var outOff = document.createElement('canvas');
+outOff.width = IMG_N; outOff.height = IMG_N;
+var outImg = outOff.getContext('2d').createImageData(IMG_N, IMG_N);
+
+function computeConv(){
+  var k = KERNELS[C.kIdx].k;
+  C.res = conv2d(GRAY, IMG_N, k, 'same');
+  C.mm = minMax(C.res.data);
+  C.norm = normalize01(C.res.data);
+  C.i = 0; C.j = 0; C.done = 0;
+  for(var p=0;p<IMG_N*IMG_N*4;p++) outImg.data[p] = 0;
+  outOff.getContext('2d').putImageData(outImg, 0, 0);
+}
+function paintPixel(idx){
+  var rgb = viridisRGB(C.norm[idx]);
+  outImg.data[idx*4] = rgb[0]; outImg.data[idx*4+1] = rgb[1];
+  outImg.data[idx*4+2] = rgb[2]; outImg.data[idx*4+3] = 255;
+}
+function advanceConv(count){
+  var total = IMG_N*IMG_N;
+  for(var c=0;c<count && C.done<total;c++){
+    paintPixel(C.done);
+    C.done++;
+    C.i = Math.floor((C.done-1)/IMG_N); C.j = (C.done-1) % IMG_N;
+  }
+  outOff.getContext('2d').putImageData(outImg, 0, 0);
+  return C.done >= total;
+}
+
+function pixelBox(o, n){
+  var pad = 4;
+  var s = Math.max(40, Math.min(o.w - pad*2, o.h - pad*2));
+  return { x: pad + (o.w - pad*2 - s)/2, y: pad, s:s, px: s/n };
+}
+function drawSrc(){
+  var o = fit(srcCv, Math.min(srcCv.clientWidth || 260, 300) + 8), c = o.ctx;
+  var g = pixelBox(o, IMG_N);
+  c.imageSmoothingEnabled = false;
+  c.drawImage(srcOff, g.x, g.y, g.s, g.s);
+  c.strokeStyle = cssVar('--line'); c.lineWidth = 1;
+  c.strokeRect(g.x-0.5, g.y-0.5, g.s+1, g.s+1);
+  // the kernel window at the current position
+  var k = KERNELS[C.kIdx].k, kH = k.length, p = (kH-1)/2;
+  var wx = g.x + (C.j - p)*g.px, wy = g.y + (C.i - p)*g.px, ws = kH*g.px;
+  c.strokeStyle = cssVar('--hot'); c.lineWidth = 2;
+  c.strokeRect(wx, wy, ws, ws);
+  // scan line: rows already finished
+  c.fillStyle = 'rgba(63,163,77,0.12)';   // rows already scanned — legible in both themes
+  c.fillRect(g.x, g.y, g.s, Math.max(0, C.i*g.px));
+  c.strokeStyle = cssVar('--track'); c.lineWidth = 1.2;
+  c.beginPath();
+  c.moveTo(g.x, g.y + C.i*g.px + 0.5); c.lineTo(g.x + C.j*g.px, g.y + C.i*g.px + 0.5);
+  c.stroke();
+}
+function drawMath(){
+  var kdef = KERNELS[C.kIdx], k = kdef.k, kH = k.length, p = (kH-1)/2;
+  var o = fit(mathCv, Math.min(mathCv.clientWidth || 260, 300) + 8), c = o.ctx;
+  var cellW = Math.min(28, (o.w - 40) / (kH*2 + 1));
+  var gridS = cellW * kH;
+  var top = 30;
+  var gapX = Math.max(14, (o.w - gridS*2)/3);
+  var x1 = gapX, x2 = gapX*2 + gridS;
+
+  c.font = '600 10.5px ' + cssVar('--display');
+  c.fillStyle = cssVar('--muted');
+  c.textAlign = 'center'; c.textBaseline = 'bottom';
+  c.fillText('PATCH ' + kH + '×' + kH, x1 + gridS/2, top - 8);
+  c.fillText('KERNEL', x2 + gridS/2, top - 8);
+  c.font = '600 15px ' + cssVar('--display');
+  c.fillStyle = cssVar('--ink');
+  c.textBaseline = 'middle';
+  c.fillText('⊙', (x1 + gridS + x2)/2, top + gridS/2);
+
+  // kernel colour scale, symmetric around 0
+  var kmax = 0, a, b;
+  for(a=0;a<kH;a++) for(b=0;b<kH;b++) kmax = Math.max(kmax, Math.abs(k[a][b]));
+  if(kmax === 0) kmax = 1;
+
+  var sum = 0, anyPixel = false;
+  c.textBaseline = 'middle';
+  for(a=0;a<kH;a++){
+    for(b=0;b<kH;b++){
+      var ii = C.i + a - p, jj = C.j + b - p;
+      var inside = (ii>=0 && ii<IMG_N && jj>=0 && jj<IMG_N);
+      var pv = inside ? GRAY[ii*IMG_N+jj] : 0;   // zero padding
+      if(inside) anyPixel = true;
+      sum += pv * k[a][b];
+      // patch cell
+      var px = x1 + b*cellW, py = top + a*cellW;
+      c.fillStyle = 'rgb('+pv+','+pv+','+pv+')';
+      c.fillRect(px, py, cellW-1, cellW-1);
+      if(!inside){
+        c.strokeStyle = cssVar('--hot'); c.lineWidth = 1;
+        c.strokeRect(px+0.5, py+0.5, cellW-2, cellW-2);
+      }
+      c.font = '9px ' + cssVar('--mono');
+      c.fillStyle = pv > 130 ? '#111' : '#eee';
+      c.textAlign = 'center';
+      if(cellW >= 18) c.fillText(String(Math.round(pv)), px + cellW/2 - 0.5, py + cellW/2);
+      // kernel cell — diverging red/green around zero
+      var kv = k[a][b], t = Math.abs(kv)/kmax;
+      var kx = x2 + b*cellW, ky = top + a*cellW;
+      c.fillStyle = kv >= 0
+        ? 'rgba(63,163,77,' + (0.16 + 0.8*t) + ')'
+        : 'rgba(210,86,47,' + (0.16 + 0.8*t) + ')';
+      c.fillRect(kx, ky, cellW-1, cellW-1);
+      c.fillStyle = cssVar('--ink');
+      c.font = '8.5px ' + cssVar('--mono');
+      if(cellW >= 18){
+        var txt = (Math.abs(kv) >= 1 || kv === 0) ? String(kv) : kv.toFixed(2).replace('0.', '.');
+        c.fillText(txt, kx + cellW/2 - 0.5, ky + cellW/2);
+      }
+    }
+  }
+  // the sum
+  var yb = top + gridS + 20;
+  c.textAlign = 'left'; c.textBaseline = 'top';
+  c.font = '10px ' + cssVar('--mono');
+  c.fillStyle = cssVar('--muted');
+  c.fillText('Σ of the ' + (kH*kH) + ' products =', gapX, yb);
+  c.font = '600 15px ' + cssVar('--mono');
+  c.fillStyle = cssVar('--track');
+  c.fillText(sum.toFixed(2), gapX, yb + 15);
+  c.font = '10px ' + cssVar('--body');
+  c.fillStyle = cssVar('--muted');
+  c.fillText(kdef.note, gapX, yb + 38);
+  if(!anyPixel){
+    c.fillStyle = cssVar('--hot');
+    c.fillText('red outline = zero padding outside the image', gapX, yb + 54);
+  } else {
+    c.fillText('red outline = zero padding outside the image', gapX, yb + 54);
+  }
+  return sum;
+}
+function drawOut(){
+  // extra height for the colour bar and its tick labels
+  var o = fit(outCv, Math.min(outCv.clientWidth || 260, 300) + 32), c = o.ctx;
+  var g = pixelBox(o, IMG_N);
+  c.fillStyle = cssVar('--panel-2');
+  c.fillRect(g.x, g.y, g.s, g.s);
+  c.imageSmoothingEnabled = false;
+  c.drawImage(outOff, g.x, g.y, g.s, g.s);
+  c.strokeStyle = cssVar('--line'); c.lineWidth = 1;
+  c.strokeRect(g.x-0.5, g.y-0.5, g.s+1, g.s+1);
+  if(C.done > 0 && C.done < IMG_N*IMG_N){
+    c.strokeStyle = cssVar('--hot'); c.lineWidth = 2;
+    c.strokeRect(g.x + C.j*g.px - 1, g.y + C.i*g.px - 1, g.px + 2, g.px + 2);
+  }
+  // viridis colour bar
+  var by = g.y + g.s + 6, bh = 7, bw = g.s;
+  for(var t=0;t<bw;t++){
+    c.fillStyle = viridis(t/(bw-1));
+    c.fillRect(g.x + t, by, 1.2, bh);
+  }
+  c.font = '9.5px ' + cssVar('--mono');
+  c.fillStyle = cssVar('--muted');
+  c.textBaseline = 'top';
+  c.textAlign = 'left';  c.fillText(C.mm ? C.mm[0].toFixed(0) : '', g.x, by + bh + 2);
+  c.textAlign = 'right'; c.fillText(C.mm ? C.mm[1].toFixed(0) : '', g.x + bw, by + bh + 2);
+  c.textAlign = 'center';c.fillText('feature-map value', g.x + bw/2, by + bh + 2);
+}
+
+function refreshConv(){
+  var kdef = KERNELS[C.kIdx], kH = kdef.k.length;
+  drawSrc(); var sum = drawMath(); drawOut();
+  var idx = Math.max(0, C.done-1);
+  document.getElementById('cPos').textContent = '(' + C.i + ', ' + C.j + ')';
+  document.getElementById('cDone').innerHTML = C.done + '<small> / 2304</small>';
+  document.getElementById('cVal').textContent = C.done > 0 ? C.res.data[idx].toFixed(2) : '—';
+  document.getElementById('cRange').textContent =
+    C.mm ? C.mm[0].toFixed(1) + ' … ' + C.mm[1].toFixed(1) : '—';
+  document.getElementById('cMac').textContent = (C.done * kH * kH).toLocaleString('en-US');
+  document.getElementById('cEq').innerHTML =
+    'out[' + C.i + '][' + C.j + '] = Σ<sub>a,b</sub> image[' + C.i + '+a−' + ((kH-1)/2) +
+    '][' + C.j + '+b−' + ((kH-1)/2) + '] · kernel[a][b] = <b>' + sum.toFixed(3) + '</b>' +
+    ' &nbsp;·&nbsp; ' + (kH*kH) + ' multiply–adds, and the same ' + (kH*kH) +
+    ' weights are reused at all 2,304 positions';
+  // kernel buttons
+  var btns = document.querySelectorAll('#kbtns button');
+  for(var i=0;i<btns.length;i++) btns[i].classList.toggle('on', i === C.kIdx);
+}
+
+(function buildKernelButtons(){
+  var host = document.getElementById('kbtns'), html = '';
+  for(var i=0;i<KERNELS.length;i++) html += '<button data-k="'+i+'">'+KERNELS[i].name+'</button>';
+  host.innerHTML = html;
+  host.addEventListener('click', function(e){
+    var b = e.target.closest ? e.target.closest('button') : null;
+    if(!b || b.dataset.k === undefined) return;
+    C.kIdx = +b.dataset.k;
+    setConvPlaying(false);
+    computeConv(); refreshConv();
+  });
+})();
+
+var cPlayBtn = document.getElementById('cPlay');
+function setConvPlaying(p){
+  C.playing = p;
+  cPlayBtn.textContent = p ? '❚❚ Pause' : '▶ Play';
+  cPlayBtn.classList.toggle('primary', !p);
+  if(p){ C.last = 0; requestAnimationFrame(convTick); }
+}
+function convTick(ts){
+  if(!C.playing) return;
+  if(!C.last) C.last = ts;
+  var dt = Math.min(100, ts - C.last); C.last = ts;
+  // rate slider is "rows per second"; one row is 48 output pixels
+  C.acc += dt/1000 * C.rate * IMG_N;
+  var n = Math.floor(C.acc);
+  if(n >= 1){
+    C.acc -= n;
+    var doneAll = advanceConv(n);
+    refreshConv();
+    if(doneAll){ setConvPlaying(false); return; }
+  }
+  requestAnimationFrame(convTick);
+}
+cPlayBtn.addEventListener('click', function(){
+  if(!C.playing && C.done >= IMG_N*IMG_N) computeConv();
+  setConvPlaying(!C.playing);
+});
+document.getElementById('cStep').addEventListener('click', function(){
+  setConvPlaying(false);
+  if(C.done >= IMG_N*IMG_N) computeConv(); else advanceConv(1);
+  refreshConv();
+});
+document.getElementById('cFinish').addEventListener('click', function(){
+  setConvPlaying(false); advanceConv(IMG_N*IMG_N); refreshConv();
+});
+document.getElementById('cReset').addEventListener('click', function(){
+  setConvPlaying(false); computeConv(); refreshConv();
+});
+document.getElementById('cSpd').addEventListener('input', function(e){
+  C.rate = +e.target.value;
+  document.getElementById('cSpdv').textContent = C.rate;
+});
+
+// ======================================================= 2. ViT patchify =====
+var vitCv = document.getElementById('vit');
+// Start fully assembled so the whole pipeline is on screen at a glance;
+// Reset (or Play from the end) rewinds to 0 and builds it up.
+var V = { patch:8, t:1, playing:false, last:0 };
+
+var rgbOff = document.createElement('canvas');
+rgbOff.width = RGB_N; rgbOff.height = RGB_N;
+(function(){
+  var c = rgbOff.getContext('2d');
+  var id = c.createImageData(RGB_N, RGB_N);
+  for(var p=0;p<RGB_N*RGB_N;p++){
+    id.data[p*4]   = RGB[p*3];
+    id.data[p*4+1] = RGB[p*3+1];
+    id.data[p*4+2] = RGB[p*3+2];
+    id.data[p*4+3] = 255;
+  }
+  c.putImageData(id, 0, 0);
+})();
+// mean luminance per patch — drives the "embedding" bar colours (deterministic)
+function patchLuma(row, col, patch){
+  var s = 0, cnt = 0;
+  for(var a=0;a<patch;a++){
+    for(var b=0;b<patch;b++){
+      var y = row*patch + a, x = col*patch + b, p = (y*RGB_N + x)*3;
+      s += 0.299*RGB[p] + 0.587*RGB[p+1] + 0.114*RGB[p+2];
+      cnt++;
+    }
+  }
+  return s/cnt/255;
+}
+function ease(t){ return t<0 ? 0 : t>1 ? 1 : t*t*(3-2*t); }
+function seg(t, a, b){ return ease((t-a)/(b-a)); }
+
+function vitLayout(W){
+  var pg = patchGrid(RGB_N, V.patch), n = pg.count, nw = pg.nw;
+  var S = Math.max(120, Math.min(190, W*0.28));   // image side on screen
+  var L = { pg:pg, n:n, nw:nw, S:S, imgX:10, imgY:34, cell:S/nw, padX:8 };
+  L.slotW = (W - L.padX*2) / (n + 1);
+  L.tokTop = L.imgY + S + 34;
+  L.tokH   = Math.max(10, Math.min(30, L.slotW*1.6));
+  L.embTop = L.tokTop + L.tokH + 26;  L.embH = 20;
+  L.posTop = L.embTop + L.embH + 24;  L.posH = 11;
+  L.sumTop = L.posTop + L.posH + 24;  L.sumH = 16;
+  L.encTop = L.sumTop + L.sumH + 34;  L.encH = 42;
+  L.height = L.encTop + L.encH + 14;
+  return L;
+}
+function drawVit(){
+  // lay out first (heights depend on the patch count), then size the canvas
+  var probeW = vitCv.clientWidth || (vitCv.parentNode && vitCv.parentNode.clientWidth) || 320;
+  var L0 = vitLayout(probeW);
+  var o = fit(vitCv, L0.height), c = o.ctx, W = o.w, t = V.t;
+  var L = vitLayout(W);
+  var pg = L.pg, n = L.n, nw = L.nw;
+  var S = L.S, imgX = L.imgX, imgY = L.imgY, cell = L.cell, padX = L.padX;
+  var slotW = L.slotW;
+  var tokTop = L.tokTop, tokH = L.tokH;
+  var embTop = L.embTop, embH = L.embH;
+  var posTop = L.posTop, posH = L.posH;
+  var sumTop = L.sumTop, sumH = L.sumH;
+  var encTop = L.encTop;
+
+  c.font = '600 10.5px ' + cssVar('--display');
+  c.fillStyle = cssVar('--muted');
+  c.textAlign = 'left'; c.textBaseline = 'bottom';
+  c.fillText('1 · IMAGE → PATCH GRID', imgX, imgY - 8);
+
+  // ---- a ghost of the original, so the source never becomes an empty hole
+  c.imageSmoothingEnabled = false;
+  c.globalAlpha = 0.25;
+  c.drawImage(rgbOff, imgX, imgY, S, S);
+  c.globalAlpha = 1;
+  c.strokeStyle = cssVar('--line'); c.lineWidth = 1;
+  c.strokeRect(imgX-0.5, imgY-0.5, S+1, S+1);
+
+  // ---- the image, as patches that fly out to the sequence
+  var flyEnd = 0.52;
+  for(var i=0;i<n;i++){
+    var row = Math.floor(i/nw), col = i % nw;
+    var start = 0.16 + 0.26*(i/Math.max(1,n-1));
+    var f = seg(t, start, Math.min(flyEnd, start + 0.20));
+    var gx = imgX + col*cell, gy = imgY + row*cell, gs = cell;
+    var sx = padX + (i+1)*slotW, sy = tokTop, sw = Math.max(2, slotW-1.2), sh = tokH;
+    // explode slightly before flying, so the grid reads as separate patches
+    var sep = seg(t, 0.04, 0.16) * Math.min(2.2, cell*0.10);
+    gx += (col - (nw-1)/2) * sep; gy += (row - (nw-1)/2) * sep;
+    var x = gx + (sx-gx)*f, y = gy + (sy-gy)*f;
+    var w = gs + (sw-gs)*f, h = gs + (sh-gs)*f;
+    c.drawImage(rgbOff, col*V.patch, row*V.patch, V.patch, V.patch, x, y, w, h);
+    if(sep > 0.4 || f > 0){
+      c.strokeStyle = 'rgba(63,163,77,' + (0.25 + 0.5*f) + ')';
+      c.lineWidth = 0.8;
+      c.strokeRect(x, y, w, h);
+    }
+  }
+  // grid lines fading in over the untouched image
+  var gridA = 1 - seg(t, 0.02, 0.14);
+  if(gridA > 0.01){
+    c.strokeStyle = 'rgba(63,163,77,' + (0.85*seg(t,0,0.06)*gridA) + ')';
+    c.lineWidth = 1;
+    for(var q=0;q<=nw;q++){
+      c.beginPath();
+      c.moveTo(imgX + q*cell, imgY); c.lineTo(imgX + q*cell, imgY + S);
+      c.moveTo(imgX, imgY + q*cell); c.lineTo(imgX + S, imgY + q*cell);
+      c.stroke();
+    }
+  }
+  // annotations beside the image — they stay, they are the panel's data readout
+  {
+    c.font = '11px ' + cssVar('--mono');
+    c.fillStyle = cssVar('--ink');
+    c.textAlign = 'left'; c.textBaseline = 'top';
+    var ax = imgX + S + 20, ay = imgY + 4;
+    c.fillText('input        (64, 64, 3)', ax, ay);
+    c.fillText('patch size   ' + V.patch + ' × ' + V.patch, ax, ay + 18);
+    c.fillText('grid         ' + pg.nh + ' × ' + pg.nw + '  =  ' + n + ' patches', ax, ay + 36);
+    c.fillText('flatten      ' + V.patch + '·' + V.patch + '·3  =  ' + pg.flat + ' numbers', ax, ay + 54);
+    c.fillStyle = cssVar('--muted');
+    c.font = '11px ' + cssVar('--body');
+    c.fillText('raster order, exactly as patch_sequence()', ax, ay + 78);
+    c.fillText('returns (' + n + ', ' + pg.flat + ').', ax, ay + 94);
+  }
+
+  // ---- stage labels appear as the pipeline builds
+  function stageLabel(txt, y, appear){
+    var a = seg(t, appear, appear + 0.06);
+    if(a < 0.02) return;
+    c.globalAlpha = a;
+    c.font = '600 10.5px ' + cssVar('--display');
+    c.fillStyle = cssVar('--muted');
+    c.textAlign = 'left'; c.textBaseline = 'bottom';
+    c.fillText(txt, padX, y - 7);
+    c.globalAlpha = 1;
+  }
+  stageLabel('2 · PATCH TOKENS, IN SEQUENCE', tokTop, 0.18);
+  stageLabel('3 · LINEAR PROJECTION → ' + (V.patch===8 ? '192' : '768') + '-d PATCH EMBEDDING', embTop, 0.56);
+  stageLabel('4 · + LEARNED POSITION EMBEDDING', posTop, 0.70);
+  stageLabel('5 · THE SEQUENCE THE ENCODER SEES', sumTop, 0.80);
+
+  // ---- embedding bars. STAND-IN, not real weights: a ViT's patch embedding is a
+  // learned 192x192 projection whose 192 components mean nothing as a 1-D colour
+  // strip, so each token is coloured by viridis(mean luminance of its patch) —
+  // deterministic, and it at least varies with the patch it came from. The patch
+  // pixels, the grid geometry and the shapes above are all real.
+  var embA = seg(t, 0.56, 0.70);
+  if(embA > 0.02){
+    for(var i2=0;i2<n;i2++){
+      var r2 = Math.floor(i2/nw), c2 = i2 % nw;
+      var lum = patchLuma(r2, c2, V.patch);
+      var x2 = padX + (i2+1)*slotW;
+      c.fillStyle = viridis(lum);
+      c.globalAlpha = embA;
+      c.fillRect(x2, embTop, Math.max(2, slotW-1.2), embH);
+      c.globalAlpha = 1;
+    }
+  }
+  // ---- position embeddings
+  var posA = seg(t, 0.70, 0.80);
+  if(posA > 0.02){
+    for(var i3=0;i3<n;i3++){
+      var x3 = padX + (i3+1)*slotW;
+      // STAND-IN as above: a deterministic sinusoid of the token index, so the
+      // strip reads as "coded by position" rather than by content.
+      var ph = 0.5 + 0.5*Math.sin(i3*0.55) * Math.cos(i3*0.17);
+      c.fillStyle = viridis(ph);
+      c.globalAlpha = posA;
+      c.fillRect(x3, posTop, Math.max(2, slotW-1.2), posH);
+      c.globalAlpha = 1;
+    }
+  }
+  // ---- the summed sequence + the CLS token
+  var sumA = seg(t, 0.80, 0.90);
+  if(sumA > 0.02){
+    for(var i4=0;i4<n;i4++){
+      var r4 = Math.floor(i4/nw), c4 = i4 % nw;
+      var lum4 = patchLuma(r4, c4, V.patch);
+      var ph4 = 0.5 + 0.5*Math.sin(i4*0.55) * Math.cos(i4*0.17);
+      var x4 = padX + (i4+1)*slotW;
+      c.fillStyle = viridis(0.62*lum4 + 0.38*ph4);
+      c.globalAlpha = sumA;
+      c.fillRect(x4, sumTop, Math.max(2, slotW-1.2), sumH);
+      c.globalAlpha = 1;
+    }
+  }
+  var clsA = seg(t, 0.86, 0.95);
+  if(clsA > 0.02){
+    c.globalAlpha = clsA;
+    c.fillStyle = cssVar('--track');
+    c.fillRect(padX, sumTop, Math.max(2, slotW-1.2), sumH);
+    c.fillRect(padX, tokTop, Math.max(2, slotW-1.2), tokH);
+    if(slotW > 22){
+      c.fillStyle = '#fff';
+      c.font = '600 9px ' + cssVar('--mono');
+      c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText('CLS', padX + slotW/2 - 1, tokTop + tokH/2);
+    }
+    c.globalAlpha = 1;
+    c.font = '10px ' + cssVar('--mono');
+    c.fillStyle = cssVar('--track');
+    c.textAlign = 'left'; c.textBaseline = 'top';
+    c.globalAlpha = clsA;
+    c.fillText('[CLS] prepended → ' + (n+1) + ' tokens', padX, sumTop + sumH + 5);
+    c.globalAlpha = 1;
+  }
+  // ---- the encoder box
+  var encA = seg(t, 0.90, 1.0);
+  if(encA > 0.02){
+    c.globalAlpha = encA;
+    var bw = W - padX*2, bh = L.encH;
+    c.strokeStyle = cssVar('--track'); c.lineWidth = 1.5;
+    c.setLineDash([5,4]);
+    c.strokeRect(padX + 0.5, encTop + 0.5, bw - 1, bh - 1);
+    c.setLineDash([]);
+    // arrows into the box
+    for(var q2=0;q2<6;q2++){
+      var ax2 = padX + bw*(0.09 + 0.164*q2);
+      c.beginPath();
+      c.moveTo(ax2, encTop - 12); c.lineTo(ax2, encTop - 3);
+      c.moveTo(ax2 - 3, encTop - 7); c.lineTo(ax2, encTop - 3); c.lineTo(ax2 + 3, encTop - 7);
+      c.stroke();
+    }
+    c.fillStyle = cssVar('--ink');
+    c.font = '600 12px ' + cssVar('--display');
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText('transformer encoder — the identical block from module 05', padX + bw/2, encTop + bh/2 - 8);
+    c.font = '10.5px ' + cssVar('--mono');
+    c.fillStyle = cssVar('--muted');
+    c.fillText('LN → multi-head self-attention → residual → LN → MLP → residual,  ×12', padX + bw/2, encTop + bh/2 + 9);
+    c.globalAlpha = 1;
+  }
+}
+function refreshVit(){
+  var pg = patchGrid(RGB_N, V.patch), n = pg.count, d = (V.patch === 8 ? 192 : 768);
+  document.getElementById('vTv').textContent = Math.round(V.t*100) + '%';
+  document.getElementById('vIn').textContent  = '(64, 64, 3)';
+  document.getElementById('vGrid').textContent = pg.nh + ' × ' + pg.nw + ' = ' + n + ' patches';
+  document.getElementById('vFlat').textContent = V.patch + '·' + V.patch + '·3 = ' + pg.flat;
+  document.getElementById('vSeq').textContent = '(' + (n+1) + ', ' + d + ')  with [CLS]';
+  document.getElementById('vP8').classList.toggle('on', V.patch === 8);
+  document.getElementById('vP16').classList.toggle('on', V.patch === 16);
+  drawVit();
+}
+var vPlayBtn = document.getElementById('vPlay');
+function setVitPlaying(p){
+  V.playing = p;
+  vPlayBtn.textContent = p ? '❚❚ Pause' : '▶ Play';
+  vPlayBtn.classList.toggle('primary', !p);
+  if(p){ V.last = 0; requestAnimationFrame(vitTick); }
+}
+function vitTick(ts){
+  if(!V.playing) return;
+  if(!V.last) V.last = ts;
+  var dt = Math.min(100, ts - V.last); V.last = ts;
+  V.t += dt/1000 / 7.5;                     // 7.5 s for the whole pipeline
+  if(V.t >= 1){ V.t = 1; document.getElementById('vT').value = 1000; refreshVit(); setVitPlaying(false); return; }
+  document.getElementById('vT').value = Math.round(V.t*1000);
+  refreshVit();
+  requestAnimationFrame(vitTick);
+}
+vPlayBtn.addEventListener('click', function(){
+  if(!V.playing && V.t >= 1){ V.t = 0; document.getElementById('vT').value = 0; }
+  setVitPlaying(!V.playing);
+});
+document.getElementById('vReset').addEventListener('click', function(){
+  setVitPlaying(false); V.t = 0; document.getElementById('vT').value = 0; refreshVit();
+});
+document.getElementById('vT').addEventListener('input', function(e){
+  setVitPlaying(false); V.t = (+e.target.value)/1000; refreshVit();
+});
+document.getElementById('vP8').addEventListener('click', function(){ V.patch = 8; refreshVit(); });
+document.getElementById('vP16').addEventListener('click', function(){ V.patch = 16; refreshVit(); });
+
+// ---------------------------------------------------------------- global -----
+document.addEventListener('visibilitychange', function(){
+  if(document.hidden){
+    if(C.playing) setConvPlaying(false);
+    if(V.playing) setVitPlaying(false);
+  }
+});
+document.addEventListener('keydown', function(e){
+  var tag = (e.target && e.target.tagName || '').toLowerCase();
+  if(tag === 'input' || tag === 'textarea' || tag === 'select' || tag === 'button') return;
+  if(e.code === 'Space' || e.key === ' '){
+    e.preventDefault();
+    if(!C.playing && C.done >= IMG_N*IMG_N) computeConv();
+    setConvPlaying(!C.playing);
+  }
+});
+function redrawAll(){ refreshConv(); refreshVit(); }
+var rzT = 0;
+window.addEventListener('resize', function(){
+  clearTimeout(rzT); rzT = setTimeout(redrawAll, 120);
+});
+if(window.matchMedia){
+  var mq = window.matchMedia('(prefers-color-scheme: dark)');
+  if(mq.addEventListener) mq.addEventListener('change', redrawAll);
+}
+computeConv();
+// start part-way through so the feature map is not blank on load
+advanceConv(Math.floor(IMG_N*IMG_N*0.34));
+redrawAll();
+
+// pure logic exposed for the node-side assertions (see verification)
+window.CVX = {
+  conv2d:conv2d, KERNELS:KERNELS, gaussianKernel:gaussianKernel,
+  normalize01:normalize01, minMax:minMax, viridis:viridis, viridisRGB:viridisRGB,
+  patchGrid:patchGrid, patchSeqIndex:patchSeqIndex,
+  GRAY:GRAY, RGB:RGB, IMG_N:IMG_N, RGB_N:RGB_N
+};
+})();
+</script>
+
+<!-- built for ml-course explorables v1 -->
+</body>
+</html>

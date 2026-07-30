@@ -8,6 +8,10 @@ arithmetic a model can do. In this module you build a byte-level **BPE**
 in Zig — then graduate to the Hugging Face way and compare your toy against
 SmolLM3's production 128k-token tokenizer.
 
+**🕹 Interactive:** [BPE, one merge at a time](../../explorables/03-bpe-stepper.html) —
+step through the real first 60 merges your trainer learns on tiny-shakespeare,
+then apply them to text you type.
+
 ## Goals
 
 By the end you will be able to:

@@ -90,6 +90,36 @@ into attention, a real model library, fine-tuning, and fast inference.
 
 ---
 
+## Explorables
+
+Every module ships an **interactive, in-browser explainer** — a single HTML file
+with no dependencies, no build step and no network calls. Where a module
+produced real artifacts (trained weights, merge lists, attention matrices,
+measured timings), its explorable inlines them, so what you drag and scrub is
+the same data your own runs produce.
+
+Serve the repo root and open the gallery:
+
+```bash
+python3 -m http.server        # then browse to
+# http://localhost:8000/explorables/
+```
+
+| Explorable | Module | What you do |
+|---|---|---|
+| [Gradient descent & backprop](explorables/01-gradient-descent.html) | 01 | Roll a ball down a non-convex loss surface, then step a real computation graph forward and backward. |
+| [Neural-net playground](explorables/02-nn-playground.html) | 02 | Train the from-scratch net **in your browser** on two moons and watch the decision boundary bend. |
+| [BPE, one merge at a time](explorables/03-bpe-stepper.html) | 03 | Step through the real first 60 merges, then apply them to text you type. |
+| [Attention, one query at a time](explorables/04-attention.html) | 04 | Drive a Q·Kᵀ heatmap with causal mask and temperature — toy vectors or the real tiny-GPT heads. |
+| [Anatomy of a transformer](explorables/05-transformer-anatomy.html) | 05 | Send a pulse up the decoder stack, hover components for real shapes, read a **logit lens**. |
+| [Low rank: what LoRA actually trains](explorables/06-lora-rank.html) | 06 | Drag the rank slider and watch a real trained **ΔW** rebuild from 7 singular directions. |
+| [KV cache & int8](explorables/07-kv-cache.html) | 07 | Run the decode loop with the cache on and off, every attention cell counted, then quantize. |
+| [Convolution vs patches](explorables/08-conv-vs-patches.html) | 08 | Slide real kernels over a real image, then watch it become a **ViT** patch sequence. |
+| [Diffusion on a spiral](explorables/09-diffusion.html) | 09 | Scrub a spiral into pure noise, then run the trained denoiser live to pull it back out. |
+| [The ReAct loop](explorables/10-agent-loop.html) | 10 | Play a real agent transcript message by message — including the run where it fails. |
+
+---
+
 ## Toolchain
 
 The course targets an **Apple-silicon Mac** and a small, modern toolset:

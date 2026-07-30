@@ -7,6 +7,10 @@ loop**, and two things to train it on — 2D toy datasets you can *watch* learn,
 and **FashionMNIST** loaded from the Hugging Face Hub. No PyTorch: the whole
 point is to derive backprop yourself and see it work on real images.
 
+**🕹 Interactive:** [Neural-net playground](../../explorables/02-nn-playground.html) —
+this module's from-scratch net, ported to JavaScript and training live on two
+moons while you watch the decision boundary bend.
+
 ## Goals
 
 By the end you will be able to:

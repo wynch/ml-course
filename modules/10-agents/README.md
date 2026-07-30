@@ -13,6 +13,10 @@ result.
 This module adapts the [Hugging Face Agents Course](https://huggingface.co/learn/agents-course)
 and points onward to the [MCP Course](https://huggingface.co/learn/mcp-course).
 
+**🕹 Interactive:** [The ReAct loop](../../explorables/10-agent-loop.html) —
+a real transcript from the ~100-line loop you build here, playing out Thought →
+Action → Observation message by message — including the run where it fails.
+
 ## Goals
 
 By the end you will be able to:
