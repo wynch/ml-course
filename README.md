@@ -145,7 +145,9 @@ This course stands on the shoulders of the free, open
 [Hugging Face learning platform](https://huggingface.co/learn). Each track draws
 directly from one or more of these courses — go deeper there any time. For the
 full catalog, a module-by-module map, certifications, and suggested continuation
-paths, see **[RESOURCES.md](RESOURCES.md)**.
+paths — plus a second part covering the best verified free resources *beyond*
+Hugging Face, from interactive explainers to university courses and annotated
+implementations — see **[RESOURCES.md](RESOURCES.md)**.
 
 - **[LLM Course](https://huggingface.co/learn/llm-course)** — transformers, tokenizers, `datasets`, and fine-tuning.
 - **[smol-course](https://huggingface.co/learn/smol-course)** — SmolLM3, TRL, LoRA, and small-model fine-tuning.
