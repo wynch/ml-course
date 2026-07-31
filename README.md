@@ -42,6 +42,10 @@ Before module 01, work through **[SETUP.md](SETUP.md)** to verify your
 toolchain. If your Mac ever feels too small — a big fine-tune, a hungry GPU
 job — **[CLOUD.md](CLOUD.md)** shows the optional cloud lane.
 
+Prefer a cohesive reader with search, local progress, knowledge checks, and
+installable offline support? Build the course app—or prepare a reader/core/full
+pack—using **[OFFLINE.md](OFFLINE.md)**.
+
 ---
 
 ## The learning path
@@ -52,7 +56,7 @@ flowchart TD
         M01["01 · autograd"] --> M02["02 · neural networks"] --> M03["03 · tokenization"]
     end
     subgraph T["Transformers & LLMs · 04–07"]
-        M04["04 · attention & transformer"] --> M05["05 · transformers library"] --> M06["06 · fine-tuning"] --> M07["07 · inference internals"]
+        M04["04 · attention & transformer"] --> M05["05 · transformers library"] --> M05A["05½ · data & evaluation"] --> M06["06 · fine-tuning"] --> M07["07 · inference internals"]
     end
     subgraph B["Breadth · 08–10"]
         M08["08 · vision"]
@@ -82,6 +86,7 @@ into attention, a real model library, fine-tuning, and fast inference.
 | 03 | [tokenization](modules/03-tokenization) | **BPE from scratch** in Python and Zig, then the real **SmolLM3** tokenizer, with a **Gradio** playground. |
 | 04 | [attention-transformer](modules/04-attention-transformer) | Attention from scratch → a tiny **char-GPT**, with **attention heatmaps**. |
 | 05 | [transformers-library](modules/05-transformers-library) | `pipeline`, `AutoModel`, **SmolLM3 anatomy**, and sampling strategies. |
+| 05½ | [data-evaluation](modules/05a-data-evaluation) | Splits, confusion matrices, thresholds, calibration, slices, and leakage checks **from scratch**. |
 | 06 | [fine-tuning](modules/06-fine-tuning) | **TRL SFT + LoRA** on SmolLM3, an **MLX** Mac lane, and **trackio** tracking. |
 | 07 | [inference-internals](modules/07-inference-internals) | **KV cache**, quantization, and a **Zig inference capstone**. |
 | 08 | [vision](modules/08-vision) | Fine-tune a **ViT**, and visualize its **feature maps**. |
@@ -92,8 +97,9 @@ into attention, a real model library, fine-tuning, and fast inference.
 
 ## Explorables
 
-Every module ships an **interactive, in-browser explainer** — a single HTML file
-with no dependencies, no build step and no network calls. Where a module
+Every module and the evaluation bridge ship an **interactive, in-browser
+explainer** — a single HTML file with no dependencies, no build step and no
+network calls. Where a module
 produced real artifacts (trained weights, merge lists, attention matrices,
 measured timings), its explorable inlines them, so what you drag and scrub is
 the same data your own runs produce.
@@ -112,6 +118,7 @@ python3 -m http.server        # then browse to
 | [BPE, one merge at a time](explorables/03-bpe-stepper.html) | 03 | Step through the real first 60 merges, then apply them to text you type. |
 | [Attention, one query at a time](explorables/04-attention.html) | 04 | Drive a Q·Kᵀ heatmap with causal mask and temperature — toy vectors or the real tiny-GPT heads. |
 | [Anatomy of a transformer](explorables/05-transformer-anatomy.html) | 05 | Send a pulse up the decoder stack, hover components for real shapes, read a **logit lens**. |
+| [The honest scorecard](explorables/05a-evaluation-lab.html) | 05½ | Move a threshold, inspect every error, compare slices, and introduce leakage to manufacture a fake improvement. |
 | [Low rank: what LoRA actually trains](explorables/06-lora-rank.html) | 06 | Drag the rank slider and watch a real trained **ΔW** rebuild from 7 singular directions. |
 | [KV cache & int8](explorables/07-kv-cache.html) | 07 | Run the decode loop with the cache on and off, every attention cell counted, then quantize. |
 | [Convolution vs patches](explorables/08-conv-vs-patches.html) | 08 | Slide real kernels over a real image, then watch it become a **ViT** patch sequence. |

@@ -1,0 +1,173 @@
+{
+  "version": 1,
+  "python": "3.12",
+  "default_cache": ".offline-cache",
+  "packs": {
+    "reader": {
+      "description": "Prebuilt lessons, figures, source files, search, progress, and browser explorables.",
+      "projects": []
+    },
+    "core": {
+      "description": "Reader plus from-scratch labs and their Python/Zig dependencies.",
+      "projects": [
+        "modules/01-autograd/python",
+        "modules/02-neural-networks/python",
+        "modules/03-tokenization/python",
+        "modules/04-attention-transformer/python",
+        "modules/05a-data-evaluation/python",
+        "modules/07-inference-internals/python"
+      ]
+    },
+    "full": {
+      "description": "Every local lab, dataset, tokenizer, and model used by the course.",
+      "projects": [
+        "modules/01-autograd/python",
+        "modules/02-neural-networks/python",
+        "modules/03-tokenization/python",
+        "modules/04-attention-transformer/python",
+        "modules/05-transformers-library/python",
+        "modules/05a-data-evaluation/python",
+        "modules/06-fine-tuning/python",
+        "modules/06-fine-tuning/mlx",
+        "modules/07-inference-internals/python",
+        "modules/08-vision/python",
+        "modules/09-diffusion/python",
+        "modules/10-agents/python"
+      ]
+    }
+  },
+  "assets": [
+    {
+      "id": "HuggingFaceTB/SmolLM3-3B",
+      "kind": "model",
+      "pack": "core",
+      "revision": "a07cc9a04f16550a088caea529712d1d335b0ac1",
+      "include": ["*.json", "*.model", "*.txt", "*.jinja"],
+      "purpose": "Production tokenizer only; model weights are excluded.",
+      "license": "see upstream model card"
+    },
+    {
+      "id": "zalando-datasets/fashion_mnist",
+      "kind": "dataset",
+      "pack": "core",
+      "revision": "531be5e2ccc9dba0c201ad3ae567a4f3d16ecdd2",
+      "project": "modules/02-neural-networks/python",
+      "split": "",
+      "purpose": "Modules 02 and 09 image data.",
+      "license": "MIT"
+    },
+    {
+      "id": "HuggingFaceTB/SmolLM2-360M-Instruct",
+      "kind": "model",
+      "pack": "full",
+      "revision": "a10cc1512eabd3dde888204e902eca88bddb4951",
+      "purpose": "Modules 05 and 06 local model.",
+      "license": "see upstream model card"
+    },
+    {
+      "id": "HuggingFaceTB/SmolLM2-1.7B-Instruct",
+      "kind": "model",
+      "pack": "full",
+      "revision": "31b70e2e869a7173562077fd711b654946d38674",
+      "purpose": "Module 10 local agent model.",
+      "license": "see upstream model card"
+    },
+    {
+      "id": "mlx-community/SmolLM2-360M-Instruct",
+      "kind": "model",
+      "pack": "full",
+      "revision": "5d5e6fee5beb5d4d4d85e2203ef23e1230a9aac7",
+      "purpose": "Module 06 MLX lane.",
+      "license": "see upstream model card"
+    },
+    {
+      "id": "distilbert/distilbert-base-uncased-finetuned-sst-2-english",
+      "kind": "model",
+      "pack": "full",
+      "revision": "714eb0fa89d2f80546fda750413ed43d93601a13",
+      "purpose": "Module 05 sentiment pipeline.",
+      "license": "see upstream model card"
+    },
+    {
+      "id": "facebook/bart-large-mnli",
+      "kind": "model",
+      "pack": "full",
+      "revision": "d7645e127eaf1aefc7862fd59a17a5aa8558b8ce",
+      "purpose": "Module 05 zero-shot pipeline.",
+      "license": "see upstream model card"
+    },
+    {
+      "id": "google/vit-base-patch16-224",
+      "kind": "model",
+      "pack": "full",
+      "revision": "3f49326eb077187dfe1c2a2bb15fbd74e6ab91e3",
+      "purpose": "Module 08 attention rollout.",
+      "license": "see upstream model card"
+    },
+    {
+      "id": "WinKawaks/vit-tiny-patch16-224",
+      "kind": "model",
+      "pack": "full",
+      "revision": "77d1485af66b34d4ed0fe95dbb0c60c7496f950b",
+      "purpose": "Module 08 fast ViT fine-tune.",
+      "license": "see upstream model card"
+    },
+    {
+      "id": "openai/clip-vit-base-patch32",
+      "kind": "model",
+      "pack": "full",
+      "revision": "3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268",
+      "purpose": "Module 08 zero-shot CLIP lab.",
+      "license": "see upstream model card"
+    },
+    {
+      "id": "google/ddpm-cifar10-32",
+      "kind": "model",
+      "pack": "full",
+      "revision": "267b167dc01f0e4e61923ea244e8b988f84deb80",
+      "purpose": "Module 09 diffusers comparison.",
+      "license": "see upstream model card"
+    },
+    {
+      "id": "HuggingFaceTB/smoltalk",
+      "kind": "dataset",
+      "pack": "full",
+      "revision": "5feaf2fd3ffca7c237fc38d1861bc30365d48ffa",
+      "project": "modules/06-fine-tuning/python",
+      "config": "everyday-conversations",
+      "split": "train[:512]",
+      "purpose": "Module 06 local SFT subset.",
+      "license": "see upstream dataset card"
+    },
+    {
+      "id": "AI-Lab-Makerere/beans",
+      "kind": "dataset",
+      "pack": "full",
+      "revision": "27aa014ce09b193e1a6f58112d4a66e0eddb69c5",
+      "project": "modules/08-vision/python",
+      "split": "",
+      "purpose": "Module 08 ViT fine-tuning.",
+      "license": "see upstream dataset card"
+    },
+    {
+      "id": "huggingface/cats-image",
+      "kind": "dataset",
+      "pack": "full",
+      "revision": "4613f5f1d3642cc2d56ffdf1b58c9d0f912cdc1f",
+      "project": "modules/08-vision/python",
+      "split": "test",
+      "purpose": "Module 08 attention visualization sample.",
+      "license": "see upstream dataset card"
+    },
+    {
+      "id": "Bingsu/Cat_and_Dog",
+      "kind": "dataset",
+      "pack": "full",
+      "revision": "77396f1031920d1c116ec6d63ac397ff6aa492d3",
+      "project": "modules/08-vision/python",
+      "split": "train[:800]",
+      "purpose": "Module 08 dataset-swap exercise.",
+      "license": "see upstream dataset card"
+    }
+  ]
+}

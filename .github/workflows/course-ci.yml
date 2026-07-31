@@ -1,0 +1,22 @@
+name: Course CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the dependency-free reader
+        run: python3 scripts/build_reader.py
+      - name: Verify the offline reader
+        run: python3 scripts/check_offline.py --pack reader
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          python-version: "3.12"
+      - name: Test the data and evaluation lab
+        working-directory: modules/05a-data-evaluation/python
+        run: uv run --frozen pytest -q
