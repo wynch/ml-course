@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz · The transformers library · ML course</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d; --track:#1f918d; --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67; --grid:rgba(28,36,34,.10);
+  --warn:#c1121f; --soft:rgba(31,145,141,.10);
+  --wrong:#c0504d; --wrong-soft:rgba(192,80,77,.10);
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --grid:rgba(232,238,236,.12); --warn:#ff8f85;
+    --soft:rgba(31,145,141,.16);
+    --wrong:#f0938f; --wrong-soft:rgba(240,147,143,.13);
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;padding-bottom:5.6rem}
+a{color:var(--accent)}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;background:var(--track);color:var(--track-ink);
+  padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.topbar .spacer{flex:1 1 auto}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:920px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 2rem}
+.intro{max-width:70ch;color:var(--ink)}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .7rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.8rem,2vw,1.2rem);margin:1.4rem 0}
+button{font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:.34rem .82rem;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button:disabled{opacity:1}
+button.primary:hover{color:#fff;filter:brightness(1.06)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:.78rem;color:var(--muted);margin:.35rem 0 0}
+.mono,code{font-family:var(--mono);font-size:.92em}
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ───────── quiz-specific ───────── */
+.qhead{display:flex;flex-wrap:wrap;gap:.5rem;align-items:baseline;margin:0 0 .55rem}
+.qnum{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted)}
+.tag{font-family:var(--display);font-size:.68rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;border:1px solid var(--line);border-radius:999px;
+  padding:.1rem .5rem;color:var(--muted)}
+.tag.conceptual{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.tag.numbers{color:var(--t1);border-color:var(--t1)}
+.tag.predict{color:var(--t3);border-color:var(--t3)}
+.tag.code{color:var(--muted);border-color:var(--line);background:var(--grid)}
+.qhead .spacer{flex:1 1 auto}
+.qstate{font-family:var(--display);font-size:.7rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted)}
+.qtext{margin:0 0 .7rem;max-width:74ch}
+.qtext b{font-weight:600}
+pre.snippet{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--grid);
+  border:1px solid var(--line);border-radius:10px;padding:.65rem .8rem;margin:.2rem 0 .75rem;
+  overflow-x:auto}
+.srcfile{font-family:var(--mono);font-size:.76rem;color:var(--muted);margin:-.5rem 0 .75rem}
+.opts{display:flex;flex-direction:column;gap:.4rem;margin:0 0 .3rem}
+.opt{display:flex;gap:.6rem;align-items:flex-start;text-align:left;width:100%;
+  font-family:var(--body);font-size:.92rem;font-weight:400;line-height:1.45;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:10px;
+  padding:.55rem .7rem;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent);color:var(--ink);background:var(--soft)}
+.opt:disabled{cursor:default}
+.opt .key{font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--muted);
+  min-width:1.2em;padding-top:.08rem}
+.opt.picked{border-color:var(--accent)}
+.opt.right{border-color:var(--accent);background:var(--soft)}
+.opt.right .key{color:var(--accent)}
+.opt.wrongpick{border-color:var(--wrong);background:var(--wrong-soft)}
+.opt.wrongpick .key{color:var(--wrong)}
+.opt .mark{margin-left:auto;font-family:var(--display);font-size:.76rem;font-weight:600;
+  white-space:nowrap;padding-left:.5rem}
+.opt.right .mark{color:var(--accent)}
+.opt.wrongpick .mark{color:var(--wrong)}
+.numrow{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:0 0 .3rem}
+.numrow input{font-family:var(--mono);font-size:.9rem;color:var(--ink);background:var(--paper);
+  border:1px solid var(--line);border-radius:10px;padding:.45rem .6rem;width:15rem;max-width:100%}
+.acts{display:flex;flex-wrap:wrap;gap:.45rem;margin:.55rem 0 0}
+.verdictline{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.03em;
+  text-transform:uppercase;border-radius:999px;padding:.2rem .62rem;display:inline-block;
+  border:1px solid var(--line);margin:.7rem 0 .45rem}
+.verdictline.ok{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.verdictline.no{color:var(--wrong);border-color:var(--wrong);background:var(--wrong-soft)}
+.explain{font-size:.88rem;line-height:1.5;border-left:3px solid var(--line);
+  padding:.1rem 0 .1rem .75rem;margin:.2rem 0 0;max-width:74ch;color:var(--ink)}
+.explain .src{display:block;font-family:var(--mono);font-size:.76rem;color:var(--muted);margin-top:.4rem}
+.explain a.tryit{font-family:var(--display);font-size:.78rem;font-weight:600;text-decoration:none;
+  border:1px solid var(--accent);border-radius:999px;padding:.16rem .6rem;display:inline-block;
+  margin-top:.5rem}
+.explain a.tryit:hover{background:var(--soft)}
+.scorebar{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--panel);
+  border-top:1px solid var(--line);padding:.55rem clamp(.9rem,3vw,2rem)}
+.scorebar .inner{max-width:920px;margin:0 auto;display:flex;flex-wrap:wrap;gap:.5rem .9rem;
+  align-items:center}
+.scorebar .score{font-family:var(--mono);font-size:1rem;font-weight:600;color:var(--accent)}
+.scorebar .of{color:var(--muted);font-weight:400}
+.scorebar .msg{font-size:.84rem;color:var(--muted);flex:1 1 260px;min-width:0}
+.scorebar .msg b{color:var(--ink)}
+.scorebar .msg .review{display:block;font-size:.78rem;margin-top:.1rem}
+@media (max-width:700px){
+  .topbar h1{font-size:.98rem}
+  .scorebar .msg{flex-basis:100%}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Quiz · The transformers library</h1>
+  <span class="pill">Module 05 · Transformers/LLMs</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">← All quizzes</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">Ten questions on module 05 — every number here is the module's own
+      measured output on <span class="mono">SmolLM2-360M-Instruct</span>, not a textbook figure.</p>
+    <p>Answer in any order; answering locks a question and reveals the explanation.
+      Your answers are kept in this browser only. Two questions ask you to
+      <b>predict</b> what the explorable does before you open it — try to commit before you click through.</p>
+  </section>
+
+  <div id="quiz"></div>
+</main>
+
+<footer>
+  <p class="paths">module → <a href="../modules/05-transformers-library/README.md">../modules/05-transformers-library/README.md</a>
+    · explorable → <a href="../explorables/05-transformer-anatomy.html">../explorables/05-transformer-anatomy.html</a></p>
+  <p>Matching reading: Hugging Face LLM Course, Chapter 2 —
+    <a href="https://huggingface.co/learn/llm-course/chapter2">Using Transformers</a>
+    (Chapter 1, <a href="https://huggingface.co/learn/llm-course/chapter1">Transformer models</a>, sets it up).</p>
+</footer>
+
+<div class="scorebar">
+  <div class="inner">
+    <span class="score"><span id="sc-score">0</span><span class="of"> / 10</span></span>
+    <span class="msg" id="sc-msg">Nothing answered yet.</span>
+    <button id="sc-reset">Reset quiz</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ═════════════════════════ PURE LOGIC START ═════════════════════════
+   Question bank + grading. Dependency-free and DOM-free: the verification
+   harness loads this file's exports under node and asserts the grading rules,
+   the score accumulation, and the answer-key balance.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const QUIZ_ID = "05";
+const STORE_KEY = "mlcourse-quiz-" + QUIZ_ID;
+const SUMMARY_KEY = "mlcourse-quiz-scores";
+
+const QUESTIONS = [
+  /* ── 1 ───────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q1", kind: "single", tag: "conceptual", topic: "GQA and the KV cache",
+    text: "<code>anatomy.py</code> prints <b>15 attention heads</b> but only <b>5 kv heads</b> for " +
+          "SmolLM2-360M, so <code>q_proj</code> is 960→960 while <code>k_proj</code>/<code>v_proj</code> " +
+          "are 960→320. What does that grouped-query asymmetry actually buy?",
+    options: [
+      "Attention runs on 5 heads instead of 15, so the attention maths is 3× cheaper.",
+      "Each token attends to only one third as many earlier positions, shortening the effective context.",
+      "There are 3× fewer key/value vectors to store per token, so the KV cache is 3× smaller.",
+      "The 5 kv heads are averaged into the 15 query heads, which regularises attention and reduces overfitting."
+    ],
+    answer: 2,
+    explain: "GQA shares one key/value head across three query heads. All 15 query heads still run and " +
+             "still see the whole context — what shrinks is the <i>cached</i> state: 5·64 = 320 numbers of K " +
+             "and V per token instead of 960, which is what makes long-context decoding affordable (module 07). " +
+             "The tempting wrong answer is “3× cheaper attention”: the number of query-key dot products is " +
+             "unchanged, only the storage is.",
+    source: "modules/05-transformers-library/python/src/anatomy.py (SMOLLM2 config) · explorables/05-transformer-anatomy.html, “GQA is visible in the shapes”"
+  },
+  /* ── 2 ─────────────────────────────────────────────────── read-code ── */
+  {
+    id: "q2", kind: "single", tag: "code", topic: "The logit lens projection",
+    text: "This is the core of the logit lens. <code>hidden_states</code> holds 33 tensors " +
+          "(the embedding output plus one per layer) of shape <code>(1, seq, 960)</code>. " +
+          "What shape is <code>logits</code> on each pass through the loop?",
+    code: "norm = model.model.norm\n" +
+          "head = model.lm_head\n\n" +
+          "for layer_idx, hs in enumerate(hidden_states):\n" +
+          "    h = hs[0, -1]  # last position\n" +
+          "    logits = head(norm(h))\n" +
+          "    probs = F.softmax(logits.float(), dim=-1)\n" +
+          "    top1 = int(probs.argmax().item())",
+    file: "modules/05-transformers-library/python/src/logit_lens.py",
+    options: [
+      "<code>(49152,)</code> — one score per vocabulary token.",
+      "<code>(960,)</code> — the head keeps the residual width.",
+      "<code>(1, 33, 49152)</code> — all layers at once.",
+      "<code>(1, seq, 49152)</code> — every position, every token."
+    ],
+    answer: 0,
+    explain: "<code>hs[0, -1]</code> collapses batch and sequence down to a single 960-vector, and " +
+             "<code>lm_head</code> is the tied <code>960 → 49,152</code> unembedding, so one vocabulary " +
+             "score vector comes out. The <code>(1, seq, 49152)</code> distractor is what " +
+             "<code>model(**ids).logits</code> gives you — but this loop deliberately took one position first.",
+    source: "modules/05-transformers-library/python/src/logit_lens.py:50-57"
+  },
+  /* ── 3 ───────────────────────────────────────────── real numbers ── */
+  {
+    id: "q3", kind: "numeric", tag: "numbers", topic: "The parameter budget",
+    text: "<code>anatomy.py</code> totals SmolLM2-360M's tensors as embeddings 13.0%, attention 21.7%, " +
+          "MLP 65.2% and norms 0.02% (62.4k). The output head is <b>tied</b> to the embedding table, so it " +
+          "adds nothing. <b>Type the total parameter count</b> — digits only, no separators.",
+    answer: 361821120, tol: 3618211, tolLabel: "±1% (358,202,909 – 365,439,331)",
+    placeholder: "e.g. 360000000",
+    explain: "361,821,120 — the “360M” in the name is a rounding. Worth checking by hand: the tied " +
+             "embedding table alone is 49,152 × 960 = 47.19M, and 3 × 960 × 2560 × 32 = 235.93M of MLP " +
+             "swamps the 78.64M of attention. The norms are a rounding error at 62,400 weights: " +
+             "RMSNorm stores a gain vector and no bias.",
+    source: "modules/05-transformers-library/python/src/anatomy.py — component_params(SMOLLM2) · explorables/05-transformer-anatomy.html, budget bar"
+  },
+  /* ── 4 ───────────────────────────────────────────── real numbers ── */
+  {
+    id: "q4", kind: "single", tag: "numbers", topic: "The decision layer",
+    text: "Run the logit lens on <span class=\"mono\">\"The Eiffel Tower is located in the city of\"</span>. " +
+          "At which layer does <code>' Paris'</code> first take rank 1, and with what probability there?",
+    options: [
+      "Layer 16 of 32, at 90% — the middle of the stack is where facts are retrieved.",
+      "Layer 27 of 32, at 71% — then it holds to the end.",
+      "Layer 32 of 32, at 79% — nothing is decided before the very last block.",
+      "Layer 4 of 32, at 27% — the answer is present early and is only sharpened afterwards."
+    ],
+    answer: 1,
+    explain: "Layer 27 is the decision layer: <code>' Paris'</code> jumps from rank 148 to rank 1 at 71%, " +
+             "then sits at 98–99% for layers 28–31 and eases back to 79% at layer 32. The “layer 16 at 90%” " +
+             "distractor is a real number from the same run — but that 90% belongs to <code>' psychiat'</code>, " +
+             "a confident piece of nonsense. High confidence is not the same as the right answer.",
+    source: "modules/05-transformers-library/figures/logit_lens.png · README “decision layer” · explorables/05-transformer-anatomy.html LENS rows 16 and 27"
+  },
+  /* ── 5 ───────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q5", kind: "single", tag: "conceptual", topic: "MPS vs CPU at batch 1",
+    text: "Exercise (c) times 64 greedy-decoded tokens at batch size 1 and finds <b>CPU at 27–31 tok/s " +
+          "beating MPS at 18–19 tok/s</b>. What explains it?",
+    options: [
+      "SmolLM2 is too large for the GPU's memory, so MPS falls back to swapping through the CPU anyway.",
+      "MPS runs in float16 while the CPU path stays in float32, and the conversion cost dominates.",
+      "The MPS backend does not implement the KV cache, so it recomputes attention from scratch each step.",
+      "Decoding one token is a tiny sequential matmul; at batch 1 the per-step kernel-launch overhead on MPS outweighs its throughput advantage."
+    ],
+    answer: 3,
+    explain: "Autoregressive decode is a long chain of very small, dependent operations — there is nothing " +
+             "for a GPU to parallelise, and every step pays dispatch overhead. MPS wins on wide, parallel work " +
+             "(long prompts, big batches, training), which single-token decode at batch 1 is the opposite of. " +
+             "The float16 answer is tempting but wrong here: <code>load_model()</code> loads " +
+             "<code>dtype=torch.float32</code> on both devices, so the comparison is like-for-like.",
+    source: "modules/05-transformers-library/figures/tokens_per_sec.png · solutions/solution_c_tokens_per_sec.py · python/src/common.py:54"
+  },
+  /* ── 6 ───────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q6", kind: "single", tag: "conceptual", topic: "top-k vs top-p",
+    text: "For the open-ended prompt <span class=\"mono\">\"My favorite color is\"</span>, " +
+          "<code>sampling_lab.py</code> measures that <code>top_k=5</code> keeps 5 tokens while " +
+          "<code>top_p=0.8</code> keeps <b>14</b>. Which statement generalises correctly?",
+    options: [
+      "top-p keeps every token whose individual probability exceeds 0.8, so it is a per-token threshold.",
+      "top-p always keeps more tokens than top-k, because a cumulative budget is looser than a count.",
+      "top-p sizes the nucleus from the distribution's shape, so a flat distribution gives a wide set and a peaked one a narrow set.",
+      "top-p and top-k are equivalent once you convert p into the matching k for the model's average entropy."
+    ],
+    answer: 2,
+    explain: "top-p keeps the <i>smallest set whose cumulative</i> mass reaches p, so the count is a " +
+             "consequence, not a setting — 14 tokens for a flat colour distribution, but on " +
+             "<span class=\"mono\">\"The capital of France is\"</span> (91% on <code>' Paris'</code>) " +
+             "p=0.8 would stop after a single token. That is exactly why “top-p always keeps more” is wrong: " +
+             "it happened to keep more <i>here</i> because this prompt is uncertain.",
+    source: "modules/05-transformers-library/python/src/sampling_lab.py:110-160 (fig_topk_topp) · figures/topk_topp.png · figures/next_token_dist.png"
+  },
+  /* ── 7 ─────────────────────────────────────────────────── read-code ── */
+  {
+    id: "q7", kind: "single", tag: "code", topic: "Hand-rolled greedy decoding",
+    text: "Greedy decoding written by hand, no <code>.generate()</code>. " +
+          "What happens if you <b>delete the last two lines</b> (the EOS check and its <code>break</code>)?",
+    code: "for _ in range(max_new_tokens):\n" +
+          "    with torch.no_grad():\n" +
+          "        last_logits = model(generated).logits[0, -1]  # (vocab,)\n\n" +
+          "    next_id = last_logits.argmax().view(1, 1)  # (1, 1)\n" +
+          "    generated = torch.cat([generated, next_id], dim=1)\n\n" +
+          "    if next_id.item() == tokenizer.eos_token_id:\n" +
+          "        break",
+    file: "modules/05-transformers-library/solutions/solution_a_greedy.py",
+    options: [
+      "The loop never terminates — nothing else bounds it.",
+      "The output is unchanged, because <code>decode(..., skip_special_tokens=True)</code> already drops everything from the EOS token onward.",
+      "It still stops cleanly but the answer becomes non-deterministic, since argmax over a finished sequence is undefined.",
+      "It runs on to the full <code>max_new_tokens</code>, appending whatever follows the end-of-turn marker — chat-template scaffolding and a fresh invented turn."
+    ],
+    answer: 3,
+    explain: "<code>range(max_new_tokens)</code> already bounds the loop, so nothing hangs — the model simply " +
+             "keeps predicting past its own stop token and starts a new turn. The trap is the " +
+             "<code>skip_special_tokens</code> answer: that flag deletes the EOS <i>marker</i> from the decoded " +
+             "string, it does not truncate the ordinary tokens generated after it.",
+    source: "modules/05-transformers-library/solutions/solution_a_greedy.py:20-31"
+  },
+  /* ── 8 ──────────────────────────────────────────────────── predict ── */
+  {
+    id: "q8", kind: "single", tag: "predict", topic: "How the budget scales with model size",
+    text: "In the anatomy explorable, switch the model selector from SmolLM2-360M " +
+          "(V 49,152 · H 960 · <code>intermediate</code> 2,560) to SmolLM3-3B " +
+          "(V 128,256 · H 2,048 · <code>intermediate</code> 11,008). <b>Predict</b> what the budget bar does.",
+    options: [
+      "Embeddings take over: the vocab grew 2.6×, so the embedding table becomes the largest single block.",
+      "The MLP share grows to ~79% and embeddings shrink to ~8.5% — the intermediate size grew faster than the hidden size.",
+      "The shares barely move: they are set by the architecture, not by the specific dimensions.",
+      "Attention overtakes the MLP, because SmolLM3 has 36 layers instead of 32."
+    ],
+    answer: 1,
+    explain: "MLP parameters scale as <code>3·H·inter·L</code>: hidden ×2.13 and intermediate ×4.30 together " +
+             "beat the embedding table's ×2.6 vocab growth (embeddings only scale as <code>V·H</code>, and the " +
+             "head is tied). So 65.2% → 79.2% MLP and 13.0% → 8.5% embeddings on a 3.08B total. The " +
+             "“vocab grew, so embeddings dominate” answer is the classic misread — it is the ratio that matters, " +
+             "and every other term grew faster.",
+    source: "explorables/05-transformer-anatomy.html — budget() over the MODELS array · modules/05-transformers-library/python/src/anatomy.py (SMOLLM3 config)",
+    tryIt: { href: "../explorables/05-transformer-anatomy.html", label: "try it — switch models in panel 2" }
+  },
+  /* ── 9 ────────────────────────────────────── conceptual, multi ── */
+  {
+    id: "q9", kind: "multi", tag: "conceptual", topic: "Reading a chat template",
+    text: "<b>Select all that apply.</b> <code>chat_template.py</code> dissects what " +
+          "<code>apply_chat_template</code> actually feeds an instruct model. Which are true of SmolLM2's template?",
+    options: [
+      "<code>&lt;|im_start|&gt;</code> and <code>&lt;|im_end|&gt;</code> are added/special tokens that mark turn boundaries.",
+      "The role words <code>system</code>, <code>user</code> and <code>assistant</code> are ordinary tokens — only the delimiters are special.",
+      "<code>add_generation_prompt=True</code> appends the opening of the assistant turn, so the model continues in the assistant's voice.",
+      "<code>apply_chat_template</code> returns token ids only; the wrapper string is never materialised."
+    ],
+    answer: [0, 1, 2],
+    explain: "The first three are what the figure shows — orange boxes for the two delimiters, plain boxes for " +
+             "everything else including the role words. The last is false: <code>tokenize=False</code> returns the " +
+             "exact string, which is how <code>build_chat_prompt()</code> in <code>common.py</code> hands a raw " +
+             "prompt to the sampling labs.",
+    source: "modules/05-transformers-library/python/src/chat_template.py:28-45 · python/src/common.py:64-76 · figures/chat_template.png"
+  },
+  /* ── 10 ─────────────────────────────────────────────────── predict ── */
+  {
+    id: "q10", kind: "single", tag: "predict", topic: "What layer 0 of the lens shows",
+    text: "The lens strip's leftmost column is layer 0 — the embedding output, <i>before any block has run</i>. " +
+          "<b>Predict</b> its top-1 prediction for <span class=\"mono\">\"…located in the city of\"</span>.",
+    options: [
+      "Uniform noise: with no layer run yet, no token stands out.",
+      "<code>' the'</code> at moderate probability — untouched, the head falls back to the corpus's most frequent token.",
+      "<code>' of'</code> at 100% — it mirrors the last input token straight back.",
+      "<code>' Paris'</code> already, but far down at a few percent — the embedding knows the answer weakly."
+    ],
+    answer: 2,
+    explain: "With a tied head, running an embedding vector back through the unembedding scores that same row " +
+             "highest — the lens reads the last input token, <code>' of'</code>, at 100%, and " +
+             "<code>' Paris'</code> sits at rank 7,043. Layer 0 is a mirror: the stack has to do work before " +
+             "the lens says anything. The tempting “weak Paris” answer assumes retrieval starts in the " +
+             "embedding; the ranks say it does not.",
+    source: "explorables/05-transformer-anatomy.html — LENS row 0 = [0, \"' of'\", 1.000, 7043] · modules/05-transformers-library/python/src/logit_lens.py",
+    tryIt: { href: "../explorables/05-transformer-anatomy.html", label: "try it — hover the lens strip in panel 3" }
+  }
+];
+
+/* ---------------------------------------------------------------- grading */
+function sameSet(a, b) {
+  const x = a.slice().sort(function (p, q) { return p - q; });
+  const y = b.slice().sort(function (p, q) { return p - q; });
+  return x.length === y.length && x.every(function (v, i) { return v === y[i]; });
+}
+function gradeSingle(q, ans) { return typeof ans === "number" && ans === q.answer; }
+function gradeMulti(q, ans) { return Array.isArray(ans) && sameSet(ans, q.answer); }
+function gradeNumeric(q, ans) {
+  const v = typeof ans === "number" ? ans : parseFloat(String(ans).replace(/[\s,_]/g, ""));
+  return isFinite(v) && Math.abs(v - q.answer) <= q.tol;
+}
+function gradeQuestion(q, ans) {
+  if (ans === undefined || ans === null) return false;
+  if (q.kind === "multi") return gradeMulti(q, ans);
+  if (q.kind === "numeric") return gradeNumeric(q, ans);
+  return gradeSingle(q, ans);
+}
+function scoreAll(questions, answers) {
+  let score = 0, answered = 0;
+  const wrong = [];
+  questions.forEach(function (q) {
+    const a = answers[q.id];
+    if (a === undefined || a === null) return;
+    answered += 1;
+    if (gradeQuestion(q, a)) score += 1; else wrong.push(q.topic);
+  });
+  return { score: score, answered: answered, total: questions.length, wrong: wrong };
+}
+function verdictFor(score, total) {
+  if (score >= 9) return { cls: "ok", text: "solid — move on" };
+  if (score >= 6) return { cls: "no", text: "review the flagged topics" };
+  return { cls: "no", text: "re-run the module notebook first" };
+}
+/* answer-key balance: how often each option position is the correct single-choice answer */
+function keyBalance(questions) {
+  const counts = [0, 0, 0, 0];
+  questions.forEach(function (q) {
+    if (q.kind === "single") counts[q.answer] += 1;
+  });
+  return counts;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { QUIZ_ID, STORE_KEY, SUMMARY_KEY, QUESTIONS, sameSet, gradeSingle,
+                     gradeMulti, gradeNumeric, gradeQuestion, scoreAll, verdictFor, keyBalance };
+}
+/* ══════════════════════════ PURE LOGIC END ══════════════════════════ */
+
+/* ═════════════════════════ DOM / rendering ═════════════════════════ */
+(function () {
+  if (typeof document === "undefined") return;   // running under node
+  const LETTERS = ["A", "B", "C", "D", "E", "F"];
+  const root = document.getElementById("quiz");
+  let answers = {};
+
+  /* ---- persistence ---- */
+  function load() {
+    try {
+      const raw = window.localStorage.getItem(STORE_KEY);
+      if (!raw) return {};
+      const obj = JSON.parse(raw);
+      return (obj && typeof obj.answers === "object" && obj.answers) ? obj.answers : {};
+    } catch (e) { return {}; }
+  }
+  function save() {
+    const s = scoreAll(QUESTIONS, answers);
+    const payload = { quiz: QUIZ_ID, answers: answers, score: s.score,
+                      total: s.total, answered: s.answered, ts: Date.now() };
+    try {
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(payload));
+      let all = {};
+      try { all = JSON.parse(window.localStorage.getItem(SUMMARY_KEY) || "{}") || {}; }
+      catch (e) { all = {}; }
+      all[QUIZ_ID] = { score: s.score, total: s.total, ts: payload.ts };
+      window.localStorage.setItem(SUMMARY_KEY, JSON.stringify(all));
+    } catch (e) { /* private mode: quiz still works, just not remembered */ }
+  }
+
+  /* ---- one question ---- */
+  function buildQuestion(q, i) {
+    const sec = document.createElement("section");
+    sec.className = "panel";
+    sec.id = "sec-" + q.id;
+
+    const head = document.createElement("div");
+    head.className = "qhead";
+    const num = document.createElement("span");
+    num.className = "qnum";
+    num.textContent = "Question " + (i + 1);
+    const tag = document.createElement("span");
+    tag.className = "tag " + q.tag;
+    tag.textContent = { conceptual: "concept", numbers: "real numbers",
+                        predict: "predict", code: "read the code" }[q.tag] || q.tag;
+    const sp = document.createElement("span");
+    sp.className = "spacer";
+    const state = document.createElement("span");
+    state.className = "qstate";
+    state.textContent = "unanswered";
+    head.appendChild(num); head.appendChild(tag); head.appendChild(sp); head.appendChild(state);
+    sec.appendChild(head);
+
+    const txt = document.createElement("p");
+    txt.className = "qtext";
+    txt.innerHTML = q.text;
+    sec.appendChild(txt);
+
+    if (q.code) {
+      const pre = document.createElement("pre");
+      pre.className = "snippet";
+      pre.textContent = q.code;
+      sec.appendChild(pre);
+      const src = document.createElement("p");
+      src.className = "srcfile";
+      src.textContent = q.file;
+      sec.appendChild(src);
+    }
+
+    const holder = { sec: sec, state: state, opts: [], input: null, checkBtn: null,
+                     result: null, q: q };
+
+    if (q.kind === "numeric") {
+      const row = document.createElement("div");
+      row.className = "numrow";
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.inputMode = "numeric";
+      inp.setAttribute("aria-label", "your answer");
+      inp.placeholder = q.placeholder || "your answer";
+      const btn = document.createElement("button");
+      btn.className = "primary";
+      btn.textContent = "Answer";
+      btn.addEventListener("click", function () {
+        const v = parseFloat(inp.value.replace(/[\s,_]/g, ""));
+        if (!isFinite(v)) { inp.focus(); return; }
+        answers[q.id] = v;
+        save(); renderQuestion(holder); renderBar();
+      });
+      inp.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); btn.click(); }
+      });
+      row.appendChild(inp); row.appendChild(btn);
+      sec.appendChild(row);
+      holder.input = inp; holder.checkBtn = btn;
+    } else {
+      const list = document.createElement("div");
+      list.className = "opts";
+      q.options.forEach(function (opt, oi) {
+        const b = document.createElement("button");
+        b.className = "opt";
+        b.type = "button";
+        const key = document.createElement("span");
+        key.className = "key";
+        key.textContent = LETTERS[oi];
+        const body = document.createElement("span");
+        body.innerHTML = opt;
+        const mark = document.createElement("span");
+        mark.className = "mark";
+        b.appendChild(key); b.appendChild(body); b.appendChild(mark);
+        b.addEventListener("click", function () {
+          if (answers[q.id] !== undefined) return;
+          if (q.kind === "multi") {
+            const cur = holder.picked;
+            const at = cur.indexOf(oi);
+            if (at >= 0) cur.splice(at, 1); else cur.push(oi);
+            b.classList.toggle("picked", at < 0);
+            holder.checkBtn.disabled = cur.length === 0;
+          } else {
+            answers[q.id] = oi;
+            save(); renderQuestion(holder); renderBar();
+          }
+        });
+        list.appendChild(b);
+        holder.opts.push({ btn: b, mark: mark });
+      });
+      sec.appendChild(list);
+
+      if (q.kind === "multi") {
+        holder.picked = [];
+        const acts = document.createElement("div");
+        acts.className = "acts";
+        const btn = document.createElement("button");
+        btn.className = "primary";
+        btn.textContent = "Answer";
+        btn.disabled = true;
+        btn.addEventListener("click", function () {
+          if (answers[q.id] !== undefined || holder.picked.length === 0) return;
+          answers[q.id] = holder.picked.slice();
+          save(); renderQuestion(holder); renderBar();
+        });
+        acts.appendChild(btn);
+        const note = document.createElement("span");
+        note.className = "hint";
+        note.style.margin = "0";
+        note.style.alignSelf = "center";
+        note.textContent = "pick every option you believe is true, then Answer";
+        acts.appendChild(note);
+        sec.appendChild(acts);
+        holder.checkBtn = btn;
+      }
+    }
+
+    const res = document.createElement("div");
+    res.style.display = "none";
+    sec.appendChild(res);
+    holder.result = res;
+
+    return holder;
+  }
+
+  /* ---- render one question's locked / unlocked state ---- */
+  function renderQuestion(h) {
+    const q = h.q, ans = answers[q.id], locked = ans !== undefined;
+    const ok = locked && gradeQuestion(q, ans);
+
+    h.state.textContent = locked ? (ok ? "correct" : "incorrect") : "unanswered";
+    h.state.style.color = locked ? (ok ? "var(--accent)" : "var(--wrong)") : "var(--muted)";
+
+    if (h.input) {
+      h.input.disabled = locked;
+      if (locked) h.input.value = String(ans);
+      h.checkBtn.disabled = locked;
+      h.checkBtn.textContent = locked ? "answered" : "Answer";
+    }
+    const correctSet = q.kind === "multi" ? q.answer : (q.kind === "single" ? [q.answer] : []);
+    const pickedSet = !locked ? (h.picked || [])
+      : (q.kind === "multi" ? ans : (q.kind === "single" ? [ans] : []));
+
+    h.opts.forEach(function (o, oi) {
+      o.btn.disabled = locked;
+      o.btn.classList.toggle("picked", !locked && pickedSet.indexOf(oi) >= 0);
+      const isRight = correctSet.indexOf(oi) >= 0;
+      const isPicked = locked && pickedSet.indexOf(oi) >= 0;
+      o.btn.classList.toggle("right", locked && isRight);
+      o.btn.classList.toggle("wrongpick", locked && isPicked && !isRight);
+      o.mark.textContent = !locked ? ""
+        : (isRight ? (isPicked ? "✓ correct · you picked it" : "✓ correct")
+                   : (isPicked ? "✗ your pick" : ""));
+    });
+    if (h.checkBtn && q.kind === "multi") {
+      h.checkBtn.disabled = locked || (h.picked || []).length === 0;
+      h.checkBtn.textContent = locked ? "answered" : "Answer";
+    }
+
+    if (!locked) { h.result.style.display = "none"; h.result.innerHTML = ""; return; }
+
+    h.result.innerHTML = "";
+    h.result.style.display = "block";
+    const v = document.createElement("span");
+    v.className = "verdictline " + (ok ? "ok" : "no");
+    v.textContent = ok ? "Correct" : "Not quite";
+    h.result.appendChild(v);
+
+    if (q.kind === "numeric") {
+      const line = document.createElement("p");
+      line.className = "hint";
+      line.style.marginTop = "0";
+      const nf = function (v) {
+        return Number(v).toLocaleString("en-US", { maximumFractionDigits: 6 });
+      };
+      line.innerHTML = "answer <span class=\"mono\">" + nf(q.answer) +
+        "</span> · accepted " + q.tolLabel + " · you typed <span class=\"mono\">" +
+        nf(ans) + "</span>";
+      h.result.appendChild(line);
+    }
+
+    const ex = document.createElement("div");
+    ex.className = "explain";
+    ex.innerHTML = q.explain;
+    const src = document.createElement("span");
+    src.className = "src";
+    src.textContent = "source · " + q.source;
+    ex.appendChild(src);
+    if (q.tryIt) {
+      const a = document.createElement("a");
+      a.className = "tryit";
+      a.href = q.tryIt.href;
+      a.textContent = q.tryIt.label;
+      ex.appendChild(a);
+    }
+    h.result.appendChild(ex);
+  }
+
+  /* ---- score bar ---- */
+  function renderBar() {
+    const s = scoreAll(QUESTIONS, answers);
+    document.getElementById("sc-score").textContent = String(s.score);
+    const msg = document.getElementById("sc-msg");
+    msg.innerHTML = "";
+    if (s.answered === 0) {
+      msg.textContent = "Nothing answered yet.";
+    } else if (s.answered < s.total) {
+      msg.textContent = s.answered + " of " + s.total + " answered — " +
+        (s.total - s.answered) + " to go.";
+    } else {
+      const vd = verdictFor(s.score, s.total);
+      const b = document.createElement("b");
+      b.textContent = s.score + " / " + s.total + " — " + vd.text + ".";
+      msg.appendChild(b);
+      const rev = document.createElement("span");
+      rev.className = "review";
+      rev.textContent = s.wrong.length
+        ? "Review: " + s.wrong.join(" · ")
+        : "Every topic clean.";
+      msg.appendChild(rev);
+    }
+  }
+
+  /* ---- boot ---- */
+  answers = load();
+  const holders = QUESTIONS.map(function (q, i) {
+    const h = buildQuestion(q, i);
+    root.appendChild(h.sec);
+    return h;
+  });
+  holders.forEach(renderQuestion);
+  renderBar();
+
+  document.getElementById("sc-reset").addEventListener("click", function () {
+    if (!window.confirm("Clear your answers for this quiz and start over?")) return;
+    answers = {};
+    holders.forEach(function (h) { h.picked = []; });
+    try {
+      window.localStorage.removeItem(STORE_KEY);
+      let all = {};
+      try { all = JSON.parse(window.localStorage.getItem(SUMMARY_KEY) || "{}") || {}; }
+      catch (e) { all = {}; }
+      delete all[QUIZ_ID];
+      window.localStorage.setItem(SUMMARY_KEY, JSON.stringify(all));
+    } catch (e) { /* ignore */ }
+    holders.forEach(renderQuestion);
+    renderBar();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+})();
+</script>
+<!-- built for ml-course quizzes v1 -->
+</html>

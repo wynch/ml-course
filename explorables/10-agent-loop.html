@@ -342,7 +342,8 @@ footer .path{font-family:var(--mono);font-size:.78rem}
       Steps per episode — all 50 runs
     </div>
     <div style="font-size:.78rem;color:var(--muted);margin-bottom:4px">
-      cost is a distribution too; the step cap is <span style="font-family:var(--mono)">max_steps = 6</span>
+      cost is a distribution too; the eval harness caps each episode at
+      <span style="font-family:var(--mono)">max_steps = 4</span> (<span style="font-family:var(--mono)">eval_lab.py</span>)
     </div>
     <div class="hist" id="hist"></div>
   </div>

@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz · Module 07 — Inference internals · ML course</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d; --track:#1f918d; --track-ink:#ffffff;
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67; --grid:rgba(28,36,34,.10);
+  --warn:#c1121f; --soft:rgba(31,145,141,.10);
+  --wrong:#c0504d; --wrong-soft:rgba(192,80,77,.10);
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --grid:rgba(232,238,236,.12); --warn:#ff8f85;
+    --soft:rgba(31,145,141,.16);
+    --wrong:#f0938d; --wrong-soft:rgba(240,147,141,.13);
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;background:var(--track);color:var(--track-ink);
+  padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.topbar .spacer{flex:1 1 auto}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:900px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 2rem}
+.intro{max-width:70ch;color:var(--ink)}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .7rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.8rem,2vw,1.2rem);margin:1.4rem 0}
+button{font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:.34rem .82rem;cursor:pointer}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{color:#fff;filter:brightness(1.06)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:.78rem;color:var(--muted);margin:.35rem 0 0}
+.mono,code{font-family:var(--mono);font-size:.92em}
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ── quiz-specific ─────────────────────────────────────────────────── */
+.q{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.85rem,2vw,1.15rem);margin:1.1rem 0}
+.q.done.right{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.q.done.wrong{border-color:var(--wrong);box-shadow:inset 3px 0 0 var(--wrong)}
+.qhead{display:flex;flex-wrap:wrap;gap:.45rem .7rem;align-items:baseline;margin-bottom:.5rem}
+.qnum{font-family:var(--mono);font-size:.82rem;color:var(--muted)}
+.qkind{font-family:var(--display);font-size:.68rem;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--track);border:1px solid var(--track);
+  border-radius:999px;padding:.1rem .5rem}
+.qtopic{font-size:.78rem;color:var(--muted)}
+.qhead .mark{margin-left:auto;font-family:var(--display);font-size:.72rem;font-weight:600;
+  letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:.14rem .55rem;
+  border:1px solid var(--line)}
+.qhead .mark.right{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.qhead .mark.wrong{color:var(--wrong);border-color:var(--wrong);background:var(--wrong-soft)}
+.qtext{margin:.1rem 0 .7rem;max-width:74ch}
+.selnote{font-family:var(--display);font-size:.76rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--muted);margin:0 0 .5rem}
+pre.code{background:var(--soft);border:1px solid var(--line);border-radius:10px;
+  margin:.2rem 0 .8rem;padding:.55rem .7rem;overflow-x:auto}
+pre.code .file{display:block;font-family:var(--mono);font-size:.74rem;color:var(--muted);
+  margin-bottom:.35rem}
+pre.code code{display:block;font-family:var(--mono);font-size:.8rem;line-height:1.45;
+  white-space:pre;color:var(--ink)}
+.opts{display:flex;flex-direction:column;gap:.4rem}
+.opt{display:flex;gap:.6rem;align-items:flex-start;text-align:left;width:100%;
+  font-family:var(--body);font-size:.93rem;font-weight:400;line-height:1.45;
+  border:1px solid var(--line);border-radius:10px;padding:.5rem .7rem;
+  background:transparent;color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent);color:var(--ink)}
+.opt .ltr{font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--muted);
+  flex:0 0 auto;padding-top:.08rem;min-width:1.1em}
+.opt .txt{flex:1 1 auto}
+.q.done .opt{cursor:default}
+.q.done .opt:hover{border-color:var(--line)}
+.opt.is-correct{border-color:var(--accent);background:var(--soft)}
+.opt.is-correct .ltr{color:var(--accent)}
+.opt.is-wrong{border-color:var(--wrong);background:var(--wrong-soft)}
+.opt.is-wrong .ltr{color:var(--wrong)}
+.opt .tag{font-family:var(--display);font-size:.66rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;align-self:center;white-space:nowrap}
+.opt.is-correct .tag{color:var(--accent)}
+.opt.is-wrong .tag{color:var(--wrong)}
+label.opt input{accent-color:var(--accent);margin:.28rem 0 0;flex:0 0 auto}
+.numrow{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.numrow input{font-family:var(--mono);font-size:.92rem;color:var(--ink);background:var(--paper);
+  border:1px solid var(--line);border-radius:10px;padding:.42rem .6rem;width:11rem}
+.q .check{margin-top:.6rem}
+.explain{margin-top:.75rem;border-top:1px solid var(--line);padding-top:.6rem;
+  font-size:.88rem;color:var(--ink);max-width:76ch}
+.explain .lab{font-family:var(--display);font-size:.68rem;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--muted);display:block;margin-bottom:.2rem}
+.explain .tol{display:block;font-family:var(--mono);font-size:.78rem;color:var(--muted);
+  margin-top:.35rem}
+a.tryit{display:inline-block;margin-top:.5rem;font-family:var(--display);font-size:.8rem;
+  font-weight:600;text-decoration:none;border:1px solid var(--accent);color:var(--accent);
+  border-radius:999px;padding:.22rem .7rem}
+a.tryit:hover{background:var(--soft)}
+#results{display:none}
+#results.on{display:block}
+#results h2{margin-bottom:.4rem}
+#results .vline{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:.1rem 0 .6rem}
+#results .vline.ok{color:var(--accent)}
+#results .vline.mid{color:var(--ink)}
+#results .vline.low{color:var(--wrong)}
+#results ul{margin:.2rem 0 0;padding-left:1.15rem}
+#results li{margin:.32rem 0;font-size:.88rem;max-width:74ch}
+#results li b{font-weight:600}
+.scorebar{position:sticky;bottom:0;z-index:6;background:var(--panel);
+  border-top:1px solid var(--line);padding:.6rem clamp(.9rem,3vw,2rem);
+  display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center}
+.scorebar .score{font-family:var(--display);font-size:1.05rem;font-weight:600;letter-spacing:.02em}
+.scorebar .score .of{color:var(--muted);font-weight:400;font-size:.9rem;margin-left:.35rem}
+.scorebar .vshort{font-size:.85rem;color:var(--muted)}
+.scorebar .vshort.ok{color:var(--accent)}
+.scorebar .vshort.low{color:var(--wrong)}
+.scorebar .spacer{flex:1 1 auto}
+@media (max-width:700px){
+  .topbar h1{font-size:.98rem}
+  .scorebar{padding:.5rem .9rem}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Quiz · Inference internals: the KV cache, quantization, and a framework-free engine</h1>
+  <span class="pill">Module 07 · Inference internals</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">← All quizzes</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">Ten questions on module 07 — every one grounded in the module's own code,
+      figures and measured numbers: the Zig engine in <span class="mono">zig/src/</span>, the
+      parity check against PyTorch, <span class="mono">figures/bench.csv</span>, and the int8
+      quantization lab.</p>
+    <p>Answer in any order. Answering locks a question and reveals the explanation — including why
+      the most tempting wrong answer is wrong. Your answers are saved in this browser, so you can
+      close the tab and come back. The <b>Reset</b> button at the bottom clears them.</p>
+  </section>
+
+  <div id="questions"></div>
+
+  <section class="panel" id="results">
+    <h2>Result</h2>
+    <p class="vline" id="verdictLine"></p>
+    <div id="hintsWrap"></div>
+  </section>
+</main>
+
+<div class="scorebar">
+  <span class="score"><span id="scoreNum">0 / 10</span><span class="of" id="answeredNum">nothing answered yet</span></span>
+  <span class="vshort" id="verdictShort"></span>
+  <span class="spacer"></span>
+  <button id="resetBtn">Reset this quiz</button>
+</div>
+
+<footer>
+  <p class="paths">module → <a href="../modules/07-inference-internals/README.md">../modules/07-inference-internals/README.md</a>
+    · engine → <a href="../modules/07-inference-internals/zig/src/gpt.zig">zig/src/gpt.zig</a>
+    · explorable → <a href="../explorables/07-kv-cache.html">../explorables/07-kv-cache.html</a></p>
+  <p>Matching Hugging Face chapter: Community Computer Vision Course, unit 9 — model optimization
+    (quantization, distillation, pruning) —
+    <a href="https://huggingface.co/learn/computer-vision-course">huggingface.co/learn/computer-vision-course</a>,
+    alongside the <a href="https://huggingface.co/docs/transformers/quantization">Transformers quantization docs</a>.</p>
+</footer>
+
+<script>
+"use strict";
+/* ═════════════════════════ PURE LOGIC START ═════════════════════════
+   Everything between these markers is dependency-free and is executed
+   under `node` by the quizzes verification script (no DOM access).
+   ═══════════════════════════════════════════════════════════════════ */
+
+var QUIZ = {
+  id: "07",
+  storeKey: "mlcourse-quiz-07",
+  summaryKey: "mlcourse-quiz-scores",
+  explorable: "../explorables/07-kv-cache.html"
+};
+
+var QUESTIONS = [
+  {
+    id: "q1",
+    kind: "single",
+    type: "conceptual",
+    topic: "Decode & the vanishing causal mask",
+    hint: "ALGORITHM.md §3 and <code>zig/src/gpt.zig</code> — why the mask is free in the decode loop.",
+    prompt: "The PyTorch reference builds a <code>T×T</code> score matrix and masks its upper triangle to <code>-inf</code> so a token cannot see the future. The Zig engine's <code>attention</code> has no mask at all. Why not?",
+    options: [
+      "Because softmax already drives future positions to zero once the scores are scaled by <code>1/√d_head</code>.",
+      "Because at position <code>pos</code> the cache only holds keys for positions 0…pos — the future literally does not exist yet, so looping <code>j</code> up to <code>pos</code> <i>is</i> the mask.",
+      "Because the causal mask is folded into the learned position embedding <code>wpe</code> when the checkpoint is exported.",
+      "Because the engine writes <code>-inf</code> into the unused cache slots whenever <code>resetCache</code> runs."
+    ],
+    answer: 1,
+    explain: "In the decode loop the cache only ever holds positions 0…pos, so <code>for (0..pos + 1) |j|</code> cannot reach a future token: the whole quadratic score matrix collapses to one length-(pos+1) <code>scores</code> vector (ALGORITHM.md §3, <code>gpt.zig</code> lines 196–208). The last option is the tempting one — but <code>resetCache</code> is deliberately a <b>no-op</b> (<code>gpt.zig</code> lines 120–126): nothing is ever zeroed, and the driver alone decides how many positions are live via the <code>pos</code> it passes to <code>step</code>."
+  },
+  {
+    id: "q2",
+    kind: "single",
+    type: "conceptual",
+    topic: "The tied LM head",
+    hint: "ALGORITHM.md §4 — weight tying, and why no <code>lm_head</code> tensor exists in the blob.",
+    prompt: "After the final LayerNorm the engine computes <code>logits[v] = xn · row_v</code> for all 65 vocabulary entries. Which matrix supplies <code>row_v</code>?",
+    options: [
+      "<code>wte</code>, the token embedding table — the LM head is <i>tied</i> to it, and no separate head matrix exists in the weight file.",
+      "A dedicated <code>lm_head</code> tensor of shape <code>[vocab_size, d_model]</code>, the last entry in the manifest.",
+      "<code>wpe</code>, the position embedding table, transposed.",
+      "The last block's attention output projection <code>proj_w</code>."
+    ],
+    answer: 0,
+    explain: "<code>gpt.zig</code> lines 163–168 loop over <code>self.w.wte[v * dm ..][0..dm]</code>: the same <code>[vocab, d_model]</code> matrix that embedded the input token is reused as the output projection. The second option is the natural guess if you have only read <code>nn.Linear</code>-shaped code, but tying is exactly why <code>wte</code> appears twice in one forward pass and why the checkpoint stays at 619,776 parameters instead of carrying another 8,320-float head."
+  },
+  {
+    id: "q3",
+    kind: "multi",
+    type: "conceptual",
+    topic: "What the KV cache actually holds",
+    hint: "README § The KV cache lab, and <code>Model.init</code> in <code>zig/src/gpt.zig</code>.",
+    prompt: "<b>Select all that apply.</b> Which statements about this engine's KV cache are true?",
+    options: [
+      "<code>kcache[layer]</code> and <code>vcache[layer]</code> are each <code>[block_size × d_model]</code> floats, written once per token at position <code>pos</code>.",
+      "Q is cached alongside K and V, so an old token's query never has to be recomputed.",
+      "At full 128-token context the two caches together hold 2 × 3 layers × 4 heads × 128 × 32 = 98,304 floats — about 384 KB.",
+      "The cache and every scratch buffer are carved out of an arena once in <code>Model.init</code>, so generating 120 tokens performs zero heap allocations."
+    ],
+    answer: [0, 2, 3],
+    explain: "Only K and V are cached — the query belongs to the <i>current</i> token and is recomputed every step by design, because there is no old query to reuse (that is the one false statement here). The sizing is the README's: 98,304 floats ≈ 384 KB for a 620K-parameter model, and <code>Model.init</code> (<code>gpt.zig</code> lines 98–116) allocates all of it, plus <code>x</code>, <code>xn</code>, <code>qkv</code>, <code>y</code>, <code>ff</code>, <code>scores</code> and <code>logits</code>, from the arena exactly once."
+  },
+  {
+    id: "q4",
+    kind: "single",
+    type: "predict",
+    topic: "What int8 actually buys you",
+    hint: "README § The quantization lab — 'An honest note on speed'.",
+    prompt: "You run <code>tiny-gpt quantize</code> — the weight blob drops from 2,479,104 B to 634,480 B, 3.91× smaller — and then re-run <code>bench --q8</code>. What happens to decode throughput?",
+    options: [
+      "Roughly 4× faster: a quarter of the weight bytes means a quarter of the memory traffic per token.",
+      "Roughly 4× slower: every matmul now pays a dequantize per weight it touches.",
+      "Essentially unchanged (~490 tok/s): the engine dequantizes the int8 weights back to f32 at load and then runs the identical compute path.",
+      "About 15% slower, and perplexity climbs from 4.657 to about 5.2."
+    ],
+    answer: 2,
+    explain: "<code>quant.dequantizeToBlob</code> reconstructs the full f32 blob at load time (<code>main.zig</code> lines 84–90), so the hot loop never sees an int8 value; the win is 3.91× on disk and in RAM at essentially zero quality cost — perplexity on the held-out Shakespeare slice is <b>4.657 for both</b> f32 and int8, with a max logit shift of 0.06. The '4× faster' answer is the tempting one and is right for real engines, but only on large memory-bandwidth-bound models with true int8 kernels; at 619,776 parameters these matmuls are compute-bound, so there is no bandwidth to save.",
+    tryIt: true
+  },
+  {
+    id: "q5",
+    kind: "single",
+    type: "real",
+    topic: "Parity against PyTorch",
+    hint: "<code>figures/parity_scatter.png</code> and <code>python/scripts/parity.py</code>.",
+    prompt: "<code>python/scripts/parity.py</code> pushes the prompt <i>\"ROMEO: But soft, what light through yonder window breaks?\"</i> through PyTorch and through the Zig engine and compares the 65 last-position logits. What did it actually measure?",
+    options: [
+      "Bitwise-identical logits — max |Δ| exactly 0.",
+      "max |Δ| ≈ 0.06, just inside a 0.1 tolerance.",
+      "max |Δ| ≈ 3e-3, which is why the tolerance had to be relaxed to 1e-2.",
+      "max |Δ| ≈ 2.86e-06, comfortably inside the 1e-3 tolerance."
+    ],
+    answer: 3,
+    explain: "The error histogram in <code>figures/parity_scatter.png</code> is titled <i>max |Δ| = 2.86e-06</i>, against <code>TOL = 1e-3</code> in <code>parity.py</code>. Bitwise equality is not achievable and is the tempting wrong answer: the two implementations accumulate the same products in different orders, and f32 addition is not associative. The 0.06 figure is a different real number from this module — it is the max logit shift caused by <i>int8 quantization</i>, not by the reimplementation."
+  },
+  {
+    id: "q6",
+    kind: "single",
+    type: "real",
+    topic: "The measured KV-cache speedup",
+    hint: "<code>figures/bench.csv</code> and the README's KV-cache table.",
+    prompt: "<code>figures/bench.csv</code> records <b>490.0 tok/s</b> with the cache on and <b>7.8 tok/s</b> with it off at a 128-token context. What speedup is that, next to the cell counter's prediction of (t+1)/2 = 64.5×?",
+    options: [
+      "≈ 62.8× — within about 3% of the prediction.",
+      "≈ 6.3× — far under the prediction, because the cache itself costs memory bandwidth.",
+      "≈ 628× — the prediction badly understates the win.",
+      "No measurable speedup at 128 tokens; the cache only starts paying off past 1,000."
+    ],
+    answer: 0,
+    explain: "490.0 / 7.8 = 62.8×, against a predicted 64.5× — every row of the bench table lands within roughly 7–8% of (t+1)/2, which is how you know the cell counter and the wall clock are describing the same thing. Note that the speedup is <i>not</i> a constant: the same CSV gives 582.4/71.6 = 8× at ctx 16 and 506.6/16.7 = 30× at ctx 64."
+  },
+  {
+    id: "q7",
+    kind: "numeric",
+    type: "real",
+    topic: "Linear vs quadratic decode, counted",
+    hint: "Explorable panel 1 — the closed forms n(n+1)/2 and n(n+1)(n+2)/6.",
+    prompt: "Over a full 128-token generation the cache-ON path computes <code>n(n+1)/2</code> attention cells in total, and the cache-OFF path <code>n(n+1)(n+2)/6</code>. How many cells does the <b>cache-ON</b> path compute at n = 128?",
+    unit: "cells",
+    answer: 8256,
+    tol: 16,
+    explain: "128 × 129 / 2 = <b>8,256</b> cells with the cache, against 128 × 129 × 130 / 6 = <b>357,760</b> without — a 43× difference over the whole generation. These are exact closed forms, not estimates. The <i>per-step</i> gap is bigger and keeps widening ((t+1)/2), which is why the measured throughput ratio at ctx 128 is 62.8× rather than 43×.",
+    tryIt: true
+  },
+  {
+    id: "q8",
+    kind: "single",
+    type: "predict",
+    topic: "How the speedup scales with context",
+    hint: "Explorable panel 2 — measured vs predicted (t+1)/2.",
+    prompt: "Suppose you retrained the checkpoint with <code>block_size = 512</code> and re-ran <code>bench</code>. Per decode step, cache-off does t(t+1)/2 cells where cache-on does t. Roughly what speedup should you see at t = 512?",
+    options: [
+      "Still ~63× — the ratio saturates once the cache is warm.",
+      "~1,024× — the ratio is 2t.",
+      "~256× — the ratio is (t+1)/2, so it keeps growing linearly with context.",
+      "~131,000× — the ratio is quadratic in t."
+    ],
+    answer: 2,
+    explain: "Per step the uncached path recomputes the whole triangular score block, t(t+1)/2 cells, where the cached path does t — so the ratio is (t+1)/2 ≈ 256.5× at t = 512. That is exactly the curve the module measures at small t: 8× at 16, 30× at 64, 62.8× at 128. 'It saturates' is the intuition to unlearn — nothing saturates, the wasted work grows without bound, which is why long-context inference without a cache is simply not a thing.",
+    tryIt: true
+  },
+  {
+    id: "q9",
+    kind: "single",
+    type: "code",
+    topic: "LayerNorm, and the two details that break parity",
+    hint: "ALGORITHM.md §1 — biased variance and <code>eps</code>.",
+    prompt: "The variance half of <code>layerNorm</code> in <code>zig/src/gpt.zig</code>. A student changes <code>variance /= @floatFromInt(n);</code> to divide by <code>n - 1</code> instead. What happens?",
+    code: {
+      file: "zig/src/gpt.zig · layerNorm()",
+      text: "var variance: f32 = 0;\nfor (x) |v| {\n    const d = v - mean;\n    variance += d * d;\n}\nvariance /= @floatFromInt(n);\nconst inv = 1.0 / @sqrt(variance + eps);\nfor (0..n) |i| y[i] = (x[i] - mean) * inv * gamma[i] + beta[i];"
+    },
+    options: [
+      "Nothing measurable — <code>eps</code> (1e-5) swamps a ÷127-vs-÷128 difference.",
+      "The output length changes from <code>d_model</code> to <code>d_model - 1</code>.",
+      "The forward pass still matches PyTorch, but <code>selfcheck</code> starts failing.",
+      "The parity check against PyTorch fails: <code>torch.nn.LayerNorm</code> uses the <i>biased</i> variance (divide by N), so every activation is scaled slightly wrong and the error compounds through all three blocks."
+    ],
+    answer: 3,
+    explain: "ALGORITHM.md §1 names <code>eps = 1e-5</code> and the biased variance as the two details that, if you get them wrong, blow the parity check — they are the usual suspects when a from-scratch transformer 'almost' matches its reference. 'Nothing measurable' is the trap: with n = 128 the ÷127-vs-÷128 change looks like rounding, but the resulting ~0.4% scale error is over a thousand times the 2.86e-06 parity margin. The <code>selfcheck</code> option is backwards — that command compares the engine against <i>itself</i>, so it would still pass happily."
+  },
+  {
+    id: "q10",
+    kind: "single",
+    type: "code",
+    topic: "top-p (nucleus) sampling",
+    hint: "<code>zig/src/sampler.zig</code> — <code>applyTopP</code> and <code>multinomial</code>.",
+    prompt: "The tail of <code>applyTopP</code> in <code>zig/src/sampler.zig</code>, after the nucleus <code>cutoff</code> has been found. You delete the renormalize — everything from <code>var sum</code> down. What breaks at <code>--top-p 0.9</code>?",
+    code: {
+      file: "zig/src/sampler.zig · applyTopP()",
+      text: "// zero everything past the nucleus\nfor (order[cutoff..]) |id| probs[id] = 0;\n// renormalize the survivors\nvar sum: f32 = 0;\nfor (probs) |v| sum += v;\nif (sum > 0) {\n    const inv = 1.0 / sum;\n    for (probs) |*v| v.* *= inv;\n}"
+    },
+    options: [
+      "Nothing: <code>gpt.softmax</code> already normalized the vector before <code>applyTopP</code> ran.",
+      "The survivors now sum to about 0.9, so any draw with r ≥ 0.9 falls straight through <code>multinomial</code>'s loop and it returns <code>probs.len - 1</code> — the last vocabulary id — roughly 10% of the time.",
+      "<code>multinomial</code> divides by the sum and starts returning NaN.",
+      "Sampling silently becomes greedy: the highest-probability token is always chosen."
+    ],
+    answer: 1,
+    explain: "<code>multinomial</code> (<code>sampler.zig</code> lines 58–66) walks a running sum and returns the first index where <code>r &lt; acc</code>; with only ~p of the mass left, every draw above p exits the loop and hits the <code>return probs.len - 1</code> fallback. 'Nothing, softmax normalized it' is the trap — softmax <i>did</i> normalize, but zeroing the tail afterwards removed mass and nothing put it back. This is why the renormalize is load-bearing rather than cosmetic."
+  }
+];
+
+/* ── grading ───────────────────────────────────────────────────────── */
+function gradeSingle(q, resp) {
+  return typeof resp === "number" && resp === q.answer;
+}
+function gradeMulti(q, resp) {
+  if (!Array.isArray(resp)) return false;
+  var want = q.answer.slice().sort(function (a, b) { return a - b; });
+  var got = resp.slice().sort(function (a, b) { return a - b; });
+  if (want.length !== got.length) return false;
+  for (var i = 0; i < want.length; i++) if (want[i] !== got[i]) return false;
+  return true;
+}
+function gradeNumeric(q, resp) {
+  var v = typeof resp === "number" ? resp : parseFloat(resp);
+  return isFinite(v) && Math.abs(v - q.answer) <= q.tol;
+}
+function gradeOne(q, resp) {
+  if (resp === undefined || resp === null) return false;
+  if (q.kind === "multi") return gradeMulti(q, resp);
+  if (q.kind === "numeric") return gradeNumeric(q, resp);
+  return gradeSingle(q, resp);
+}
+function isAnswered(answers, id) {
+  return Object.prototype.hasOwnProperty.call(answers, id) &&
+         answers[id] !== undefined && answers[id] !== null;
+}
+function scoreAll(questions, answers) {
+  var score = 0, answered = 0;
+  for (var i = 0; i < questions.length; i++) {
+    var q = questions[i];
+    if (!isAnswered(answers, q.id)) continue;
+    answered++;
+    if (gradeOne(q, answers[q.id])) score++;
+  }
+  return { score: score, answered: answered, total: questions.length };
+}
+function verdictFor(score) {
+  if (score >= 9) return { tone: "ok", text: "Solid — move on." };
+  if (score >= 6) return { tone: "mid", text: "Review the flagged topics, then move on." };
+  return { tone: "low", text: "Re-run the module notebook first, then retake this." };
+}
+function missedTopics(questions, answers) {
+  var out = [];
+  for (var i = 0; i < questions.length; i++) {
+    var q = questions[i];
+    if (isAnswered(answers, q.id) && !gradeOne(q, answers[q.id])) {
+      out.push({ n: i + 1, topic: q.topic, hint: q.hint });
+    }
+  }
+  return out;
+}
+/* balance check used by the verification harness: how often each option
+   position is the correct answer among single-choice questions. */
+function answerKeyBalance(questions) {
+  var counts = [0, 0, 0, 0];
+  for (var i = 0; i < questions.length; i++) {
+    if (questions[i].kind === "single") counts[questions[i].answer]++;
+  }
+  return counts;
+}
+function summaryEntry(questions, answers) {
+  var s = scoreAll(questions, answers);
+  return { score: s.score, total: s.total, ts: Date.now() };
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    QUIZ: QUIZ, QUESTIONS: QUESTIONS,
+    gradeSingle: gradeSingle, gradeMulti: gradeMulti, gradeNumeric: gradeNumeric,
+    gradeOne: gradeOne, scoreAll: scoreAll, verdictFor: verdictFor,
+    missedTopics: missedTopics, answerKeyBalance: answerKeyBalance,
+    summaryEntry: summaryEntry
+  };
+}
+/* ══════════════════════════ PURE LOGIC END ══════════════════════════ */
+
+/* ═════════════════════════ DOM / rendering ═════════════════════════ */
+(function () {
+  if (typeof document === "undefined") return;      // running under node
+
+  var LETTERS = ["A", "B", "C", "D", "E", "F"];
+  var KIND_LABEL = {
+    conceptual: "concept", real: "real numbers",
+    predict: "predict the behavior", code: "read the code"
+  };
+  var answers = {};
+
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, html) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html !== undefined) e.innerHTML = html;
+    return e;
+  }
+
+  /* ── storage ── */
+  function load() {
+    try {
+      var raw = localStorage.getItem(QUIZ.storeKey);
+      if (!raw) return {};
+      var obj = JSON.parse(raw);
+      return (obj && typeof obj === "object" && obj.answers) ? obj.answers : {};
+    } catch (e) { return {}; }
+  }
+  function save() {
+    var s = scoreAll(QUESTIONS, answers);
+    try {
+      localStorage.setItem(QUIZ.storeKey, JSON.stringify({
+        answers: answers, score: s.score, total: s.total, ts: Date.now()
+      }));
+      var all = {};
+      try { all = JSON.parse(localStorage.getItem(QUIZ.summaryKey)) || {}; } catch (e2) { all = {}; }
+      if (typeof all !== "object" || all === null) all = {};
+      all[QUIZ.id] = summaryEntry(QUESTIONS, answers);
+      localStorage.setItem(QUIZ.summaryKey, JSON.stringify(all));
+    } catch (e) { /* private mode: run without persistence */ }
+  }
+
+  /* ── build one question card ── */
+  function buildCard(q, i) {
+    var card = el("section", "q");
+    card.id = "q-" + q.id;
+
+    var head = el("div", "qhead");
+    head.appendChild(el("span", "qnum", String(i + 1).padStart(2, "0") + " / 10"));
+    head.appendChild(el("span", "qkind", KIND_LABEL[q.type] || q.type));
+    head.appendChild(el("span", "qtopic", q.topic));
+    var mark = el("span", "mark", "");
+    mark.style.display = "none";
+    head.appendChild(mark);
+    card.appendChild(head);
+
+    card.appendChild(el("p", "qtext", q.prompt));
+
+    if (q.code) {
+      var pre = el("pre", "code");
+      pre.appendChild(el("span", "file", q.code.file));
+      var codeEl = document.createElement("code");
+      codeEl.textContent = q.code.text;
+      pre.appendChild(codeEl);
+      card.appendChild(pre);
+    }
+
+    if (q.kind === "multi") {
+      card.appendChild(el("p", "selnote", "Select all that apply, then check."));
+    }
+
+    var opts = el("div", "opts");
+    var inputs = [];
+
+    if (q.kind === "single") {
+      q.options.forEach(function (text, k) {
+        var b = el("button", "opt");
+        b.type = "button";
+        b.appendChild(el("span", "ltr", LETTERS[k]));
+        b.appendChild(el("span", "txt", text));
+        b.addEventListener("click", function () {
+          if (isAnswered(answers, q.id)) return;
+          answers[q.id] = k;
+          save();
+          lock(q, card);
+          refresh();
+        });
+        inputs.push(b);
+        opts.appendChild(b);
+      });
+    } else if (q.kind === "multi") {
+      q.options.forEach(function (text, k) {
+        var lab = el("label", "opt");
+        var cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.value = String(k);
+        lab.appendChild(cb);
+        lab.appendChild(el("span", "ltr", LETTERS[k]));
+        lab.appendChild(el("span", "txt", text));
+        inputs.push(lab);
+        opts.appendChild(lab);
+      });
+    } else {
+      var row = el("div", "numrow");
+      var inp = document.createElement("input");
+      inp.type = "number";
+      inp.step = "any";
+      inp.setAttribute("aria-label", "your answer");
+      inp.placeholder = "your answer";
+      row.appendChild(inp);
+      if (q.unit) row.appendChild(el("span", "qtopic", q.unit));
+      opts.appendChild(row);
+      inputs.push(inp);
+    }
+    card.appendChild(opts);
+
+    if (q.kind !== "single") {
+      var check = el("button", "check primary", "Check answer");
+      check.type = "button";
+      check.addEventListener("click", function () {
+        if (isAnswered(answers, q.id)) return;
+        if (q.kind === "multi") {
+          var picked = [];
+          opts.querySelectorAll("input[type=checkbox]").forEach(function (cb) {
+            if (cb.checked) picked.push(parseInt(cb.value, 10));
+          });
+          if (!picked.length) return;
+          answers[q.id] = picked;
+        } else {
+          var raw = opts.querySelector("input").value;
+          if (raw === "" || !isFinite(parseFloat(raw))) return;
+          answers[q.id] = parseFloat(raw);
+        }
+        save();
+        lock(q, card);
+        refresh();
+      });
+      card.appendChild(check);
+    }
+
+    var ex = el("div", "explain");
+    ex.style.display = "none";
+    card.appendChild(ex);
+
+    card._q = q;
+    card._opts = opts;
+    card._inputs = inputs;
+    card._mark = mark;
+    card._explain = ex;
+    return card;
+  }
+
+  /* ── lock + reveal ── */
+  function lock(q, card) {
+    var resp = answers[q.id];
+    var right = gradeOne(q, resp);
+    card.classList.add("done");
+    card.classList.add(right ? "right" : "wrong");
+    card._mark.style.display = "";
+    card._mark.className = "mark " + (right ? "right" : "wrong");
+    card._mark.textContent = right ? "correct" : "not quite";
+
+    if (q.kind === "single") {
+      card._inputs.forEach(function (b, k) {
+        b.disabled = true;
+        if (k === q.answer) {
+          b.classList.add("is-correct");
+          b.appendChild(el("span", "tag", k === resp ? "your answer · correct" : "correct"));
+        } else if (k === resp) {
+          b.classList.add("is-wrong");
+          b.appendChild(el("span", "tag", "your answer"));
+        }
+      });
+    } else if (q.kind === "multi") {
+      var picked = Array.isArray(resp) ? resp : [];
+      card._inputs.forEach(function (lab, k) {
+        var cb = lab.querySelector("input");
+        cb.checked = picked.indexOf(k) !== -1;
+        cb.disabled = true;
+        var shouldBe = q.answer.indexOf(k) !== -1;
+        if (shouldBe) {
+          lab.classList.add("is-correct");
+          lab.appendChild(el("span", "tag", cb.checked ? "correct · picked" : "correct · missed"));
+        } else if (cb.checked) {
+          lab.classList.add("is-wrong");
+          lab.appendChild(el("span", "tag", "should not be picked"));
+        }
+      });
+    } else {
+      var inp = card._inputs[0];
+      inp.value = String(resp);
+      inp.disabled = true;
+      inp.classList.add(right ? "is-correct" : "is-wrong");
+    }
+
+    var check = card.querySelector("button.check");
+    if (check) check.remove();
+
+    var html = '<span class="lab">Why</span>' + q.explain;
+    if (q.kind === "numeric") {
+      html += '<span class="tol">answer ' + q.answer.toLocaleString("en-US") +
+              ' · accepted ' + (q.answer - q.tol).toLocaleString("en-US") + '–' +
+              (q.answer + q.tol).toLocaleString("en-US") + '</span>';
+    }
+    card._explain.innerHTML = html;
+    if (q.tryIt) {
+      var a = el("a", "tryit", "Try it in the explorable →");
+      a.href = QUIZ.explorable;
+      card._explain.appendChild(a);
+    }
+    card._explain.style.display = "";
+  }
+
+  /* ── score bar + results ── */
+  function refresh() {
+    var s = scoreAll(QUESTIONS, answers);
+    $("scoreNum").textContent = s.score + " / " + s.total;
+    $("answeredNum").textContent = s.answered === 0
+      ? "nothing answered yet"
+      : (s.answered === s.total ? "all answered" : s.answered + " of " + s.total + " answered");
+
+    var vs = $("verdictShort"), res = $("results");
+    if (s.answered < s.total) {
+      vs.textContent = "";
+      vs.className = "vshort";
+      res.classList.remove("on");
+      return;
+    }
+    var v = verdictFor(s.score);
+    vs.textContent = v.text;
+    vs.className = "vshort " + v.tone;
+    $("verdictLine").textContent = s.score + " / " + s.total + " — " + v.text;
+    $("verdictLine").className = "vline " + v.tone;
+
+    var missed = missedTopics(QUESTIONS, answers);
+    var wrap = $("hintsWrap");
+    wrap.innerHTML = "";
+    if (!missed.length) {
+      wrap.appendChild(el("p", "hint", "Nothing flagged — every question graded correct."));
+    } else {
+      wrap.appendChild(el("p", "hint", "Topics to revisit, from the questions you missed:"));
+      var ul = document.createElement("ul");
+      missed.forEach(function (m) {
+        ul.appendChild(el("li", null,
+          "<b>Q" + m.n + " · " + m.topic + "</b> — " + m.hint));
+      });
+      wrap.appendChild(ul);
+    }
+    res.classList.add("on");
+  }
+
+  /* ── boot ── */
+  var host = $("questions");
+  var cards = QUESTIONS.map(function (q, i) {
+    var c = buildCard(q, i);
+    host.appendChild(c);
+    return c;
+  });
+
+  answers = load();
+  // drop anything that no longer matches a question id
+  Object.keys(answers).forEach(function (k) {
+    if (!QUESTIONS.some(function (q) { return q.id === k; })) delete answers[k];
+  });
+  QUESTIONS.forEach(function (q, i) {
+    if (isAnswered(answers, q.id)) lock(q, cards[i]);
+  });
+  refresh();
+
+  $("resetBtn").addEventListener("click", function () {
+    if (!window.confirm("Clear your answers for this quiz and start over?")) return;
+    answers = {};
+    try {
+      localStorage.removeItem(QUIZ.storeKey);
+      var all = JSON.parse(localStorage.getItem(QUIZ.summaryKey) || "{}") || {};
+      delete all[QUIZ.id];
+      localStorage.setItem(QUIZ.summaryKey, JSON.stringify(all));
+    } catch (e) { /* ignore */ }
+    window.location.reload();
+  });
+})();
+</script>
+<!-- built for ml-course quizzes v1 -->
+</html>

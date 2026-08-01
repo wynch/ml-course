@@ -15,6 +15,8 @@ and [LLM Course chapter 11](https://huggingface.co/learn/llm-course/chapter11).
 drag the rank slider and watch this module's real trained ΔW rebuild itself from
 7 singular directions while a frozen weight needs 28.
 
+**✅ Quiz:** [10 questions](../../quizzes/06.html) — check yourself once the adapter is trained.
+
 ## Goals
 
 By the end you will be able to:

@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Attention &amp; the tiny GPT — check yourself · ML course quiz 04</title>
+<style>
+:root{--track:var(--t2)}
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d;
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67;
+  --wrong:#c0504d; --soft:rgba(31,145,141,.10); --softbad:rgba(192,80,77,.09);
+  --panel-2:#eef2f0;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --panel-2:#131a18;
+    --line:rgba(232,238,236,.18); --muted:#9daba7;
+    --t1:#8f7fd6; --t2:#37b3ae; --t3:#63c473; --accent:#37b3ae; --track-ink:#0d1211;
+    --wrong:#f0918b; --soft:rgba(55,179,174,.16); --softbad:rgba(240,145,139,.14);
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;padding-bottom:6.5rem}
+a{color:var(--accent)}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;background:var(--track);color:var(--track-ink);
+  padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.topbar .spacer{flex:1 1 auto}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:840px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 2rem}
+.intro{max-width:70ch}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+.intro p{color:var(--muted);font-size:.92rem;margin:.3rem 0}
+h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .7rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.85rem,2vw,1.2rem);margin:1.1rem 0}
+.mono,code{font-family:var(--mono);font-size:.92em}
+.muted-inline{color:var(--muted);font-size:.86em}
+button{font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:.34rem .82rem;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover:not(:disabled){color:#fff;filter:brightness(1.06)}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---- question card ---- */
+.qhead{display:flex;flex-wrap:wrap;gap:.45rem .6rem;align-items:baseline;margin-bottom:.55rem}
+.qnum{font-family:var(--mono);font-size:.8rem;color:var(--track);font-weight:700}
+.tag{font-family:var(--display);font-size:.66rem;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--muted);border:1px solid var(--line);
+  border-radius:999px;padding:.1rem .5rem}
+.qtopic{font-size:.78rem;color:var(--muted);margin-left:auto}
+.qprompt{margin:.1rem 0 .7rem;max-width:70ch}
+.qprompt .multi-note{color:var(--track);font-weight:600}
+pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--panel-2);
+  border:1px solid var(--line);border-left:3px solid var(--track);border-radius:8px;
+  padding:.6rem .75rem;overflow-x:auto;margin:0 0 .7rem}
+.codefile{font-family:var(--mono);font-size:.74rem;color:var(--muted);margin:0 0 .3rem}
+ul.opts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.4rem}
+ul.opts li{margin:0}
+.opt{display:flex;gap:.6rem;align-items:flex-start;width:100%;text-align:left;
+  font-family:var(--body);font-size:.94rem;font-weight:400;line-height:1.45;color:var(--ink);
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:.5rem .7rem;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent);color:var(--ink);background:var(--soft)}
+/* locked questions stay legible — override the generic button:disabled fade */
+.opt:disabled{opacity:1;color:var(--muted)}
+.opt.ok:disabled,.opt.bad:disabled,.opt.key:disabled{color:var(--ink)}
+.opt .ltr{font-family:var(--mono);font-size:.8rem;font-weight:700;color:var(--muted);
+  flex:0 0 1.1rem;padding-top:.1rem}
+.opt.sel{border-color:var(--track);background:var(--soft)}
+.opt.sel .ltr{color:var(--track)}
+.opt.ok{border-color:var(--accent);background:var(--soft)}
+.opt.ok .ltr{color:var(--accent)}
+.opt.bad{border-color:var(--wrong);background:var(--softbad)}
+.opt.bad .ltr{color:var(--wrong)}
+.opt.key{border-style:dashed;border-color:var(--accent)}
+.opt.key .ltr{color:var(--accent)}
+.numrow{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.numrow input{font-family:var(--mono);font-size:.95rem;color:var(--ink);background:var(--panel-2);
+  border:1px solid var(--line);border-radius:8px;padding:.4rem .6rem;width:11rem}
+.actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.6rem}
+.verd{font-family:var(--display);font-size:.74rem;font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;border-radius:999px;padding:.15rem .6rem;border:1px solid;display:inline-block}
+.verd.ok{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.verd.bad{color:var(--wrong);border-color:var(--wrong);background:var(--softbad)}
+.reveal{margin-top:.8rem;border-top:1px solid var(--line);padding-top:.65rem;
+  font-size:.9rem;max-width:72ch}
+.reveal p{margin:.45rem 0 0}
+.reveal .tryit{display:inline-block;margin-top:.5rem;font-size:.85rem;text-decoration:none;
+  border:1px solid var(--line);border-radius:999px;padding:.22rem .65rem}
+.reveal .tryit:hover{border-color:var(--accent)}
+.reveal .tol{color:var(--muted);font-size:.82rem}
+
+/* ---- sticky score bar ---- */
+.scorebar{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--panel);
+  border-top:1px solid var(--line);padding:.6rem clamp(.9rem,3vw,2rem)}
+.scorebar .inner{max-width:840px;margin:0 auto;display:flex;flex-wrap:wrap;
+  gap:.5rem .9rem;align-items:center}
+.scorebar .sc{font-family:var(--mono);font-size:1.05rem;font-weight:700;color:var(--track)}
+.scorebar .lbl{font-size:.8rem;color:var(--muted)}
+.scorebar .spacer{flex:1 1 auto}
+.scorebar .final{flex:1 1 100%;font-size:.88rem;border-top:1px dashed var(--line);
+  padding-top:.5rem;margin-top:.1rem}
+.scorebar .final ul{margin:.35rem 0 0;padding-left:1.15rem;color:var(--muted);font-size:.84rem}
+.scorebar .final li{margin:.2rem 0}
+.scorebar .final li b{color:var(--ink)}
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 1.6rem;
+  font-size:.84rem;color:var(--muted);max-width:840px;margin:0 auto}
+footer .paths{font-family:var(--mono);font-size:.82rem;margin:.25rem 0}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+@media (max-width:700px){
+  .topbar h1{font-size:.98rem}
+  .qtopic{margin-left:0;flex:1 1 100%}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Attention &amp; the tiny GPT — check yourself</h1>
+  <span class="pill">Module 04 · Attention</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">← All quizzes</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">Ten questions on the one operation that replaced the recurrent net — the √d_head, the causal mask, the pre-norm residual — plus the real measured numbers from the 620k-parameter char-GPT you trained. Answer in any order.</p>
+    <p>Ten questions, answerable in any order. Answering locks a question and reveals the
+      explanation — there is no going back without <b>Reset</b>. Your score is kept in this
+      browser only.</p>
+  </section>
+
+    <section class="panel" id="card-q1">
+      <div class="qhead"><span class="qnum">01</span><span class="tag">concept</span><span class="qtopic">Why the √d_head</span></div>
+      <p class="qprompt">Attention is <span class="mono">softmax(Q Kᵀ / √d_head) V</span>. What does dividing by <span class="mono">√d_head</span> buy you?</p>
+      <ul class="opts" id="opts-q1">
+        <li><button class="opt" data-q="q1" data-i="0"><span class="ltr">A</span><span class="txt">It normalises each row so the attention weights sum to 1.</span></button></li>
+        <li><button class="opt" data-q="q1" data-i="1"><span class="ltr">B</span><span class="txt">It compensates for the number of heads so the concatenated output keeps unit norm.</span></button></li>
+        <li><button class="opt" data-q="q1" data-i="2"><span class="ltr">C</span><span class="txt">Dot products of <span class="mono">d_head</span>-dimensional vectors grow with the dimension; without the scale the softmax saturates toward one-hot and gradients through it vanish.</span></button></li>
+        <li><button class="opt" data-q="q1" data-i="3"><span class="ltr">D</span><span class="txt">It matches the variance that the following LayerNorm expects, so <span class="mono">ln2</span> becomes a no-op.</span></button></li>
+      </ul>
+      <div class="reveal" id="rev-q1" hidden></div>
+    </section>
+    <section class="panel" id="card-q2">
+      <div class="qhead"><span class="qnum">02</span><span class="tag">concept</span><span class="qtopic">Pre-norm residual blocks</span></div>
+      <p class="qprompt">Module 04's <span class="mono">Block.forward</span> is <span class="mono">x = x + attn(ln1(x))</span> then <span class="mono">x = x + mlp(ln2(x))</span> — <em>pre</em>-norm. Why is that preferred over post-norm (<span class="mono">x = ln1(x + attn(x))</span>)?</p>
+      <ul class="opts" id="opts-q2">
+        <li><button class="opt" data-q="q2" data-i="0"><span class="ltr">A</span><span class="txt">The residual stream itself is never normalised, so it stays an unobstructed additive path from the embedding to the output — gradients reach the early layers intact and depth becomes cheap.</span></button></li>
+        <li><button class="opt" data-q="q2" data-i="1"><span class="ltr">B</span><span class="txt">Pre-norm makes the final LayerNorm redundant, saving a layer.</span></button></li>
+        <li><button class="opt" data-q="q2" data-i="2"><span class="ltr">C</span><span class="txt">Pre-norm halves the block's parameter count because one LayerNorm can be shared.</span></button></li>
+        <li><button class="opt" data-q="q2" data-i="3"><span class="ltr">D</span><span class="txt">Pre-norm lets attention read the raw token embeddings rather than the transformed residual.</span></button></li>
+      </ul>
+      <div class="reveal" id="rev-q2" hidden></div>
+    </section>
+    <section class="panel" id="card-q3">
+      <div class="qhead"><span class="qnum">03</span><span class="tag">concept</span><span class="qtopic">Weight tying and the export</span></div>
+      <p class="qprompt">The LM head weight is tied to the token embedding (<span class="mono">self.head.weight = self.wte.weight</span>). Which of these follow, for this checkpoint? <span class="multi-note">Select all that apply.</span></p>
+      <ul class="opts" id="opts-q3">
+        <li><button class="opt" data-q="q3" data-i="0"><span class="ltr">A</span><span class="txt">The same <span class="mono">[65, 128]</span> matrix embeds tokens on the way in and scores them on the way out.</span></button></li>
+        <li><button class="opt" data-q="q3" data-i="1"><span class="ltr">B</span><span class="txt"><span class="mono">tiny_gpt_weights.bin</span> stores no separate output matrix — module 07's Zig reader computes <span class="mono">logits = x @ wte.weightᵀ</span>.</span></button></li>
+        <li><button class="opt" data-q="q3" data-i="2"><span class="ltr">C</span><span class="txt">It removes a <span class="mono">65 × 128 = 8320</span>-parameter matrix from the model.</span></button></li>
+        <li><button class="opt" data-q="q3" data-i="3"><span class="ltr">D</span><span class="txt">It constrains the logits to be non-negative.</span></button></li>
+      </ul>
+      <div class="actions"><button class="primary" data-check="q3">Answer</button><span class="lbl muted-inline" id="picked-q3"></span></div>
+      <div class="reveal" id="rev-q3" hidden></div>
+    </section>
+    <section class="panel" id="card-q4">
+      <div class="qhead"><span class="qnum">04</span><span class="tag">real numbers</span><span class="qtopic">Parameter count</span></div>
+      <p class="qprompt">The manifest in <span class="mono">artifacts/tiny_gpt_config.json</span> lists 40 tensors. Summed, how many float32 parameters does the committed tiny-GPT have? <span class="muted-inline">(whole number — the module quotes it rounded)</span></p>
+      <div class="numrow">
+        <input type="text" inputmode="numeric" id="in-q4" aria-label="your answer" placeholder="your answer">
+        <button class="primary" data-check="q4">Answer</button>
+      </div>
+      <div class="reveal" id="rev-q4" hidden></div>
+    </section>
+    <section class="panel" id="card-q5">
+      <div class="qhead"><span class="qnum">05</span><span class="tag">real numbers</span><span class="qtopic">Final train/val loss</span></div>
+      <p class="qprompt">After 5000 iterations on tiny-shakespeare, the training log records final cross-entropy of about:</p>
+      <ul class="opts" id="opts-q5">
+        <li><button class="opt" data-q="q5" data-i="0"><span class="ltr">A</span><span class="txt">train 1.73, val 1.54</span></button></li>
+        <li><button class="opt" data-q="q5" data-i="1"><span class="ltr">B</span><span class="txt">train 4.22, val 4.22</span></button></li>
+        <li><button class="opt" data-q="q5" data-i="2"><span class="ltr">C</span><span class="txt">train 0.42, val 0.55</span></button></li>
+        <li><button class="opt" data-q="q5" data-i="3"><span class="ltr">D</span><span class="txt">train 1.54, val 1.73</span></button></li>
+      </ul>
+      <div class="reveal" id="rev-q5" hidden></div>
+    </section>
+    <section class="panel" id="card-q6">
+      <div class="qhead"><span class="qnum">06</span><span class="tag">real numbers</span><span class="qtopic">What the model predicts after a speaker tag</span></div>
+      <p class="qprompt">Feed the trained model the prompt <span class="mono">First Citizen:</span>. What is its top next-<em>character</em> prediction, and with roughly what probability?</p>
+      <ul class="opts" id="opts-q6">
+        <li><button class="opt" data-q="q6" data-i="0"><span class="ltr">A</span><span class="txt">a newline, at 90.1%</span></button></li>
+        <li><button class="opt" data-q="q6" data-i="1"><span class="ltr">B</span><span class="txt">a space, at 59.3%</span></button></li>
+        <li><button class="opt" data-q="q6" data-i="2"><span class="ltr">C</span><span class="txt">a newline, at 9.4%</span></button></li>
+        <li><button class="opt" data-q="q6" data-i="3"><span class="ltr">D</span><span class="txt">the letter <span class="mono">B</span>, at 44.0%</span></button></li>
+      </ul>
+      <div class="reveal" id="rev-q6" hidden></div>
+    </section>
+    <section class="panel" id="card-q7">
+      <div class="qhead"><span class="qnum">07</span><span class="tag">predict the behavior</span><span class="qtopic">Temperature and the softmax</span></div>
+      <p class="qprompt">In the explorable, push <span class="mono">temperature</span> from 1.00 toward 4.00 with the causal mask on. What happens to each row of the heatmap?</p>
+      <ul class="opts" id="opts-q7">
+        <li><button class="opt" data-q="q7" data-i="0"><span class="ltr">A</span><span class="txt">It collapses onto one bright cell — attention becomes a hard dictionary lookup.</span></button></li>
+        <li><button class="opt" data-q="q7" data-i="1"><span class="ltr">B</span><span class="txt">It flattens toward uniform over its legal keys — attention degenerates into plain averaging.</span></button></li>
+        <li><button class="opt" data-q="q7" data-i="2"><span class="ltr">C</span><span class="txt">The upper triangle lights up, because high temperature overrides the mask.</span></button></li>
+        <li><button class="opt" data-q="q7" data-i="3"><span class="ltr">D</span><span class="txt">The rows stop summing to 1, since dividing by a large number shrinks every weight.</span></button></li>
+      </ul>
+      <div class="reveal" id="rev-q7" hidden></div>
+    </section>
+    <section class="panel" id="card-q8">
+      <div class="qhead"><span class="qnum">08</span><span class="tag">predict the behavior</span><span class="qtopic">The future-leak probe</span></div>
+      <p class="qprompt">Exercise (b)'s probe alters the token at position <span class="mono">t+1</span> and measures the largest change in the logits at position <span class="mono">t</span>. For the <em>causal</em> model it reports:</p>
+      <ul class="opts" id="opts-q8">
+        <li><button class="opt" data-q="q8" data-i="0"><span class="ltr">A</span><span class="txt">a small non-zero value, because dropout injects noise into the attention weights</span></button></li>
+        <li><button class="opt" data-q="q8" data-i="1"><span class="ltr">B</span><span class="txt">a large value — which is exactly why the causal model converges faster</span></button></li>
+        <li><button class="opt" data-q="q8" data-i="2"><span class="ltr">C</span><span class="txt">exactly <span class="mono">0.0</span> — the future is masked out of position <span class="mono">t</span>'s attention, so it provably cannot move the prediction</span></button></li>
+        <li><button class="opt" data-q="q8" data-i="3"><span class="ltr">D</span><span class="txt"><span class="mono">0.0</span>, but only once training has converged</span></button></li>
+      </ul>
+      <div class="reveal" id="rev-q8" hidden></div>
+    </section>
+    <section class="panel" id="card-q9">
+      <div class="qhead"><span class="qnum">09</span><span class="tag">read the code</span><span class="qtopic">Attention tensor shapes</span></div>
+      <p class="codefile">python/src/model.py</p>
+      <pre class="code">B, T, C = x.shape
+q, k, v = self.qkv(x).split(self.d_model, dim=2)
+q = q.view(B, T, self.n_head, self.d_head).transpose(1, 2)
+k = k.view(B, T, self.n_head, self.d_head).transpose(1, 2)
+v = v.view(B, T, self.n_head, self.d_head).transpose(1, 2)
+
+# scaled dot-product scores
+att = (q @ k.transpose(-2, -1)) / math.sqrt(self.d_head)</pre>
+      <p class="qprompt">Training runs with <span class="mono">BATCH_SIZE = 64</span> and a full <span class="mono">BLOCK_SIZE = 128</span> context, on the committed config (<span class="mono">n_head=4</span>, <span class="mono">d_model=128</span>). What is <span class="mono">att.shape</span>?</p>
+      <ul class="opts" id="opts-q9">
+        <li><button class="opt" data-q="q9" data-i="0"><span class="ltr">A</span><span class="txt"><span class="mono">(64, 4, 128, 32)</span></span></button></li>
+        <li><button class="opt" data-q="q9" data-i="1"><span class="ltr">B</span><span class="txt"><span class="mono">(64, 128, 4, 128)</span></span></button></li>
+        <li><button class="opt" data-q="q9" data-i="2"><span class="ltr">C</span><span class="txt"><span class="mono">(64, 128, 128, 32)</span></span></button></li>
+        <li><button class="opt" data-q="q9" data-i="3"><span class="ltr">D</span><span class="txt"><span class="mono">(64, 4, 128, 128)</span></span></button></li>
+      </ul>
+      <div class="reveal" id="rev-q9" hidden></div>
+    </section>
+    <section class="panel" id="card-q10">
+      <div class="qhead"><span class="qnum">10</span><span class="tag">read the code</span><span class="qtopic">Masking with −inf, before the softmax</span></div>
+      <p class="codefile">python/src/model.py</p>
+      <pre class="code">att = (q @ k.transpose(-2, -1)) / math.sqrt(self.d_head)
+att = att.masked_fill(self.mask[:, :, :T, :T] == 0, float("-inf"))
+att = F.softmax(att, dim=-1)</pre>
+      <p class="qprompt">Why fill the masked positions with <span class="mono">-inf</span> rather than with <span class="mono">0</span>?</p>
+      <ul class="opts" id="opts-q10">
+        <li><button class="opt" data-q="q10" data-i="0"><span class="ltr">A</span><span class="txt">Because the fill lands on the <em>scores</em>: <span class="mono">exp(-inf) = 0</span> drives the weight to exactly zero and the legal keys renormalise to 1, whereas a score of 0 gives <span class="mono">exp(0) = 1</span> — a substantial future contribution.</span></button></li>
+        <li><button class="opt" data-q="q10" data-i="1"><span class="ltr">B</span><span class="txt">Either works; <span class="mono">-inf</span> is only a numerical-stability convention inherited from GPT-2.</span></button></li>
+        <li><button class="opt" data-q="q10" data-i="2"><span class="ltr">C</span><span class="txt"><span class="mono">-inf</span> also zeroes the gradient for the whole row, which is what stops the future leaking.</span></button></li>
+        <li><button class="opt" data-q="q10" data-i="3"><span class="ltr">D</span><span class="txt"><span class="mono">F.softmax</span> requires strictly negative inputs along the reduced dimension.</span></button></li>
+      </ul>
+      <div class="reveal" id="rev-q10" hidden></div>
+    </section>
+</main>
+
+<footer>
+  <p class="paths">module → <a href="../modules/04-attention-transformer/README.md">../modules/04-attention-transformer/README.md</a></p>
+  <p class="paths">explorable → <a href="../explorables/04-attention.html">../explorables/04-attention.html</a> · Attention, one query at a time</p>
+  <p>Track: Transformers &amp; LLMs · Next in the course: Hugging Face LLM Course, Chapter 1 — How do Transformers work? —
+    <a href="https://huggingface.co/learn/llm-course/chapter1">huggingface.co/learn/llm-course/chapter1</a></p>
+</footer>
+
+<div class="scorebar">
+  <div class="inner">
+    <span class="sc" id="sc">0 / 10</span>
+    <span class="lbl" id="sc-lbl">0 of 10 answered</span>
+    <span class="spacer"></span>
+    <button id="reset">Reset quiz</button>
+    <div class="final" id="final" hidden></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const QUIZ = {"nn":"04","explorable":"04-attention.html","explorableName":"Attention, one query at a time","questions":[{"id":"q1","kind":"single","topic":"Why the √d_head","hint":"README “Theory in one minute”, and the temperature bullet in the explorable's “What to notice”.","answer":2,"explain":"A dot product of two \u003cspan class=\"mono\">d\u003c/span>-dimensional random vectors has variance ∝ \u003cspan class=\"mono\">d\u003c/span>, so raw scores get more extreme as \u003cspan class=\"mono\">d_head\u003c/span> grows and the softmax hardens. The explorable calls \u003cspan class=\"mono\">√d_head\u003c/span> “a fixed version of the temperature knob”. Option 1 is the strong distractor — summing to 1 is what softmax does \u003cem>regardless\u003c/em> of the scale; the scale only controls how peaked that distribution is.","tryIt":false},{"id":"q2","kind":"single","topic":"Pre-norm residual blocks","hint":"python/src/model.py, class Block — and the mermaid block diagram in the README.","answer":0,"explain":"In pre-norm, LayerNorm sits on the \u003cem>branch\u003c/em>, not on the skip connection, so \u003cspan class=\"mono\">x\u003c/span> flows through the block by pure addition — the reason the README says “depth is cheap”. Option 2 is the tempting one and is contradicted by the code: \u003cspan class=\"mono\">GPT\u003c/span> still applies \u003cspan class=\"mono\">ln_f\u003c/span> before the LM head, precisely \u003cem>because\u003c/em> the residual stream was left un-normalised.","tryIt":false},{"id":"q3","kind":"multi","topic":"Weight tying and the export","hint":"model.py's GPT docstring plus the “Tensor order” section of artifacts/EXPORT_FORMAT.md.","answer":[0,1,2],"explain":"Tying is one matrix doing two jobs: the export's tensor order runs to 40 entries and the LM head is explicitly \u003cem>not\u003c/em> among them (“it is \u003cspan class=\"mono\">wte.weight\u003c/span> reused”), which is why the Zig reader in module 07 can rely on the manifest alone. Non-negative logits is the giveaway distractor — a dot product with a shared matrix is signed like any other.","tryIt":false},{"id":"q4","kind":"numeric","topic":"Parameter count","hint":"Sum the `count` field over the 40 entries in artifacts/tiny_gpt_config.json, or call GPT.num_params().","answer":{"value":619776,"tol":5000},"explain":"\u003cspan class=\"mono\">\"total_f32\": 619776\u003c/span> — the 620k the README and the explorable both quote. It breaks down as \u003cspan class=\"mono\">wte\u003c/span> 8,320 + \u003cspan class=\"mono\">wpe\u003c/span> 16,384 + 3 × 198,272 per block + 256 for \u003cspan class=\"mono\">ln_f\u003c/span>; the tied LM head adds nothing, which is why \u003cspan class=\"mono\">num_params()\u003c/span> and the file size agree.","tryIt":false},{"id":"q5","kind":"single","topic":"Final train/val loss","hint":"models/train_log.json — the last entry of the `train` and `val` arrays; also quoted in the README's Step 2.","answer":3,"explain":"The log ends at train 1.541 / val 1.725 — validation loss sits \u003cem>above\u003c/em> training loss, the normal direction. Option 1 has them swapped, which should look wrong on sight: a val loss well below train loss on the same distribution usually means a leak or a bug. 4.22 is step 0, before any learning.","tryIt":false},{"id":"q6","kind":"single","topic":"What the model predicts after a speaker tag","hint":"Pick the “First Citizen:” prompt in the explorable and read the prediction chip.","answer":0,"explain":"A char-level model trained on Shakespeare learns the script format hard: a colon after a speaker name is followed by a line break in nearly every sample, so it commits 90.1% of its mass to \u003cspan class=\"mono\">'\\n'\u003c/span>. Space is its second guess at 9.35% — option 3's 9.4% is that number attached to the wrong character, and 59.3% is the model's confidence on a different prompt entirely.","tryIt":false},{"id":"q7","kind":"single","topic":"Temperature and the softmax","hint":"Sweep the temperature slider in the explorable with the causal mask left on.","answer":1,"explain":"Dividing scores by a large temperature squeezes them together, so the softmax approaches uniform \u003cspan class=\"mono\">1/i\u003c/span> over the \u003cspan class=\"mono\">i\u003c/span> legal keys — the mush an untrained head produces. Option 1 is the same knob turned the other way (temperature → 0.1 is the hard lookup). Rows always sum to 1: softmax renormalises whatever it is given.","tryIt":true},{"id":"q8","kind":"single","topic":"The future-leak probe","hint":"Read future_leak() in exercises/ex_b_ablate_causal_mask.py and the assertion right after it.","answer":2,"explain":"The exercise asserts \u003cspan class=\"mono\">leak_c == 0.0\u003c/span> for an \u003cem>untrained\u003c/em> model — the invariance is architectural, not learned, which is the whole point of the probe. Option 4 is the tempting one; and the dropout distractor fails because \u003cspan class=\"mono\">future_leak\u003c/span> runs under \u003cspan class=\"mono\">model.eval()\u003c/span> and \u003cspan class=\"mono\">torch.no_grad()\u003c/span>.","tryIt":true},{"id":"q9","kind":"single","topic":"Attention tensor shapes","hint":"d_head = d_model // n_head; then follow the two transposes.","answer":3,"explain":"After the transpose, \u003cspan class=\"mono\">q\u003c/span> and \u003cspan class=\"mono\">k\u003c/span> are \u003cspan class=\"mono\">(B, n_head, T, d_head)\u003c/span> = \u003cspan class=\"mono\">(64, 4, 128, 32)\u003c/span>; \u003cspan class=\"mono\">q @ kᵀ\u003c/span> contracts \u003cspan class=\"mono\">d_head\u003c/span> away and leaves a \u003cspan class=\"mono\">T × T\u003c/span> score matrix per head → \u003cspan class=\"mono\">(64, 4, 128, 128)\u003c/span>. \u003cspan class=\"mono\">(64, 4, 128, 32)\u003c/span> is the tempting one — that is the shape of \u003cspan class=\"mono\">y = att @ v\u003c/span>, two lines later.","tryIt":false},{"id":"q10","kind":"single","topic":"Masking with −inf, before the softmax","hint":"Note the order of the three lines: the mask lands on scores, not on weights.","answer":0,"explain":"The mask is applied one line \u003cem>before\u003c/em> the softmax, so it is masking logits, not probabilities — and a masked logit of 0 is an ordinary, competitive score. Option 2 is the trap: swapping \u003cspan class=\"mono\">-inf\u003c/span> for 0 silently changes the model into one that reads the future, which exercise (b)'s leak probe would immediately catch.","tryIt":false}]};
+
+/* ═══════════════ PURE GRADING LOGIC — DOM-free, node-testable ═══════════════ */
+
+/* single-choice: response is an option index */
+function gradeSingle(resp, key) { return resp === key; }
+
+/* multi-select: response is an array of option indices, order-insensitive */
+function gradeMulti(resp, key) {
+  if (!Array.isArray(resp) || !Array.isArray(key)) return false;
+  if (resp.length !== key.length) return false;
+  var a = resp.slice().sort(function (x, y) { return x - y; });
+  var b = key.slice().sort(function (x, y) { return x - y; });
+  for (var i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+
+/* numeric entry: response is a number, key is {value, tol} */
+function gradeNumeric(resp, key) {
+  if (typeof resp !== "number" || !isFinite(resp)) return false;
+  return Math.abs(resp - key.value) <= key.tol;
+}
+
+function gradeOne(q, resp) {
+  if (resp === undefined || resp === null) return false;
+  if (q.kind === "single") return gradeSingle(resp, q.answer);
+  if (q.kind === "multi") return gradeMulti(resp, q.answer);
+  if (q.kind === "numeric") return gradeNumeric(resp, q.answer);
+  return false;
+}
+
+/* answers: {qid: response}. Returns {score, total, answered, wrong:[qid,…]} */
+function scoreAll(questions, answers) {
+  var score = 0, answered = 0, wrong = [];
+  for (var i = 0; i < questions.length; i++) {
+    var q = questions[i];
+    if (!Object.prototype.hasOwnProperty.call(answers, q.id)) continue;
+    answered++;
+    if (gradeOne(q, answers[q.id])) score++; else wrong.push(q.id);
+  }
+  return { score: score, total: questions.length, answered: answered, wrong: wrong };
+}
+
+/* verdict thresholds: >=9 solid, 6-8 review, <=5 re-run the notebook */
+function verdictFor(score) {
+  if (score >= 9) return { tone: "ok", text: "Solid \u2014 move on to the next module." };
+  if (score >= 6) return { tone: "mid", text: "Review the flagged topics below, then move on." };
+  return { tone: "bad", text: "Re-run the module notebook first \u2014 the fundamentals aren't landing yet." };
+}
+
+/* answer-key balance: how often each option letter is the correct single-choice
+   answer. The build asserts no letter appears more than 4 times. */
+function keyBalance(questions) {
+  var counts = [0, 0, 0, 0];
+  for (var i = 0; i < questions.length; i++) {
+    if (questions[i].kind === "single") counts[questions[i].answer]++;
+  }
+  return counts;
+}
+/* ═════════════════════════ END PURE GRADING LOGIC ═════════════════════════ */
+
+
+var Q = QUIZ.questions;
+var KEY = "mlcourse-quiz-" + QUIZ.nn;
+var SUMKEY = "mlcourse-quiz-scores";
+var LETTERS = ["A", "B", "C", "D", "E", "F"];
+var answers = {};   /* locked answers only */
+var picks = {};     /* in-progress multi-select picks */
+
+function byId(x) { return document.getElementById(x); }
+function qById(id) { for (var i = 0; i < Q.length; i++) if (Q[i].id === id) return Q[i]; return null; }
+
+function load() {
+  try {
+    var raw = localStorage.getItem(KEY);
+    if (!raw) return;
+    var o = JSON.parse(raw);
+    if (o && o.answers && typeof o.answers === "object") answers = o.answers;
+  } catch (e) { answers = {}; }
+}
+
+function save() {
+  var r = scoreAll(Q, answers);
+  var rec = { answers: answers, score: r.score, total: r.total, ts: Date.now() };
+  try {
+    localStorage.setItem(KEY, JSON.stringify(rec));
+    var sum = {};
+    try { sum = JSON.parse(localStorage.getItem(SUMKEY) || "{}") || {}; } catch (e2) { sum = {}; }
+    sum[QUIZ.nn] = { score: r.score, total: r.total, ts: rec.ts };
+    localStorage.setItem(SUMKEY, JSON.stringify(sum));
+  } catch (e) { /* private mode: quiz still works, just not persisted */ }
+}
+
+function answerText(q, resp) {
+  if (q.kind === "numeric") return String(resp);
+  if (q.kind === "multi") {
+    return resp.slice().sort(function (a, b) { return a - b; })
+      .map(function (i) { return LETTERS[i]; }).join(", ");
+  }
+  return LETTERS[resp];
+}
+
+function keyText(q) {
+  if (q.kind === "numeric") return String(q.answer.value);
+  if (q.kind === "multi") return q.answer.map(function (i) { return LETTERS[i]; }).join(", ");
+  return LETTERS[q.answer];
+}
+
+/* render one question in its current state (locked or open) */
+function paint(q) {
+  var locked = Object.prototype.hasOwnProperty.call(answers, q.id);
+  var resp = answers[q.id];
+  var right = locked ? gradeOne(q, resp) : false;
+  var list = byId("opts-" + q.id);
+
+  if (list) {
+    var btns = list.querySelectorAll("button.opt");
+    for (var i = 0; i < btns.length; i++) {
+      var b = btns[i];
+      b.className = "opt";
+      b.disabled = locked;
+      if (locked) {
+        var chosen = (q.kind === "multi") ? (resp.indexOf(i) >= 0) : (resp === i);
+        var isKey = (q.kind === "multi") ? (q.answer.indexOf(i) >= 0) : (q.answer === i);
+        if (chosen && isKey) b.className = "opt ok";
+        else if (chosen && !isKey) b.className = "opt bad";
+        else if (isKey) b.className = "opt key";
+      } else if (q.kind === "multi" && picks[q.id] && picks[q.id].indexOf(i) >= 0) {
+        b.className = "opt sel";
+      }
+    }
+  }
+
+  var chk = document.querySelector("[data-check='" + q.id + "']");
+  if (chk) chk.disabled = locked;
+  var inp = byId("in-" + q.id);
+  if (inp) { inp.disabled = locked; if (locked) inp.value = String(resp); }
+  var pk = byId("picked-" + q.id);
+  if (pk) {
+    pk.textContent = locked ? "" :
+      ((picks[q.id] && picks[q.id].length)
+        ? "picked: " + picks[q.id].slice().sort(function (a, b) { return a - b; })
+            .map(function (i) { return LETTERS[i]; }).join(", ")
+        : "pick one or more, then Answer");
+  }
+
+  var rev = byId("rev-" + q.id);
+  rev.hidden = !locked;
+  if (!locked) { rev.innerHTML = ""; return; }
+
+  var html = '<span class="verd ' + (right ? "ok" : "bad") + '">' +
+    (right ? "correct" : "not quite") + "</span> ";
+  html += '<span class="tol">you answered ' + answerText(q, resp) +
+    (right ? "" : " \u00b7 answer: " + keyText(q)) + "</span>";
+  html += "<p>" + q.explain + "</p>";
+  if (q.kind === "numeric") {
+    html += '<p class="tol">Accepted: ' + q.answer.value +
+      (q.answer.tol > 0 ? " \u00b1 " + q.answer.tol : " exactly") + "</p>";
+  }
+  if (q.tryIt) {
+    html += '<a class="tryit" href="../explorables/' + QUIZ.explorable +
+      '">Try it \u2192 ' + QUIZ.explorableName + "</a>";
+  }
+  rev.innerHTML = html;
+}
+
+function paintBar() {
+  var r = scoreAll(Q, answers);
+  byId("sc").textContent = r.score + " / " + r.total;
+  byId("sc-lbl").textContent = r.answered + " of " + r.total + " answered";
+  var fin = byId("final");
+  if (r.answered < r.total) { fin.hidden = true; fin.innerHTML = ""; return; }
+  var v = verdictFor(r.score);
+  var html = '<b>' + r.score + " / " + r.total + " \u2014 " + v.text + "</b>";
+  if (r.wrong.length) {
+    html += "<ul>";
+    for (var i = 0; i < r.wrong.length; i++) {
+      var q = qById(r.wrong[i]);
+      html += "<li><b>" + q.topic + "</b> \u2014 " + q.hint + "</li>";
+    }
+    html += "</ul>";
+  }
+  fin.hidden = false;
+  fin.innerHTML = html;
+}
+
+function lock(q, resp) {
+  if (Object.prototype.hasOwnProperty.call(answers, q.id)) return;
+  answers[q.id] = resp;
+  delete picks[q.id];
+  save(); paint(q); paintBar();
+}
+
+function wire() {
+  document.addEventListener("click", function (ev) {
+    var opt = ev.target.closest ? ev.target.closest("button.opt") : null;
+    if (opt) {
+      var q = qById(opt.getAttribute("data-q"));
+      var i = parseInt(opt.getAttribute("data-i"), 10);
+      if (!q || Object.prototype.hasOwnProperty.call(answers, q.id)) return;
+      if (q.kind === "multi") {
+        if (!picks[q.id]) picks[q.id] = [];
+        var at = picks[q.id].indexOf(i);
+        if (at >= 0) picks[q.id].splice(at, 1); else picks[q.id].push(i);
+        paint(q);
+      } else {
+        lock(q, i);
+      }
+      return;
+    }
+    var chk = ev.target.closest ? ev.target.closest("[data-check]") : null;
+    if (chk) {
+      var qq = qById(chk.getAttribute("data-check"));
+      if (!qq || Object.prototype.hasOwnProperty.call(answers, qq.id)) return;
+      if (qq.kind === "multi") {
+        var p = picks[qq.id] || [];
+        if (!p.length) return;
+        lock(qq, p.slice());
+      } else {
+        var raw = (byId("in-" + qq.id).value || "").trim().replace(/[\s,_]/g, "");
+        if (raw === "") return;
+        var num = Number(raw);
+        if (!isFinite(num)) return;
+        lock(qq, num);
+      }
+    }
+  });
+
+  byId("reset").addEventListener("click", function () {
+    if (!confirm("Clear your answers for this quiz and start over?")) return;
+    answers = {}; picks = {};
+    try {
+      localStorage.removeItem(KEY);
+      var sum = {};
+      try { sum = JSON.parse(localStorage.getItem(SUMKEY) || "{}") || {}; } catch (e2) { sum = {}; }
+      delete sum[QUIZ.nn];
+      localStorage.setItem(SUMKEY, JSON.stringify(sum));
+    } catch (e) { /* ignore */ }
+    for (var i = 0; i < Q.length; i++) paint(Q[i]);
+    paintBar();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+}
+
+load();
+for (var i = 0; i < Q.length; i++) paint(Q[i]);
+paintBar();
+wire();
+
+</script>
+<!-- built for ml-course quizzes v1 -->
+</html>

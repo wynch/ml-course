@@ -12,6 +12,8 @@ SmolLM3's production 128k-token tokenizer.
 step through the real first 60 merges your trainer learns on tiny-shakespeare,
 then apply them to text you type.
 
+**✅ Quiz:** [10 questions](../../quizzes/03.html) — check yourself once your tokenizer round-trips.
+
 ## Goals
 
 By the end you will be able to:

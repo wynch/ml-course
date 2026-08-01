@@ -14,6 +14,8 @@ Stable Diffusion. It adapts units 1–2 of the
 scrub a 2D spiral into pure noise, then run this module's trained denoiser live
 in your browser to pull the spiral back out.
 
+**✅ Quiz:** [10 questions](../../quizzes/09.html) — check yourself once the denoiser samples.
+
 ## Goals
 
 By the end you will be able to:

@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz · Module 01 — Autograd · ML course</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d; --track:#453781; --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67; --grid:rgba(28,36,34,.10);
+  --warn:#c1121f; --soft:rgba(31,145,141,.10);
+  --wrong:#c0504d; --wrong-soft:rgba(192,80,77,.10);
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --grid:rgba(232,238,236,.12); --track:#6b5ac0; --warn:#ff8f85;
+    --soft:rgba(31,145,141,.16);
+    --wrong:#e98b85; --wrong-soft:rgba(233,139,133,.14);
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;background:var(--track);color:var(--track-ink);
+  padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.topbar .spacer{flex:1 1 auto}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 1rem}
+.intro{max-width:70ch;color:var(--ink)}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .7rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.8rem,2vw,1.2rem);margin:1.4rem 0}
+button{font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:.34rem .82rem;cursor:pointer}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{color:#fff;filter:brightness(1.06)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:.78rem;color:var(--muted);margin:.35rem 0 0}
+.mono,code{font-family:var(--mono);font-size:.92em}
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ── quiz-specific ───────────────────────────────────────────────── */
+.q .qhead{display:flex;flex-wrap:wrap;gap:.4rem .5rem;align-items:center;margin-bottom:.55rem}
+.qnum{font-family:var(--display);font-weight:700;font-size:.78rem;background:var(--track);
+  color:var(--track-ink);border-radius:999px;min-width:1.6rem;height:1.6rem;
+  display:inline-flex;align-items:center;justify-content:center;padding:0 .4rem}
+.tag{font-family:var(--display);font-size:.67rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted);border:1px solid var(--line);
+  border-radius:999px;padding:.13rem .5rem}
+.tag.hit{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.tag.miss{color:var(--wrong);border-color:var(--wrong);background:var(--wrong-soft)}
+.qprompt{margin:.2rem 0 .75rem;max-width:76ch}
+pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.45;background:var(--soft);
+  border:1px solid var(--line);border-radius:10px;padding:.65rem .8rem;overflow-x:auto;
+  margin:.1rem 0 .85rem;white-space:pre}
+.opts{display:flex;flex-direction:column;gap:.42rem;max-width:82ch}
+.opt{display:flex;gap:.6rem;align-items:flex-start;border:1px solid var(--line);
+  border-radius:10px;padding:.5rem .7rem;background:transparent;text-align:left;
+  font:inherit;font-size:.93rem;color:var(--ink);width:100%;cursor:pointer;line-height:1.45}
+.opt:hover{border-color:var(--accent);color:var(--ink)}
+.opt .mark{font-family:var(--mono);font-size:.8rem;color:var(--muted);min-width:1.15rem;
+  padding-top:.1rem}
+.opt .txt{flex:1 1 auto}
+.q.locked .opt{cursor:default}
+.q.locked .opt:hover{border-color:var(--line)}
+.opt.is-correct{border-color:var(--accent);background:var(--soft)}
+.opt.is-correct .mark{color:var(--accent)}
+.opt.is-correct:hover{border-color:var(--accent)}
+.opt.is-wrong{border-color:var(--wrong);background:var(--wrong-soft)}
+.opt.is-wrong .mark{color:var(--wrong)}
+.opt.is-wrong:hover{border-color:var(--wrong)}
+.opt.picked .mark::after{content:" ←";color:var(--muted)}
+.multi .opt input{accent-color:var(--accent);margin:.28rem 0 0}
+.numrow{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.numrow input{font-family:var(--mono);font-size:.95rem;color:var(--ink);background:var(--panel);
+  border:1px solid var(--line);border-radius:10px;padding:.4rem .6rem;width:9rem}
+.actions{margin-top:.6rem;display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.explain{margin-top:.8rem;border-left:3px solid var(--line);padding:.05rem 0 .05rem .8rem;
+  font-size:.9rem;max-width:78ch}
+.explain.ok{border-left-color:var(--accent)}
+.explain.no{border-left-color:var(--wrong)}
+.explain b.head{font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;display:block;margin-bottom:.2rem}
+.explain.ok b.head{color:var(--accent)}
+.explain.no b.head{color:var(--wrong)}
+.explain p{margin:.25rem 0}
+.explain .src{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+.tryit{display:inline-block;margin-top:.4rem;font-size:.83rem;text-decoration:none;
+  border:1px solid var(--accent);color:var(--accent);border-radius:999px;padding:.2rem .7rem}
+.tryit:hover{background:var(--soft)}
+.scorebar{position:sticky;bottom:0;z-index:6;background:var(--panel);
+  border-top:1px solid var(--line);padding:.6rem clamp(.9rem,3vw,2rem)}
+.scorebar .inner{max-width:1120px;margin:0 auto;display:flex;flex-wrap:wrap;
+  gap:.5rem .9rem;align-items:center}
+.scorebar .score{font-family:var(--mono);font-size:1.02rem;font-weight:600}
+.scorebar .score em{font-style:normal;color:var(--muted);font-size:.84rem}
+.scorebar .spacer{flex:1 1 auto}
+.scorebar .verdict{font-family:var(--display);font-size:.86rem;font-weight:600}
+.scorebar .verdict.good{color:var(--accent)}
+.scorebar .verdict.mid{color:var(--ink)}
+.scorebar .verdict.low{color:var(--wrong)}
+.reviewlist{flex:1 1 100%;margin:.15rem 0 0;padding-left:1.1rem;font-size:.82rem;color:var(--muted)}
+.reviewlist li{margin:.1rem 0}
+@media (max-width:700px){
+  .topbar h1{font-size:.98rem}
+  .scorebar .verdict{flex:1 1 100%}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Quiz: autograd, backprop, and the graph that computes the gradient</h1>
+  <span class="pill">Module 01 · Autograd</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">← All quizzes</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">Ten questions on module 01. Every one is grounded in the module's own
+      code, figures and measured runs — the numbers below are the numbers the scripts print.</p>
+    <p>Answer in any order. Answering locks a question and reveals whether you were right and
+      <em>why</em>, including why the tempting wrong answer is wrong. Your progress is saved in
+      this browser, so you can come back to it. Two questions point you back at the
+      <a href="../explorables/01-gradient-descent.html">gradient-descent explorable</a> to try
+      the behaviour yourself.</p>
+  </section>
+
+  <div id="quiz"></div>
+</main>
+
+<div class="scorebar">
+  <div class="inner">
+    <span class="score" id="score">0 / 10 <em>answered 0</em></span>
+    <span class="spacer"></span>
+    <span class="verdict" id="verdict"></span>
+    <button id="reset">Reset quiz</button>
+    <ul class="reviewlist" id="review" hidden></ul>
+  </div>
+</div>
+
+<footer>
+  <p class="paths">module → <a href="../modules/01-autograd/README.md">../modules/01-autograd/README.md</a>
+    · engine → <a href="../modules/01-autograd/python/src/micrograd/engine.py">../modules/01-autograd/python/src/micrograd/engine.py</a>
+    · explorable → <a href="../explorables/01-gradient-descent.html">../explorables/01-gradient-descent.html</a></p>
+  <p>Next in the course: Hugging Face LLM Course, Chapter 1 —
+    <a href="https://huggingface.co/learn/llm-course/chapter1">huggingface.co/learn/llm-course/chapter1</a></p>
+</footer>
+
+<script>
+"use strict";
+/* ═════════════════════════ PURE LOGIC START ═════════════════════════
+   Question data + grading. Dependency-free and DOM-free: the verification
+   script runs everything between these markers under `node`.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const QUIZ_ID = "01";
+const EXPLORABLE = "../explorables/01-gradient-descent.html";
+
+const QUESTIONS = [
+  {
+    id: "q1",
+    kind: "single",
+    style: "conceptual",
+    topic: "reverse topological order",
+    hint: "re-read backward() in engine.py and step panel 2 of the explorable one node at a time",
+    prompt: `<code>Value.backward()</code> in <span class="mono">python/src/micrograd/engine.py</span>
+      builds <code>topo</code> children-first, then walks <code>reversed(topo)</code>. Why must a node's
+      <code>_backward()</code> run only after every node that consumes it has already run?`,
+    options: [
+      `Because forward values are only finalised on the way back — a node's <code>.data</code> is not correct until its consumers have run.`,
+      `Because <code>+=</code> would otherwise double-count: running a node early adds the same gradient contribution twice.`,
+      `Because gradients accumulate with <code>+=</code>. A node's <code>.grad</code> is the complete <code>∂o/∂node</code> only once every consumer has added its share — and it is that <em>total</em> that gets multiplied by the local derivative and passed on.`,
+      `Because the chain rule is a product of Jacobians and matrix multiplication does not commute, so the factors have to be applied left to right.`
+    ],
+    answer: 2,
+    explain: `Backward is message passing: each node multiplies the gradient that arrived from
+      above by its own local derivative and adds the result into each input. Visit a node before one
+      of its consumers has reported in and you hand on an incomplete sum.
+      The double-counting answer is tempting but has it backwards — <code>+=</code> is what makes
+      multiple consumers <em>correct</em>; the order is what makes the sum <em>complete</em> before
+      it is used. The forward pass is entirely finished before <code>backward()</code> is even called.`,
+    src: `python/src/micrograd/engine.py — backward(), lines 129-147`
+  },
+  {
+    id: "q2",
+    kind: "single",
+    style: "conceptual",
+    topic: "gradient accumulation (+=)",
+    hint: "what happens to a Value that appears twice in one expression?",
+    prompt: `Every <code>_backward</code> closure in <span class="mono">python/src/micrograd/engine.py</span>
+      writes <code>self.grad += …</code>, never <code>self.grad = …</code>. Which situation makes the
+      <code>+=</code> mandatory?`,
+    options: [
+      `A node feeds more than one consumer — the same <code>Value</code> reused in two places — so its gradient is the sum over every path to the output.`,
+      `<code>backward()</code> seeds the root with <code>self.grad = 1.0</code>, and every later write has to preserve that seed.`,
+      `Floating-point addition loses less precision than assignment.`,
+      `<code>zero_grad()</code> needs a non-zero starting value to reset from.`
+    ],
+    answer: 0,
+    explain: `The multivariable chain rule sums over every path from a node to the output, and
+      <code>+=</code> is how those paths are summed. <code>x * x</code> is the smallest example:
+      <code>_prev</code> is a <code>set</code>, so <code>x</code> is stored once, yet the closure adds
+      into <code>x.grad</code> twice — which is exactly right. The seed answer is tempting because the
+      seed genuinely <em>is</em> an assignment (<code>self.grad = 1.0</code>), but that is one line at
+      the root, not the reason the ops accumulate.`,
+    src: `python/src/micrograd/engine.py — every _backward, e.g. __add__ lines 41-44`
+  },
+  {
+    id: "q3",
+    kind: "single",
+    style: "read-the-code",
+    topic: "the product rule in __mul__",
+    hint: "d(a·b)/da = b — each factor gets the other one",
+    prompt: `Exactly one operation in <span class="mono">exercises/buggy_engine.py</span> has a wrong
+      backward pass — finding it with a numerical checker is exercise 3. Here is its
+      <code>__mul__</code>. What, if anything, is wrong?`,
+    code: `def __mul__(self, other):
+    other = other if isinstance(other, Value) else Value(other)
+    out = Value(self.data * other.data, (self, other), "*")
+
+    def _backward():
+        self.grad += self.data * out.grad
+        other.grad += self.data * out.grad
+
+    out._backward = _backward
+    return out`,
+    options: [
+      `Nothing here — the product rule really does use <code>self.data</code> on both lines; the bug is in <code>tanh</code>.`,
+      `Both lines should multiply by <code>out.data</code> rather than <code>self.data</code>.`,
+      `The two lines are in the wrong order: <code>other.grad</code> has to be updated before <code>self.grad</code>.`,
+      `The first line is wrong. Since <code>d(a·b)/da = b</code>, <code>self.grad</code> must accumulate <code>other.data * out.grad</code>.`
+    ],
+    answer: 3,
+    explain: `Each factor receives the <em>other</em> factor times the incoming gradient — compare the
+      correct engine, whose <code>__mul__</code> reads <code>self.grad += other.data * out.grad</code>.
+      The "use <code>out.data</code>" answer is the trap, because <code>exp</code> really does use
+      <code>out.data</code> (it is its own derivative); for a product the local derivative is the
+      sibling's value, not the output's. Update order never matters: <code>+=</code> into two distinct
+      nodes commutes.`,
+    src: `exercises/buggy_engine.py lines 30-40 vs python/src/micrograd/engine.py lines 49-59`
+  },
+  {
+    id: "q4",
+    kind: "single",
+    style: "read-the-code",
+    topic: "the ReLU sub-gradient at 0",
+    hint: "the backward mask tests out.data > 0, a strict inequality",
+    prompt: `From <span class="mono">python/src/micrograd/engine.py</span>. The input is exactly
+      <code>Value(0.0)</code>. How much gradient does this <code>_backward</code> push into
+      <code>self</code>?`,
+    code: `def relu(self) -> "Value":
+    out = Value(0.0 if self.data < 0 else self.data, (self,), "relu")
+
+    def _backward() -> None:
+        # gradient flows only where the input was positive
+        self.grad += (out.data > 0) * out.grad
+
+    out._backward = _backward
+    return out`,
+    options: [
+      `<code>out.grad</code> — the forward pass took the <code>else</code> branch at 0, so gradient passes straight through.`,
+      `<code>0.0</code> — <code>out.data</code> is <code>0.0</code>, and <code>(0.0 &gt; 0)</code> is <code>False</code>, so the incoming gradient is multiplied by zero.`,
+      `<code>0.5 * out.grad</code> — the sub-gradient at the kink is conventionally the midpoint.`,
+      `It raises, because ReLU is not differentiable at 0.`
+    ],
+    answer: 1,
+    explain: `The mask is a strict inequality on the <em>output</em>, so at exactly 0 the factor is
+      <code>False</code>, i.e. 0. The <code>out.grad</code> answer is the trap: the forward branch
+      <code>0.0 if self.data &lt; 0 else self.data</code> does take the <code>else</code> path at 0 and
+      pass the value through unchanged — but the backward mask is a separate test, and it fails.
+      ReLU genuinely has no derivative at 0; this engine picks 0 as the sub-gradient, the same choice
+      PyTorch makes.`,
+    src: `python/src/micrograd/engine.py — relu(), lines 95-103`
+  },
+  {
+    id: "q5",
+    kind: "single",
+    style: "real numbers",
+    topic: "how close the gradient check gets",
+    hint: "central differences are O(eps²) accurate — run scripts/grad_check.py",
+    prompt: `<span class="mono">python/scripts/grad_check.py</span> differentiates
+      <code>f = tanh(a*b + c**2) + relu(d)*exp(e) - a/c</code> at
+      <code>a,b,c,d,e = 1.5, −2.0, 3.0, 0.7, 0.4</code> and compares <code>backward()</code> against
+      central finite differences with <code>eps = 1e-6</code>. The largest absolute disagreement it
+      prints is about:`,
+    options: [
+      `1.3 × 10⁻⁴ — right at the script's PASS threshold`,
+      `1.3 × 10⁻⁶ — the same order as <code>eps</code>`,
+      `1.3 × 10⁻¹⁰`,
+      `1.3 × 10⁻¹⁶ — machine epsilon; the two agree bit for bit`
+    ],
+    answer: 2,
+    explain: `The script reports <code>max abs error = 1.34e-10 -&gt; PASS</code> (the same number
+      lands in the title of <span class="mono">figures/grad_check.png</span>), comfortably under its
+      <code>&lt; 1e-4</code> bar. Matching <code>eps</code> is the tempting answer, but a
+      <em>central</em> difference is accurate to O(eps²), so the truncation error is nearer 1e-12 and
+      what you actually measure is floating-point cancellation in
+      <code>(L(p+eps) − L(p−eps))</code>. That same cancellation is why bit-for-bit agreement is
+      impossible.`,
+    src: `python/scripts/grad_check.py lines 40-63; figures/grad_check.png`
+  },
+  {
+    id: "q6",
+    kind: "numeric",
+    style: "real numbers",
+    topic: "parameter count of the moons MLP",
+    hint: "each Neuron(nin) owns nin weights plus one bias",
+    prompt: `<span class="mono">python/scripts/train_moons.py</span> builds
+      <code>MLP(2, [16, 16, 1], nonlin="tanh")</code> and prints
+      <code>number of parameters:</code> before training. Type that number.`,
+    answer: 337,
+    tol: 0,
+    explain: `48 + 272 + 17 = <b>337</b>. Every <code>Neuron(nin)</code> owns <code>nin</code>
+      weights plus one bias, so layer 1 is 16 × (2 + 1) = 48, layer 2 is 16 × (16 + 1) = 272, and the
+      single linear output neuron is 1 × (16 + 1) = 17. Forgetting the biases gives 32 + 256 + 16 =
+      304, which is the near miss to watch for — <code>Neuron.__init__</code> allocates
+      <code>self.b = Value(0.0)</code> for every unit. The explorable's real-run card quotes the same
+      337.`,
+    src: `python/src/micrograd/nn.py lines 30-44; verified by re-running scripts/train_moons.py`
+  },
+  {
+    id: "q7",
+    kind: "single",
+    style: "predict-the-behavior",
+    topic: "learning rates past the stability edge",
+    hint: "there are two distinct failure bands, not one",
+    prompt: `The explorable's loss surface is tuned so that <code>lr ≤ 0.3</code> converges. Push the
+      learning-rate slider past about <code>1.3</code> and the ball:`,
+    options: [
+      `leaves the chart entirely and the loss runs away to infinity.`,
+      `oscillates back and forth across a basin forever without ever settling.`,
+      `converges faster, and to the global minimum rather than a local one.`,
+      `stops moving, because the gradient underflows to zero.`
+    ],
+    answer: 0,
+    explain: `Too-large learning rates fail in two <em>distinct</em> ways, and the surface is tuned to
+      separate them: roughly <code>0.35–1.2</code> overshoots the local curvature
+      (<code>|1 − lr·λ| &gt; 1</code>) and oscillates forever; from about <code>1.3</code> each step
+      lands further out than the last and the iterate escapes the view. "Oscillates forever" is the
+      tempting answer precisely because it is the other, milder band — one notch lower on the same
+      slider.`,
+    src: `explorables/01-gradient-descent.html — "What to notice", third bullet`,
+    tryIt: `try it — drag the lr slider from 0.3 to 1.5 in panel 1`
+  },
+  {
+    id: "q8",
+    kind: "single",
+    style: "predict-the-behavior",
+    topic: "what momentum actually changes",
+    hint: "v ← μv − lr·g; p ← p + v — it is a velocity, not a bigger step",
+    prompt: `In panel 1, dropping the ball in the upper-left basin at <code>lr = 0.08</code>,
+      <code>momentum = 0</code> settles it in the local minimum at <code>f = −0.750</code>, never
+      finding the global <code>f = −1.097</code>. Set <code>momentum = 0.9</code> and run again from
+      the same start:`,
+    options: [
+      `it follows exactly the same path, just reaching the same minimum in fewer steps.`,
+      `it reaches the same local minimum, but with a smoother, monotone loss curve.`,
+      `it diverges — momentum always pushes the effective step past the stability edge.`,
+      `it can carry enough velocity to roll straight over the ridge and end up in a different basin.`
+    ],
+    answer: 3,
+    explain: `Momentum is a velocity, not a larger single step:
+      <code>v ← μ·v − lr·g; p ← p + v</code> — the same rule as module 02's
+      <code>SGD(momentum=0.9)</code>. Accumulated speed lets the iterate cross a shallow barrier the
+      raw gradient would never leave. "Same path, fewer steps" is the usual misreading: momentum
+      changes the <em>trajectory</em>, not just the pace, which is exactly why it can change which
+      minimum you land in. It does raise the effective step (about <code>lr/(1−μ)</code>), but 0.08
+      at μ = 0.9 is still well inside the stable band.`,
+    src: `explorables/01-gradient-descent.html — "What to notice", second bullet`,
+    tryIt: `try it — set momentum to 0.9 and re-drop the ball at the same point`
+  },
+  {
+    id: "q9",
+    kind: "single",
+    style: "conceptual",
+    topic: "the decaying learning-rate schedule",
+    hint: "lr goes 1.0 → 0.1 and depends only on k",
+    prompt: `<span class="mono">python/scripts/train_moons.py</span> sets
+      <code>lr = 1.0 - 0.9 * k / steps</code> inside the loop, so the rate falls from 1.0 to 0.1 over
+      the 100 steps. What is that buying?`,
+    options: [
+      `It keeps gradient magnitudes roughly constant from step to step.`,
+      `Large early steps to travel across the surface, then small late steps to settle into the minimum instead of bouncing around it.`,
+      `It offsets the L2 regularization term, which grows as the weights grow.`,
+      `It is required to keep the max-margin loss <code>(1 + −y·score).relu()</code> differentiable.`
+    ],
+    answer: 1,
+    explain: `Decay gives you both regimes in one run — the trade-off the explorable's decay checkbox
+      makes visible: a high fixed rate travels but never settles, a low fixed rate settles but crawls.
+      Here it takes the loss from 0.8047 at step 0 to 0.0151 at step 99, and accuracy from 76% to
+      100%. The regularization answer is tempting because <code>alpha = 1e-4</code> reg loss sits right
+      there in <code>make_loss</code>, but the schedule is a function of <code>k</code> alone and knows
+      nothing about the weights.`,
+    src: `python/scripts/train_moons.py lines 52-62; loss/accuracy re-verified by re-running it`
+  },
+  {
+    id: "q10",
+    kind: "multi",
+    style: "conceptual",
+    topic: "what the engine does and does not store",
+    hint: "check what _prev holds, and what zero_grad() actually loops over",
+    prompt: `<b>Select all that apply.</b> Which of these are true of
+      <span class="mono">python/src/micrograd/engine.py</span> and
+      <span class="mono">nn.py</span> as written?`,
+    options: [
+      `<code>__sub__</code> and <code>__truediv__</code> add no new backward rules — they are composed out of <code>+</code>, <code>*</code> and <code>**</code>.`,
+      `<code>Module.zero_grad()</code> resets <code>.grad</code> on every node in the computation graph.`,
+      `<code>backward()</code> assigns <code>self.grad = 1.0</code> on the node you call it on, before walking the graph.`,
+      `Each <code>Value</code> keeps references to its <em>consumers</em>, so backward can walk downstream from the leaves.`
+    ],
+    answer: [0, 2],
+    explain: `<code>a - b</code> becomes <code>a + (b * -1.0)</code> and <code>a / b</code> becomes
+      <code>a * b**-1.0</code>, so both reuse existing closures — which is why the engine needs only
+      six real backward rules. The seed <code>self.grad = 1.0</code> is just
+      <code>∂o/∂o</code>. The two false statements are the standard misreadings:
+      <code>zero_grad()</code> loops over <code>self.parameters()</code> only (intermediate nodes are
+      rebuilt fresh each step, so they start at 0 anyway), and <code>_prev</code> holds a node's
+      <em>children</em>, its inputs — backward gets its parents-before-children order by reversing the
+      topological sort, not from stored back-pointers.`,
+    src: `python/src/micrograd/engine.py lines 32, 112-126, 144; python/src/micrograd/nn.py lines 19-21`
+  }
+];
+
+/* --- grading ---------------------------------------------------------- */
+function gradeSingle(q, resp) {
+  return Number.isInteger(resp) && resp === q.answer;
+}
+function gradeMulti(q, resp) {
+  if (!Array.isArray(resp)) return false;
+  const want = q.answer.slice().sort((a, b) => a - b).join(",");
+  const got = resp.slice().sort((a, b) => a - b).join(",");
+  return want === got && resp.length === new Set(resp).size;
+}
+function gradeNumeric(q, resp) {
+  const v = typeof resp === "number" ? resp : parseFloat(resp);
+  if (!isFinite(v)) return false;
+  return Math.abs(v - q.answer) <= (q.tol || 0);
+}
+function gradeOne(q, resp) {
+  if (resp === undefined || resp === null) return false;
+  if (q.kind === "multi") return gradeMulti(q, resp);
+  if (q.kind === "numeric") return gradeNumeric(q, resp);
+  return gradeSingle(q, resp);
+}
+function scoreAll(questions, answers) {
+  answers = answers || {};
+  let score = 0, answered = 0;
+  const wrong = [];
+  for (const q of questions) {
+    if (!(q.id in answers)) continue;
+    answered += 1;
+    if (gradeOne(q, answers[q.id])) score += 1;
+    else wrong.push({ id: q.id, topic: q.topic, hint: q.hint });
+  }
+  return { score, answered, total: questions.length, wrong };
+}
+function verdictFor(score, total) {
+  if (score >= 9) return { text: "solid — move on", cls: "good" };
+  if (score >= 6) return { text: "review the flagged topics", cls: "mid" };
+  return { text: "re-run the module notebook first", cls: "low" };
+}
+/* answer-key balance: no option position may be correct more than 4 times
+   across the single-choice questions. */
+function answerKeyBalance(questions) {
+  const counts = [0, 0, 0, 0];
+  for (const q of questions) if (q.kind === "single") counts[q.answer] += 1;
+  return { counts, ok: Math.max.apply(null, counts) <= 4 };
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { QUESTIONS, gradeSingle, gradeMulti, gradeNumeric, gradeOne,
+                     scoreAll, verdictFor, answerKeyBalance, QUIZ_ID, EXPLORABLE };
+}
+/* ══════════════════════════ PURE LOGIC END ══════════════════════════ */
+
+/* ───────────────────────────── storage ───────────────────────────── */
+const SKEY = "mlcourse-quiz-" + QUIZ_ID;
+const SUMKEY = "mlcourse-quiz-scores";
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(SKEY);
+    const s = raw ? JSON.parse(raw) : null;
+    if (s && typeof s === "object" && s.answers && typeof s.answers === "object") return s;
+  } catch (e) { /* corrupt or unavailable — start clean */ }
+  return { answers: {} };
+}
+function saveState(state) {
+  const s = scoreAll(QUESTIONS, state.answers);
+  state.score = s.score;
+  state.total = s.total;
+  state.ts = Date.now();
+  try {
+    localStorage.setItem(SKEY, JSON.stringify(state));
+    let all = {};
+    try { all = JSON.parse(localStorage.getItem(SUMKEY)) || {}; } catch (e) { all = {}; }
+    if (typeof all !== "object" || all === null) all = {};
+    all[QUIZ_ID] = { score: s.score, total: s.total, ts: state.ts };
+    localStorage.setItem(SUMKEY, JSON.stringify(all));
+  } catch (e) { /* private mode: the quiz still works, it just won't persist */ }
+}
+
+const state = loadState();
+const LETTERS = ["A", "B", "C", "D", "E", "F"];
+
+/* ───────────────────────────── rendering ─────────────────────────── */
+const root = document.getElementById("quiz");
+
+QUESTIONS.forEach((q, qi) => {
+  const sec = document.createElement("section");
+  sec.className = "panel q";
+  sec.id = "q-" + q.id;
+
+  const head = document.createElement("div");
+  head.className = "qhead";
+  const num = document.createElement("span");
+  num.className = "qnum";
+  num.textContent = String(qi + 1);
+  head.appendChild(num);
+  [q.style, q.topic].forEach((t, i) => {
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = t;
+    if (i === 1) tag.dataset.role = "topic";
+    head.appendChild(tag);
+  });
+  const res = document.createElement("span");
+  res.className = "tag";
+  res.dataset.role = "result";
+  res.hidden = true;
+  head.appendChild(res);
+  sec.appendChild(head);
+
+  const p = document.createElement("p");
+  p.className = "qprompt";
+  p.innerHTML = q.prompt;
+  sec.appendChild(p);
+
+  if (q.code) {
+    const pre = document.createElement("pre");
+    pre.className = "code";
+    pre.textContent = q.code;
+    sec.appendChild(pre);
+  }
+
+  const opts = document.createElement("div");
+  opts.className = "opts" + (q.kind === "multi" ? " multi" : "");
+  sec.appendChild(opts);
+
+  if (q.kind === "single") {
+    q.options.forEach((text, oi) => {
+      const b = document.createElement("button");
+      b.className = "opt";
+      b.type = "button";
+      b.innerHTML = '<span class="mark">' + LETTERS[oi] + '</span><span class="txt">' + text + "</span>";
+      b.addEventListener("click", () => { if (!isLocked(q)) submit(q, oi); });
+      opts.appendChild(b);
+    });
+  } else if (q.kind === "multi") {
+    q.options.forEach((text, oi) => {
+      const lab = document.createElement("label");
+      lab.className = "opt";
+      lab.innerHTML = '<input type="checkbox" value="' + oi + '"><span class="mark">' +
+        LETTERS[oi] + '</span><span class="txt">' + text + "</span>";
+      opts.appendChild(lab);
+    });
+    const act = document.createElement("div");
+    act.className = "actions";
+    const btn = document.createElement("button");
+    btn.className = "primary";
+    btn.type = "button";
+    btn.textContent = "Submit answer";
+    btn.addEventListener("click", () => {
+      if (isLocked(q)) return;
+      const picked = Array.from(opts.querySelectorAll("input:checked")).map(i => Number(i.value));
+      if (!picked.length) { btn.textContent = "Pick at least one"; setTimeout(() => { btn.textContent = "Submit answer"; }, 1400); return; }
+      submit(q, picked);
+    });
+    act.appendChild(btn);
+    sec.appendChild(act);
+  } else {
+    const row = document.createElement("div");
+    row.className = "numrow";
+    const inp = document.createElement("input");
+    inp.type = "number";
+    inp.step = "any";
+    inp.placeholder = "a number";
+    inp.setAttribute("aria-label", "your numeric answer");
+    const btn = document.createElement("button");
+    btn.className = "primary";
+    btn.type = "button";
+    btn.textContent = "Submit answer";
+    const go = () => {
+      if (isLocked(q)) return;
+      const v = parseFloat(inp.value);
+      if (!isFinite(v)) { btn.textContent = "Type a number"; setTimeout(() => { btn.textContent = "Submit answer"; }, 1400); return; }
+      submit(q, v);
+    };
+    btn.addEventListener("click", go);
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") go(); });
+    row.appendChild(inp);
+    row.appendChild(btn);
+    sec.appendChild(row);
+  }
+
+  const ex = document.createElement("div");
+  ex.className = "explain";
+  ex.hidden = true;
+  sec.appendChild(ex);
+
+  root.appendChild(sec);
+});
+
+function isLocked(q) { return q.id in state.answers; }
+
+function submit(q, resp) {
+  state.answers[q.id] = resp;
+  saveState(state);
+  reveal(q);
+  refreshBar();
+}
+
+function reveal(q) {
+  const sec = document.getElementById("q-" + q.id);
+  const resp = state.answers[q.id];
+  if (resp === undefined) return;
+  const ok = gradeOne(q, resp);
+  sec.classList.add("locked");
+
+  const res = sec.querySelector('[data-role="result"]');
+  res.hidden = false;
+  res.className = "tag " + (ok ? "hit" : "miss");
+  res.textContent = ok ? "correct" : "not quite";
+
+  const optEls = sec.querySelectorAll(".opt");
+  if (q.kind === "single") {
+    optEls.forEach((el, oi) => {
+      if (oi === q.answer) el.classList.add("is-correct");
+      if (oi === resp && oi !== q.answer) el.classList.add("is-wrong");
+      if (oi === resp) el.classList.add("picked");
+      el.disabled = true;
+    });
+  } else if (q.kind === "multi") {
+    optEls.forEach((el, oi) => {
+      const want = q.answer.indexOf(oi) !== -1;
+      const got = resp.indexOf(oi) !== -1;
+      if (want) el.classList.add("is-correct");
+      if (got && !want) el.classList.add("is-wrong");
+      if (got) el.classList.add("picked");
+      const box = el.querySelector("input");
+      box.checked = got;
+      box.disabled = true;
+    });
+  }
+
+  const act = sec.querySelector(".actions button, .numrow button");
+  if (act) act.disabled = true;
+  const inp = sec.querySelector(".numrow input");
+  if (inp) { inp.value = String(resp); inp.disabled = true; }
+
+  const ex = sec.querySelector(".explain");
+  ex.hidden = false;
+  ex.className = "explain " + (ok ? "ok" : "no");
+  let html = '<b class="head">' + (ok ? "correct" : "not quite") + "</b>";
+  if (q.kind === "numeric") {
+    html += "<p>Answer: <code>" + q.answer + "</code> — accepted tolerance ±" +
+      (q.tol || 0) + " (a parameter count is exact).</p>";
+  }
+  html += "<p>" + q.explain + "</p>";
+  if (q.src) html += '<p class="src">source · ' + q.src + "</p>";
+  if (q.tryIt) html += '<a class="tryit" href="' + EXPLORABLE + '">' + q.tryIt + " →</a>";
+  ex.innerHTML = html;
+}
+
+/* ───────────────────────────── score bar ─────────────────────────── */
+const scoreEl = document.getElementById("score");
+const verdictEl = document.getElementById("verdict");
+const reviewEl = document.getElementById("review");
+
+function refreshBar() {
+  const s = scoreAll(QUESTIONS, state.answers);
+  scoreEl.innerHTML = s.score + " / " + s.total + " <em>answered " + s.answered + "</em>";
+  if (s.answered < s.total) {
+    verdictEl.textContent = "";
+    verdictEl.className = "verdict";
+    reviewEl.hidden = true;
+    reviewEl.innerHTML = "";
+    return;
+  }
+  const v = verdictFor(s.score, s.total);
+  verdictEl.textContent = v.text;
+  verdictEl.className = "verdict " + v.cls;
+  if (s.wrong.length) {
+    reviewEl.hidden = false;
+    reviewEl.innerHTML = s.wrong.map(w =>
+      "<li><b>" + w.topic + "</b> — " + w.hint + "</li>").join("");
+  } else {
+    reviewEl.hidden = true;
+    reviewEl.innerHTML = "";
+  }
+}
+
+document.getElementById("reset").addEventListener("click", () => {
+  if (!confirm("Reset this quiz? Your 10 answers for module 01 will be cleared.")) return;
+  state.answers = {};
+  saveState(state);
+  location.reload();
+});
+
+QUESTIONS.forEach(q => { if (isLocked(q)) reveal(q); });
+refreshBar();
+</script>
+<!-- built for ml-course quizzes v1 -->
+</html>

@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz · Module 08 — Vision · ML course</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d; --track:#3fa34d; --track-ink:#ffffff;
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67; --grid:rgba(28,36,34,.10);
+  --warn:#c1121f; --soft:rgba(31,145,141,.10);
+  --wrong:#c0504d; --wrong-soft:rgba(192,80,77,.10);
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --grid:rgba(232,238,236,.12); --warn:#ff8f85;
+    --soft:rgba(31,145,141,.16);
+    --wrong:#f0938d; --wrong-soft:rgba(240,147,141,.13);
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;background:var(--track);color:var(--track-ink);
+  padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.topbar .spacer{flex:1 1 auto}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:900px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 2rem}
+.intro{max-width:70ch;color:var(--ink)}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .7rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.8rem,2vw,1.2rem);margin:1.4rem 0}
+button{font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:.34rem .82rem;cursor:pointer}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{color:#fff;filter:brightness(1.06)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:.78rem;color:var(--muted);margin:.35rem 0 0}
+.mono,code{font-family:var(--mono);font-size:.92em}
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ── quiz-specific ─────────────────────────────────────────────────── */
+.q{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.85rem,2vw,1.15rem);margin:1.1rem 0}
+.q.done.right{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.q.done.wrong{border-color:var(--wrong);box-shadow:inset 3px 0 0 var(--wrong)}
+.qhead{display:flex;flex-wrap:wrap;gap:.45rem .7rem;align-items:baseline;margin-bottom:.5rem}
+.qnum{font-family:var(--mono);font-size:.82rem;color:var(--muted)}
+.qkind{font-family:var(--display);font-size:.68rem;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--track);border:1px solid var(--track);
+  border-radius:999px;padding:.1rem .5rem}
+.qtopic{font-size:.78rem;color:var(--muted)}
+.qhead .mark{margin-left:auto;font-family:var(--display);font-size:.72rem;font-weight:600;
+  letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:.14rem .55rem;
+  border:1px solid var(--line)}
+.qhead .mark.right{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.qhead .mark.wrong{color:var(--wrong);border-color:var(--wrong);background:var(--wrong-soft)}
+.qtext{margin:.1rem 0 .7rem;max-width:74ch}
+.selnote{font-family:var(--display);font-size:.76rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--muted);margin:0 0 .5rem}
+pre.code{background:var(--soft);border:1px solid var(--line);border-radius:10px;
+  margin:.2rem 0 .8rem;padding:.55rem .7rem;overflow-x:auto}
+pre.code .file{display:block;font-family:var(--mono);font-size:.74rem;color:var(--muted);
+  margin-bottom:.35rem}
+pre.code code{display:block;font-family:var(--mono);font-size:.8rem;line-height:1.45;
+  white-space:pre;color:var(--ink)}
+.opts{display:flex;flex-direction:column;gap:.4rem}
+.opt{display:flex;gap:.6rem;align-items:flex-start;text-align:left;width:100%;
+  font-family:var(--body);font-size:.93rem;font-weight:400;line-height:1.45;
+  border:1px solid var(--line);border-radius:10px;padding:.5rem .7rem;
+  background:transparent;color:var(--ink);cursor:pointer}
+.opt:hover{border-color:var(--accent);color:var(--ink)}
+.opt .ltr{font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--muted);
+  flex:0 0 auto;padding-top:.08rem;min-width:1.1em}
+.opt .txt{flex:1 1 auto}
+.q.done .opt{cursor:default}
+.q.done .opt:hover{border-color:var(--line)}
+.opt.is-correct{border-color:var(--accent);background:var(--soft)}
+.opt.is-correct .ltr{color:var(--accent)}
+.opt.is-wrong{border-color:var(--wrong);background:var(--wrong-soft)}
+.opt.is-wrong .ltr{color:var(--wrong)}
+.opt .tag{font-family:var(--display);font-size:.66rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;align-self:center;white-space:nowrap}
+.opt.is-correct .tag{color:var(--accent)}
+.opt.is-wrong .tag{color:var(--wrong)}
+label.opt input{accent-color:var(--accent);margin:.28rem 0 0;flex:0 0 auto}
+.numrow{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.numrow input{font-family:var(--mono);font-size:.92rem;color:var(--ink);background:var(--paper);
+  border:1px solid var(--line);border-radius:10px;padding:.42rem .6rem;width:11rem}
+.q .check{margin-top:.6rem}
+.explain{margin-top:.75rem;border-top:1px solid var(--line);padding-top:.6rem;
+  font-size:.88rem;color:var(--ink);max-width:76ch}
+.explain .lab{font-family:var(--display);font-size:.68rem;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--muted);display:block;margin-bottom:.2rem}
+.explain .tol{display:block;font-family:var(--mono);font-size:.78rem;color:var(--muted);
+  margin-top:.35rem}
+a.tryit{display:inline-block;margin-top:.5rem;font-family:var(--display);font-size:.8rem;
+  font-weight:600;text-decoration:none;border:1px solid var(--accent);color:var(--accent);
+  border-radius:999px;padding:.22rem .7rem}
+a.tryit:hover{background:var(--soft)}
+#results{display:none}
+#results.on{display:block}
+#results h2{margin-bottom:.4rem}
+#results .vline{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:.1rem 0 .6rem}
+#results .vline.ok{color:var(--accent)}
+#results .vline.mid{color:var(--ink)}
+#results .vline.low{color:var(--wrong)}
+#results ul{margin:.2rem 0 0;padding-left:1.15rem}
+#results li{margin:.32rem 0;font-size:.88rem;max-width:74ch}
+#results li b{font-weight:600}
+.scorebar{position:sticky;bottom:0;z-index:6;background:var(--panel);
+  border-top:1px solid var(--line);padding:.6rem clamp(.9rem,3vw,2rem);
+  display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center}
+.scorebar .score{font-family:var(--display);font-size:1.05rem;font-weight:600;letter-spacing:.02em}
+.scorebar .score .of{color:var(--muted);font-weight:400;font-size:.9rem;margin-left:.35rem}
+.scorebar .vshort{font-size:.85rem;color:var(--muted)}
+.scorebar .vshort.ok{color:var(--accent)}
+.scorebar .vshort.low{color:var(--wrong)}
+.scorebar .spacer{flex:1 1 auto}
+@media (max-width:700px){
+  .topbar h1{font-size:.98rem}
+  .scorebar{padding:.5rem .9rem}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Quiz · Vision: convolutions, patches, and two inductive biases</h1>
+  <span class="pill">Module 08 · Vision</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">← All quizzes</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">Ten questions on module 08 — grounded in the module's own code and measured
+      results: <span class="mono">src/conv.py</span>, <span class="mono">src/vit_anatomy.py</span>,
+      the ViT-tiny fine-tune on <span class="mono">beans</span>, and the CLIP zero-shot comparison.</p>
+    <p>Answer in any order. Answering locks a question and reveals the explanation — including why
+      the most tempting wrong answer is wrong. Your answers are saved in this browser, so you can
+      close the tab and come back. The <b>Reset</b> button at the bottom clears them.</p>
+  </section>
+
+  <div id="questions"></div>
+
+  <section class="panel" id="results">
+    <h2>Result</h2>
+    <p class="vline" id="verdictLine"></p>
+    <div id="hintsWrap"></div>
+  </section>
+</main>
+
+<div class="scorebar">
+  <span class="score"><span id="scoreNum">0 / 10</span><span class="of" id="answeredNum">nothing answered yet</span></span>
+  <span class="vshort" id="verdictShort"></span>
+  <span class="spacer"></span>
+  <button id="resetBtn">Reset this quiz</button>
+</div>
+
+<footer>
+  <p class="paths">module → <a href="../modules/08-vision/README.md">../modules/08-vision/README.md</a>
+    · code → <a href="../modules/08-vision/python/src/conv.py">python/src/conv.py</a>,
+    <a href="../modules/08-vision/python/src/vit_anatomy.py">vit_anatomy.py</a>
+    · explorable → <a href="../explorables/08-conv-vs-patches.html">../explorables/08-conv-vs-patches.html</a></p>
+  <p>Matching Hugging Face chapter: Community Computer Vision Course, units 1–3 (fundamentals, CNNs,
+    Vision Transformers) —
+    <a href="https://huggingface.co/learn/computer-vision-course">huggingface.co/learn/computer-vision-course</a>.</p>
+</footer>
+
+<script>
+"use strict";
+/* ═════════════════════════ PURE LOGIC START ═════════════════════════
+   Everything between these markers is dependency-free and is executed
+   under `node` by the quizzes verification script (no DOM access).
+   ═══════════════════════════════════════════════════════════════════ */
+
+var QUIZ = {
+  id: "08",
+  storeKey: "mlcourse-quiz-08",
+  summaryKey: "mlcourse-quiz-scores",
+  explorable: "../explorables/08-conv-vs-patches.html"
+};
+
+var QUESTIONS = [
+  {
+    id: "q1",
+    kind: "single",
+    type: "conceptual",
+    topic: "The convolutional inductive bias",
+    hint: "README § Theory bridge — locality and weight sharing.",
+    prompt: "A 3×3 kernel slid over a 48×48 map does 2,304 × 9 = 20,736 multiply–adds — and all 2,304 positions reuse the <i>same</i> nine weights. What does that weight sharing buy you, compared with giving every position its own parameters?",
+    options: [
+      "A parameter count independent of image size, plus translation equivariance: a feature learned at one position is detected at every other position by the same weights.",
+      "Invariance to rotation and scale, so the same kernel also fires on a rotated copy of the pattern.",
+      "It removes the need for a nonlinearity between conv layers, because sliding a window is already a nonlinear operation.",
+      "It lets each output pixel see the whole image at once, which is where CNNs get their global context."
+    ],
+    answer: 0,
+    explain: "Locality plus weight sharing <i>is</i> the convolutional inductive bias (README, 'Theory bridge'): nine numbers describe the feature wherever it appears, which is why CNNs learn from modest data. Rotation invariance is the classic overclaim and the tempting distractor — convolution is equivariant to <i>translation</i> only, and a rotated edge needs a different kernel entirely. The 'sees the whole image' option describes the opposite bias, the one a ViT adopts by letting self-attention connect any patch to any other from layer one."
+  },
+  {
+    id: "q2",
+    kind: "single",
+    type: "conceptual",
+    topic: "Why ViTs need position embeddings",
+    hint: "README ViT table; explorable 08 § What to notice.",
+    prompt: "A ViT cuts the image into 16×16 patches in raster order, projects each linearly, adds a learned position embedding and prepends a <code>[CLS]</code> token. Why is the position embedding <i>not</i> optional?",
+    options: [
+      "Because neighbouring patches overlap, and the embedding tells the encoder by how much.",
+      "Because it normalizes patch brightness so the linear projection stays in a usable range.",
+      "Because self-attention is permutation-equivariant: without it, shuffling the patches would not change a single logit.",
+      "Because the <code>[CLS]</code> token needs a position even though the patch tokens do not."
+    ],
+    answer: 2,
+    explain: "Once the patches are a sequence, nothing downstream knows they came from a 14×14 grid — attention treats the set symmetrically, so the position embedding is the only thing carrying spatial layout (README ViT table; explorable 08's closing notes). The 'overlap' answer is contradicted by the code: <code>patchify</code> in <code>vit_anatomy.py</code> cuts strictly <i>non-overlapping</i> patches with a plain reshape."
+  },
+  {
+    id: "q3",
+    kind: "multi",
+    type: "conceptual",
+    topic: "ViT ↔ text transformer, row by row",
+    hint: "README's ViT-vs-text table; <code>architecture_table()</code> in <code>src/vit_anatomy.py</code>.",
+    prompt: "<b>Select all that apply.</b> Which rows of module 08's ViT-vs-text-transformer table are stated correctly?",
+    options: [
+      "Encoder block: MHSA + MLP + LayerNorm — <b>identical</b> to the text transformer's.",
+      "Embedding: exactly as with BPE tokens, each patch indexes into a learned lookup table.",
+      "Readout: the <code>[CLS]</code> token feeds a class head, where the text model uses a next-token head.",
+      "Position info: a <i>learned</i> position embedding, where the text model uses a positional encoding."
+    ],
+    answer: [0, 2, 3],
+    explain: "README's table and <code>architecture_table()</code> in <code>vit_anatomy.py</code> build exactly these rows. The one false row is the embedding: there is no vocabulary and no lookup table for images — each flattened patch goes through a single linear projection, which is what <code>patch_sequence()</code>'s (196, 768) tensor is fed into. That is precisely why a ViT needs no tokenizer at all."
+  },
+  {
+    id: "q4",
+    kind: "single",
+    type: "real",
+    topic: "Fine-tune vs zero-shot on beans",
+    hint: "README § Honest M5 runtimes; <code>src/finetune.py</code> and <code>src/clip_zeroshot.py</code>.",
+    prompt: "Module 08 scores a fine-tuned ViT-tiny against CLIP zero-shot on the same 128-image, 3-class <code>beans</code> test set. What are the two numbers?",
+    options: [
+      "ViT-tiny 88.3% (113/128) and CLIP 61.7% (79/128) — CLIP follows close behind.",
+      "ViT-tiny 95.31% (122/128) and CLIP 43.75% (56/128) — CLIP barely clears the 33% chance baseline.",
+      "ViT-tiny 95.31% (122/128) and CLIP 78.9% (101/128) — a big pretrain nearly closes the gap.",
+      "ViT-tiny 71.9% (92/128) and CLIP 43.75% (56/128) — four epochs is not enough to beat CLIP clearly."
+    ],
+    answer: 1,
+    explain: "Four epochs and about 55 seconds on an M5 take ViT-tiny (5.7M parameters, 1034 training images) to <b>95.31%</b> — 122 of 128 — on the held-out test set, while CLIP with symptom-describing prompts lands at <b>43.75%</b>, 56 of 128, barely over the 33.3% chance baseline. The 'close behind' options are the seductive ones: the whole point of the comparison is how <i>far</i> apart they are. The lesson is not that CLIP is bad — it is that a generalist prior does not replace a minute of task-specific fine-tuning on a narrow, fine-grained distribution."
+  },
+  {
+    id: "q5",
+    kind: "numeric",
+    type: "real",
+    topic: "The patch sequence, counted",
+    hint: "<code>src/vit_anatomy.py</code> and the explorable's patchify panel.",
+    prompt: "<code>WinKawaks/vit-tiny-patch16-224</code> takes a 224×224 image, cuts it into 16×16 patches, then prepends a <code>[CLS]</code> token. How many tokens does the transformer encoder receive?",
+    unit: "tokens",
+    answer: 197,
+    tol: 0,
+    explain: "224 / 16 = 14, so a <b>14×14</b> grid = 196 patch tokens, plus one <code>[CLS]</code> = <b>197</b>. For ViT-tiny (hidden size 192) the tensor entering the encoder is therefore <b>(197, 192)</b>. 196 is the tempting near-miss — but the <code>[CLS]</code> token is the one that carries the classification readout, so it has to be in the sequence. Separately, <code>vit_anatomy.py</code> asserts the <i>pre-projection</i> shape (196, 768), where 768 = 16 × 16 × 3 is one flattened RGB patch.",
+    tryIt: true
+  },
+  {
+    id: "q6",
+    kind: "single",
+    type: "predict",
+    topic: "The patch-size trade-off",
+    hint: "Explorable 08, panel 2 — the 8 px / 16 px toggle.",
+    prompt: "In the explorable's patchify panel you switch the same image from 8 px patches to 16 px patches. What happens to the sequence, and to attention cost?",
+    options: [
+      "The sequence gets 4× longer and each token carries 4× fewer pixels; attention cost rises about 16×.",
+      "The sequence length is unchanged; only the width of the linear projection changes.",
+      "The sequence gets 2× shorter and attention cost halves.",
+      "The sequence gets 4× shorter and each token carries 4× more pixels; attention cost, being quadratic in sequence length, falls about 16×."
+    ],
+    answer: 3,
+    explain: "Doubling the patch <i>side</i> quarters the number of patches (each patch covers 4× the area), and self-attention is quadratic in sequence length, so the cost falls by roughly 4² = 16×. The price is spatial detail: each token now averages four times as many pixels into one vector. The '2× shorter' answer is the trap — you halve the grid along <i>each</i> axis, not once.",
+    tryIt: true
+  },
+  {
+    id: "q7",
+    kind: "single",
+    type: "predict",
+    topic: "What a kernel's weights sum to",
+    hint: "<code>KERNELS</code> in <code>src/conv.py</code>; explorable 08 § What to notice.",
+    prompt: "Module 08's <code>KERNELS</code> include <code>gaussian blur = gaussian_kernel(5, 1.2)</code> (all weights positive, summing to 1) and <code>laplacian</code> = <code>[[0,1,0],[1,-4,1],[0,1,0]]</code> (weights summing to 0). You slide each over a perfectly uniform grey region. What comes out?",
+    options: [
+      "Gaussian: the same grey value. Laplacian: zero.",
+      "Gaussian: zero. Laplacian: the same grey value.",
+      "Both: the same grey value — a uniform region has no edges for either kernel to react to.",
+      "Both: zero — convolution always removes the DC component."
+    ],
+    answer: 0,
+    explain: "Weights summing to 1 make a kernel a local <i>average</i>, so a flat region passes through unchanged; weights summing to 0 make it a <i>difference</i>, so a flat region cancels to zero and only edges survive. Sign structure, not magnitude, is what a kernel means — the same reason <code>sobel_x</code> = <code>[[-1,0,1],[-2,0,2],[-1,0,1]]</code> (sum 0) blanks flat areas and lights up vertical boundaries. 'Both stay grey' is tempting because 'no edges' feels like 'no output', but a 5×5 σ=1.2 blur is not an edge detector.",
+    tryIt: true
+  },
+  {
+    id: "q8",
+    kind: "single",
+    type: "code",
+    topic: "patchify shapes",
+    hint: "<code>src/vit_anatomy.py</code> — <code>patchify</code> vs <code>patch_sequence</code>.",
+    prompt: "This is <code>patchify</code> from <code>python/src/vit_anatomy.py</code>. What shape does <code>patchify(img, 16)</code> return for a 224×224×3 image?",
+    code: {
+      file: "python/src/vit_anatomy.py",
+      text: "def patchify(image: np.ndarray, patch: int = 16) -> np.ndarray:\n    image = np.asarray(image)\n    if image.ndim == 2:\n        image = image[:, :, None]\n    H, W, C = image.shape\n    n_h, n_w = H // patch, W // patch\n    grid = (\n        image.reshape(n_h, patch, n_w, patch, C)\n        .transpose(0, 2, 1, 3, 4)  # (n_h, n_w, patch, patch, C)\n    )\n    return grid"
+    },
+    options: [
+      "(196, 768) — the flattened token sequence.",
+      "(16, 16, 14, 14, 3) — the patch axes come first.",
+      "(14, 14, 16, 16, 3) — a 14×14 grid of 16×16×3 patches.",
+      "(14, 14, 3, 16, 16) — channels-first inside each patch, as PyTorch expects."
+    ],
+    answer: 2,
+    explain: "<code>reshape(n_h, patch, n_w, patch, C)</code> followed by <code>.transpose(0, 2, 1, 3, 4)</code> puts the two <i>grid</i> axes first and the two <i>within-patch</i> axes second, giving (14, 14, 16, 16, 3). (196, 768) is the tempting answer because it is the shape the module talks about most — but that comes from the <i>other</i> function, <code>patch_sequence()</code>, which reshapes this grid to <code>(n_h * n_w, -1)</code>; that is the assertion at the bottom of the file."
+  },
+  {
+    id: "q9",
+    kind: "single",
+    type: "code",
+    topic: "same vs valid padding",
+    hint: "<code>conv2d</code> in <code>src/conv.py</code> — the output-shape arithmetic.",
+    prompt: "This is the padding logic from <code>conv2d</code> in <code>python/src/conv.py</code>. You call it on a 48×48 grayscale image with a 5×5 kernel and <code>padding=\"valid\"</code>. What is the output shape?",
+    code: {
+      file: "python/src/conv.py",
+      text: "if padding == \"same\":\n    pad = ((kH // 2, kH // 2), (kW // 2, kW // 2))\n    img = np.pad(image, pad, mode=\"constant\")\nelif padding == \"valid\":\n    img = image\nelse:\n    raise ValueError(\"padding must be 'same' or 'valid'\")\n\nH, W = img.shape\noutH, outW = H - kH + 1, W - kW + 1"
+    },
+    options: [
+      "(48, 48) — <code>conv2d</code> always preserves the input shape.",
+      "(44, 44) — H − kH + 1, with no padding applied.",
+      "(52, 52) — the kernel adds a 2-pixel border on each side.",
+      "(43, 43) — H − kH."
+    ],
+    answer: 1,
+    explain: "With <code>valid</code> the image is not padded, so the kernel only visits positions where it fully overlaps: 48 − 5 + 1 = 44 per axis. (48, 48) is what <code>same</code> gives — the <code>np.pad</code> of <code>kH // 2</code> = 2 on each side makes H = 52, and 52 − 5 + 1 = 48, which is exactly why the identity-kernel self-check at the bottom of <code>conv.py</code> round-trips pixel for pixel."
+  },
+  {
+    id: "q10",
+    kind: "single",
+    type: "code",
+    topic: "How CLIP zero-shot actually scores",
+    hint: "<code>zero_shot_beans()</code> in <code>src/clip_zeroshot.py</code>.",
+    prompt: "From <code>python/src/clip_zeroshot.py</code>. Both embeddings are divided by their L2 norm before the matrix product. Why?",
+    code: {
+      file: "python/src/clip_zeroshot.py",
+      text: "text_emb = _features(model.get_text_features(**text_inp))\ntext_emb = text_emb / text_emb.norm(dim=-1, keepdim=True)\n\nimg_emb = _features(model.get_image_features(**img_inp))\nimg_emb = img_emb / img_emb.norm(dim=-1, keepdim=True)\nsims.append((img_emb @ text_emb.T).cpu())\n\nsim = torch.cat(sims).numpy()          # (n_images, n_prompts) cosine sims\ny_pred = sim.argmax(1)"
+    },
+    options: [
+      "To avoid float overflow when 128 image embeddings meet 3 prompt embeddings.",
+      "So the rows of the resulting matrix sum to 1 and can be read directly as class probabilities.",
+      "Because <code>argmax(1)</code> needs non-negative inputs to break ties correctly.",
+      "So the dot product <i>is</i> cosine similarity — otherwise a prompt with a longer embedding vector would win on magnitude instead of direction."
+    ],
+    answer: 3,
+    explain: "After L2 normalization, <code>img_emb @ text_emb.T</code> is exactly the cosine of the angle between each image and each prompt — the quantity CLIP was pretrained to maximize for matching image/caption pairs. 'Rows sum to 1' is the tempting one: the rows are <i>not</i> probabilities, they are similarities in [−1, 1], and <code>y_pred = sim.argmax(1)</code> simply picks the nearest prompt — this script never applies a softmax at all."
+  }
+];
+
+/* ── grading ───────────────────────────────────────────────────────── */
+function gradeSingle(q, resp) {
+  return typeof resp === "number" && resp === q.answer;
+}
+function gradeMulti(q, resp) {
+  if (!Array.isArray(resp)) return false;
+  var want = q.answer.slice().sort(function (a, b) { return a - b; });
+  var got = resp.slice().sort(function (a, b) { return a - b; });
+  if (want.length !== got.length) return false;
+  for (var i = 0; i < want.length; i++) if (want[i] !== got[i]) return false;
+  return true;
+}
+function gradeNumeric(q, resp) {
+  var v = typeof resp === "number" ? resp : parseFloat(resp);
+  return isFinite(v) && Math.abs(v - q.answer) <= q.tol;
+}
+function gradeOne(q, resp) {
+  if (resp === undefined || resp === null) return false;
+  if (q.kind === "multi") return gradeMulti(q, resp);
+  if (q.kind === "numeric") return gradeNumeric(q, resp);
+  return gradeSingle(q, resp);
+}
+function isAnswered(answers, id) {
+  return Object.prototype.hasOwnProperty.call(answers, id) &&
+         answers[id] !== undefined && answers[id] !== null;
+}
+function scoreAll(questions, answers) {
+  var score = 0, answered = 0;
+  for (var i = 0; i < questions.length; i++) {
+    var q = questions[i];
+    if (!isAnswered(answers, q.id)) continue;
+    answered++;
+    if (gradeOne(q, answers[q.id])) score++;
+  }
+  return { score: score, answered: answered, total: questions.length };
+}
+function verdictFor(score) {
+  if (score >= 9) return { tone: "ok", text: "Solid — move on." };
+  if (score >= 6) return { tone: "mid", text: "Review the flagged topics, then move on." };
+  return { tone: "low", text: "Re-run the module notebook first, then retake this." };
+}
+function missedTopics(questions, answers) {
+  var out = [];
+  for (var i = 0; i < questions.length; i++) {
+    var q = questions[i];
+    if (isAnswered(answers, q.id) && !gradeOne(q, answers[q.id])) {
+      out.push({ n: i + 1, topic: q.topic, hint: q.hint });
+    }
+  }
+  return out;
+}
+/* balance check used by the verification harness: how often each option
+   position is the correct answer among single-choice questions. */
+function answerKeyBalance(questions) {
+  var counts = [0, 0, 0, 0];
+  for (var i = 0; i < questions.length; i++) {
+    if (questions[i].kind === "single") counts[questions[i].answer]++;
+  }
+  return counts;
+}
+function summaryEntry(questions, answers) {
+  var s = scoreAll(questions, answers);
+  return { score: s.score, total: s.total, ts: Date.now() };
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    QUIZ: QUIZ, QUESTIONS: QUESTIONS,
+    gradeSingle: gradeSingle, gradeMulti: gradeMulti, gradeNumeric: gradeNumeric,
+    gradeOne: gradeOne, scoreAll: scoreAll, verdictFor: verdictFor,
+    missedTopics: missedTopics, answerKeyBalance: answerKeyBalance,
+    summaryEntry: summaryEntry
+  };
+}
+/* ══════════════════════════ PURE LOGIC END ══════════════════════════ */
+
+/* ═════════════════════════ DOM / rendering ═════════════════════════ */
+(function () {
+  if (typeof document === "undefined") return;      // running under node
+
+  var LETTERS = ["A", "B", "C", "D", "E", "F"];
+  var KIND_LABEL = {
+    conceptual: "concept", real: "real numbers",
+    predict: "predict the behavior", code: "read the code"
+  };
+  var answers = {};
+
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, html) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html !== undefined) e.innerHTML = html;
+    return e;
+  }
+
+  /* ── storage ── */
+  function load() {
+    try {
+      var raw = localStorage.getItem(QUIZ.storeKey);
+      if (!raw) return {};
+      var obj = JSON.parse(raw);
+      return (obj && typeof obj === "object" && obj.answers) ? obj.answers : {};
+    } catch (e) { return {}; }
+  }
+  function save() {
+    var s = scoreAll(QUESTIONS, answers);
+    try {
+      localStorage.setItem(QUIZ.storeKey, JSON.stringify({
+        answers: answers, score: s.score, total: s.total, ts: Date.now()
+      }));
+      var all = {};
+      try { all = JSON.parse(localStorage.getItem(QUIZ.summaryKey)) || {}; } catch (e2) { all = {}; }
+      if (typeof all !== "object" || all === null) all = {};
+      all[QUIZ.id] = summaryEntry(QUESTIONS, answers);
+      localStorage.setItem(QUIZ.summaryKey, JSON.stringify(all));
+    } catch (e) { /* private mode: run without persistence */ }
+  }
+
+  /* ── build one question card ── */
+  function buildCard(q, i) {
+    var card = el("section", "q");
+    card.id = "q-" + q.id;
+
+    var head = el("div", "qhead");
+    head.appendChild(el("span", "qnum", String(i + 1).padStart(2, "0") + " / 10"));
+    head.appendChild(el("span", "qkind", KIND_LABEL[q.type] || q.type));
+    head.appendChild(el("span", "qtopic", q.topic));
+    var mark = el("span", "mark", "");
+    mark.style.display = "none";
+    head.appendChild(mark);
+    card.appendChild(head);
+
+    card.appendChild(el("p", "qtext", q.prompt));
+
+    if (q.code) {
+      var pre = el("pre", "code");
+      pre.appendChild(el("span", "file", q.code.file));
+      var codeEl = document.createElement("code");
+      codeEl.textContent = q.code.text;
+      pre.appendChild(codeEl);
+      card.appendChild(pre);
+    }
+
+    if (q.kind === "multi") {
+      card.appendChild(el("p", "selnote", "Select all that apply, then check."));
+    }
+
+    var opts = el("div", "opts");
+    var inputs = [];
+
+    if (q.kind === "single") {
+      q.options.forEach(function (text, k) {
+        var b = el("button", "opt");
+        b.type = "button";
+        b.appendChild(el("span", "ltr", LETTERS[k]));
+        b.appendChild(el("span", "txt", text));
+        b.addEventListener("click", function () {
+          if (isAnswered(answers, q.id)) return;
+          answers[q.id] = k;
+          save();
+          lock(q, card);
+          refresh();
+        });
+        inputs.push(b);
+        opts.appendChild(b);
+      });
+    } else if (q.kind === "multi") {
+      q.options.forEach(function (text, k) {
+        var lab = el("label", "opt");
+        var cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.value = String(k);
+        lab.appendChild(cb);
+        lab.appendChild(el("span", "ltr", LETTERS[k]));
+        lab.appendChild(el("span", "txt", text));
+        inputs.push(lab);
+        opts.appendChild(lab);
+      });
+    } else {
+      var row = el("div", "numrow");
+      var inp = document.createElement("input");
+      inp.type = "number";
+      inp.step = "any";
+      inp.setAttribute("aria-label", "your answer");
+      inp.placeholder = "your answer";
+      row.appendChild(inp);
+      if (q.unit) row.appendChild(el("span", "qtopic", q.unit));
+      opts.appendChild(row);
+      inputs.push(inp);
+    }
+    card.appendChild(opts);
+
+    if (q.kind !== "single") {
+      var check = el("button", "check primary", "Check answer");
+      check.type = "button";
+      check.addEventListener("click", function () {
+        if (isAnswered(answers, q.id)) return;
+        if (q.kind === "multi") {
+          var picked = [];
+          opts.querySelectorAll("input[type=checkbox]").forEach(function (cb) {
+            if (cb.checked) picked.push(parseInt(cb.value, 10));
+          });
+          if (!picked.length) return;
+          answers[q.id] = picked;
+        } else {
+          var raw = opts.querySelector("input").value;
+          if (raw === "" || !isFinite(parseFloat(raw))) return;
+          answers[q.id] = parseFloat(raw);
+        }
+        save();
+        lock(q, card);
+        refresh();
+      });
+      card.appendChild(check);
+    }
+
+    var ex = el("div", "explain");
+    ex.style.display = "none";
+    card.appendChild(ex);
+
+    card._q = q;
+    card._opts = opts;
+    card._inputs = inputs;
+    card._mark = mark;
+    card._explain = ex;
+    return card;
+  }
+
+  /* ── lock + reveal ── */
+  function lock(q, card) {
+    var resp = answers[q.id];
+    var right = gradeOne(q, resp);
+    card.classList.add("done");
+    card.classList.add(right ? "right" : "wrong");
+    card._mark.style.display = "";
+    card._mark.className = "mark " + (right ? "right" : "wrong");
+    card._mark.textContent = right ? "correct" : "not quite";
+
+    if (q.kind === "single") {
+      card._inputs.forEach(function (b, k) {
+        b.disabled = true;
+        if (k === q.answer) {
+          b.classList.add("is-correct");
+          b.appendChild(el("span", "tag", k === resp ? "your answer · correct" : "correct"));
+        } else if (k === resp) {
+          b.classList.add("is-wrong");
+          b.appendChild(el("span", "tag", "your answer"));
+        }
+      });
+    } else if (q.kind === "multi") {
+      var picked = Array.isArray(resp) ? resp : [];
+      card._inputs.forEach(function (lab, k) {
+        var cb = lab.querySelector("input");
+        cb.checked = picked.indexOf(k) !== -1;
+        cb.disabled = true;
+        var shouldBe = q.answer.indexOf(k) !== -1;
+        if (shouldBe) {
+          lab.classList.add("is-correct");
+          lab.appendChild(el("span", "tag", cb.checked ? "correct · picked" : "correct · missed"));
+        } else if (cb.checked) {
+          lab.classList.add("is-wrong");
+          lab.appendChild(el("span", "tag", "should not be picked"));
+        }
+      });
+    } else {
+      var inp = card._inputs[0];
+      inp.value = String(resp);
+      inp.disabled = true;
+      inp.classList.add(right ? "is-correct" : "is-wrong");
+    }
+
+    var check = card.querySelector("button.check");
+    if (check) check.remove();
+
+    var html = '<span class="lab">Why</span>' + q.explain;
+    if (q.kind === "numeric") {
+      html += '<span class="tol">answer ' + q.answer.toLocaleString("en-US") +
+              (q.tol > 0
+                ? ' · accepted ' + (q.answer - q.tol).toLocaleString("en-US") + '–' +
+                  (q.answer + q.tol).toLocaleString("en-US")
+                : ' · exact answer required') + '</span>';
+    }
+    card._explain.innerHTML = html;
+    if (q.tryIt) {
+      var a = el("a", "tryit", "Try it in the explorable →");
+      a.href = QUIZ.explorable;
+      card._explain.appendChild(a);
+    }
+    card._explain.style.display = "";
+  }
+
+  /* ── score bar + results ── */
+  function refresh() {
+    var s = scoreAll(QUESTIONS, answers);
+    $("scoreNum").textContent = s.score + " / " + s.total;
+    $("answeredNum").textContent = s.answered === 0
+      ? "nothing answered yet"
+      : (s.answered === s.total ? "all answered" : s.answered + " of " + s.total + " answered");
+
+    var vs = $("verdictShort"), res = $("results");
+    if (s.answered < s.total) {
+      vs.textContent = "";
+      vs.className = "vshort";
+      res.classList.remove("on");
+      return;
+    }
+    var v = verdictFor(s.score);
+    vs.textContent = v.text;
+    vs.className = "vshort " + v.tone;
+    $("verdictLine").textContent = s.score + " / " + s.total + " — " + v.text;
+    $("verdictLine").className = "vline " + v.tone;
+
+    var missed = missedTopics(QUESTIONS, answers);
+    var wrap = $("hintsWrap");
+    wrap.innerHTML = "";
+    if (!missed.length) {
+      wrap.appendChild(el("p", "hint", "Nothing flagged — every question graded correct."));
+    } else {
+      wrap.appendChild(el("p", "hint", "Topics to revisit, from the questions you missed:"));
+      var ul = document.createElement("ul");
+      missed.forEach(function (m) {
+        ul.appendChild(el("li", null,
+          "<b>Q" + m.n + " · " + m.topic + "</b> — " + m.hint));
+      });
+      wrap.appendChild(ul);
+    }
+    res.classList.add("on");
+  }
+
+  /* ── boot ── */
+  var host = $("questions");
+  var cards = QUESTIONS.map(function (q, i) {
+    var c = buildCard(q, i);
+    host.appendChild(c);
+    return c;
+  });
+
+  answers = load();
+  // drop anything that no longer matches a question id
+  Object.keys(answers).forEach(function (k) {
+    if (!QUESTIONS.some(function (q) { return q.id === k; })) delete answers[k];
+  });
+  QUESTIONS.forEach(function (q, i) {
+    if (isAnswered(answers, q.id)) lock(q, cards[i]);
+  });
+  refresh();
+
+  $("resetBtn").addEventListener("click", function () {
+    if (!window.confirm("Clear your answers for this quiz and start over?")) return;
+    answers = {};
+    try {
+      localStorage.removeItem(QUIZ.storeKey);
+      var all = JSON.parse(localStorage.getItem(QUIZ.summaryKey) || "{}") || {};
+      delete all[QUIZ.id];
+      localStorage.setItem(QUIZ.summaryKey, JSON.stringify(all));
+    } catch (e) { /* ignore */ }
+    window.location.reload();
+  });
+})();
+</script>
+<!-- built for ml-course quizzes v1 -->
+</html>

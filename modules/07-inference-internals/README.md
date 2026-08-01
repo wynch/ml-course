@@ -18,6 +18,8 @@ things frameworks hide most completely: the **KV cache** and **quantization**.
 the same 128-token decode with the cache on and off, every attention cell
 counted, plus this module's measured throughput curve and int8 quantization.
 
+**✅ Quiz:** [10 questions](../../quizzes/07.html) — check yourself once the Zig engine matches PyTorch.
+
 ## Goals
 
 By the end you can:

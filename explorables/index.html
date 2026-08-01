@@ -62,8 +62,16 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
 .card{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);
   border-radius:14px;padding:.85rem .95rem 1rem;text-decoration:none;color:inherit;
   box-shadow:var(--shadow);transition:border-color .15s,transform .15s}
-.card:hover,.card:focus-visible{border-color:var(--accent);transform:translateY(-2px)}
-.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.card{position:relative}
+.card:hover,.card:focus-within{border-color:var(--accent);transform:translateY(-2px)}
+.card:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.card h3 a{color:inherit;text-decoration:none;outline:none}
+.card h3 a::after{content:"";position:absolute;inset:0;border-radius:14px}
+.cardfoot{margin-top:auto;padding-top:.7rem;display:flex;justify-content:flex-end}
+.card .quiz{position:relative;z-index:1;font-family:var(--mono);font-size:.74rem;
+  text-decoration:none;color:var(--muted);border:1px solid var(--line);
+  border-radius:999px;padding:.16rem .6rem}
+.card .quiz:hover,.card .quiz:focus-visible{border-color:var(--accent);color:var(--accent)}
 .card .thumb{display:block;width:100%;height:auto;border-radius:10px;background:var(--soft);
   margin:0 0 .7rem}
 .card h3{font-family:var(--display);font-size:1rem;font-weight:600;margin:0 0 .4rem;
@@ -103,6 +111,7 @@ footer p{margin:.3rem 0;max-width:74ch}
   <h1>ML course explorables</h1>
   <span class="count">10 interactive pages</span>
   <span class="spacer"></span>
+  <a class="back" href="../quizzes/index.html">Quizzes</a>
   <a class="back" href="../README.md">← Course README</a>
 </header>
 
@@ -114,6 +123,8 @@ footer p{margin:.3rem 0;max-width:74ch}
       measured timings — the explorable inlines them, so what you drag and scrub is the same data
       your own runs produce. Each page has Play/Pause (<code>space</code>), light and dark themes,
       and a footer link back to its module.</p>
+    <p>Finished a module? The <a href="../quizzes/index.html">quizzes</a> check what stuck —
+      ten questions each, graded in the page.</p>
   </section>
 
   <section class="track t1">
@@ -121,7 +132,7 @@ footer p{margin:.3rem 0;max-width:74ch}
     <p class="sub">Gradients, a network that learns, and the tokenizer that feeds it.</p>
     <div class="grid">
 
-      <a class="card" href="01-gradient-descent.html">
+      <div class="card">
         <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: contour rings with a ball descending">
           <ellipse class="s" cx="150" cy="66" rx="86" ry="50"/>
           <ellipse class="s" cx="150" cy="66" rx="62" ry="36"/>
@@ -134,12 +145,13 @@ footer p{margin:.3rem 0;max-width:74ch}
           <path class="s dash" d="M150 66 v46"/>
         </svg>
         <div class="meta"><span class="pill t1">Module 01</span><span class="file">01-gradient-descent</span></div>
-        <h3>Gradient descent &amp; backprop</h3>
+        <h3><a href="01-gradient-descent.html">Gradient descent &amp; backprop</a></h3>
         <p class="hook">Roll a ball down a non-convex loss surface at the learning rate you pick — then step
           module 01's real computation graph forward and backward, one number at a time.</p>
-      </a>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/01.html">Quiz →</a></div>
+      </div>
 
-      <a class="card" href="02-nn-playground.html">
+      <div class="card">
         <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: two moons with a curved decision boundary">
           <g class="f1">
             <circle cx="53" cy="72" r="4"/><circle cx="60" cy="55" r="4"/><circle cx="74" cy="44" r="4"/>
@@ -154,12 +166,13 @@ footer p{margin:.3rem 0;max-width:74ch}
           <path class="a" d="M30 104 C 56 100, 60 84, 74 82 S 96 92, 112 72 S 138 34, 160 34 S 208 44, 232 30"/>
         </svg>
         <div class="meta"><span class="pill t1">Module 02</span><span class="file">02-nn-playground</span></div>
-        <h3>Neural-net playground</h3>
+        <h3><a href="02-nn-playground.html">Neural-net playground</a></h3>
         <p class="hook">Module 02's from-scratch net ported to JavaScript and training live on two moons —
           watch the boundary bend, the loss fall, and compare against the real Python run.</p>
-      </a>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/02.html">Quiz →</a></div>
+      </div>
 
-      <a class="card" href="03-bpe-stepper.html">
+      <div class="card">
         <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: two token boxes merging into one">
           <rect class="s" x="20" y="26" width="46" height="30" rx="6"/>
           <rect class="s" x="74" y="26" width="46" height="30" rx="6"/>
@@ -171,10 +184,11 @@ footer p{margin:.3rem 0;max-width:74ch}
           <path class="s" d="M32 41 h22 M86 41 h22 M140 41 h22 M194 41 h22"/>
         </svg>
         <div class="meta"><span class="pill t1">Module 03</span><span class="file">03-bpe-stepper</span></div>
-        <h3>BPE, one merge at a time</h3>
+        <h3><a href="03-bpe-stepper.html">BPE, one merge at a time</a></h3>
         <p class="hook">Step through the real first 60 merges learned on tiny-shakespeare, watch each pair
           fuse into a new token, then apply the same merges to text you type.</p>
-      </a>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/03.html">Quiz →</a></div>
+      </div>
 
     </div>
   </section>
@@ -184,7 +198,7 @@ footer p{margin:.3rem 0;max-width:74ch}
     <p class="sub">One operation, one repeated block, one cheap way to adapt it, one way to run it fast.</p>
     <div class="grid">
 
-      <a class="card" href="04-attention.html">
+      <div class="card">
         <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: lower-triangular attention heatmap">
           <g class="f2">
             <rect x="76" y="18" width="17" height="17" rx="2" opacity=".95"/>
@@ -199,12 +213,13 @@ footer p{margin:.3rem 0;max-width:74ch}
           <circle class="af" cx="196" cy="60" r="3"/><circle class="af" cx="212" cy="46" r="3"/><circle class="af" cx="228" cy="60" r="3"/>
         </svg>
         <div class="meta"><span class="pill t2">Module 04</span><span class="file">04-attention</span></div>
-        <h3>Attention, one query at a time</h3>
+        <h3><a href="04-attention.html">Attention, one query at a time</a></h3>
         <p class="hook">softmax(QKᵀ/√d)·V made visible: edit toy tokens, or switch to the real heads of
           module 04's 620k-parameter char-GPT, with causal mask and temperature.</p>
-      </a>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/04.html">Quiz →</a></div>
+      </div>
 
-      <a class="card" href="05-transformer-anatomy.html">
+      <div class="card">
         <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: stacked transformer blocks with a residual stream">
           <rect class="s" x="70" y="14" width="100" height="16" rx="4"/>
           <rect class="s" x="70" y="38" width="100" height="20" rx="4"/>
@@ -217,12 +232,13 @@ footer p{margin:.3rem 0;max-width:74ch}
           <path class="s" d="M86 48 h28 M86 74 h20 M86 100 h34"/>
         </svg>
         <div class="meta"><span class="pill t2">Module 05</span><span class="file">05-transformer-anatomy</span></div>
-        <h3>Anatomy of a transformer</h3>
+        <h3><a href="05-transformer-anatomy.html">Anatomy of a transformer</a></h3>
         <p class="hook">A pulse carries one token's vector up the decoder stack; hover any component for
           plain language and real tensor shapes at three model scales, plus a live logit lens.</p>
-      </a>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/05.html">Quiz →</a></div>
+      </div>
 
-      <a class="card" href="06-lora-rank.html">
+      <div class="card">
         <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: matrix heatmap beside decaying rank bars">
           <g class="f2">
             <rect x="24" y="24" width="16" height="16" opacity=".85"/><rect x="42" y="24" width="16" height="16" opacity=".4"/><rect x="60" y="24" width="16" height="16" opacity=".65"/><rect x="78" y="24" width="16" height="16" opacity=".25"/>
@@ -243,12 +259,13 @@ footer p{margin:.3rem 0;max-width:74ch}
           <path class="s" d="M132 94 h114"/>
         </svg>
         <div class="meta"><span class="pill t2">Module 06</span><span class="file">06-lora-rank</span></div>
-        <h3>Low rank: what LoRA actually trains</h3>
+        <h3><a href="06-lora-rank.html">Low rank: what LoRA actually trains</a></h3>
         <p class="hook">Drag the rank slider and rebuild a 48×48 matrix from its top singular directions —
           a frozen weight needs 28 of them, module 06's real trained ΔW needs 7.</p>
-      </a>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/06.html">Quiz →</a></div>
+      </div>
 
-      <a class="card" href="07-kv-cache.html">
+      <div class="card">
         <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: growing KV-cache columns beside a recompute triangle">
           <g class="af">
             <rect x="20" y="82" width="13" height="14" rx="2"/>
@@ -270,10 +287,11 @@ footer p{margin:.3rem 0;max-width:74ch}
           <path class="a dash" d="M150 26 L 212 88"/>
         </svg>
         <div class="meta"><span class="pill t2">Module 07</span><span class="file">07-kv-cache</span></div>
-        <h3>KV cache &amp; int8</h3>
+        <h3><a href="07-kv-cache.html">KV cache &amp; int8</a></h3>
         <p class="hook">The same 128-token generation with the cache on and off, every attention cell counted —
           then module 07's measured Zig throughput curve and a real int8 weight row.</p>
-      </a>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/07.html">Quiz →</a></div>
+      </div>
 
     </div>
   </section>
@@ -283,7 +301,7 @@ footer p{margin:.3rem 0;max-width:74ch}
     <p class="sub">The same machinery pointed at pixels, at noise, and at tools.</p>
     <div class="grid">
 
-      <a class="card" href="08-conv-vs-patches.html">
+      <div class="card">
         <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: a kernel sliding over an image grid">
           <g class="sf" opacity=".3">
             <rect x="24" y="20" width="18" height="18"/><rect x="62" y="20" width="18" height="18"/><rect x="100" y="20" width="18" height="18"/>
@@ -302,12 +320,13 @@ footer p{margin:.3rem 0;max-width:74ch}
           <path class="s" d="M178 92 h46 M186 92 v8 M200 92 v8 M214 92 v8"/>
         </svg>
         <div class="meta"><span class="pill t3">Module 08</span><span class="file">08-conv-vs-patches</span></div>
-        <h3>Convolution vs patches</h3>
+        <h3><a href="08-conv-vs-patches.html">Convolution vs patches</a></h3>
         <p class="hook">Slide real kernels over a real beans-dataset image and watch the feature map paint in —
           then watch the same image become a patch sequence a ViT can read.</p>
-      </a>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/08.html">Quiz →</a></div>
+      </div>
 
-      <a class="card" href="09-diffusion.html">
+      <div class="card">
         <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: a spiral dissolving into scattered noise">
           <path class="a" d="M65 62 L66 62 L66 63 L66 64 L66 65 L65 66 L65 67 L64 67 L63 67 L62 67 L61 67 L60 67 L59 67 L58 66 L58 65 L57 65 L56 64 L56 63 L55 62 L55 60 L55 59 L55 58 L56 57 L56 56 L57 54 L58 53 L59 52 L60 51 L62 51 L63 50 L65 50 L66 50 L68 50 L70 50 L71 51 L73 52 L75 53 L76 54 L77 56 L78 57 L79 59 L80 61 L80 63 L80 65 L79 68 L79 70 L78 72 L77 74 L75 76 L74 77 L72 79 L69 80 L67 81 L65 81 L62 81 L59 81 L57 81 L54 80 L52 79 L50 77 L47 75 L46 73 L44 71 L43 68 L42 65 L41 62 L41 59 L41 56 L42 53 L43 50 L45 47 L46 45 L49 42 L51 40 L54 38 L57 37 L61 36 L64 35 L68 35 L71 36 L75 37 L78 38 L81 40 L84 42 L87 45 L89 48 L91 51 L93 55 L94 59 L94 63 L94 67 L93 71 L92 75 L91 79 L88 82 L86 85 L83 88 L79 91 L75 93 L71 94 L67 95 L63 96 L58 96 L54 95 L49 93 L45 91 L41 89 L37 86 L34 82 L32 78 L29 74 L28 69 L27 65 L27 60 L27 55 L28 50 L30 45 L32 40 L35 36 L38 32 L42 29 L47 26 L52 24"/>
           <g class="sf" opacity=".55">
@@ -321,12 +340,13 @@ footer p{margin:.3rem 0;max-width:74ch}
           <path class="a" d="M126 112 h108"/>
         </svg>
         <div class="meta"><span class="pill t3">Module 09</span><span class="file">09-diffusion</span></div>
-        <h3>Diffusion on a spiral</h3>
+        <h3><a href="09-diffusion.html">Diffusion on a spiral</a></h3>
         <p class="hook">Drag a 2-D spiral into pure Gaussian noise, then let module 09's real 50k-parameter
           denoiser run 200 steps live in your browser and pull the spiral back out.</p>
-      </a>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/09.html">Quiz →</a></div>
+      </div>
 
-      <a class="card" href="10-agent-loop.html">
+      <div class="card">
         <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: thought, action and observation in a cycle">
           <rect class="s" x="96" y="12" width="68" height="26" rx="6"/>
           <rect class="s" x="168" y="76" width="68" height="26" rx="6"/>
@@ -341,10 +361,11 @@ footer p{margin:.3rem 0;max-width:74ch}
           <circle class="af" cx="130" cy="66" r="3.4"/>
         </svg>
         <div class="meta"><span class="pill t3">Module 10</span><span class="file">10-agent-loop</span></div>
-        <h3>The ReAct loop</h3>
+        <h3><a href="10-agent-loop.html">The ReAct loop</a></h3>
         <p class="hook">A real transcript from module 10's ~100-line loop driving a local SmolLM2 plays out
           Thought → Action → Observation, message by message — including the run where it fails.</p>
-      </a>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/10.html">Quiz →</a></div>
+      </div>
 
     </div>
   </section>

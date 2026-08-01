@@ -19,6 +19,8 @@ language lane and a graphical-first treatment.
 roll a ball down a loss surface at the learning rate you pick, then step this
 module's computation graph forward and backward in your browser.
 
+**✅ Quiz:** [10 questions](../../quizzes/01.html) — check yourself once `backward()` works.
+
 ## Goals
 
 By the end you can:

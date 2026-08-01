@@ -17,6 +17,8 @@ We follow the [Hugging Face Community Computer Vision Course](https://huggingfac
 slide this module's real kernels over a real image and watch the feature map
 paint in, then watch the same image become a ViT's patch sequence.
 
+**✅ Quiz:** [10 questions](../../quizzes/08.html) — check yourself after the CNN and the ViT.
+
 ## Goals
 
 By the end you will be able to:

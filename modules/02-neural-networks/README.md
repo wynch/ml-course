@@ -11,6 +11,8 @@ point is to derive backprop yourself and see it work on real images.
 this module's from-scratch net, ported to JavaScript and training live on two
 moons while you watch the decision boundary bend.
 
+**✅ Quiz:** [10 questions](../../quizzes/02.html) — check yourself once the training loop runs.
+
 ## Goals
 
 By the end you will be able to:

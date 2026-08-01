@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quizzes · ML course</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d;
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67;
+  --soft:rgba(31,145,141,.10); --sketch:rgba(28,36,34,.42);
+  --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --accent:#37b3ae;
+    --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --sketch:rgba(232,238,236,.40);
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.topbar .spacer{flex:1 1 auto}
+.topbar .count{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+
+main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 3rem}
+.intro{max-width:70ch}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+.intro p{margin:.5rem 0}
+.intro code{font-family:var(--mono);font-size:.88em;background:var(--soft);
+  border-radius:4px;padding:.08em .35em}
+
+.track{margin:2.1rem 0 0}
+.track > h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  margin:0 0 .15rem;display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap}
+.track > h2 .dot{width:.62rem;height:.62rem;border-radius:3px;display:inline-block}
+.track > h2 .rng{font-family:var(--mono);font-size:.78rem;font-weight:400;
+  text-transform:none;letter-spacing:0;color:var(--muted)}
+.track > p.sub{margin:0 0 .9rem;color:var(--muted);font-size:.88rem;max-width:70ch}
+.track.t1 > h2{color:var(--t1)} .track.t1 > h2 .dot{background:var(--t1)}
+.track.t2 > h2{color:var(--t2)} .track.t2 > h2 .dot{background:var(--t2)}
+.track.t3 > h2{color:var(--t3)} .track.t3 > h2 .dot{background:var(--t3)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:1rem}
+
+.card{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);
+  border-radius:14px;padding:.85rem .95rem 1rem;text-decoration:none;color:inherit;
+  box-shadow:var(--shadow);transition:border-color .15s,transform .15s}
+.card:hover,.card:focus-visible{border-color:var(--accent);transform:translateY(-2px)}
+.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.card h3{font-family:var(--display);font-size:1rem;font-weight:600;margin:0 0 .4rem;
+  line-height:1.3;letter-spacing:.1px}
+.card .hook{font-size:.87rem;color:var(--muted);margin:0;line-height:1.45}
+.card .meta{display:flex;align-items:center;gap:.5rem;margin:0 0 .45rem;flex-wrap:wrap}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--track-ink);padding:.24rem .6rem;border-radius:999px;
+  white-space:nowrap}
+.pill.t1{background:var(--t1)} .pill.t2{background:var(--t2)} .pill.t3{background:var(--t3)}
+.card .file{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+
+/* --- score slot, painted from localStorage --- */
+.score{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;
+  margin:.8rem 0 0;padding-top:.6rem;border-top:1px dashed var(--line);
+  font-family:var(--mono);font-size:.78rem;color:var(--muted);min-height:1.9rem}
+.score .val{color:var(--ink);font-weight:600;font-size:.84rem}
+.score .bar{flex:1 1 60px;min-width:52px;height:6px;border-radius:999px;
+  background:var(--soft);overflow:hidden}
+.score .bar i{display:block;height:100%;border-radius:999px}
+.score .tag{font-family:var(--display);font-size:.66rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);
+  border-radius:999px;padding:.1rem .45rem;white-space:nowrap}
+
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+footer p{margin:.3rem 0;max-width:74ch}
+
+@media (max-width:700px){
+  .topbar h1{font-size:.98rem}
+  .grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>ML course quizzes</h1>
+  <span class="count" id="stat">10 quizzes · 100 questions</span>
+  <span class="spacer"></span>
+  <a class="back" href="../explorables/index.html">Explorables</a>
+  <a class="back" href="../README.md">← Course README</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">Ten self-graded quizzes, one per module — ten questions each, every one grounded in
+      that module's own code, figures and measured numbers.</p>
+    <p>Answer in any order; a question locks as soon as you answer it and reveals why the right answer
+      is right and why the tempting one is not. Nothing is uploaded: your answers and scores live in
+      this browser's <code>localStorage</code>, and each quiz has a Reset button. Take one right after
+      you finish a module — or after playing with its <a href="../explorables/index.html">explorable</a>.</p>
+  </section>
+
+  <section class="track t1">
+    <h2><span class="dot"></span>Foundations<span class="rng">modules 01–03</span></h2>
+    <p class="sub">Gradients, a network that learns, and the tokenizer that feeds it.</p>
+    <div class="grid">
+
+      <a class="card" href="01.html">
+        <div class="meta"><span class="pill t1">Module 01</span><span class="file">01.html</span></div>
+        <h3>Autograd, backprop &amp; the graph that computes the gradient</h3>
+        <p class="hook">Reverse topological order, gradient accumulation, the ReLU sub-gradient at zero,
+          and how close the numerical gradient check actually gets.</p>
+        <div class="score" data-quiz="01"></div>
+      </a>
+
+      <a class="card" href="02.html">
+        <div class="meta"><span class="pill t1">Module 02</span><span class="file">02.html</span></div>
+        <h3>Neural networks, the manual backward pass &amp; the training loop</h3>
+        <p class="hook">Why softmax and cross-entropy are fused, shapes through <span class="file">Linear.backward</span>,
+          He init, dying ReLUs, and the module's real FashionMNIST accuracy.</p>
+        <div class="score" data-quiz="02"></div>
+      </a>
+
+      <a class="card" href="03.html">
+        <div class="meta"><span class="pill t1">Module 03</span><span class="file">03.html</span></div>
+        <h3>BPE tokenization — check yourself</h3>
+        <p class="hook">The 256-byte base vocabulary, deterministic tie-breaking, what merge order does to
+          an encoding, and why the Zig trainer outruns the Python one.</p>
+        <div class="score" data-quiz="03"></div>
+      </a>
+
+    </div>
+  </section>
+
+  <section class="track t2">
+    <h2><span class="dot"></span>Transformers &amp; LLMs<span class="rng">modules 04–07</span></h2>
+    <p class="sub">One operation, one repeated block, one cheap way to adapt it, one way to run it fast.</p>
+    <div class="grid">
+
+      <a class="card" href="04.html">
+        <div class="meta"><span class="pill t2">Module 04</span><span class="file">04.html</span></div>
+        <h3>Attention &amp; the tiny GPT — check yourself</h3>
+        <p class="hook">The √d_head scale, why masked positions get −inf, pre-norm versus post-norm, tied
+          embeddings, and the committed char-GPT's real parameter count.</p>
+        <div class="score" data-quiz="04"></div>
+      </a>
+
+      <a class="card" href="05.html">
+        <div class="meta"><span class="pill t2">Module 05</span><span class="file">05.html</span></div>
+        <h3>The transformers library</h3>
+        <p class="hook">SmolLM2-360M taken apart: grouped-query heads, where the parameters sit, chat
+          templates, the logit lens, and measured CPU-versus-MPS decode speed.</p>
+        <div class="score" data-quiz="05"></div>
+      </a>
+
+      <a class="card" href="06.html">
+        <div class="meta"><span class="pill t2">Module 06</span><span class="file">06.html</span></div>
+        <h3>Fine-tuning</h3>
+        <p class="hook">What LoRA's <span class="file">α/r</span> scaling does, which tokens SFT's loss covers,
+          the rank a real trained ΔW needs, and the MLX-versus-MPS throughput gap.</p>
+        <div class="score" data-quiz="06"></div>
+      </a>
+
+      <a class="card" href="07.html">
+        <div class="meta"><span class="pill t2">Module 07</span><span class="file">07.html</span></div>
+        <h3>Inference internals: KV cache, quantization &amp; a framework-free engine</h3>
+        <p class="hook">Cache-on versus cache-off attention arithmetic, the measured 490 vs 7.8 tok/s, int8
+          block sizes, and two Zig snippets with a bug hiding in one.</p>
+        <div class="score" data-quiz="07"></div>
+      </a>
+
+    </div>
+  </section>
+
+  <section class="track t3">
+    <h2><span class="dot"></span>Breadth<span class="rng">modules 08–10</span></h2>
+    <p class="sub">The same machinery pointed at pixels, at noise, and at tools.</p>
+    <div class="grid">
+
+      <a class="card" href="08.html">
+        <div class="meta"><span class="pill t3">Module 08</span><span class="file">08.html</span></div>
+        <h3>Vision: convolutions, patches &amp; two inductive biases</h3>
+        <p class="hook">Weight sharing and receptive fields, what <span class="file">patchify</span> returns,
+          why CLIP normalises before the dot product, and the beans-dataset scores.</p>
+        <div class="score" data-quiz="08"></div>
+      </a>
+
+      <a class="card" href="09.html">
+        <div class="meta"><span class="pill t3">Module 09</span><span class="file">09.html</span></div>
+        <h3>Diffusion</h3>
+        <p class="hook">The closed-form forward jump, what the network actually predicts, √ᾱ at t = 199 for
+          both schedules, and what breaks without the <span class="file">t == 0</span> guard.</p>
+        <div class="score" data-quiz="09"></div>
+      </a>
+
+      <a class="card" href="10.html">
+        <div class="meta"><span class="pill t3">Module 10</span><span class="file">10.html</span></div>
+        <h3>Agents</h3>
+        <p class="hook">What ends the ReAct loop, stop sequences, code-as-action, the documented failure
+          modes, and the success rate across all 50 measured episodes.</p>
+        <div class="score" data-quiz="10"></div>
+      </a>
+
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>Serve the repo root and open this page: <span class="paths">python3 -m http.server</span>, then
+    <span class="paths">http://localhost:8000/quizzes/</span>. Opening the files directly with
+    <span class="paths">file://</span> works too — scores are stored per browser, not per server.</p>
+  <p><a href="../README.md">← Back to the course README</a> ·
+    <a href="../explorables/index.html">explorables gallery</a> · course source in
+    <span class="paths">modules/</span></p>
+</footer>
+
+<script>
+(function(){
+  var STOPS=[[68,1,84],[72,40,120],[62,74,137],[49,104,142],[38,130,142],
+             [31,158,137],[53,183,121],[109,205,89],[180,222,44],[253,231,37]];
+  function viridis(t){
+    t=Math.max(0,Math.min(1,t));
+    var x=t*(STOPS.length-1), i=Math.min(STOPS.length-2,Math.floor(x)), f=x-i;
+    var a=STOPS[i], b=STOPS[i+1];
+    return 'rgb('+Math.round(a[0]+(b[0]-a[0])*f)+','
+                 +Math.round(a[1]+(b[1]-a[1])*f)+','
+                 +Math.round(a[2]+(b[2]-a[2])*f)+')';
+  }
+
+  var scores={};
+  try{ scores=JSON.parse(localStorage.getItem('mlcourse-quiz-scores')||'{}')||{}; }
+  catch(e){ scores={}; }
+
+  var slots=document.querySelectorAll('.score'), taken=0, got=0, outOf=0;
+  for(var i=0;i<slots.length;i++){
+    var slot=slots[i], rec=scores[slot.getAttribute('data-quiz')];
+    var ok=rec&&typeof rec.score==='number'&&typeof rec.total==='number'&&rec.total>0;
+    if(!ok){ slot.innerHTML='<span class="none">— not taken</span>'; continue; }
+    var frac=Math.max(0,Math.min(1,rec.score/rec.total));
+    taken++; got+=rec.score; outOf+=rec.total;
+    slot.innerHTML='<span class="val">'+rec.score+' / '+rec.total+'</span>'
+      +'<span class="bar"><i style="width:'+Math.round(frac*100)+'%;background:'
+      +viridis(frac)+'"></i></span>'
+      +(frac>=0.9?'<span class="tag">✓ solid</span>':'');
+  }
+
+  document.getElementById('stat').textContent = taken
+    ? taken+' of 10 quizzes taken · total '+got+' / '+outOf
+    : '0 of 10 quizzes taken · 10 questions each';
+})();
+</script>
+</body>
+</html>
+<!-- built for ml-course quizzes v1 -->

@@ -17,6 +17,8 @@ picture, and every picture comes from the real model running on your Mac.
 watch a pulse carry one token up the decoder stack, hover any component for its
 real tensor shapes, and read SmolLM2's logit lens layer by layer.
 
+**✅ Quiz:** [10 questions](../../quizzes/05.html) — check yourself once you have taken SmolLM2 apart.
+
 ## Goals
 
 By the end you will be able to:

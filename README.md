@@ -118,6 +118,14 @@ python3 -m http.server        # then browse to
 | [Diffusion on a spiral](explorables/09-diffusion.html) | 09 | Scrub a spiral into pure noise, then run the trained denoiser live to pull it back out. |
 | [The ReAct loop](explorables/10-agent-loop.html) | 10 | Play a real agent transcript message by message — including the run where it fails. |
 
+### Quizzes
+
+Each module also ships a **10-question quiz** — every question grounded in that
+module's own code, figures and measured numbers, with an explanation revealed as
+soon as you answer. Start at [`quizzes/index.html`](quizzes/index.html), which
+lists all ten and shows your score for each. Nothing is uploaded: answers and
+scores stay in your browser's `localStorage`, and every quiz has a Reset button.
+
 ---
 
 ## Toolchain

@@ -17,6 +17,8 @@ and points onward to the [MCP Course](https://huggingface.co/learn/mcp-course).
 a real transcript from the ~100-line loop you build here, playing out Thought →
 Action → Observation message by message — including the run where it fails.
 
+**✅ Quiz:** [10 questions](../../quizzes/10.html) — check yourself once the loop and the eval have run.
+
 ## Goals
 
 By the end you will be able to:

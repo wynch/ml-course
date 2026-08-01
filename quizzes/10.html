@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 10 · Agents — ML course quiz</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d;
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d;
+  --track:var(--t3); --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67; --grid:rgba(28,36,34,.10);
+  --warn:#c1121f; --soft:rgba(31,145,141,.10);
+  --wrong:#c0504d; --softwrong:rgba(192,80,77,.10);
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --grid:rgba(232,238,236,.12); --warn:#ff8f85;
+    --accent:#35b3ae; --t3:#57c063; --track-ink:#0d1211;
+    --soft:rgba(53,179,174,.16);
+    --wrong:#e8867f; --softwrong:rgba(232,134,127,.14);
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;background:var(--track);color:var(--track-ink);
+  padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.topbar .spacer{flex:1 1 auto}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 2rem}
+.intro{max-width:70ch;color:var(--ink)}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .7rem}
+button{font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:.34rem .82rem;cursor:pointer}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{color:#fff;filter:brightness(1.06)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:.78rem;color:var(--muted);margin:.35rem 0 0}
+.notice{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--track);
+  border-radius:0 12px 12px 0;padding:.75rem 1rem;margin:1.2rem 0 0;max-width:74ch}
+.notice code,.mono{font-family:var(--mono);font-size:.92em}
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ── quiz ─────────────────────────────────────────────────────────── */
+.qlist{display:flex;flex-direction:column;gap:1.05rem;margin:1.3rem 0 0}
+.q{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.8rem,2vw,1.15rem)}
+.q.correct{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.q.wrong{border-color:var(--wrong);box-shadow:inset 3px 0 0 var(--wrong)}
+.qhead{display:flex;gap:.5rem;align-items:baseline;flex-wrap:wrap;margin-bottom:.45rem}
+.qnum{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+.tag{font-family:var(--display);font-size:.64rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;border:1px solid var(--line);border-radius:999px;
+  padding:.1rem .5rem;color:var(--muted)}
+.qtext{font-size:.98rem;margin:0 0 .55rem;max-width:74ch}
+.qtext code,.opt code,.expl code{font-family:var(--mono);font-size:.9em}
+.snipfile{font-family:var(--mono);font-size:.75rem;color:var(--muted);margin:.1rem 0 .2rem}
+pre.snip{font-family:var(--mono);font-size:.79rem;line-height:1.5;background:var(--soft);
+  border:1px solid var(--line);border-radius:10px;padding:.6rem .75rem;
+  overflow-x:auto;margin:0 0 .7rem;max-width:100%}
+.opts{display:flex;flex-direction:column;gap:.4rem}
+.opt{display:flex;gap:.55rem;align-items:flex-start;border:1px solid var(--line);
+  border-radius:10px;padding:.5rem .7rem;cursor:pointer;font-size:.92rem;line-height:1.45;
+  background:transparent;color:var(--ink);font-family:var(--body);text-align:left;width:100%}
+.opt:hover{border-color:var(--accent);color:var(--ink)}
+.opt .k{font-family:var(--mono);font-size:.8rem;color:var(--muted);min-width:1.15em;flex:0 0 auto}
+.opt .txt{flex:1 1 auto}
+.opt.sel{border-color:var(--accent);background:var(--soft)}
+.opt.sel .k{color:var(--accent)}
+.q.locked .opt{cursor:default}
+.q.locked .opt:hover{border-color:var(--line)}
+.opt.is-correct{border-color:var(--accent);background:var(--soft)}
+.opt.is-correct:hover{border-color:var(--accent)}
+.opt.is-correct .k{color:var(--accent)}
+.opt.is-wrong{border-color:var(--wrong);background:var(--softwrong)}
+.opt.is-wrong:hover{border-color:var(--wrong)}
+.opt.is-wrong .k{color:var(--wrong)}
+.mark{font-family:var(--display);font-size:.7rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;flex:0 0 auto;align-self:center}
+.mark.ok{color:var(--accent)} .mark.no{color:var(--wrong)}
+.numrow{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+.numrow input{font-family:var(--mono);font-size:.9rem;color:var(--ink);background:var(--paper);
+  border:1px solid var(--line);border-radius:10px;padding:.42rem .6rem;width:11rem}
+.actions{margin-top:.55rem;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.expl{margin-top:.7rem;border-top:1px solid var(--line);padding-top:.6rem;
+  font-size:.88rem;max-width:76ch}
+.expl .head{font-family:var(--display);font-weight:600;font-size:.74rem;letter-spacing:.05em;
+  text-transform:uppercase;margin-bottom:.2rem}
+.expl.ok .head{color:var(--accent)}
+.expl.no .head{color:var(--wrong)}
+.expl p{margin:.25rem 0}
+.expl .src{color:var(--muted);font-family:var(--mono);font-size:.78rem}
+a.tryit{display:inline-block;margin-top:.35rem;font-size:.82rem;text-decoration:none;
+  border:1px solid var(--accent);color:var(--accent);border-radius:999px;padding:.18rem .66rem}
+a.tryit:hover{background:var(--soft)}
+
+.scorebar{position:sticky;bottom:0;z-index:6;background:var(--panel);
+  border-top:1px solid var(--line);padding:.6rem clamp(.9rem,3vw,2rem);
+  display:flex;gap:.7rem 1rem;align-items:center;flex-wrap:wrap}
+.scorebar .score{font-family:var(--display);font-weight:600;font-size:1rem}
+.scorebar .score b{font-family:var(--mono);font-size:1.05rem;color:var(--accent)}
+.scorebar .spacer{flex:1 1 auto}
+.verdict{font-size:.85rem;color:var(--muted);flex:1 1 100%;max-width:80ch}
+.verdict b{color:var(--ink)}
+.verdict ul{margin:.3rem 0 0;padding-left:1.15rem}
+.verdict li{margin:.15rem 0}
+@media (max-width:700px){
+  .topbar h1{font-size:.98rem}
+  .numrow input{width:100%}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Agents — quiz</h1>
+  <span class="pill">Module 10 · Agents</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">← All quizzes</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">Ten questions on module 10 — the ~100-line ReAct loop, the three local tools,
+      code-as-action, and the eval run that turned a convincing demo into a 60% agent.</p>
+    <p>Answer in any order; each question locks and explains itself the moment you answer it.
+      Your answers are kept in this browser only. Every number below comes from this module's own
+      saved transcripts under <span class="mono">modules/10-agents/transcripts/</span>.</p>
+  </section>
+
+  <div class="qlist" id="qlist"></div>
+
+  <div class="notice">
+    <p style="margin:.1rem 0">Want to watch the loop turn — including the run where it fails?
+    The explorable plays the module's real transcripts step by step:
+    <a href="../explorables/10-agent-loop.html">The ReAct loop</a>.</p>
+  </div>
+</main>
+
+<div class="scorebar">
+  <span class="score">Score <b id="scoreNum">0</b> / 10</span>
+  <span class="spacer"></span>
+  <button id="reset">Reset quiz</button>
+  <div class="verdict" id="verdict"></div>
+</div>
+
+<footer>
+  <p class="paths">module → <a href="../modules/10-agents/README.md">../modules/10-agents/README.md</a>
+    · loop → <a href="../modules/10-agents/python/src/handrolled.py">../modules/10-agents/python/src/handrolled.py</a>
+    · explorable → <a href="../explorables/10-agent-loop.html">../explorables/10-agent-loop.html</a></p>
+  <p>Matching chapter: Hugging Face Agents Course (and onward to the MCP Course) —
+    <a href="https://huggingface.co/learn/agents-course" target="_blank" rel="noopener">huggingface.co/learn/agents-course</a></p>
+</footer>
+
+<script>
+"use strict";
+/* ═════════════════════════ PURE LOGIC START ═════════════════════════
+   Everything between these markers is dependency-free (no DOM access)
+   and is executed under `node` by the quiz verification script.
+   ═══════════════════════════════════════════════════════════════════ */
+
+var QUIZ_ID = "10";
+var EXPLORABLE = "../explorables/10-agent-loop.html";
+
+var QUESTIONS = [
+  {
+    id: "q1",
+    cat: "conceptual",
+    topic: "the ReAct loop and how it terminates",
+    kind: "single",
+    prompt: "<code>run_react(task, max_steps=6, ...)</code> drives the hand-rolled agent. What actually ends the loop?",
+    options: [
+      "The model emitting an empty <code>Thought:</code>, which the loop reads as “nothing left to do”.",
+      "A tool returning an error observation — errors are terminal, so the episode stops there.",
+      "Either the model writes a <code>Final Answer:</code> line, or <code>for _ in range(max_steps)</code> exhausts its six iterations — whichever comes first.",
+      "A confidence threshold on the model's logits, checked after every generation."
+    ],
+    answer: 2,
+    explain: "There are exactly two exits: <code>_FINAL_RE.search(raw)</code> → <code>break</code>, or the <code>for</code> loop running out. The module's shipped failure task ends the second way — the model keeps re-issuing a rejected KB key and the step cap cuts it off. Option B is the tempting one: an error observation <em>looks</em> terminal, but the loop simply injects it back as the next user turn and asks the model again.",
+    src: "modules/10-agents/python/src/handrolled.py, run_react() lines 98-167"
+  },
+  {
+    id: "q2",
+    cat: "conceptual",
+    topic: "why generation stops at “Observation:”",
+    kind: "single",
+    prompt: "Every turn, the loop calls <code>model_local.generate(messages, ..., max_new_tokens=200, stop=[\"Observation:\"])</code>. Why truncate the model's own output at that string?",
+    options: [
+      "Because otherwise the model happily writes its <em>own</em> Observation — a plausible, invented tool result — and the loop would go on to reason over a hallucination instead of over what the tool actually returned.",
+      "To keep generation inside the 200-token budget, which a long observation would otherwise blow.",
+      "Because <code>transformers</code> cannot decode the token “Observation” correctly inside a chat template.",
+      "To strip the system prompt's two worked examples back out of the reply before parsing."
+    ],
+    answer: 0,
+    explain: "This one line is what keeps the tool as the source of truth. The system prompt asks for the same behaviour in words — “Stop after writing an Action; do not write the Observation yourself” — and the stop string is what <em>enforces</em> it, because a 1.7B model does not reliably obey the request. Option B is the tempting distractor: <code>max_new_tokens=200</code> is a separate, independent guard that would still apply with no stop string at all.",
+    src: "modules/10-agents/python/src/handrolled.py lines 115-119 and SYSTEM_PROMPT line 50; src/model_local.py generate() lines 74-80"
+  },
+  {
+    id: "q3",
+    cat: "conceptual",
+    topic: "code-as-action vs text tool-calls",
+    kind: "single",
+    prompt: "Module 10 builds the same agent twice, over the same three tools and the same local SmolLM2. What genuinely changes between the hand-rolled <code>Action: tool[arg]</code> style and smolagents' <code>CodeAgent</code>?",
+    options: [
+      "The <code>CodeAgent</code> runs a bigger model; the loop itself is unchanged.",
+      "The <code>CodeAgent</code> calls tools over HTTP, so tools can live on another machine.",
+      "The <code>CodeAgent</code> emits JSON objects instead of free text, so action parsing can never fail.",
+      "The <code>CodeAgent</code> writes a Python snippet that a sandboxed interpreter runs, so several tool calls plus arithmetic and control flow happen in a single step — at the price of executing model-written code."
+    ],
+    answer: 3,
+    explain: "Same functions from <code>src/tools.py</code>, re-exposed with smolagents' <code>@tool</code> decorator — one source of truth, two frameworks — and the same local brain. The saved trace shows the payoff: the lookup-then-multiply that costs the hand-rolled loop two full ReAct turns is <b>one</b> <code>CodeAgent</code> step. Option C is the tempting one, because JSON tool-calling is a real third style — but that is <code>ToolCallingAgent</code>, not <code>CodeAgent</code>, and it is closer to the hand-rolled loop than to code-as-action.",
+    src: "modules/10-agents/README.md § “Two ways to ‘act’”; transcripts/smol_traces.json entry 3"
+  },
+  {
+    id: "q4",
+    cat: "conceptual",
+    topic: "small-model failure modes",
+    kind: "multi",
+    prompt: "<b>Select all that apply.</b> Which failure modes does module 10 actually document <em>and</em> reproduce with a local SmolLM2-1.7B?",
+    options: [
+      "<b>Format drift</b> — the tool call ends up inside a <code>Thought:</code> line, so the <code>Action:</code> parser finds nothing.",
+      "<b>Looping</b> — after <code>Did you mean: earth radius km?</code> the model re-issues a near-identical rejected key until the step cap.",
+      "<b>Over-acting</b> — handed a looked-up number, it compulsively does arithmetic on it even when the task only said “report it”.",
+      "<b>Tool-name hallucination</b> — the model invents <code>web_search</code>, which the registry silently aliases to <code>kb_lookup</code>.",
+      "<b>Context overflow</b> — the transcript exceeds SmolLM2's window after three steps, so the earliest messages are silently dropped."
+    ],
+    answer: [0, 1, 2],
+    explain: "The README's “Be honest: how a small model fails here” names exactly those three, and each ships with an artefact: the one-shot format example, the <code>FAILURE_TASK</code> transcript, and the report-only worked example. Option D is the seductive invention — an unknown tool name is real, but the loop answers it with <code>Error: unknown tool ... Tools: ...</code> and never aliases anything. Option E is not a factor here: these transcripts run 2–6 short turns, nowhere near the context limit.",
+    src: "modules/10-agents/README.md § “Be honest: how a small model fails here”; python/src/handrolled.py lines 152-154"
+  },
+  {
+    id: "q5",
+    cat: "real numbers",
+    topic: "reading the eval suite results",
+    kind: "single",
+    prompt: "<code>src/eval_lab.py</code> ran the hand-rolled agent on 5 tasks × 10 runs at temperature 0.5 (<code>transcripts/eval_results.json</code>). Which two tasks came out <b>worst</b>?",
+    options: [
+      "<code>calc_power</code> at 90% and <code>kb_capital</code> at 80%.",
+      "<code>kb_light</code> (“just report the speed of light”) at 10% and <code>calc_expr</code> (<code>(5 + 7) * 3</code>) at 20%.",
+      "<code>two_hop</code> at 100% and <code>calc_power</code> at 90% — chaining two tools is the hardest thing in the suite.",
+      "<code>calc_expr</code> at 20% and <code>kb_capital</code> at 80%."
+    ],
+    answer: 1,
+    explain: "The two tasks that <em>look</em> trivial are the two that fail: <code>kb_light</code> because the model does arithmetic on the number it just looked up, and <code>calc_expr</code> because at temperature it rewrites the parenthesised expression. Option C is the tempting shape — multi-hop ought to be hardest — but <code>two_hop</code> scored 10/10, the only perfect task in the suite, and always in exactly 3 steps. That inversion is the module's whole point: report the bar, not the anecdote.",
+    src: "modules/10-agents/transcripts/eval_results.json; README.md § 3 results table; figures/eval_success.png"
+  },
+  {
+    id: "q6",
+    cat: "real numbers",
+    topic: "the suite's aggregate success rate",
+    kind: "numeric",
+    prompt: "Across that entire run — 5 tasks × 10 runs, 50 episodes in all — what percentage of episodes succeeded? <span class=\"mono\">(enter a number, e.g. 42)</span>",
+    answer: { value: 60, tol: 5 },
+    explain: "<b>60%</b> — the mean of 100, 90, 80, 20 and 10, i.e. 30 of the 50 episodes, over 587.9 s of wall clock. The number is worth knowing precisely because of how little it tells you: a “60% agent” here is really one perfect task, two good ones, and two that are worse than a coin flip. Accepted anything within ±5.",
+    src: "modules/10-agents/transcripts/eval_results.json (success_rate per task; wall_seconds 587.9)"
+  },
+  {
+    id: "q7",
+    cat: "predict the behavior",
+    topic: "the looping failure mode",
+    kind: "single",
+    prompt: "In the shipped failure task, <code>kb_lookup(\"Earth's radius\")</code> comes back with <code>No exact entry for \"Earth's radius\". Did you mean: earth radius km?</code> — the knowledge base has literally named the right key. What does the local 1.7B model do next?",
+    options: [
+      "Copies <code>earth radius km</code> verbatim and recovers on the very next step.",
+      "Gives up cleanly and writes a <code>Final Answer:</code> saying the fact is unavailable.",
+      "Re-issues near-identical rejected keys — <code>Earth's radius km</code>, then <code>Earth's radius km, moon distance km</code> four times over — until the step cap ends the episode with no answer at all.",
+      "Switches to <code>list_module_files</code>, finds <code>knowledge_base.json</code>, and reads the value out of the file listing."
+    ],
+    answer: 2,
+    explain: "The fourth trace in <code>handrolled_traces.json</code> ends <code>\"ok\": false, \"answer\": null</code> after six actions, with the same suggestion echoed back at it every time. Option A is what a frontier model does — and that gap <em>is</em> the lesson. The loop is left in on purpose; fixing it from the system prompt alone, with one recovery rule, is exercise B.",
+    src: "modules/10-agents/transcripts/handrolled_traces.json, trace 4; README.md § Exercises (B); solutions/solution_b_break_fix.py",
+    tryIt: true
+  },
+  {
+    id: "q8",
+    cat: "predict the behavior",
+    topic: "how code-as-action collapses turns",
+    kind: "single",
+    prompt: "The hand-rolled loop needs two full Thought→Action→Observation cycles for “look up seconds in a day, then multiply that number by 3”. Hand the same task to the <code>CodeAgent</code>. How many agent steps does the module's saved run take?",
+    options: [
+      "1 — the model writes <code>kb_lookup(...)</code>, <code>calculator(f\"...\")</code> and <code>final_answer(...)</code> as one Python snippet, and the interpreter runs all three before the model is prompted again.",
+      "2 — the interpreter still has to round-trip each tool call back through the model.",
+      "3 — code-as-action adds a compile/validate step ahead of the two tool calls.",
+      "4 — the sandbox re-executes the snippet once to confirm it is deterministic."
+    ],
+    answer: 0,
+    explain: "One step, answer <code>259200</code>, verbatim in <code>smol_traces.json</code>. Option B is the tempting one, and it is exactly the misconception worth killing: the tool calls happen <em>inside</em> a single interpreter run, so the expensive thing — a forward pass of the 1.7B model — happens once rather than once per tool. On the nested-parentheses task the same structure is why the <code>CodeAgent</code> lands the correct <code>3008</code>.",
+    src: "modules/10-agents/transcripts/smol_traces.json entries 1 and 3; README.md § 2; figures/smolagents_trace.png",
+    tryIt: true
+  },
+  {
+    id: "q9",
+    cat: "read the code",
+    topic: "action parsing and the cost of format drift",
+    kind: "single",
+    file: "src/handrolled.py  ·  the Action parser and its recovery path",
+    code: "_ACTION_RE = re.compile(r\"Action:\\s*(\\w+)\\s*\\[(.*?)\\]\", re.DOTALL)\n...\nm = _ACTION_RE.search(raw)\nif not m:\n    trace.add(\"error\", \"no parseable Action or Final Answer\")\n    messages.append({\"role\": \"assistant\", \"content\": raw})\n    messages.append({\"role\": \"user\", \"content\":\n                     \"Please reply with either an Action: tool[arg] \"\n                     \"or a Final Answer: line.\"})\n    continue",
+    prompt: "The model drifts and writes <code>Thought: kb_lookup(\"speed of light\")</code> — no <code>Action:</code> line anywhere. What happens?",
+    options: [
+      "The regex matches anyway: <code>(\\w+)</code> picks up <code>kb_lookup</code> wherever it appears, so the tool still runs.",
+      "<code>run_react</code> raises, and the eval lab drops the episode from its success rate.",
+      "The retry is free: <code>continue</code> jumps past <code>n_steps += 1</code>, so a drifting model gets unlimited attempts to find the format.",
+      "An <code>error</code> step is recorded, a corrective user turn is appended and the loop goes round again — but that retry has already spent one of the six steps, because <code>n_steps += 1</code> is the first statement in the loop body."
+    ],
+    answer: 3,
+    explain: "<code>n_steps += 1</code> runs at the top of every iteration, before generation, so the nudge costs a step — which is why format drift shows up as <em>cost</em> in the eval's step histogram as well as a correctness problem. Option A is the tempting misread: the pattern is anchored on the literal string <code>Action:</code>, so a call buried in a Thought is invisible to it. The module's fix is a one-shot example of the exact format in the system prompt, not a looser regex.",
+    src: "modules/10-agents/python/src/handrolled.py line 75 and lines 138-146 (one comment trimmed); n_steps += 1 at line 114; README.md § “Format drift”"
+  },
+  {
+    id: "q10",
+    cat: "read the code",
+    topic: "safe tool design",
+    kind: "single",
+    file: "src/tools.py  ·  calculator()",
+    code: "try:\n    tree = ast.parse(expression, mode=\"eval\")\n    result = _eval_node(tree)\nexcept ZeroDivisionError:\n    return \"Error: division by zero\"\nexcept Exception as exc:\n    return f\"Error: could not evaluate {expression!r} ({exc})\"\nif isinstance(result, float) and result.is_integer():\n    result = int(result)\nreturn str(result)",
+    prompt: "The model hallucinates <code>Action: calculator[__import__('os').system('rm -rf /')]</code>. What does the agent get back as its Observation?",
+    options: [
+      "A Python traceback that propagates out of <code>run_react</code> and kills the episode.",
+      "The string <code>Error: could not evaluate \"__import__('os').system('rm -rf /')\" (unsupported expression element: Call)</code> — nothing was executed, and the loop carries on.",
+      "<code>0</code> — <code>_eval_node</code> treats nodes it does not recognise as zero.",
+      "The command runs in a subprocess; only its stdout is discarded before the observation is built."
+    ],
+    answer: 1,
+    explain: "<code>calculator</code> never calls <code>eval</code>. <code>_eval_node</code> walks the AST and whitelists arithmetic nodes plus a fixed function table, so a method call on an imported module falls straight through to <code>ValueError(\"unsupported expression element: Call\")</code>. Option A is the tempting one, but the broad <code>except Exception</code> turning that error into a <em>string</em> is deliberate design: a bad action becomes an observation the agent can read and correct, not a crash. The same two lines at the bottom are why the demo answer is <code>1036</code> and not <code>1036.0</code>.",
+    src: "modules/10-agents/python/src/tools.py lines 99-109 (two comments trimmed); AST walker at lines 66-86 — observation string verified by running calculator() on that expression"
+  }
+];
+
+function normSet(a) {
+  return (a || []).slice().sort(function (x, y) { return x - y; });
+}
+function sameSet(a, b) {
+  a = normSet(a); b = normSet(b);
+  if (a.length !== b.length) return false;
+  for (var i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+function parseNum(v) {
+  if (typeof v === "number") return v;
+  if (v === null || v === undefined) return NaN;
+  return parseFloat(String(v).replace(/[,\s_%]/g, ""));
+}
+function gradeQuestion(q, ans) {
+  if (ans === null || ans === undefined) return false;
+  if (q.kind === "single") return ans === q.answer;
+  if (q.kind === "multi") return Array.isArray(ans) && sameSet(ans, q.answer);
+  if (q.kind === "numeric") {
+    var v = parseNum(ans);
+    return isFinite(v) && Math.abs(v - q.answer.value) <= q.answer.tol;
+  }
+  return false;
+}
+function scoreQuiz(qs, answers) {
+  var s = 0;
+  for (var i = 0; i < qs.length; i++) {
+    var a = answers[qs[i].id];
+    if (a === undefined || a === null) continue;
+    if (gradeQuestion(qs[i], a)) s++;
+  }
+  return s;
+}
+function answeredCount(qs, answers) {
+  var n = 0;
+  for (var i = 0; i < qs.length; i++) {
+    var a = answers[qs[i].id];
+    if (a !== undefined && a !== null) n++;
+  }
+  return n;
+}
+function verdictFor(score, total) {
+  if (score >= 9) return "solid — move on";
+  if (score >= 6) return "review the flagged topics";
+  return "re-run the module notebook first";
+}
+function wrongTopics(qs, answers) {
+  var out = [];
+  for (var i = 0; i < qs.length; i++) {
+    var a = answers[qs[i].id];
+    if (a === undefined || a === null) continue;
+    if (!gradeQuestion(qs[i], a)) out.push(qs[i].topic);
+  }
+  return out;
+}
+function answerKeyBalance(qs) {
+  var counts = {}, letters = "ABCDE";
+  for (var i = 0; i < qs.length; i++) {
+    if (qs[i].kind !== "single") continue;
+    var L = letters.charAt(qs[i].answer);
+    counts[L] = (counts[L] || 0) + 1;
+  }
+  return counts;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    QUIZ_ID: QUIZ_ID, QUESTIONS: QUESTIONS, gradeQuestion: gradeQuestion,
+    scoreQuiz: scoreQuiz, answeredCount: answeredCount, verdictFor: verdictFor,
+    wrongTopics: wrongTopics, answerKeyBalance: answerKeyBalance, sameSet: sameSet
+  };
+}
+/* ══════════════════════════ PURE LOGIC END ══════════════════════════ */
+
+(function () {
+  if (typeof document === "undefined") return;
+
+  var STORE = "mlcourse-quiz-" + QUIZ_ID;
+  var SUMMARY = "mlcourse-quiz-scores";
+  var LETTERS = "ABCDE";
+  var TOTAL = QUESTIONS.length;
+  var answers = {};
+  var draft = {};   /* in-progress multi / numeric input, not yet submitted */
+
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, html) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (html !== undefined) n.innerHTML = html;
+    return n;
+  }
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function load() {
+    try {
+      var raw = window.localStorage.getItem(STORE);
+      if (!raw) return;
+      var data = JSON.parse(raw);
+      if (data && data.answers && typeof data.answers === "object") answers = data.answers;
+    } catch (e) { answers = {}; }
+  }
+  function save() {
+    var score = scoreQuiz(QUESTIONS, answers);
+    var payload = { answers: answers, score: score, total: TOTAL, ts: Date.now() };
+    try {
+      window.localStorage.setItem(STORE, JSON.stringify(payload));
+      var sum = {};
+      try { sum = JSON.parse(window.localStorage.getItem(SUMMARY) || "{}") || {}; }
+      catch (e2) { sum = {}; }
+      sum[QUIZ_ID] = { score: score, total: TOTAL, ts: payload.ts };
+      window.localStorage.setItem(SUMMARY, JSON.stringify(sum));
+    } catch (e) { /* private mode: run without persistence */ }
+  }
+
+  function isAnswered(q) {
+    var a = answers[q.id];
+    return a !== undefined && a !== null;
+  }
+
+  /* ── rendering ─────────────────────────────────────────────────── */
+  function renderQuestion(q, idx) {
+    var wrap = el("section", "q");
+    wrap.id = "qbox-" + q.id;
+
+    var head = el("div", "qhead");
+    head.appendChild(el("span", "qnum", "Q" + (idx + 1)));
+    head.appendChild(el("span", "tag", q.cat));
+    if (q.kind === "multi") head.appendChild(el("span", "tag", "select all"));
+    if (q.kind === "numeric") head.appendChild(el("span", "tag", "type a number"));
+    wrap.appendChild(head);
+
+    wrap.appendChild(el("p", "qtext", q.prompt));
+
+    if (q.code) {
+      wrap.appendChild(el("p", "snipfile", esc(q.file)));
+      wrap.appendChild(el("pre", "snip", "<code>" + esc(q.code) + "</code>"));
+    }
+
+    if (q.kind === "numeric") {
+      var row = el("div", "numrow");
+      var input = document.createElement("input");
+      input.type = "text";
+      input.inputMode = "decimal";
+      input.placeholder = "your answer";
+      input.setAttribute("aria-label", "numeric answer for question " + (idx + 1));
+      input.addEventListener("input", function () { draft[q.id] = input.value; });
+      input.addEventListener("keydown", function (ev) {
+        if (ev.key === "Enter") { ev.preventDefault(); submitNumeric(q, input); }
+      });
+      row.appendChild(input);
+      var go = el("button", "primary", "Answer");
+      go.addEventListener("click", function () { submitNumeric(q, input); });
+      row.appendChild(go);
+      wrap.appendChild(row);
+    } else {
+      var opts = el("div", "opts");
+      q.options.forEach(function (text, i) {
+        var b = el("button", "opt");
+        b.type = "button";
+        b.appendChild(el("span", "k", LETTERS.charAt(i)));
+        b.appendChild(el("span", "txt", text));
+        b.dataset.i = String(i);
+        b.addEventListener("click", function () { onOption(q, i); });
+        opts.appendChild(b);
+      });
+      wrap.appendChild(opts);
+      if (q.kind === "multi") {
+        var act = el("div", "actions");
+        var sub = el("button", "primary", "Answer");
+        sub.addEventListener("click", function () { submitMulti(q); });
+        act.appendChild(sub);
+        act.appendChild(el("span", "hint", "toggle every option you believe is true, then answer"));
+        wrap.appendChild(act);
+      }
+    }
+
+    wrap.appendChild(el("div", "expl"));
+    return wrap;
+  }
+
+  function paint(q, idx) {
+    var box = $("qbox-" + q.id);
+    if (!box) return;
+    var locked = isAnswered(q);
+    var given = answers[q.id];
+    var ok = locked && gradeQuestion(q, given);
+
+    box.classList.toggle("locked", locked);
+    box.classList.toggle("correct", locked && ok);
+    box.classList.toggle("wrong", locked && !ok);
+
+    var btns = box.querySelectorAll(".opt");
+    for (var i = 0; i < btns.length; i++) {
+      var b = btns[i], bi = Number(b.dataset.i);
+      b.classList.remove("sel", "is-correct", "is-wrong");
+      var old = b.querySelector(".mark");
+      if (old) old.parentNode.removeChild(old);
+      b.disabled = !!locked;
+
+      var picked = false;
+      if (locked) {
+        picked = q.kind === "multi" ? (given || []).indexOf(bi) !== -1 : given === bi;
+      } else {
+        picked = q.kind === "multi" ? (draft[q.id] || []).indexOf(bi) !== -1 : false;
+      }
+      if (!locked) { if (picked) b.classList.add("sel"); continue; }
+
+      var isKey = q.kind === "multi" ? q.answer.indexOf(bi) !== -1 : q.answer === bi;
+      if (isKey) b.classList.add("is-correct");
+      else if (picked) b.classList.add("is-wrong");
+      if (picked) b.appendChild(el("span", "mark " + (isKey ? "ok" : "no"), "your pick"));
+      else if (isKey) b.appendChild(el("span", "mark ok", "answer"));
+    }
+
+    if (q.kind === "numeric") {
+      var inp = box.querySelector("input");
+      var btn = box.querySelector(".numrow button");
+      if (locked) {
+        if (inp) { inp.value = String(given); inp.disabled = true; }
+        if (btn) btn.disabled = true;
+      } else {
+        if (inp) inp.disabled = false;
+        if (btn) btn.disabled = false;
+      }
+    }
+    var mbtn = box.querySelector(".actions button");
+    if (mbtn) mbtn.disabled = !!locked;
+
+    var expl = box.querySelector(".expl");
+    if (!locked) { expl.innerHTML = ""; expl.className = "expl"; return; }
+
+    expl.className = "expl " + (ok ? "ok" : "no");
+    var html = "<div class=\"head\">" + (ok ? "correct" : "not quite") + "</div>";
+    if (q.kind === "numeric") {
+      html += "<p>You entered <span class=\"mono\">" + esc(String(given)) +
+        "</span>. Accepted range: <span class=\"mono\">" +
+        (q.answer.value - q.answer.tol).toLocaleString("en-US") + " – " +
+        (q.answer.value + q.answer.tol).toLocaleString("en-US") + "</span>.</p>";
+    }
+    html += "<p>" + q.explain + "</p>";
+    html += "<p class=\"src\">" + esc(q.src) + "</p>";
+    expl.innerHTML = html;
+    if (q.tryIt) {
+      var a = el("a", "tryit", "Try it in the explorable →");
+      a.href = EXPLORABLE;
+      expl.appendChild(a);
+    }
+  }
+
+  function onOption(q, i) {
+    if (isAnswered(q)) return;
+    if (q.kind === "single") {
+      answers[q.id] = i;
+      save();
+      refresh();
+      return;
+    }
+    var cur = draft[q.id] || [];
+    var at = cur.indexOf(i);
+    if (at === -1) cur = cur.concat([i]); else cur = cur.slice(0, at).concat(cur.slice(at + 1));
+    draft[q.id] = cur;
+    refresh();
+  }
+
+  function submitMulti(q) {
+    if (isAnswered(q)) return;
+    var cur = draft[q.id] || [];
+    if (!cur.length) { window.alert("Pick at least one option first."); return; }
+    answers[q.id] = cur.slice().sort(function (a, b) { return a - b; });
+    save();
+    refresh();
+  }
+
+  function submitNumeric(q, input) {
+    if (isAnswered(q)) return;
+    var raw = (input.value || "").trim();
+    if (!raw || !isFinite(parseNum(raw))) { window.alert("Type a number first."); return; }
+    answers[q.id] = raw;
+    save();
+    refresh();
+  }
+
+  function refresh() {
+    QUESTIONS.forEach(paint);
+    var score = scoreQuiz(QUESTIONS, answers);
+    var done = answeredCount(QUESTIONS, answers);
+    $("scoreNum").textContent = String(score);
+
+    var v = $("verdict");
+    if (done < TOTAL) {
+      v.innerHTML = "<span>" + done + " of " + TOTAL +
+        " answered. Answering locks a question and reveals its explanation.</span>";
+      return;
+    }
+    var topics = wrongTopics(QUESTIONS, answers);
+    var html = "<b>" + score + " / " + TOTAL + " — " + verdictFor(score, TOTAL) + ".</b>";
+    if (topics.length) {
+      html += " Worth another pass:<ul>";
+      topics.forEach(function (t) { html += "<li>" + esc(t) + "</li>"; });
+      html += "</ul>";
+    } else {
+      html += " Nothing flagged — every topic in module 10 came back clean.";
+    }
+    v.innerHTML = html;
+  }
+
+  /* ── boot ──────────────────────────────────────────────────────── */
+  load();
+  var list = $("qlist");
+  QUESTIONS.forEach(function (q, i) { list.appendChild(renderQuestion(q, i)); });
+  refresh();
+
+  $("reset").addEventListener("click", function () {
+    if (!window.confirm("Clear your answers for the module 10 quiz?")) return;
+    answers = {};
+    draft = {};
+    try {
+      window.localStorage.removeItem(STORE);
+      var sum = JSON.parse(window.localStorage.getItem(SUMMARY) || "{}") || {};
+      delete sum[QUIZ_ID];
+      window.localStorage.setItem(SUMMARY, JSON.stringify(sum));
+    } catch (e) { /* ignore */ }
+    QUESTIONS.forEach(function (q) {
+      var box = $("qbox-" + q.id);
+      if (!box) return;
+      var inp = box.querySelector("input");
+      if (inp) { inp.value = ""; inp.disabled = false; }
+    });
+    refresh();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+})();
+</script>
+<!-- built for ml-course quizzes v1 -->
+</html>

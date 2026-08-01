@@ -25,6 +25,8 @@ This is a from-scratch reconstruction in the spirit of Karpathy's
 a Q·Kᵀ heatmap you can drive, with causal mask, temperature, and the real
 attention heads of the tiny GPT you are about to train.
 
+**✅ Quiz:** [10 questions](../../quizzes/04.html) — check yourself once the tiny GPT is trained.
+
 ## Goals
 
 By the end you can:
