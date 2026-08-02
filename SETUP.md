@@ -13,6 +13,23 @@ The reference toolchain this course was built against:
 
 ---
 
+## Open the course reader
+
+The dependency-free reader is the easiest way to navigate the material. It
+includes full-text search, local progress, quizzes, and all interactive
+explorables. Build it with Python's standard library and serve it locally:
+
+```bash
+python3 scripts/build_reader.py
+python3 -m http.server 8000 --directory reader
+```
+
+Then open <http://localhost:8000>. After the first visit, the installed web app
+can reopen the reader without a connection. To prepare model and dataset caches
+too, follow [the offline pack guide](OFFLINE.md).
+
+---
+
 ## Verify your toolchain
 
 **[uv](https://docs.astral.sh/uv/)** — Python environment and script runner.

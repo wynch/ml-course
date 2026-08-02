@@ -23,6 +23,7 @@
     --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --sketch:rgba(232,238,236,.40);
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
   }
+  .evaluation-thumb{--err:#ef8b60}
 }
 html{background:var(--paper)}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
@@ -92,6 +93,13 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
 .thumb .k1{stroke:var(--t1)} .thumb .k2{stroke:var(--t2)} .thumb .k3{stroke:var(--t3)}
 .thumb .f1{fill:var(--t1)} .thumb .f2{fill:var(--t2)} .thumb .f3{fill:var(--t3)}
 .thumb .dash{stroke-dasharray:3 3}
+.evaluation-thumb{--err:#d36b3f;aspect-ratio:260/130;padding:6.5%;display:grid!important;
+  grid-template-columns:repeat(2,1fr);gap:2.6%;overflow:hidden}
+.evaluation-thumb span{display:grid;place-items:center;border-radius:8px;font-family:var(--mono);
+  font-size:.78rem;line-height:1}
+.evaluation-thumb span:nth-child(1){background:color-mix(in srgb,var(--t3) 24%,var(--panel))}
+.evaluation-thumb span:nth-child(2),.evaluation-thumb span:nth-child(3){background:color-mix(in srgb,var(--err) 22%,var(--panel))}
+.evaluation-thumb span:nth-child(4){background:color-mix(in srgb,var(--t2) 20%,var(--panel))}
 
 footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
   font-size:.84rem;color:var(--muted)}
@@ -109,7 +117,7 @@ footer p{margin:.3rem 0;max-width:74ch}
 <body>
 <header class="topbar">
   <h1>ML course explorables</h1>
-  <span class="count">10 interactive pages</span>
+  <span class="count">11 interactive pages</span>
   <span class="spacer"></span>
   <a class="back" href="../quizzes/index.html">Quizzes</a>
   <a class="back" href="../index.html">← Course home</a>
@@ -117,7 +125,7 @@ footer p{margin:.3rem 0;max-width:74ch}
 
 <main>
   <section class="intro">
-    <p class="lede">Ten single-file, in-browser explainers — one per module. Nothing to install,
+    <p class="lede">Eleven single-file, in-browser explainers — one per module plus the evaluation bridge. Nothing to install,
       no network calls: every animation, model and number runs locally in the page.</p>
     <p>Where a module produced real artifacts — trained weights, merge lists, attention matrices,
       measured timings — the explorable inlines them, so what you drag and scrub is the same data
@@ -236,6 +244,16 @@ footer p{margin:.3rem 0;max-width:74ch}
         <p class="hook">A pulse carries one token's vector up the decoder stack; hover any component for
           plain language and real tensor shapes at three model scales, plus a live logit lens.</p>
         <div class="cardfoot"><a class="quiz" href="../quizzes/05.html">Quiz →</a></div>
+      </div>
+
+      <div class="card">
+        <div class="thumb evaluation-thumb" role="img" aria-label="Confusion matrix with two correct and two error cells">
+          <span>TP</span><span>FP</span><span>FN</span><span>TN</span>
+        </div>
+        <div class="meta"><span class="pill t2">Lab 05½</span><span class="file">05a-evaluation-lab</span></div>
+        <h3><a href="05a-evaluation-lab.html">The honest scorecard</a></h3>
+        <p class="hook">Move a decision threshold, inspect every error, compare slice performance,
+          then contaminate the test set and watch a fake breakthrough appear.</p>
       </div>
 
       <div class="card">
