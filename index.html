@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Build ML From Scratch — Then the Hugging Face Way</title>
+<meta name="description" content="A hands-on ML course: build everything twice — first from scratch, then the Hugging Face way. Interactive explorables and self-graded quizzes, all in the browser.">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d;
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67;
+  --soft:rgba(31,145,141,.10); --sketch:rgba(28,36,34,.42);
+  --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --accent:#37b3ae;
+    --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --sketch:rgba(232,238,236,.40);
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.topbar .spacer{flex:1 1 auto}
+.topbar .count{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+
+main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 3rem}
+
+.hero{max-width:72ch}
+.hero h2{font-family:var(--display);font-size:clamp(1.5rem,4.2vw,2.1rem);font-weight:600;
+  line-height:1.2;margin:.4rem 0 .2rem;letter-spacing:-.2px}
+.hero .lede{font-family:var(--display);font-size:1.12rem;margin:.5rem 0 .7rem}
+.hero p{margin:.5rem 0}
+.hero code{font-family:var(--mono);font-size:.88em;background:var(--soft);
+  border-radius:4px;padding:.08em .35em}
+.hero .twice{color:var(--accent);font-weight:600}
+
+.tracknote{display:flex;flex-wrap:wrap;gap:.45rem .5rem;margin:1rem 0 0;padding:0;list-style:none}
+.tracknote li{font-family:var(--mono);font-size:.74rem;color:var(--muted);
+  border:1px solid var(--line);border-radius:999px;padding:.2rem .65rem;
+  display:flex;align-items:center;gap:.4rem}
+.tracknote .dot{width:.55rem;height:.55rem;border-radius:3px;display:inline-block}
+.tracknote .d1{background:var(--t1)} .tracknote .d2{background:var(--t2)} .tracknote .d3{background:var(--t3)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(288px,1fr));gap:1rem;margin:2.1rem 0 0}
+
+.card{position:relative;display:flex;flex-direction:column;background:var(--panel);
+  border:1px solid var(--line);border-radius:14px;padding:1rem 1.05rem 1.1rem;
+  text-decoration:none;color:inherit;box-shadow:var(--shadow);
+  transition:border-color .15s,transform .15s}
+.card:hover,.card:focus-visible{border-color:var(--accent);transform:translateY(-2px)}
+.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.card .glyph{font-size:1.7rem;line-height:1;margin:0 0 .6rem;display:block}
+.card .meta{display:flex;align-items:center;gap:.5rem;margin:0 0 .5rem;flex-wrap:wrap}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--track-ink);padding:.24rem .6rem;border-radius:999px;
+  white-space:nowrap}
+.pill.t1{background:var(--t1)} .pill.t2{background:var(--t2)} .pill.t3{background:var(--t3)}
+.card h3{font-family:var(--display);font-size:1.08rem;font-weight:600;margin:0 0 .4rem;
+  line-height:1.3;letter-spacing:.1px}
+.card .hook{font-size:.89rem;color:var(--muted);margin:0;line-height:1.45}
+.card .go{margin-top:auto;padding-top:.85rem;font-family:var(--mono);font-size:.76rem;
+  color:var(--accent)}
+
+.note{margin:2.1rem 0 0;padding:.85rem 1rem;border:1px solid var(--line);border-left:3px solid var(--accent);
+  border-radius:0 10px 10px 0;background:var(--panel);max-width:74ch;font-size:.88rem;color:var(--muted)}
+.note strong{color:var(--ink);font-weight:600}
+
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+footer p{margin:.3rem 0;max-width:74ch}
+
+@media (max-width:700px){
+  .topbar h1{font-size:.98rem}
+  .grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Build ML From Scratch</h1>
+  <span class="count">10 modules · 10 explorables · 100 quiz questions</span>
+  <span class="spacer"></span>
+  <a class="back" href="explorables/index.html">Explorables</a>
+  <a class="back" href="quizzes/index.html">Quizzes</a>
+</header>
+
+<main>
+  <section class="hero">
+    <h2>Build ML From Scratch — Then the Hugging Face Way</h2>
+    <p class="lede">Learn to <em>build</em> machine-learning models, not just call them — from a scalar
+      autograd engine all the way to fine-tuning and serving an LLM.</p>
+    <p>The trick of this course: you <span class="twice">build everything twice</span>. First from
+      scratch, so you understand every moving part; then the Hugging Face way, so you can move fast and
+      ship real work. You see every concept as a picture — loss surfaces, attention heatmaps, feature
+      maps, denoising trajectories — because intuition comes from images, not equations alone. And you
+      write the core algorithms in two languages: <code>Python</code> for reach and ecosystem, and
+      <code>Zig</code> for understanding, where nothing is hidden and memory is explicit.</p>
+    <ul class="tracknote">
+      <li><span class="dot d1"></span>Foundations · 01–03</li>
+      <li><span class="dot d2"></span>Transformers &amp; LLMs · 04–07</li>
+      <li><span class="dot d3"></span>Breadth · 08–10</li>
+    </ul>
+  </section>
+
+  <section class="grid">
+
+    <a class="card" href="explorables/index.html">
+      <span class="glyph" aria-hidden="true">🕹</span>
+      <div class="meta"><span class="pill t2">Interactive</span></div>
+      <h3>Explorables</h3>
+      <p class="hook">Ten single-file, in-browser explainers — one per module. Roll a ball down a loss
+        surface, step through BPE merges, scrub an attention matrix, watch a real 50k-parameter denoiser
+        pull a spiral back out of noise. Where a module produced real artifacts, the page inlines them.</p>
+      <span class="go">Open the gallery →</span>
+    </a>
+
+    <a class="card" href="quizzes/index.html">
+      <span class="glyph" aria-hidden="true">✅</span>
+      <div class="meta"><span class="pill t1">Check yourself</span></div>
+      <h3>Quizzes</h3>
+      <p class="hook">Ten self-graded quizzes, ten questions each, every one grounded in that module's own
+        code, figures and measured numbers. Each question locks when you answer and explains why the right
+        answer is right — and why the tempting one is not.</p>
+      <span class="go">Take a quiz →</span>
+    </a>
+
+    <a class="card" href="https://github.com/wynch/ml-course">
+      <span class="glyph" aria-hidden="true">📚</span>
+      <div class="meta"><span class="pill t3">The course</span></div>
+      <h3>Modules, code &amp; figures</h3>
+      <p class="hook">The course itself lives in the repository: ten module walkthroughs, runnable
+        <code>uv</code> scripts, exercises with solutions, and the generated figures. Clone it and work
+        through the modules in order — foundations are load-bearing for everything after.</p>
+      <span class="go">Browse the repository →</span>
+    </a>
+
+  </section>
+
+  <p class="note"><strong>Everything here runs client-side.</strong> The explorables and quizzes are
+    single HTML files with no network calls and no backend: models, animations and grading all run
+    locally in your browser, and quiz scores stay in this browser's <code>localStorage</code>. Nothing
+    you do on this site is uploaded anywhere.</p>
+</main>
+
+<footer>
+  <p>Prefer to run it locally? Clone the repo, serve the root with
+    <span class="paths">python3 -m http.server</span>, and open
+    <span class="paths">http://localhost:8000/</span>.</p>
+  <p><a href="https://github.com/wynch/ml-course">Source on GitHub</a> ·
+    <a href="explorables/index.html">explorables</a> ·
+    <a href="quizzes/index.html">quizzes</a> · course source in
+    <span class="paths">modules/</span></p>
+</footer>
+</body>
+</html>
+<!-- built for ml-course explorables v1 -->
