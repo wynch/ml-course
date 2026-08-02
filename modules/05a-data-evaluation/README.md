@@ -13,6 +13,8 @@ into the test set.
 — move a decision threshold, inspect the confusion matrix, and introduce data
 leakage to see a suspiciously good score.
 
+**✅ Quiz:** [10 questions](../../quizzes/05a.html) — check yourself once the harness runs and the tests pass.
+
 ---
 
 ## Goals

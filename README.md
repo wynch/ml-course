@@ -127,13 +127,12 @@ python3 -m http.server        # then browse to
 
 ### Quizzes
 
-Each of the ten numbered modules also ships a **10-question quiz** — every
-question grounded in that module's own code, figures and measured numbers, with
-an explanation revealed as soon as you answer. Start at
-[`quizzes/index.html`](quizzes/index.html), which lists all ten and shows your
+Each of the ten numbered modules — and the 05½ bridge lab — ships a
+**10-question quiz**, every question grounded in that module's own code, figures
+and measured numbers, with an explanation revealed as soon as you answer. Start at
+[`quizzes/index.html`](quizzes/index.html), which lists all eleven and shows your
 score for each. Nothing is uploaded: answers and scores stay in your browser's
-`localStorage`, and every quiz has a Reset button. The 05½ bridge lab is
-explorable-only.
+`localStorage`, and every quiz has a Reset button.
 
 ---
 

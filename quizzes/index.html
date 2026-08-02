@@ -102,7 +102,7 @@ footer p{margin:.3rem 0;max-width:74ch}
 <body>
 <header class="topbar">
   <h1>ML course quizzes</h1>
-  <span class="count" id="stat">10 quizzes · 100 questions</span>
+  <span class="count" id="stat">11 quizzes · 110 questions</span>
   <span class="spacer"></span>
   <a class="back" href="../explorables/index.html">Explorables</a>
   <a class="back" href="../index.html">← Course home</a>
@@ -110,8 +110,8 @@ footer p{margin:.3rem 0;max-width:74ch}
 
 <main>
   <section class="intro">
-    <p class="lede">Ten self-graded quizzes, one per module — ten questions each, every one grounded in
-      that module's own code, figures and measured numbers.</p>
+    <p class="lede">Eleven self-graded quizzes — one per module plus the 05½ evaluation bridge lab —
+      ten questions each, every one grounded in that module's own code, figures and measured numbers.</p>
     <p>Answer in any order; a question locks as soon as you answer it and reveals why the right answer
       is right and why the tempting one is not. Nothing is uploaded: your answers and scores live in
       this browser's <code>localStorage</code>, and each quiz has a Reset button. Take one right after
@@ -169,6 +169,14 @@ footer p{margin:.3rem 0;max-width:74ch}
         <p class="hook">SmolLM2-360M taken apart: grouped-query heads, where the parameters sit, chat
           templates, the logit lens, and measured CPU-versus-MPS decode speed.</p>
         <div class="score" data-quiz="05"></div>
+      </a>
+
+      <a class="card" href="05a.html">
+        <div class="meta"><span class="pill t2">Lab 05½</span><span class="file">05a.html</span></div>
+        <h3>Data &amp; evaluation: know whether the model improved</h3>
+        <p class="hook">The <span class="file">&gt;=</span> in the confusion matrix, ECE by hand, what
+          split_indices does and does not guarantee, and what leakage does to an honest 85%.</p>
+        <div class="score" data-quiz="05a"></div>
       </a>
 
       <a class="card" href="06.html">
@@ -263,8 +271,8 @@ footer p{margin:.3rem 0;max-width:74ch}
   }
 
   document.getElementById('stat').textContent = taken
-    ? taken+' of 10 quizzes taken · total '+got+' / '+outOf
-    : '0 of 10 quizzes taken · 10 questions each';
+    ? taken+' of '+slots.length+' quizzes taken · total '+got+' / '+outOf
+    : '0 of '+slots.length+' quizzes taken · 10 questions each';
 })();
 </script>
 </body>
