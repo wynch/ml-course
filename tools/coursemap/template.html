@@ -1,0 +1,444 @@
+<meta charset="utf-8">
+<title>ML Course Map</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d;
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --track-ink:#ffffff;
+  --panel:#ffffff; --matte:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67;
+  --soft:rgba(31,145,141,.10); --rail:rgba(28,36,34,.10);
+  --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+  --viridis:linear-gradient(90deg,#440154,#414487,#2a788e,#22a884,#7ad151,#fde725);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --matte:#f2f5f4;
+    --line:rgba(232,238,236,.18); --muted:#9daba7;
+    --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --accent:#37b3ae;
+    --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --rail:rgba(232,238,236,.14);
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
+  }
+}
+/* explicit theme wins over the media query, both ways (artifact theme toggle) */
+:root[data-theme="dark"]{
+  --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --matte:#f2f5f4;
+  --line:rgba(232,238,236,.18); --muted:#9daba7;
+  --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --accent:#37b3ae;
+  --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --rail:rgba(232,238,236,.14);
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
+}
+:root[data-theme="light"]{
+  --paper:#f6f8f7; --ink:#1c2422; --panel:#ffffff; --matte:#ffffff;
+  --line:rgba(28,36,34,.14); --muted:#5c6b67;
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --accent:#1f918d;
+  --track-ink:#ffffff; --soft:rgba(31,145,141,.10); --rail:rgba(28,36,34,.10);
+  --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+
+/* ---------- masthead ---------- */
+.mast{border-bottom:1px solid var(--line);background:var(--panel)}
+.mast .inner{max-width:1180px;margin:0 auto;padding:clamp(1.1rem,3.4vw,2rem) clamp(.9rem,3vw,2rem) 1.15rem}
+.mast h1{font-family:var(--display);font-size:clamp(1.4rem,3.6vw,2rem);font-weight:600;
+  margin:0 0 .3rem;letter-spacing:.1px;line-height:1.18}
+.mast .lede{margin:0 0 .85rem;color:var(--muted);font-size:.95rem;max-width:66ch}
+.mast .topline{display:flex;flex-wrap:wrap;align-items:center;gap:.7rem 1rem;margin:0 0 1rem}
+.stats{font-family:var(--mono);font-size:.78rem;color:var(--muted);letter-spacing:.01em}
+.stats b{color:var(--ink);font-weight:600}
+.sitebtn{margin-left:auto;font-family:var(--display);font-size:.82rem;font-weight:600;
+  text-decoration:none;color:var(--track-ink);background:var(--accent);
+  border-radius:999px;padding:.4rem .95rem;white-space:nowrap;
+  box-shadow:0 1px 2px rgba(20,40,35,.14)}
+.sitebtn:hover,.sitebtn:focus-visible{filter:brightness(1.07)}
+.sitebtn .u{font-family:var(--mono);font-size:.76rem;opacity:.85;font-weight:400}
+
+.prog{display:flex;align-items:center;gap:.75rem}
+.pbar{flex:1 1 auto;height:12px;border-radius:999px;background:var(--rail);overflow:hidden}
+#pfill{height:100%;width:0%;border-radius:999px;background:var(--viridis);
+  transition:width .32s ease}
+#pcount{font-family:var(--mono);font-size:.8rem;color:var(--muted);
+  min-width:4.4rem;text-align:right;white-space:nowrap}
+
+/* ---------- tracks ---------- */
+main{max-width:1180px;margin:0 auto;padding:clamp(1rem,3vw,1.6rem) clamp(.9rem,3vw,2rem) 2.2rem}
+.track{position:relative;margin:1.9rem 0 0;padding-left:1.15rem}
+.track::before{content:"";position:absolute;left:0;top:.4rem;bottom:.5rem;width:4px;
+  border-radius:2px;background:var(--tc);opacity:.85}
+.track.t1{--tc:var(--t1)} .track.t2{--tc:var(--t2)} .track.t3{--tc:var(--t3)}
+.track > h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  margin:0 0 .15rem;color:var(--tc);display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap}
+.track > h2 .rng{font-family:var(--mono);font-size:.78rem;font-weight:400;
+  text-transform:none;letter-spacing:0;color:var(--muted)}
+.track > p.sub{margin:0 0 .9rem;color:var(--muted);font-size:.88rem;max-width:72ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem}
+
+/* ---------- cards ---------- */
+.card{position:relative;display:flex;flex-direction:column;background:var(--panel);
+  border:1px solid var(--line);border-radius:14px;padding:.9rem 1rem 1rem;
+  box-shadow:var(--shadow);transition:border-color .15s,transform .15s}
+.card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.card.t1{--tc:var(--t1)} .card.t2{--tc:var(--t2)} .card.t3{--tc:var(--t3)}
+.card .chead{display:flex;align-items:center;gap:.5rem;padding-right:5.2rem;margin:0 0 .55rem}
+.mno{font-family:var(--mono);font-size:.72rem;font-weight:600;color:var(--track-ink);
+  background:var(--tc);border-radius:6px;padding:.16rem .44rem;line-height:1.35;white-space:nowrap}
+.card h3{font-family:var(--display);font-size:1rem;font-weight:600;margin:0;
+  line-height:1.28;letter-spacing:.1px}
+
+.donebox{position:absolute;top:.8rem;right:.85rem;display:flex;align-items:center;gap:.34rem;
+  font-family:var(--mono);font-size:.68rem;color:var(--muted);cursor:pointer;user-select:none}
+.donebox input{position:absolute;opacity:0;width:0;height:0}
+.donebox .box{width:15px;height:15px;border-radius:4px;border:1.5px solid var(--line);
+  background:var(--paper);display:inline-block;position:relative;transition:background .15s,border-color .15s}
+.donebox input:checked + .box{background:var(--accent);border-color:var(--accent)}
+.donebox input:checked + .box::after{content:"";position:absolute;left:4px;top:.5px;
+  width:4px;height:9px;border:solid var(--track-ink);border-width:0 2px 2px 0;transform:rotate(42deg)}
+.donebox input:focus-visible + .box{outline:2px solid var(--accent);outline-offset:2px}
+.donebox:hover .box{border-color:var(--accent)}
+.card.done{border-color:var(--accent)}
+.card.done .donebox{color:var(--accent)}
+.card.done .fig{opacity:.72}
+
+.fig{background:var(--matte);border:1px solid var(--line);border-radius:10px;
+  padding:.4rem;margin:0 0 .7rem;transition:opacity .2s}
+.fig img{display:block;width:100%;height:auto;border-radius:6px}
+.build{margin:0 0 .55rem;font-size:.88rem;color:var(--ink);line-height:1.45}
+.build b{font-family:var(--display);font-weight:600}
+.dep{margin:0 0 .55rem;font-size:.78rem;color:var(--muted);border-left:2px solid var(--tc);
+  padding-left:.55rem;line-height:1.4}
+.chips{display:flex;flex-wrap:wrap;gap:.3rem;margin:0 0 .7rem}
+.chips span{font-family:var(--mono);font-size:.7rem;color:var(--muted);background:var(--soft);
+  border-radius:999px;padding:.16rem .52rem;white-space:nowrap}
+
+.links{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:auto;padding-top:.15rem}
+.links a{font-family:var(--display);font-size:.78rem;font-weight:600;text-decoration:none;
+  color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:.22rem .62rem;
+  transition:border-color .15s,color .15s,background .15s}
+.links a:hover,.links a:focus-visible{border-color:var(--accent);color:var(--accent);background:var(--soft)}
+
+.cfoot{display:flex;align-items:center;justify-content:space-between;gap:.6rem;flex-wrap:wrap;
+  margin-top:.7rem;padding-top:.55rem;border-top:1px solid var(--line)}
+.cfoot .path{font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+.cfoot .hf{font-family:var(--mono);font-size:.7rem;text-decoration:none;color:var(--muted)}
+.cfoot .hf:hover{color:var(--accent);text-decoration:underline}
+
+/* ---------- slim bridge card (05a): no figure, sits high in its row ---------- */
+.card.slim{align-self:start;border-style:dashed;padding:.85rem 1rem .9rem}
+.card.slim .bridge{font-family:var(--mono);font-size:.66rem;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--tc);margin:0 0 .45rem}
+.card.slim .build{margin-bottom:.6rem}
+.card.slim .links{margin-top:.1rem}
+
+/* ---------- footer panels ---------- */
+.panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:1rem;
+  margin:2.2rem 0 0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:1rem 1.1rem 1.1rem;box-shadow:var(--shadow)}
+.panel h2{font-family:var(--display);font-size:.95rem;font-weight:600;margin:0 0 .5rem;
+  letter-spacing:.02em;text-transform:uppercase;color:var(--accent)}
+.panel p{margin:.35rem 0;font-size:.88rem;color:var(--muted)}
+.panel ol{margin:.4rem 0 0;padding-left:1.15rem;font-size:.88rem}
+.panel li{margin:.3rem 0}
+.panel li b{font-family:var(--display)}
+.panel a{text-decoration:none} .panel a:hover{text-decoration:underline}
+pre.cmd{font-family:var(--mono);font-size:.78rem;line-height:1.6;margin:.55rem 0 .4rem;
+  background:var(--soft);border:1px solid var(--line);border-radius:10px;
+  padding:.7rem .8rem;overflow-x:auto;color:var(--ink)}
+pre.cmd .c{color:var(--muted)}
+
+footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 2.6rem;
+  font-size:.8rem;color:var(--muted);font-family:var(--mono)}
+
+@media (max-width:700px){
+  .grid{grid-template-columns:1fr}
+  .sitebtn{margin-left:0}
+}
+</style>
+
+<header class="mast">
+  <div class="inner">
+    <h1>Build it twice: an ML course map</h1>
+    <p class="lede">From a scalar autograd engine to a Zig inference engine — every idea built from
+      scratch first, then the Hugging Face way, and drawn as a picture both times.</p>
+    <div class="topline">
+      <span class="stats"><b>11</b> modules · <b>75</b> figures · <b>11</b> explorables ·
+        <b>11</b> quizzes · <b>2</b> languages</span>
+      <a class="sitebtn" href="https://wynch.github.io/ml-course/" target="_blank" rel="noopener">Course site ↗
+        <span class="u">wynch.github.io/ml-course</span></a>
+    </div>
+    <div class="prog">
+      <div class="pbar"><div id="pfill"></div></div>
+      <span id="pcount">0 / 11</span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<section class="track t1">
+  <h2>Foundations<span class="rng">modules 01–03</span></h2>
+  <p class="sub">Gradients, a network that learns, and the tokenizer that feeds it — written by hand,
+    in Python and in Zig.</p>
+  <div class="grid">
+
+    <article class="card t1" data-mod="01">
+      <label class="donebox">done<input type="checkbox" data-mod="01" aria-label="Mark module 01 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">01</span><h3>Autograd</h3></div>
+      <div class="fig"><img src="{{FIG01}}" alt="Module 01 figure: the computation graph of a scalar expression"></div>
+      <p class="build"><b>You build:</b> a scalar autograd engine — reverse-mode backprop from first
+        principles, twice: Python objects, then Zig structs.</p>
+      <div class="chips"><span>grad check 1.34e-10</span><span>100% moons</span><span>337 params</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/01-gradient-descent.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/01.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/01-autograd</span>
+        <a class="hf" href="https://huggingface.co/learn/llm-course/chapter1/1" target="_blank" rel="noopener">HF LLM ch. 1 ↗</a></div>
+    </article>
+
+    <article class="card t1" data-mod="02">
+      <label class="donebox">done<input type="checkbox" data-mod="02" aria-label="Mark module 02 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">02</span><h3>Neural networks</h3></div>
+      <div class="fig"><img src="{{FIG02}}" alt="Module 02 figure: first-layer weights learned on FashionMNIST"></div>
+      <p class="build"><b>You build:</b> a numpy MLP trained on FashionMNIST, then chase the same matmul
+        down to BLAS and to blocked Zig.</p>
+      <div class="chips"><span>86.5% FashionMNIST</span><span>BLAS ~740×</span><span>Zig blocked 2.4×</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/02-nn-playground.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/02.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/02-neural-networks</span>
+        <a class="hf" href="https://huggingface.co/learn/llm-course/chapter2/1" target="_blank" rel="noopener">HF LLM ch. 2 ↗</a></div>
+    </article>
+
+    <article class="card t1" data-mod="03">
+      <label class="donebox">done<input type="checkbox" data-mod="03" aria-label="Mark module 03 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">03</span><h3>Tokenization</h3></div>
+      <div class="fig"><img src="{{FIG03}}" alt="Module 03 figure: a sentence split into colored tokens"></div>
+      <p class="build"><b>You build:</b> BPE from scratch in Python and Zig, then meet the real SmolLM3
+        tokenizer in a Gradio playground.</p>
+      <div class="chips"><span>merges byte-identical Py/Zig</span><span>Zig 21×</span><span>500 merges</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/03-bpe-stepper.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/03.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/03-tokenization</span>
+        <a class="hf" href="https://huggingface.co/learn/llm-course/chapter6/1" target="_blank" rel="noopener">HF LLM ch. 6 ↗</a></div>
+    </article>
+
+  </div>
+</section>
+
+<section class="track t2">
+  <h2>Transformers &amp; LLMs<span class="rng">modules 04–07</span></h2>
+  <p class="sub">One operation, one repeated block, an honest way to score it, one cheap way to adapt
+    it, and one way to run it fast.</p>
+  <div class="grid">
+
+    <article class="card t2" data-mod="04">
+      <label class="donebox">done<input type="checkbox" data-mod="04" aria-label="Mark module 04 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">04</span><h3>Attention &amp; the transformer</h3></div>
+      <div class="fig"><img src="{{FIG04}}" alt="Module 04 figure: attention heatmaps for each head of the tiny char-GPT"></div>
+      <p class="build"><b>You build:</b> softmax(QKᵀ/√d)·V by hand, then a tiny char-GPT you train
+        yourself and watch attend.</p>
+      <div class="chips"><span>620k params</span><span>val loss 1.73</span><span>~4 min on MPS</span></div>
+      <p class="dep">Exports the trained weights that module 07's Zig engine loads.</p>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/04-attention.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/04.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/04-attention-transformer</span>
+        <a class="hf" href="https://huggingface.co/learn/llm-course/chapter1/4" target="_blank" rel="noopener">HF LLM ch. 1.4 ↗</a></div>
+    </article>
+
+    <article class="card t2" data-mod="05">
+      <label class="donebox">done<input type="checkbox" data-mod="05" aria-label="Mark module 05 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">05</span><h3>The transformers library</h3></div>
+      <div class="fig"><img src="{{FIG05}}" alt="Module 05 figure: logit lens — the top prediction at every layer"></div>
+      <p class="build"><b>You build:</b> a dissection of SmolLM3 — <code>pipeline</code>,
+        <code>AutoModel</code>, the parameter budget, sampling, and a logit lens.</p>
+      <div class="chips"><span>“Paris” @ layer 27/32</span><span>362M params dissected</span><span>CPU 27–31 tok/s</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/05-transformer-anatomy.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/05.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/05-transformers-library</span>
+        <a class="hf" href="https://huggingface.co/learn/llm-course/chapter2/2" target="_blank" rel="noopener">HF LLM ch. 2.2 ↗</a></div>
+    </article>
+
+    <article class="card t2 slim" data-mod="05a">
+      <label class="donebox">done<input type="checkbox" data-mod="05a" aria-label="Mark module 05½ done"><span class="box"></span></label>
+      <p class="bridge">bridge lab · no new model</p>
+      <div class="chead"><span class="mno">05½</span><h3>Data &amp; evaluation</h3></div>
+      <p class="build"><b>You build:</b> the honest scorecard — leakage-safe splits, a confusion matrix,
+        thresholds, calibration and ECE, slice tables, all from scratch, then a deliberate leak that
+        manufactures a fake breakthrough.</p>
+      <div class="chips"><span>7/7 tests</span><span>ECE by hand</span><span>leakage demo</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/05a-evaluation-lab.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/05a.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/05a-data-evaluation</span>
+        <a class="hf" href="https://huggingface.co/learn/llm-course/chapter5/1" target="_blank" rel="noopener">HF LLM ch. 5 ↗</a></div>
+    </article>
+
+    <article class="card t2" data-mod="06">
+      <label class="donebox">done<input type="checkbox" data-mod="06" aria-label="Mark module 06 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">06</span><h3>Fine-tuning</h3></div>
+      <div class="fig"><img src="{{FIG06}}" alt="Module 06 figure: base versus fine-tuned generations side by side"></div>
+      <p class="build"><b>You build:</b> a TRL SFT run with LoRA adapters on SmolLM3, plus an MLX lane
+        that keeps the whole thing on the Mac.</p>
+      <div class="chips"><span>loss 1.25 → 0.60</span><span>LoRA 2.34% trainable</span><span>MLX ~7× MPS</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/06-lora-rank.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/06.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/06-fine-tuning</span>
+        <a class="hf" href="https://huggingface.co/learn/llm-course/chapter11/1" target="_blank" rel="noopener">HF LLM ch. 11 ↗</a></div>
+    </article>
+
+    <article class="card t2" data-mod="07">
+      <label class="donebox">done<input type="checkbox" data-mod="07" aria-label="Mark module 07 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">07</span><h3>Inference internals</h3></div>
+      <div class="fig"><img src="{{FIG07}}" alt="Module 07 figure: measured generation time with and without the KV cache"></div>
+      <p class="build"><b>You build:</b> a KV cache, int8 quantization, and a Zig inference engine as the
+        capstone — token-for-token against PyTorch.</p>
+      <div class="chips"><span>parity 2.86e-06</span><span>KV cache 63×</span><span>int8 3.9× smaller</span></div>
+      <p class="dep">Loads the weights module 04 exported — the Zig engine runs your own char-GPT.</p>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/07-kv-cache.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/07.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/07-inference-internals</span>
+        <a class="hf" href="https://huggingface.co/learn/computer-vision-course/unit9/intro_to_model_optimization" target="_blank" rel="noopener">HF CV unit 9 ↗</a></div>
+    </article>
+
+  </div>
+</section>
+
+<section class="track t3">
+  <h2>Breadth<span class="rng">modules 08–10</span></h2>
+  <p class="sub">The same machinery pointed at pixels, at noise, and at tools.</p>
+  <div class="grid">
+
+    <article class="card t3" data-mod="08">
+      <label class="donebox">done<input type="checkbox" data-mod="08" aria-label="Mark module 08 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">08</span><h3>Vision</h3></div>
+      <div class="fig"><img src="{{FIG08}}" alt="Module 08 figure: ViT attention maps over a beans leaf image"></div>
+      <p class="build"><b>You build:</b> a fine-tuned ViT on the beans dataset, its attention maps, and a
+        CLIP zero-shot baseline to beat.</p>
+      <div class="chips"><span>ViT 95.31% beans</span><span>CLIP zero-shot 43.75%</span><span>~55 s fine-tune</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/08-conv-vs-patches.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/08.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/08-vision</span>
+        <a class="hf" href="https://huggingface.co/learn/computer-vision-course" target="_blank" rel="noopener">HF CV course ↗</a></div>
+    </article>
+
+    <article class="card t3" data-mod="09">
+      <label class="donebox">done<input type="checkbox" data-mod="09" aria-label="Mark module 09 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">09</span><h3>Diffusion</h3></div>
+      <div class="fig"><img src="{{FIG09}}" alt="Module 09 figure: the DDPM sampler dreaming a spiral back out of noise"></div>
+      <p class="build"><b>You build:</b> a DDPM from scratch on a 2-D spiral — forward noise, a UNet
+        denoiser, schedules — then the same thing with <code>diffusers</code>.</p>
+      <div class="chips"><span>spiral DDPM live</span><span>377k UNet · 4.2 min</span><span>cosine schedule</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/09-diffusion.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/09.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/09-diffusion</span>
+        <a class="hf" href="https://huggingface.co/learn/diffusion-course/unit1/1" target="_blank" rel="noopener">HF Diffusion unit 1 ↗</a></div>
+    </article>
+
+    <article class="card t3" data-mod="10">
+      <label class="donebox">done<input type="checkbox" data-mod="10" aria-label="Mark module 10 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">10</span><h3>Agents</h3></div>
+      <div class="fig"><img src="{{FIG10}}" alt="Module 10 figure: a hand-rolled ReAct trace, thought by thought"></div>
+      <p class="build"><b>You build:</b> a ReAct loop by hand around a local SmolLM2, then the same agent
+        with smolagents and MCP — and an evaluation that admits the failures.</p>
+      <div class="chips"><span>ReAct ~100 lines</span><span>60% mean success</span><span>5 tasks × 10 runs</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/10-agent-loop.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/10.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/10-agents</span>
+        <a class="hf" href="https://huggingface.co/learn/agents-course/unit1/introduction" target="_blank" rel="noopener">HF Agents unit 1 ↗</a></div>
+    </article>
+
+  </div>
+</section>
+
+<div class="panels">
+  <section class="panel">
+    <h2>Start here</h2>
+    <p>Everything runs locally on an Apple-silicon Mac, one <code>uv</code> script at a time.</p>
+    <pre class="cmd">git clone https://github.com/wynch/ml-course.git
+cd ml-course/modules/01-autograd   <span class="c"># read README.md first</span>
+cd python &amp;&amp; uv run scripts/train_moons.py</pre>
+    <p>Do the modules in order — 01–03 are load-bearing for everything after them.</p>
+  </section>
+
+  <section class="panel">
+    <h2>After the course</h2>
+    <ol>
+      <li><b>Go deeper on post-training</b> — <a href="https://huggingface.co/learn/llm-course/chapter11/1" target="_blank" rel="noopener">LLM course ch. 11–12</a>
+        and the project-based <a href="https://huggingface.co/learn/smol-course" target="_blank" rel="noopener">smol-course</a>, both with certificates.</li>
+      <li><b>Ship an agent</b> — the <a href="https://huggingface.co/learn/agents-course/unit1/introduction" target="_blank" rel="noopener">Agents course</a>
+        and <a href="https://huggingface.co/learn/mcp-course" target="_blank" rel="noopener">MCP course</a> turn module 10 into something graded and deployed.</li>
+      <li><b>Widen the breadth</b> — the full <a href="https://huggingface.co/learn/computer-vision-course" target="_blank" rel="noopener">CV course</a>
+        and <a href="https://huggingface.co/learn/diffusion-course/unit1/1" target="_blank" rel="noopener">Diffusion course</a> pick up where 08 and 09 stop.</li>
+    </ol>
+  </section>
+</div>
+
+</main>
+
+<footer class="foot">Progress is stored in this browser only (localStorage · mlcourse-progress) — nothing is uploaded.</footer>
+
+<script>
+(function(){
+  var KEY = "mlcourse-progress";
+  var boxes = Array.prototype.slice.call(document.querySelectorAll(".donebox input"));
+  var total = boxes.length;
+  var fill = document.getElementById("pfill");
+  var count = document.getElementById("pcount");
+
+  function load(){
+    try { var raw = localStorage.getItem(KEY); var o = raw ? JSON.parse(raw) : null;
+      return (o && typeof o === "object") ? o : {}; }
+    catch (e) { return {}; }
+  }
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+  var state = load();
+
+  function paint(){
+    var n = 0;
+    boxes.forEach(function(b){
+      var on = !!state[b.dataset.mod];
+      b.checked = on;
+      var card = b.closest(".card");
+      if (card) card.classList.toggle("done", on);
+      if (on) n++;
+    });
+    fill.style.width = (total ? (n / total) * 100 : 0).toFixed(3) + "%";
+    count.textContent = n + " / " + total;
+  }
+
+  boxes.forEach(function(b){
+    b.addEventListener("change", function(){
+      if (b.checked) state[b.dataset.mod] = 1; else delete state[b.dataset.mod];
+      save(); paint();
+    });
+  });
+
+  paint();
+})();
+</script>
