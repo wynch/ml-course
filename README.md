@@ -134,6 +134,28 @@ and measured numbers, with an explanation revealed as soon as you answer. Start 
 score for each. Nothing is uploaded: answers and scores stay in your browser's
 `localStorage`, and every quiz has a Reset button.
 
+### Course map
+
+The **course map** is a visual dashboard of the whole course on a single page:
+one card per module with its signature figure, the measured results that module
+actually produced, and direct links to its explorable and quiz. Progress
+checkboxes let you tick modules off as you finish them; like the quizzes, they
+are stored in your browser and uploaded nowhere.
+
+Read it live at **<https://wynch.github.io/ml-course/map.html>**, or open
+`map.html` when serving the repo root locally.
+
+Regenerate it after changing a figure or a number:
+
+```bash
+uv run tools/coursemap/build_map.py
+```
+
+The source of truth is `tools/coursemap/template.html` — edit that, never the
+generated `map.html`, which is the template with every module figure inlined as
+a data: URI. The map first lived as a one-off claude.ai artifact; the copy
+published here on GitHub Pages is now the maintained home.
+
 ---
 
 ## Toolchain

@@ -6,7 +6,10 @@
 
 Reads template.html, replaces every {{FIGNN}} placeholder with a data: URI of the
 matching module figure (downscaled, whichever of optimized PNG / JPEG q80 is
-smaller) and writes course-map.html next to this script.
+smaller) and writes two identical copies of the finished page:
+
+  * <repo>/map.html                     — published on GitHub Pages (tracked in git)
+  * tools/coursemap/course-map.html     — scratch copy for one-off sharing (gitignored)
 
     uv run build_map.py
 """
@@ -25,7 +28,11 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
 MODULES = REPO / "modules"
 TEMPLATE = HERE / "template.html"
+# The published page (served by GitHub Pages at /ml-course/map.html) plus a
+# scratch copy next to the template. Same bytes, written in one build.
+SITE_OUTPUT = REPO / "map.html"
 OUTPUT = HERE / "course-map.html"
+OUTPUTS = (SITE_OUTPUT, OUTPUT)
 
 MAX_W = 680
 JPEG_QUALITY = 80
@@ -97,11 +104,15 @@ def main() -> int:
         print(f"unresolved placeholders: {sorted(set(left))}", file=sys.stderr)
         return 1
 
-    OUTPUT.write_text(html, encoding="utf-8")
+    for out in OUTPUTS:
+        out.write_text(html, encoding="utf-8")
+
+    size = SITE_OUTPUT.stat().st_size / 1024
     print(
-        f"\n{OUTPUT.name}: {OUTPUT.stat().st_size / 1024:.0f} KB "
-        f"({len(FIGS)} figures, {total / 1024:.0f} KB of image data)"
+        f"\n{size:.0f} KB ({len(FIGS)} figures, {total / 1024:.0f} KB of image data)"
     )
+    for out in OUTPUTS:
+        print(f"  wrote {out.relative_to(REPO)}")
     return 0
 
 
