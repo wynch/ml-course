@@ -1,5 +1,8 @@
-const CACHE = "ml-course-reader-v3";
-const CORE = ["/", "/styles.css", "/app.js", "/course-content.js", "/manifest.webmanifest", "/offline-assets.json"];
+// Every URL here is relative to this script, so the reader caches correctly
+// whether it is served from a domain root or from /ml-course/reader/.
+const CACHE = "ml-course-reader-v4";
+const CORE = ["./", "./styles.css", "./app.js", "./course-content.js", "./manifest.webmanifest", "./offline-assets.json"];
+const HOME = new URL("./", self.location).href;
 
 async function warm(urls) {
   const cache = await caches.open(CACHE);
@@ -17,7 +20,7 @@ self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
     await warm(CORE);
     try {
-      const response = await fetch("/offline-assets.json");
+      const response = await fetch("./offline-assets.json");
       if (response.ok) await warm(await response.json());
     } finally {
       await self.skipWaiting();
@@ -48,7 +51,7 @@ self.addEventListener("fetch", (event) => {
       }
       return response;
     } catch {
-      if (event.request.mode === "navigate") return (await caches.match("/")) || Response.error();
+      if (event.request.mode === "navigate") return (await caches.match(HOME)) || Response.error();
       return Response.error();
     }
   })());

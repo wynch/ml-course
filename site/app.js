@@ -9,7 +9,11 @@
     { name: "Transformers & LLMs", blurb: "Build the block, evaluate it, adapt it, and run it fast." },
     { name: "Breadth", blurb: "Carry the same ideas into pixels, denoising, and action." },
   ];
-  const ASSET_ROOTS = ["explorables/", "quizzes/"];
+  const ASSET_ROOTS = ["explorables", "quizzes"];
+  // The reader lives at a domain root when served locally and under
+  // /ml-course/reader/ on GitHub Pages. Every generated URL hangs off BASE, the
+  // directory holding index.html, so both layouts resolve identically.
+  const BASE = location.pathname.replace(/[^/]*$/, "");
   const storageKey = "ml-course-progress-v1";
   const emptyProgress = { completed: [], answers: {}, lastVisited: "01-autograd", updatedAt: new Date(0).toISOString() };
   let progress = loadProgress();
@@ -59,7 +63,7 @@
     };
 
     text = text.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+&quot;[^&]*&quot;)?\)/g, (_, alt, src) => {
-      const source = /^(https?:|data:|\/)/.test(src) ? src : `/content/${resolveLocalPath(page.path, src)}`;
+      const source = /^(https?:|data:|\/)/.test(src) ? src : `${BASE}content/${resolveLocalPath(page.path, src)}`;
       return hold(`<img src="${escapeHtml(source)}" alt="${escapeHtml(alt)}" loading="lazy">`);
     });
     text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, rawHref) => {
@@ -76,7 +80,9 @@
       if (targetPage) {
         return hold(`<a href="#/${targetPage.id}" data-route="${targetPage.id}" data-anchor="${escapeHtml(anchor)}">${label}</a>`);
       }
-      const target = ASSET_ROOTS.some((root) => resolved.startsWith(root)) ? `/${resolved}` : `/content/${resolved}`;
+      // A bare "explorables/" link points at the gallery, not at content/.
+      const bundled = ASSET_ROOTS.some((root) => resolved === root || resolved.startsWith(`${root}/`));
+      const target = bundled ? `${BASE}${resolved}` : `${BASE}content/${resolved}`;
       return hold(`<a href="${escapeHtml(target)}">${label}</a>`);
     });
     text = text.replace(/&lt;(https?:\/\/[^&\s]+)&gt;/g, (_, href) =>
@@ -331,7 +337,7 @@
     const next = index >= 0 && index < DATA.modules.length - 1 ? DATA.modules[index + 1] : null;
     const done = progress.completed.includes(page.id);
     return `<main class="lesson-page">
-      <header class="lesson-mast accent-${page.accent || "teal"}"><div><span class="eyebrow">${page.kind === "module" ? `${page.track} · ${formatMinutes(page.minutes)}` : "Course guide"}</span><h1>${escapeHtml(page.title)}</h1></div>${page.explorable ? `<a class="explorable-button" href="${page.explorable}">Open interactive explainer <span>↗</span></a>` : ""}</header>
+      <header class="lesson-mast accent-${page.accent || "teal"}"><div><span class="eyebrow">${page.kind === "module" ? `${page.track} · ${formatMinutes(page.minutes)}` : "Course guide"}</span><h1>${escapeHtml(page.title)}</h1></div>${page.explorable ? `<a class="explorable-button" href="${BASE}${page.explorable}">Open interactive explainer <span>↗</span></a>` : ""}</header>
       <article class="markdown-body">${renderMarkdown(page.markdown, page)}</article>
       ${page.kind === "module" ? `${quiz(page)}
         <section class="lesson-finish"><div><span class="eyebrow">Progress stays on this device</span><h2>${done ? "Lab marked complete." : "Finished this lab?"}</h2></div><button class="complete-button ${done ? "completed" : ""}" data-complete="${page.id}">${done ? "✓ Completed" : "Mark complete"}</button></section>
@@ -448,7 +454,7 @@
   });
 
   if ("serviceWorker" in navigator && location.protocol !== "file:") {
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
+    navigator.serviceWorker.register(`${BASE}sw.js`, { scope: BASE }).catch(() => {});
   }
   render();
 })();

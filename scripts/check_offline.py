@@ -15,6 +15,9 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 STRAY_MODULE_LINK = re.compile(r'href="(?:\.\./)*/?modules/[^"]*"')
+# GitHub Pages serves the reader from /ml-course/reader/, so a root-absolute
+# URL escapes the reader and 404s. Every internal reference must be relative.
+ROOT_ABSOLUTE_URL = re.compile(r'(?:href|src)="(/(?!/)[^"]*)"')
 
 
 class DependencyParser(HTMLParser):
@@ -59,7 +62,18 @@ def check_reader() -> None:
     if len(quizzes) < len(list((ROOT / "quizzes").glob("*.html"))):
         raise RuntimeError("the reader is missing quizzes bundled at the source")
 
-    for html in [*(reader / "explorables").glob("*.html"), *quizzes]:
+    absolute = [asset for asset in assets if asset.startswith("/")]
+    if absolute:
+        raise RuntimeError(
+            "the offline asset list must stay relative to the reader root so the "
+            f"service worker works under a subpath: {absolute[:3]}"
+        )
+
+    for html in [
+        reader / "index.html",
+        *(reader / "explorables").glob("*.html"),
+        *quizzes,
+    ]:
         text = html.read_text()
         parser = DependencyParser()
         parser.feed(text)
@@ -71,11 +85,22 @@ def check_reader() -> None:
         if stray:
             raise RuntimeError(
                 f"{html.name} links the module tree, which the reader serves from "
-                f"/content/modules/ and its lesson routes: {stray}"
+                f"../content/modules/ and its lesson routes: {stray}"
             )
+        rooted = ROOT_ABSOLUTE_URL.findall(text)
+        if rooted:
+            raise RuntimeError(
+                f"{html.name} uses root-absolute URLs, which break when the reader "
+                f"is served under /ml-course/reader/: {rooted[:3]}"
+            )
+
+    shell = (reader / "app.js").read_text() + (reader / "sw.js").read_text()
+    if re.search(r'(?:register|fetch|match)\(\s*"/', shell):
+        raise RuntimeError("the reader shell still resolves URLs from the domain root")
+
     print(
         f"reader: PASS ({len(assets)} assets, {len(quizzes) - 1} quizzes, "
-        "no remote dependencies, no unrouted module links)"
+        "no remote dependencies, no unrouted module links, no root-absolute URLs)"
     )
 
 

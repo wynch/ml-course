@@ -184,13 +184,18 @@ MODULE_LINK = re.compile(r'href="\.\./modules/([^"#]+?)/?(#[^"]*)?"')
 
 
 def module_target(match: re.Match[str]) -> str:
-    """Point one module link in a bundled page at its place in the reader."""
+    """Point one module link in a bundled page at its place in the reader.
+
+    Bundled pages sit exactly one level under the reader root, so the rewritten
+    link stays relative (``../``). That keeps the reader working both at a
+    domain root and under a subpath such as /ml-course/reader/.
+    """
     path, anchor = match.group(1), match.group(2) or ""
     slug, _, rest = path.partition("/")
     route = MODULE_ROUTES.get(slug)
     if route and rest in ("", "README.md"):
-        return f'href="/index.html#/{route}"'
-    return f'href="/content/modules/{path}{anchor}"'
+        return f'href="../index.html#/{route}"'
+    return f'href="../content/modules/{path}{anchor}"'
 
 
 def route_module_links(directory: Path) -> int:
@@ -242,7 +247,7 @@ def page_payload() -> dict:
                 "kind": "module",
                 "track": track,
                 "minutes": minutes,
-                "explorable": f"/explorables/{explorable}",
+                "explorable": f"explorables/{explorable}",
                 "accent": accent,
                 "markdown": (ROOT / path).read_text(),
             }
@@ -251,8 +256,13 @@ def page_payload() -> dict:
 
 
 def asset_urls(root: Path) -> list[str]:
+    """List every cacheable asset relative to the reader root.
+
+    The service worker resolves these against its own script URL, so a relative
+    list is what lets one build serve from either a domain root or a subpath.
+    """
     return sorted(
-        f"/{path.relative_to(root).as_posix()}"
+        path.relative_to(root).as_posix()
         for path in root.rglob("*")
         if path.is_file() and path.name != "offline-assets.json"
     )
@@ -266,6 +276,8 @@ def main() -> None:
 
     copy_filtered(ROOT / "modules", READER / "content" / "modules")
     copy_filtered(ROOT / "docs", READER / "content" / "docs")
+    # OFFLINE.md links the pack manifest, so bundle it with the rest.
+    copy_filtered(ROOT / "offline", READER / "content" / "offline")
     copy_filtered(ROOT / "explorables", READER / "explorables")
     copy_filtered(ROOT / "quizzes", READER / "quizzes")
     routed = route_module_links(READER / "explorables") + route_module_links(READER / "quizzes")
