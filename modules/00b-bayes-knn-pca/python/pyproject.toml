@@ -1,0 +1,23 @@
+[project]
+name = "mlcourse-00b-bayes-knn-pca"
+version = "0.1.0"
+description = "Module 00b — Bayes, nearest neighbours and principal components, built from scratch on numpy."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "datasets>=5.0.0",
+    "matplotlib>=3.11.1",
+    "numpy>=2.5.1",
+    "pillow>=12.3.0",
+    "scipy>=1.18.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "scikit-learn>=1.9.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "../solutions"]
+addopts = "-q"
