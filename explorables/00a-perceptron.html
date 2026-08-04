@@ -1,0 +1,955 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The perceptron, one mistake at a time &middot; ML course explorable</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d; --track:#a86b0e; --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67; --grid:rgba(28,36,34,.10);
+  --warn:#c1121f; --soft:rgba(31,145,141,.10);
+  --t0:#a86b0e; --t0-soft:rgba(168,107,14,.12);
+  --pos:#1f918d; --neg:#453781;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --grid:rgba(232,238,236,.12); --warn:#ff8f85;
+    --soft:rgba(31,145,141,.16);
+    --track:#d9962e; --track-ink:#1c2422;
+    --t0:#d9962e; --t0-soft:rgba(217,150,46,.18);
+    --pos:#3fbfb9; --neg:#8f7fdd;
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;background:var(--track);color:var(--track-ink);
+  padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.topbar .spacer{flex:1 1 auto}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 3rem}
+.intro{max-width:70ch;color:var(--ink)}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .7rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.8rem,2vw,1.2rem);margin:1.4rem 0}
+.stage{display:flex;flex-wrap:wrap;gap:1.1rem}
+.stage .viz{flex:1 1 380px;min-width:280px}
+.stage .side{flex:0 1 288px;min-width:250px;display:flex;flex-direction:column;gap:.7rem}
+canvas{display:block;width:100%;height:auto;border-radius:10px;touch-action:none}
+canvas.field{border:1px solid var(--line);max-width:560px;margin-inline:auto}
+.ctrl{display:flex;flex-direction:column;gap:.15rem;font-size:.83rem}
+.ctrl .row{display:flex;justify-content:space-between;align-items:baseline;gap:.5rem}
+.ctrl .row b{font-weight:600}
+.ctrl .row .val{font-family:var(--mono);font-size:.82rem;color:var(--accent)}
+.ctrl input[type=range]{width:100%;accent-color:var(--accent);margin:0}
+.ctrl.off{opacity:.42}
+.btns{display:flex;flex-wrap:wrap;gap:.4rem}
+button{font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:.34rem .82rem;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{color:#fff;filter:brightness(1.06)}
+button.mode{font-size:.78rem;padding:.3rem .7rem}
+button.mode[aria-pressed=true]{background:var(--t0);border-color:var(--t0);color:var(--track-ink)}
+button.mode[aria-pressed=true]:hover{color:var(--track-ink);filter:brightness(1.05)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.readout{display:grid;grid-template-columns:auto 1fr;gap:.15rem .6rem;font-family:var(--mono);
+  font-size:.82rem;border-top:1px solid var(--line);padding-top:.55rem}
+.readout dt{color:var(--muted)}
+.readout dd{margin:0;text-align:right;overflow-wrap:anywhere}
+.status{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.03em;
+  text-transform:uppercase;border-radius:999px;padding:.2rem .6rem;display:inline-block;
+  border:1px solid var(--line)}
+.status.ok{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.status.warn{color:var(--warn);border-color:var(--warn)}
+.status.busy{color:var(--t0);border-color:var(--t0);background:var(--t0-soft)}
+.hint{font-size:.78rem;color:var(--muted);margin:.35rem 0 0}
+.legend{display:flex;flex-wrap:wrap;gap:.9rem;font-size:.78rem;color:var(--muted);margin-top:.5rem}
+.legend i{display:inline-block;width:.72rem;height:.72rem;border-radius:3px;margin-right:.32rem;
+  vertical-align:-1px}
+.narr{font-family:var(--mono);font-size:.82rem;background:var(--t0-soft);border-radius:10px;
+  padding:.6rem .75rem;min-height:4.4em}
+.narr .step{display:block;font-family:var(--display);font-size:.72rem;font-weight:600;
+  letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:.25rem}
+.notice ul{margin:0;padding-left:1.15rem}
+.notice li{margin:.45rem 0;max-width:74ch}
+.notice code,.mono{font-family:var(--mono);font-size:.92em}
+.realcard{display:flex;flex-wrap:wrap;gap:1rem;align-items:center}
+.realcard .txt{flex:1 1 280px;font-size:.86rem;color:var(--muted)}
+.realcard .txt b{color:var(--ink)}
+.realcard .spark{flex:1 1 320px;min-width:250px}
+table.nums{border-collapse:collapse;font-family:var(--mono);font-size:.79rem;margin:.5rem 0 0}
+table.nums th,table.nums td{text-align:right;padding:.14rem .5rem;border-bottom:1px solid var(--line)}
+table.nums th{color:var(--muted);font-weight:600;font-family:var(--display);font-size:.72rem;
+  text-transform:uppercase;letter-spacing:.04em}
+table.nums td:first-child,table.nums th:first-child{text-align:left}
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+@media (max-width:700px){
+  .stage .side{flex:1 1 100%}
+  .topbar h1{font-size:.98rem}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>The perceptron, one mistake at a time</h1>
+  <span class="pill">Module 00a &middot; Origins</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">&larr; All explorables</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">A perceptron only ever does one thing: when it gets a point wrong, it adds
+      that point into its weights. Watch the line lurch, then settle &mdash; and watch the
+      mistake counter stop far, far short of the bound that says it must.</p>
+    <p>Three things to try. <b>Replay the module's run</b> to see the real 200 points from
+      <span class="mono">modules/00a-perceptron</span> reproduced in your browser, mistake for
+      mistake. <b>Drag the margin</b> down and watch the same algorithm work much harder for the
+      same answer. Then switch to <b>XOR</b>, where no line exists and the weights fall into a
+      four-step loop they never escape.</p>
+  </section>
+
+  <!-- ══════════════════ PANEL 1 — the perceptron ══════════════════ -->
+  <section class="panel">
+    <h2>Panel 1 &middot; One mistake, one nudge</h2>
+    <div class="stage">
+      <div class="viz">
+        <canvas id="field" class="field" width="720" height="720"
+                aria-label="Two-dimensional points with the perceptron's decision line"></canvas>
+        <div class="legend">
+          <span><i style="background:#1f918d"></i>label +1</span>
+          <span><i style="background:#453781"></i>label &minus;1</span>
+          <span><i style="background:#c1121f"></i>currently misclassified</span>
+          <span>the thick line is <span class="mono">w&middot;x = 0</span>; the arrow is <span class="mono">w</span></span>
+        </div>
+        <p class="hint">Space = play/pause. The counter chart below is cumulative mistakes
+          against Novikoff's bound, on a log scale because the two live at different orders
+          of magnitude.</p>
+        <canvas id="mistchart" width="720" height="210"
+                aria-label="Cumulative mistakes against the Novikoff bound"></canvas>
+      </div>
+      <div class="side">
+        <div class="btns" role="group" aria-label="dataset">
+          <button class="mode" id="m-module" aria-pressed="true">Module&rsquo;s run</button>
+          <button class="mode" id="m-explore" aria-pressed="false">Explore</button>
+          <button class="mode" id="m-xor" aria-pressed="false">XOR</button>
+        </div>
+        <div class="btns">
+          <button id="a-play" class="primary">&#9654; Play</button>
+          <button id="a-step">Step</button>
+          <button id="a-jump">Next mistake</button>
+          <button id="a-reset">Reset</button>
+        </div>
+        <div class="ctrl" id="c-margin">
+          <div class="row"><b>margin of the data</b><span class="val" id="a-mg-v">0.35</span></div>
+          <input type="range" id="a-mg" min="0.03" max="1.20" step="0.01" value="0.35">
+        </div>
+        <div class="ctrl" id="c-n">
+          <div class="row"><b>points</b><span class="val" id="a-n-v">200</span></div>
+          <input type="range" id="a-n" min="20" max="300" step="10" value="200">
+        </div>
+        <div class="ctrl">
+          <div class="row"><b>examples / second</b><span class="val" id="a-sp-v">30</span></div>
+          <input type="range" id="a-sp" min="1" max="240" step="1" value="30">
+        </div>
+        <div class="btns"><button id="a-seed">New sample (reseed)</button></div>
+        <div class="narr" id="a-narr"><span class="step">ready</span>Press Play. Each frame tests
+          one example; only the wrong ones change anything.</div>
+        <dl class="readout">
+          <dt>pass / example</dt><dd id="r-pos">1 &middot; 0 of 200</dd>
+          <dt>mistakes</dt><dd id="r-mis">0</dd>
+          <dt>bound (R/&gamma;)&sup2;</dt><dd id="r-bound">139.6</dd>
+          <dt>used</dt><dd id="r-used">0.0%</dd>
+          <dt>R</dt><dd id="r-R">4.1694</dd>
+          <dt>&gamma;</dt><dd id="r-g">0.3529</dd>
+          <dt>accuracy</dt><dd id="r-acc">0.0%</dd>
+          <dt>w</dt><dd id="r-w">[0, 0, 0]</dd>
+        </dl>
+        <div><span class="status ok" id="a-status">ready</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ PANEL 2 — the module's real sweep ══════════════════ -->
+  <section class="panel realcard">
+    <div class="txt">
+      <h2 style="margin-bottom:.4rem">Real run &middot; <span class="mono" style="text-transform:none;letter-spacing:0">python/scripts/margin_sweep.py</span></h2>
+      <p style="margin:.2rem 0">Nine margin settings &times; five seeds, 200 points each, retrained
+      from scratch every time &mdash; the module's actual output, inlined. Fitting both curves'
+      log&ndash;log slopes with the module's own normal equations gives
+      <b>&gamma;<sup>&minus;2.11</sup> for the bound</b> against
+      <b>&gamma;<sup>&minus;1.00</sup> for the mistakes actually made</b>. The theorem has the
+      right shape for the worst case, and the wrong shape for this data.</p>
+      <p style="margin:.4rem 0 0">The headline run &mdash; the one Panel 1 replays &mdash; made
+      <b>12 mistakes in 3 epochs</b> against a bound of <b>139.57</b>: 8.60% of its allowance,
+      finishing at <span class="mono">w = [4.611830, 6.361736, &minus;2.0]</span>.</p>
+    </div>
+    <div class="spark">
+      <canvas id="sweepchart" width="640" height="380"
+              aria-label="Mistakes and the Novikoff bound versus margin, from the module"></canvas>
+    </div>
+  </section>
+
+  <!-- ══════════════════ what to notice ══════════════════ -->
+  <section class="panel notice">
+    <h2>What to notice</h2>
+    <ul>
+      <li><b>Almost every example is free.</b> In the module's run, 12 of the 600 examples the
+        perceptron looked at produced an update; the other 588 were tested and waved through.
+        Learning happens only where the model is wrong &mdash; and the second pass costs just one
+        more mistake before the third pass is clean.</li>
+      <li><b>The first update is the data point itself.</b> Starting from <code>w = 0</code> every
+        example is a mistake, so the first update sets <code>w = y&middot;x</code> exactly. Reset
+        and step once: the weight readout is the first point, sign-flipped if its label is
+        &minus;1. Every later <code>w</code> is a whole-number combination of the points it got
+        wrong &mdash; nothing else ever enters.</li>
+      <li><b>Squeezing the margin costs you, but not quadratically.</b> Drag the margin from 1.2
+        down to 0.05 and watch both the bound and the mistake count climb &mdash; the bound
+        exploding roughly as <code>1/&gamma;&sup2;</code>, the mistakes crawling up as about
+        <code>1/&gamma;</code>. A worst-case guarantee is a promise about the worst case, not a
+        forecast for your data.</li>
+      <li><b>The bound is computed before training, not after.</b> <code>R</code> is the longest
+        point; <code>&gamma;</code> is the distance from the origin to the convex hull of the
+        points <code>y&middot;x</code>, found here by the same Frank&ndash;Wolfe loop the module
+        uses. Both are properties of the data alone &mdash; you can know your worst case before
+        the first update.</li>
+      <li><b>XOR does not fail slowly &mdash; it loops.</b> Switch to XOR and step through: the
+        weights go <code>[0,0,0] &rarr; [0,0,&minus;1] &rarr; [0,1,0] &rarr; [1,1,1] &rarr;
+        [0,0,0]</code> and repeat forever, four mistakes every pass. The sum of
+        <code>y&middot;x</code> over the four corners is exactly zero, so one full epoch is the
+        identity. The bound reads &infin; because &gamma; &le; 0: there is no separator for the
+        theorem to talk about.</li>
+      <li><b>The fix is one layer away.</b> The module solves XOR with a 2&rarr;2&rarr;1 tanh
+        network &mdash; nine parameters, 4/4 correct, final loss 2.5&times;10<sup>&minus;32</sup>.
+        The hidden layer bends the plane until the two <code>+1</code> corners stop being
+        diagonal neighbours; the output unit is still just a threshold on a line.</li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  <p class="paths">module &rarr; <a href="../modules/00a-perceptron/README.md">../modules/00a-perceptron/README.md</a>
+    &middot; the rule &rarr; <a href="../modules/00a-perceptron/python/src/perceptron/rosenblatt.py">../modules/00a-perceptron/python/src/perceptron/rosenblatt.py</a>
+    &middot; the Zig twin &rarr; <a href="../modules/00a-perceptron/zig/perceptron.zig">../modules/00a-perceptron/zig/perceptron.zig</a></p>
+  <p>Where the course picks this up: Hugging Face LLM Course, Chapter 1 &mdash;
+    <a href="https://huggingface.co/learn/llm-course/chapter1">huggingface.co/learn/llm-course/chapter1</a></p>
+</footer>
+
+<script>
+"use strict";
+/* ═════════════════════════ PURE LOGIC START ═════════════════════════
+   Everything between these markers is dependency-free and DOM-free: the
+   verification harness loads it under `node` and asserts that this JS
+   perceptron reproduces the Python module's run exactly.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* --- deterministic RNG (mulberry32), so a reload looks identical ------- */
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), 1 | t);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* --- the module's REAL data and REAL results --------------------------
+   MODULE_POINTS is the exact 200-point sample that
+   modules/00a-perceptron/python/scripts/train_perceptron.py trains on
+   (seed 1958, geometric margin >= 0.35), flattened as x1,x2,y triples and
+   exported at 12 significant digits. MODULE_RUN is that script's output.
+   The harness re-runs the perceptron below on these points and asserts it
+   lands on the same 12 mistakes and the same final weights. ------------- */
+const MODULE_POINTS = [-2.50715815031,2.97769533926,1,-2.8231765975,0.162086146381,-1,0.81124180154,0.982852002815,1,1.84148846918,-2.67485240639,-1,0.368039449128,-0.635527197987,-1,0.282908508718,0.583697023196,1,0.190578127884,-2.20956013593,-1,-2.15289314632,-0.941808945656,-1,-2.38912539389,-1.83926665328,-1,-0.55465358083,-0.293099997397,-1,0.36365770824,-0.369558051949,-1,-2.96577302299,0.742891725163,-1,1.76772097992,1.67269266938,1,-2.61089597584,-1.55109888286,-1,-1.39693000556,-2.29372783058,-1,-1.25085029061,-1.56513272322,-1,2.32674885554,2.52652682111,1,0.159406185592,-1.76291955484,-1,-1.30689586635,-2.33770483288,-1,-1.9979570774,0.67050090052,-1,-0.514149914363,2.05535662968,1,-1.52584055228,-1.39067297302,-1,0.819230245304,-2.56296616122,-1,0.664460482302,1.95945379966,1,0.432134176573,-2.1277367713,-1,-0.21729654711,2.9036301173,1,-0.30473835159,1.73474470913,1,-1.1575903929,-2.92650199237,-1,-2.48139517721,-0.708221364818,-1,1.70795003066,-1.52236023157,-1,-1.56595836857,-2.77490376466,-1,2.81192341425,-0.861670314072,1,-2.25948342226,0.725187764212,-1,-2.35024385718,0.63733659362,-1,-0.54932066971,-1.98495439537,-1,-1.18939991856,-0.228912737466,-1,-0.113584372889,2.14502363224,1,2.00708423339,1.37273159982,1,1.20289125298,-2.24164790042,-1,2.82798603131,1.9551570887,1,-1.06525240593,2.11416924341,1,-1.30311415908,-1.23350521282,-1,1.10702221598,0.397190380464,1,-0.98030994033,0.463517318904,-1,-1.80271734618,-2.38793492351,-1,1.94367093237,1.60805257032,1,-0.319076423299,-2.74975403594,-1,1.4709822629,2.05460814682,1,-2.68473119476,-0.0942431844108,-1,2.87692384192,0.39417278596,1,-1.9757283357,2.34482387203,1,-0.638916944423,-1.42264536435,-1,-0.390023096844,1.60644811231,1,0.945795724449,-0.688368355914,-1,-1.70103586971,-2.64511947516,-1,2.34274306426,0.922128000821,1,2.88013151048,2.84401071036,1,1.18359262886,2.55106642839,1,1.31494679176,-2.25357237515,-1,2.05607252883,0.0473982175687,1,-1.84164134927,-0.542489222323,-1,0.484109377594,2.27545883977,1,2.77521392906,-2.81928314719,-1,2.04246896259,1.76523373098,1,-1.77638701866,0.489115671484,-1,-2.59779923329,-2.55022924713,-1,-1.73542942367,-1.93678494665,-1,1.61395781774,-1.21639672927,-1,0.337860141837,0.67905040543,1,-2.65058271935,1.4756034333,-1,-2.25008231067,-0.246023097585,-1,-1.12945426531,-1.58385183465,-1,-2.44178147977,-0.153214369319,-1,0.881920362521,-2.0003757898,-1,1.9559064837,0.937461292907,1,2.50955630512,1.1964387738,1,1.45114183642,0.877837533972,1,-0.531149786772,1.78646467489,1,1.18062410817,2.74945971366,1,-0.976254163547,-1.33392293002,-1,-2.40993936474,-0.793462827188,-1,2.94176926525,2.4436079883,1,-2.06025708677,0.703782512173,-1,2.53129614731,1.71616301653,1,-0.782558486404,-1.99765333095,-1,1.18720590908,-1.39172274778,-1,0.34401441292,-0.473915000379,-1,2.2963082172,2.97843840534,1,0.425315682095,-0.825120519735,-1,-1.13771353677,-0.244186884243,-1,2.2506471568,1.83760775078,1,2.34761389399,2.67887184238,1,-1.88117255525,-1.67267807892,-1,0.926207282867,-0.699490140861,-1,-2.23014739951,0.597218110927,-1,1.02091144001,-1.03514083595,-1,2.5151299236,-1.82163980804,-1,1.45691065664,1.70186413006,1,0.965003822983,0.472770752649,1,1.30843376817,1.02397476342,1,-2.42200709361,-1.26368178265,-1,-1.73121180298,0.737552899304,-1,2.825231843,0.680132947685,1,-1.25592525456,0.10360562303,-1,0.208013920987,-2.8221393431,-1,-2.02678190185,-0.310741249525,-1,1.60064693938,0.692803869731,1,-1.86258777467,0.744291321951,-1,2.03880281673,2.87154247114,1,2.54755907801,-2.31163350304,-1,2.86359588013,-0.707459780498,1,2.9565854237,1.0913114494,1,-2.24328978614,1.26657197407,-1,-1.73839553924,0.619485123691,-1,2.04712466951,0.863756799768,1,2.97545336487,-2.27694197011,-1,-1.11362364307,-1.6516044017,-1,-1.8616455366,-2.7962765397,-1,1.47978529994,2.67425372533,1,-0.749743046143,-0.232216523195,-1,0.75015227382,-2.29297769393,-1,-2.23219593524,2.51680153666,1,0.473429113511,0.770740811964,1,2.50630931641,0.0624770794246,1,1.03216660686,0.411870247324,1,2.20684326144,0.82763147763,1,0.0720573129896,-2.89945347662,-1,-1.27575392898,0.272661498307,-1,2.24537548647,0.731362318926,1,2.42098160176,-0.136317691874,1,-1.83010793778,-2.39143138291,-1,0.0595118338485,-2.16843147323,-1,-2.07220846514,-0.679955878933,-1,-1.94000010924,-0.798484365473,-1,2.26073402055,0.669089400003,1,-2.43479559206,2.76836174628,1,1.45924719696,0.05053205046,1,2.17694490755,1.97236600265,1,-0.691526092345,0.294785778957,-1,0.71976134976,1.33621705771,1,0.804297301761,1.20280553413,1,2.94076680988,0.393652451844,1,1.5244195464,0.409906239682,1,1.5423949262,0.192315468586,1,0.553712094887,-2.32614540993,-1,-0.151151785117,2.07673860514,1,-2.21491614426,-1.13692943122,-1,2.21727227657,-2.07133137634,-1,2.47454530378,2.98396897684,1,-1.68114444363,0.900641793857,-1,2.88703735996,0.794583337915,1,-1.590548104,2.19104654995,1,-0.412413601196,2.31395062238,1,0.5423929688,1.74333334378,1,0.505605641836,-2.74090528787,-1,-0.521650910553,-0.23277498454,-1,-2.2749812647,-1.5953016833,-1,1.33967195463,0.410362309092,1,1.97329378025,-2.05800021913,-1,1.76986398143,1.71774211505,1,2.00570118496,1.94486094762,1,-1.80671109104,0.306651594486,-1,-1.7371659064,2.37169203565,1,0.910170551501,2.91874761065,1,-0.854430711294,1.8664456786,1,0.994077539383,-2.34529882263,-1,0.963844025625,-2.72714625305,-1,1.20535743632,2.78164876108,1,2.23057615145,1.91218057885,1,2.43707664672,-2.47776681927,-1,2.43703169066,-2.88216318629,-1,-0.675936390095,-1.64149199465,-1,-2.39597934526,-1.14828981817,-1,1.3948775787,2.68298554904,1,2.51063362207,-0.538555144374,1,-0.757256753079,-0.896211765444,-1,0.907991317579,-2.93317231081,-1,2.68297140627,-1.80710797031,-1,0.588842931665,-2.30413269415,-1,-0.603204256892,1.6157625883,1,0.262879544364,-0.262912065018,-1,-0.145435376556,-0.799242382623,-1,0.748141027952,1.6119229113,1,-1.57730609332,-2.74893357632,-1,1.16392543776,-0.931005444088,-1,1.33806581663,-1.58142636084,-1,1.1702506272,2.03833428055,1,1.05292161934,1.15818388926,1,0.477500206297,1.51713947383,1,-1.57879210533,-1.00345350345,-1,-1.66573911624,-1.82725599904,-1,-1.38777066256,2.85834125836,1,1.34006069706,1.10002514056,1,1.97540568393,2.21462167145,1,0.16069379583,-1.14698748381,-1,-1.55253819736,2.53884299953,1,-0.830757120421,-0.735318407992,-1,-0.961330488027,-2.03603995689,-1,2.84696540952,2.6923132984,1,-2.45787413207,-1.5569367187,-1];
+const MODULE_RUN = {"w": [4.611829919071067, 6.361735648587767, -2.0], "mistakes": 12, "epochs": 3, "per_epoch": [11, 1, 0], "accuracy": 1.0, "R": 4.169358996095681, "gamma": 0.35292136746648656, "gamma_hull": 0.3531703077768965, "bound": 139.56697811522574, "seed": 1958, "n": 200, "margin": 0.35};
+const MODULE_SWEEP = {"rows": [{"margin": 0.02, "gamma_mean": 0.05558239294330143, "bound_mean": 10025.082839943652, "mistakes_mean": 34.6, "mistakes_min": 14, "mistakes_max": 64}, {"margin": 0.04, "gamma_mean": 0.0667693897082233, "bound_mean": 4313.444707844164, "mistakes_mean": 24.6, "mistakes_min": 14, "mistakes_max": 37}, {"margin": 0.07, "gamma_mean": 0.09882757707593945, "bound_mean": 1879.2335345344977, "mistakes_mean": 27.8, "mistakes_min": 6, "mistakes_max": 47}, {"margin": 0.12, "gamma_mean": 0.15055609064734027, "bound_mean": 775.7596927012922, "mistakes_mean": 15.0, "mistakes_min": 6, "mistakes_max": 25}, {"margin": 0.2, "gamma_mean": 0.2232073592877005, "bound_mean": 349.3065588468719, "mistakes_mean": 13.2, "mistakes_min": 6, "mistakes_max": 19}, {"margin": 0.35, "gamma_mean": 0.36259626299264386, "bound_mean": 133.05608085809757, "mistakes_mean": 8.2, "mistakes_min": 3, "mistakes_max": 13}, {"margin": 0.55, "gamma_mean": 0.5539418413012387, "bound_mean": 56.47090931008471, "mistakes_mean": 5.4, "mistakes_min": 2, "mistakes_max": 9}, {"margin": 0.8, "gamma_mean": 0.7888658295723002, "bound_mean": 27.544363790924166, "mistakes_mean": 2.0, "mistakes_min": 1, "mistakes_max": 4}, {"margin": 1.1, "gamma_mean": 1.081341371536097, "bound_mean": 14.659664437898892, "mistakes_mean": 1.6, "mistakes_min": 1, "mistakes_max": 2}], "slope_bound": -2.1122456587206697, "slope_emp": -1.0034525679786255};
+
+function decodeModulePoints() {
+  const pts = [];
+  for (let i = 0; i < MODULE_POINTS.length; i += 3) {
+    pts.push({ x: MODULE_POINTS[i], y: MODULE_POINTS[i + 1], t: MODULE_POINTS[i + 2] });
+  }
+  return pts;
+}
+
+/* --- browser-side data, same true separator as python/src/perceptron/data.py
+   (w = [1, 1.6], b = -0.55) but with a JS PRNG: the module's own sample can
+   only come from numpy, so "Explore" mode is deliberately its own thing. --- */
+const W_TRUE = [1.0, 1.6], B_TRUE = -0.55;
+
+function makeSeparable(n, margin, seed) {
+  const nrm = Math.hypot(W_TRUE[0], W_TRUE[1]);
+  const u = [W_TRUE[0] / nrm, W_TRUE[1] / nrm], bu = B_TRUE / nrm;
+  const rnd = mulberry32(seed);
+  const pts = [];
+  let guard = 0;
+  while (pts.length < n && guard < 400000) {
+    guard++;
+    const x = -3 + 6 * rnd(), y = -3 + 6 * rnd();
+    const d = x * u[0] + y * u[1] + bu;
+    if (Math.abs(d) < margin) continue;
+    pts.push({ x: x, y: y, t: d > 0 ? 1 : -1 });
+  }
+  return pts;
+}
+
+function xorPoints() {
+  return [{ x: 0, y: 0, t: -1 }, { x: 0, y: 1, t: 1 },
+          { x: 1, y: 0, t: 1 }, { x: 1, y: 1, t: -1 }];
+}
+
+/* --- the algorithm ----------------------------------------------------
+   Identical to rosenblatt.train(): augmented points [x1, x2, 1], w starts at
+   zero, cycle in order, update on every mistake (a tie counts as one), stop
+   after a pass with no mistakes. No learning rate, nothing random. -------- */
+function aug(p) { return [p.x, p.y, 1]; }
+function dot3(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+
+function newRun(pts) {
+  return { w: [0, 0, 0], i: 0, epoch: 0, mistakes: 0, epochMistakes: 0,
+           done: false, converged: false, lastWasMistake: false, lastIndex: -1,
+           trace: [0], seen: 0 };
+}
+
+/* one example. Returns true if it produced an update. */
+function stepOne(run, pts) {
+  if (run.done) return false;
+  const p = pts[run.i];
+  const x = aug(p);
+  const hit = p.t * dot3(x, run.w) <= 0;
+  if (hit) {
+    run.w[0] += p.t * x[0];
+    run.w[1] += p.t * x[1];
+    run.w[2] += p.t * x[2];
+    run.mistakes += 1;
+    run.epochMistakes += 1;
+  }
+  run.lastWasMistake = hit;
+  run.lastIndex = run.i;
+  run.seen += 1;
+  run.trace.push(run.mistakes);
+  run.i += 1;
+  if (run.i >= pts.length) {
+    run.i = 0;
+    run.epoch += 1;
+    if (run.epochMistakes === 0) { run.done = true; run.converged = true; }
+    run.epochMistakes = 0;
+  }
+  return hit;
+}
+
+function runToEnd(pts, maxEpochs) {
+  const run = newRun(pts);
+  const cap = (maxEpochs || 100) * pts.length;
+  let guard = 0;
+  while (!run.done && guard < cap) { stepOne(run, pts); guard++; }
+  return run;
+}
+
+function accuracyOf(run, pts) {
+  let ok = 0;
+  for (const p of pts) if ((dot3(aug(p), run.w) > 0 ? 1 : -1) === p.t) ok++;
+  return ok / pts.length;
+}
+
+function misclassified(w, pts) {
+  const out = [];
+  for (let k = 0; k < pts.length; k++) {
+    const p = pts[k];
+    if (p.t * dot3(aug(p), w) <= 0) out.push(k);
+  }
+  return out;
+}
+
+/* --- R, gamma and the bound, exactly as rosenblatt.novikoff_bound() ----
+   gamma is the distance from the origin to the convex hull of {y·x}, found
+   with Frank-Wolfe; we quote the margin the resulting direction actually
+   achieves, which is a lower bound on the true gamma and therefore keeps the
+   mistake bound honest. gamma <= 0 means the hull contains the origin: no
+   separator exists and the theorem says nothing (bound = Infinity). ------- */
+function radiusOf(pts) {
+  let r = 0;
+  for (const p of pts) { const x = aug(p); r = Math.max(r, Math.sqrt(dot3(x, x))); }
+  return r;
+}
+
+function maxMargin(pts, iters) {
+  const Z = pts.map(function (p) { const x = aug(p); return [p.t * x[0], p.t * x[1], p.t * x[2]]; });
+  let best = Infinity, cur = [0, 0, 0];
+  for (const z of Z) { const n2 = dot3(z, z); if (n2 < best) { best = n2; cur = z.slice(); } }
+  const N = iters || 6000;
+  for (let it = 0; it < N; it++) {
+    let lo = Infinity, zj = null;
+    for (const z of Z) { const s = dot3(z, cur); if (s < lo) { lo = s; zj = z; } }
+    const d = [zj[0] - cur[0], zj[1] - cur[1], zj[2] - cur[2]];
+    const dd = dot3(d, d);
+    if (dd < 1e-14) break;
+    let step = -dot3(cur, d) / dd;
+    if (step <= 0) break;
+    if (step > 1) step = 1;
+    cur = [cur[0] + step * d[0], cur[1] + step * d[1], cur[2] + step * d[2]];
+  }
+  const hull = Math.sqrt(dot3(cur, cur));
+  if (hull < 1e-12) return { gamma: 0, hull: 0, u: [0, 0, 0] };
+  const u = [cur[0] / hull, cur[1] / hull, cur[2] / hull];
+  let achieved = Infinity;
+  for (const p of pts) achieved = Math.min(achieved, p.t * dot3(aug(p), u));
+  return { gamma: achieved, hull: hull, u: u };
+}
+
+function novikoff(pts, iters) {
+  const R = radiusOf(pts);
+  const m = maxMargin(pts, iters);
+  const bound = m.gamma > 0 ? (R / m.gamma) * (R / m.gamma) : Infinity;
+  return { R: R, gamma: m.gamma, hull: m.hull, u: m.u, bound: bound };
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { mulberry32, MODULE_POINTS, MODULE_RUN, MODULE_SWEEP,
+                     decodeModulePoints, makeSeparable, xorPoints, aug, dot3,
+                     newRun, stepOne, runToEnd, accuracyOf, misclassified,
+                     radiusOf, maxMargin, novikoff };
+}
+/* ══════════════════════════ PURE LOGIC END ══════════════════════════ */
+
+/* ═════════════════════════ DOM / rendering ═════════════════════════ */
+(function () {
+if (typeof document === "undefined") return;   // running under node
+
+const $ = function (id) { return document.getElementById(id); };
+let THEME = {};
+function css(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+function readTheme() {
+  THEME = { ink: css("--ink"), muted: css("--muted"), accent: css("--accent"),
+            line: css("--line"), panel: css("--panel"), warn: css("--warn"),
+            track: css("--track"), pos: css("--pos"), neg: css("--neg"),
+            grid: css("--grid") };
+}
+readTheme();
+const darkMQ = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+
+function fitCanvas(cv, cssH) {
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = cv.clientWidth || cv.width;
+  cv.style.height = cssH + "px";
+  cv.width = Math.max(1, Math.round(w * dpr));
+  cv.height = Math.max(1, Math.round(cssH * dpr));
+  const ctx = cv.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { ctx: ctx, w: w, h: cssH };
+}
+
+/* ───────────────── state ───────────────── */
+const S = {
+  mode: "module",        // module | explore | xor
+  margin: 0.35, n: 200, seed: 1958, sps: 30,
+  playing: false, acc: 0, last: 0,
+  pts: [], run: null, info: null, narr: ""
+};
+
+function rebuild(resetOnly) {
+  if (!resetOnly) {
+    if (S.mode === "module") S.pts = decodeModulePoints();
+    else if (S.mode === "xor") S.pts = xorPoints();
+    else S.pts = makeSeparable(S.n, S.margin, S.seed);
+    S.info = novikoff(S.pts, S.mode === "module" ? 20000 : 6000);
+  }
+  S.run = newRun(S.pts);
+  S.narr = S.mode === "xor"
+    ? "Four points, no line. Press Play and watch the weights come back to where they started."
+    : "Press Play. Each frame tests one example; only the wrong ones change anything.";
+  setPlay(false);
+  drawAll();
+}
+
+/* ───────────────── panel 1 drawing ───────────────── */
+const fieldCv = $("field"), mistCv = $("mistchart");
+
+function viewBox() {
+  if (S.mode === "xor") return { lo: -0.6, hi: 1.6 };
+  return { lo: -3.45, hi: 3.45 };
+}
+
+function drawField() {
+  /* the field is square — the geometry only reads correctly if x and y share a
+     scale, so the canvas is capped in CSS and its height follows its width */
+  const size = Math.max(240, fieldCv.clientWidth || 480);
+  const g = fitCanvas(fieldCv, size);
+  const ctx = g.ctx, W = g.w, H = g.h;
+  const vb = viewBox(), span = vb.hi - vb.lo;
+  const sx = function (x) { return (x - vb.lo) / span * W; };
+  const sy = function (y) { return H - (y - vb.lo) / span * H; };
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = THEME.panel;
+  ctx.fillRect(0, 0, W, H);
+
+  /* grid */
+  ctx.strokeStyle = THEME.grid;
+  ctx.lineWidth = 1;
+  const tick = S.mode === "xor" ? 0.5 : 1;
+  for (let v = Math.ceil(vb.lo / tick) * tick; v <= vb.hi; v += tick) {
+    ctx.beginPath(); ctx.moveTo(sx(v), 0); ctx.lineTo(sx(v), H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, sy(v)); ctx.lineTo(W, sy(v)); ctx.stroke();
+  }
+
+  /* the current decision line + the half-plane it calls +1 */
+  const w = S.run.w;
+  if (w[0] !== 0 || w[1] !== 0) {
+    const ptsOnEdge = [];
+    const edges = [[vb.lo, vb.hi, "x"], [vb.lo, vb.hi, "y"]];
+    // intersect w0*x + w1*y + w2 = 0 with the four borders
+    const cand = [];
+    if (Math.abs(w[1]) > 1e-12) {
+      cand.push([vb.lo, -(w[0] * vb.lo + w[2]) / w[1]]);
+      cand.push([vb.hi, -(w[0] * vb.hi + w[2]) / w[1]]);
+    }
+    if (Math.abs(w[0]) > 1e-12) {
+      cand.push([-(w[1] * vb.lo + w[2]) / w[0], vb.lo]);
+      cand.push([-(w[1] * vb.hi + w[2]) / w[0], vb.hi]);
+    }
+    const eps = 1e-9;
+    for (const c of cand) {
+      if (c[0] >= vb.lo - eps && c[0] <= vb.hi + eps &&
+          c[1] >= vb.lo - eps && c[1] <= vb.hi + eps) ptsOnEdge.push(c);
+    }
+    if (ptsOnEdge.length >= 2) {
+      /* shade the +1 side */
+      const corners = [[vb.lo, vb.lo], [vb.hi, vb.lo], [vb.hi, vb.hi], [vb.lo, vb.hi]];
+      const poly = [];
+      for (let k = 0; k < 4; k++) {
+        const a = corners[k], b = corners[(k + 1) % 4];
+        const fa = w[0] * a[0] + w[1] * a[1] + w[2];
+        const fb = w[0] * b[0] + w[1] * b[1] + w[2];
+        if (fa > 0) poly.push(a);
+        if ((fa > 0) !== (fb > 0)) {
+          const t = fa / (fa - fb);
+          poly.push([a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1])]);
+        }
+      }
+      if (poly.length > 2) {
+        ctx.beginPath();
+        ctx.moveTo(sx(poly[0][0]), sy(poly[0][1]));
+        for (let k = 1; k < poly.length; k++) ctx.lineTo(sx(poly[k][0]), sy(poly[k][1]));
+        ctx.closePath();
+        ctx.fillStyle = THEME.pos;
+        ctx.globalAlpha = 0.10;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+      ctx.strokeStyle = THEME.ink;
+      ctx.lineWidth = 2.4;
+      ctx.beginPath();
+      ctx.moveTo(sx(ptsOnEdge[0][0]), sy(ptsOnEdge[0][1]));
+      ctx.lineTo(sx(ptsOnEdge[1][0]), sy(ptsOnEdge[1][1]));
+      ctx.stroke();
+    }
+    /* the weight arrow, drawn from the line's closest point to the origin */
+    const nn = Math.hypot(w[0], w[1]);
+    const foot = [-w[2] * w[0] / (nn * nn), -w[2] * w[1] / (nn * nn)];
+    const len = span * 0.16;
+    const tip = [foot[0] + w[0] / nn * len, foot[1] + w[1] / nn * len];
+    ctx.strokeStyle = THEME.track;
+    ctx.fillStyle = THEME.track;
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(sx(foot[0]), sy(foot[1])); ctx.lineTo(sx(tip[0]), sy(tip[1])); ctx.stroke();
+    const ang = Math.atan2(sy(tip[1]) - sy(foot[1]), sx(tip[0]) - sx(foot[0]));
+    ctx.beginPath();
+    ctx.moveTo(sx(tip[0]), sy(tip[1]));
+    ctx.lineTo(sx(tip[0]) - 9 * Math.cos(ang - 0.4), sy(tip[1]) - 9 * Math.sin(ang - 0.4));
+    ctx.lineTo(sx(tip[0]) - 9 * Math.cos(ang + 0.4), sy(tip[1]) - 9 * Math.sin(ang + 0.4));
+    ctx.closePath(); ctx.fill();
+  }
+
+  /* points — before the first update w is zero and *everything* is a tie, so
+     ringing all of them says nothing; start the rings once w means something */
+  const started = S.run.w[0] !== 0 || S.run.w[1] !== 0 || S.run.w[2] !== 0;
+  const wrong = new Set(started ? misclassified(S.run.w, S.pts) : []);
+  const rad = S.mode === "xor" ? 11 : Math.max(2.6, Math.min(5, 320 / S.pts.length));
+  for (let k = 0; k < S.pts.length; k++) {
+    const p = S.pts[k];
+    ctx.beginPath();
+    ctx.arc(sx(p.x), sy(p.y), rad, 0, Math.PI * 2);
+    ctx.fillStyle = p.t > 0 ? THEME.pos : THEME.neg;
+    ctx.fill();
+    if (wrong.has(k)) {
+      ctx.beginPath();
+      ctx.arc(sx(p.x), sy(p.y), rad + 3.4, 0, Math.PI * 2);
+      ctx.strokeStyle = "#c1121f";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+  }
+  /* the example under the cursor */
+  const cur = S.pts[S.run.i];
+  if (cur) {
+    ctx.beginPath();
+    ctx.arc(sx(cur.x), sy(cur.y), rad + 7, 0, Math.PI * 2);
+    ctx.strokeStyle = THEME.track;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+}
+
+function drawMistChart() {
+  const g = fitCanvas(mistCv, 190);
+  const ctx = g.ctx, W = g.w, H = g.h;
+  const padL = 46, padR = 10, padT = 12, padB = 26;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = THEME.panel;
+  ctx.fillRect(0, 0, W, H);
+
+  const bound = S.info.bound;
+  const top = isFinite(bound) ? Math.max(bound * 1.6, 20) : Math.max(S.run.mistakes * 2, 100);
+  const ly = function (v) {
+    const t = Math.log10(1 + v) / Math.log10(1 + top);
+    return H - padB - t * (H - padT - padB);
+  };
+  const totalX = Math.max(S.pts.length * 3, S.run.trace.length);
+  const lx = function (k) { return padL + (k / totalX) * (W - padL - padR); };
+
+  /* y ticks */
+  ctx.font = "11px ui-monospace, Menlo, monospace";
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+  for (const v of [0, 1, 10, 100, 1000, 10000]) {
+    if (v > top) break;
+    const y = ly(v);
+    ctx.strokeStyle = THEME.grid;
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+    ctx.fillStyle = THEME.muted;
+    ctx.fillText(String(v), padL - 6, y);
+  }
+  /* epoch boundaries */
+  ctx.strokeStyle = THEME.line;
+  ctx.setLineDash([2, 3]);
+  for (let e = 1; e * S.pts.length <= totalX; e++) {
+    const x = lx(e * S.pts.length);
+    ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, H - padB); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  /* the bound */
+  if (isFinite(bound)) {
+    ctx.strokeStyle = "#c1121f";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath(); ctx.moveTo(padL, ly(bound)); ctx.lineTo(W - padR, ly(bound)); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#c1121f";
+    ctx.textAlign = "left";
+    ctx.fillText("bound " + bound.toFixed(1), padL + 6, ly(bound) - 9);
+  } else {
+    ctx.fillStyle = "#c1121f";
+    ctx.textAlign = "left";
+    ctx.fillText("no separator exists — the bound is infinite", padL + 6, padT + 10);
+  }
+
+  /* the staircase */
+  ctx.strokeStyle = THEME.accent;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let k = 0; k < S.run.trace.length; k++) {
+    const x = lx(k), y = ly(S.run.trace[k]);
+    if (k === 0) ctx.moveTo(x, y); else { ctx.lineTo(x, y); }
+  }
+  ctx.stroke();
+
+  ctx.fillStyle = THEME.muted;
+  ctx.textAlign = "center";
+  ctx.fillText("examples processed (dashed = end of a pass)", (W + padL) / 2, H - 8);
+  ctx.save();
+  ctx.translate(12, (H - padB + padT) / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = "center";
+  ctx.fillText("mistakes (log)", 0, 0);
+  ctx.restore();
+}
+
+/* ───────────────── panel 2: the module's sweep ───────────────── */
+function drawSweep() {
+  const cv = $("sweepchart");
+  const g = fitCanvas(cv, 300);
+  const ctx = g.ctx, W = g.w, H = g.h;
+  const padL = 52, padR = 12, padT = 14, padB = 40;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = THEME.panel;
+  ctx.fillRect(0, 0, W, H);
+
+  const rows = MODULE_SWEEP.rows;
+  const xs = rows.map(function (r) { return r.gamma_mean; });
+  const xlo = Math.log10(Math.min.apply(null, xs)) - 0.08;
+  const xhi = Math.log10(Math.max.apply(null, xs)) + 0.08;
+  const ylo = 0, yhi = 4.2;
+  const px = function (v) { return padL + (Math.log10(v) - xlo) / (xhi - xlo) * (W - padL - padR); };
+  const py = function (v) { return H - padB - (Math.log10(Math.max(v, 1)) - ylo) / (yhi - ylo) * (H - padT - padB); };
+
+  ctx.font = "11px ui-monospace, Menlo, monospace";
+  ctx.strokeStyle = THEME.grid;
+  ctx.fillStyle = THEME.muted;
+  ctx.lineWidth = 1;
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+  for (const v of [1, 10, 100, 1000, 10000]) {
+    const y = py(v);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+    ctx.fillText(String(v), padL - 6, y);
+  }
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  for (const v of [0.05, 0.1, 0.2, 0.5, 1.0]) {
+    if (Math.log10(v) < xlo || Math.log10(v) > xhi) continue;
+    ctx.strokeStyle = THEME.grid;
+    ctx.beginPath(); ctx.moveTo(px(v), padT); ctx.lineTo(px(v), H - padB); ctx.stroke();
+    ctx.fillStyle = THEME.muted;
+    ctx.fillText(String(v), px(v), H - padB + 6);
+  }
+
+  /* min–max band */
+  ctx.beginPath();
+  rows.forEach(function (r, i) {
+    const x = px(r.gamma_mean), y = py(Math.max(r.mistakes_max, 1));
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  for (let i = rows.length - 1; i >= 0; i--) {
+    ctx.lineTo(px(rows[i].gamma_mean), py(Math.max(rows[i].mistakes_min, 1)));
+  }
+  ctx.closePath();
+  ctx.fillStyle = THEME.accent;
+  ctx.globalAlpha = 0.14;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  function series(get, color, dash) {
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 2;
+    ctx.setLineDash(dash || []);
+    ctx.beginPath();
+    rows.forEach(function (r, i) {
+      const x = px(r.gamma_mean), y = py(get(r));
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+    rows.forEach(function (r) {
+      ctx.beginPath();
+      ctx.arc(px(r.gamma_mean), py(get(r)), 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+  series(function (r) { return r.bound_mean; }, "#c1121f", [6, 4]);
+  series(function (r) { return Math.max(r.mistakes_mean, 1); }, THEME.accent);
+
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = "#c1121f";
+  ctx.fillText("bound (R/γ)²   slope " + MODULE_SWEEP.slope_bound.toFixed(2), padL + 8, padT + 14);
+  ctx.fillStyle = THEME.accent;
+  ctx.fillText("mistakes made   slope " + MODULE_SWEEP.slope_emp.toFixed(2), padL + 8, padT + 30);
+  ctx.fillStyle = THEME.muted;
+  ctx.textAlign = "center";
+  ctx.fillText("realised margin γ", (W + padL) / 2, H - 8);
+}
+
+/* ───────────────── readouts ───────────────── */
+function fmt(v, d) { return (v >= 0 ? "" : "−") + Math.abs(v).toFixed(d); }
+
+function updateReadouts() {
+  const r = S.run, info = S.info;
+  /* once it is done, r.epoch already counts the clean pass that ended it */
+  const pass = r.done ? r.epoch : r.epoch + 1;
+  $("r-pos").textContent = pass + " · " + r.i + " of " + S.pts.length;
+  $("r-mis").textContent = String(r.mistakes);
+  $("r-bound").textContent = isFinite(info.bound) ? info.bound.toFixed(1) : "∞";
+  $("r-used").textContent = isFinite(info.bound)
+    ? (100 * r.mistakes / info.bound).toFixed(2) + "%" : "—";
+  $("r-R").textContent = info.R.toFixed(4);
+  $("r-g").textContent = info.gamma > 0 ? info.gamma.toFixed(4) : "≤ 0";
+  $("r-acc").textContent = (accuracyOf(r, S.pts) * 100).toFixed(1) + "%";
+  $("r-w").textContent = "[" + fmt(r.w[0], 3) + ", " + fmt(r.w[1], 3) + ", " + fmt(r.w[2], 3) + "]";
+
+  const st = $("a-status");
+  let cls = "status ok", txt = "ready";
+  if (r.converged) { txt = "converged — no mistakes left"; }
+  else if (S.mode === "xor" && r.epoch >= 1) { cls = "status warn"; txt = "cycling forever"; }
+  else if (S.playing) { cls = "status busy"; txt = "training"; }
+  else if (r.seen > 0) { cls = "status busy"; txt = "paused"; }
+  st.className = cls;
+  st.textContent = txt;
+
+  const narr = $("a-narr");
+  narr.innerHTML = "";
+  const tag = document.createElement("span");
+  tag.className = "step";
+  tag.textContent = r.seen === 0 ? "ready"
+    : "pass " + pass + " · example " + (r.lastIndex + 1) +
+      " · " + r.mistakes + " mistake" + (r.mistakes === 1 ? "" : "s");
+  narr.appendChild(tag);
+  narr.appendChild(document.createTextNode(S.narr));
+}
+
+function narrateStep(wasMistake) {
+  const p = S.pts[S.run.lastIndex];
+  if (wasMistake) {
+    S.narr = "wrong side → w += (" + (p.t > 0 ? "+1" : "−1") + ")·[" +
+             fmt(p.x, 2) + ", " + fmt(p.y, 2) + ", 1]";
+  } else {
+    S.narr = "already correct → w unchanged";
+  }
+  if (S.run.converged) {
+    S.narr = "a whole pass with no mistakes: the perceptron is done, after " +
+             S.run.mistakes + " updates.";
+    setPlay(false);
+  } else if (S.mode === "xor" && S.run.mistakes >= 8) {
+    S.narr = "every corner is still wrong, and w is back where it started. " +
+             "This never ends.";
+  }
+}
+
+/* ───────────────── controls ───────────────── */
+function setPlay(on) {
+  S.playing = !!on;
+  $("a-play").innerHTML = S.playing ? "&#10073;&#10073; Pause" : "&#9654; Play";
+  $("a-play").classList.toggle("primary", !S.playing);
+}
+
+function setMode(mode) {
+  S.mode = mode;
+  $("m-module").setAttribute("aria-pressed", String(mode === "module"));
+  $("m-explore").setAttribute("aria-pressed", String(mode === "explore"));
+  $("m-xor").setAttribute("aria-pressed", String(mode === "xor"));
+  const exploring = mode === "explore";
+  $("a-mg").disabled = !exploring;
+  $("a-n").disabled = !exploring;
+  $("a-seed").disabled = !exploring;
+  $("c-margin").classList.toggle("off", !exploring);
+  $("c-n").classList.toggle("off", !exploring);
+  rebuild(false);
+}
+
+function drawAll() {
+  drawField();
+  drawMistChart();
+  updateReadouts();
+}
+
+$("m-module").addEventListener("click", function () { setMode("module"); });
+$("m-explore").addEventListener("click", function () { setMode("explore"); });
+$("m-xor").addEventListener("click", function () { setMode("xor"); });
+
+$("a-play").addEventListener("click", function () { setPlay(!S.playing); updateReadouts(); });
+$("a-reset").addEventListener("click", function () { rebuild(true); });
+$("a-step").addEventListener("click", function () {
+  setPlay(false);
+  const hit = stepOne(S.run, S.pts);
+  narrateStep(hit);
+  drawAll();
+});
+$("a-jump").addEventListener("click", function () {
+  setPlay(false);
+  let guard = 0;
+  let hit = false;
+  while (!S.run.done && guard < 20000) {
+    hit = stepOne(S.run, S.pts);
+    guard++;
+    if (hit) break;
+  }
+  narrateStep(hit);
+  drawAll();
+});
+$("a-seed").addEventListener("click", function () {
+  S.seed = (S.seed * 1664525 + 1013904223) >>> 0;
+  rebuild(false);
+});
+
+$("a-mg").addEventListener("input", function (e) {
+  S.margin = parseFloat(e.target.value);
+  $("a-mg-v").textContent = S.margin.toFixed(2);
+  rebuild(false);
+});
+$("a-n").addEventListener("input", function (e) {
+  S.n = parseInt(e.target.value, 10);
+  $("a-n-v").textContent = String(S.n);
+  rebuild(false);
+});
+$("a-sp").addEventListener("input", function (e) {
+  S.sps = parseInt(e.target.value, 10);
+  $("a-sp-v").textContent = String(S.sps);
+});
+
+window.addEventListener("keydown", function (e) {
+  if (e.code !== "Space" || /input|select|textarea|button/i.test(e.target.tagName)) return;
+  e.preventDefault();
+  setPlay(!S.playing);
+  updateReadouts();
+});
+document.addEventListener("visibilitychange", function () {
+  if (document.hidden) { setPlay(false); updateReadouts(); }
+});
+
+let rt = null;
+window.addEventListener("resize", function () {
+  clearTimeout(rt);
+  rt = setTimeout(function () { readTheme(); drawAll(); drawSweep(); }, 120);
+});
+if (darkMQ && darkMQ.addEventListener) {
+  darkMQ.addEventListener("change", function () { readTheme(); drawAll(); drawSweep(); });
+}
+
+/* ───────────────── main loop ───────────────── */
+function frame(now) {
+  if (S.playing && !S.run.done) {
+    const dt = Math.min(0.25, (now - S.last) / 1000);
+    S.last = now;
+    S.acc += dt * S.sps;
+    let did = 0;
+    while (S.acc >= 1 && did < 600 && !S.run.done) {
+      const hit = stepOne(S.run, S.pts);
+      narrateStep(hit);
+      S.acc -= 1;
+      did++;
+    }
+    if (did) drawAll();
+  } else {
+    S.last = now;
+    S.acc = 0;
+  }
+  requestAnimationFrame(frame);
+}
+
+setMode("module");
+drawSweep();
+requestAnimationFrame(function (t) { S.last = t; frame(t); });
+})();
+</script>
+<!-- built for ml-course explorables v1 -->
+</html>
