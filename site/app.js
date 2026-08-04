@@ -3,6 +3,12 @@
 
   const DATA = window.ML_COURSE;
   const pages = [...DATA.guides, ...DATA.modules];
+  const TRACKS = [
+    { name: "Origins", blurb: "An optional prologue: the classic math still running inside every model here." },
+    { name: "Foundations", blurb: "Gradients, networks, and the tokenizer that feeds them." },
+    { name: "Transformers & LLMs", blurb: "Build the block, evaluate it, adapt it, and run it fast." },
+    { name: "Breadth", blurb: "Carry the same ideas into pixels, denoising, and action." },
+  ];
   const storageKey = "ml-course-progress-v1";
   const emptyProgress = { completed: [], answers: {}, lastVisited: "01-autograd", updatedAt: new Date(0).toISOString() };
   let progress = loadProgress();
@@ -222,8 +228,14 @@
     return hours ? `${hours}h${rest ? ` ${rest}m` : ""}` : `${rest} min`;
   }
 
+  function moduleNumber(id, compact = false) {
+    if (id.startsWith("05a")) return compact ? "½" : "05½";
+    const match = id.match(/^\d+[a-z]?/);
+    return match ? match[0] : id.slice(0, 2);
+  }
+
   function sidebar(active) {
-    const tracks = ["Foundations", "Transformers & LLMs", "Breadth"];
+    const tracks = TRACKS.map((track) => track.name);
     return `<aside class="sidebar">
       <button class="brand" type="button" data-route="home">
         <span class="brand-shape" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -233,7 +245,7 @@
         <section class="nav-track"><h2>${track}</h2>
           ${DATA.modules.filter((page) => page.track === track).map((page) => `
             <button type="button" class="${active === page.id ? "active" : ""} accent-${page.accent}" data-route="${page.id}" ${active === page.id ? 'aria-current="page"' : ""}>
-              <span class="nav-index">${page.id.startsWith("05a") ? "½" : page.id.slice(0, 2)}</span>
+              <span class="nav-index">${moduleNumber(page.id, true)}</span>
               <span>${escapeHtml(page.shortTitle)}</span>
               <span class="completion-dot ${progress.completed.includes(page.id) ? "done" : ""}">${progress.completed.includes(page.id) ? "✓" : ""}</span>
             </button>`).join("")}
@@ -267,7 +279,6 @@
   function home() {
     const completed = progress.completed.length;
     const completion = Math.round(completed / DATA.modules.length * 100);
-    const tracks = ["Foundations", "Transformers & LLMs", "Breadth"];
     return `<main class="home-page">
       <section class="home-hero">
         <div class="eyebrow">A graphical, build-it-twice machine-learning course</div>
@@ -280,12 +291,12 @@
         <div class="course-facts"><span><b>${DATA.modules.length}</b> hands-on labs</span><span><b>${DATA.modules.length}</b> browser explorables</span><span><b>2</b> implementation languages</span><span><b>0</b> runtime network calls</span></div>
       </section>
       <section class="progress-strip"><div><span>Your path</span><strong>${completed ? `${completed} of ${DATA.modules.length} labs complete` : "Ready when you are"}</strong></div><div class="progress-track"><i style="width:${completion}%"></i></div><b>${completion}%</b></section>
-      ${tracks.map((track, trackIndex) => `<section class="module-track track-${trackIndex + 1}">
-        <div class="track-heading"><span>0${trackIndex + 1}</span><div><h2>${track}</h2><p>${trackIndex === 0 ? "Gradients, networks, and the tokenizer that feeds them." : trackIndex === 1 ? "Build the block, evaluate it, adapt it, and run it fast." : "Carry the same ideas into pixels, denoising, and action."}</p></div></div>
-        <div class="module-grid">${DATA.modules.filter((page) => page.track === track).map((page) => {
+      ${TRACKS.map(({ name, blurb }, trackIndex) => `<section class="module-track track-${trackIndex}">
+        <div class="track-heading"><span>0${trackIndex}</span><div><h2>${name}</h2><p>${blurb}</p></div></div>
+        <div class="module-grid">${DATA.modules.filter((page) => page.track === name).map((page) => {
           const done = progress.completed.includes(page.id);
           return `<button class="module-card accent-${page.accent}" data-route="${page.id}">
-            <span class="module-number">${page.id.startsWith("05a") ? "05½" : page.id.slice(0, 2)}</span>
+            <span class="module-number">${moduleNumber(page.id)}</span>
             <span class="module-card-title">${escapeHtml(page.shortTitle)}</span>
             <span class="module-meta">${formatMinutes(page.minutes)} · lab + explorable</span>
             <span class="card-status ${done ? "done" : ""}">${done ? "Completed ✓" : "Open lab →"}</span>

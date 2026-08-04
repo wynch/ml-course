@@ -41,6 +41,9 @@ GUIDES = [
 ]
 
 MODULES = [
+    ("00a-perceptron", "The perceptron & least squares", "Perceptron", "modules/00a-perceptron/README.md", "Origins", 120, "00a-perceptron.html", "amber"),
+    ("00b-bayes-knn-pca", "Probability, neighbours & eigenvectors", "Bayes, k-NN & PCA", "modules/00b-bayes-knn-pca/README.md", "Origins", 120, "00b-pca.html", "amber"),
+    ("00c-kernels-hopfield", "Kernels, memory & the modern bridge", "Kernels & Hopfield", "modules/00c-kernels-hopfield/README.md", "Origins", 150, "00c-double-descent.html", "amber"),
     ("01-autograd", "Autograd from scratch", "Autograd", "modules/01-autograd/README.md", "Foundations", 120, "01-gradient-descent.html", "violet"),
     ("02-neural-networks", "Neural networks & the training loop", "Neural networks", "modules/02-neural-networks/README.md", "Foundations", 150, "02-nn-playground.html", "violet"),
     ("03-tokenization", "Tokenization: from bytes to tokens", "Tokenization", "modules/03-tokenization/README.md", "Foundations", 120, "03-bpe-stepper.html", "violet"),
