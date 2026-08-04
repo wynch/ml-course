@@ -236,6 +236,7 @@ def main() -> None:
     copy_filtered(ROOT / "modules", READER / "content" / "modules")
     copy_filtered(ROOT / "docs", READER / "content" / "docs")
     copy_filtered(ROOT / "explorables", READER / "explorables")
+    copy_filtered(ROOT / "quizzes", READER / "quizzes")
     for filename in ("README.md", "SETUP.md", "OFFLINE.md", "RESOURCES.md", "CLOUD.md"):
         shutil.copy2(ROOT / filename, READER / "content" / filename)
     if (ROOT / "public" / "og.png").exists():

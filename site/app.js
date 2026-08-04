@@ -9,6 +9,7 @@
     { name: "Transformers & LLMs", blurb: "Build the block, evaluate it, adapt it, and run it fast." },
     { name: "Breadth", blurb: "Carry the same ideas into pixels, denoising, and action." },
   ];
+  const ASSET_ROOTS = ["explorables/", "quizzes/"];
   const storageKey = "ml-course-progress-v1";
   const emptyProgress = { completed: [], answers: {}, lastVisited: "01-autograd", updatedAt: new Date(0).toISOString() };
   let progress = loadProgress();
@@ -75,7 +76,7 @@
       if (targetPage) {
         return hold(`<a href="#/${targetPage.id}" data-route="${targetPage.id}" data-anchor="${escapeHtml(anchor)}">${label}</a>`);
       }
-      const target = resolved.startsWith("explorables/") ? `/${resolved}` : `/content/${resolved}`;
+      const target = ASSET_ROOTS.some((root) => resolved.startsWith(root)) ? `/${resolved}` : `/content/${resolved}`;
       return hold(`<a href="${escapeHtml(target)}">${label}</a>`);
     });
     text = text.replace(/&lt;(https?:\/\/[^&\s]+)&gt;/g, (_, href) =>

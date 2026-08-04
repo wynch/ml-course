@@ -39,6 +39,10 @@ def check_reader() -> None:
         reader / "offline-assets.json",
         reader / "explorables" / "01-gradient-descent.html",
         reader / "explorables" / "05a-evaluation-lab.html",
+        reader / "quizzes" / "index.html",
+        reader / "quizzes" / "00a.html",
+        reader / "quizzes" / "01.html",
+        reader / "quizzes" / "05a.html",
         reader / "content" / "modules" / "10-agents" / "README.md",
     ]
     missing = [str(path.relative_to(ROOT)) for path in required if not path.exists()]
@@ -49,14 +53,21 @@ def check_reader() -> None:
     if len(assets) < 250:
         raise RuntimeError(f"offline asset list is unexpectedly small ({len(assets)})")
 
-    for html in (reader / "explorables").glob("*.html"):
+    quizzes = sorted((reader / "quizzes").glob("*.html"))
+    if len(quizzes) < len(list((ROOT / "quizzes").glob("*.html"))):
+        raise RuntimeError("the reader is missing quizzes bundled at the source")
+
+    for html in [*(reader / "explorables").glob("*.html"), *quizzes]:
         parser = DependencyParser()
         parser.feed(html.read_text())
         if parser.remote_dependencies:
             raise RuntimeError(
                 f"{html.name} loads remote runtime assets: {parser.remote_dependencies}"
             )
-    print(f"reader: PASS ({len(assets)} assets, no remote explorable dependencies)")
+    print(
+        f"reader: PASS ({len(assets)} assets, {len(quizzes) - 1} quizzes, "
+        "no remote explorable or quiz dependencies)"
+    )
 
 
 def run_offline(
