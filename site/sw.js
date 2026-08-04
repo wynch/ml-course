@@ -1,4 +1,4 @@
-const CACHE = "ml-course-reader-v2";
+const CACHE = "ml-course-reader-v3";
 const CORE = ["/", "/styles.css", "/app.js", "/course-content.js", "/manifest.webmanifest", "/offline-assets.json"];
 
 async function warm(urls) {

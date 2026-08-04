@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import re
 import shutil
 
 
@@ -178,6 +179,36 @@ def copy_filtered(source: Path, target: Path) -> None:
         shutil.copy2(source, target)
 
 
+MODULE_ROUTES = {module[3].split("/")[1]: module[0] for module in MODULES}
+MODULE_LINK = re.compile(r'href="\.\./modules/([^"#]+?)/?(#[^"]*)?"')
+
+
+def module_target(match: re.Match[str]) -> str:
+    """Point one module link in a bundled page at its place in the reader."""
+    path, anchor = match.group(1), match.group(2) or ""
+    slug, _, rest = path.partition("/")
+    route = MODULE_ROUTES.get(slug)
+    if route and rest in ("", "README.md"):
+        return f'href="/index.html#/{route}"'
+    return f'href="/content/modules/{path}{anchor}"'
+
+
+def route_module_links(directory: Path) -> int:
+    """Rewrite ../modules/… hrefs in the reader's copy of a bundled directory.
+
+    The bundled quizzes and explorables are written for the repository layout,
+    where they sit one level under the module tree. The reader keeps them at its
+    root and serves lessons from a hash route, so a link left alone dead-ends.
+    """
+    rewritten = 0
+    for page in sorted(directory.rglob("*.html")):
+        updated, count = MODULE_LINK.subn(module_target, page.read_text())
+        if count:
+            page.write_text(updated)
+            rewritten += count
+    return rewritten
+
+
 def page_payload() -> dict:
     guides = []
     for page_id, title, short_title, path in GUIDES:
@@ -237,6 +268,7 @@ def main() -> None:
     copy_filtered(ROOT / "docs", READER / "content" / "docs")
     copy_filtered(ROOT / "explorables", READER / "explorables")
     copy_filtered(ROOT / "quizzes", READER / "quizzes")
+    routed = route_module_links(READER / "explorables") + route_module_links(READER / "quizzes")
     for filename in ("README.md", "SETUP.md", "OFFLINE.md", "RESOURCES.md", "CLOUD.md"):
         shutil.copy2(ROOT / filename, READER / "content" / filename)
     if (ROOT / "public" / "og.png").exists():
@@ -249,7 +281,10 @@ def main() -> None:
         json.dumps(assets, indent=2) + "\n"
     )
 
-    print(f"Built reader/ with {len(assets)} offline assets.")
+    print(
+        f"Built reader/ with {len(assets)} offline assets "
+        f"and {routed} module links routed in bundled pages."
+    )
 
 
 if __name__ == "__main__":

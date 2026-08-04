@@ -8,11 +8,13 @@ from html.parser import HTMLParser
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
+STRAY_MODULE_LINK = re.compile(r'href="(?:\.\./)*/?modules/[^"]*"')
 
 
 class DependencyParser(HTMLParser):
@@ -58,15 +60,22 @@ def check_reader() -> None:
         raise RuntimeError("the reader is missing quizzes bundled at the source")
 
     for html in [*(reader / "explorables").glob("*.html"), *quizzes]:
+        text = html.read_text()
         parser = DependencyParser()
-        parser.feed(html.read_text())
+        parser.feed(text)
         if parser.remote_dependencies:
             raise RuntimeError(
                 f"{html.name} loads remote runtime assets: {parser.remote_dependencies}"
             )
+        stray = STRAY_MODULE_LINK.findall(text)
+        if stray:
+            raise RuntimeError(
+                f"{html.name} links the module tree, which the reader serves from "
+                f"/content/modules/ and its lesson routes: {stray}"
+            )
     print(
         f"reader: PASS ({len(assets)} assets, {len(quizzes) - 1} quizzes, "
-        "no remote explorable or quiz dependencies)"
+        "no remote dependencies, no unrouted module links)"
     )
 
 
