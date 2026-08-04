@@ -1,0 +1,20 @@
+[project]
+name = "mlcourse-00c-kernels-hopfield"
+version = "0.1.0"
+description = "Module 00c — max-margin classifiers, kernels, Hopfield memory, and double descent from scratch."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "matplotlib>=3.11.1",
+    "numpy>=2.5.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.0",
+    "scikit-learn>=1.9.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+addopts = "-q"

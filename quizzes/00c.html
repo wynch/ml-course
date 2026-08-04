@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz · Kernels, memory &amp; the modern bridge · ML course</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d; --track:var(--t0); --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67; --grid:rgba(28,36,34,.10);
+  --warn:#c1121f; --soft:rgba(31,145,141,.10);
+  --wrong:#c0504d; --wrong-soft:rgba(192,80,77,.10);
+  --t0:#a86b0e; --t0-soft:rgba(168,107,14,.12);
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --grid:rgba(232,238,236,.12); --warn:#ff8f85;
+    --soft:rgba(31,145,141,.16);
+    --wrong:#f0938f; --wrong-soft:rgba(240,147,143,.13);
+    --t0:#d9962e; --t0-soft:rgba(217,150,46,.16); --track-ink:#241a05;
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;padding-bottom:5.6rem}
+a{color:var(--accent)}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;background:var(--track);color:var(--track-ink);
+  padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.topbar .spacer{flex:1 1 auto}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:920px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 2rem}
+.intro{max-width:70ch;color:var(--ink)}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .7rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.8rem,2vw,1.2rem);margin:1.4rem 0}
+button{font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:.34rem .82rem;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button:disabled{opacity:1}
+button.primary:hover{color:#fff;filter:brightness(1.06)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:.78rem;color:var(--muted);margin:.35rem 0 0}
+.mono,code{font-family:var(--mono);font-size:.92em}
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ───────── quiz-specific ───────── */
+.qhead{display:flex;flex-wrap:wrap;gap:.5rem;align-items:baseline;margin:0 0 .55rem}
+.qnum{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted)}
+.tag{font-family:var(--display);font-size:.68rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;border:1px solid var(--line);border-radius:999px;
+  padding:.1rem .5rem;color:var(--muted)}
+.tag.conceptual{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.tag.numbers{color:var(--t0);border-color:var(--t0);background:var(--t0-soft)}
+.tag.predict{color:var(--t3);border-color:var(--t3)}
+.tag.code{color:var(--muted);border-color:var(--line);background:var(--grid)}
+.qhead .spacer{flex:1 1 auto}
+.qstate{font-family:var(--display);font-size:.7rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted)}
+.qtext{margin:0 0 .7rem;max-width:74ch}
+.qtext b{font-weight:600}
+pre.snippet{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--grid);
+  border:1px solid var(--line);border-radius:10px;padding:.65rem .8rem;margin:.2rem 0 .75rem;
+  overflow-x:auto}
+.srcfile{font-family:var(--mono);font-size:.76rem;color:var(--muted);margin:-.5rem 0 .75rem}
+.opts{display:flex;flex-direction:column;gap:.4rem;margin:0 0 .3rem}
+.opt{display:flex;gap:.6rem;align-items:flex-start;text-align:left;width:100%;
+  font-family:var(--body);font-size:.92rem;font-weight:400;line-height:1.45;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:10px;
+  padding:.55rem .7rem;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent);color:var(--ink);background:var(--soft)}
+.opt:disabled{cursor:default}
+.opt .key{font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--muted);
+  min-width:1.2em;padding-top:.08rem}
+.opt.picked{border-color:var(--accent)}
+.opt.right{border-color:var(--accent);background:var(--soft)}
+.opt.right .key{color:var(--accent)}
+.opt.wrongpick{border-color:var(--wrong);background:var(--wrong-soft)}
+.opt.wrongpick .key{color:var(--wrong)}
+.opt .mark{margin-left:auto;font-family:var(--display);font-size:.76rem;font-weight:600;
+  white-space:nowrap;padding-left:.5rem}
+.opt.right .mark{color:var(--accent)}
+.opt.wrongpick .mark{color:var(--wrong)}
+.numrow{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:0 0 .3rem}
+.numrow input{font-family:var(--mono);font-size:.9rem;color:var(--ink);background:var(--paper);
+  border:1px solid var(--line);border-radius:10px;padding:.45rem .6rem;width:15rem;max-width:100%}
+.acts{display:flex;flex-wrap:wrap;gap:.45rem;margin:.55rem 0 0}
+.verdictline{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.03em;
+  text-transform:uppercase;border-radius:999px;padding:.2rem .62rem;display:inline-block;
+  border:1px solid var(--line);margin:.7rem 0 .45rem}
+.verdictline.ok{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.verdictline.no{color:var(--wrong);border-color:var(--wrong);background:var(--wrong-soft)}
+.explain{font-size:.88rem;line-height:1.5;border-left:3px solid var(--line);
+  padding:.1rem 0 .1rem .75rem;margin:.2rem 0 0;max-width:74ch;color:var(--ink)}
+.explain .src{display:block;font-family:var(--mono);font-size:.76rem;color:var(--muted);margin-top:.4rem}
+.explain a.tryit{font-family:var(--display);font-size:.78rem;font-weight:600;text-decoration:none;
+  border:1px solid var(--accent);border-radius:999px;padding:.16rem .6rem;display:inline-block;
+  margin-top:.5rem}
+.explain a.tryit:hover{background:var(--soft)}
+.scorebar{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--panel);
+  border-top:1px solid var(--line);padding:.55rem clamp(.9rem,3vw,2rem)}
+.scorebar .inner{max-width:920px;margin:0 auto;display:flex;flex-wrap:wrap;gap:.5rem .9rem;
+  align-items:center}
+.scorebar .score{font-family:var(--mono);font-size:1rem;font-weight:600;color:var(--accent)}
+.scorebar .of{color:var(--muted);font-weight:400}
+.scorebar .msg{font-size:.84rem;color:var(--muted);flex:1 1 260px;min-width:0}
+.scorebar .msg b{color:var(--ink)}
+.scorebar .msg .review{display:block;font-size:.78rem;margin-top:.1rem}
+@media (max-width:700px){
+  .topbar h1{font-size:.98rem}
+  .scorebar .msg{flex-basis:100%}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Quiz · Kernels, memory &amp; the modern bridge</h1>
+  <span class="pill">Module 00c · Origins</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">← All quizzes</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">Ten questions on module 00c — the max-margin dual, the kernel trick, Hopfield
+      memory and the curve that broke the bias–variance trade-off. Every number quoted here is the
+      module's own measured output, not a textbook figure.</p>
+    <p>Answer in any order; answering locks a question and reveals the explanation.
+      Your answers are kept in this browser only. Two questions ask you to
+      <b>predict</b> what the double-descent explorable does before you open it — commit to an
+      answer first, then go and check.</p>
+  </section>
+
+  <div id="quiz"></div>
+</main>
+
+<footer>
+  <p class="paths">module → <a href="../modules/00c-kernels-hopfield/README.md">../modules/00c-kernels-hopfield/README.md</a>
+    · explorable → <a href="../explorables/00c-double-descent.html">../explorables/00c-double-descent.html</a></p>
+  <p>Track 0 runs before the Hugging Face course proper; the natural next reading once you have
+    finished Origins is Chapter 1 —
+    <a href="https://huggingface.co/learn/llm-course/chapter1">Transformer models</a>.
+    Recommended alongside this track: Anil Ananthaswamy, <i>Why Machines Learn</i> (Dutton, 2024) —
+    the chapters on support vector machines and the kernel trick, on Hopfield networks and
+    associative memory, and the closing discussion of double descent.</p>
+  <p>The module's sources, in the order the quiz walks them:
+    Boser, Guyon &amp; Vapnik (1992), <i>A Training Algorithm for Optimal Margin Classifiers</i>
+    <a href="https://doi.org/10.1145/130385.130401">doi:10.1145/130385.130401</a> ·
+    Cortes &amp; Vapnik (1995), <i>Support-Vector Networks</i>
+    <a href="https://doi.org/10.1007/BF00994018">doi:10.1007/BF00994018</a> ·
+    Mercer (1909), <i>Functions of Positive and Negative Type</i> ·
+    Hopfield (1982), <i>Neural Networks and Physical Systems…</i>
+    <a href="https://doi.org/10.1073/pnas.79.8.2554">doi:10.1073/pnas.79.8.2554</a> ·
+    Amit, Gutfreund &amp; Sompolinsky (1985), <i>Storing Infinite Numbers of Patterns…</i>
+    <a href="https://doi.org/10.1103/PhysRevLett.55.1530">doi:10.1103/PhysRevLett.55.1530</a> ·
+    Ramsauer et al. (2020), <i>Hopfield Networks is All You Need</i>
+    <a href="https://arxiv.org/abs/2008.02217">arXiv:2008.02217</a> ·
+    Belkin, Hsu, Ma &amp; Mandal (2019), <i>Reconciling Modern Machine-Learning Practice…</i>
+    <a href="https://doi.org/10.1073/pnas.1903070116">doi:10.1073/pnas.1903070116</a> ·
+    Nakkiran et al. (2019), <i>Deep Double Descent</i>
+    <a href="https://arxiv.org/abs/1912.02292">arXiv:1912.02292</a></p>
+</footer>
+
+<div class="scorebar">
+  <div class="inner">
+    <span class="score"><span id="sc-score">0</span><span class="of"> / 10</span></span>
+    <span class="msg" id="sc-msg">Nothing answered yet.</span>
+    <button id="sc-reset">Reset quiz</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ═════════════════════════ PURE LOGIC START ═════════════════════════
+   Question bank + grading. Dependency-free and DOM-free: the verification
+   harness loads this file's exports under node and asserts the grading rules,
+   the score accumulation, and the answer-key balance.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const QUIZ_ID = "00c";
+const STORE_KEY = "mlcourse-quiz-" + QUIZ_ID;
+const SUMMARY_KEY = "mlcourse-quiz-scores";
+
+const QUESTIONS = [
+  /* ── 1 ───────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q1", kind: "single", tag: "conceptual", topic: "Why only support vectors matter",
+    text: "The module's hard-margin fit on 24 points ends with <b>3 support vectors</b>; " +
+          "the other 21 have <code>αᵢ = 0</code> and could be deleted without moving the " +
+          "boundary by a float. Which statement is the <i>reason</i> those 21 must be zero?",
+    options: [
+      "Projected gradient ascent drives most coordinates to zero on its way to the optimum — the sparsity comes from the solver.",
+      "Complementary slackness: <code>αᵢ·[yᵢ(wᵀxᵢ+b) − 1] = 0</code>, and a point strictly outside the margin makes the bracket positive, so its <code>αᵢ</code> has nowhere to go but zero.",
+      "The constraint <code>Σᵢ αᵢyᵢ = 0</code> forces the multipliers to cancel in pairs, and 24 is even, so most of them annihilate.",
+      "Points inside the margin are clipped away by the projection onto <code>α ≥ 0</code>, which zeroes every multiplier that would have gone negative."
+    ],
+    answer: 1,
+    explain: "Sparsity is a property of the KKT conditions, not of the optimiser — which is why " +
+             "<code>sklearn.svm.SVC(kernel=\"linear\", C=1e6)</code> picks the <i>same three points</i> " +
+             "from a completely different algorithm (SMO), the check in " +
+             "<code>tests/test_svm.py::test_matches_sklearn_on_the_blobs</code>. Option A is the " +
+             "tempting one for exactly that reason: it predicts sparsity too, but it would make " +
+             "the support set an artefact of how you solved the problem.",
+    source: "modules/00c-kernels-hopfield/README.md part 1 · python/src/kernelmem/svm.py:16-21 · python/tests/test_svm.py:51,54-63"
+  },
+  /* ── 2 ───────────────────────────────────────────── real numbers ── */
+  {
+    id: "q2", kind: "single", tag: "numbers", topic: "One solver, three kernels",
+    text: "<code>kernel_lift.py</code> runs the <i>same</i> projected-gradient solver on the " +
+          "<i>same</i> 120 points of concentric rings three times, changing only <code>K</code>: " +
+          "linear (soft margin, C = 1), quadratic <code>(aᵀb)²</code>, and RBF. " +
+          "Which support-vector counts did it measure, linear / quadratic / RBF?",
+    options: [
+      "4 / 4 / 4 — the rings are symmetric, so every kernel needs the same four points.",
+      "120 / 3 / 40 — the linear fit uses everything, and the RBF's infinite feature space needs a third of the data.",
+      "118 / 4 / 13 — the linear fit turns almost every point into a support vector, the quadratic needs four, the RBF thirteen.",
+      "118 / 13 / 4 — the RBF is the tightest of the three because its bumps are local."
+    ],
+    answer: 2,
+    explain: "The measured rows are <code>linear acc 0.5000 SVs 118 margin 0.1854</code>, " +
+             "<code>poly acc 1.0000 SVs 4 margin 1.2224</code>, <code>rbf acc 1.0000 SVs 13 " +
+             "margin 0.3755</code>. The linear row is the control and it fails twice over: 50% " +
+             "accuracy — a coin flip — with 118 of 120 points carrying a vote. When everything is " +
+             "a support vector, nothing was learned. Option D swaps the last two: the RBF's " +
+             "locality costs it support vectors, it does not save them.",
+    source: "modules/00c-kernels-hopfield/python/scripts/kernel_lift.py — compare_kernels() · figures/kernel_boundaries.png · README part 2"
+  },
+  /* ── 3 ─────────────────────────────────────────────────── read-code ── */
+  {
+    id: "q3", kind: "single", tag: "code", topic: "Measuring a margin without w",
+    text: "Two methods from <code>DualSVM</code>. <code>weights()</code> refuses to run for " +
+          "anything but the linear kernel — yet the module still reports " +
+          "<b>margin 1.2224</b> for the quadratic-kernel fit and <b>0.3755</b> for the RBF one. " +
+          "<b>How?</b>",
+    code: "    def decision_function(self, Z: np.ndarray) -> np.ndarray:\n" +
+          "        \"\"\"f(z) = Σᵢ αᵢyᵢK(xᵢ, z) + b — note it never mentions w.\"\"\"\n" +
+          "        Kz = kernel_matrix(self.X, np.asarray(Z, dtype=float), self.kernel, **self.params)\n" +
+          "        return (self.alpha * self.y) @ Kz + self.b\n" +
+          "\n" +
+          "    def weights(self) -> np.ndarray:\n" +
+          "        \"\"\"The primal w = Σᵢ αᵢyᵢxᵢ. Only meaningful for the linear kernel.\"\"\"\n" +
+          "        if self.kernel != \"linear\":\n" +
+          "            raise ValueError(\"w exists explicitly only for the linear kernel\")\n" +
+          "        return (self.alpha * self.y) @ self.X",
+    file: "modules/00c-kernels-hopfield/python/src/kernelmem/svm.py",
+    options: [
+      "At the optimum of the hard-margin dual <code>‖w‖² = Σᵢ αᵢ</code>, so <code>margin()</code> returns <code>2/√(Σαᵢ)</code> — a formula in <code>α</code> alone that never forms w or φ.",
+      "It builds w in the 3-dimensional quadratic feature space with <code>phi_quadratic</code> and takes <code>2/‖w‖</code> there — which works because that φ is small enough to write down.",
+      "It measures the margin numerically, as the smallest <code>|f(x)|</code> over the training set divided by the norm of the gradient of <code>decision_function</code>.",
+      "It falls back to the linear kernel's w, whose margin is a valid lower bound for any richer kernel."
+    ],
+    answer: 0,
+    explain: "The dual's stationarity condition gives <code>w = Σαᵢyᵢφ(xᵢ)</code> and therefore " +
+             "<code>‖w‖² = Σαᵢ</code>, so the margin can be read straight off the multipliers. On " +
+             "the linear blobs both routes agree to all six printed digits (1.462661), which is " +
+             "the cross-check that licenses using it everywhere else. Option B is the near-miss: " +
+             "<code>kernel_lift.py</code> really does form that 3-vector — <code>w = (−1.2030, " +
+             "+0.1131, −1.0677)</code> — but only to <i>draw</i> the plane, and the trick stops " +
+             "working the moment you reach for the RBF.",
+    source: "modules/00c-kernels-hopfield/python/src/kernelmem/svm.py:197-218 · README part 1 margin table"
+  },
+  /* ── 4 ─────────────────────────────────────────────────── read-code ── */
+  {
+    id: "q4", kind: "single", tag: "code", topic: "Why Hopfield energy can only fall",
+    text: "Hopfield recall, with the trace bookkeeping removed. The module measures the largest " +
+          "single-update <i>increase</i> in energy across all five retrieval runs as " +
+          "<b>+0.000e+00</b>. <b>Which change to this code would destroy that guarantee?</b>",
+    code: "    for _ in range(sweeps):\n" +
+          "        changed = False\n" +
+          "        for i in rng.permutation(n):\n" +
+          "            h = float(W[i] @ s)\n" +
+          "            new = 1.0 if h >= 0.0 else -1.0\n" +
+          "            if new != s[i]:\n" +
+          "                s[i] = new\n" +
+          "                changed = True\n" +
+          "        if not changed:\n" +
+          "            break\n" +
+          "    return s, trace",
+    file: "modules/00c-kernels-hopfield/python/src/kernelmem/hopfield.py",
+    options: [
+      "Replacing <code>rng.permutation(n)</code> with <code>range(n)</code> — a fixed visiting order lets the state cycle instead of settling.",
+      "Deleting <code>if not changed: break</code> — without the early exit the extra sweeps keep flipping neurons and the energy climbs back up.",
+      "Raising <code>sweeps</code> from 8 to 80 — more sweeps give the state more chances to climb out of the valley it found.",
+      "Hoisting <code>h = W @ s</code> out of the inner loop and indexing <code>h[i]</code> — the update becomes synchronous, and a synchronous net can oscillate between two states forever instead of descending."
+    ],
+    answer: 3,
+    explain: "The proof is <code>ΔE = −Δsᵢ·(Ws)ᵢ</code> for <i>one</i> flip, and it needs " +
+             "<code>(Ws)ᵢ</code> evaluated at the state as it is right now — which is exactly what " +
+             "<code>W[i] @ s</code> inside the loop does. Update everything at once and two neurons " +
+             "can each move downhill with respect to the old state while moving the pair uphill. " +
+             "Option A is the tempting one: a deterministic order is perfectly monotone too — the " +
+             "module randomises to sample trajectories fairly, not for correctness — and B and C " +
+             "cannot raise the energy because no individual accepted flip ever does.",
+    source: "modules/00c-kernels-hopfield/python/src/kernelmem/hopfield.py:63-76 · README part 3 · figures/hopfield_energy.png"
+  },
+  /* ── 5 ───────────────────────────────────────────── real numbers ── */
+  {
+    id: "q5", kind: "numeric", tag: "numbers", topic: "Measured Hopfield capacity",
+    text: "Theory (Amit, Gutfreund &amp; Sompolinsky, 1985) puts the Hopfield storage limit at " +
+          "<span class=\"mono\">α_c ≈ 0.138</span> as N → ∞. The module measures the 50%-recall " +
+          "load at five network sizes instead of quoting it: <b>0.1950 at N = 100</b>, then 0.1807, " +
+          "0.1688, 0.1585 … <b>What did it measure at N = 1600?</b> Type a decimal.",
+    answer: 0.1528, tol: 0.008, tolLabel: "±0.008 (0.145 – 0.161)",
+    placeholder: "e.g. 0.17",
+    explain: "0.1528 — that is 244 random patterns in 1,600 neurons. Still comfortably above 0.138 " +
+             "and still walking towards it: 0.138 is an N → ∞ result and 1,600 neurons is not " +
+             "infinity. The other half of the theory checks out at every size — the mean overlap " +
+             "<i>at</i> α = 0.138 stays between 0.943 and 0.972, i.e. retrieval at the critical " +
+             "load still returns a few percent of wrong bits.",
+    source: "modules/00c-kernels-hopfield/python/scripts/hopfield_capacity.py · figures/hopfield_capacity.png · README part 3 capacity table"
+  },
+  /* ── 6 ───────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q6", kind: "single", tag: "conceptual", topic: "The attention-Hopfield bridge",
+    text: "Part 4 lines up the modern Hopfield update <span class=\"mono\">ξ_new = Xᵀ·softmax(β·Xξ)</span> " +
+          "against <span class=\"mono\">softmax(QKᵀ/√d)·V</span>, with the stored patterns as the " +
+          "rows of X. <b>Which reading is the module's?</b>",
+    options: [
+      "The probe ξ is the query; the stored patterns X are <i>both</i> the keys (inside the softmax) and the values (the Xᵀ in front of it); β plays the part of 1/√d.",
+      "The probe ξ is the value being written; X supplies the queries, one per stored pattern; β is the layer's learning rate.",
+      "The probe ξ is the key being looked up; X supplies queries and values; β counts the attention heads.",
+      "X supplies queries and keys, ξ is the value; β is a temperature that only has meaning in the classical sign-update limit."
+    ],
+    answer: 0,
+    explain: "Keys and values are the <i>same</i> matrix here, which is the whole content of the " +
+             "analogy: a softmax over similarities to stored items, then a weighted sum of those " +
+             "same items. β is the temperature that decides what kind of memory you have — at " +
+             "<span class=\"mono\">βN = 1</span> the weights are nearly flat (0.142 / 0.221 / 0.259 " +
+             "/ 0.167 / 0.212) and you retrieve a blur of all five letters; at " +
+             "<span class=\"mono\">βN = 16</span> one weight is <b>0.894</b> and the letter comes " +
+             "back exactly in a single step, where the classical net needed 200 neuron updates.",
+    source: "modules/00c-kernels-hopfield/README.md part 4 table · python/src/kernelmem/hopfield.py:144-163 · python/scripts/attention_bridge.py · figures/attention_hopfield.png"
+  },
+  /* ── 7 ──────────────────────────────────────────────────── predict ── */
+  {
+    id: "q7", kind: "single", tag: "predict", topic: "Where the spike lands",
+    text: "In the explorable, step the degree slider to <b>18</b>, then <b>19</b>, then <b>20</b> " +
+          "and watch the <span class=\"mono\">test MSE</span> readout. <b>Predict</b> the three " +
+          "numbers before you look.",
+    options: [
+      "Monotone rise — 18 &lt; 19 &lt; 20 — because every extra coefficient is one more thing to overfit with.",
+      "A single spike at 19, lower on <i>both</i> sides: about 4.4e+06 at degree 18, 1.1e+12 at degree 19, 5.6e+07 at degree 20.",
+      "Flat across all three: training error is already zero, so nothing changes.",
+      "A spike at 20 — the first degree with strictly more parameters than data points."
+    ],
+    answer: 1,
+    explain: "p = degree + 1, so degree 19 is the degree with exactly 20 coefficients for 20 " +
+             "training points: one interpolant, no freedom for <code>pinv</code> to pick a " +
+             "well-behaved one, and ‖β‖₂ hits 1.26e+06. Option D is the near-miss and it is off by " +
+             "one: degree 20 is where slack <i>begins</i>, and the error has already fallen four " +
+             "orders of magnitude by then.",
+    source: "modules/00c-kernels-hopfield/python/scripts/double_descent.py · README part 5 degree table · explorables/00c-double-descent.html panel 1",
+    tryIt: { href: "../explorables/00c-double-descent.html", label: "try it — panel 1, degree slider" }
+  },
+  /* ── 8 ──────────────────────────────────────────────────── predict ── */
+  {
+    id: "q8", kind: "single", tag: "predict", topic: "Two lifts, two kernels",
+    text: "Panel 2 opens on the picture-book lift <span class=\"mono\">(x₁, x₂, ‖x‖²)</span>. " +
+          "Switch to <b>the real quadratic map</b> <span class=\"mono\">(x₁², √2·x₁x₂, x₂²)</span> " +
+          "and drag <b>lift</b> to 1. <b>Predict</b> what changes.",
+    options: [
+      "Nothing visible — the two maps differ only by a rotation about the vertical axis.",
+      "The rings stop separating: <span class=\"mono\">(aᵀb)²</span> is not a valid kernel for concentric data, which is why the module draws the paraboloid instead.",
+      "The classes swap sides of the plane, because squaring the coordinates flips the sign of the decision function.",
+      "The original coordinates are gone — the rings land on a cone — and the cut is no longer the horizontal ceiling <span class=\"mono\">‖x‖² = 2.382</span> but the module's own tilted plane <span class=\"mono\">w = (−1.2030, +0.1131, −1.0677), b = +2.8000</span>."
+    ],
+    answer: 3,
+    explain: "They are two <i>different</i> kernels that both happen to work. The paraboloid keeps " +
+             "x₁ and x₂ and adds a height, so a horizontal cut does the job — the module puts it at " +
+             "‖x‖² = 2.3824, halfway between the inner ring's largest radius² (1.6747) and the " +
+             "outer ring's smallest (3.0901). The quadratic map throws the coordinates away and is " +
+             "the one hiding inside <span class=\"mono\">(aᵀb)²</span>; pulled back to 2D its plane " +
+             "is the ellipse with semi-axes 1.526 and 1.619 — near-circular but tilted, because the " +
+             "sampled rings are not exactly symmetric.",
+    source: "modules/00c-kernels-hopfield/python/src/kernelmem/lift.py · python/scripts/kernel_lift.py · figures/kernel_lift_3d.png · README part 2",
+    tryIt: { href: "../explorables/00c-double-descent.html", label: "try it — panel 2, feature-map radio" }
+  },
+  /* ── 9 ────────────────────────────────────── conceptual, multi ── */
+  {
+    id: "q9", kind: "multi", tag: "conceptual", topic: "Reading the double-descent curve honestly",
+    text: "<b>Select all that apply.</b> Which of these are true of the double-descent curve " +
+          "module 00c actually measured (n = 20, minimum-norm Legendre fits)?",
+    options: [
+      "‖β‖₂ peaks where the test error does — <code>1.26e+06</code> at degree 19, against <code>2.45</code> at degree 30.",
+      "Training error is machine zero from degree 19 onwards, so it cannot tell you the spike is there at all.",
+      "The second descent bottoms out at <code>0.4825</code> (degree 47), which is still worse than degree 3's <code>0.0183</code>.",
+      "Push far enough and the far side wins: by degree 80 the test MSE is <code>0.0091</code>, below the classical minimum."
+    ],
+    answer: [0, 1, 2],
+    explain: "The last one is the seductive version of the story and the module measures it false: " +
+             "degree 80 gives <code>0.59913</code>, still thirty-odd times worse than degree 3. " +
+             "With minimum-norm polynomials on 20 points the far side never beats the sweet spot — " +
+             "double descent that dips <i>below</i> the first minimum needs a richer model class " +
+             "(random features, wide networks). Note also what the spike is anchored to: p versus " +
+             "n, not the degree — refit on n = 30 points (exercise 3) and it moves to the " +
+             "neighbourhood of degree 29.",
+    source: "modules/00c-kernels-hopfield/python/scripts/double_descent.py · solutions/sol3_double_descent.py · README part 5 and 'the honest note' · figures/double_descent.png"
+  },
+  /* ── 10 ──────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q10", kind: "single", tag: "conceptual", topic: "Minimum norm is a statement about coordinates",
+    text: "<code>polyreg.py</code> builds its design matrix from <b>Legendre</b> polynomials scaled " +
+          "by <span class=\"mono\">√((2k+1)/2)</span>, not from raw powers <span class=\"mono\">xᵏ</span>. " +
+          "Given that <code>pinv</code> resolves the overparameterised case by picking the " +
+          "interpolant with the smallest <span class=\"mono\">‖β‖₂</span>, why does that choice of " +
+          "basis matter beyond tidiness?",
+    options: [
+      "It does not change the answer — <code>pinv</code> returns the same <i>function</i> in any basis; Legendre is purely about conditioning.",
+      "Because Legendre polynomials are orthogonal, the design matrix is orthogonal too, so <code>pinv</code> collapses to a transpose and the fit becomes exact.",
+      "“Smallest ‖β‖” is a statement about the <i>coefficients</i>, so re-expressing the same family of interpolants in another basis changes which one is smallest — and therefore changes the fitted curve. (Raw monomials are also catastrophically ill-conditioned past degree ~15.)",
+      "Because raw powers would move the interpolation threshold away from p = n, so the spike would no longer land on degree 19."
+    ],
+    answer: 2,
+    explain: "The minimum-norm rule is the model's implicit bias, and a bias expressed in " +
+             "coordinates depends on the coordinates. That is the module's own caveat in the honest " +
+             "note: switching from Legendre to raw monomials changes both the conditioning and the " +
+             "answer. Option A is the trap — it would be right for the <i>underparameterised</i> " +
+             "least-squares fit, where the minimiser is unique and basis-independent, and it stops " +
+             "being right the moment there are infinitely many exact interpolants to choose between.",
+    source: "modules/00c-kernels-hopfield/python/src/kernelmem/polyreg.py:17-21,29-43 · README part 5 'the honest note'"
+  }
+];
+
+/* ---------------------------------------------------------------- grading */
+function sameSet(a, b) {
+  const x = a.slice().sort(function (p, q) { return p - q; });
+  const y = b.slice().sort(function (p, q) { return p - q; });
+  return x.length === y.length && x.every(function (v, i) { return v === y[i]; });
+}
+function gradeSingle(q, ans) { return typeof ans === "number" && ans === q.answer; }
+function gradeMulti(q, ans) { return Array.isArray(ans) && sameSet(ans, q.answer); }
+function gradeNumeric(q, ans) {
+  const v = typeof ans === "number" ? ans : parseFloat(String(ans).replace(/[\s,_]/g, ""));
+  return isFinite(v) && Math.abs(v - q.answer) <= q.tol;
+}
+function gradeQuestion(q, ans) {
+  if (ans === undefined || ans === null) return false;
+  if (q.kind === "multi") return gradeMulti(q, ans);
+  if (q.kind === "numeric") return gradeNumeric(q, ans);
+  return gradeSingle(q, ans);
+}
+function scoreAll(questions, answers) {
+  let score = 0, answered = 0;
+  const wrong = [];
+  questions.forEach(function (q) {
+    const a = answers[q.id];
+    if (a === undefined || a === null) return;
+    answered += 1;
+    if (gradeQuestion(q, a)) score += 1; else wrong.push(q.topic);
+  });
+  return { score: score, answered: answered, total: questions.length, wrong: wrong };
+}
+function verdictFor(score, total) {
+  if (score >= 9) return { cls: "ok", text: "solid — move on" };
+  if (score >= 6) return { cls: "no", text: "review the flagged topics" };
+  return { cls: "no", text: "re-run the module notebook first" };
+}
+/* answer-key balance: how often each option position is the correct single-choice answer */
+function keyBalance(questions) {
+  const counts = [0, 0, 0, 0];
+  questions.forEach(function (q) {
+    if (q.kind === "single") counts[q.answer] += 1;
+  });
+  return counts;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { QUIZ_ID, STORE_KEY, SUMMARY_KEY, QUESTIONS, sameSet, gradeSingle,
+                     gradeMulti, gradeNumeric, gradeQuestion, scoreAll, verdictFor, keyBalance };
+}
+/* ══════════════════════════ PURE LOGIC END ══════════════════════════ */
+
+/* ═════════════════════════ DOM / rendering ═════════════════════════ */
+(function () {
+  if (typeof document === "undefined") return;   // running under node
+  const LETTERS = ["A", "B", "C", "D", "E", "F"];
+  const root = document.getElementById("quiz");
+  let answers = {};
+
+  /* ---- persistence ---- */
+  function load() {
+    try {
+      const raw = window.localStorage.getItem(STORE_KEY);
+      if (!raw) return {};
+      const obj = JSON.parse(raw);
+      return (obj && typeof obj.answers === "object" && obj.answers) ? obj.answers : {};
+    } catch (e) { return {}; }
+  }
+  function save() {
+    const s = scoreAll(QUESTIONS, answers);
+    const payload = { quiz: QUIZ_ID, answers: answers, score: s.score,
+                      total: s.total, answered: s.answered, ts: Date.now() };
+    try {
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(payload));
+      let all = {};
+      try { all = JSON.parse(window.localStorage.getItem(SUMMARY_KEY) || "{}") || {}; }
+      catch (e) { all = {}; }
+      all[QUIZ_ID] = { score: s.score, total: s.total, ts: payload.ts };
+      window.localStorage.setItem(SUMMARY_KEY, JSON.stringify(all));
+    } catch (e) { /* private mode: quiz still works, just not remembered */ }
+  }
+
+  /* ---- one question ---- */
+  function buildQuestion(q, i) {
+    const sec = document.createElement("section");
+    sec.className = "panel";
+    sec.id = "sec-" + q.id;
+
+    const head = document.createElement("div");
+    head.className = "qhead";
+    const num = document.createElement("span");
+    num.className = "qnum";
+    num.textContent = "Question " + (i + 1);
+    const tag = document.createElement("span");
+    tag.className = "tag " + q.tag;
+    tag.textContent = { conceptual: "concept", numbers: "real numbers",
+                        predict: "predict", code: "read the code" }[q.tag] || q.tag;
+    const sp = document.createElement("span");
+    sp.className = "spacer";
+    const state = document.createElement("span");
+    state.className = "qstate";
+    state.textContent = "unanswered";
+    head.appendChild(num); head.appendChild(tag); head.appendChild(sp); head.appendChild(state);
+    sec.appendChild(head);
+
+    const txt = document.createElement("p");
+    txt.className = "qtext";
+    txt.innerHTML = q.text;
+    sec.appendChild(txt);
+
+    if (q.code) {
+      const pre = document.createElement("pre");
+      pre.className = "snippet";
+      pre.textContent = q.code;
+      sec.appendChild(pre);
+      const src = document.createElement("p");
+      src.className = "srcfile";
+      src.textContent = q.file;
+      sec.appendChild(src);
+    }
+
+    const holder = { sec: sec, state: state, opts: [], input: null, checkBtn: null,
+                     result: null, q: q };
+
+    if (q.kind === "numeric") {
+      const row = document.createElement("div");
+      row.className = "numrow";
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.inputMode = "numeric";
+      inp.setAttribute("aria-label", "your answer");
+      inp.placeholder = q.placeholder || "your answer";
+      const btn = document.createElement("button");
+      btn.className = "primary";
+      btn.textContent = "Answer";
+      btn.addEventListener("click", function () {
+        const v = parseFloat(inp.value.replace(/[\s,_]/g, ""));
+        if (!isFinite(v)) { inp.focus(); return; }
+        answers[q.id] = v;
+        save(); renderQuestion(holder); renderBar();
+      });
+      inp.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); btn.click(); }
+      });
+      row.appendChild(inp); row.appendChild(btn);
+      sec.appendChild(row);
+      holder.input = inp; holder.checkBtn = btn;
+    } else {
+      const list = document.createElement("div");
+      list.className = "opts";
+      q.options.forEach(function (opt, oi) {
+        const b = document.createElement("button");
+        b.className = "opt";
+        b.type = "button";
+        const key = document.createElement("span");
+        key.className = "key";
+        key.textContent = LETTERS[oi];
+        const body = document.createElement("span");
+        body.innerHTML = opt;
+        const mark = document.createElement("span");
+        mark.className = "mark";
+        b.appendChild(key); b.appendChild(body); b.appendChild(mark);
+        b.addEventListener("click", function () {
+          if (answers[q.id] !== undefined) return;
+          if (q.kind === "multi") {
+            const cur = holder.picked;
+            const at = cur.indexOf(oi);
+            if (at >= 0) cur.splice(at, 1); else cur.push(oi);
+            b.classList.toggle("picked", at < 0);
+            holder.checkBtn.disabled = cur.length === 0;
+          } else {
+            answers[q.id] = oi;
+            save(); renderQuestion(holder); renderBar();
+          }
+        });
+        list.appendChild(b);
+        holder.opts.push({ btn: b, mark: mark });
+      });
+      sec.appendChild(list);
+
+      if (q.kind === "multi") {
+        holder.picked = [];
+        const acts = document.createElement("div");
+        acts.className = "acts";
+        const btn = document.createElement("button");
+        btn.className = "primary";
+        btn.textContent = "Answer";
+        btn.disabled = true;
+        btn.addEventListener("click", function () {
+          if (answers[q.id] !== undefined || holder.picked.length === 0) return;
+          answers[q.id] = holder.picked.slice();
+          save(); renderQuestion(holder); renderBar();
+        });
+        acts.appendChild(btn);
+        const note = document.createElement("span");
+        note.className = "hint";
+        note.style.margin = "0";
+        note.style.alignSelf = "center";
+        note.textContent = "pick every option you believe is true, then Answer";
+        acts.appendChild(note);
+        sec.appendChild(acts);
+        holder.checkBtn = btn;
+      }
+    }
+
+    const res = document.createElement("div");
+    res.style.display = "none";
+    sec.appendChild(res);
+    holder.result = res;
+
+    return holder;
+  }
+
+  /* ---- render one question's locked / unlocked state ---- */
+  function renderQuestion(h) {
+    const q = h.q, ans = answers[q.id], locked = ans !== undefined;
+    const ok = locked && gradeQuestion(q, ans);
+
+    h.state.textContent = locked ? (ok ? "correct" : "incorrect") : "unanswered";
+    h.state.style.color = locked ? (ok ? "var(--accent)" : "var(--wrong)") : "var(--muted)";
+
+    if (h.input) {
+      h.input.disabled = locked;
+      if (locked) h.input.value = String(ans);
+      h.checkBtn.disabled = locked;
+      h.checkBtn.textContent = locked ? "answered" : "Answer";
+    }
+    const correctSet = q.kind === "multi" ? q.answer : (q.kind === "single" ? [q.answer] : []);
+    const pickedSet = !locked ? (h.picked || [])
+      : (q.kind === "multi" ? ans : (q.kind === "single" ? [ans] : []));
+
+    h.opts.forEach(function (o, oi) {
+      o.btn.disabled = locked;
+      o.btn.classList.toggle("picked", !locked && pickedSet.indexOf(oi) >= 0);
+      const isRight = correctSet.indexOf(oi) >= 0;
+      const isPicked = locked && pickedSet.indexOf(oi) >= 0;
+      o.btn.classList.toggle("right", locked && isRight);
+      o.btn.classList.toggle("wrongpick", locked && isPicked && !isRight);
+      o.mark.textContent = !locked ? ""
+        : (isRight ? (isPicked ? "✓ correct · you picked it" : "✓ correct")
+                   : (isPicked ? "✗ your pick" : ""));
+    });
+    if (h.checkBtn && q.kind === "multi") {
+      h.checkBtn.disabled = locked || (h.picked || []).length === 0;
+      h.checkBtn.textContent = locked ? "answered" : "Answer";
+    }
+
+    if (!locked) { h.result.style.display = "none"; h.result.innerHTML = ""; return; }
+
+    h.result.innerHTML = "";
+    h.result.style.display = "block";
+    const v = document.createElement("span");
+    v.className = "verdictline " + (ok ? "ok" : "no");
+    v.textContent = ok ? "Correct" : "Not quite";
+    h.result.appendChild(v);
+
+    if (q.kind === "numeric") {
+      const line = document.createElement("p");
+      line.className = "hint";
+      line.style.marginTop = "0";
+      const nf = function (v) {
+        return Number(v).toLocaleString("en-US", { maximumFractionDigits: 6 });
+      };
+      line.innerHTML = "answer <span class=\"mono\">" + nf(q.answer) +
+        "</span> · accepted " + q.tolLabel + " · you typed <span class=\"mono\">" +
+        nf(ans) + "</span>";
+      h.result.appendChild(line);
+    }
+
+    const ex = document.createElement("div");
+    ex.className = "explain";
+    ex.innerHTML = q.explain;
+    const src = document.createElement("span");
+    src.className = "src";
+    src.textContent = "source · " + q.source;
+    ex.appendChild(src);
+    if (q.tryIt) {
+      const a = document.createElement("a");
+      a.className = "tryit";
+      a.href = q.tryIt.href;
+      a.textContent = q.tryIt.label;
+      ex.appendChild(a);
+    }
+    h.result.appendChild(ex);
+  }
+
+  /* ---- score bar ---- */
+  function renderBar() {
+    const s = scoreAll(QUESTIONS, answers);
+    document.getElementById("sc-score").textContent = String(s.score);
+    const msg = document.getElementById("sc-msg");
+    msg.innerHTML = "";
+    if (s.answered === 0) {
+      msg.textContent = "Nothing answered yet.";
+    } else if (s.answered < s.total) {
+      msg.textContent = s.answered + " of " + s.total + " answered — " +
+        (s.total - s.answered) + " to go.";
+    } else {
+      const vd = verdictFor(s.score, s.total);
+      const b = document.createElement("b");
+      b.textContent = s.score + " / " + s.total + " — " + vd.text + ".";
+      msg.appendChild(b);
+      const rev = document.createElement("span");
+      rev.className = "review";
+      rev.textContent = s.wrong.length
+        ? "Review: " + s.wrong.join(" · ")
+        : "Every topic clean.";
+      msg.appendChild(rev);
+    }
+  }
+
+  /* ---- boot ---- */
+  answers = load();
+  const holders = QUESTIONS.map(function (q, i) {
+    const h = buildQuestion(q, i);
+    root.appendChild(h.sec);
+    return h;
+  });
+  holders.forEach(renderQuestion);
+  renderBar();
+
+  document.getElementById("sc-reset").addEventListener("click", function () {
+    if (!window.confirm("Clear your answers for this quiz and start over?")) return;
+    answers = {};
+    holders.forEach(function (h) { h.picked = []; });
+    try {
+      window.localStorage.removeItem(STORE_KEY);
+      let all = {};
+      try { all = JSON.parse(window.localStorage.getItem(SUMMARY_KEY) || "{}") || {}; }
+      catch (e) { all = {}; }
+      delete all[QUIZ_ID];
+      window.localStorage.setItem(SUMMARY_KEY, JSON.stringify(all));
+    } catch (e) { /* ignore */ }
+    holders.forEach(renderQuestion);
+    renderBar();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+})();
+</script>
+<!-- built for ml-course quizzes v1 -->
+</html>
