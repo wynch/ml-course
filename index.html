@@ -9,7 +9,7 @@
 *,*::before,*::after{box-sizing:border-box}
 :root{
   --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d;
-  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --track-ink:#ffffff;
+  --t0:#a86b0e; --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --track-ink:#ffffff;
   --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67;
   --soft:rgba(31,145,141,.10); --sketch:rgba(28,36,34,.42);
   --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
@@ -20,7 +20,7 @@
 @media (prefers-color-scheme:dark){
   :root{
     --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
-    --muted:#9daba7; --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --accent:#37b3ae;
+    --muted:#9daba7; --t0:#d9962e; --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --accent:#37b3ae;
     --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --sketch:rgba(232,238,236,.40);
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
   }
@@ -56,7 +56,7 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
   border:1px solid var(--line);border-radius:999px;padding:.2rem .65rem;
   display:flex;align-items:center;gap:.4rem}
 .tracknote .dot{width:.55rem;height:.55rem;border-radius:3px;display:inline-block}
-.tracknote .d1{background:var(--t1)} .tracknote .d2{background:var(--t2)} .tracknote .d3{background:var(--t3)}
+.tracknote .d0{background:var(--t0)} .tracknote .d1{background:var(--t1)} .tracknote .d2{background:var(--t2)} .tracknote .d3{background:var(--t3)}
 
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(288px,1fr));gap:1rem;margin:2.1rem 0 0}
 
@@ -98,7 +98,7 @@ footer p{margin:.3rem 0;max-width:74ch}
 <body>
 <header class="topbar">
   <h1>Build ML From Scratch</h1>
-  <span class="count">10 modules · 10 explorables · 100 quiz questions</span>
+  <span class="count">14 modules · 14 explorables · 140 quiz questions</span>
   <span class="spacer"></span>
   <a class="back" href="map.html">Course map</a>
   <a class="back" href="explorables/index.html">Explorables</a>
@@ -116,7 +116,12 @@ footer p{margin:.3rem 0;max-width:74ch}
       maps, denoising trajectories — because intuition comes from images, not equations alone. And you
       write the core algorithms in two languages: <code>Python</code> for reach and ecosystem, and
       <code>Zig</code> for understanding, where nothing is hidden and memory is explicit.</p>
+    <p>New: an optional prologue, <strong>Track 0 · Origins</strong> — the classic math behind modern
+      ML, after Anil Ananthaswamy's <em>Why Machines Learn</em>. A perceptron with a proof, Bayes,
+      k-NN, PCA, kernels, Hopfield memories and double descent, all at numpy level. Take it before the
+      main line or alongside it.</p>
     <ul class="tracknote">
+      <li><span class="dot d0"></span>Origins · 00a–00c (optional)</li>
       <li><span class="dot d1"></span>Foundations · 01–03</li>
       <li><span class="dot d2"></span>Transformers &amp; LLMs · 04–07</li>
       <li><span class="dot d3"></span>Breadth · 08–10</li>
@@ -129,9 +134,10 @@ footer p{margin:.3rem 0;max-width:74ch}
       <span class="glyph" aria-hidden="true">🕹</span>
       <div class="meta"><span class="pill t2">Interactive</span></div>
       <h3>Explorables</h3>
-      <p class="hook">Ten single-file, in-browser explainers — one per module. Roll a ball down a loss
-        surface, step through BPE merges, scrub an attention matrix, watch a real 50k-parameter denoiser
-        pull a spiral back out of noise. Where a module produced real artifacts, the page inlines them.</p>
+      <p class="hook">Fourteen single-file, in-browser explainers — one per module. Snap a perceptron
+        line onto its bound, roll a ball down a loss surface, step through BPE merges, scrub an attention
+        matrix, watch a real 50k-parameter denoiser pull a spiral back out of noise. Where a module
+        produced real artifacts, the page inlines them.</p>
       <span class="go">Open the gallery →</span>
     </a>
 
@@ -139,7 +145,7 @@ footer p{margin:.3rem 0;max-width:74ch}
       <span class="glyph" aria-hidden="true">✅</span>
       <div class="meta"><span class="pill t1">Check yourself</span></div>
       <h3>Quizzes</h3>
-      <p class="hook">Eleven self-graded quizzes, ten questions each, every one grounded in that module's own
+      <p class="hook">Fourteen self-graded quizzes, ten questions each, every one grounded in that module's own
         code, figures and measured numbers. Each question locks when you answer and explains why the right
         answer is right — and why the tempting one is not.</p>
       <span class="go">Take a quiz →</span>
@@ -149,7 +155,7 @@ footer p{margin:.3rem 0;max-width:74ch}
       <span class="glyph" aria-hidden="true">📚</span>
       <div class="meta"><span class="pill t3">The course</span></div>
       <h3>Modules, code &amp; figures</h3>
-      <p class="hook">The course itself lives in the repository: ten module walkthroughs, runnable
+      <p class="hook">The course itself lives in the repository: fourteen module walkthroughs, runnable
         <code>uv</code> scripts, exercises with solutions, and the generated figures. Clone it and work
         through the modules in order — foundations are load-bearing for everything after.</p>
       <span class="go">Browse the repository →</span>

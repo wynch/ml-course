@@ -8,7 +8,7 @@
 *,*::before,*::after{box-sizing:border-box}
 :root{
   --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d;
-  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --track-ink:#ffffff;
+  --t0:#a86b0e; --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --track-ink:#ffffff;
   --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67;
   --soft:rgba(31,145,141,.10); --sketch:rgba(28,36,34,.42);
   --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
@@ -19,7 +19,7 @@
 @media (prefers-color-scheme:dark){
   :root{
     --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
-    --muted:#9daba7; --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --accent:#37b3ae;
+    --muted:#9daba7; --t0:#d9962e; --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --accent:#37b3ae;
     --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --sketch:rgba(232,238,236,.40);
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
   }
@@ -54,6 +54,7 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
 .track > h2 .rng{font-family:var(--mono);font-size:.78rem;font-weight:400;
   text-transform:none;letter-spacing:0;color:var(--muted)}
 .track > p.sub{margin:0 0 .9rem;color:var(--muted);font-size:.88rem;max-width:70ch}
+.track.t0 > h2{color:var(--t0)} .track.t0 > h2 .dot{background:var(--t0)}
 .track.t1 > h2{color:var(--t1)} .track.t1 > h2 .dot{background:var(--t1)}
 .track.t2 > h2{color:var(--t2)} .track.t2 > h2 .dot{background:var(--t2)}
 .track.t3 > h2{color:var(--t3)} .track.t3 > h2 .dot{background:var(--t3)}
@@ -82,6 +83,7 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
 .pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
   text-transform:uppercase;color:var(--track-ink);padding:.24rem .6rem;border-radius:999px;
   white-space:nowrap}
+.pill.t0{background:var(--t0)}
 .pill.t1{background:var(--t1)} .pill.t2{background:var(--t2)} .pill.t3{background:var(--t3)}
 .card .file{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
 
@@ -90,8 +92,9 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
 .thumb .a{fill:none;stroke:var(--accent);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .thumb .af{fill:var(--accent);stroke:none}
 .thumb .sf{fill:var(--sketch);stroke:none}
-.thumb .k1{stroke:var(--t1)} .thumb .k2{stroke:var(--t2)} .thumb .k3{stroke:var(--t3)}
-.thumb .f1{fill:var(--t1)} .thumb .f2{fill:var(--t2)} .thumb .f3{fill:var(--t3)}
+.thumb .a0{fill:none;stroke:var(--t0);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.thumb .k0{stroke:var(--t0)} .thumb .k1{stroke:var(--t1)} .thumb .k2{stroke:var(--t2)} .thumb .k3{stroke:var(--t3)}
+.thumb .f0{fill:var(--t0)} .thumb .f1{fill:var(--t1)} .thumb .f2{fill:var(--t2)} .thumb .f3{fill:var(--t3)}
 .thumb .dash{stroke-dasharray:3 3}
 .evaluation-thumb{--err:#d36b3f;aspect-ratio:260/130;padding:6.5%;display:grid!important;
   grid-template-columns:repeat(2,1fr);gap:2.6%;overflow:hidden}
@@ -117,7 +120,7 @@ footer p{margin:.3rem 0;max-width:74ch}
 <body>
 <header class="topbar">
   <h1>ML course explorables</h1>
-  <span class="count">11 interactive pages</span>
+  <span class="count">14 interactive pages</span>
   <span class="spacer"></span>
   <a class="back" href="../quizzes/index.html">Quizzes</a>
   <a class="back" href="../index.html">← Course home</a>
@@ -125,7 +128,8 @@ footer p{margin:.3rem 0;max-width:74ch}
 
 <main>
   <section class="intro">
-    <p class="lede">Eleven single-file, in-browser explainers — one per module plus the evaluation bridge. Nothing to install,
+    <p class="lede">Fourteen single-file, in-browser explainers — one per module, including the optional Origins
+      prologue and the evaluation bridge. Nothing to install,
       no network calls: every animation, model and number runs locally in the page.</p>
     <p>Where a module produced real artifacts — trained weights, merge lists, attention matrices,
       measured timings — the explorable inlines them, so what you drag and scrub is the same data
@@ -133,6 +137,79 @@ footer p{margin:.3rem 0;max-width:74ch}
       and a footer link back to its module.</p>
     <p>Finished a module? The <a href="../quizzes/index.html">quizzes</a> check what stuck —
       ten questions each, graded in the page.</p>
+  </section>
+
+  <section class="track t0">
+    <h2><span class="dot"></span>Track 0 · Origins<span class="rng">modules 00a–00c · optional</span></h2>
+    <p class="sub">The classic math behind modern ML — a learning rule with a proof, eigenvectors,
+      and the curve that broke the textbook.</p>
+    <div class="grid">
+
+      <div class="card">
+        <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: a separating line rotating through two clouds of points">
+          <path class="s dash" d="M86 14 L 170 118"/>
+          <path class="s dash" d="M48 24 L 216 108"/>
+          <path class="a" d="M26 96 L 234 34"/>
+          <g class="f0">
+            <circle cx="42" cy="34" r="4"/><circle cx="60" cy="24" r="4"/><circle cx="72" cy="42" r="4"/>
+            <circle cx="54" cy="52" r="4"/><circle cx="88" cy="28" r="4"/><circle cx="100" cy="44" r="4"/>
+          </g>
+          <g class="sf">
+            <circle cx="168" cy="94" r="4"/><circle cx="188" cy="78" r="4"/><circle cx="206" cy="98" r="4"/>
+            <circle cx="184" cy="106" r="4"/><circle cx="214" cy="80" r="4"/><circle cx="152" cy="80" r="4"/>
+          </g>
+          <circle class="af" cx="128" cy="66" r="3.4"/>
+          <path class="a" d="M150 22 A 34 34 0 0 0 118 12"/>
+          <path class="af" d="M120 5 l-9 7 9 6 z"/>
+        </svg>
+        <div class="meta"><span class="pill t0">Module 00a</span><span class="file">00a-perceptron</span></div>
+        <h3><a href="00a-perceptron.html">The perceptron, one mistake at a time</a></h3>
+        <p class="hook">Drag the margin, watch the line snap on every mistake and the counter close on
+          module 00a's bound — then replay its real 12-mistake run, or flip on XOR and watch it cycle.</p>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/00a.html">Quiz →</a></div>
+      </div>
+
+      <div class="card">
+        <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: a tilted point cloud in a variance ellipse with two eigenvector arrows">
+          <ellipse class="s" cx="130" cy="65" rx="76" ry="32" transform="rotate(-25 130 65)"/>
+          <ellipse class="s dash" cx="130" cy="65" rx="48" ry="20" transform="rotate(-25 130 65)"/>
+          <g class="sf" opacity=".62">
+            <circle cx="82" cy="86" r="3"/><circle cx="98" cy="74" r="3"/><circle cx="110" cy="80" r="3"/>
+            <circle cx="118" cy="62" r="3"/><circle cx="126" cy="72" r="3"/><circle cx="136" cy="58" r="3"/>
+            <circle cx="146" cy="66" r="3"/><circle cx="156" cy="50" r="3"/><circle cx="166" cy="58" r="3"/>
+            <circle cx="176" cy="44" r="3"/><circle cx="106" cy="60" r="3"/><circle cx="150" cy="80" r="3"/>
+            <circle cx="190" cy="52" r="3"/><circle cx="92" cy="94" r="3"/>
+          </g>
+          <path class="a" d="M130 65 L 190 37"/>
+          <path class="af" d="M198 33 l-11 -3 2 10 z"/>
+          <path class="a0" d="M130 65 L 142 91"/>
+          <path class="f0" d="M146 99 l-9 -7 9 -3 z"/>
+          <circle class="af" cx="130" cy="65" r="3.2"/>
+        </svg>
+        <div class="meta"><span class="pill t0">Module 00b</span><span class="file">00b-pca</span></div>
+        <h3><a href="00b-pca.html">Principal components, by hand</a></h3>
+        <p class="hook">Drag a point cloud around and watch power iteration hunt down its principal axis
+          live, ellipse and all — then read module 00b's real FashionMNIST scree and reconstructions.</p>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/00b.html">Quiz →</a></div>
+      </div>
+
+      <div class="card">
+        <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: a U-shaped error curve spiking at the interpolation threshold, then descending a second time">
+          <path class="s" d="M28 14 v94 h212"/>
+          <path class="s dash" d="M138 16 v92"/>
+          <path class="a" d="M40 42 C 54 74, 66 86, 82 86 C 100 86, 116 72, 130 40 L 138 16 L 146 44
+            C 158 76, 174 86, 192 84 C 210 82, 222 84, 234 86"/>
+          <circle class="af" cx="82" cy="86" r="4"/>
+          <circle class="f0" cx="216" cy="84" r="4"/>
+        </svg>
+        <div class="meta"><span class="pill t0">Module 00c</span><span class="file">00c-double-descent</span></div>
+        <h3><a href="00c-double-descent.html">Double descent &amp; the kernel lift</a></h3>
+        <p class="hook">Scrub the polynomial degree and watch the test error trace the classic U, explode
+          where parameters meet data points, then fall again — and send circles up into a third dimension.</p>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/00c.html">Quiz →</a></div>
+      </div>
+
+    </div>
   </section>
 
   <section class="track t1">

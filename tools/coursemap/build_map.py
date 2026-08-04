@@ -39,6 +39,9 @@ JPEG_QUALITY = 80
 
 # module number -> (module directory name, figure file name)
 FIGS: dict[str, tuple[str, str]] = {
+    "00A": ("00a-perceptron", "perceptron_evolution.png"),
+    "00B": ("00b-bayes-knn-pca", "pca_eigenimages.png"),
+    "00C": ("00c-kernels-hopfield", "double_descent.png"),
     "01": ("01-autograd", "computation_graph.png"),
     "02": ("02-neural-networks", "fashion_weights.png"),
     "03": ("03-tokenization", "colored_tokens.png"),

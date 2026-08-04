@@ -5,6 +5,7 @@
 *,*::before,*::after{box-sizing:border-box}
 :root{
   --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d;
+  --t0:#a86b0e; --t0-soft:rgba(168,107,14,.10);
   --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --track-ink:#ffffff;
   --panel:#ffffff; --matte:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67;
   --soft:rgba(31,145,141,.10); --rail:rgba(28,36,34,.10);
@@ -18,6 +19,7 @@
   :root{
     --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --matte:#f2f5f4;
     --line:rgba(232,238,236,.18); --muted:#9daba7;
+    --t0:#d9962e; --t0-soft:rgba(217,150,46,.16);
     --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --accent:#37b3ae;
     --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --rail:rgba(232,238,236,.14);
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
@@ -27,6 +29,7 @@
 :root[data-theme="dark"]{
   --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --matte:#f2f5f4;
   --line:rgba(232,238,236,.18); --muted:#9daba7;
+  --t0:#d9962e; --t0-soft:rgba(217,150,46,.16);
   --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --accent:#37b3ae;
   --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --rail:rgba(232,238,236,.14);
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
@@ -34,6 +37,7 @@
 :root[data-theme="light"]{
   --paper:#f6f8f7; --ink:#1c2422; --panel:#ffffff; --matte:#ffffff;
   --line:rgba(28,36,34,.14); --muted:#5c6b67;
+  --t0:#a86b0e; --t0-soft:rgba(168,107,14,.10);
   --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --accent:#1f918d;
   --track-ink:#ffffff; --soft:rgba(31,145,141,.10); --rail:rgba(28,36,34,.10);
   --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
@@ -71,7 +75,7 @@ main{max-width:1180px;margin:0 auto;padding:clamp(1rem,3vw,1.6rem) clamp(.9rem,3
 .track{position:relative;margin:1.9rem 0 0;padding-left:1.15rem}
 .track::before{content:"";position:absolute;left:0;top:.4rem;bottom:.5rem;width:4px;
   border-radius:2px;background:var(--tc);opacity:.85}
-.track.t1{--tc:var(--t1)} .track.t2{--tc:var(--t2)} .track.t3{--tc:var(--t3)}
+.track.t0{--tc:var(--t0)} .track.t1{--tc:var(--t1)} .track.t2{--tc:var(--t2)} .track.t3{--tc:var(--t3)}
 .track > h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
   margin:0 0 .15rem;color:var(--tc);display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap}
 .track > h2 .rng{font-family:var(--mono);font-size:.78rem;font-weight:400;
@@ -84,7 +88,8 @@ main{max-width:1180px;margin:0 auto;padding:clamp(1rem,3vw,1.6rem) clamp(.9rem,3
   border:1px solid var(--line);border-radius:14px;padding:.9rem 1rem 1rem;
   box-shadow:var(--shadow);transition:border-color .15s,transform .15s}
 .card:hover{border-color:var(--accent);transform:translateY(-2px)}
-.card.t1{--tc:var(--t1)} .card.t2{--tc:var(--t2)} .card.t3{--tc:var(--t3)}
+.card.t0{--tc:var(--t0)} .card.t1{--tc:var(--t1)} .card.t2{--tc:var(--t2)} .card.t3{--tc:var(--t3)}
+.card.t0 .chips span{background:var(--t0-soft)}
 .card .chead{display:flex;align-items:center;gap:.5rem;padding-right:5.2rem;margin:0 0 .55rem}
 .mno{font-family:var(--mono);font-size:.72rem;font-weight:600;color:var(--track-ink);
   background:var(--tc);border-radius:6px;padding:.16rem .44rem;line-height:1.35;white-space:nowrap}
@@ -167,19 +172,75 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
     <p class="lede">From a scalar autograd engine to a Zig inference engine — every idea built from
       scratch first, then the Hugging Face way, and drawn as a picture both times.</p>
     <div class="topline">
-      <span class="stats"><b>11</b> modules · <b>75</b> figures · <b>11</b> explorables ·
-        <b>11</b> quizzes · <b>2</b> languages</span>
+      <span class="stats"><b>14</b> modules · <b>103</b> figures · <b>14</b> explorables ·
+        <b>14</b> quizzes · <b>2</b> languages</span>
       <a class="sitebtn" href="https://wynch.github.io/ml-course/" target="_blank" rel="noopener">Course site ↗
         <span class="u">wynch.github.io/ml-course</span></a>
     </div>
     <div class="prog">
       <div class="pbar"><div id="pfill"></div></div>
-      <span id="pcount">0 / 11</span>
+      <span id="pcount">0 / 14</span>
     </div>
   </div>
 </header>
 
 <main>
+
+<section class="track t0">
+  <h2>Track 0 · Origins<span class="rng">modules 00a–00c · optional prologue</span></h2>
+  <p class="sub">The classic math behind modern ML — a learning rule that comes with a proof, the three
+    algorithms still running inside every network, and the curve that broke the textbook. Nothing here
+    depends on the rest of the course, and nothing in the course depends on it.</p>
+  <div class="grid">
+
+    <article class="card t0" data-mod="00a">
+      <label class="donebox">done<input type="checkbox" data-mod="00a" aria-label="Mark module 00a done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">00a</span><h3>Perceptron &amp; least squares</h3></div>
+      <div class="fig"><img src="{{FIG00A}}" alt="Module 00a figure: the perceptron decision line snapping into place over twelve mistakes"></div>
+      <p class="build"><b>You build:</b> Rosenblatt's perceptron and the mistake bound it cannot break,
+        least squares by normal equations and by gradient descent, and the XOR wall — Python and Zig.</p>
+      <div class="chips"><span>12 mistakes vs bound 139.6</span><span>Zig bit-identical</span><span>margin γ 0.3529</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/00a-perceptron.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/00a.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/00a-perceptron</span>
+        <a class="hf" href="https://huggingface.co/learn/llm-course/chapter1/1" target="_blank" rel="noopener">HF LLM ch. 1 ↗</a></div>
+    </article>
+
+    <article class="card t0" data-mod="00b">
+      <label class="donebox">done<input type="checkbox" data-mod="00b" aria-label="Mark module 00b done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">00b</span><h3>Bayes, k-NN &amp; PCA</h3></div>
+      <div class="fig"><img src="{{FIG00B}}" alt="Module 00b figure: FashionMNIST eigenimages recovered by power iteration"></div>
+      <p class="build"><b>You build:</b> Gaussian naive Bayes, k-nearest neighbours measured against a
+        dataset whose Bayes error is known exactly, and PCA by power iteration — no scikit-learn.</p>
+      <div class="chips"><span>power iter = eigh 5e-15</span><span>1-NN ≤ 2R* verified</span><span>Bayes error 15.87%</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/00b-pca.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/00b.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/00b-bayes-knn-pca</span>
+        <a class="hf" href="https://huggingface.co/learn/computer-vision-course/unit0/welcome/welcome" target="_blank" rel="noopener">HF CV unit 0 ↗</a></div>
+    </article>
+
+    <article class="card t0" data-mod="00c">
+      <label class="donebox">done<input type="checkbox" data-mod="00c" aria-label="Mark module 00c done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">00c</span><h3>Kernels, memory &amp; the bridge</h3></div>
+      <div class="fig"><img src="{{FIG00C}}" alt="Module 00c figure: the double-descent curve, spiking where parameters meet data points"></div>
+      <p class="build"><b>You build:</b> a dual SVM solved by projected gradient ascent, the kernel lift drawn
+        explicitly, a Hopfield memory with its capacity measured, and double descent from scratch.</p>
+      <div class="chips"><span>α_c ≈ 0.153 measured</span><span>degree-19 spike 1.1e12</span><span>5 letters in 100 neurons</span></div>
+      <p class="dep">Ends on the bridge: one softmax retrieval step, which is an attention row — module 04.</p>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/00c-double-descent.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/00c.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/00c-kernels-hopfield</span>
+        <a class="hf" href="https://huggingface.co/learn/llm-course/chapter1/4" target="_blank" rel="noopener">HF LLM ch. 1.4 ↗</a></div>
+    </article>
+
+  </div>
+</section>
 
 <section class="track t1">
   <h2>Foundations<span class="rng">modules 01–03</span></h2>
