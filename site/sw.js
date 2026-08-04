@@ -1,6 +1,6 @@
 // Every URL here is relative to this script, so the reader caches correctly
 // whether it is served from a domain root or from /ml-course/reader/.
-const CACHE = "ml-course-reader-v4";
+const CACHE = "ml-course-reader-v5";
 const CORE = ["./", "./styles.css", "./app.js", "./course-content.js", "./manifest.webmanifest", "./offline-assets.json"];
 const HOME = new URL("./", self.location).href;
 

@@ -10,6 +10,10 @@
     { name: "Breadth", blurb: "Carry the same ideas into pixels, denoising, and action." },
   ];
   const ASSET_ROOTS = ["explorables", "quizzes"];
+  // Pages serves source files as application/octet-stream, so a direct link
+  // downloads them. build_reader.py writes a readable <name>.html beside every
+  // file with one of these extensions; this mirrors that rule.
+  const VIEWABLE = /\.(cfg|csv|ini|json|lock|md|py|sh|toml|txt|ya?ml|zig|zon)$/i;
   // The reader lives at a domain root when served locally and under
   // /ml-course/reader/ on GitHub Pages. Every generated URL hangs off BASE, the
   // directory holding index.html, so both layouts resolve identically.
@@ -82,7 +86,8 @@
       }
       // A bare "explorables/" link points at the gallery, not at content/.
       const bundled = ASSET_ROOTS.some((root) => resolved === root || resolved.startsWith(`${root}/`));
-      const target = bundled ? `${BASE}${resolved}` : `${BASE}content/${resolved}`;
+      const view = VIEWABLE.test(resolved) ? ".html" : "";
+      const target = bundled ? `${BASE}${resolved}` : `${BASE}content/${resolved}${view}`;
       return hold(`<a href="${escapeHtml(target)}">${label}</a>`);
     });
     text = text.replace(/&lt;(https?:\/\/[^&\s]+)&gt;/g, (_, href) =>
