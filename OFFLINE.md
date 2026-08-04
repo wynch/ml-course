@@ -16,6 +16,12 @@ redistribute them.
 
 ## Reader pack
 
+The reader is published at <https://wynch.github.io/ml-course/reader/>, rebuilt
+by CI from this repository on every push to `main`. Open it once and install it,
+and every lesson, figure, explorable and quiz is available with the network off.
+Everything below builds the same thing locally — `reader/` is a build output and
+is not committed.
+
 Prepare the static reader:
 
 ```bash

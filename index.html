@@ -71,7 +71,8 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
 .pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
   text-transform:uppercase;color:var(--track-ink);padding:.24rem .6rem;border-radius:999px;
   white-space:nowrap}
-.pill.t1{background:var(--t1)} .pill.t2{background:var(--t2)} .pill.t3{background:var(--t3)}
+.pill.t0{background:var(--t0)} .pill.t1{background:var(--t1)}
+.pill.t2{background:var(--t2)} .pill.t3{background:var(--t3)}
 .card h3{font-family:var(--display);font-size:1.08rem;font-weight:600;margin:0 0 .4rem;
   line-height:1.3;letter-spacing:.1px}
 .card .hook{font-size:.89rem;color:var(--muted);margin:0;line-height:1.45}
@@ -100,6 +101,7 @@ footer p{margin:.3rem 0;max-width:74ch}
   <h1>Build ML From Scratch</h1>
   <span class="count">14 modules · 14 explorables · 140 quiz questions</span>
   <span class="spacer"></span>
+  <a class="back" href="reader/">Reader</a>
   <a class="back" href="map.html">Course map</a>
   <a class="back" href="explorables/index.html">Explorables</a>
   <a class="back" href="quizzes/index.html">Quizzes</a>
@@ -129,6 +131,17 @@ footer p{margin:.3rem 0;max-width:74ch}
   </section>
 
   <section class="grid">
+
+    <a class="card" href="reader/">
+      <span class="glyph" aria-hidden="true">📖</span>
+      <div class="meta"><span class="pill t0">Read anywhere</span></div>
+      <h3>Offline reader — the whole course as an installable offline app</h3>
+      <p class="hook">Every lesson, figure, explorable and quiz in one app you can install and keep.
+        Search across all fourteen modules, tick labs off as you finish them, and read the entire
+        course on a plane: after the first visit nothing needs the network. Progress lives in this
+        browser, and you can export it as JSON to move it to another device.</p>
+      <span class="go">Open the reader →</span>
+    </a>
 
     <a class="card" href="explorables/index.html">
       <span class="glyph" aria-hidden="true">🕹</span>
@@ -184,6 +197,7 @@ footer p{margin:.3rem 0;max-width:74ch}
     <span class="paths">python3 -m http.server</span>, and open
     <span class="paths">http://localhost:8000/</span>.</p>
   <p><a href="https://github.com/wynch/ml-course">Source on GitHub</a> ·
+    <a href="reader/">offline reader</a> ·
     <a href="map.html">course map</a> ·
     <a href="explorables/index.html">explorables</a> ·
     <a href="quizzes/index.html">quizzes</a> · course source in

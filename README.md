@@ -45,8 +45,12 @@ toolchain. If your Mac ever feels too small — a big fine-tune, a hungry GPU
 job — **[CLOUD.md](CLOUD.md)** shows the optional cloud lane.
 
 Prefer a cohesive reader with search, local progress, knowledge checks, and
-installable offline support? Build the course app—or prepare a reader/core/full
-pack—using **[OFFLINE.md](OFFLINE.md)**.
+installable offline support? It is live at
+**<https://wynch.github.io/ml-course/reader/>** — install it once and the whole
+course, figures and explorables included, works with the network off. CI rebuilds
+it from the modules on every push, so it never drifts from this repository. To
+build it yourself, or to prepare a reader/core/full pack, see
+**[OFFLINE.md](OFFLINE.md)**.
 
 ---
 
