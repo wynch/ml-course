@@ -23,11 +23,11 @@ Pull one page or one number when a question calls for it. Do not extend, reorgan
 or improve the course, and build nothing on top of it, unless Vincent asks. A new
 module, a new explorable, a rewritten lesson: each needs his yes first.
 
-## State on 2026-09-09
+## State on 2026-09-25
 
 | Fact | Value |
 |---|---|
-| Last commit | `0da7607`, 2026-08-04 |
+| Last course commit | `0da7607`, 2026-08-04; later commits change only this file |
 | Branch | `main`, level with `origin/main`, tree clean |
 | Content | 14 modules, 14 explorables, 14 quizzes (140 questions), course map |
 | Site | built and deployed from `main` by the Pages workflow |
