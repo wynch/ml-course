@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Schema-based active inference supports rapid generalization and frontal cortical coding of abstract structure · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="schema-based-hierarchical-active-inference-s-hai">Schema-based Hierarchical Active Inference (S-HAI)</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-06</span> <span>updated 2026-05-06</span> <span class="tag">active-inference</span> <span class="tag">neuroscience</span> <span class="tag">hierarchical-models</span> <span class="tag">generalization</span> <span class="tag">prefrontal-cortex</span> <span class="tag">schema</span> <span class="tag">2026</span></div>
+<p><strong>Toon Van de Maele, Tim Verbelen, Dileep George, Giovanni Pezzulo — arXiv 2601.18946, Jan 2026</strong></p>
+<p>A computational model that couples <a href="concept-active-inference.html">active inference</a> with <strong>schemas</strong> — abstract relational structures that capture commonalities across experiences. The result reproduces both the behavioral signatures of rapid schema-based generalization and the neural codes seen in rodent medial prefrontal cortex (mPFC) during schema-dependent navigation.</p>
+<h2 id="architecture">Architecture</h2>
+<p>Two-level hierarchical generative model:</p>
+<ul><li><strong>Top level:</strong> abstract task structure (schemas — e.g. "go-to-goal-type-X" templates)</li><li><strong>Bottom level:</strong> spatial navigation in a concrete environment</li><li><strong>Grounding likelihood:</strong> maps abstract goals at the top onto physical locations at the bottom; this is what gets re-bound when a familiar schema is dropped into a novel context</li></ul>
+<p>Inference at the top selects which schema is active; inference at the bottom plans physical action. Both levels are updated to minimize free energy.</p>
+<h2 id="behavioral-results">Behavioral results</h2>
+<p>S-HAI captures the human/animal repertoire of schema-based generalization:</p>
+<ul><li><strong>Flexible remapping</strong> of an abstract schema onto a new context.</li><li><strong>Goal ambiguity resolution</strong> when multiple schemas could fit the observations.</li><li><strong>Reuse vs accommodation tradeoff</strong> — when to fall back on existing structure vs grow new mappings.</li></ul>
+<h2 id="neural-correspondence">Neural correspondence</h2>
+<p>Crucially, the same model reproduces three classes of cells reported in <strong>rodent mPFC</strong> during schema-dependent tasks:</p>
+<ul><li>Task-invariant <strong>goal-progress cells</strong>.</li><li><strong>Goal-and-spatially conjunctive cells</strong>.</li><li><strong>Place-like codes</strong> at the lower level.</li></ul>
+<p>This gives a mechanistic, computational story for how mPFC might implement abstract relational coding.</p>
+<h2 id="relevance">Relevance</h2>
+<p>A concrete example of <a href="concept-active-inference.html">concept-active-inference</a> used not just as a control framework but as a <strong>theory of cortical coding</strong>. The authors are an interesting cross-section: Pezzulo (active inference / cognitive neuroscience), Verbelen (deep active inference, also on the <a href="source-why-learn-if-you-can-infer-active-inference.html">VERSES robot control work</a>), and Dileep George (Vicarion / schema networks). Connects abstraction-and-grounding to the same hierarchical-generative-model substrate.</p>
+<p>Sits alongside <a href="source-active-inference-empathy.html">source-active-inference-empathy</a> in the active inference cluster, but the focus here is <strong>structural generalization</strong> rather than social cognition. Worth comparing to <a href="source-clevrer-video-reasoning.html">source-clevrer-video-reasoning</a> as another attempt to study compositional / schema-like reasoning, though from the deep-learning side.</p>
+<h2 id="references">References</h2>
+<ul><li>arXiv: <a href="https://arxiv.org/abs/2601.18946" rel="noreferrer">https://arxiv.org/abs/2601.18946</a></li><li>Context: <a href="concept-active-inference.html">concept-active-inference</a>, <a href="concept-llm-reasoning.html">concept-llm-reasoning</a>, <a href="concept-representation-learning.html">concept-representation-learning</a></li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2601.18946" rel="noreferrer">https://arxiv.org/abs/2601.18946</a></li></ul></details>
+</main>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Equilibrium Reasoners: Learning Attractors Enables Scalable Reasoning · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="equilibrium-reasoners-learning-attractors-enables-scalable-reasoning">Equilibrium Reasoners: Learning Attractors Enables Scalable Reasoning</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-09-10</span> <span>updated 2026-10-03</span> <span class="tag">test-time-compute</span> <span class="tag">latent-reasoning</span> <span class="tag">fixed-points</span> <span class="tag">attractors</span> <span class="tag">iterative-models</span> <span class="tag">adaptive-compute</span> <span class="tag">2026</span></div>
+<p><strong>Authors:</strong> Benhao Huang, Zhengyang Geng, Zico Kolter (CMU) · <strong>arXiv:</strong> <a href="https://arxiv.org/abs/2605.21488" rel="noreferrer">2605.21488v1</a> · <strong>Date:</strong> 2026-05-20</p>
+<h2 id="summary">Summary</h2>
+<p>A mechanistic story for why iterative latent models keep improving when you let them run longer. The proposal: training teaches a <strong>task-conditioned attractor</strong> — a latent dynamical system whose stable fixed points (states that stop changing under the update map) are valid solutions. Equilibrium Reasoners (EqR) is a small weight-tied model, two latent states updated at different rates, an MLP-mixer backbone on Sudoku and self-attention on mazes, 5.03M parameters against a 105.6M feedforward baseline. It is trained by Segmented Online Training: cut the trajectory into segments, supervise the end of each, step the optimizer, carry the state forward detached — no implicit differentiation, no backprop through the whole unroll. Two cheap tricks shape the landscape: random initial states and injected Gaussian noise. Test-time compute then scales on two axes, depth (more iterations) and breadth (more restarts). No external verifier is used.</p>
+<h2 id="key-claims">Key claims</h2>
+<ul><li><strong>Test-time gains track convergence.</strong> They measure the fixed-point residual ‖f_θ(z,x) − z‖ and report that lower residual tightly tracks lower error across inference budgets. This coupling is the paper's central evidence for the attractor account.</li><li><strong>Large benchmark jumps on structured puzzles.</strong> Sudoku-Extreme: feedforward 2.6%, HRM 55.0%, TRM 84.8%, EqR at depth 16 / breadth 1 <strong>86.4%</strong>, EqR at depth 64 / breadth 128 <strong>99.8%</strong>. Maze-Unique (30×30): TRM 44.9%, EqR <strong>82.2%</strong> → <strong>93.0%</strong>.</li><li><strong>Compute is allocated by difficulty, not by schedule.</strong> Easy instances settle in 1–5 iterations; hard ones keep improving up to 1,024 iterations, and depth × breadth reaches roughly 40,000 layer-equivalents. With adaptive compute, average function evaluations drop from 1,024 to 58.7 (17.4×) for 0.8 points of accuracy (96.1% → 95.3%).</li><li><strong>Residual can replace voting.</strong> Picking the restart with the lowest final residual ("Top-1 Converged") matches majority voting more cheaply — but the authors note it only becomes reliable <em>after</em> the landscape-shaping tricks are applied.</li><li><strong>Admitted limits.</strong> Only controlled, structured benchmarks; no natural-language or vision reasoning. The framework assumes task alignment and reachability of the right attractor, and residual-based selection "is not universally valid" without a favourable landscape. Random initialization reduces but does not remove the train/test mismatch. No convergence guarantee is proved for the training procedure.</li></ul>
+<h2 id="relevance">Relevance</h2>
+<ul><li>Concrete mechanism for <a href="concept-test-time-compute.html">concept-test-time-compute</a> and a new stop on <a href="thread-test-time-compute.html">thread-test-time-compute</a>: this is inference scaling inside one latent state, with no sampled tokens and no verifier — the opposite end from chain-of-thought scaffolds.</li><li>Read alongside <a href="source-llm-reasoning-skeptics.html">source-llm-reasoning-skeptics</a>, which showed HRM often <em>guesses</em> on Sudoku-Extreme and that augmentation alone moved it 54.5% → 96.9%. Same benchmark, so EqR's 99.8% should be read with that caution: high accuracy here has previously come from something other than reasoning.</li><li>The attractor framing is energy-landscape thinking without an explicit energy — sits next to <a href="concept-energy-based-models.html">concept-energy-based-models</a> and <a href="source-hopfield-is-all-you-need.html">source-hopfield-is-all-you-need</a> (fixed points as retrieved memories), and next to <a href="source-continuous-thought-machine.html">source-continuous-thought-machine</a> for adaptive-depth latent recurrence.</li><li><strong>Local tie-in.</strong> Vincent's ML Compass project (<code>../compass</code>) asks whether the residual stream of a language model converges to a fixed point. Experiment 04 says no for SmolLM2-360M: relative per-layer corrections over the last third of layers were <strong>1.190×</strong> the first third (the pre-registered gate needed ≤ 0.50), 0 of 64 prompts passed, and a random-init control "converged" better (0.399) purely by arithmetic. EqR does not contradict that — it is a <em>weight-tied</em> map iterated on purpose, whereas a 32-layer untied decoder has no reason to be one map applied repeatedly. The honest reading is that the fixed-point lens fits EqR-style models and is the wrong instrument for a standard transformer stack.</li><li><a href="source-recurrent-depth-latent-reasoning.html">source-recurrent-depth-latent-reasoning</a> — the same weight-tied iteration at language scale (3.5B parameters, 800B tokens), trained only on next-token loss. Most token states converge; some orbit or drift; starting from other noise gives the same patterns (<code>raw/arxiv-2502-05171-recurrent-depth-latent-reasoning.md</code>, §7). Convergence speed depends on the token and the context (same file, §7, Figure 11).</li><li><a href="source-varunneal-diffusion-will-be-everywhere.html">source-varunneal-diffusion-will-be-everywhere</a> — Contradiction (partial): the essay argues that a loop which contracts to a fixed point gains nothing from more loops, and that looped models do not scale past their training range (<code>raw/web-2026-varunneal-diffusion-everywhere.md</code>, "Test-time scaling"). This paper ties the test-time gains to convergence itself: harder cases keep gaining while they still converge toward an attractor (raw abstract). On the fixed point the two need not clash, since neither claims gains once the state has settled; they part on framing (a dead end there, the mechanism here) and on depth, since EqR reports gains from unrolling to about 40,000 layer-equivalents. The raw copy here is abstract only, so whether those unrolls lie beyond EqR's training depth cannot be checked from it.</li><li><a href="concept-llm-reasoning.html">concept-llm-reasoning</a>: evidence that "reasoning" can be a property of a learned dynamical system rather than of a token sequence.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><a href="https://arxiv.org/abs/2605.21488" rel="noreferrer">arXiv 2605.21488</a> · <a href="https://arxiv.org/html/2605.21488v1" rel="noreferrer">HTML</a></li><li>Raw capture: <code>raw/arxiv-2605-21488-equilibrium-reasoners-learning-attractors-enables-scalable.md</code></li><li>Local: <code>../compass/experiments/04-fixed-point/RESULTS.md</code></li></ul>
+<details class="src"><summary>Sources (5)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2605.21488" rel="noreferrer">https://arxiv.org/abs/2605.21488</a></li><li><a href="https://arxiv.org/html/2605.21488v1" rel="noreferrer">https://arxiv.org/html/2605.21488v1</a></li><li><code>raw/arxiv-2605-21488-equilibrium-reasoners-learning-attractors-enables-scalable.md</code></li><li><code>raw/arxiv-2502-05171-recurrent-depth-latent-reasoning.md</code></li><li><code>raw/web-2026-varunneal-diffusion-everywhere.md</code></li></ul></details>
+</main>
+</body>
+</html>

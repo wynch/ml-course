@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>The Llama 3 Herd of Models · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="the-llama-3-herd-of-models">The Llama 3 Herd of Models</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-06</span> <span>updated 2026-05-06</span> <span class="tag">model-training</span> <span class="tag">llama</span> <span class="tag">meta</span> <span class="tag">technical-report</span> <span class="tag">frontier-model</span> <span class="tag">open-weights</span> <span class="tag">long-context</span></div>
+<p><strong>Authors:</strong> Meta (Grattafiori et al., ~559 contributors) <strong>Date:</strong> July 2024 (arXiv 2407.21783)</p>
+<h2 id="summary">Summary</h2>
+<p>Meta's 92-page technical report for the Llama 3 family — 8B, 70B, and 405B dense transformers trained on 15T tokens. The 405B variant is the first open-weight model to credibly contest GPT-4 across most benchmarks. The report is unusually detailed about training infrastructure, data curation, and post-training, and became the <strong>default reference for "how to train a frontier dense model"</strong> in 2024–2025.</p>
+<h2 id="key-claims">Key Claims</h2>
+<h3 id="architecture">Architecture</h3>
+<ul><li>Dense decoder-only transformer (no MoE) — a deliberate bet on simplicity and inference predictability.</li><li><strong>GQA (grouped-query attention)</strong> across all sizes; <strong>128k context</strong> via two-stage long-context training (8k → 128k with RoPE base scaling).</li><li>128k vocab BPE tokenizer, ~15% more efficient than Llama 2's.</li></ul>
+<h3 id="pre-training">Pre-training</h3>
+<ul><li><strong>15T tokens</strong>, ~10× Llama 2's budget. Heavy emphasis on <strong>data curation</strong>: classifier-based filtering, deduplication, domain-specific quality models.</li><li><strong>Annealing on high-quality data</strong> in late training stages — the technique <a href="source-frontier-model-training.html">source-frontier-model-training</a> later canonised as standard.</li><li>Trained on up to <strong>16k H100 GPUs</strong> simultaneously for the 405B run; the report's infrastructure section is a treasure trove of failure-mode statistics (~419 unexpected interruptions over 54 days).</li></ul>
+<h3 id="post-training">Post-training</h3>
+<ul><li>Classical SFT → rejection sampling → DPO pipeline (no PPO). Multiple rounds of post-training.</li><li><strong>Tool use</strong> (search, code interpreter, custom functions) as a first-class capability, trained via SFT on synthetic trajectories.</li><li><strong>Multilinguality</strong> across 8 supported languages; <strong>code/math</strong> focus via specialised data and synthetic generation.</li></ul>
+<h3 id="multimodal-compositional">Multimodal (compositional)</h3>
+<ul><li>Vision and speech adapters trained on top of frozen Llama 3 — a deliberately modular approach rather than the natively-multimodal route.</li><li>The compositional design lets the language backbone be reused unchanged.</li></ul>
+<h3 id="performance">Performance</h3>
+<ul><li>405B claimed comparable to GPT-4 (OpenAI) and Claude 3.5 Sonnet on most benchmarks at release.</li></ul>
+<h2 id="why-it-matters">Why it matters</h2>
+<ul><li>The clearest single document showing <strong>what frontier dense training actually looks like</strong> end-to-end. Anyone reproducing a frontier model uses this report as a checklist.</li><li>Made open-weights <strong>competitive with closed frontier</strong> at scale, kicking off the post-2024 wave of strong open releases (DeepSeek-V3, Qwen2.5, etc.).</li><li>The compositional multimodal choice contrasts with GPT-4's natively multimodal design and with <a href="concept-jepa.html">concept-jepa</a>'s representation-first vision — three different bets on how vision should attach.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="entity-meta-fair.html">entity-meta-fair</a> — Meta's flagship LLM line, alongside the JEPA/DINO research thread.</li><li><a href="concept-model-training.html">concept-model-training</a>, <a href="concept-transformer-architecture.html">concept-transformer-architecture</a> — dense-transformer canonical reference.</li><li><a href="source-frontier-model-training.html">source-frontier-model-training</a> — directly covers Llama 3's recipe.</li><li><a href="source-instructgpt-rlhf.html">source-instructgpt-rlhf</a> — Llama 3 uses DPO instead, not PPO.</li><li><a href="source-dpo-direct-preference-optimization.html">source-dpo-direct-preference-optimization</a> — central post-training tool.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><a href="https://arxiv.org/abs/2407.21783" rel="noreferrer">arXiv 2407.21783</a></li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2407.21783" rel="noreferrer">https://arxiv.org/abs/2407.21783</a></li></ul></details>
+</main>
+</body>
+</html>

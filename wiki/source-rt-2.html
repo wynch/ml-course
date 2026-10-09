@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>RT-2: Vision-Language-Action Models Transfer Web Knowledge to Robotic Control · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="rt-2-vision-language-action-models-from-web-data">RT-2 — Vision-Language-Action Models from Web Data</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-06</span> <span>updated 2026-05-06</span> <span class="tag">robotics</span> <span class="tag">vla</span> <span class="tag">vision-language-action</span> <span class="tag">google-deepmind</span> <span class="tag">world-models</span> <span class="tag">imitation-learning</span></div>
+<p><strong>Brohan et al. (Google DeepMind / Google Research) — arXiv 2307.15818, July 2023</strong></p>
+<p>The paper that <strong>fuses VLMs with robot control</strong> by treating robot actions as text tokens and <strong>co-fine-tuning</strong> a frontier vision-language model on internet vision-language data and robot trajectories simultaneously. RT-2 launches the modern <strong>VLA (Vision-Language-Action)</strong> paradigm and is the direct ancestor of <a href="source-openvla.html">OpenVLA</a> and <a href="source-pi-zero.html">π0</a>.</p>
+<h2 id="the-actions-as-tokens-move">The "actions as tokens" move</h2>
+<p>Robot end-effector deltas (x, y, z, roll, pitch, yaw, gripper) are <strong>discretised into 256 bins each</strong> and <strong>mapped to existing tokens</strong> in the language model's vocabulary. A robot trajectory becomes a string of tokens like <code>1 128 91 241 5 101 127</code>. The VLM is then trained to predict these tokens conditioned on (image, instruction) — making robot control formally identical to language modelling, with all the downstream benefits of the existing VLM training stack.</p>
+<h2 id="co-fine-tuning-recipe">Co-fine-tuning recipe</h2>
+<p>Two backbones evaluated: PaLI-X (5B &amp; 55B) and PaLM-E (12B). Each is co-fine-tuned on:</p>
+<ul><li><strong>Internet vision-language data</strong> (VQA, captioning, web image-text pairs).</li><li><strong>Robot trajectory data</strong> from the RT-1 fleet (~13 robots, ~17 months, kitchen tasks).</li></ul>
+<p>The two streams are mixed in the same training batches; the same model emits text answers for VQA and action tokens for robot tasks.</p>
+<h2 id="headline-result-emergent-generalisation">Headline result: emergent generalisation</h2>
+<p>A 6,000-trial real-robot evaluation shows RT-2 <strong>inherits semantic generalisation from the VLM</strong>:</p>
+<ul><li><strong>Novel objects and scenes</strong> — significantly higher success on unseen objects than RT-1.</li><li><strong>Out-of-distribution instructions</strong> — "put the strawberry into the correct bowl" requires selecting the bowl with strawberries already in it (a fact never present in robot data).</li><li><strong>Symbolic/numeric reasoning</strong> — picking up the smallest object, the object near a number, etc.</li><li><strong>Chain-of-thought robotics</strong> — given CoT prompts, RT-2 can plan multi-step instructions ("I'm thirsty, so I should pick…").</li></ul>
+<h2 id="significance">Significance</h2>
+<p>RT-2 is the moment robotics joined the foundation-model stack. It establishes three things subsequent VLAs build on: (1) actions as tokens; (2) co-fine-tuning preserves the VLM's web knowledge while adding control; (3) emergent generalisation transfers from internet to physical action. The contrast with <a href="source-vjepa-family.html">V-JEPA 2</a> is sharp: RT-2 is a <strong>generative-token VLA</strong> trained on labelled (instruction, trajectory) pairs; V-JEPA 2 is a <strong>predictive latent world model</strong> that learns from passive video and plans via latent-space MPC. Both achieve cross-embodiment generalisation; they represent the two poles of the modern robot-foundation-model design space.</p>
+<p>The unified-token framing also closes the loop with the <a href="source-code-as-policies.html">earlier</a> symbolic robot-LLM line: where Code-as-Policies has the LLM emit Python that calls perception/control APIs, RT-2 has the LLM emit <em>the action stream itself</em> end-to-end.</p>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="concept-world-models.html">concept-world-models</a> — generative VLA pole, alternative to V-JEPA 2's predictive pole.</li><li><a href="source-vjepa-family.html">source-vjepa-family</a> — direct compare/contrast.</li><li><a href="source-openvla.html">source-openvla</a> — open-source successor; surpasses RT-2-X on absolute metrics.</li><li><a href="source-pi-zero.html">source-pi-zero</a> — flow-matching action-head successor.</li><li><a href="source-code-as-policies.html">source-code-as-policies</a> — symbolic-robot-LLM precursor.</li><li><a href="concept-ai-agents.html">concept-ai-agents</a> — robotics arm of the agents programme.</li><li><a href="entity-google-deepmind.html">entity-google-deepmind</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li>arXiv: <a href="https://arxiv.org/abs/2307.15818" rel="noreferrer">https://arxiv.org/abs/2307.15818</a></li><li>Project: <a href="https://robotics-transformer2.github.io" rel="noreferrer">https://robotics-transformer2.github.io</a></li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2307.15818" rel="noreferrer">https://arxiv.org/abs/2307.15818</a></li></ul></details>
+</main>
+</body>
+</html>

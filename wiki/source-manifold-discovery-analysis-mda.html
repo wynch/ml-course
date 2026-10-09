@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Revealing hidden patterns in deep neural network feature space continuum via manifold learning · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="manifold-discovery-and-analysis-mda">Manifold Discovery and Analysis (MDA)</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-06</span> <span>updated 2026-05-06</span> <span class="tag">representation-learning</span> <span class="tag">visualization</span> <span class="tag">regression</span> <span class="tag">manifold-learning</span> <span class="tag">interpretability</span> <span class="tag">nature-comms</span> <span class="tag">2023</span></div>
+<p><strong>Md Tauhidul Islam, Zixia Zhou, Hongyi Ren, Masoud Badiei Khuzani, Daniel Kapp, James Zou, Lu Tian, Joseph C. Liao, Lei Xing — Nature Communications, 14:8506, 2023</strong></p>
+<p>Introduces <strong>MDA</strong>, a feature-visualization method aimed at the case existing techniques largely ignore: <strong>regression DNNs</strong>, where labels live on a continuous high-dimensional manifold rather than in a finite class set.</p>
+<h2 id="problem">Problem</h2>
+<p>Most DNN visualization (t-SNE, UMAP variants on penultimate features) implicitly assumes discrete classes, and either fails or distorts when applied to regression. Yet a large fraction of practical deep learning is regression — segmentation, super-resolution, gene expression, survival prediction, etc. — and the feature manifold there has an inherently complex, continuum-valued shape.</p>
+<h2 id="method">Method</h2>
+<ol><li>Compute pairwise distances <strong>between DNN-estimated labels</strong> to reconstruct the outline of the label manifold.</li><li>Use that outline to <strong>group labels</strong> by manifold-surface distance.</li><li>Embed the high-dimensional features under the constraint imposed by these sorted label groups, using a <strong>Bayesian projection</strong>.</li><li>Use a small DL component to map the constrained features into a low-dimensional space for visualization and analysis.</li></ol>
+<p>The pipeline therefore preserves <em>local geometry of the label manifold</em>, not just the feature manifold — which is what makes regression visualizations meaningful.</p>
+<h2 id="applications">Applications</h2>
+<p>Demonstrated on five regression-flavored tasks:</p>
+<ul><li>Medical image segmentation</li><li>Image super-resolution</li><li>Gene expression prediction</li><li>Survival prediction</li><li>COVID-19 X-ray classification (as a contrast case)</li></ul>
+<p>Used to assess <strong>appropriateness of features, generalization behavior, and adversarial robustness</strong> — i.e. it's pitched as a diagnostic, not just a pretty picture.</p>
+<h2 id="relevance">Relevance</h2>
+<p>Sits in the <a href="concept-representation-learning.html">concept-representation-learning</a> cluster, with a focus on <em>how to look at</em> learned representations rather than how to train them. Shares the high-dimensional-geometry concern of <a href="source-visual-cortex-dimensionality.html">source-visual-cortex-dimensionality</a> and <a href="source-contrastive-learning-gaussian-representations.html">source-contrastive-learning-gaussian-representations</a>, but the use case (regression, biomedical) is pretty different from typical contrastive/transformer settings. A useful tool-page rather than a theoretical contribution. Code is open-source at xinglab-ai/mda.</p>
+<h2 id="references">References</h2>
+<ul><li>Nature Comms: <a href="https://www.nature.com/articles/s41467-023-43958-w" rel="noreferrer">https://www.nature.com/articles/s41467-023-43958-w</a></li><li>PMC: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10739971/" rel="noreferrer">https://pmc.ncbi.nlm.nih.gov/articles/PMC10739971/</a></li><li>Code: <a href="https://github.com/xinglab-ai/mda" rel="noreferrer">https://github.com/xinglab-ai/mda</a></li><li>Context: <a href="concept-representation-learning.html">concept-representation-learning</a>, <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a></li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://www.nature.com/articles/s41467-023-43958-w" rel="noreferrer">https://www.nature.com/articles/s41467-023-43958-w</a></li></ul></details>
+</main>
+</body>
+</html>

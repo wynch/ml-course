@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz · Data &amp; evaluation · ML course</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d; --track:#1f918d; --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67; --grid:rgba(28,36,34,.10);
+  --warn:#c1121f; --soft:rgba(31,145,141,.10);
+  --wrong:#c0504d; --wrong-soft:rgba(192,80,77,.10);
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --grid:rgba(232,238,236,.12); --warn:#ff8f85;
+    --soft:rgba(31,145,141,.16);
+    --wrong:#f0938f; --wrong-soft:rgba(240,147,143,.13);
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;padding-bottom:5.6rem}
+a{color:var(--accent)}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;background:var(--track);color:var(--track-ink);
+  padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.topbar .spacer{flex:1 1 auto}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:920px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 2rem}
+.intro{max-width:70ch;color:var(--ink)}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .7rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.8rem,2vw,1.2rem);margin:1.4rem 0}
+button{font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:.34rem .82rem;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button:disabled{opacity:1}
+button.primary:hover{color:#fff;filter:brightness(1.06)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:.78rem;color:var(--muted);margin:.35rem 0 0}
+.mono,code{font-family:var(--mono);font-size:.92em}
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ───────── quiz-specific ───────── */
+.qhead{display:flex;flex-wrap:wrap;gap:.5rem;align-items:baseline;margin:0 0 .55rem}
+.qnum{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted)}
+.tag{font-family:var(--display);font-size:.68rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;border:1px solid var(--line);border-radius:999px;
+  padding:.1rem .5rem;color:var(--muted)}
+.tag.conceptual{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.tag.numbers{color:var(--t1);border-color:var(--t1)}
+.tag.predict{color:var(--t3);border-color:var(--t3)}
+.tag.code{color:var(--muted);border-color:var(--line);background:var(--grid)}
+.qhead .spacer{flex:1 1 auto}
+.qstate{font-family:var(--display);font-size:.7rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted)}
+.qtext{margin:0 0 .7rem;max-width:74ch}
+.qtext b{font-weight:600}
+pre.snippet{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--grid);
+  border:1px solid var(--line);border-radius:10px;padding:.65rem .8rem;margin:.2rem 0 .75rem;
+  overflow-x:auto}
+.srcfile{font-family:var(--mono);font-size:.76rem;color:var(--muted);margin:-.5rem 0 .75rem}
+.opts{display:flex;flex-direction:column;gap:.4rem;margin:0 0 .3rem}
+.opt{display:flex;gap:.6rem;align-items:flex-start;text-align:left;width:100%;
+  font-family:var(--body);font-size:.92rem;font-weight:400;line-height:1.45;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:10px;
+  padding:.55rem .7rem;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent);color:var(--ink);background:var(--soft)}
+.opt:disabled{cursor:default}
+.opt .key{font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--muted);
+  min-width:1.2em;padding-top:.08rem}
+.opt.picked{border-color:var(--accent)}
+.opt.right{border-color:var(--accent);background:var(--soft)}
+.opt.right .key{color:var(--accent)}
+.opt.wrongpick{border-color:var(--wrong);background:var(--wrong-soft)}
+.opt.wrongpick .key{color:var(--wrong)}
+.opt .mark{margin-left:auto;font-family:var(--display);font-size:.76rem;font-weight:600;
+  white-space:nowrap;padding-left:.5rem}
+.opt.right .mark{color:var(--accent)}
+.opt.wrongpick .mark{color:var(--wrong)}
+.numrow{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:0 0 .3rem}
+.numrow input{font-family:var(--mono);font-size:.9rem;color:var(--ink);background:var(--paper);
+  border:1px solid var(--line);border-radius:10px;padding:.45rem .6rem;width:15rem;max-width:100%}
+.acts{display:flex;flex-wrap:wrap;gap:.45rem;margin:.55rem 0 0}
+.verdictline{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.03em;
+  text-transform:uppercase;border-radius:999px;padding:.2rem .62rem;display:inline-block;
+  border:1px solid var(--line);margin:.7rem 0 .45rem}
+.verdictline.ok{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.verdictline.no{color:var(--wrong);border-color:var(--wrong);background:var(--wrong-soft)}
+.explain{font-size:.88rem;line-height:1.5;border-left:3px solid var(--line);
+  padding:.1rem 0 .1rem .75rem;margin:.2rem 0 0;max-width:74ch;color:var(--ink)}
+.explain .src{display:block;font-family:var(--mono);font-size:.76rem;color:var(--muted);margin-top:.4rem}
+.explain a.tryit{font-family:var(--display);font-size:.78rem;font-weight:600;text-decoration:none;
+  border:1px solid var(--accent);border-radius:999px;padding:.16rem .6rem;display:inline-block;
+  margin-top:.5rem}
+.explain a.tryit:hover{background:var(--soft)}
+.scorebar{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--panel);
+  border-top:1px solid var(--line);padding:.55rem clamp(.9rem,3vw,2rem)}
+.scorebar .inner{max-width:920px;margin:0 auto;display:flex;flex-wrap:wrap;gap:.5rem .9rem;
+  align-items:center}
+.scorebar .score{font-family:var(--mono);font-size:1rem;font-weight:600;color:var(--accent)}
+.scorebar .of{color:var(--muted);font-weight:400}
+.scorebar .msg{font-size:.84rem;color:var(--muted);flex:1 1 260px;min-width:0}
+.scorebar .msg b{color:var(--ink)}
+.scorebar .msg .review{display:block;font-size:.78rem;margin-top:.1rem}
+@media (max-width:700px){
+  .topbar h1{font-size:.98rem}
+  .scorebar .msg{flex-basis:100%}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Quiz · Data &amp; evaluation</h1>
+  <span class="pill">Lab 05½ · Transformers/LLMs</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">← All quizzes</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">Ten questions on lab 05½ — the bridge lab where you build the evaluation
+      harness before a trainer or a benchmark library hides the decisions.</p>
+    <p>Answer in any order; answering locks a question and reveals the explanation.
+      Your answers are kept in this browser only. Every number below comes from the lab's own
+      <span class="mono">metrics.py</span>, its tests and its explorable — two questions ask you to
+      <b>predict</b> what the scorecard does before you open it, so try to commit before you click through.</p>
+  </section>
+
+  <div id="quiz"></div>
+</main>
+
+<footer>
+  <p class="paths">module → <a href="../modules/05a-data-evaluation/README.md">../modules/05a-data-evaluation/README.md</a>
+    · explorable → <a href="../explorables/05a-evaluation-lab.html">../explorables/05a-evaluation-lab.html</a></p>
+  <p>Matching reading: this bridge lab has no Hugging Face chapter — the README points instead at
+    Stanford CS336, <a href="https://cs336.stanford.edu/">Language Modeling from Scratch</a>
+    (Stanford CRFM's <a href="https://crfm.stanford.edu/helm/">HELM</a> is the companion for
+    reproducible, multi-metric evaluation).</p>
+</footer>
+
+<div class="scorebar">
+  <div class="inner">
+    <span class="score"><span id="sc-score">0</span><span class="of"> / 10</span></span>
+    <span class="msg" id="sc-msg">Nothing answered yet.</span>
+    <button id="sc-reset">Reset quiz</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ═════════════════════════ PURE LOGIC START ═════════════════════════
+   Question bank + grading. Dependency-free and DOM-free: the verification
+   harness loads this file's exports under node and asserts the grading rules,
+   the score accumulation, and the answer-key balance.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const QUIZ_ID = "05a";
+const STORE_KEY = "mlcourse-quiz-" + QUIZ_ID;
+const SUMMARY_KEY = "mlcourse-quiz-scores";
+
+const QUESTIONS = [
+  /* ── 1 ───────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q1", kind: "single", tag: "conceptual", topic: "Why the threshold is chosen on validation",
+    text: "The lab is blunt about the order of operations: <i>choose the threshold on the " +
+          "<b>validation</b> set, record the rule, then evaluate that frozen rule on the " +
+          "<b>test</b> set.</i> With the default 70/15/15 split, validation and test are the " +
+          "same size — so why does it matter which one you sweep the threshold on?",
+    options: [
+      "The test split is larger, so its estimate has lower variance and deserves the harder decision.",
+      "Sweeping a threshold on a split makes that split part of your fitting procedure; the test set is only an honest estimate of a rule that was frozen before it was touched.",
+      "Validation probabilities come out better calibrated than test probabilities, so thresholds chosen there transfer more reliably.",
+      "It is a convention inherited from the Trainer API; with a fixed seed the two splits are interchangeable."
+    ],
+    answer: 1,
+    explain: "Every choice you make by looking at a split — threshold, checkpoint, feature, prompt — " +
+             "spends that split's honesty. Both are 15% of the data here, so it is not about size: it is " +
+             "about which one has already been consulted. The “test is bigger” answer is worth checking " +
+             "against the code — <code>split_indices(100)</code> returns 70/15/15, exactly equal.",
+    source: "modules/05a-data-evaluation/README.md — “Thresholds encode costs” and “Why this comes before fine-tuning” · python/src/metrics.py:94-116 (split_indices)"
+  },
+  /* ── 2 ─────────────────────────────────────────────────── read-code ── */
+  {
+    id: "q2", kind: "single", tag: "code", topic: "The >= in confusion_counts",
+    text: "<code>tests/test_metrics.py</code> pins this down at threshold 0.5 with " +
+          "<code>y = [1, 1, 0, 0]</code> and <code>p = [0.9, 0.4, 0.8, 0.1]</code>: " +
+          "<code>Confusion(1, 1, 1, 1)</code>, every metric 0.5. Keep that same data and " +
+          "call it with <code>threshold=0.9</code> instead. What comes back?",
+    code: "def confusion_counts(y_true, probability, threshold: float = 0.5) -> Confusion:\n" +
+          "    truth, prob = _as_arrays(y_true, probability)\n" +
+          "    pred = prob >= threshold\n" +
+          "    positive = truth == 1\n" +
+          "    return Confusion(\n" +
+          "        tp=int(np.sum(pred & positive)),\n" +
+          "        fp=int(np.sum(pred & ~positive)),\n" +
+          "        fn=int(np.sum(~pred & positive)),\n" +
+          "        tn=int(np.sum(~pred & ~positive)),\n" +
+          "    )",
+    file: "modules/05a-data-evaluation/python/src/metrics.py (docstring and range guard trimmed)",
+    options: [
+      "<code>Confusion(tp=1, fp=0, fn=1, tn=2)</code> — precision 1.0, recall 0.5, accuracy 0.75.",
+      "<code>Confusion(tp=0, fp=0, fn=2, tn=2)</code> — nothing clears the bar, so precision is 0.0.",
+      "<code>Confusion(1, 1, 1, 1)</code> again — the counts only depend on the ranking, not the cut point.",
+      "A <code>ValueError</code> — 0.9 is outside the half-open interval the guard accepts."
+    ],
+    answer: 0,
+    explain: "The comparison is <code>prob >= threshold</code>, so the example at exactly 0.9 is still " +
+             "predicted positive: one TP, and the 0.8 false positive drops to a TN. The " +
+             "<code>tp=0</code> distractor is what you get if you read that line as a strict " +
+             "<code>&gt;</code> — a one-character misreading that silently changes every metric at the " +
+             "boundary, which is why the test asserts exact counts rather than rounded scores.",
+    source: "modules/05a-data-evaluation/python/src/metrics.py:34-46 · tests/test_metrics.py:15-21 (test_confusion_and_metrics)"
+  },
+  /* ── 3 ───────────────────────────────────────────── real numbers ── */
+  {
+    id: "q3", kind: "single", tag: "numbers", topic: "What leakage does to the scorecard",
+    text: "In <i>The honest scorecard</i>, leave the threshold at 0.50 and press " +
+          "<b>Introduce leakage</b> — eight of the forty test examples start copying their own label " +
+          "into the probability. What does the confusion matrix do?",
+    options: [
+      "TP 18 → 24 and FP 4 → 0: the eight leaked examples all become correct, so accuracy jumps to 100%.",
+      "TP and FP are unchanged; only the slice bars move, because the leak lands entirely in the daylight group.",
+      "TP 18 → 19 and FP 4 → 3: accuracy goes 85% → 90% on a model that has not changed at all.",
+      "TP 18 → 26 and FN 2 → 0: every leaked example was previously a miss."
+    ],
+    answer: 2,
+    explain: "Only two of the eight contaminated examples were being classified differently before, so " +
+             "the matrix moves by one cell each way — TP 18→19, FP 4→3, FN 2→1, TN 16→17 — and " +
+             "accuracy rises five points, F1 85.7% → 90.5%. That understatement is the point: real " +
+             "leakage rarely announces itself with a suspiciously perfect 100%, it just quietly buys you " +
+             "a few points you did not earn.",
+    source: "explorables/05a-evaluation-lab.html — leaked = base.map((p,i)=>i%5===0?(truth[i]?.97:.03):p), leakNote “the measurement was contaminated”",
+    tryIt: { href: "../explorables/05a-evaluation-lab.html", label: "try it — toggle Introduce leakage at 0.50" }
+  },
+  /* ── 4 ────────────────────────────────────── conceptual, multi ── */
+  {
+    id: "q4", kind: "multi", tag: "conceptual", topic: "What an aggregate score hides",
+    text: "<b>Select all that apply.</b> The lab spends two sections on why one number is not a " +
+          "verdict. Which of these are true of this module's material?",
+    options: [
+      "On a dataset with 1% positives, a classifier that always answers “negative” is 99% accurate.",
+      "<code>classification_metrics</code> returns 0.0 rather than raising when a denominator is zero, so a threshold that predicts no positives at all reports precision 0.0 — not a crash.",
+      "A model can improve on the aggregate metric while regressing badly on a small but important slice.",
+      "Picking which slices to report after seeing the final test results is the recommended way to locate a model's weak spots."
+    ],
+    answer: [0, 1, 2],
+    explain: "The first three are the module's own claims and code. The fourth inverts it: the README says " +
+             "to define the important slices <i>before</i> looking at the test results, because hunting " +
+             "after the fact finds a flattering subgroup rather than an honest one. The quiet one is the " +
+             "second — <code>_safe_div</code> makes a degenerate threshold look like a score of 0.0 " +
+             "instead of an error, so a silent 0.0 in a sweep means “nothing predicted positive”.",
+    source: "modules/05a-data-evaluation/README.md — “The confusion matrix is the primitive”, “Aggregate metrics hide slices” · python/src/metrics.py:49-70 (_safe_div, classification_metrics)"
+  },
+  /* ── 5 ───────────────────────────────────────────── real numbers ── */
+  {
+    id: "q5", kind: "numeric", tag: "numbers", topic: "Computing ECE by hand",
+    text: "Work the lab's calibration definition by hand: bucket into equal-width bins, take the mean " +
+          "confidence and the empirical positive rate per non-empty bin, then the example-weighted mean " +
+          "absolute gap. For <code>y = [0, 0, 1, 1]</code>, <code>p = [0.1, 0.2, 0.8, 0.9]</code> " +
+          "and <b>2 bins</b>, what is the ECE? <b>Type the number.</b>",
+    answer: 0.15, tol: 0.005, tolLabel: "±0.005 (0.145 – 0.155)",
+    placeholder: "e.g. 0.42",
+    explain: "Two bins split at 0.5. The low bin holds 0.1 and 0.2 — mean confidence 0.15, observed " +
+             "positive rate 0 — a gap of 0.15; the high bin holds 0.8 and 0.9 — confidence 0.85, rate " +
+             "1.0 — the same 0.15. Both bins hold half the examples, so the weighted mean is 0.15. Note " +
+             "that confidence here is the <i>positive-class</i> probability, not max(p, 1−p): reading it " +
+             "the other way makes the low bin look 85% confident and gives you a different number.",
+    source: "modules/05a-data-evaluation/python/src/metrics.py:73-91 (expected_calibration_error) · solutions/solution_c_calibration.py · README “Calibration: does 0.8 mean eight out of ten?”"
+  },
+  /* ── 6 ─────────────────────────────────────────────────── read-code ── */
+  {
+    id: "q6", kind: "single", tag: "code", topic: "The tie-breaking contract",
+    text: "Exercise A's skeleton states a contract in its docstring: " +
+          "<i>evaluate every candidate. On ties, keep the smaller threshold.</i> " +
+          "Here is the verified solution. Where is that contract actually implemented?",
+    code: "def best_f1_threshold(y_true, probability, candidates):\n" +
+          "    best_threshold = None\n" +
+          "    best_score = -1.0\n" +
+          "    for threshold in sorted(candidates):\n" +
+          "        score = classification_metrics(y_true, probability, threshold)[\"f1\"]\n" +
+          "        if score > best_score:\n" +
+          "            best_score = score\n" +
+          "            best_threshold = threshold\n" +
+          "    return best_threshold",
+    file: "modules/05a-data-evaluation/python/solutions/solution_a_threshold.py",
+    options: [
+      "In <code>sorted(candidates)</code> alone — visiting candidates in ascending order is enough.",
+      "In <code>best_score = -1.0</code> — starting below any achievable F1 is what makes the first candidate win a tie.",
+      "In both lines together: ascending order means the smallest tied threshold is seen first, and the strict <code>&gt;</code> refuses to let a later equal score displace it.",
+      "Nowhere — two different thresholds cannot produce bit-identical F1, so the tie case never arises."
+    ],
+    answer: 2,
+    explain: "Either half alone is not enough: with <code>&gt;=</code> a later tie would overwrite the " +
+             "winner even in sorted order, and without <code>sorted()</code> the strict <code>&gt;</code> " +
+             "would just keep whichever tied candidate the caller happened to list first. Ties are " +
+             "ordinary, not exotic — F1 only changes when a threshold crosses an actual probability, so " +
+             "any two cut points between the same pair of predictions score identically.",
+    source: "modules/05a-data-evaluation/python/solutions/solution_a_threshold.py:6-14 · exercises/ex_a_threshold.py:10-15 (the docstring contract) · tests/test_solutions.py:8-11"
+  },
+  /* ── 7 ──────────────────────────────────────────────────── predict ── */
+  {
+    id: "q7", kind: "single", tag: "predict", topic: "Raising the threshold",
+    text: "Back in <i>The honest scorecard</i> with a clean test set, drag the threshold from " +
+          "<b>0.50 to 0.70</b>. At 0.50 the page reads accuracy 85%, precision 82%, recall 90%. " +
+          "<b>Predict</b> the three numbers at 0.70.",
+    options: [
+      "Precision 100%, recall 50%, and accuracy <i>falls</i> to 75% — half the positives are now missed.",
+      "Precision 100%, recall 50%, and accuracy holds at 85% — the errors have swapped type, not count.",
+      "Precision 100%, recall 50%, and accuracy rises to 92% — every surviving prediction is right.",
+      "All three fall together: a stricter rule is simply a worse rule on a balanced set."
+    ],
+    answer: 0,
+    explain: "At 0.70 the matrix is TP 10, FP 0, FN 10, TN 20 on 40 examples: precision is perfect " +
+             "because nothing false clears the bar, but ten of the twenty positives are now missed, so " +
+             "accuracy drops from 34/40 to 30/40. The tempting answer is that accuracy holds — it only " +
+             "would if each false positive removed were replaced by exactly one new false negative, and " +
+             "here you trade 4 FPs away to buy 8 FNs.",
+    source: "explorables/05a-evaluation-lab.html — score() over the fixed 40-example set at threshold 0.70 · README “Thresholds encode costs”",
+    tryIt: { href: "../explorables/05a-evaluation-lab.html", label: "try it — drag the threshold to 0.70" }
+  },
+  /* ── 8 ──────────────────────────────────────────────────── predict ── */
+  {
+    id: "q8", kind: "single", tag: "predict", topic: "What ECE actually rewards",
+    text: "Exercise C ends by comparing two models on <code>y = [0, 0, 1, 1]</code> with 5 bins: a " +
+          "<b>calibrated</b> one at <code>[0.1, 0.3, 0.7, 0.9]</code> and an <b>overconfident</b> one at " +
+          "<code>[0.01, 0.05, 0.95, 0.99]</code>. Both get every class right. " +
+          "<b>Predict</b> which ECE is lower.",
+    options: [
+      "They tie at 0.0 — identical class predictions must give identical calibration error.",
+      "The calibrated one, 0.10 versus 0.30: ECE is what punishes overconfidence, by construction.",
+      "The overconfident one, but only because 5 bins is too few; at 10 bins the ranking flips back.",
+      "The overconfident one, 0.03 versus 0.20 — on four examples the observed rate in every occupied bin is exactly 0 or 1, so near-certainty is the better-calibrated answer."
+    ],
+    answer: 3,
+    explain: "This is the trap the exercise is built to spring. With four examples each bin's empirical " +
+             "frequency can only be 0 or 1, so 0.99 on a true positive has a gap of 0.01 while an " +
+             "“honest” 0.7 has a gap of 0.30. ECE measures the distance to the <i>observed</i> rate, and " +
+             "at this sample size the observed rate is certainty — which is exactly why the README says " +
+             "ECE is a diagnostic whose value moves with binning and sample size, and why you must report " +
+             "both.",
+    source: "modules/05a-data-evaluation/python/exercises/ex_c_calibration.py:12-17 · solutions/solution_c_calibration.py · README “ECE is a diagnostic, not a complete verdict”"
+  },
+  /* ── 9 ────────────────────────────────────── conceptual, multi ── */
+  {
+    id: "q9", kind: "multi", tag: "conceptual", topic: "What split_indices guarantees",
+    text: "<b>Select all that apply.</b> <code>split_indices</code> is thirty lines of the lab you are " +
+          "expected to trust for the rest of the course. Which properties does it actually give you?",
+    options: [
+      "Two calls with the same <code>n_examples</code> and <code>seed</code> return identical index arrays — the split is reproducible without saving it.",
+      "The three arrays are disjoint and together cover every row index exactly once.",
+      "The split is stratified: each of the three parts gets the same positive-class rate as the whole.",
+      "The test part absorbs the rounding remainder — <code>split_indices(10)</code> gives 7 / 1 / 2, not 7 / 1.5 / 1.5."
+    ],
+    answer: [0, 1, 3],
+    explain: "Determinism and exhaustive disjointness are asserted directly in " +
+             "<code>test_splits_are_deterministic_disjoint_and_complete</code>; the remainder lands in " +
+             "test because train and validation take <code>int(n * ratio)</code> and test takes the rest. " +
+             "Stratification is the plausible extra that is <i>not</i> there — the function permutes row " +
+             "indices and never looks at the labels, so on a rare-positive dataset a small split can end " +
+             "up with almost none.",
+    source: "modules/05a-data-evaluation/python/src/metrics.py:94-116 · tests/test_metrics.py:28-34"
+  },
+  /* ── 10 ──────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q10", kind: "single", tag: "conceptual", topic: "Choosing the unit that must not leak",
+    text: "You inherit a speech model evaluated on 10,000 clips from 300 speakers, split randomly by " +
+          "clip. You run the lab's <code>duplicate_overlap(train_ids, test_ids)</code> on the clip IDs " +
+          "and it returns <code>[]</code>. What should you conclude?",
+    options: [
+      "The evaluation is clean on the dimension that matters: disjoint IDs mean no example was seen twice.",
+      "Almost nothing — the check only rules out exact ID overlap, and here the leaking unit is the speaker: nearly every test speaker also appears in training.",
+      "The result is meaningless because <code>duplicate_overlap</code> compares row positions rather than sets, so it cannot detect a reordered duplicate.",
+      "It confirms the split was stratified, since a stratified split is what forces the ID sets apart."
+    ],
+    answer: 1,
+    explain: "Exact duplicates are the easy case; the README's instruction is to split by the unit that " +
+             "could leak — patient, customer, document, conversation, time window — not blindly by row. " +
+             "With ~33 clips per speaker, a by-clip split puts the same voice on both sides and the test " +
+             "score measures memorised speakers. The third option is a misreading of the helper: it does " +
+             "compare sets, <code>sorted(set(map(str, train_ids)) &amp; set(map(str, test_ids)))</code>, " +
+             "which is exactly why it is blind to anything but identical IDs.",
+    source: "modules/05a-data-evaluation/README.md — “Leakage: the fastest route to a fake breakthrough” · python/src/metrics.py:119-121 (duplicate_overlap) · exercises/ex_b_leakage.py"
+  }
+];
+
+/* ---------------------------------------------------------------- grading */
+function sameSet(a, b) {
+  const x = a.slice().sort(function (p, q) { return p - q; });
+  const y = b.slice().sort(function (p, q) { return p - q; });
+  return x.length === y.length && x.every(function (v, i) { return v === y[i]; });
+}
+function gradeSingle(q, ans) { return typeof ans === "number" && ans === q.answer; }
+function gradeMulti(q, ans) { return Array.isArray(ans) && sameSet(ans, q.answer); }
+function gradeNumeric(q, ans) {
+  const v = typeof ans === "number" ? ans : parseFloat(String(ans).replace(/[\s,_]/g, ""));
+  return isFinite(v) && Math.abs(v - q.answer) <= q.tol;
+}
+function gradeQuestion(q, ans) {
+  if (ans === undefined || ans === null) return false;
+  if (q.kind === "multi") return gradeMulti(q, ans);
+  if (q.kind === "numeric") return gradeNumeric(q, ans);
+  return gradeSingle(q, ans);
+}
+function scoreAll(questions, answers) {
+  let score = 0, answered = 0;
+  const wrong = [];
+  questions.forEach(function (q) {
+    const a = answers[q.id];
+    if (a === undefined || a === null) return;
+    answered += 1;
+    if (gradeQuestion(q, a)) score += 1; else wrong.push(q.topic);
+  });
+  return { score: score, answered: answered, total: questions.length, wrong: wrong };
+}
+function verdictFor(score, total) {
+  if (score >= 9) return { cls: "ok", text: "solid — move on" };
+  if (score >= 6) return { cls: "no", text: "review the flagged topics" };
+  return { cls: "no", text: "re-run the module notebook first" };
+}
+/* answer-key balance: how often each option position is the correct single-choice answer */
+function keyBalance(questions) {
+  const counts = [0, 0, 0, 0];
+  questions.forEach(function (q) {
+    if (q.kind === "single") counts[q.answer] += 1;
+  });
+  return counts;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { QUIZ_ID, STORE_KEY, SUMMARY_KEY, QUESTIONS, sameSet, gradeSingle,
+                     gradeMulti, gradeNumeric, gradeQuestion, scoreAll, verdictFor, keyBalance };
+}
+/* ══════════════════════════ PURE LOGIC END ══════════════════════════ */
+
+/* ═════════════════════════ DOM / rendering ═════════════════════════ */
+(function () {
+  if (typeof document === "undefined") return;   // running under node
+  const LETTERS = ["A", "B", "C", "D", "E", "F"];
+  const root = document.getElementById("quiz");
+  let answers = {};
+
+  /* ---- persistence ---- */
+  function load() {
+    try {
+      const raw = window.localStorage.getItem(STORE_KEY);
+      if (!raw) return {};
+      const obj = JSON.parse(raw);
+      return (obj && typeof obj.answers === "object" && obj.answers) ? obj.answers : {};
+    } catch (e) { return {}; }
+  }
+  function save() {
+    const s = scoreAll(QUESTIONS, answers);
+    const payload = { quiz: QUIZ_ID, answers: answers, score: s.score,
+                      total: s.total, answered: s.answered, ts: Date.now() };
+    try {
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(payload));
+      let all = {};
+      try { all = JSON.parse(window.localStorage.getItem(SUMMARY_KEY) || "{}") || {}; }
+      catch (e) { all = {}; }
+      all[QUIZ_ID] = { score: s.score, total: s.total, ts: payload.ts };
+      window.localStorage.setItem(SUMMARY_KEY, JSON.stringify(all));
+    } catch (e) { /* private mode: quiz still works, just not remembered */ }
+  }
+
+  /* ---- one question ---- */
+  function buildQuestion(q, i) {
+    const sec = document.createElement("section");
+    sec.className = "panel";
+    sec.id = "sec-" + q.id;
+
+    const head = document.createElement("div");
+    head.className = "qhead";
+    const num = document.createElement("span");
+    num.className = "qnum";
+    num.textContent = "Question " + (i + 1);
+    const tag = document.createElement("span");
+    tag.className = "tag " + q.tag;
+    tag.textContent = { conceptual: "concept", numbers: "real numbers",
+                        predict: "predict", code: "read the code" }[q.tag] || q.tag;
+    const sp = document.createElement("span");
+    sp.className = "spacer";
+    const state = document.createElement("span");
+    state.className = "qstate";
+    state.textContent = "unanswered";
+    head.appendChild(num); head.appendChild(tag); head.appendChild(sp); head.appendChild(state);
+    sec.appendChild(head);
+
+    const txt = document.createElement("p");
+    txt.className = "qtext";
+    txt.innerHTML = q.text;
+    sec.appendChild(txt);
+
+    if (q.code) {
+      const pre = document.createElement("pre");
+      pre.className = "snippet";
+      pre.textContent = q.code;
+      sec.appendChild(pre);
+      const src = document.createElement("p");
+      src.className = "srcfile";
+      src.textContent = q.file;
+      sec.appendChild(src);
+    }
+
+    const holder = { sec: sec, state: state, opts: [], input: null, checkBtn: null,
+                     result: null, q: q };
+
+    if (q.kind === "numeric") {
+      const row = document.createElement("div");
+      row.className = "numrow";
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.inputMode = "numeric";
+      inp.setAttribute("aria-label", "your answer");
+      inp.placeholder = q.placeholder || "your answer";
+      const btn = document.createElement("button");
+      btn.className = "primary";
+      btn.textContent = "Answer";
+      btn.addEventListener("click", function () {
+        const v = parseFloat(inp.value.replace(/[\s,_]/g, ""));
+        if (!isFinite(v)) { inp.focus(); return; }
+        answers[q.id] = v;
+        save(); renderQuestion(holder); renderBar();
+      });
+      inp.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); btn.click(); }
+      });
+      row.appendChild(inp); row.appendChild(btn);
+      sec.appendChild(row);
+      holder.input = inp; holder.checkBtn = btn;
+    } else {
+      const list = document.createElement("div");
+      list.className = "opts";
+      q.options.forEach(function (opt, oi) {
+        const b = document.createElement("button");
+        b.className = "opt";
+        b.type = "button";
+        const key = document.createElement("span");
+        key.className = "key";
+        key.textContent = LETTERS[oi];
+        const body = document.createElement("span");
+        body.innerHTML = opt;
+        const mark = document.createElement("span");
+        mark.className = "mark";
+        b.appendChild(key); b.appendChild(body); b.appendChild(mark);
+        b.addEventListener("click", function () {
+          if (answers[q.id] !== undefined) return;
+          if (q.kind === "multi") {
+            const cur = holder.picked;
+            const at = cur.indexOf(oi);
+            if (at >= 0) cur.splice(at, 1); else cur.push(oi);
+            b.classList.toggle("picked", at < 0);
+            holder.checkBtn.disabled = cur.length === 0;
+          } else {
+            answers[q.id] = oi;
+            save(); renderQuestion(holder); renderBar();
+          }
+        });
+        list.appendChild(b);
+        holder.opts.push({ btn: b, mark: mark });
+      });
+      sec.appendChild(list);
+
+      if (q.kind === "multi") {
+        holder.picked = [];
+        const acts = document.createElement("div");
+        acts.className = "acts";
+        const btn = document.createElement("button");
+        btn.className = "primary";
+        btn.textContent = "Answer";
+        btn.disabled = true;
+        btn.addEventListener("click", function () {
+          if (answers[q.id] !== undefined || holder.picked.length === 0) return;
+          answers[q.id] = holder.picked.slice();
+          save(); renderQuestion(holder); renderBar();
+        });
+        acts.appendChild(btn);
+        const note = document.createElement("span");
+        note.className = "hint";
+        note.style.margin = "0";
+        note.style.alignSelf = "center";
+        note.textContent = "pick every option you believe is true, then Answer";
+        acts.appendChild(note);
+        sec.appendChild(acts);
+        holder.checkBtn = btn;
+      }
+    }
+
+    const res = document.createElement("div");
+    res.style.display = "none";
+    sec.appendChild(res);
+    holder.result = res;
+
+    return holder;
+  }
+
+  /* ---- render one question's locked / unlocked state ---- */
+  function renderQuestion(h) {
+    const q = h.q, ans = answers[q.id], locked = ans !== undefined;
+    const ok = locked && gradeQuestion(q, ans);
+
+    h.state.textContent = locked ? (ok ? "correct" : "incorrect") : "unanswered";
+    h.state.style.color = locked ? (ok ? "var(--accent)" : "var(--wrong)") : "var(--muted)";
+
+    if (h.input) {
+      h.input.disabled = locked;
+      if (locked) h.input.value = String(ans);
+      h.checkBtn.disabled = locked;
+      h.checkBtn.textContent = locked ? "answered" : "Answer";
+    }
+    const correctSet = q.kind === "multi" ? q.answer : (q.kind === "single" ? [q.answer] : []);
+    const pickedSet = !locked ? (h.picked || [])
+      : (q.kind === "multi" ? ans : (q.kind === "single" ? [ans] : []));
+
+    h.opts.forEach(function (o, oi) {
+      o.btn.disabled = locked;
+      o.btn.classList.toggle("picked", !locked && pickedSet.indexOf(oi) >= 0);
+      const isRight = correctSet.indexOf(oi) >= 0;
+      const isPicked = locked && pickedSet.indexOf(oi) >= 0;
+      o.btn.classList.toggle("right", locked && isRight);
+      o.btn.classList.toggle("wrongpick", locked && isPicked && !isRight);
+      o.mark.textContent = !locked ? ""
+        : (isRight ? (isPicked ? "✓ correct · you picked it" : "✓ correct")
+                   : (isPicked ? "✗ your pick" : ""));
+    });
+    if (h.checkBtn && q.kind === "multi") {
+      h.checkBtn.disabled = locked || (h.picked || []).length === 0;
+      h.checkBtn.textContent = locked ? "answered" : "Answer";
+    }
+
+    if (!locked) { h.result.style.display = "none"; h.result.innerHTML = ""; return; }
+
+    h.result.innerHTML = "";
+    h.result.style.display = "block";
+    const v = document.createElement("span");
+    v.className = "verdictline " + (ok ? "ok" : "no");
+    v.textContent = ok ? "Correct" : "Not quite";
+    h.result.appendChild(v);
+
+    if (q.kind === "numeric") {
+      const line = document.createElement("p");
+      line.className = "hint";
+      line.style.marginTop = "0";
+      const nf = function (v) {
+        return Number(v).toLocaleString("en-US", { maximumFractionDigits: 6 });
+      };
+      line.innerHTML = "answer <span class=\"mono\">" + nf(q.answer) +
+        "</span> · accepted " + q.tolLabel + " · you typed <span class=\"mono\">" +
+        nf(ans) + "</span>";
+      h.result.appendChild(line);
+    }
+
+    const ex = document.createElement("div");
+    ex.className = "explain";
+    ex.innerHTML = q.explain;
+    const src = document.createElement("span");
+    src.className = "src";
+    src.textContent = "source · " + q.source;
+    ex.appendChild(src);
+    if (q.tryIt) {
+      const a = document.createElement("a");
+      a.className = "tryit";
+      a.href = q.tryIt.href;
+      a.textContent = q.tryIt.label;
+      ex.appendChild(a);
+    }
+    h.result.appendChild(ex);
+  }
+
+  /* ---- score bar ---- */
+  function renderBar() {
+    const s = scoreAll(QUESTIONS, answers);
+    document.getElementById("sc-score").textContent = String(s.score);
+    const msg = document.getElementById("sc-msg");
+    msg.innerHTML = "";
+    if (s.answered === 0) {
+      msg.textContent = "Nothing answered yet.";
+    } else if (s.answered < s.total) {
+      msg.textContent = s.answered + " of " + s.total + " answered — " +
+        (s.total - s.answered) + " to go.";
+    } else {
+      const vd = verdictFor(s.score, s.total);
+      const b = document.createElement("b");
+      b.textContent = s.score + " / " + s.total + " — " + vd.text + ".";
+      msg.appendChild(b);
+      const rev = document.createElement("span");
+      rev.className = "review";
+      rev.textContent = s.wrong.length
+        ? "Review: " + s.wrong.join(" · ")
+        : "Every topic clean.";
+      msg.appendChild(rev);
+    }
+  }
+
+  /* ---- boot ---- */
+  answers = load();
+  const holders = QUESTIONS.map(function (q, i) {
+    const h = buildQuestion(q, i);
+    root.appendChild(h.sec);
+    return h;
+  });
+  holders.forEach(renderQuestion);
+  renderBar();
+
+  document.getElementById("sc-reset").addEventListener("click", function () {
+    if (!window.confirm("Clear your answers for this quiz and start over?")) return;
+    answers = {};
+    holders.forEach(function (h) { h.picked = []; });
+    try {
+      window.localStorage.removeItem(STORE_KEY);
+      let all = {};
+      try { all = JSON.parse(window.localStorage.getItem(SUMMARY_KEY) || "{}") || {}; }
+      catch (e) { all = {}; }
+      delete all[QUIZ_ID];
+      window.localStorage.setItem(SUMMARY_KEY, JSON.stringify(all));
+    } catch (e) { /* ignore */ }
+    holders.forEach(renderQuestion);
+    renderBar();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+})();
+</script>
+<!-- built for ml-course quizzes v1 -->
+</html>

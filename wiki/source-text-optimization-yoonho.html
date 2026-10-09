@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>We Should Take Text Optimization More Seriously (Yoonho Lee) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="we-should-take-text-optimization-more-seriously">We Should Take Text Optimization More Seriously</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-07-04</span> <span>updated 2026-09-25</span> <span class="tag">prompt-optimization</span> <span class="tag">in-context-learning</span> <span class="tag">ai-agents</span> <span class="tag">self-improvement</span> <span class="tag">memory</span> <span class="tag">harness</span></div>
+<p><strong>Author:</strong> Yoonho Lee (Stanford AI Lab; Google Student Researcher) / <strong>Date:</strong> 2026-06-08 / <strong>Type:</strong> blog post / X article</p>
+<h2 id="summary">Summary</h2>
+<p>Yoonho Lee argues against a "common negative sentiment among ML researchers toward prompting" — the view that <em>real learning happens in the weights</em>. He defines <strong>text optimization</strong> broadly as any method that modifies the <strong>mutable text layer</strong> around a model: prompts, context, filesystem state, memory, retrieval databases, and harness code. His thesis is that this layer is a first-class <em>update mechanism</em> — functionally the same role as gradient-based weight optimization (changing future behavior in response to new information) — and deserves the same research seriousness the field gives to weight optimization.</p>
+<p>Three positive arguments. <strong>(1) Legitimacy:</strong> once a deployed AI system is viewed as a stateful machine with many behavior-conditioning states (weights being just one), "learning" means changing <em>any</em> of them; the question is which update target fits a given piece of information. <strong>(2) Sample efficiency:</strong> short, high-likelihood text has low description length (a Kolmogorov/MDL-style prior), so text edits are "compact patches to a pretrained world prior" and are orders of magnitude more sample-efficient in the low-data regime — hence the industry pattern of eliciting behavior via text, then distilling into weights over time. <strong>(3) A new scaling axis — update-time compute:</strong> reflective text optimization (Reflexion, Trace, GEPA, Meta-Harness) lets a system externalize hypotheses about how it should change and test them before committing, spending more compute to learn from a <em>single experience</em> — the analogue of inference-time scaling for a single input. SGD can't cheaply do this because its single running parameter vector commits each update.</p>
+<p>The piece then steel-mans the case for weights (amortization, new-circuit creation, optimizer theory, universal approximation, portability) and rebuts each — reframing the choice as a <strong>routing problem</strong>: weights are for stable, repeatedly-useful information; text is where information stays while it is <em>volatile, local, auditable, or not yet trusted enough to amortize</em>. He closes with a "call for good research on the text layer": theoretical analysis (PAC-Bayes on prompts), better evals that control for weight capability, "architecture research" mapping the design space (instruction hierarchy, DSPy programs, agent skills, memory systems), HCI for eliciting expert input, and seriously scaling up text optimization (a Wikipedia-scale knowledge/harness layer with its own scaling laws).</p>
+<h2 id="key-ideas">Key Ideas</h2>
+<ul><li><strong>The text layer as an update target.</strong> Prompts/context/memory/retrieval/harness = mutable state that conditions future behavior, on par with weights.</li><li><strong>MDL prior.</strong> Text updates are compact, high-likelihood patches to a pretrained prior → large sample-efficiency advantage in low-data regimes.</li><li><strong>Update-time compute</strong> as a new scaling axis: reflective, hypothesis-testing text optimization spends compute to learn from one experience.</li><li><strong>Routing framing.</strong> Weights = stable/general/amortizable info; text = volatile/local/auditable/not-yet-trusted info. Text as a <em>staging ground</em> before distillation into weights.</li><li><strong>Reachable behavior, not representational capacity</strong>, is the right lens; harnesses execute behaviors a frozen forward pass wouldn't reach.</li><li><strong>Call to action:</strong> theory (PAC-Bayes on prompts), evals (CL-bench, TerminalBench-2), a taxonomy of the design space, HCI, and scaling laws for text optimization.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li>The clearest manifesto for the <a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a> thesis — the harness/text layer as the locus of learning — and it name-checks Meta-Harness and OpenClaw-style agents.</li><li>Directly grounds <a href="source-dspy-lm-programs.html">source-dspy-lm-programs</a> (DSPy programs cited as points in the "text-layer design space") and the broader <a href="concept-developer-tools.html">concept-developer-tools</a> / agent-harness work in <a href="source-bundle-agent-harnesses.html">source-bundle-agent-harnesses</a>.</li><li>"Update-time compute" is an explicit sibling of <a href="concept-test-time-compute.html">concept-test-time-compute</a> — spending compute to <em>learn from</em> an experience rather than to <em>answer</em> an input.</li><li>The text→weights distillation pattern connects to <a href="analysis-self-distillation-as-universal-lever.html">analysis-self-distillation-as-universal-lever</a>, <a href="source-hinton-knowledge-distillation.html">source-hinton-knowledge-distillation</a>, and <a href="concept-self-improvement.html">concept-self-improvement</a>; the reflective-loop examples (Reflexion) tie to <a href="source-reflexion-verbal-rl.html">source-reflexion-verbal-rl</a> and <a href="source-self-refine.html">source-self-refine</a>.</li><li>Progressive-disclosure / large-context arguments (RAG, MemGPT, RLM) connect to <a href="source-memgpt-llm-os.html">source-memgpt-llm-os</a>, <a href="source-recursive-language-models.html">source-recursive-language-models</a>, <a href="concept-long-context.html">concept-long-context</a>, and the retrieval bundle <a href="source-bundle-retrieval-and-rag.html">source-bundle-retrieval-and-rag</a>.</li><li><a href="source-rrsi-regularized-harness-evolution.html">source-rrsi-regularized-harness-evolution</a> (Lee is a co-author) — reflective harness optimization at scale, with overfitting to the evolve set as the main failure and regularization as the fix (<code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code>, §1, §3).</li><li>The "extended mind" framing (Hutchins, Clark &amp; Chalmers, Bush's Memex, Notion/Obsidian) sits alongside the <a href="concept-neural-symbolic-bridge.html">concept-neural-symbolic-bridge</a> and external-representation themes.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><a href="https://x.com/yoonholeee/status/2064027464926716154" rel="noreferrer">X article (@yoonholeee)</a> · <a href="https://yoonholee.com/blog/2026/we-should-take-text-optimization-more-seriously/" rel="noreferrer">canonical blog post</a></li><li>Raw note (full text): <code>raw/tweet-text-optimization-yoonho.md</code></li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://x.com/yoonholeee/status/2064027464926716154" rel="noreferrer">https://x.com/yoonholeee/status/2064027464926716154</a></li><li><a href="https://yoonholee.com/blog/2026/we-should-take-text-optimization-more-seriously/" rel="noreferrer">https://yoonholee.com/blog/2026/we-should-take-text-optimization-more-seriously/</a></li><li><code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code></li></ul></details>
+</main>
+</body>
+</html>

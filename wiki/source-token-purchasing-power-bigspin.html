@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>The Decline of Token-Level Purchasing Power (Bigspin AI) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="the-decline-of-token-level-purchasing-power-bigspin-ai">The Decline of Token-Level Purchasing Power (Bigspin AI)</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-07-04</span> <span>updated 2026-07-04</span> <span class="tag">ai-economics</span> <span class="tag">token-pricing</span> <span class="tag">coding-agents</span> <span class="tag">developer-tools</span> <span class="tag">inference</span></div>
+<p><strong>Publisher:</strong> Bigspin AI <strong>Authors:</strong> Moritz Sudhof (CEO), Chris Potts (Chief Scientist) <strong>Date:</strong> 2026-06-21</p>
+<h2 id="summary">Summary</h2>
+<p>Bigspin AI measures <strong>"token-level purchasing power"</strong> — how much productive engineering output a single token buys — and finds it fell sharply over early 2026, a phenomenon they call <strong>"tokenflation"</strong>. Analyzing <strong>5,851 real Claude Opus 4.6 coding sessions</strong> (Feb 5 – Apr 15, 2026) with a "consumer price index" over five engineering deliverables (PRs shipped, files touched, lines of code, documentation, knowledge captures), they report that a token in mid-April 2026 purchased roughly <strong>$0.23</strong> of output versus <strong>$1.00</strong> in early February — a ~77% drop in just over two months, even though the <em>sticker</em> price per token did not rise. The point is subtle and important: the unit of AI cost (the token) can become dramatically more expensive <strong>in real terms</strong> while the nominal price list stays flat, because the model spends more tokens (especially on "thinking") to accomplish the same amount of shipped work.</p>
+<h2 id="key-ideas">Key Ideas</h2>
+<ul><li><strong>Tokenflation, quantified.</strong> Same model, same nominal price, but per-token output collapses. In a 10K-token session, February drafted <strong>630 code lines</strong> vs April's <strong>91</strong>; February completed <strong>0.30 PRs per 10K tokens</strong> vs April's <strong>0.16</strong>.</li><li><strong>Quality gains didn't offset the loss.</strong> Code survival rate rose 90% → 95% across the window — better code, but nowhere near enough to compensate for the efficiency drop.</li><li><strong>Three candidate causes.</strong> (1) <em>Job-mix shift</em> — the authors' strongest evidence — token allocation moved from <strong>97% tool use</strong> (code generation) in February to <strong>61%</strong> by mid-April, spread across code, text explanations, and <strong>thinking (1% → 18%)</strong>; (2) <em>model calibration</em> — ongoing behavior tuning during product improvements; (3) <em>harder tasks</em> — users tackling more complex problems needing extended collaboration. None fully explains it alone.</li><li><strong>Budgeting implication.</strong> Organizations forecasting AI-coding spend should expect materially higher costs: "producing engineering goods with AI has gotten considerably more expensive." Teams that measure <em>agent-drafted code</em> are hit harder than teams that measure <em>shipped PRs</em>.</li><li><strong>A new economic lens.</strong> Introduces a demand-side metric — output per token — distinct from the usual supply-side headline ($/token). The real cost of AI engineering can rise even as published prices fall.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li>The economic counterpart to the throughput story in <a href="source-loop-engineering-addy-osmani.html">source-loop-engineering-addy-osmani</a> — Osmani's explicit warning that loops behave differently when you are "token rich or poor" is exactly this dynamic, now measured.</li><li>Complements the cheap-open-model race captured in <a href="source-2026-q2-ai-ecosystem-notes.html">source-2026-q2-ai-ecosystem-notes</a> (OpenCode Go, low-cost GLM/Kimi/Qwen/DeepSeek/MiniMax) and independent price/quality tracking on Artificial Analysis — the supply side is deflating per-token prices while thinking-heavy usage inflates tokens-per-task.</li><li>Sits near frontier-model economics in <a href="source-deepseek-v3.html">source-deepseek-v3</a> and <a href="source-frontier-model-training.html">source-frontier-model-training</a>, and the small/cheap-model thesis in <a href="source-lacy-small-language-models.html">source-lacy-small-language-models</a>.</li><li>The "thinking rose 1% → 18%" driver ties directly to <a href="concept-test-time-compute.html">concept-test-time-compute</a> — extended reasoning is precisely what raises tokens-per-task.</li><li>The eval angle (what a coding agent actually <em>ships</em>, PR-survival as quality signal) relates to <a href="concept-swe-bench.html">concept-swe-bench</a> and to the honest-measurement spirit of <span class="dead" title="not published">idea-benchmark-honest-epistemic-loop</span>; scaling-side counterpart in <a href="source-cursor-scaling-agents.html">source-cursor-scaling-agents</a>.</li><li>Co-author Christopher Potts is a Stanford NLP professor, here in a startup/measurement capacity as Bigspin's Chief Scientist (shared via his announcement tweet).</li></ul>
+<h2 id="references">References</h2>
+<ul><li><a href="https://bigspin.ai/resources/the-decline-of-token-level-purchasing-power" rel="noreferrer">Bigspin AI — The Decline of Token-Level Purchasing Power</a></li><li><a href="https://x.com/ChrisGPotts/status/2064020793932325313" rel="noreferrer">Announcement tweet (@ChrisGPotts)</a></li><li>Raw notes: <code>raw/token-purchasing-power-bigspin.md</code>, <code>raw/tweet-tokenflation-purchasing-power.md</code></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://bigspin.ai/resources/the-decline-of-token-level-purchasing-power" rel="noreferrer">https://bigspin.ai/resources/the-decline-of-token-level-purchasing-power</a></li><li><a href="https://x.com/ChrisGPotts/status/2064020793932325313" rel="noreferrer">https://x.com/ChrisGPotts/status/2064020793932325313</a></li></ul></details>
+</main>
+</body>
+</html>

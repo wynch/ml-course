@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>SSL Decorrelation: Barlow Twins (2021) + VICReg (2021) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="ssl-decorrelation-methods-barlow-twins-vicreg">SSL Decorrelation Methods — Barlow Twins + VICReg</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-07</span> <span>updated 2026-05-07</span> <span class="tag">self-supervised-learning</span> <span class="tag">non-contrastive</span> <span class="tag">vision</span> <span class="tag">representation-learning</span> <span class="tag">decorrelation</span> <span class="tag">information-theory</span> <span class="tag">foundational</span></div>
+<p>Two FAIR papers, two months apart in 2021, that opened a third path to non-contrastive SSL: instead of the predictor + EMA asymmetry of <a href="source-ssl-contrastive-foundations.html">source-ssl-contrastive-foundations</a> (BYOL section), use <strong>explicit decorrelation regularisers</strong> to prevent collapse directly. Symmetric, no momentum, no stop-gradient — and the loss becomes a clean information-theoretic object.</p>
+<h2 id="barlow-twins-zbontar-jing-misra-lecun-deny-mar-2021">Barlow Twins — Zbontar, Jing, Misra, LeCun, Deny (Mar 2021)</h2>
+<p><strong>arXiv:</strong> <a href="https://arxiv.org/abs/2103.03230" rel="noreferrer">2103.03230</a>.</p>
+<p>A self-supervised loss that operates directly on the <strong>cross-correlation matrix</strong> of the two embeddings of a pair of augmented views, driven entirely by Barlow's <strong>redundancy-reduction principle</strong> from neuroscience.</p>
+<p><strong>Method:</strong> Two augmented views x_A, x_B passed through the same network. Compute the empirical cross-correlation matrix C between the (batch-normalised) embeddings — dimensions × dimensions. Push C toward identity:</p>
+<p>L = Σ_i (1 − C_ii)² + λ · Σ_i Σ_{j≠i} C_ij²</p>
+<ul><li><strong>Invariance term</strong> (diagonal): each embedding dimension agrees across views.</li><li><strong>Redundancy reduction term</strong> (off-diagonal): decorrelates distinct dimensions across the batch, preventing collapse onto a low-rank subspace.</li></ul>
+<p><strong>Distinctive contributions:</strong></p>
+<ul><li>Single shared network — symmetric, no online/target asymmetry.</li><li>The redundancy reduction is over <strong>feature dimensions</strong>, not samples — orthogonal to contrastive losses (which decorrelate over samples).</li><li>Empirically, very large embedding dimensions (e.g. 8192) help — opposite of contrastive intuition.</li><li>Clean <strong>information-theoretic</strong> framing: under a Gaussian assumption, the loss maximises mutual information between views.</li></ul>
+<p>ImageNet linear-eval ≈ <strong>73.2%</strong> (ResNet-50) — competitive with <a href="source-ssl-contrastive-foundations.html">source-ssl-contrastive-foundations</a> (BYOL section) but with a noticeably simpler training recipe.</p>
+<h2 id="vicreg-bardes-ponce-lecun-may-2021">VICReg — Bardes, Ponce, LeCun (May 2021)</h2>
+<p><strong>arXiv:</strong> <a href="https://arxiv.org/abs/2105.04906" rel="noreferrer">2105.04906</a>. Meta AI / Inria.</p>
+<p>Non-contrastive SSL with <strong>three explicit, separately-tuned terms</strong> — variance (anti-collapse), invariance (view consistency), covariance (anti-redundancy) — that can be applied <strong>independently to each branch</strong> of a joint-embedding architecture.</p>
+<p><strong>Method:</strong> Two views x, x' encoded to embeddings z, z'. Loss:</p>
+<p>L = λ · I(z, z') + μ · [V(z) + V(z')] + ν · [C(z) + C(z')]</p>
+<ul><li><strong>Invariance</strong> I = ‖z − z'‖² — pull positive pairs together (mirrors Barlow's diagonal term).</li><li><strong>Variance</strong> V = max(0, γ − std(z_d))² per dimension — hinge minimum standard deviation, prevents collapse to constant.</li><li><strong>Covariance</strong> C = sum of squared off-diagonal entries of the embedding covariance — decorrelates dimensions (similar to Barlow's off-diagonal term).</li></ul>
+<p>ImageNet linear-eval ≈ <strong>73%</strong> (ResNet-50), on par with the family.</p>
+<p><strong>Distinctive contributions:</strong></p>
+<ul><li>The V/I/C decomposition is <strong>applied to each branch independently</strong>, so the two encoders don't have to be identical or shared.</li><li>Unlocks <strong>multi-modal</strong> and <strong>asymmetric</strong> joint-embedding setups (e.g. predicting one branch from a different modality) — a key design enabler for <a href="concept-jepa.html">concept-jepa</a>.</li><li>Cleanly separates the three failure modes a joint-embedding loss must address — making it the most "modular" recipe of the non-contrastive family.</li></ul>
+<h2 id="why-this-pair-matters">Why this pair matters</h2>
+<ul><li>Both papers showed <strong>anti-collapse can be made explicit</strong> rather than left to architectural asymmetry. This was a sanity check that the predictor + EMA of BYOL/DINO isn't strictly necessary.</li><li>VICReg's per-branch modularity is what made it a building block in subsequent work — VICReg-style anti-collapse regularisers are a common ingredient when training <strong>JEPA predictors</strong> (see <a href="source-ijepa-self-supervised-learning.html">source-ijepa-self-supervised-learning</a> and <a href="source-vjepa-family.html">source-vjepa-family</a>).</li><li>The dimensional-decorrelation move is the conceptual move that made non-contrastive SSL a durable family rather than a curiosity.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li>Sibling family: <a href="source-ssl-contrastive-foundations.html">source-ssl-contrastive-foundations</a> (SimCLR/MoCo/BYOL — the contrastive + asymmetric-distillation methods that decorrelation responds to).</li><li>Hub concepts: <a href="concept-self-supervised-learning.html">concept-self-supervised-learning</a>, <a href="concept-representation-learning.html">concept-representation-learning</a></li><li>Theoretical neighbour: <a href="source-contrastive-learning-gaussian-representations.html">source-contrastive-learning-gaussian-representations</a> — different loss family, similar Gaussian-marginal endpoint.</li><li>Forward: VICReg-style regularisers used inside <a href="source-ijepa-self-supervised-learning.html">source-ijepa-self-supervised-learning</a>, <a href="source-vjepa-family.html">source-vjepa-family</a>, <a href="concept-jepa.html">concept-jepa</a>.</li><li>Synthesis: <a href="source-ssl-cookbook-balestriero.html">source-ssl-cookbook-balestriero</a></li><li>Descendant, out of SSL: <a href="source-weak-sigreg.html">source-weak-sigreg</a> — SIGReg/LeJEPA's covariance-toward-identity regulariser repurposed as a general <em>supervised</em> optimizer stabilizer (rescues a collapsed ViT run 20.73% → 72.02% on CIFAR-100).</li><li>Lab: <a href="entity-meta-fair.html">entity-meta-fair</a> (LeCun co-authored both).</li></ul>
+<h2 id="references">References</h2>
+<ul><li>Barlow Twins: <a href="https://arxiv.org/abs/2103.03230" rel="noreferrer">arXiv 2103.03230</a></li><li>VICReg: <a href="https://arxiv.org/abs/2105.04906" rel="noreferrer">arXiv 2105.04906</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2103.03230" rel="noreferrer">https://arxiv.org/abs/2103.03230</a></li><li><a href="https://arxiv.org/abs/2105.04906" rel="noreferrer">https://arxiv.org/abs/2105.04906</a></li></ul></details>
+</main>
+</body>
+</html>

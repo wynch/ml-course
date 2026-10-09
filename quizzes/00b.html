@@ -1,0 +1,739 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz · Probability, neighbours &amp; eigenvectors · ML course</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d; --track:var(--t0); --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67; --grid:rgba(28,36,34,.10);
+  --warn:#c1121f; --soft:rgba(31,145,141,.10);
+  --wrong:#c0504d; --wrong-soft:rgba(192,80,77,.10);
+  --t0:#a86b0e; --t0-soft:rgba(168,107,14,.12);
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --grid:rgba(232,238,236,.12); --warn:#ff8f85;
+    --soft:rgba(31,145,141,.16);
+    --wrong:#f0938f; --wrong-soft:rgba(240,147,143,.13);
+    --t0:#d9962e; --t0-soft:rgba(217,150,46,.16); --track-ink:#241a05;
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;padding-bottom:5.6rem}
+a{color:var(--accent)}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;background:var(--track);color:var(--track-ink);
+  padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.topbar .spacer{flex:1 1 auto}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:920px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 2rem}
+.intro{max-width:70ch;color:var(--ink)}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .7rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.8rem,2vw,1.2rem);margin:1.4rem 0}
+button{font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:.34rem .82rem;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button:disabled{opacity:1}
+button.primary:hover{color:#fff;filter:brightness(1.06)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:.78rem;color:var(--muted);margin:.35rem 0 0}
+.mono,code{font-family:var(--mono);font-size:.92em}
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ───────── quiz-specific ───────── */
+.qhead{display:flex;flex-wrap:wrap;gap:.5rem;align-items:baseline;margin:0 0 .55rem}
+.qnum{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted)}
+.tag{font-family:var(--display);font-size:.68rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;border:1px solid var(--line);border-radius:999px;
+  padding:.1rem .5rem;color:var(--muted)}
+.tag.conceptual{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.tag.numbers{color:var(--t0);border-color:var(--t0);background:var(--t0-soft)}
+.tag.predict{color:var(--t3);border-color:var(--t3)}
+.tag.code{color:var(--muted);border-color:var(--line);background:var(--grid)}
+.qhead .spacer{flex:1 1 auto}
+.qstate{font-family:var(--display);font-size:.7rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted)}
+.qtext{margin:0 0 .7rem;max-width:74ch}
+.qtext b{font-weight:600}
+pre.snippet{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--grid);
+  border:1px solid var(--line);border-radius:10px;padding:.65rem .8rem;margin:.2rem 0 .75rem;
+  overflow-x:auto}
+.srcfile{font-family:var(--mono);font-size:.76rem;color:var(--muted);margin:-.5rem 0 .75rem}
+.opts{display:flex;flex-direction:column;gap:.4rem;margin:0 0 .3rem}
+.opt{display:flex;gap:.6rem;align-items:flex-start;text-align:left;width:100%;
+  font-family:var(--body);font-size:.92rem;font-weight:400;line-height:1.45;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:10px;
+  padding:.55rem .7rem;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent);color:var(--ink);background:var(--soft)}
+.opt:disabled{cursor:default}
+.opt .key{font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--muted);
+  min-width:1.2em;padding-top:.08rem}
+.opt.picked{border-color:var(--accent)}
+.opt.right{border-color:var(--accent);background:var(--soft)}
+.opt.right .key{color:var(--accent)}
+.opt.wrongpick{border-color:var(--wrong);background:var(--wrong-soft)}
+.opt.wrongpick .key{color:var(--wrong)}
+.opt .mark{margin-left:auto;font-family:var(--display);font-size:.76rem;font-weight:600;
+  white-space:nowrap;padding-left:.5rem}
+.opt.right .mark{color:var(--accent)}
+.opt.wrongpick .mark{color:var(--wrong)}
+.numrow{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:0 0 .3rem}
+.numrow input{font-family:var(--mono);font-size:.9rem;color:var(--ink);background:var(--paper);
+  border:1px solid var(--line);border-radius:10px;padding:.45rem .6rem;width:15rem;max-width:100%}
+.acts{display:flex;flex-wrap:wrap;gap:.45rem;margin:.55rem 0 0}
+.verdictline{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.03em;
+  text-transform:uppercase;border-radius:999px;padding:.2rem .62rem;display:inline-block;
+  border:1px solid var(--line);margin:.7rem 0 .45rem}
+.verdictline.ok{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.verdictline.no{color:var(--wrong);border-color:var(--wrong);background:var(--wrong-soft)}
+.explain{font-size:.88rem;line-height:1.5;border-left:3px solid var(--line);
+  padding:.1rem 0 .1rem .75rem;margin:.2rem 0 0;max-width:74ch;color:var(--ink)}
+.explain .src{display:block;font-family:var(--mono);font-size:.76rem;color:var(--muted);margin-top:.4rem}
+.explain a.tryit{font-family:var(--display);font-size:.78rem;font-weight:600;text-decoration:none;
+  border:1px solid var(--accent);border-radius:999px;padding:.16rem .6rem;display:inline-block;
+  margin-top:.5rem}
+.explain a.tryit:hover{background:var(--soft)}
+.scorebar{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--panel);
+  border-top:1px solid var(--line);padding:.55rem clamp(.9rem,3vw,2rem)}
+.scorebar .inner{max-width:920px;margin:0 auto;display:flex;flex-wrap:wrap;gap:.5rem .9rem;
+  align-items:center}
+.scorebar .score{font-family:var(--mono);font-size:1rem;font-weight:600;color:var(--accent)}
+.scorebar .of{color:var(--muted);font-weight:400}
+.scorebar .msg{font-size:.84rem;color:var(--muted);flex:1 1 260px;min-width:0}
+.scorebar .msg b{color:var(--ink)}
+.scorebar .msg .review{display:block;font-size:.78rem;margin-top:.1rem}
+@media (max-width:700px){
+  .topbar h1{font-size:.98rem}
+  .scorebar .msg{flex-basis:100%}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Quiz · Probability, neighbours &amp; eigenvectors</h1>
+  <span class="pill">Module 00b · Origins</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">← All quizzes</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">Ten questions on module 00b — Bayes, k-nearest-neighbours and PCA, all three
+      built from scratch on numpy. Every number quoted here is the module's own measured output.</p>
+    <p>Answer in any order; answering locks a question and reveals the explanation.
+      Your answers are kept in this browser only. Two questions ask you to
+      <b>predict</b> what the PCA explorable does before you open it — commit to an answer first,
+      then go and check.</p>
+  </section>
+
+  <div id="quiz"></div>
+</main>
+
+<footer>
+  <p class="paths">module → <a href="../modules/00b-bayes-knn-pca/README.md">../modules/00b-bayes-knn-pca/README.md</a>
+    · explorable → <a href="../explorables/00b-pca.html">../explorables/00b-pca.html</a></p>
+  <p>Track 0 runs before the Hugging Face course proper; the natural next reading once you have
+    finished Origins is Chapter 1 —
+    <a href="https://huggingface.co/learn/llm-course/chapter1">Transformer models</a>.
+    Recommended alongside this track: Anil Ananthaswamy, <i>Why Machines Learn</i> (Dutton, 2024).</p>
+</footer>
+
+<div class="scorebar">
+  <div class="inner">
+    <span class="score"><span id="sc-score">0</span><span class="of"> / 10</span></span>
+    <span class="msg" id="sc-msg">Nothing answered yet.</span>
+    <button id="sc-reset">Reset quiz</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ═════════════════════════ PURE LOGIC START ═════════════════════════
+   Question bank + grading. Dependency-free and DOM-free: the verification
+   harness loads this file's exports under node and asserts the grading rules,
+   the score accumulation, and the answer-key balance.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const QUIZ_ID = "00b";
+const STORE_KEY = "mlcourse-quiz-" + QUIZ_ID;
+const SUMMARY_KEY = "mlcourse-quiz-scores";
+
+const QUESTIONS = [
+  /* ── 1 ───────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q1", kind: "single", tag: "conceptual", topic: "Base rates and the posterior",
+    text: "The module's screening example: prevalence <b>0.4%</b>, sensitivity <b>96%</b>, " +
+          "specificity <b>92%</b>. You test positive, and the posterior is <b>4.6%</b>. " +
+          "Why is a 96%-sensitive test so unconvincing here?",
+    options: [
+      "Because 96% sensitivity means the test is wrong 4% of the time, and 4% of a 0.4% prevalence is roughly 4.6%.",
+      "Because the condition is rare: the 8% false-positive rate is applied to 249× more people than the 96% detection rate is, so false positives outnumber true ones about twenty to one.",
+      "Because sensitivity and specificity multiply — 0.96 × 0.92 ≈ 0.88 — and the missing 12% is split between the two kinds of error.",
+      "Because one test is statistically meaningless: Bayes' rule only applies once you have repeated, independent measurements."
+    ],
+    answer: 1,
+    explain: "Out of 1,000 people there are 4 with the condition (3.84 of whom test positive) and 996 " +
+             "without (79.68 of whom test positive anyway). 3.84 / 83.52 = 4.6%. The base rate is doing " +
+             "almost all the work — which is exactly why the third option is the classic trap: " +
+             "multiplying the two accuracies ignores how many people each one is applied to.",
+    source: "modules/00b-bayes-knn-pca/python/scripts/bayes_screening.py · figures/bayes_posterior.png panel (a) · README part 1"
+  },
+  /* ── 2 ───────────────────────────────────────────── real numbers ── */
+  {
+    id: "q2", kind: "numeric", tag: "numbers", topic: "How compressible FashionMNIST is",
+    text: "<code>pca_lab.py</code> takes the eigenvalues of the 784×784 pixel covariance of " +
+          "10,000 FashionMNIST images. Three components already carry 50% of the total variance. " +
+          "<b>How many are needed to reach 90%?</b> Type a whole number.",
+    answer: 83, tol: 6, tolLabel: "±6 (77 – 89)",
+    placeholder: "e.g. 120",
+    explain: "83 of 784 — about a tenth of the dimensions for nine tenths of the variance. " +
+             "(95% needs 183 and 99% needs 447: the tail is long but flat.) The intuition to keep " +
+             "is the shape of the scree plot, not the exact integer — variance collapses onto a " +
+             "handful of directions, which is why low-rank tricks work at all.",
+    source: "modules/00b-bayes-knn-pca/python/scripts/pca_lab.py — part2() variance targets · figures/pca_scree.png · explorables/00b-pca.html fact card"
+  },
+  /* ── 3 ───────────────────────────────────────────── real numbers ── */
+  {
+    id: "q3", kind: "single", tag: "numbers", topic: "Where naive Bayes wins and loses",
+    text: "The module fits the <i>same</i> Gaussian naive Bayes — 784 means and 784 variances per " +
+          "class, no optimiser — to two FashionMNIST pairs: Trouser vs Sneaker, and Pullover vs Coat. " +
+          "Which pair of test accuracies did it measure?",
+    options: [
+      "0.8760 and 0.8412 — both pairs are moderately hard, since raw pixels are a weak feature set.",
+      "1.0000 and 0.7225 — the first pair is separated perfectly, the second barely better than a coin flip on one class.",
+      "0.9531 and 0.9204 — pixel means are a strong signal for any two clothing classes.",
+      "0.7225 and 1.0000 — coats and pullovers differ in average brightness, trousers and sneakers do not."
+    ],
+    answer: 1,
+    explain: "Trousers and sneakers occupy different pixels, so per-pixel means separate them completely " +
+             "(confusion [[1000, 0], [0, 1000]]). Pullovers and coats occupy the <i>same</i> pixels and " +
+             "differ in texture and edge placement — information that lives in pixel-to-pixel correlations, " +
+             "which the naive independence assumption deletes. Option D has the pairs the wrong way round: " +
+             "look at the mean-difference panels, the loud one is the trouser/sneaker pair.",
+    source: "modules/00b-bayes-knn-pca/python/scripts/naive_bayes.py — part2() · figures/naive_bayes_fashion.png"
+  },
+  /* ── 4 ─────────────────────────────────────────────────── read-code ── */
+  {
+    id: "q4", kind: "single", tag: "code", topic: "Where the naive assumption lives",
+    text: "This is the entire scoring function of Gaussian naive Bayes. " +
+          "<b>Which part of it <i>is</i> the naive assumption?</b>",
+    code: "X = np.asarray(X, dtype=np.float64)\n" +
+          "out = np.empty((len(X), len(self.classes_)))\n" +
+          "for i in range(len(self.classes_)):\n" +
+          "    # one squared z-score per feature, summed — that sum is the naive bit\n" +
+          "    z = ((X - self.theta_[i]) ** 2 / self.var_[i]).sum(axis=1)\n" +
+          "    norm = np.log(2.0 * np.pi * self.var_[i]).sum()\n" +
+          "    out[:, i] = self.log_prior_[i] - 0.5 * (norm + z)\n" +
+          "return out",
+    file: "modules/00b-bayes-knn-pca/python/src/origins/bayes.py",
+    options: [
+      "The <code>for</code> loop over classes — scoring one class at a time assumes the classes are independent of each other.",
+      "<code>np.log(2.0 * np.pi * self.var_[i]).sum()</code> — summing the normalising constants assumes every class is equally likely.",
+      "The <code>.sum(axis=1)</code> on the squared z-scores — a product of per-feature densities becomes a sum of per-feature log-densities, and nothing couples the features.",
+      "<code>self.log_prior_[i]</code> — adding a prior instead of learning one assumes the training set is representative."
+    ],
+    answer: 2,
+    explain: "P(x | c) = Π_d P(x_d | c) is the assumption; taking logs turns that product into the sum " +
+             "over features, so <code>.sum(axis=1)</code> is literally the line. The class loop is a " +
+             "tempting answer but it is only bookkeeping: the full-covariance <code>GaussianBayes</code> " +
+             "in the same file loops over classes identically and is <i>not</i> naive — it replaces the " +
+             "diagonal <code>var_</code> with a full covariance matrix.",
+    source: "modules/00b-bayes-knn-pca/python/src/origins/bayes.py:106-113"
+  },
+  /* ── 5 ─────────────────────────────────────────────────── read-code ── */
+  {
+    id: "q5", kind: "single", tag: "code", topic: "The sign guard in power iteration",
+    text: "Power iteration, from the module's PCA implementation. " +
+          "<b>What breaks if you delete the two sign-alignment lines?</b>",
+    code: "for n_iter in range(1, max_iter + 1):\n" +
+          "    w = A @ v\n" +
+          "    nrm = np.linalg.norm(w)\n" +
+          "    if nrm < 1e-300:            # A annihilates v: eigenvalue 0\n" +
+          "        return 0.0, v, n_iter\n" +
+          "    w /= nrm\n" +
+          "    if np.dot(w, v) < 0:        # align signs before measuring movement\n" +
+          "        w = -w\n" +
+          "    delta = np.linalg.norm(w - v)\n" +
+          "    v = w",
+    file: "modules/00b-bayes-knn-pca/python/src/origins/pca.py",
+    options: [
+      "Nothing — the sign of an eigenvector is arbitrary, so removing the check cannot change the result.",
+      "The returned vector stops being unit length, because the flip is what compensates for the division by <code>nrm</code>.",
+      "A matrix whose dominant eigenvalue is <b>negative</b> flips <code>v</code> on every pass, so <code>‖w − v‖</code> is about 2 forever and the loop runs to <code>max_iter</code> without converging.",
+      "The Rayleigh quotient <code>v @ A @ v</code> comes out with the wrong sign, so eigenvalues are reported as negative."
+    ],
+    answer: 2,
+    explain: "The convergence test measures how far the vector <i>moved</i>. With λ₁ &lt; 0 the true " +
+             "iterate alternates between +v and −v, which are the same eigenvector — without aligning " +
+             "signs first, that alternation reads as maximal movement. The module's test " +
+             "<code>test_power_iteration_handles_a_negative_dominant_eigenvalue</code> pins exactly this " +
+             "case on <code>diag(−5, 1, 0.5)</code>. Option A is the near-miss: the sign really is " +
+             "arbitrary, which is why the <i>comparison</i> has to be sign-blind rather than the iterate.",
+    source: "modules/00b-bayes-knn-pca/python/src/origins/pca.py:44-53 · python/tests/test_origins.py — test_power_iteration_handles_a_negative_dominant_eigenvalue"
+  },
+  /* ── 6 ───────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q6", kind: "single", tag: "conceptual", topic: "What Cover-Hart actually says",
+    text: "The module measures the Cover-Hart bound on two Gaussians whose Bayes error is known " +
+          "exactly (<span class=\"mono\">R* = 0.158655</span>). What does the theorem claim?",
+    options: [
+      "That 1-NN converges to the Bayes error as the training set grows — it just needs enough data.",
+      "That 1-NN's asymptotic error is exactly twice the Bayes error, whatever the distribution.",
+      "That no classifier trained on the same data can beat 1-NN by more than a factor of two.",
+      "That as n → ∞ the 1-NN error settles somewhere in <span class=\"mono\">[R*, R*(2 − M/(M−1)·R*)]</span> — never below the Bayes error, never worse than about twice it."
+    ],
+    answer: 3,
+    explain: "It is a two-sided sandwich on the <i>limit</i>. For this distribution the module computes " +
+             "the limit itself, <span class=\"mono\">E[2η(1−η)] = 0.224758</span>, and the ceiling " +
+             "<span class=\"mono\">2R*(1−R*) = 0.266968</span>; the measured 1-NN error settles at " +
+             "<span class=\"mono\">0.2245</span> by n = 50,000 and never crosses the ceiling. " +
+             "Option A is the tempting one — but plain 1-NN is <i>not</i> consistent; it is k growing " +
+             "with n (the k ≈ √n row, 0.1591 at n = 50,000) that converges on R*.",
+    source: "modules/00b-bayes-knn-pca/python/scripts/knn_lab.py — theory() and fig_cover_hart() · figures/cover_hart.png · README part 3"
+  },
+  /* ── 7 ──────────────────────────────────────────────────── predict ── */
+  {
+    id: "q7", kind: "single", tag: "predict", topic: "What controls power-iteration speed",
+    text: "In the PCA explorable, drag <b>elongation λ₂/λ₁ target</b> from 0.27 up to <b>1.00</b> " +
+          "so the cloud becomes round, then press <b>Restart v</b> and <b>Play</b>. " +
+          "<b>Predict</b> what the orange arrow does.",
+    options: [
+      "It converges faster — a round cloud is symmetric, so there is less work to do.",
+      "It converges to the same PC1 as before, but arrives pointing 90° away from it.",
+      "It barely moves towards anything: with λ₂/λ₁ → 1 every direction is nearly an eigenvector, so the per-step shrink factor approaches 1 and convergence stalls.",
+      "It diverges — the Rayleigh quotient grows without bound once the eigenvalues are equal."
+    ],
+    answer: 2,
+    explain: "Each iteration multiplies the runner-up's share by λ₂/λ₁, so that ratio <i>is</i> the " +
+             "convergence rate; at 0.0728 (the module's 2-D cloud) 13 iterations reach 1e-12, and at " +
+             "1.0 there is nothing to converge to because every direction has equal variance. This is " +
+             "the same effect that made the module's 784-dimensional run take 22 iterations for one " +
+             "component and 3,390 for another. Nothing diverges: a covariance matrix is positive " +
+             "semi-definite and the vector is renormalised every step.",
+    source: "modules/00b-bayes-knn-pca/python/scripts/pca_lab.py — part1(), figures/pca_power_iteration.png panel (c) · README part 4",
+    tryIt: { href: "../explorables/00b-pca.html", label: "try it — panel 1, elongation slider" }
+  },
+  /* ── 8 ──────────────────────────────────────────────────── predict ── */
+  {
+    id: "q8", kind: "single", tag: "predict", topic: "What k = 0 reconstructs",
+    text: "In panel 2 of the explorable, drag <b>components kept, k</b> all the way down to <b>0</b>. " +
+          "The five FashionMNIST images are rebuilt live from <span class=\"mono\">mean + Σ zᵢ·PCᵢ</span>. " +
+          "<b>Predict</b> what you see.",
+    options: [
+      "The dataset mean image, five times over — the same blurry garment-shaped blob, since the sum has no terms left.",
+      "Five black frames: with no components there is nothing to draw.",
+      "PC1 rendered as an image, five times — the first component is the default when k is empty.",
+      "The originals, unchanged: k only affects the MSE readout, not the pixels."
+    ],
+    answer: 0,
+    explain: "Reconstruction is <i>mean plus corrections</i>, so with zero corrections every image " +
+             "collapses onto the same mean vector — and the MSE readout jumps to 0.08664 across the " +
+             "10,000 test images, the total pixel variance per pixel. Then k = 1 splits them by overall " +
+             "brightness, k = 2 by tall-and-narrow versus wide-and-short, and by k = 24 the sneaker and " +
+             "the boot are unmistakable.",
+    source: "explorables/00b-pca.html — reconstruct() and mseTestByK[0] = 0.086645 · modules/00b-bayes-knn-pca/figures/pca_reconstruction.png",
+    tryIt: { href: "../explorables/00b-pca.html", label: "try it — panel 2, k slider" }
+  },
+  /* ── 9 ────────────────────────────────────── conceptual, multi ── */
+  {
+    id: "q9", kind: "multi", tag: "conceptual", topic: "Reading the PCA results",
+    text: "<b>Select all that apply.</b> Which of these are true of the module's PCA run on FashionMNIST?",
+    options: [
+      "The 40 components found by power iteration with deflation agree with <code>numpy.linalg.eigh</code> to a maximum eigenvector angle of 2.7e-06 degrees.",
+      "The axes in the 2-D projection figure were found without using a single class label.",
+      "Truncating to k components loses exactly the sum of the discarded eigenvalues — which is why the measured reconstruction error lies on top of the eigenvalue-tail curve.",
+      "Deflation accumulates error, so by the 40th component the disagreement with <code>eigh</code> has grown to several degrees."
+    ],
+    answer: [0, 1, 2],
+    explain: "The first three are measured or provable. The last is the plausible-sounding one and it is " +
+             "false <i>here</i>: the maximum relative eigenvalue error over all 40 was 4.98e-15 and the " +
+             "worst angle 2.7e-06°. Deflation error does accumulate in principle — which is why " +
+             "production libraries use QR or Lanczos — but on 40 well-conditioned components of a " +
+             "784×784 covariance it stays at float noise.",
+    source: "modules/00b-bayes-knn-pca/python/scripts/pca_lab.py — part2() eigh cross-check · python/tests/test_origins.py — test_pca_power_matches_eigh_on_real_shaped_data · figures/pca_projection.png"
+  },
+  /* ── 10 ──────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q10", kind: "single", tag: "conceptual", topic: "Train error at k = 1",
+    text: "On 1,000 training points and 20,000 test points the module measures k-NN at k = 1: " +
+          "<b>train error 0.0000, test error 0.2274</b>. The best test error over all k is 0.1593, at k = 151. " +
+          "What is the k = 1 pair telling you?",
+    options: [
+      "That something is wrong: a classifier cannot have literally zero training error on noisy, overlapping data.",
+      "Maximal overfitting — every training point is its own nearest neighbour, so training accuracy is perfect by construction and says nothing about generalisation.",
+      "That 1,000 points is too few; with more training data the train error would rise towards the test error.",
+      "That k-NN is the wrong model here, since the true Bayes error must be close to zero for train error to vanish."
+    ],
+    answer: 1,
+    explain: "Distance zero to itself, so the vote is its own label — zero train error is a property of " +
+             "the algorithm, not evidence about the problem. Meanwhile 0.2274 is close to the 0.224758 " +
+             "that Cover-Hart's limit predicts. Option C inverts the relationship: adding data does not " +
+             "raise 1-NN's <i>training</i> error (it stays exactly 0), it moves the <i>test</i> error " +
+             "towards that asymptote.",
+    source: "modules/00b-bayes-knn-pca/python/scripts/knn_lab.py — fig_accuracy_vs_k() · figures/knn_accuracy_vs_k.png · README part 3 error-vs-k table"
+  }
+];
+
+/* ---------------------------------------------------------------- grading */
+function sameSet(a, b) {
+  const x = a.slice().sort(function (p, q) { return p - q; });
+  const y = b.slice().sort(function (p, q) { return p - q; });
+  return x.length === y.length && x.every(function (v, i) { return v === y[i]; });
+}
+function gradeSingle(q, ans) { return typeof ans === "number" && ans === q.answer; }
+function gradeMulti(q, ans) { return Array.isArray(ans) && sameSet(ans, q.answer); }
+function gradeNumeric(q, ans) {
+  const v = typeof ans === "number" ? ans : parseFloat(String(ans).replace(/[\s,_]/g, ""));
+  return isFinite(v) && Math.abs(v - q.answer) <= q.tol;
+}
+function gradeQuestion(q, ans) {
+  if (ans === undefined || ans === null) return false;
+  if (q.kind === "multi") return gradeMulti(q, ans);
+  if (q.kind === "numeric") return gradeNumeric(q, ans);
+  return gradeSingle(q, ans);
+}
+function scoreAll(questions, answers) {
+  let score = 0, answered = 0;
+  const wrong = [];
+  questions.forEach(function (q) {
+    const a = answers[q.id];
+    if (a === undefined || a === null) return;
+    answered += 1;
+    if (gradeQuestion(q, a)) score += 1; else wrong.push(q.topic);
+  });
+  return { score: score, answered: answered, total: questions.length, wrong: wrong };
+}
+function verdictFor(score, total) {
+  if (score >= 9) return { cls: "ok", text: "solid — move on" };
+  if (score >= 6) return { cls: "no", text: "review the flagged topics" };
+  return { cls: "no", text: "re-run the module notebook first" };
+}
+/* answer-key balance: how often each option position is the correct single-choice answer */
+function keyBalance(questions) {
+  const counts = [0, 0, 0, 0];
+  questions.forEach(function (q) {
+    if (q.kind === "single") counts[q.answer] += 1;
+  });
+  return counts;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { QUIZ_ID, STORE_KEY, SUMMARY_KEY, QUESTIONS, sameSet, gradeSingle,
+                     gradeMulti, gradeNumeric, gradeQuestion, scoreAll, verdictFor, keyBalance };
+}
+/* ══════════════════════════ PURE LOGIC END ══════════════════════════ */
+
+/* ═════════════════════════ DOM / rendering ═════════════════════════ */
+(function () {
+  if (typeof document === "undefined") return;   // running under node
+  const LETTERS = ["A", "B", "C", "D", "E", "F"];
+  const root = document.getElementById("quiz");
+  let answers = {};
+
+  /* ---- persistence ---- */
+  function load() {
+    try {
+      const raw = window.localStorage.getItem(STORE_KEY);
+      if (!raw) return {};
+      const obj = JSON.parse(raw);
+      return (obj && typeof obj.answers === "object" && obj.answers) ? obj.answers : {};
+    } catch (e) { return {}; }
+  }
+  function save() {
+    const s = scoreAll(QUESTIONS, answers);
+    const payload = { quiz: QUIZ_ID, answers: answers, score: s.score,
+                      total: s.total, answered: s.answered, ts: Date.now() };
+    try {
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(payload));
+      let all = {};
+      try { all = JSON.parse(window.localStorage.getItem(SUMMARY_KEY) || "{}") || {}; }
+      catch (e) { all = {}; }
+      all[QUIZ_ID] = { score: s.score, total: s.total, ts: payload.ts };
+      window.localStorage.setItem(SUMMARY_KEY, JSON.stringify(all));
+    } catch (e) { /* private mode: quiz still works, just not remembered */ }
+  }
+
+  /* ---- one question ---- */
+  function buildQuestion(q, i) {
+    const sec = document.createElement("section");
+    sec.className = "panel";
+    sec.id = "sec-" + q.id;
+
+    const head = document.createElement("div");
+    head.className = "qhead";
+    const num = document.createElement("span");
+    num.className = "qnum";
+    num.textContent = "Question " + (i + 1);
+    const tag = document.createElement("span");
+    tag.className = "tag " + q.tag;
+    tag.textContent = { conceptual: "concept", numbers: "real numbers",
+                        predict: "predict", code: "read the code" }[q.tag] || q.tag;
+    const sp = document.createElement("span");
+    sp.className = "spacer";
+    const state = document.createElement("span");
+    state.className = "qstate";
+    state.textContent = "unanswered";
+    head.appendChild(num); head.appendChild(tag); head.appendChild(sp); head.appendChild(state);
+    sec.appendChild(head);
+
+    const txt = document.createElement("p");
+    txt.className = "qtext";
+    txt.innerHTML = q.text;
+    sec.appendChild(txt);
+
+    if (q.code) {
+      const pre = document.createElement("pre");
+      pre.className = "snippet";
+      pre.textContent = q.code;
+      sec.appendChild(pre);
+      const src = document.createElement("p");
+      src.className = "srcfile";
+      src.textContent = q.file;
+      sec.appendChild(src);
+    }
+
+    const holder = { sec: sec, state: state, opts: [], input: null, checkBtn: null,
+                     result: null, q: q };
+
+    if (q.kind === "numeric") {
+      const row = document.createElement("div");
+      row.className = "numrow";
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.inputMode = "numeric";
+      inp.setAttribute("aria-label", "your answer");
+      inp.placeholder = q.placeholder || "your answer";
+      const btn = document.createElement("button");
+      btn.className = "primary";
+      btn.textContent = "Answer";
+      btn.addEventListener("click", function () {
+        const v = parseFloat(inp.value.replace(/[\s,_]/g, ""));
+        if (!isFinite(v)) { inp.focus(); return; }
+        answers[q.id] = v;
+        save(); renderQuestion(holder); renderBar();
+      });
+      inp.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); btn.click(); }
+      });
+      row.appendChild(inp); row.appendChild(btn);
+      sec.appendChild(row);
+      holder.input = inp; holder.checkBtn = btn;
+    } else {
+      const list = document.createElement("div");
+      list.className = "opts";
+      q.options.forEach(function (opt, oi) {
+        const b = document.createElement("button");
+        b.className = "opt";
+        b.type = "button";
+        const key = document.createElement("span");
+        key.className = "key";
+        key.textContent = LETTERS[oi];
+        const body = document.createElement("span");
+        body.innerHTML = opt;
+        const mark = document.createElement("span");
+        mark.className = "mark";
+        b.appendChild(key); b.appendChild(body); b.appendChild(mark);
+        b.addEventListener("click", function () {
+          if (answers[q.id] !== undefined) return;
+          if (q.kind === "multi") {
+            const cur = holder.picked;
+            const at = cur.indexOf(oi);
+            if (at >= 0) cur.splice(at, 1); else cur.push(oi);
+            b.classList.toggle("picked", at < 0);
+            holder.checkBtn.disabled = cur.length === 0;
+          } else {
+            answers[q.id] = oi;
+            save(); renderQuestion(holder); renderBar();
+          }
+        });
+        list.appendChild(b);
+        holder.opts.push({ btn: b, mark: mark });
+      });
+      sec.appendChild(list);
+
+      if (q.kind === "multi") {
+        holder.picked = [];
+        const acts = document.createElement("div");
+        acts.className = "acts";
+        const btn = document.createElement("button");
+        btn.className = "primary";
+        btn.textContent = "Answer";
+        btn.disabled = true;
+        btn.addEventListener("click", function () {
+          if (answers[q.id] !== undefined || holder.picked.length === 0) return;
+          answers[q.id] = holder.picked.slice();
+          save(); renderQuestion(holder); renderBar();
+        });
+        acts.appendChild(btn);
+        const note = document.createElement("span");
+        note.className = "hint";
+        note.style.margin = "0";
+        note.style.alignSelf = "center";
+        note.textContent = "pick every option you believe is true, then Answer";
+        acts.appendChild(note);
+        sec.appendChild(acts);
+        holder.checkBtn = btn;
+      }
+    }
+
+    const res = document.createElement("div");
+    res.style.display = "none";
+    sec.appendChild(res);
+    holder.result = res;
+
+    return holder;
+  }
+
+  /* ---- render one question's locked / unlocked state ---- */
+  function renderQuestion(h) {
+    const q = h.q, ans = answers[q.id], locked = ans !== undefined;
+    const ok = locked && gradeQuestion(q, ans);
+
+    h.state.textContent = locked ? (ok ? "correct" : "incorrect") : "unanswered";
+    h.state.style.color = locked ? (ok ? "var(--accent)" : "var(--wrong)") : "var(--muted)";
+
+    if (h.input) {
+      h.input.disabled = locked;
+      if (locked) h.input.value = String(ans);
+      h.checkBtn.disabled = locked;
+      h.checkBtn.textContent = locked ? "answered" : "Answer";
+    }
+    const correctSet = q.kind === "multi" ? q.answer : (q.kind === "single" ? [q.answer] : []);
+    const pickedSet = !locked ? (h.picked || [])
+      : (q.kind === "multi" ? ans : (q.kind === "single" ? [ans] : []));
+
+    h.opts.forEach(function (o, oi) {
+      o.btn.disabled = locked;
+      o.btn.classList.toggle("picked", !locked && pickedSet.indexOf(oi) >= 0);
+      const isRight = correctSet.indexOf(oi) >= 0;
+      const isPicked = locked && pickedSet.indexOf(oi) >= 0;
+      o.btn.classList.toggle("right", locked && isRight);
+      o.btn.classList.toggle("wrongpick", locked && isPicked && !isRight);
+      o.mark.textContent = !locked ? ""
+        : (isRight ? (isPicked ? "✓ correct · you picked it" : "✓ correct")
+                   : (isPicked ? "✗ your pick" : ""));
+    });
+    if (h.checkBtn && q.kind === "multi") {
+      h.checkBtn.disabled = locked || (h.picked || []).length === 0;
+      h.checkBtn.textContent = locked ? "answered" : "Answer";
+    }
+
+    if (!locked) { h.result.style.display = "none"; h.result.innerHTML = ""; return; }
+
+    h.result.innerHTML = "";
+    h.result.style.display = "block";
+    const v = document.createElement("span");
+    v.className = "verdictline " + (ok ? "ok" : "no");
+    v.textContent = ok ? "Correct" : "Not quite";
+    h.result.appendChild(v);
+
+    if (q.kind === "numeric") {
+      const line = document.createElement("p");
+      line.className = "hint";
+      line.style.marginTop = "0";
+      const nf = function (v) {
+        return Number(v).toLocaleString("en-US", { maximumFractionDigits: 6 });
+      };
+      line.innerHTML = "answer <span class=\"mono\">" + nf(q.answer) +
+        "</span> · accepted " + q.tolLabel + " · you typed <span class=\"mono\">" +
+        nf(ans) + "</span>";
+      h.result.appendChild(line);
+    }
+
+    const ex = document.createElement("div");
+    ex.className = "explain";
+    ex.innerHTML = q.explain;
+    const src = document.createElement("span");
+    src.className = "src";
+    src.textContent = "source · " + q.source;
+    ex.appendChild(src);
+    if (q.tryIt) {
+      const a = document.createElement("a");
+      a.className = "tryit";
+      a.href = q.tryIt.href;
+      a.textContent = q.tryIt.label;
+      ex.appendChild(a);
+    }
+    h.result.appendChild(ex);
+  }
+
+  /* ---- score bar ---- */
+  function renderBar() {
+    const s = scoreAll(QUESTIONS, answers);
+    document.getElementById("sc-score").textContent = String(s.score);
+    const msg = document.getElementById("sc-msg");
+    msg.innerHTML = "";
+    if (s.answered === 0) {
+      msg.textContent = "Nothing answered yet.";
+    } else if (s.answered < s.total) {
+      msg.textContent = s.answered + " of " + s.total + " answered — " +
+        (s.total - s.answered) + " to go.";
+    } else {
+      const vd = verdictFor(s.score, s.total);
+      const b = document.createElement("b");
+      b.textContent = s.score + " / " + s.total + " — " + vd.text + ".";
+      msg.appendChild(b);
+      const rev = document.createElement("span");
+      rev.className = "review";
+      rev.textContent = s.wrong.length
+        ? "Review: " + s.wrong.join(" · ")
+        : "Every topic clean.";
+      msg.appendChild(rev);
+    }
+  }
+
+  /* ---- boot ---- */
+  answers = load();
+  const holders = QUESTIONS.map(function (q, i) {
+    const h = buildQuestion(q, i);
+    root.appendChild(h.sec);
+    return h;
+  });
+  holders.forEach(renderQuestion);
+  renderBar();
+
+  document.getElementById("sc-reset").addEventListener("click", function () {
+    if (!window.confirm("Clear your answers for this quiz and start over?")) return;
+    answers = {};
+    holders.forEach(function (h) { h.picked = []; });
+    try {
+      window.localStorage.removeItem(STORE_KEY);
+      let all = {};
+      try { all = JSON.parse(window.localStorage.getItem(SUMMARY_KEY) || "{}") || {}; }
+      catch (e) { all = {}; }
+      delete all[QUIZ_ID];
+      window.localStorage.setItem(SUMMARY_KEY, JSON.stringify(all));
+    } catch (e) { /* ignore */ }
+    holders.forEach(renderQuestion);
+    renderBar();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+})();
+</script>
+<!-- built for ml-course quizzes v1 -->
+</html>

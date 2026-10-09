@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>LLM Reasoning · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="llm-reasoning">LLM Reasoning</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-04-05</span> <span>updated 2026-09-26</span> <span class="tag">reasoning</span> <span class="tag">chain-of-thought</span> <span class="tag">thinking</span> <span class="tag">evaluation</span></div>
+<p>The extent to which language models can perform genuine reasoning — logical deduction, planning, causal inference, mathematical proof — versus sophisticated pattern matching and interpolation.</p>
+<h2 id="the-central-debate">The Central Debate</h2>
+<p>A recurring theme across the wiki: <strong>are LLMs actually reasoning?</strong></p>
+<h3 id="skeptical-evidence">Skeptical Evidence</h3>
+<ul><li><a href="source-llm-reasoning-skeptics.html">source-llm-reasoning-skeptics</a> — Hierarchical reasoning models fail on trivial puzzles (one unknown cell), suggesting guessing rather than reasoning. Grokking dynamics reveal sudden phase transitions.</li><li><a href="source-llm-reasoning-skeptics.html">source-llm-reasoning-skeptics</a> — Position paper arguing LLMs compress rather than invent, using Einstein's happiest thought as case study.</li><li><a href="source-llm-reasoning-skeptics.html">source-llm-reasoning-skeptics</a> — Comprehensive taxonomy: architectural limitations, application-specific constraints, and robustness inconsistencies.</li><li><a href="source-what-llms-think-unprompted.html">source-what-llms-think-unprompted</a> — Without explicit prompts, models default to training data patterns, not reasoning.</li><li><a href="source-zhang-harness-blog.html">source-zhang-harness-blog</a> — Transformers are "at best, unreliable at compositional generalization": a plain Transformer's train gains did not carry to longer or cross-domain tasks, while the same model in an RLM harness did (<code>raw/web-2026-alexzhang-harness-compositional.md</code>, §"Better scaling requires compositional generalization"; §"RLMs can train on short tasks…"; §"RLMs can generalize to unseen tasks…").</li></ul>
+<h3 id="positive-evidence">Positive Evidence</h3>
+<ul><li><a href="source-chain-of-thought-foundations.html">source-chain-of-thought-foundations</a> — Wei 2022: few-shot CoT prompting; GSM8K 17.9% → 56.9%; emergent with scale. The paper that opened the test-time-reasoning research thread.</li><li><a href="source-chain-of-thought-foundations.html">source-chain-of-thought-foundations</a> — Wang 2022: sample N CoTs + majority vote; GSM8K → 74.4%. Sampling-as-amplification ancestor of <a href="source-pdr-rethinking-thinking-tokens.html">source-pdr-rethinking-thinking-tokens</a>.</li><li><a href="source-tree-of-thoughts.html">source-tree-of-thoughts</a> — Yao 2023: deliberate exploration over thoughts; Game of 24 4% → 74%.</li><li><a href="source-reflexion-verbal-rl.html">source-reflexion-verbal-rl</a> — Shinn 2023: verbal RL; 91% pass@1 HumanEval (vs GPT-4's 80%).</li><li><a href="source-self-refine.html">source-self-refine</a> — Madaan 2023: iterative self-feedback; +20% across 7 tasks without retraining.</li><li><a href="source-symbolica-arc-agi-2.html">source-symbolica-arc-agi-2</a> — Neurosymbolic approach achieves 85.28% on ARC-AGI-2 using LLM + program synthesis.</li><li><a href="source-pdr-rethinking-thinking-tokens.html">source-pdr-rethinking-thinking-tokens</a> — Structured inference (Parallel-Distill-Refine) yields +11% on AIME math competitions.</li><li><a href="source-deepseek-r1.html">source-deepseek-r1</a> — DeepSeek 2025: pure RL post-training elicits o1-style reasoning. R1-Zero variant skips SFT entirely.</li></ul>
+<h3 id="the-emergence-debate">The emergence debate</h3>
+<ul><li><a href="source-emergence-debate.html">source-emergence-debate</a> — Wei 2022: emergent abilities defined as those not predictable from smaller-scale behaviour. Used to argue some capabilities only "switch on" at scale.</li><li><a href="source-emergence-debate.html">source-emergence-debate</a> — Schaeffer 2023 (NeurIPS): &gt;92% of "emergent" abilities are metric artefacts (Multiple Choice Grade, Exact String Match). Linear/continuous metrics show smooth scaling. The most important counter-evidence to the emergence claim.</li></ul>
+<h3 id="formal-approaches">Formal Approaches</h3>
+<ul><li><a href="source-lambda-rlm-calculus-llm.html">source-lambda-rlm-calculus-llm</a> — Applying lambda calculus to LLM reasoning.</li><li><a href="source-subleq-transformer-computer.html">source-subleq-transformer-computer</a> — Transformers can be constructed as Turing-complete computers.</li></ul>
+<h2 id="causal-reasoning-formerly-its-own-concept-page">Causal Reasoning (formerly its own concept page)</h2>
+<p>The ability to understand cause-and-effect relationships, make predictions, and reason about counterfactuals — a specific sub-capability where current models reliably fall short.</p>
+<ul><li><a href="source-clevrer-video-reasoning.html">source-clevrer-video-reasoning</a> — benchmark showing models excel at perception but fail at causal reasoning (explanatory, predictive, counterfactual questions).</li></ul>
+<h2 id="improving-reasoning">Improving Reasoning</h2>
+<p>Several approaches to enhancing LLM reasoning:</p>
+<ul><li><strong>Test-time compute</strong> — see <a href="concept-test-time-compute.html">concept-test-time-compute</a></li><li><strong>Scaffolding</strong> — see <a href="source-language-models-as-scaffolds.html">source-language-models-as-scaffolds</a></li><li><strong>Self-improvement</strong> — see <a href="concept-self-improvement.html">concept-self-improvement</a></li><li><strong>Recursive decomposition</strong> — see <a href="source-recursive-language-models.html">source-recursive-language-models</a>; trained with RL in <a href="source-zhang-harness-blog.html">source-zhang-harness-blog</a></li><li><strong>Latent reasoning</strong> — overview of the whole line: <a href="concept-latent-reasoning.html">concept-latent-reasoning</a></li><li><strong>Continuous thoughts taught by written chains</strong> — see <a href="source-coconut-continuous-latent-reasoning.html">source-coconut-continuous-latent-reasoning</a>: on ProsQA the probe-read values after each thought look like breadth-first search rather than a greedy path; but a curriculum with no thoughts at all reaches 95.5% there against Coconut's 97.0% (<code>raw/arxiv-2412-06769-coconut-reason-in-continuous-latent-space.md</code>, §4.3, Table 1)</li><li><strong>Limits of compressed latent chains</strong> — see <a href="source-continuous-cot-two-regimes.html">source-continuous-cot-two-regimes</a>: methods near written CoT on 25-token maths chains fall to about 35% of it on 350-token MATH chains, mostly through dropped signs and numbers (<code>raw/arxiv-2607-16972-continuous-cot-tale-of-two-regimes.md</code>, §4.4-4.5)</li><li><strong>Latent thoughts learned from answers only</strong> — see <a href="source-abstract-token-curriculum.html">source-abstract-token-curriculum</a>: a difficulty curriculum that appends the model's own hidden state as a thought token solves graph reachability of up to 16 hops (99.9%) where no thoughts (48.3%) and written shortest-path CoT (63.5%) fail (<code>raw/arxiv-2609-19717-learn-your-own-thoughts-abstract-token-curriculum.md</code>, §6.2.2, Table 1)</li></ul>
+<h2 id="open-questions">Open Questions</h2>
+<ul><li>Is there a hard ceiling on reasoning from next-token prediction?</li><li>Can neurosymbolic approaches (like Symbolica) scale to general reasoning?</li><li>Does structured inference (PDR, scaffolding) unlock latent reasoning or just create the illusion?<ul><li>One small-scale datum: on graph reachability neither a curriculum alone (49.0%) nor thought slots alone (47.8%) help; only both together do (<code>raw/arxiv-2609-19717-learn-your-own-thoughts-abstract-token-curriculum.md</code>, §6.2.2). The structure is needed, but it is learned, not written.</li></ul></li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/web-2026-alexzhang-harness-compositional.md</code></li><li><code>raw/arxiv-2609-19717-learn-your-own-thoughts-abstract-token-curriculum.md</code></li><li><code>raw/arxiv-2412-06769-coconut-reason-in-continuous-latent-space.md</code></li><li><code>raw/arxiv-2607-16972-continuous-cot-tale-of-two-regimes.md</code></li></ul></details>
+</main>
+</body>
+</html>

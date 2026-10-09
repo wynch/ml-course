@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The honest scorecard · ML course</title>
+<style>
+:root{--paper:#f4f0e7;--panel:#fffdf7;--ink:#1c2422;--muted:#60706b;--line:#d7d3c8;
+  --teal:#1f918d;--violet:#6651b8;--orange:#d36b3f;--green:#3f9b58;--shadow:0 12px 35px rgba(32,44,40,.09)}
+@media(prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e9efec;--muted:#a5b2ae;
+  --line:#394540;--teal:#38b8b3;--violet:#8f7de0;--orange:#ef8b60;--green:#63bd76;--shadow:0 14px 38px rgba(0,0,0,.28)}}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 system-ui,-apple-system,sans-serif}
+header{display:flex;align-items:center;gap:1rem;padding:.8rem clamp(1rem,4vw,2.5rem);border-bottom:1px solid var(--line);
+  background:color-mix(in srgb,var(--panel) 92%,transparent);position:sticky;top:0;z-index:3;backdrop-filter:blur(14px)}
+header strong{font-size:.96rem}header a{margin-left:auto;color:var(--ink);text-decoration:none;font-size:.86rem}
+header a.backlink{margin-left:0;color:var(--muted);border-bottom:1px solid transparent}
+header a.backlink:hover{color:var(--teal);border-bottom-color:var(--teal)}
+main{max-width:1120px;margin:auto;padding:clamp(1.2rem,4vw,3rem) clamp(1rem,4vw,2rem) 4rem}
+footer.bot{max-width:1120px;margin:auto;padding:0 clamp(1rem,4vw,2rem) 3rem}
+footer.bot .inner{border-top:1px solid var(--line);padding-top:14px;font-size:12.5px;color:var(--muted)}
+footer.bot .row{margin:4px 0}
+footer.bot code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.hero{display:grid;grid-template-columns:1.3fr .7fr;gap:2rem;align-items:end;margin-bottom:1.5rem}
+h1{font:700 clamp(2.1rem,6vw,4.6rem)/.95 "Avenir Next",system-ui,sans-serif;letter-spacing:-.055em;margin:0;max-width:10ch}
+.hero p{margin:0;color:var(--muted);max-width:45ch}.controls,.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+.controls{padding:1rem 1.2rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+.controls label{font-weight:650}.controls input{accent-color:var(--teal);width:min(320px,48vw)}output{font:700 1rem ui-monospace,monospace;
+  background:color-mix(in srgb,var(--teal) 13%,transparent);padding:.3rem .55rem;border-radius:7px}
+button{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:.55rem .75rem;border-radius:9px;font-weight:650;cursor:pointer}
+button[aria-pressed=true]{background:var(--orange);color:#fff;border-color:var(--orange)}
+.grid{display:grid;grid-template-columns:1.05fr .95fr;gap:1rem}.panel{padding:1.1rem}.panel h2{font-size:1rem;margin:0 0 .8rem}
+.matrix{display:grid;grid-template-columns:5.5rem repeat(2,1fr);gap:.45rem;align-items:stretch}
+.matrix .label{display:grid;place-items:center;color:var(--muted);font-size:.75rem;text-align:center}
+.cell{min-height:108px;border-radius:13px;display:grid;place-items:center;text-align:center;padding:.6rem}
+.cell b{font:750 2.4rem/1 ui-monospace,monospace}.cell small{display:block;font-size:.72rem;margin-top:.35rem}
+.tp{background:color-mix(in srgb,var(--green) 23%,var(--panel))}.tn{background:color-mix(in srgb,var(--teal) 19%,var(--panel))}
+.fp,.fn{background:color-mix(in srgb,var(--orange) 20%,var(--panel))}
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:.65rem}.metric{border:1px solid var(--line);border-radius:12px;padding:.75rem}
+.metric span{display:block;color:var(--muted);font-size:.76rem}.metric b{font:750 1.45rem ui-monospace,monospace}
+.bars{margin-top:1rem}.bar{display:grid;grid-template-columns:5.2rem 1fr 3rem;align-items:center;gap:.6rem;margin:.55rem 0;font-size:.78rem}
+.track{height:10px;background:color-mix(in srgb,var(--line) 55%,transparent);border-radius:99px;overflow:hidden}.fill{height:100%;background:var(--violet);border-radius:inherit}
+.examples{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin-top:1rem}.dot{aspect-ratio:1;border-radius:4px;border:2px solid transparent;
+  background:color-mix(in srgb,var(--teal) 32%,var(--panel));position:relative}.dot.pos{border-color:var(--violet)}.dot.pred:after{content:"";position:absolute;inset:27%;border-radius:50%;background:var(--orange)}
+.note{margin-top:1rem;padding:.8rem .9rem;border-left:3px solid var(--teal);background:color-mix(in srgb,var(--teal) 8%,transparent);font-size:.86rem}
+.challenge{margin-top:1rem;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:1.1rem}
+.challenge p{margin:.35rem 0;color:var(--muted)}.answer{font-weight:650;min-height:1.5em;color:var(--teal)}
+@media(max-width:760px){.hero,.grid{grid-template-columns:1fr}.examples{grid-template-columns:repeat(8,1fr)}}
+</style>
+</head>
+<body>
+<header><strong>Lab 05½ · data &amp; evaluation</strong><a class="backlink" href="index.html">← All explorables</a><a href="../modules/05a-data-evaluation/README.md">Read the lab →</a></header>
+<main>
+  <section class="hero">
+    <h1>The honest scorecard.</h1>
+    <p>A score is a compressed set of decisions. Move the threshold, inspect every error,
+      then contaminate the test set and watch a fake breakthrough appear.</p>
+  </section>
+  <section class="controls">
+    <label for="threshold">Decision threshold</label>
+    <input id="threshold" type="range" min="10" max="90" value="50">
+    <output id="thresholdOut">0.50</output>
+    <button id="leak" type="button" aria-pressed="false">Introduce leakage</button>
+    <button id="reset" type="button">Reset</button>
+  </section>
+  <div class="grid">
+    <section class="panel">
+      <h2>Confusion matrix</h2>
+      <div class="matrix">
+        <div></div><div class="label">actually positive</div><div class="label">actually negative</div>
+        <div class="label">predicted<br>positive</div>
+        <div class="cell tp"><div><b id="tp">0</b><small>true positive</small></div></div>
+        <div class="cell fp"><div><b id="fp">0</b><small>false positive</small></div></div>
+        <div class="label">predicted<br>negative</div>
+        <div class="cell fn"><div><b id="fn">0</b><small>false negative</small></div></div>
+        <div class="cell tn"><div><b id="tn">0</b><small>true negative</small></div></div>
+      </div>
+      <div class="examples" id="examples" aria-label="Forty classified examples"></div>
+      <div class="note" id="tradeoff"></div>
+    </section>
+    <section class="panel">
+      <h2>What the summary says</h2>
+      <div class="metrics">
+        <div class="metric"><span>accuracy</span><b id="accuracy">—</b></div>
+        <div class="metric"><span>precision</span><b id="precision">—</b></div>
+        <div class="metric"><span>recall</span><b id="recall">—</b></div>
+        <div class="metric"><span>F1</span><b id="f1">—</b></div>
+      </div>
+      <div class="bars">
+        <div class="bar"><span>daylight F1</span><div class="track"><div class="fill" id="dayBar"></div></div><b id="day">—</b></div>
+        <div class="bar"><span>low-light F1</span><div class="track"><div class="fill" id="lowBar"></div></div><b id="low">—</b></div>
+      </div>
+      <div class="note" id="leakNote">The test set is clean. Scores reflect unseen examples.</div>
+    </section>
+  </div>
+  <section class="challenge">
+    <strong>Prediction before reveal</strong>
+    <p>A medical screening tool makes missing a positive ten times more costly than a false alarm.
+      Which direction should you move the threshold?</p>
+    <button id="reveal" type="button">Reveal reasoning</button>
+    <div class="answer" id="answer" aria-live="polite"></div>
+  </section>
+</main>
+<script>
+const truth=[1,0,1,1,0,0,1,0,1,0,1,0,0,1,1,0,1,0,0,1,1,0,1,0,1,0,0,1,0,1,1,0,0,1,0,1,0,1,0,1];
+const base=[.91,.16,.82,.67,.36,.58,.74,.21,.61,.44,.88,.32,.12,.55,.79,.25,.47,.62,.18,.69,.72,.28,.52,.39,.84,.14,.66,.57,.23,.77,.63,.41,.19,.71,.53,.46,.34,.86,.29,.59];
+const group=truth.map((_,i)=>i%4===0?"low":"day");
+const leaked=base.map((p,i)=>i%5===0?(truth[i]?.97:.03):p);
+const $=id=>document.getElementById(id); let leak=false;
+function div(a,b){return b?a/b:0}
+function score(indices,threshold,prob){
+ let tp=0,fp=0,fn=0,tn=0;
+ indices.forEach(i=>{const pred=prob[i]>=threshold;if(pred&&truth[i])tp++;else if(pred)fp++;else if(truth[i])fn++;else tn++});
+ const precision=div(tp,tp+fp),recall=div(tp,tp+fn);
+ return {tp,fp,fn,tn,accuracy:div(tp+tn,indices.length),precision,recall,f1:div(2*precision*recall,precision+recall)}
+}
+function pct(v){return Math.round(v*100)+"%"}
+function render(){
+ const threshold=+$("threshold").value/100,prob=leak?leaked:base,all=truth.map((_,i)=>i);
+ const s=score(all,threshold,prob),day=score(all.filter(i=>group[i]==="day"),threshold,prob),low=score(all.filter(i=>group[i]==="low"),threshold,prob);
+ $("thresholdOut").textContent=threshold.toFixed(2);
+ ["tp","fp","fn","tn"].forEach(k=>$(k).textContent=s[k]);
+ ["accuracy","precision","recall","f1"].forEach(k=>$(k).textContent=pct(s[k]));
+ $("day").textContent=pct(day.f1);$("low").textContent=pct(low.f1);
+ $("dayBar").style.width=pct(day.f1);$("lowBar").style.width=pct(low.f1);
+ $("tradeoff").textContent=threshold<.5?"Lower threshold: more positives caught, more false alarms.":threshold>.5?"Higher threshold: fewer false alarms, more positives missed.":"At 0.50, neither error type has been given an explicit cost.";
+ $("leakNote").textContent=leak?"Eight test examples now copy their labels into the prediction. The model did not improve; the measurement was contaminated.":"The test set is clean. Scores reflect unseen examples.";
+ $("examples").innerHTML=all.map(i=>`<span class="dot ${truth[i]?"pos":""} ${prob[i]>=threshold?"pred":""}" title="truth ${truth[i]}, probability ${prob[i].toFixed(2)}"></span>`).join("");
+}
+$("threshold").addEventListener("input",render);
+$("leak").addEventListener("click",()=>{leak=!leak;$("leak").setAttribute("aria-pressed",String(leak));render()});
+$("reset").addEventListener("click",()=>{$("threshold").value=50;leak=false;$("leak").setAttribute("aria-pressed","false");render()});
+$("reveal").addEventListener("click",()=>{$("answer").textContent="Lower it. That usually raises recall and reduces costly false negatives, while accepting more false positives. Choose the exact value on validation data."});
+render();
+</script>
+<footer class="bot">
+  <div class="inner">
+    <div class="row">Module: <code>../modules/05a-data-evaluation/README.md</code></div>
+    <div class="row">Data: a fixed 40-example set of labels and probabilities authored for this page — not a
+      trained model's output. Metrics are computed live in the page with the same formulas as
+      <code>modules/05a-data-evaluation/python/src/metrics.py</code>; "Introduce leakage" copies the label into the
+      probability for 8 of the 40 examples.</div>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>The Three Axes — What This Wiki Is About · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="the-three-axes">The Three Axes</h1>
+<div class="meta"><span class="type">guide</span> <span>created 2026-05-07</span> <span>updated 2026-05-07</span> <span class="tag">guide</span> <span class="tag">meta</span> <span class="tag">axes</span> <span class="tag">navigation</span> <span class="tag">thesis</span></div>
+<p>This wiki isn't organised around topics. It's organised around three <strong>arguments</strong> about what modern AI is becoming. Each axis is a thesis someone is making about which framings will turn out to matter. If you're new, start here.</p>
+<h2 id="axis-1-neural-symbolic">Axis 1 — Neural-Symbolic</h2>
+<p><strong>The thesis:</strong> <em>neural and symbolic are two parts of a single architecture, not opposing paradigms.</em> The interesting work is happening at the seam — verifiers wrapped around neural proposers, libraries of programs that grow during training, decompilation of weights to source code, symbolic handles inside dense layers.</p>
+<p><strong>Anchor:</strong> <a href="source-neural-computer-metauto.html">source-neural-computer-metauto</a> (Zhuge / MetaAuto) — the essay this whole axis is built around.</p>
+<p><strong>Synthesis:</strong> <a href="analysis-neural-symbolic-middle-point.html">analysis-neural-symbolic-middle-point</a> — the five axes of articulation.</p>
+<p><strong>Concept hubs:</strong> <a href="concept-neural-symbolic-bridge.html">concept-neural-symbolic-bridge</a>, <a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a>, <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a> (the <em>readout</em> side of the bridge).</p>
+<p><strong>Why it's here:</strong> if you believe LLMs are best understood as cooperating with symbolic substrates rather than replacing them, this is the axis you care about. The wiki's neural-symbolic coverage is the largest of the three.</p>
+<h2 id="axis-2-predictive-self-supervised">Axis 2 — Predictive / Self-Supervised</h2>
+<p><strong>The thesis:</strong> <em>prediction-in-latent-space is the substrate of grounded intelligence.</em> Vision SSL didn't just produce better features — it produced the right kind of features for prediction-then-planning. JEPA + world models is what happens when that programme is taken seriously beyond representation learning.</p>
+<p><strong>Position paper:</strong> <a href="source-lecun-path-autonomous-intelligence.html">source-lecun-path-autonomous-intelligence</a> (LeCun 2022).</p>
+<p><strong>Synthesis:</strong> <a href="analysis-world-models-vs-vla.html">analysis-world-models-vs-vla</a> — four answers to embodied intelligence, with the predictive position as one of them.</p>
+<p><strong>Concept hubs:</strong> <a href="concept-self-supervised-learning.html">concept-self-supervised-learning</a>, <a href="concept-jepa.html">concept-jepa</a>, <a href="concept-world-models.html">concept-world-models</a>, <a href="concept-active-inference.html">concept-active-inference</a> (the hand-tuned-generative-model counterpart).</p>
+<p><strong>Why it's here:</strong> if you believe the limits of LLM scaling will be addressed by <em>what is being predicted</em>, not just by more text, this is your axis. V-JEPA 2-AC's zero-shot Droid robot control is the strongest 2025 data point that this is more than representation learning.</p>
+<h2 id="axis-3-foundational-llm-canon">Axis 3 — Foundational LLM canon</h2>
+<p><strong>The thesis:</strong> <em>most of the wiki's modern arguments cite a handful of foundational papers; you should know them.</em> This isn't an argument so much as a base layer that the other two axes presuppose.</p>
+<p><strong>Founding papers:</strong> <a href="source-attention-is-all-you-need.html">source-attention-is-all-you-need</a> · <a href="source-gpt3-few-shot-learners.html">source-gpt3-few-shot-learners</a> · <a href="source-chinchilla-compute-optimal.html">source-chinchilla-compute-optimal</a> · <a href="source-chain-of-thought-foundations.html">source-chain-of-thought-foundations</a> · <a href="source-instructgpt-rlhf.html">source-instructgpt-rlhf</a> · <a href="source-dpo-direct-preference-optimization.html">source-dpo-direct-preference-optimization</a> · <a href="source-lora-low-rank-adaptation.html">source-lora-low-rank-adaptation</a>.</p>
+<p><strong>Synthesis pieces:</strong> <a href="analysis-emergence-vs-distribution-sharpening.html">analysis-emergence-vs-distribution-sharpening</a> — pulls the canon's scaling/RL claims into the modern debate. <a href="analysis-self-distillation-as-universal-lever.html">analysis-self-distillation-as-universal-lever</a> — argues a single mechanism connects DPO, retrofitting, R1, and DINO.</p>
+<p><strong>Concept hubs:</strong> <a href="concept-scaling-laws.html">concept-scaling-laws</a>, <a href="concept-rlhf.html">concept-rlhf</a>, <a href="concept-transformer-architecture.html">concept-transformer-architecture</a>, <a href="concept-mixture-of-experts.html">concept-mixture-of-experts</a>, <a href="concept-test-time-compute.html">concept-test-time-compute</a>.</p>
+<p><strong>Why it's here:</strong> because without it, the rest of the wiki is unreadable. Read these before anything else.</p>
+<h2 id="how-the-axes-interact">How the axes interact</h2>
+<p>The wiki has been getting more interesting where the axes <em>cross</em>:</p>
+<ul><li><strong>Axis 1 ↔ Axis 2.</strong> <a href="source-engram-deepseek.html">source-engram-deepseek</a> (an explicit symbolic table inside a dense LLM) is a neural-symbolic move that simultaneously is a <em>prediction</em> architecture innovation. <a href="source-vjepa-family.html">source-vjepa-family</a>'s predictor module is, in some sense, a symbolic operator wrapped in neural form.</li><li><strong>Axis 2 ↔ Axis 3.</strong> <a href="source-deepseek-r1.html">source-deepseek-r1</a> is canonical-LLM frontier work that nonetheless gives the predictive/SSL camp ammunition (see <a href="analysis-emergence-vs-distribution-sharpening.html">analysis-emergence-vs-distribution-sharpening</a>).</li><li><strong>Axis 1 ↔ Axis 3.</strong> <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a> is the readout-side of Axis 1 but is mostly applied to Axis-3 models (Claude, GPT, Gemma). The interesting question is whether the same techniques transfer to Axis-2 models.</li></ul>
+<p>The three axes have <strong>not yet met deeply</strong> — most pages live cleanly inside one axis. The wiki's most interesting open questions are at the crossings.</p>
+<h2 id="reading-paths">Reading paths</h2>
+<div class="tw"><table><thead><tr><th>If you want to...</th><th>Start at</th></tr></thead><tbody><tr><td>Understand the wiki's organising claim</td><td><a href="analysis-neural-symbolic-middle-point.html">analysis-neural-symbolic-middle-point</a></td></tr><tr><td>Catch up on canonical LLM literature</td><td>This page → the founding papers list above</td></tr><tr><td>Get into vision SSL → world models</td><td><a href="guide-ssl-vision-tour.html">guide-ssl-vision-tour</a></td></tr><tr><td>Get into mech interp</td><td><a href="guide-mech-interp-tour.html">guide-mech-interp-tour</a></td></tr><tr><td>Trace test-time-compute through the wiki</td><td><a href="thread-test-time-compute.html">thread-test-time-compute</a></td></tr><tr><td>See the "predict in latent space" thread</td><td><a href="thread-predict-in-latent-space.html">thread-predict-in-latent-space</a></td></tr><tr><td>Argue about RL vs distribution sharpening</td><td><a href="analysis-emergence-vs-distribution-sharpening.html">analysis-emergence-vs-distribution-sharpening</a></td></tr><tr><td>Argue about world models vs VLA</td><td><a href="analysis-world-models-vs-vla.html">analysis-world-models-vs-vla</a></td></tr><tr><td>Argue about self-distillation as the universal lever</td><td><a href="analysis-self-distillation-as-universal-lever.html">analysis-self-distillation-as-universal-lever</a></td></tr></tbody></table></div>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="overview.html">overview</a> — the long-form theme map</li><li><a href="index.html">index</a> — the flat catalog</li></ul>
+</main>
+</body>
+</html>

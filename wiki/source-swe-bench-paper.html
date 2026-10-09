@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>SWE-bench: Can Language Models Resolve Real-World GitHub Issues? · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="swe-bench-can-language-models-resolve-real-world-github-issues">SWE-bench: Can Language Models Resolve Real-World GitHub Issues?</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-06</span> <span>updated 2026-05-06</span> <span class="tag">benchmarks</span> <span class="tag">coding-agents</span> <span class="tag">swe-bench</span> <span class="tag">evaluation</span> <span class="tag">foundational</span> <span class="tag">2023</span> <span class="tag">iclr</span></div>
+<p><strong>Jimenez, Yang, Wettig, Yao, Pei, Press, Narasimhan — arXiv 2310.06770, October 2023 (ICLR 2024, Princeton NLP + University of Chicago)</strong></p>
+<p>The benchmark that turned "can LLMs code?" from HumanEval-style toy completions into a question about <strong>real, multi-file, repository-scale software engineering</strong>. Each task is a genuine GitHub issue from a popular Python project, paired with the maintainer's eventual fix. The model must read the repository, localise the bug, edit one or more files, and produce a patch that passes the project's hidden test suite.</p>
+<h2 id="method">Method</h2>
+<p>The dataset is constructed by mining merged pull requests from <strong>12 popular Python repos</strong> (Django, scikit-learn, sympy, matplotlib, pytest, requests, flask, pylint, astropy, sphinx, xarray, seaborn) under one strict filter: the PR must (i) close an issue and (ii) modify the test suite, so that there exist tests that <em>fail before the patch</em> and <em>pass after</em>. Those tests become the hidden grader.</p>
+<p>A task instance contains:</p>
+<ol><li><strong>Issue text</strong> — the natural-language bug report or feature request.</li><li><strong>Pre-fix repository snapshot</strong> — the full codebase at the parent commit, often &gt;100k lines.</li><li><strong>Hidden FAIL_TO_PASS and PASS_TO_PASS tests</strong> — the project's own tests that flip from failing to passing under the gold patch (and the regression tests that must keep passing).</li></ol>
+<p>The agent's only output is a <strong>unified diff</strong> applied to the snapshot. Grading is purely behavioural: the patched repo is built in a sandbox; the test sets are run; the instance counts as resolved iff every FAIL_TO_PASS test now passes and no PASS_TO_PASS test regresses.</p>
+<h2 id="key-numbers">Key numbers</h2>
+<ul><li><strong>2,294 task instances</strong> in the original release; the <strong>SWE-bench Lite</strong> subset (300 instances) and the human-curated <strong>SWE-bench Verified</strong> (500 instances, OpenAI 2024) became the standard reporting variants.</li><li>Initial frontier-model results in the paper were striking for being so low: the best evaluated configuration (Claude 2 with retrieval) resolved <strong>&lt;2%</strong> of issues; GPT-4 with BM25 retrieval was similar. Most failures came from localisation, not patch synthesis.</li><li>A task occupies on average <strong>&gt;438k tokens</strong> of context across modified files — well beyond what naive prompting could handle in 2023.</li></ul>
+<h2 id="why-it-matters">Why it matters</h2>
+<p>SWE-bench reframed coding evaluation around <strong>three difficulties HumanEval and MBPP papered over</strong>: long-range code understanding (find the right file/function), cross-file edits, and the discipline of not breaking unrelated behaviour. That made it the canonical scoreboard for the entire 2024-2026 <a href="concept-ai-agents.html">concept-ai-agents</a> / coding-agent wave, and the benchmark every harness had to publish a number on.</p>
+<p>Wiki-internal ladder of SWE-bench results, all multi-agent or scaffolded:</p>
+<ul><li><a href="source-agyn-multi-agent-swe.html">source-agyn-multi-agent-swe</a> — 72.2% on SWE-bench 500 via organisation-of-agents (coordinator / researcher / implementer / reviewer).</li><li><a href="source-gea-group-evolving-agents.html">source-gea-group-evolving-agents</a> — 71.0% on <strong>SWE-bench Verified</strong> via evolutionary agent groups.</li><li><a href="source-cursor-scaling-agents.html">source-cursor-scaling-agents</a> — Cursor's scaling experiments on real repository tasks; uses SWE-bench-class evals as a sanity check.</li></ul>
+<p>The benchmark also became one of the empirical hooks for the <a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a> thesis: scores moved from ~2% to &gt;70% with <strong>no architectural change to the underlying LLM</strong> — only different scaffolds, retrievers, multi-agent topologies, and verifier loops. That is exactly the <a href="concept-test-time-compute.html">concept-test-time-compute</a> / <a href="source-language-models-as-scaffolds.html">source-language-models-as-scaffolds</a> regime, evaluated on the most economically meaningful task in the wiki.</p>
+<p>The introduction of <strong>SWE-bench Verified</strong> (OpenAI, 2024) addressed two early criticisms — that some original instances had ambiguous specs or flaky tests — by having human SWEs hand-audit 500 instances. Almost every &gt;70% number in the wiki refers to the Verified subset. See <a href="concept-swe-bench.html">concept-swe-bench</a> for the score table.</p>
+<p>Finally, SWE-bench is the benchmark cousin of <a href="concept-arc-agi.html">concept-arc-agi</a> in one important sense: both are <strong>closed-environment tasks where the model cannot bluff</strong>. The repo either builds and passes tests or it doesn't. That makes them rare clean signals in the otherwise noisy <a href="concept-llm-reasoning.html">concept-llm-reasoning</a> debate.</p>
+<h2 id="references">References</h2>
+<ul><li>arXiv: <a href="https://arxiv.org/abs/2310.06770" rel="noreferrer">https://arxiv.org/abs/2310.06770</a></li><li>Concept hub: <a href="concept-swe-bench.html">concept-swe-bench</a></li><li>Wiki-internal SWE-bench results: <a href="source-agyn-multi-agent-swe.html">source-agyn-multi-agent-swe</a>, <a href="source-gea-group-evolving-agents.html">source-gea-group-evolving-agents</a>, <a href="source-cursor-scaling-agents.html">source-cursor-scaling-agents</a></li><li>Sibling reasoning-eval: <a href="concept-arc-agi.html">concept-arc-agi</a></li><li>Related: <a href="concept-ai-agents.html">concept-ai-agents</a>, <a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a>, <a href="concept-test-time-compute.html">concept-test-time-compute</a></li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2310.06770" rel="noreferrer">https://arxiv.org/abs/2310.06770</a></li></ul></details>
+</main>
+</body>
+</html>

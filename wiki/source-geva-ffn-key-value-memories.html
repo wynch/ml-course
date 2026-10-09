@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Transformer Feed-Forward Layers Are Key-Value Memories · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="transformer-feed-forward-layers-are-key-value-memories">Transformer Feed-Forward Layers Are Key-Value Memories</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-06</span> <span>updated 2026-10-09</span> <span class="tag">interpretability</span> <span class="tag">ffn</span> <span class="tag">key-value-memory</span> <span class="tag">transformers</span> <span class="tag">foundational</span></div>
+<p><strong>Geva, Schuster, Berant, Levy — EMNLP 2021 (arXiv 2012.14913, December 2020).</strong></p>
+<p>The paper that gave the field its working mental model for what FFN layers actually <em>do</em>. Two-thirds of a transformer's parameters live in FFN blocks, and before this paper there was no agreed-upon story about them; attention got all the analytical attention.</p>
+<h2 id="the-claim">The claim</h2>
+<p>A transformer FFN of the form <code>out = W_V · σ(W_K · x)</code> is reinterpretable as a <strong>key-value memory</strong>:</p>
+<ul><li>The <strong>first matrix W_K</strong> is a stack of <em>keys</em>. Each row is a pattern detector: it produces a high inner product with residual-stream vectors that represent specific textual patterns.</li><li><strong>σ(·)</strong> (typically GeLU/ReLU) gates which keys fire.</li><li>The <strong>second matrix W_V</strong> is a stack of <em>values</em>. Each column is a distribution over output tokens — "if key i fires, push the residual stream toward this distribution over the vocabulary."</li></ul>
+<p>A single FFN neuron is therefore a (pattern → output distribution) memory cell, and the FFN as a whole is a learned associative memory that retrieves and composes thousands of these cells per forward pass.</p>
+<h2 id="empirical-findings">Empirical findings</h2>
+<p>The authors instrument trained transformer LMs (specifically 16-layer LMs in the WikiText-103 / GPT-2-style regime) and inspect individual FFN neurons:</p>
+<ul><li><strong>Keys are interpretable patterns.</strong> For most neurons, top-activating training examples share recognisable structure.</li><li><strong>Lower layers detect shallow / surface patterns</strong> — n-grams, specific tokens, simple syntax.</li><li><strong>Upper layers detect deeper semantic patterns</strong> — topical, semantic, sometimes task-relevant patterns.</li><li><strong>Values point toward likely next tokens</strong> that match what historically followed the key's pattern. The value distribution becomes increasingly aligned with the actual output vocabulary in later layers.</li><li><strong>Composition.</strong> The output of a single FFN block is a sum of per-neuron contributions. Across layers, the residual stream accumulates these contributions and refines its prediction; intermediate predictions shift toward the final answer in a roughly monotonic way.</li></ul>
+<h2 id="why-it-matters">Why it matters</h2>
+<p>This is the foundational source for the <strong>"FFN as memory"</strong> thread that runs through:</p>
+<ul><li><strong>Localising and editing knowledge.</strong> <a href="source-rome-memit-factual-editing.html">source-rome-memit-factual-editing</a> (ROME / MEMIT) takes Geva's frame literally — if FFN neurons store facts, you can edit a fact with a rank-one update to a specific neuron's value vector. Without "FFNs are key-value stores," ROME is unmotivated.</li><li><strong>Modern FFN-as-retrieval.</strong> <a href="source-memoryllm-plug-n-play-ffn.html">source-memoryllm-plug-n-play-ffn</a> and the broader retrieval-augmented FFN line treat the value matrix as a swappable knowledge index — directly Geva's frame, productionised.</li><li><strong>SAE motivation.</strong> SAEs (<a href="source-sae-monosemanticity-2023.html">source-sae-monosemanticity-2023</a>, <a href="source-sae-monosemanticity-2023.html">source-sae-monosemanticity-2023</a>) inherit the assumption that FFN neurons (or residual-stream directions) have semantic content worth decomposing. Geva is part of why people believed that in the first place.</li><li><strong>Architecture choices.</strong> Engram (<a href="source-engram-deepseek.html">source-engram-deepseek</a>), MoE-as-memory variants, and "U-shaped MoE/memory" laws all treat FFNs as retrieval rather than computation — same lineage.</li></ul>
+<h2 id="tensions-and-refinements">Tensions and refinements</h2>
+<ul><li><strong>Polysemanticity.</strong> Geva treats neurons as roughly monosemantic. <a href="source-anthropic-mi-foundations.html">source-anthropic-mi-foundations</a> shows this is approximate at best; superposition crams many features into the same neuron. SAEs were the field's response.</li><li><strong>Distributional vs. localist reading.</strong> Geva supports a relatively localist view (per-neuron pattern, per-neuron output). The circuits programme has since moved toward viewing features as directions, not neurons — but the <em>function</em> (key-detect, value-write) survives the reframing.</li></ul>
+<h2 id="neuralsymbolic-bridge">Neural↔symbolic bridge</h2>
+<p>Reframes the FFN — ostensibly the most "neural" component of the transformer — as a fundamentally <strong>symbolic</strong> retrieval operation: detect a pattern, look up an associated distribution, write it to the residual stream. This is the wiki's neural-symbolic thesis (<a href="concept-neural-symbolic-bridge.html">concept-neural-symbolic-bridge</a>) being articulated <em>inside</em> the network: the symbolic substrate is not added by a harness, it's already there in W_V.</p>
+<h2 id="later-use">Later use</h2>
+<p><a href="source-memory-mosaics-at-scale.html">source-memory-mosaics-at-scale</a> takes this reading as a design rule: its feed-forward block is the "persistent memory" for knowledge from training, beside two associative memories for the prompt. It cites Sukhbaatar et al. (2019) for the two being interchangeable (<code>raw/arxiv-2507-03285-memory-mosaics-at-scale.md</code>, §3.3, footnote 8).</p>
+<h2 id="references">References</h2>
+<ul><li><a href="https://arxiv.org/abs/2012.14913" rel="noreferrer">https://arxiv.org/abs/2012.14913</a></li><li>Direct extensions: <a href="source-rome-memit-factual-editing.html">source-rome-memit-factual-editing</a>, <a href="source-memoryllm-plug-n-play-ffn.html">source-memoryllm-plug-n-play-ffn</a></li><li>Related architecture line: <a href="source-engram-deepseek.html">source-engram-deepseek</a>, <a href="source-attention-sinks-compression-valleys.html">source-attention-sinks-compression-valleys</a></li><li>Tension: <a href="source-anthropic-mi-foundations.html">source-anthropic-mi-foundations</a> (polysemanticity), <a href="source-sae-monosemanticity-2023.html">source-sae-monosemanticity-2023</a> (SAE response)</li><li>Context: <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a>, <a href="concept-transformer-architecture.html">concept-transformer-architecture</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2012.14913" rel="noreferrer">https://arxiv.org/abs/2012.14913</a></li><li><code>raw/arxiv-2507-03285-memory-mosaics-at-scale.md</code></li></ul></details>
+</main>
+</body>
+</html>

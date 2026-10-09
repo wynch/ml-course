@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz · Module 02 — Neural networks · ML course</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d; --track:#453781; --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67; --grid:rgba(28,36,34,.10);
+  --warn:#c1121f; --soft:rgba(31,145,141,.10);
+  --wrong:#c0504d; --wrong-soft:rgba(192,80,77,.10);
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --grid:rgba(232,238,236,.12); --track:#6b5ac0; --warn:#ff8f85;
+    --soft:rgba(31,145,141,.16);
+    --wrong:#e98b85; --wrong-soft:rgba(233,139,133,.14);
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;background:var(--track);color:var(--track-ink);
+  padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.topbar .spacer{flex:1 1 auto}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 1rem}
+.intro{max-width:70ch;color:var(--ink)}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .7rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.8rem,2vw,1.2rem);margin:1.4rem 0}
+button{font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:.34rem .82rem;cursor:pointer}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{color:#fff;filter:brightness(1.06)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:.78rem;color:var(--muted);margin:.35rem 0 0}
+.mono,code{font-family:var(--mono);font-size:.92em}
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ── quiz-specific ───────────────────────────────────────────────── */
+.q .qhead{display:flex;flex-wrap:wrap;gap:.4rem .5rem;align-items:center;margin-bottom:.55rem}
+.qnum{font-family:var(--display);font-weight:700;font-size:.78rem;background:var(--track);
+  color:var(--track-ink);border-radius:999px;min-width:1.6rem;height:1.6rem;
+  display:inline-flex;align-items:center;justify-content:center;padding:0 .4rem}
+.tag{font-family:var(--display);font-size:.67rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted);border:1px solid var(--line);
+  border-radius:999px;padding:.13rem .5rem}
+.tag.hit{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.tag.miss{color:var(--wrong);border-color:var(--wrong);background:var(--wrong-soft)}
+.qprompt{margin:.2rem 0 .75rem;max-width:76ch}
+pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.45;background:var(--soft);
+  border:1px solid var(--line);border-radius:10px;padding:.65rem .8rem;overflow-x:auto;
+  margin:.1rem 0 .85rem;white-space:pre}
+.opts{display:flex;flex-direction:column;gap:.42rem;max-width:82ch}
+.opt{display:flex;gap:.6rem;align-items:flex-start;border:1px solid var(--line);
+  border-radius:10px;padding:.5rem .7rem;background:transparent;text-align:left;
+  font:inherit;font-size:.93rem;color:var(--ink);width:100%;cursor:pointer;line-height:1.45}
+.opt:hover{border-color:var(--accent);color:var(--ink)}
+.opt .mark{font-family:var(--mono);font-size:.8rem;color:var(--muted);min-width:1.15rem;
+  padding-top:.1rem}
+.opt .txt{flex:1 1 auto}
+.q.locked .opt{cursor:default}
+.q.locked .opt:hover{border-color:var(--line)}
+.opt.is-correct{border-color:var(--accent);background:var(--soft)}
+.opt.is-correct .mark{color:var(--accent)}
+.opt.is-correct:hover{border-color:var(--accent)}
+.opt.is-wrong{border-color:var(--wrong);background:var(--wrong-soft)}
+.opt.is-wrong .mark{color:var(--wrong)}
+.opt.is-wrong:hover{border-color:var(--wrong)}
+.opt.picked .mark::after{content:" ←";color:var(--muted)}
+.multi .opt input{accent-color:var(--accent);margin:.28rem 0 0}
+.numrow{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.numrow input{font-family:var(--mono);font-size:.95rem;color:var(--ink);background:var(--panel);
+  border:1px solid var(--line);border-radius:10px;padding:.4rem .6rem;width:9rem}
+.actions{margin-top:.6rem;display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.explain{margin-top:.8rem;border-left:3px solid var(--line);padding:.05rem 0 .05rem .8rem;
+  font-size:.9rem;max-width:78ch}
+.explain.ok{border-left-color:var(--accent)}
+.explain.no{border-left-color:var(--wrong)}
+.explain b.head{font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;display:block;margin-bottom:.2rem}
+.explain.ok b.head{color:var(--accent)}
+.explain.no b.head{color:var(--wrong)}
+.explain p{margin:.25rem 0}
+.explain .src{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+.tryit{display:inline-block;margin-top:.4rem;font-size:.83rem;text-decoration:none;
+  border:1px solid var(--accent);color:var(--accent);border-radius:999px;padding:.2rem .7rem}
+.tryit:hover{background:var(--soft)}
+.scorebar{position:sticky;bottom:0;z-index:6;background:var(--panel);
+  border-top:1px solid var(--line);padding:.6rem clamp(.9rem,3vw,2rem)}
+.scorebar .inner{max-width:1120px;margin:0 auto;display:flex;flex-wrap:wrap;
+  gap:.5rem .9rem;align-items:center}
+.scorebar .score{font-family:var(--mono);font-size:1.02rem;font-weight:600}
+.scorebar .score em{font-style:normal;color:var(--muted);font-size:.84rem}
+.scorebar .spacer{flex:1 1 auto}
+.scorebar .verdict{font-family:var(--display);font-size:.86rem;font-weight:600}
+.scorebar .verdict.good{color:var(--accent)}
+.scorebar .verdict.mid{color:var(--ink)}
+.scorebar .verdict.low{color:var(--wrong)}
+.reviewlist{flex:1 1 100%;margin:.15rem 0 0;padding-left:1.1rem;font-size:.82rem;color:var(--muted)}
+.reviewlist li{margin:.1rem 0}
+@media (max-width:700px){
+  .topbar h1{font-size:.98rem}
+  .scorebar .verdict{flex:1 1 100%}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Quiz: neural networks, the manual backward pass, and the training loop</h1>
+  <span class="pill">Module 02 · Neural networks</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">← All quizzes</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">Ten questions on module 02. Every one is grounded in the module's own NumPy
+      library, its Zig performance sidebar and the runs it actually measured — including the
+      numbers the scripts print.</p>
+    <p>Answer in any order. Answering locks a question and reveals whether you were right and
+      <em>why</em>, including why the tempting wrong answer is wrong. Your progress is saved in
+      this browser. Two questions send you back to the
+      <a href="../explorables/02-nn-playground.html">neural-net playground</a> to try the
+      behaviour live.</p>
+  </section>
+
+  <div id="quiz"></div>
+</main>
+
+<div class="scorebar">
+  <div class="inner">
+    <span class="score" id="score">0 / 10 <em>answered 0</em></span>
+    <span class="spacer"></span>
+    <span class="verdict" id="verdict"></span>
+    <button id="reset">Reset quiz</button>
+    <ul class="reviewlist" id="review" hidden></ul>
+  </div>
+</div>
+
+<footer>
+  <p class="paths">module → <a href="../modules/02-neural-networks/README.md">../modules/02-neural-networks/README.md</a>
+    · library → <a href="../modules/02-neural-networks/python/src/nn.py">../modules/02-neural-networks/python/src/nn.py</a>
+    · explorable → <a href="../explorables/02-nn-playground.html">../explorables/02-nn-playground.html</a></p>
+  <p>Hugging Face LLM Course, Datasets chapter —
+    <a href="https://huggingface.co/learn/llm-course/chapter5">huggingface.co/learn/llm-course/chapter5</a></p>
+</footer>
+
+<script>
+"use strict";
+/* ═════════════════════════ PURE LOGIC START ═════════════════════════
+   Question data + grading. Dependency-free and DOM-free: the verification
+   script runs everything between these markers under `node`.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const QUIZ_ID = "02";
+const EXPLORABLE = "../explorables/02-nn-playground.html";
+
+const QUESTIONS = [
+  {
+    id: "q1",
+    kind: "single",
+    style: "conceptual",
+    topic: "why softmax + cross-entropy is fused",
+    hint: "compare the fused gradient against forming the per-row softmax Jacobian",
+    prompt: `<span class="mono">python/src/nn.py</span> fuses the softmax and the loss into one
+      <code>SoftmaxCrossEntropy</code> whose backward is <code>(p − onehot(y)) / N</code>. What does
+      fusing actually buy?`,
+    options: [
+      `It removes the need to subtract the row max for numerical stability.`,
+      `The algebra collapses: no per-row (C, C) softmax Jacobian has to be built or multiplied — the gradient becomes one subtraction and a divide, and it is numerically cleaner.`,
+      `Cross-entropy is not differentiable unless the softmax is folded into it.`,
+      `Softmax has no derivative at its largest entry, and fusing sidesteps that.`
+    ],
+    answer: 1,
+    explain: `Composed separately you would form
+      <code>∂p_k/∂z_m = p_k(δ_km − p_m)</code> for every row and multiply it by
+      <code>∂L/∂p</code> — correct, but far more work and noisier. Fused, the two collapse to
+      <code>p − onehot</code>. The stability answer is the trap: <code>softmax()</code> in
+      <span class="mono">nn.py</span> still does
+      <code>logits - logits.max(axis=1, keepdims=True)</code> whether or not the loss is fused.
+      Softmax is smooth everywhere, so it has a derivative at every entry.`,
+    src: `python/src/nn.py lines 92-135; derivation in exercises/ex_a_softmax_backward.py docstring`
+  },
+  {
+    id: "q2",
+    kind: "single",
+    style: "read-the-code",
+    topic: "shapes through Linear.backward",
+    hint: "backward returns dL/dx for the previous layer; dW is stashed, not returned",
+    prompt: `From <span class="mono">python/src/nn.py</span>, class <code>Linear</code>. A batch of
+      <code>N = 128</code> flows through <code>Linear(784, 256)</code>. What shape does
+      <code>backward</code> <b>return</b>?`,
+    code: `def forward(self, x: np.ndarray) -> np.ndarray:
+    self._x = x
+    return x @ self.W + self.b
+
+def backward(self, grad_out: np.ndarray) -> np.ndarray:
+    self.dW = self._x.T @ grad_out
+    self.db = grad_out.sum(axis=0)
+    return grad_out @ self.W.T`,
+    options: [
+      `(784, 256)`,
+      `(128, 256)`,
+      `(256,)`,
+      `(128, 784)`
+    ],
+    answer: 3,
+    explain: `It returns <code>dL/dx = grad_out @ self.W.T</code>, i.e. (128, 256) @ (256, 784) =
+      <b>(128, 784)</b> — always the shape of the layer's <em>input</em>, so the previous layer can
+      consume it. <code>(784, 256)</code> is the tempting answer because the very same method computes
+      it into <code>self.dW</code>, but parameter gradients are stashed on the layer for the optimizer
+      to pick up via <code>params_and_grads</code>; only <code>dL/dx</code> is returned.
+      <code>(128, 256)</code> is the shape of <code>grad_out</code> arriving, and <code>(256,)</code>
+      is <code>self.db</code>.`,
+    src: `python/src/nn.py lines 52-63`
+  },
+  {
+    id: "q3",
+    kind: "single",
+    style: "read-the-code",
+    topic: "why there is no activation on the logits",
+    hint: "think about what ReLU does to a logit the model wants to push down",
+    prompt: `From <span class="mono">python/src/nn.py</span>, <code>MLP.__init__</code>. Suppose the
+      <code>if i &lt; len(sizes) - 2</code> guard were dropped, so a <code>ReLU</code> were appended
+      after the final <code>Linear</code> too. What goes wrong?`,
+    code: `def __init__(self, sizes, rng: np.random.Generator):
+    self.layers = []
+    for i in range(len(sizes) - 1):
+        self.layers.append(Linear(sizes[i], sizes[i + 1], rng))
+        if i < len(sizes) - 2:  # ReLU between hidden layers, not after logits
+            self.layers.append(ReLU())`,
+    options: [
+      `Every logit would be clamped to ≥ 0, so the model could never push a class <em>below</em> the others by going negative — and every clamped logit would receive exactly zero gradient.`,
+      `The forward output shape would change from (N, 10) to (N,).`,
+      `<code>cross_entropy</code> would return NaN, because <code>log(0)</code> is undefined.`,
+      `Nothing — softmax expects non-negative inputs anyway.`
+    ],
+    answer: 0,
+    explain: `Softmax is shift-invariant, but it is the <em>differences</em> between logits that set
+      the probabilities; putting a floor at 0 throws away half the range. Worse,
+      <code>ReLU.backward</code> multiplies by the <code>x &gt; 0</code> mask, so any logit sitting at
+      0 gets no gradient and can never come back. The NaN answer is the tempting one but it is wrong
+      twice over: softmax of an all-zero row is a uniform 0.1, and <code>cross_entropy</code> clips
+      probabilities to <code>1e-12</code> before taking the log anyway.`,
+    src: `python/src/nn.py lines 66-84 and 151-156`
+  },
+  {
+    id: "q4",
+    kind: "single",
+    style: "real numbers",
+    topic: "FashionMNIST test accuracy",
+    hint: "the module's bar is >=85% on the full 10k test set — not the train number",
+    prompt: `<span class="mono">python/train_fashion.py</span> trains
+      <code>MLP([784, 256, 10])</code> with <code>SGD(lr=0.1, momentum=0.9)</code> for 25 epochs on a
+      20k training subsample. The README's representative run prints its accuracy on the
+      <b>full 10k test set</b> as:`,
+    options: [
+      `0.9211`,
+      `0.7712`,
+      `0.8646`,
+      `0.9950`
+    ],
+    answer: 2,
+    explain: `<code>FINAL TEST ACCURACY (full 10k set): 0.8646</code> — about 86.5%, clearing the
+      module's ≥85% goal. <code>0.9211</code> is the tempting one because it sits on the very line of
+      output the README quotes just above it
+      (<code>train loss 0.216 acc 0.921 | val loss 0.411 acc 0.865</code>) — but that is the
+      <em>train</em> accuracy at epoch 25. The ~5.6-point train/val gap is the mild overfitting you can
+      see opening up in <span class="mono">figures/fashion_curves.png</span>.`,
+    src: `modules/02-neural-networks/README.md lines 143-146`
+  },
+  {
+    id: "q5",
+    kind: "single",
+    style: "real numbers",
+    topic: "matmul speedups: cache order vs BLAS",
+    hint: "read the speedup column of PERFORMANCE.md, not the GFLOP/s column",
+    prompt: `<span class="mono">zig/PERFORMANCE.md</span> times
+      <code>C(256×256) = A(256×784) · B(784×256)</code> on an Apple M5 (Zig 0.16,
+      <code>ReleaseFast</code>, single thread). Relative to the naive <code>ijk</code> triple loop,
+      roughly what speedups did the blocked (tiled) kernel and numpy's Accelerate BLAS reach?`,
+    options: [
+      `≈2.4× for blocked, ≈740× for numpy`,
+      `≈2.4× for blocked, ≈7.4× for numpy`,
+      `≈24× for blocked, ≈740× for numpy`,
+      `≈1.0× for blocked (identical) and ≈100× for numpy`
+    ],
+    answer: 0,
+    explain: `31.06 ms naive → 12.88 ms blocked (<b>2.41×</b>) → 0.058 ms for <code>x @ W</code> in
+      numpy (<b>~740×</b>, 1773 GFLOP/s). The 7.4 answer is the trap: 7.45 and 7.98 are the
+      <em>GFLOP/s</em> figures for the reordered and blocked kernels, not speedups. Note also that
+      simply reordering the loops to <code>ikj</code> already buys 2.25× of the blocked kernel's 2.41×
+      — almost the whole win is cache-friendly access order, not tiling.`,
+    src: `modules/02-neural-networks/zig/PERFORMANCE.md — "Measured results" table`
+  },
+  {
+    id: "q6",
+    kind: "numeric",
+    style: "real numbers",
+    topic: "parameter count of the 2-16-16-2 net",
+    hint: "count the biases too; ReLU has no parameters",
+    prompt: `<span class="mono">python/train_toy.py</span> and the playground both build
+      <code>MLP([2, 16, 16, 2])</code> — Linear → ReLU → Linear → ReLU → Linear. How many trainable
+      parameters (weights <em>and</em> biases) is that?`,
+    answer: 354,
+    tol: 0,
+    explain: `(2·16 + 16) + (16·16 + 16) + (16·2 + 2) = 48 + 272 + 34 = <b>354</b>, the number the
+      playground shows in its <code>parameters</code> metric. The near miss to watch for is 320,
+      which is what you get by dropping the biases — but <code>Linear.__init__</code> allocates
+      <code>self.b = np.zeros(out_features)</code> for every layer, and
+      <code>params_and_grads</code> yields it. <code>ReLU</code> contributes nothing: its
+      <code>params_and_grads</code> returns an empty iterator.`,
+    src: `python/train_toy.py line 37; python/src/nn.py lines 42-64; explorables/02-nn-playground.html metric m-np`
+  },
+  {
+    id: "q7",
+    kind: "single",
+    style: "predict-the-behavior",
+    topic: "dying ReLU at tiny width",
+    hint: "a unit whose pre-activation is negative everywhere gets no gradient, ever",
+    prompt: `In the playground, leave the activation on <code>ReLU</code> and drag hidden size down to
+      <code>2</code>. What most often happens?`,
+    options: [
+      `It still reaches ~97%, just needing more epochs.`,
+      `It overfits hard: ~100% train accuracy against ~60% validation.`,
+      `Training diverges to NaN within a few epochs.`,
+      `It collapses to predicting a single class — with only two units, one large early step can kill both (the classic dying-ReLU failure).`
+    ],
+    answer: 3,
+    explain: `A ReLU unit whose pre-activation is negative for every input is dead:
+      <code>ReLU.backward</code> multiplies by <code>x &gt; 0</code>, so it never receives gradient
+      again. With two units there is no redundancy left to recover with. "Slower but fine" is the
+      tempting answer, and it <em>is</em> true for tanh — switch the activation and even
+      <code>hidden = 2</code> manages ~88%, because tanh units never die. With ReLU you need about
+      3–4 units for ~85–90%, and 6 or more before it really fits.`,
+    src: `explorables/02-nn-playground.html — "What to notice", second bullet`,
+    tryIt: `try it — set activation ReLU, hidden size 2, and restart a few seeds`
+  },
+  {
+    id: "q8",
+    kind: "single",
+    style: "predict-the-behavior",
+    topic: "momentum multiplies the effective step",
+    hint: "the velocity is a geometric series in mu",
+    prompt: `<span class="mono">python/train_toy.py</span> runs
+      <code>SGD(lr=0.3, momentum=0.9)</code>, while the playground defaults to <code>lr = 0.1</code>
+      at the same <code>μ = 0.9</code>. What does <code>lr = 0.3</code> at <code>μ = 0.9</code>
+      actually step like, and what do you see if you move the slider there?`,
+    options: [
+      `About <code>lr·μ</code> = 0.27 — indistinguishable from 0.3, so nothing changes.`,
+      `About <code>lr/(1 − μ)</code> = 3.0 — right on the edge of stability, and the loss curve picks up the same spikes as the real Python run.`,
+      `About <code>lr·(1 + μ)</code> = 0.57 — a bit faster, still comfortably stable.`,
+      `Momentum changes only the direction of the step, never its size.`
+    ],
+    answer: 1,
+    explain: `With a persistent gradient the velocity
+      <code>v ← μ·v − lr·g</code> converges to a geometric series, <code>−lr·g/(1 − μ)</code>, so
+      μ = 0.9 multiplies the effective step by ten. That is why the real Python curve inlined in the
+      explorable is spiky — its epoch-83 blow-out jumps the training loss from 0.2126 to 0.8811 — and
+      why the calmer 0.1 default is smooth. The <code>lr·μ</code> answer is the intuitive-but-wrong
+      one: momentum <em>accumulates</em> gradient, it does not attenuate it.`,
+    src: `python/src/optim.py lines 27-37; python/train_toy.py line 38; explorable PY_TRAIN_LOSS[82] = 0.8811`,
+    tryIt: `try it — set lr to 0.300 with momentum 0.90 and watch the loss curve`
+  },
+  {
+    id: "q9",
+    kind: "single",
+    style: "conceptual",
+    topic: "He initialization",
+    hint: "where does the 2 come from, and why divide by fan-in at all?",
+    prompt: `<code>Linear.__init__</code> in <span class="mono">python/src/nn.py</span> draws weights
+      from <code>rng.normal(0.0, np.sqrt(2.0 / in_features))</code>. Why the 2, and why
+      <code>in_features</code>?`,
+    options: [
+      `The 2 counts the weight matrix and the bias vector, which are initialized together.`,
+      `Dividing by <code>in_features</code> normalizes each row of <code>W</code> so it sums to 1.`,
+      `Summing <code>in_features</code> independent products gives a variance proportional to fan-in, so <code>1/fan_in</code> holds it fixed — and ReLU zeroes about half its inputs, so the extra factor 2 restores the variance that loses.`,
+      `It matches the factor 2 that appears in the softmax + cross-entropy gradient.`
+    ],
+    answer: 2,
+    explain: `This is He (Kaiming) initialization. <code>y = xW</code> sums
+      <code>in_features</code> terms, so <code>Var(y) ≈ in_features · Var(W) · Var(x)</code> —
+      dividing by fan-in cancels the depth dependence, and ReLU killing roughly half the units halves
+      the variance again, hence <code>2/fan_in</code>. Row normalization is the tempting misreading,
+      but nothing here constrains a row's sum: these are plain Gaussian samples, not a normalized
+      distribution. And there is no factor 2 anywhere in <code>(p − onehot)/N</code>.`,
+    src: `python/src/nn.py lines 42-47`
+  },
+  {
+    id: "q10",
+    kind: "multi",
+    style: "conceptual",
+    topic: "what the loop and the optimizers really do",
+    hint: "look at when rng.permutation is called, and what SGD does when momentum is 0",
+    prompt: `<b>Select all that apply.</b> Which of these are true of
+      <span class="mono">python/src/train.py</span> and
+      <span class="mono">python/src/optim.py</span> as written?`,
+    options: [
+      `<code>iterate_minibatches</code> calls <code>rng.permutation(n)</code> every time it is invoked, so the training set is reshuffled at the start of each epoch.`,
+      `<code>train_val_split</code> stratifies by label, so both splits get the same class proportions.`,
+      `<code>Adam.step</code> increments <code>t</code> once per call and divides <code>m</code> and <code>v</code> by <code>1 − beta**t</code> to undo their zero-initialization bias.`,
+      `<code>SGD</code> keeps and updates a velocity buffer even when <code>momentum=0</code>.`
+    ],
+    answer: [0, 2],
+    explain: `The loop calls <code>iterate_minibatches(...)</code> fresh each epoch and it permutes on
+      entry — that is where the <em>stochastic</em> in SGD comes from. Adam's
+      <code>self._t += 1</code> sits at the top of <code>step()</code>, and the bias correction matters
+      most in the first handful of steps while <code>m</code> and <code>v</code> are still near their
+      zero init. The two false ones: <code>train_val_split</code> is a plain
+      <code>rng.permutation</code> slice with no stratification (fine here, but it is why a small
+      validation split can be noisy), and <code>SGD.step</code> branches on
+      <code>if self.momentum:</code> — at 0 that is falsy, so it runs the bare
+      <code>p -= self.lr * g</code> and never allocates a velocity.`,
+    src: `python/src/train.py lines 28-43 and 69-76; python/src/optim.py lines 27-37 and 68-83`
+  }
+];
+
+/* --- grading ---------------------------------------------------------- */
+function gradeSingle(q, resp) {
+  return Number.isInteger(resp) && resp === q.answer;
+}
+function gradeMulti(q, resp) {
+  if (!Array.isArray(resp)) return false;
+  const want = q.answer.slice().sort((a, b) => a - b).join(",");
+  const got = resp.slice().sort((a, b) => a - b).join(",");
+  return want === got && resp.length === new Set(resp).size;
+}
+function gradeNumeric(q, resp) {
+  const v = typeof resp === "number" ? resp : parseFloat(resp);
+  if (!isFinite(v)) return false;
+  return Math.abs(v - q.answer) <= (q.tol || 0);
+}
+function gradeOne(q, resp) {
+  if (resp === undefined || resp === null) return false;
+  if (q.kind === "multi") return gradeMulti(q, resp);
+  if (q.kind === "numeric") return gradeNumeric(q, resp);
+  return gradeSingle(q, resp);
+}
+function scoreAll(questions, answers) {
+  answers = answers || {};
+  let score = 0, answered = 0;
+  const wrong = [];
+  for (const q of questions) {
+    if (!(q.id in answers)) continue;
+    answered += 1;
+    if (gradeOne(q, answers[q.id])) score += 1;
+    else wrong.push({ id: q.id, topic: q.topic, hint: q.hint });
+  }
+  return { score, answered, total: questions.length, wrong };
+}
+function verdictFor(score, total) {
+  if (score >= 9) return { text: "solid — move on", cls: "good" };
+  if (score >= 6) return { text: "review the flagged topics", cls: "mid" };
+  return { text: "re-run the module notebook first", cls: "low" };
+}
+/* answer-key balance: no option position may be correct more than 4 times
+   across the single-choice questions. */
+function answerKeyBalance(questions) {
+  const counts = [0, 0, 0, 0];
+  for (const q of questions) if (q.kind === "single") counts[q.answer] += 1;
+  return { counts, ok: Math.max.apply(null, counts) <= 4 };
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { QUESTIONS, gradeSingle, gradeMulti, gradeNumeric, gradeOne,
+                     scoreAll, verdictFor, answerKeyBalance, QUIZ_ID, EXPLORABLE };
+}
+/* ══════════════════════════ PURE LOGIC END ══════════════════════════ */
+
+/* ───────────────────────────── storage ───────────────────────────── */
+const SKEY = "mlcourse-quiz-" + QUIZ_ID;
+const SUMKEY = "mlcourse-quiz-scores";
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(SKEY);
+    const s = raw ? JSON.parse(raw) : null;
+    if (s && typeof s === "object" && s.answers && typeof s.answers === "object") return s;
+  } catch (e) { /* corrupt or unavailable — start clean */ }
+  return { answers: {} };
+}
+function saveState(state) {
+  const s = scoreAll(QUESTIONS, state.answers);
+  state.score = s.score;
+  state.total = s.total;
+  state.ts = Date.now();
+  try {
+    localStorage.setItem(SKEY, JSON.stringify(state));
+    let all = {};
+    try { all = JSON.parse(localStorage.getItem(SUMKEY)) || {}; } catch (e) { all = {}; }
+    if (typeof all !== "object" || all === null) all = {};
+    all[QUIZ_ID] = { score: s.score, total: s.total, ts: state.ts };
+    localStorage.setItem(SUMKEY, JSON.stringify(all));
+  } catch (e) { /* private mode: the quiz still works, it just won't persist */ }
+}
+
+const state = loadState();
+const LETTERS = ["A", "B", "C", "D", "E", "F"];
+
+/* ───────────────────────────── rendering ─────────────────────────── */
+const root = document.getElementById("quiz");
+
+QUESTIONS.forEach((q, qi) => {
+  const sec = document.createElement("section");
+  sec.className = "panel q";
+  sec.id = "q-" + q.id;
+
+  const head = document.createElement("div");
+  head.className = "qhead";
+  const num = document.createElement("span");
+  num.className = "qnum";
+  num.textContent = String(qi + 1);
+  head.appendChild(num);
+  [q.style, q.topic].forEach((t, i) => {
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = t;
+    if (i === 1) tag.dataset.role = "topic";
+    head.appendChild(tag);
+  });
+  const res = document.createElement("span");
+  res.className = "tag";
+  res.dataset.role = "result";
+  res.hidden = true;
+  head.appendChild(res);
+  sec.appendChild(head);
+
+  const p = document.createElement("p");
+  p.className = "qprompt";
+  p.innerHTML = q.prompt;
+  sec.appendChild(p);
+
+  if (q.code) {
+    const pre = document.createElement("pre");
+    pre.className = "code";
+    pre.textContent = q.code;
+    sec.appendChild(pre);
+  }
+
+  const opts = document.createElement("div");
+  opts.className = "opts" + (q.kind === "multi" ? " multi" : "");
+  sec.appendChild(opts);
+
+  if (q.kind === "single") {
+    q.options.forEach((text, oi) => {
+      const b = document.createElement("button");
+      b.className = "opt";
+      b.type = "button";
+      b.innerHTML = '<span class="mark">' + LETTERS[oi] + '</span><span class="txt">' + text + "</span>";
+      b.addEventListener("click", () => { if (!isLocked(q)) submit(q, oi); });
+      opts.appendChild(b);
+    });
+  } else if (q.kind === "multi") {
+    q.options.forEach((text, oi) => {
+      const lab = document.createElement("label");
+      lab.className = "opt";
+      lab.innerHTML = '<input type="checkbox" value="' + oi + '"><span class="mark">' +
+        LETTERS[oi] + '</span><span class="txt">' + text + "</span>";
+      opts.appendChild(lab);
+    });
+    const act = document.createElement("div");
+    act.className = "actions";
+    const btn = document.createElement("button");
+    btn.className = "primary";
+    btn.type = "button";
+    btn.textContent = "Submit answer";
+    btn.addEventListener("click", () => {
+      if (isLocked(q)) return;
+      const picked = Array.from(opts.querySelectorAll("input:checked")).map(i => Number(i.value));
+      if (!picked.length) { btn.textContent = "Pick at least one"; setTimeout(() => { btn.textContent = "Submit answer"; }, 1400); return; }
+      submit(q, picked);
+    });
+    act.appendChild(btn);
+    sec.appendChild(act);
+  } else {
+    const row = document.createElement("div");
+    row.className = "numrow";
+    const inp = document.createElement("input");
+    inp.type = "number";
+    inp.step = "any";
+    inp.placeholder = "a number";
+    inp.setAttribute("aria-label", "your numeric answer");
+    const btn = document.createElement("button");
+    btn.className = "primary";
+    btn.type = "button";
+    btn.textContent = "Submit answer";
+    const go = () => {
+      if (isLocked(q)) return;
+      const v = parseFloat(inp.value);
+      if (!isFinite(v)) { btn.textContent = "Type a number"; setTimeout(() => { btn.textContent = "Submit answer"; }, 1400); return; }
+      submit(q, v);
+    };
+    btn.addEventListener("click", go);
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") go(); });
+    row.appendChild(inp);
+    row.appendChild(btn);
+    sec.appendChild(row);
+  }
+
+  const ex = document.createElement("div");
+  ex.className = "explain";
+  ex.hidden = true;
+  sec.appendChild(ex);
+
+  root.appendChild(sec);
+});
+
+function isLocked(q) { return q.id in state.answers; }
+
+function submit(q, resp) {
+  state.answers[q.id] = resp;
+  saveState(state);
+  reveal(q);
+  refreshBar();
+}
+
+function reveal(q) {
+  const sec = document.getElementById("q-" + q.id);
+  const resp = state.answers[q.id];
+  if (resp === undefined) return;
+  const ok = gradeOne(q, resp);
+  sec.classList.add("locked");
+
+  const res = sec.querySelector('[data-role="result"]');
+  res.hidden = false;
+  res.className = "tag " + (ok ? "hit" : "miss");
+  res.textContent = ok ? "correct" : "not quite";
+
+  const optEls = sec.querySelectorAll(".opt");
+  if (q.kind === "single") {
+    optEls.forEach((el, oi) => {
+      if (oi === q.answer) el.classList.add("is-correct");
+      if (oi === resp && oi !== q.answer) el.classList.add("is-wrong");
+      if (oi === resp) el.classList.add("picked");
+      el.disabled = true;
+    });
+  } else if (q.kind === "multi") {
+    optEls.forEach((el, oi) => {
+      const want = q.answer.indexOf(oi) !== -1;
+      const got = resp.indexOf(oi) !== -1;
+      if (want) el.classList.add("is-correct");
+      if (got && !want) el.classList.add("is-wrong");
+      if (got) el.classList.add("picked");
+      const box = el.querySelector("input");
+      box.checked = got;
+      box.disabled = true;
+    });
+  }
+
+  const act = sec.querySelector(".actions button, .numrow button");
+  if (act) act.disabled = true;
+  const inp = sec.querySelector(".numrow input");
+  if (inp) { inp.value = String(resp); inp.disabled = true; }
+
+  const ex = sec.querySelector(".explain");
+  ex.hidden = false;
+  ex.className = "explain " + (ok ? "ok" : "no");
+  let html = '<b class="head">' + (ok ? "correct" : "not quite") + "</b>";
+  if (q.kind === "numeric") {
+    html += "<p>Answer: <code>" + q.answer + "</code> — accepted tolerance ±" +
+      (q.tol || 0) + " (a parameter count is exact).</p>";
+  }
+  html += "<p>" + q.explain + "</p>";
+  if (q.src) html += '<p class="src">source · ' + q.src + "</p>";
+  if (q.tryIt) html += '<a class="tryit" href="' + EXPLORABLE + '">' + q.tryIt + " →</a>";
+  ex.innerHTML = html;
+}
+
+/* ───────────────────────────── score bar ─────────────────────────── */
+const scoreEl = document.getElementById("score");
+const verdictEl = document.getElementById("verdict");
+const reviewEl = document.getElementById("review");
+
+function refreshBar() {
+  const s = scoreAll(QUESTIONS, state.answers);
+  scoreEl.innerHTML = s.score + " / " + s.total + " <em>answered " + s.answered + "</em>";
+  if (s.answered < s.total) {
+    verdictEl.textContent = "";
+    verdictEl.className = "verdict";
+    reviewEl.hidden = true;
+    reviewEl.innerHTML = "";
+    return;
+  }
+  const v = verdictFor(s.score, s.total);
+  verdictEl.textContent = v.text;
+  verdictEl.className = "verdict " + v.cls;
+  if (s.wrong.length) {
+    reviewEl.hidden = false;
+    reviewEl.innerHTML = s.wrong.map(w =>
+      "<li><b>" + w.topic + "</b> — " + w.hint + "</li>").join("");
+  } else {
+    reviewEl.hidden = true;
+    reviewEl.innerHTML = "";
+  }
+}
+
+document.getElementById("reset").addEventListener("click", () => {
+  if (!confirm("Reset this quiz? Your 10 answers for module 02 will be cleared.")) return;
+  state.answers = {};
+  saveState(state);
+  location.reload();
+});
+
+QUESTIONS.forEach(q => { if (isLocked(q)) reveal(q); });
+refreshBar();
+</script>
+<!-- built for ml-course quizzes v1 -->
+</html>

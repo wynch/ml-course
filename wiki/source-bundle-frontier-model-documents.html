@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Frontier Model Documents Source Bundle · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="frontier-model-documents-source-bundle">Frontier Model Documents Source Bundle</h1>
+<div class="meta"><span class="type">source-bundle</span> <span>created 2026-05-14</span> <span>updated 2026-05-14</span> <span class="tag">source-bundle</span> <span class="tag">frontier-models</span> <span class="tag">technical-reports</span> <span class="tag">system-cards</span> <span class="tag">llm</span> <span class="tag">reasoning</span> <span class="tag">alignment</span></div>
+<p>This bundle condenses the major frontier-model report cluster. The cluster matters less as architecture disclosure and more as evidence about release norms, scaling, post-training, openness, safety reporting, and reasoning-model training.</p>
+<h2 id="lineage">Lineage</h2>
+<div class="tw"><table><thead><tr><th>Source</th><th>Role in the cluster</th><th>Key takeaway</th></tr></thead><tbody><tr><td><a href="source-gpt4-technical-report.html">source-gpt4-technical-report</a></td><td>Closed frontier report template</td><td>Sets the modern system-card norm while withholding architecture, data, parameter count, and training details.</td></tr><tr><td><a href="source-openai-o1-system-card.html">source-openai-o1-system-card</a></td><td>Hidden-CoT reasoning model</td><td>Shows reasoning models treated as separate deployment/safety objects, with hidden reasoning traces and stronger preparedness framing.</td></tr><tr><td><a href="source-llama-3.html">source-llama-3</a></td><td>Open-weights frontier counterweight</td><td>Pushes the open ecosystem toward GPT-4-class baselines and detailed training disclosure.</td></tr><tr><td><a href="source-mixtral-8x7b.html">source-mixtral-8x7b</a></td><td>Open MoE breakthrough</td><td>Makes sparse mixture-of-experts a practical open model architecture.</td></tr><tr><td><a href="source-deepseek-v3.html">source-deepseek-v3</a></td><td>Efficient open frontier training</td><td>Shows strong MoE engineering, multi-token prediction, and cost-conscious frontier-scale training.</td></tr><tr><td><a href="source-deepseek-r1.html">source-deepseek-r1</a></td><td>Open reasoning replication</td><td>Shows GRPO/verifiable-reward RL can elicit o1-like reasoning and that reasoning traces can be distilled into smaller models.</td></tr></tbody></table></div>
+<h2 id="condensed-synthesis">Condensed Synthesis</h2>
+<p>There are two arcs in this cluster:</p>
+<ol><li><strong>Release norms</strong>: GPT-4 and o1 define closed-report and system-card practice; Llama 3, Mixtral, DeepSeek-V3, and DeepSeek-R1 push back through open weights and more implementation detail.</li><li><strong>Capability production</strong>: pretraining scale and MoE efficiency produce strong bases; post-training and RL with verifiable rewards sharpen reasoning behavior; distillation packages that behavior into cheaper models.</li></ol>
+<p>For the wiki's reasoning question, <a href="source-deepseek-r1.html">source-deepseek-r1</a> is the anchor because it turns "reasoning model" from a closed-lab mystery into an open training recipe. For the scaling question, <a href="source-deepseek-v3.html">source-deepseek-v3</a> and <a href="source-mixtral-8x7b.html">source-mixtral-8x7b</a> are the sparse-efficiency anchors.</p>
+<h2 id="links">Links</h2>
+<ul><li>Concepts: <a href="concept-llm-reasoning.html">concept-llm-reasoning</a>, <a href="concept-scaling-laws.html">concept-scaling-laws</a>, <a href="concept-transformer-architecture.html">concept-transformer-architecture</a>, <a href="concept-mixture-of-experts.html">concept-mixture-of-experts</a>, <a href="concept-rlhf-alternatives.html">concept-rlhf-alternatives</a>, <a href="concept-ai-alignment.html">concept-ai-alignment</a></li><li>Analysis: <a href="analysis-emergence-vs-distribution-sharpening.html">analysis-emergence-vs-distribution-sharpening</a>, <a href="thread-test-time-compute.html">thread-test-time-compute</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><a href="source-gpt4-technical-report.html">source-gpt4-technical-report</a></li><li><a href="source-openai-o1-system-card.html">source-openai-o1-system-card</a></li><li><a href="source-llama-3.html">source-llama-3</a></li><li><a href="source-mixtral-8x7b.html">source-mixtral-8x7b</a></li><li><a href="source-deepseek-v3.html">source-deepseek-v3</a></li><li><a href="source-deepseek-r1.html">source-deepseek-r1</a></li></ul>
+<details class="src"><summary>Sources (6)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>wiki/source-gpt4-technical-report.md</code></li><li><code>wiki/source-openai-o1-system-card.md</code></li><li><code>wiki/source-llama-3.md</code></li><li><code>wiki/source-mixtral-8x7b.md</code></li><li><code>wiki/source-deepseek-v3.md</code></li><li><code>wiki/source-deepseek-r1.md</code></li></ul></details>
+</main>
+</body>
+</html>

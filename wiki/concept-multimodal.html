@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Multimodal Models · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="multimodal-models">Multimodal Models</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-05-06</span> <span>updated 2026-07-04</span> <span class="tag">multimodal</span> <span class="tag">vision-language</span> <span class="tag">clip</span> <span class="tag">llava</span> <span class="tag">flamingo</span> <span class="tag">jepa</span></div>
+<p>Models that handle multiple input modalities — typically vision + text, sometimes audio, video, robot actions, or 3D. This page also covers <strong>multimodal reasoning</strong> (reasoning <em>across</em> modalities specifically — see section below).</p>
+<p>This page is the hub. The lineage of modern vision-language models clusters into three programmes that disagree on the right interface between vision and language:</p>
+<ol><li><strong>Contrastive alignment</strong> — push paired (image, text) embeddings together in a shared space. CLIP is the foundational reference.</li><li><strong>Token-space VLMs</strong> — feed visual features into a (frozen or jointly trained) LLM and let it autoregressively generate text. Flamingo and LLaVA are the canonical references.</li><li><strong>Embedding-space prediction</strong> — predict embeddings of target text rather than generate tokens. The JEPA programme's vision-language move.</li></ol>
+<p>A fourth thread — pure-vision SSL, <a href="source-dino-lineage.html">source-dino-lineage</a> — sits adjacent: it argues you do not need <em>any</em> text supervision to learn good visual features, and matches CLIP on most visual benchmarks without it.</p>
+<h2 id="three-programmes-for-vision-language">Three programmes for vision-language</h2>
+<h3 id="contrastive-image-text-alignment">Contrastive image-text alignment</h3>
+<p>The foundational paper is <a href="source-clip-radford.html">source-clip-radford</a> (Radford 2021, OpenAI). Dual encoders — image ViT and text Transformer — trained on 400M (image, text) pairs from the web with a symmetric InfoNCE loss. Zero-shot ImageNet matches a fully supervised ResNet-50.</p>
+<p>CLIP became the <strong>default vision encoder</strong> for the entire post-2021 multimodal-LLM stack (most VLMs plug a CLIP-style ViT into a frozen or jointly-trained LLM).</p>
+<p>Successors and challengers:</p>
+<ul><li>SigLIP, OpenCLIP, Perception Encoder (incremental improvements; same recipe).</li><li><a href="source-dino-lineage.html">source-dino-lineage</a> (Oquab 2023) — matches CLIP on most visual benchmarks <strong>without text supervision</strong>, undermining the "you need language to learn vision" reading of CLIP.</li><li><a href="source-vl-jepa.html">source-vl-jepa</a> (Chen 2025) — beats CLIP, SigLIP2, and Perception Encoder on the average of 16 video benchmarks via embedding-space prediction.</li></ul>
+<h3 id="vision-encoders-grafted-onto-llms-token-space-vlms">Vision encoders grafted onto LLMs (token-space VLMs)</h3>
+<p>The dominant pattern for instruction-following multimodal assistants:</p>
+<ul><li><a href="source-flamingo.html">source-flamingo</a> (Alayrac 2022, DeepMind) — frozen LM (Chinchilla) + frozen vision encoder + <strong>gated cross-attention layers</strong> + Perceiver Resampler. First VLM with strong few-shot in-context learning across modalities. SOTA on 16 multimodal benchmarks with only a handful of examples per task.</li><li>BLIP-2 (Li 2023) — replaces Flamingo's heavy adapter with a smaller <strong>Q-Former</strong> that lives between vision and language.</li><li><a href="source-llava-visual-instruction.html">source-llava-visual-instruction</a> (Liu 2023) — radical simplification: a <strong>single linear projection</strong> maps CLIP-ViT features into LLaMA's word-embedding space; instruction-tune on GPT-4-generated multimodal data. Open-source counterpart to GPT-4V.</li><li>GPT-4V, Claude vision, Gemini vision — closed-source frontier VLMs; reported architectures align with this pattern.</li></ul>
+<p>The trajectory is one of <strong>adapter simplification</strong>: Flamingo's gated cross-attention → BLIP-2's Q-Former → LLaVA's linear layer. The lesson: vision tokens can simply live in the LLM's input space if you have decent training data.</p>
+<h3 id="embedding-space-prediction-jepa-programme">Embedding-space prediction (JEPA programme)</h3>
+<p>The JEPA family (<a href="concept-jepa.html">concept-jepa</a>) argues prediction-in-embedding-space beats both pixel-level generation and token-level generation:</p>
+<ul><li><a href="source-ijepa-self-supervised-learning.html">source-ijepa-self-supervised-learning</a> — image-only JEPA; predict embeddings of masked patches.</li><li><a href="source-vjepa-family.html">source-vjepa-family</a> — extends to video, becomes a world model for zero-shot robot control.</li><li><a href="source-vl-jepa.html">source-vl-jepa</a> (Dec 2025) — applies the JEPA move to vision-language: predict the <strong>embedding</strong> of the target text, not its tokens. ~50% fewer trainable params than a token-space VLM trained on the same data, with stronger average performance. Beats CLIP / SigLIP2 / Perception Encoder on 16 video benchmarks.</li></ul>
+<p>The deep argument: token-space generation forces the model to commit to surface form (exact wording, punctuation, register) that no VQA / classification / retrieval task cares about. Embedding-space prediction abstracts that away — the language analogue of I-JEPA's "pixel reconstruction wastes capacity" argument.</p>
+<h3 id="pure-vision-ssl-the-orthogonal-thread">Pure-vision SSL (the orthogonal thread)</h3>
+<p><a href="source-dino-lineage.html">source-dino-lineage</a> is the major datapoint that vision can be learned without language supervision:</p>
+<ul><li>Self-distillation + masked-image-modeling + curated 142M-image dataset (LVD-142M).</li><li>Matches or beats CLIP on linear-probe ImageNet, dense tasks, OOD robustness, domain transfer.</li><li>Validates the <a href="source-lecun-path-autonomous-intelligence.html">source-lecun-path-autonomous-intelligence</a> thesis: vision representations don't need text.</li></ul>
+<p>This makes the choice between CLIP and DINOv2 backbones a real one for downstream VLMs — and informs the JEPA programme's confidence that text-aware vision pretraining isn't the only path.</p>
+<h2 id="currently-in-the-wiki">Currently in the wiki</h2>
+<p><strong>Anchor papers (this page's cross-references):</strong></p>
+<ul><li><a href="source-clip-radford.html">source-clip-radford</a> — contrastive image-text alignment, the foundational reference.</li><li><a href="source-flamingo.html">source-flamingo</a> — gated cross-attention frozen-backbone VLM with few-shot learning.</li><li><a href="source-llava-visual-instruction.html">source-llava-visual-instruction</a> — open-source recipe; linear projection + visual instruction tuning.</li><li><a href="source-vl-jepa.html">source-vl-jepa</a> — JEPA programme's vision-language move; embedding-space prediction.</li><li><a href="source-pixelrag.html">source-pixelrag</a> — the "documents as pixels" counterpoint: retrieve and read <em>web-page screenshots</em> with a VLM instead of extracting text; +18.1% over text RAG at 30M-page scale, even on text-only QA.</li><li><a href="source-dino-lineage.html">source-dino-lineage</a> — pure-vision SSL matches CLIP without text.</li></ul>
+<p><strong>Adjacent / related:</strong></p>
+<ul><li><a href="source-ijepa-self-supervised-learning.html">source-ijepa-self-supervised-learning</a>, <a href="source-vjepa-family.html">source-vjepa-family</a> — JEPA precursors.</li><li><a href="source-clevrer-video-reasoning.html">source-clevrer-video-reasoning</a> — video reasoning benchmark.</li><li><a href="source-unified-latents-diffusion.html">source-unified-latents-diffusion</a> — joint encoder + diffusion for images and video.</li><li><a href="source-gpt4v-system-card.html">source-gpt4v-system-card</a> — OpenAI's vision-enabled GPT-4; closed-source frontier reference.</li><li><a href="source-qwen-vl.html">source-qwen-vl</a> — Alibaba's open-weight VLM; competitive OCR.</li></ul>
+<p><strong>Audio (adjacent modality):</strong></p>
+<ul><li><a href="source-whisper.html">source-whisper</a> — Radford 2022 (OpenAI): 680k hours weakly-supervised audio; multilingual transcription + translation.</li><li><a href="source-wav2vec-2.html">source-wav2vec-2</a> — Baevski 2020: contrastive SSL on raw audio; foundation for modern speech.</li></ul>
+<h2 id="multimodal-reasoning-formerly-its-own-concept-page">Multimodal Reasoning (formerly its own concept page)</h2>
+<p>Reasoning across multiple modalities — text, images, video, audio. Distinct from the encoding/alignment question above: here the focus is whether a model can integrate evidence and infer over time, causality, and structure that span modalities.</p>
+<ul><li><a href="source-clevrer-video-reasoning.html">source-clevrer-video-reasoning</a> — diagnostic video dataset testing temporal and causal reasoning across question types; models excel at perception but fail at causal/counterfactual questions.</li></ul>
+<h2 id="tensions-open-questions">Tensions / open questions</h2>
+<ul><li><strong>Tokens or embeddings?</strong> Token-space VLMs (LLaVA, Flamingo, GPT-4V) generate text autoregressively. Embedding-space VLMs (VL-JEPA) predict semantic embeddings directly. The right interface depends on whether your downstream task cares about surface form. Generation tasks need tokens; classification / retrieval / VQA arguably don't.</li><li><strong>Text supervision or not?</strong> CLIP says vision needs language to learn good features at scale. DINOv2 says it doesn't. DINOv3 (<a href="source-dino-lineage.html">source-dino-lineage</a>) extends the SSL programme further. Many production VLMs still use CLIP-style encoders for the alignment, but DINOv2 backbones increasingly compete.</li><li><strong>Adapter complexity?</strong> Flamingo's gated cross-attention vs LLaVA's linear projection — both work, latter is simpler. The "minimum viable adapter" question is open.</li><li><strong>Multi-image / interleaved inputs.</strong> Flamingo handles arbitrarily interleaved sequences via its Perceiver Resampler; LLaVA's single-image setup is limited. Modern open VLMs (IDEFICS, OBELICS-trained) re-import Flamingo-style interleaving.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="concept-representation-learning.html">concept-representation-learning</a> — what features emerge in shared multimodal embedding spaces.</li><li><a href="concept-jepa.html">concept-jepa</a> — predictive multimodal alternative to generative.</li><li><a href="concept-self-supervised-learning.html">concept-self-supervised-learning</a> — CLIP often grouped with SSL; DINOv2 is the pure-vision counter-example.</li><li><a href="concept-diffusion-language-models.html">concept-diffusion-language-models</a> — orthogonal "tokens are not the right interface" thread (continuous-flow generation rather than embedding prediction).</li></ul>
+<details class="src"><summary>Sources (9)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>source-clip-radford</code></li><li><code>source-flamingo</code></li><li><code>source-llava-visual-instruction</code></li><li><code>source-vl-jepa</code></li><li><code>source-dino-lineage</code></li><li><code>source-ijepa-self-supervised-learning</code></li><li><code>source-vjepa-family</code></li><li><code>source-clevrer-video-reasoning</code></li><li><code>source-unified-latents-diffusion</code></li></ul></details>
+</main>
+</body>
+</html>

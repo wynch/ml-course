@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 09 · Diffusion — ML course quiz</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d;
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d;
+  --track:var(--t3); --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67; --grid:rgba(28,36,34,.10);
+  --warn:#c1121f; --soft:rgba(31,145,141,.10);
+  --wrong:#c0504d; --softwrong:rgba(192,80,77,.10);
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --grid:rgba(232,238,236,.12); --warn:#ff8f85;
+    --accent:#35b3ae; --t3:#57c063; --track-ink:#0d1211;
+    --soft:rgba(53,179,174,.16);
+    --wrong:#e8867f; --softwrong:rgba(232,134,127,.14);
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;background:var(--track);color:var(--track-ink);
+  padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.topbar .spacer{flex:1 1 auto}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 2rem}
+.intro{max-width:70ch;color:var(--ink)}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .7rem}
+button{font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:.34rem .82rem;cursor:pointer}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{color:#fff;filter:brightness(1.06)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:.78rem;color:var(--muted);margin:.35rem 0 0}
+.notice{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--track);
+  border-radius:0 12px 12px 0;padding:.75rem 1rem;margin:1.2rem 0 0;max-width:74ch}
+.notice code,.mono{font-family:var(--mono);font-size:.92em}
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ── quiz ─────────────────────────────────────────────────────────── */
+.qlist{display:flex;flex-direction:column;gap:1.05rem;margin:1.3rem 0 0}
+.q{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.8rem,2vw,1.15rem)}
+.q.correct{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.q.wrong{border-color:var(--wrong);box-shadow:inset 3px 0 0 var(--wrong)}
+.qhead{display:flex;gap:.5rem;align-items:baseline;flex-wrap:wrap;margin-bottom:.45rem}
+.qnum{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+.tag{font-family:var(--display);font-size:.64rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;border:1px solid var(--line);border-radius:999px;
+  padding:.1rem .5rem;color:var(--muted)}
+.qtext{font-size:.98rem;margin:0 0 .55rem;max-width:74ch}
+.qtext code,.opt code,.expl code{font-family:var(--mono);font-size:.9em}
+.snipfile{font-family:var(--mono);font-size:.75rem;color:var(--muted);margin:.1rem 0 .2rem}
+pre.snip{font-family:var(--mono);font-size:.79rem;line-height:1.5;background:var(--soft);
+  border:1px solid var(--line);border-radius:10px;padding:.6rem .75rem;
+  overflow-x:auto;margin:0 0 .7rem;max-width:100%}
+.opts{display:flex;flex-direction:column;gap:.4rem}
+.opt{display:flex;gap:.55rem;align-items:flex-start;border:1px solid var(--line);
+  border-radius:10px;padding:.5rem .7rem;cursor:pointer;font-size:.92rem;line-height:1.45;
+  background:transparent;color:var(--ink);font-family:var(--body);text-align:left;width:100%}
+.opt:hover{border-color:var(--accent);color:var(--ink)}
+.opt .k{font-family:var(--mono);font-size:.8rem;color:var(--muted);min-width:1.15em;flex:0 0 auto}
+.opt .txt{flex:1 1 auto}
+.opt.sel{border-color:var(--accent);background:var(--soft)}
+.opt.sel .k{color:var(--accent)}
+.q.locked .opt{cursor:default}
+.q.locked .opt:hover{border-color:var(--line)}
+.opt.is-correct{border-color:var(--accent);background:var(--soft)}
+.opt.is-correct:hover{border-color:var(--accent)}
+.opt.is-correct .k{color:var(--accent)}
+.opt.is-wrong{border-color:var(--wrong);background:var(--softwrong)}
+.opt.is-wrong:hover{border-color:var(--wrong)}
+.opt.is-wrong .k{color:var(--wrong)}
+.mark{font-family:var(--display);font-size:.7rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;flex:0 0 auto;align-self:center}
+.mark.ok{color:var(--accent)} .mark.no{color:var(--wrong)}
+.numrow{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+.numrow input{font-family:var(--mono);font-size:.9rem;color:var(--ink);background:var(--paper);
+  border:1px solid var(--line);border-radius:10px;padding:.42rem .6rem;width:11rem}
+.actions{margin-top:.55rem;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.expl{margin-top:.7rem;border-top:1px solid var(--line);padding-top:.6rem;
+  font-size:.88rem;max-width:76ch}
+.expl .head{font-family:var(--display);font-weight:600;font-size:.74rem;letter-spacing:.05em;
+  text-transform:uppercase;margin-bottom:.2rem}
+.expl.ok .head{color:var(--accent)}
+.expl.no .head{color:var(--wrong)}
+.expl p{margin:.25rem 0}
+.expl .src{color:var(--muted);font-family:var(--mono);font-size:.78rem}
+a.tryit{display:inline-block;margin-top:.35rem;font-size:.82rem;text-decoration:none;
+  border:1px solid var(--accent);color:var(--accent);border-radius:999px;padding:.18rem .66rem}
+a.tryit:hover{background:var(--soft)}
+
+.scorebar{position:sticky;bottom:0;z-index:6;background:var(--panel);
+  border-top:1px solid var(--line);padding:.6rem clamp(.9rem,3vw,2rem);
+  display:flex;gap:.7rem 1rem;align-items:center;flex-wrap:wrap}
+.scorebar .score{font-family:var(--display);font-weight:600;font-size:1rem}
+.scorebar .score b{font-family:var(--mono);font-size:1.05rem;color:var(--accent)}
+.scorebar .spacer{flex:1 1 auto}
+.verdict{font-size:.85rem;color:var(--muted);flex:1 1 100%;max-width:80ch}
+.verdict b{color:var(--ink)}
+.verdict ul{margin:.3rem 0 0;padding-left:1.15rem}
+.verdict li{margin:.15rem 0}
+@media (max-width:700px){
+  .topbar h1{font-size:.98rem}
+  .numrow input{width:100%}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Diffusion — quiz</h1>
+  <span class="pill">Module 09 · Diffusion</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">← All quizzes</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">Ten questions on module 09 — the forward process you never simulate, the
+      <span class="mono">ε</span>-prediction objective, the cosine schedule, and the two networks
+      you trained (a 50,178-parameter MLP on a spiral, a 377K UNet on FashionMNIST).</p>
+    <p>Answer in any order; each question locks and explains itself the moment you answer it.
+      Your answers are kept in this browser only. Everything asked here is checkable against
+      <span class="mono">modules/09-diffusion/</span> — file references are given in the
+      explanations.</p>
+  </section>
+
+  <div class="qlist" id="qlist"></div>
+
+  <div class="notice">
+    <p style="margin:.1rem 0">Stuck on the schedule or the sampler? The explorable lets you flip
+    cosine↔linear, scrub <code>t</code>, and re-run the real trained denoiser live:
+    <a href="../explorables/09-diffusion.html">Diffusion on a spiral</a>.</p>
+  </div>
+</main>
+
+<div class="scorebar">
+  <span class="score">Score <b id="scoreNum">0</b> / 10</span>
+  <span class="spacer"></span>
+  <button id="reset">Reset quiz</button>
+  <div class="verdict" id="verdict"></div>
+</div>
+
+<footer>
+  <p class="paths">module → <a href="../modules/09-diffusion/README.md">../modules/09-diffusion/README.md</a>
+    · code → <a href="../modules/09-diffusion/python/src/schedules.py">../modules/09-diffusion/python/src/schedules.py</a>
+    · explorable → <a href="../explorables/09-diffusion.html">../explorables/09-diffusion.html</a></p>
+  <p>Matching chapter: Hugging Face Diffusion Models Course, units 1–2 —
+    <a href="https://huggingface.co/learn/diffusion-course" target="_blank" rel="noopener">huggingface.co/learn/diffusion-course</a></p>
+</footer>
+
+<script>
+"use strict";
+/* ═════════════════════════ PURE LOGIC START ═════════════════════════
+   Everything between these markers is dependency-free (no DOM access)
+   and is executed under `node` by the quiz verification script.
+   ═══════════════════════════════════════════════════════════════════ */
+
+var QUIZ_ID = "09";
+var EXPLORABLE = "../explorables/09-diffusion.html";
+
+var QUESTIONS = [
+  {
+    id: "q1",
+    cat: "conceptual",
+    topic: "the forward process & its closed form",
+    kind: "single",
+    prompt: "The forward process noises <code>x0</code> one small step at a time, yet module 09 never simulates those steps — <code>Diffusion.q_sample</code> jumps straight to any timestep <code>t</code>. What makes that shortcut <em>exact</em> rather than an approximation?",
+    options: [
+      "The <code>β_t</code> are tiny, so the drift from skipping the intermediate steps stays below float32 precision.",
+      "A sum of Gaussians is Gaussian, so composing <code>t</code> noising steps collapses into one draw: <code>x_t = √ᾱ_t·x0 + √(1−ᾱ_t)·ε</code>.",
+      "The denoiser memorises <code>x_t</code> for every <code>t</code> during training, so later timesteps can be looked up instead of simulated.",
+      "<code>ᾱ_t</code> is a learned parameter, fitted during training to match the true multi-step marginal."
+    ],
+    answer: 1,
+    explain: "The composition of <code>t</code> Gaussian steps is itself Gaussian, with mean <code>√ᾱ_t·x0</code> and variance <code>(1−ᾱ_t)I</code> — that is algebra, not a bound. Option A is the tempting one, but nothing is being approximated and no error is being tolerated; and nothing here is learned (D): <code>ᾱ_t = Π(1−β_s)</code> is fixed the moment you choose the schedule.",
+    src: "modules/09-diffusion/README.md § “The forward process (fixed)”; python/src/schedules.py module docstring"
+  },
+  {
+    id: "q2",
+    cat: "conceptual",
+    topic: "the ε-prediction objective",
+    kind: "single",
+    prompt: "In <code>train_toy</code> the whole DDPM loss is <code>((pred - noise) ** 2).mean()</code>. What is <code>noise</code>?",
+    options: [
+      "The exact <code>ε</code> that was drawn on this batch and used to build <code>x_t</code> — recovering it is the network's entire job.",
+      "The clean data point <code>x0</code>: “removing the noise” means predicting the original.",
+      "The residual <code>x_t − x_{t−1}</code>, i.e. only the noise added by the single most recent step.",
+      "A fresh <code>N(0, I)</code> sample drawn independently of <code>x_t</code>, acting as a regulariser."
+    ],
+    answer: 0,
+    explain: "Three lines above the loss: <code>noise = torch.randn_like(x0)</code> then <code>x_t = diffusion.q_sample(x0, t, noise)</code> — the very same tensor is the target. Option B is the tempting distractor because <code>x0</code>-prediction is a genuine alternative parameterisation, but this module trains ε-prediction, identically in 2D and in <code>ddpm_mnist.py</code>. Option D would carry no signal at all.",
+    src: "modules/09-diffusion/python/src/toy2d.py, train_toy() lines 103-115"
+  },
+  {
+    id: "q3",
+    cat: "conceptual",
+    topic: "the learned denoising field / score",
+    kind: "single",
+    prompt: "<code>vector_field()</code> plots <code>−ε̂(x, t)</code> on a grid (<code>figures/vector_field.png</code>, drawn at <code>t = 180, 100, 20</code>). What is that field, and how does it change as <code>t</code> falls?",
+    options: [
+      "It is the gradient of the training loss; it flattens as <code>t</code> falls because the loss is already low there.",
+      "It is the fixed noise schedule made visible; its direction never changes with <code>t</code>, only its magnitude.",
+      "It is the denoising direction, proportional to the score <code>∇log p(x_t)</code>: at high <code>t</code> the arrows point broadly toward the data's centre of mass, and as <code>t</code> falls they sharpen onto the spiral's arms.",
+      "It is the model's uncertainty; arrows are longest near the spiral because that is where the model is least sure."
+    ],
+    answer: 2,
+    explain: "<code>src/toy2d.py</code> is explicit: <code>vec = -eps  # denoising direction</code>, and the README calls it “proportional to the score of the noised data”. Option B is tempting because the schedule really is fixed — but this field is the <em>only</em> learned object in the whole 2D pipeline; a network that had learned nothing would produce arrows that mean nothing.",
+    src: "modules/09-diffusion/python/src/toy2d.py, vector_field() line 141; figures/vector_field.png"
+  },
+  {
+    id: "q4",
+    cat: "conceptual",
+    topic: "what diffusion actually learns",
+    kind: "multi",
+    prompt: "<b>Select all that apply.</b> In module 09's 2D pipeline (<code>run_toy2d.py</code>), which of these hold <em>trainable</em> parameters?",
+    options: [
+      "<code>DenoiseMLP.net</code> — the four <code>nn.Linear</code> layers mapping <code>[x_t, cond]</code> to <code>ε̂</code>.",
+      "<code>DenoiseMLP.time_mlp</code> — the two <code>nn.Linear(64, 64)</code> layers sitting on top of the time embedding.",
+      "<code>SinusoidalTimeEmbedding</code> — the sin/cos features of the timestep <code>t</code>.",
+      "<code>betas</code> / <code>alphas_cumprod</code> — the cosine noise schedule.",
+      "The fresh noise <code>torch.randn_like(x_t)</code> injected at each reverse step."
+    ],
+    answer: [0, 1],
+    explain: "<code>SinusoidalTimeEmbedding.__init__</code> stores only <code>self.dim</code> — it is pure arithmetic, exactly like transformer positional encodings, which is why all 50,178 parameters live in <code>time_mlp</code> (8,320) and <code>net</code> (41,858). The schedule is precomputed once in <code>Diffusion.from_schedule</code> and never sees a gradient; the sampling noise is drawn, not fitted. The time embedding is the seductive wrong pick — it <em>feeds</em> the network but holds nothing.",
+    src: "modules/09-diffusion/python/src/embeddings.py lines 16-32; src/toy2d.py DenoiseMLP lines 54-72; src/schedules.py from_schedule() lines 71-84"
+  },
+  {
+    id: "q5",
+    cat: "real numbers",
+    topic: "cosine vs linear noise schedule",
+    kind: "single",
+    prompt: "Module 09 runs <code>T = 200</code>. Read <code>√ᾱ_t</code> at <code>t = 199</code> for the two schedules the module ships. Which pair are its actual values?",
+    options: [
+      "cosine <code>0.0002</code>, linear <code>0.364</code>",
+      "cosine <code>0.364</code>, linear <code>0.0002</code>",
+      "both ≈ <code>0.0002</code> — by <code>t = 199</code> any schedule has finished destroying the data",
+      "cosine <code>0.05</code>, linear <code>0.02</code> — the two <code>β</code> endpoints"
+    ],
+    answer: 0,
+    explain: "Linear's <code>β</code> range (<code>1e-4 → 0.02</code>) was tuned for <code>T = 1000</code>; at <code>T = 200</code> it stalls at <code>√ᾱ = 0.364</code> — still ~36% signal, the spiral plainly visible — while cosine reaches <code>2.5e-4</code>. Option C is the tempting one (“<code>t = 199</code> is the end, so it must be pure noise”), but the endpoint depends on the schedule <em>and</em> on <code>T</code>. That mismatch is exactly why sampling from <code>N(0, I)</code> under the linear schedule starts somewhere the model never saw.",
+    src: "explorables/09-diffusion.html § “What to notice”, bullet 2; python/src/schedules.py linear/cosine_beta_schedule",
+    tryIt: true
+  },
+  {
+    id: "q6",
+    cat: "real numbers",
+    topic: "size of the 2D denoiser",
+    kind: "numeric",
+    prompt: "<code>DenoiseMLP(data_dim=2, hidden=128, time_dim=64)</code> — the network the explorable actually runs, live, in your browser. How many trainable parameters does it have? <span class=\"mono\">(enter a number)</span>",
+    answer: { value: 50178, tol: 500 },
+    explain: "<b>50,178.</b> <code>time_mlp</code> contributes 2 × (64·64 + 64) = 8,320; <code>net</code> contributes (66→128) 8,576 + (128→128) 16,512 + (128→128) 16,512 + (128→2) 258 = 41,858. Note how cheap the whole thing is: the entire generative model of a spiral is smaller than one attention head of a small transformer. Accepted anything within ±500.",
+    src: "explorables/09-diffusion.html, inlined TOY2D.meta.n_params = 50178 (exported from run_toy2d.py); src/toy2d.py lines 54-72"
+  },
+  {
+    id: "q7",
+    cat: "predict the behavior",
+    topic: "schedule choice at sampling time",
+    kind: "single",
+    prompt: "In the explorable, set the schedule selector to <b>linear</b> and drag <code>t</code> to 199. Now suppose you sampled with that same linear schedule: <code>p_sample_loop</code> starts from <code>x_T ~ N(0, I)</code> and walks down. What should you expect?",
+    options: [
+      "Identical samples — the sampler always converges, because it takes 200 steps either way.",
+      "Sharper samples: linear leaves more signal at high <code>t</code>, so the denoiser has more to work with.",
+      "Training diverges immediately, because the linear betas make the noise-MSE loss non-finite.",
+      "Degraded samples: at <code>t = 199</code> the linear forward process still leaves the spiral visible, so pure <code>N(0, I)</code> is a starting point the denoiser was never trained on."
+    ],
+    answer: 3,
+    explain: "The bug is a <em>train/sample mismatch</em> at the top of the chain: the model has only ever seen <code>x_199</code> that still contains 36% signal, and you hand it something with none. Option B is the tempting one — extra signal during training is harmless, even helpful; the damage is done at the <em>start of sampling</em>. Nothing diverges (C): training stays perfectly stable, the samples just come out wrong. Swapping the schedule and comparing the two reverse GIFs is exercise (b).",
+    src: "modules/09-diffusion/README.md § Exercises (b); explorables/09-diffusion.html § “What to notice”, bullet 2; figures/ex_b_linear.gif vs ex_b_cosine.gif",
+    tryIt: true
+  },
+  {
+    id: "q8",
+    cat: "predict the behavior",
+    topic: "ancestral sampling is stochastic",
+    kind: "single",
+    prompt: "In the explorable's reverse-process panel, press <b>Sample again ↻</b> twice, with the same trained weights and the same schedule. What differs between the two runs?",
+    options: [
+      "Nothing — the weights are fixed, so the sampler is deterministic.",
+      "Only the wall-clock speed; the point positions are recorded once and replayed identically.",
+      "Both the starting cloud and the path: <code>p_sample_loop</code> begins at a fresh <code>torch.randn</code>, and <code>p_sample_step</code> adds <code>√β_t · z</code> at every step except <code>t = 0</code> — yet both runs land on the same spiral.",
+      "The final shape differs each time; DDPM sampling has no fixed target distribution."
+    ],
+    answer: 2,
+    explain: "Two independent sources of randomness — the initial draw and the noise re-injected at every one of the 199 non-final steps. Option A is the tempting misconception: the <em>network</em> is deterministic, but the network is only half the model; ancestral sampling is stochastic by construction, which is what makes it a sampler and not a decoder. Option D overshoots: the runs differ but the distribution they draw from does not. Turn on <code>trails</code> in the explorable to see the divergent paths converge on one spiral.",
+    src: "modules/09-diffusion/python/src/schedules.py p_sample_step/p_sample_loop lines 107-142; explorables/09-diffusion.html § “What to notice”, bullet 4",
+    tryIt: true
+  },
+  {
+    id: "q9",
+    cat: "read the code",
+    topic: "the reverse (ancestral) sampling step",
+    kind: "single",
+    file: "src/schedules.py  ·  Diffusion.p_sample_step",
+    code: "beta_t  = self.betas[t]\nalpha_t = self.alphas[t]\nsqrt_om = self.sqrt_one_minus_alphas_cumprod[t]\n\n# mean of p(x_{t-1} | x_t): subtract the predicted noise, rescale.\nmean = (x_t - beta_t / sqrt_om * eps) / torch.sqrt(alpha_t)\nif t == 0:\n    return mean\nnoise = torch.randn_like(x_t)\nreturn mean + torch.sqrt(beta_t) * noise",
+    prompt: "What breaks if the two-line <code>if t == 0: return mean</code> guard is deleted?",
+    options: [
+      "Nothing measurable — <code>β_0</code> is so small that the extra noise vanishes in rounding.",
+      "The returned sample gets a final dose of fresh Gaussian noise laid on top of it, and no later step ever removes it — every generated point comes out permanently speckled.",
+      "The loop never terminates: <code>t == 0</code> is what ends <code>p_sample_loop</code>.",
+      "<code>torch.sqrt(beta_t)</code> raises, because <code>betas[0]</code> is clipped to <code>1e-8</code>."
+    ],
+    answer: 1,
+    explain: "That guard is what makes the last step a <em>pure</em> denoise. Option A is the tempting one and it is quantitatively wrong here: for the cosine schedule at <code>T = 200</code>, <code>β_0 ≈ 2.55e-4</code>, so <code>√β_0 ≈ 0.016</code> — small, but permanent, on data normalised to unit scale. Option C confuses the guard with the loop bound: termination comes from <code>for t in reversed(range(self.timesteps))</code>, nothing else.",
+    src: "modules/09-diffusion/python/src/schedules.py lines 115-126 (unused acp_t line and one comment trimmed)"
+  },
+  {
+    id: "q10",
+    cat: "read the code",
+    topic: "UNet skip connections and shapes",
+    kind: "single",
+    file: "src/ddpm_mnist.py  ·  TinyUNet.forward",
+    code: "x  = self.in_conv(x)                 # 28, ch\nh1 = self.d1(x, temb)                # 28, ch\nh2 = self.d2(self.down(h1), temb)    # 14, 2ch\nm  = self.mid(self.down(h2), temb)   # 7,  2ch\nu  = F.interpolate(m, scale_factor=2, mode=\"nearest\")   # 14\nu  = self.u2(torch.cat([u, h2], dim=1), temb)           # 14, 2ch",
+    prompt: "The model is built with <code>ch = 32</code>. How many channels does <code>torch.cat([u, h2], dim=1)</code> hand to <code>self.u2</code>?",
+    options: ["32", "64", "128", "256"],
+    answer: 2,
+    explain: "<code>u</code> arrives from the bottleneck with <code>ch*2 = 64</code> channels and <code>h2</code> is the encoder skip at <code>ch*2 = 64</code>, so the concatenation is 128 — which is precisely why the layer is declared <code>ResBlock(ch*2 + ch*2, ch*2, time_dim)</code>. 64 is the tempting answer if you read <code>cat</code> as an add rather than a concat; the whole point of the skip is that the decoder sees the coarse features <em>and</em> the matching-resolution encoder features side by side. This is the 376,833-parameter net that reaches recognizable FashionMNIST samples in 4.2 min on an M5.",
+    src: "modules/09-diffusion/python/src/ddpm_mnist.py lines 64-69 (re-aligned) and the u2 declaration on line 56; README.md “params: 376,833 … trained in 4.2 min”"
+  }
+];
+
+function normSet(a) {
+  return (a || []).slice().sort(function (x, y) { return x - y; });
+}
+function sameSet(a, b) {
+  a = normSet(a); b = normSet(b);
+  if (a.length !== b.length) return false;
+  for (var i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+function parseNum(v) {
+  if (typeof v === "number") return v;
+  if (v === null || v === undefined) return NaN;
+  return parseFloat(String(v).replace(/[,\s_]/g, ""));
+}
+function gradeQuestion(q, ans) {
+  if (ans === null || ans === undefined) return false;
+  if (q.kind === "single") return ans === q.answer;
+  if (q.kind === "multi") return Array.isArray(ans) && sameSet(ans, q.answer);
+  if (q.kind === "numeric") {
+    var v = parseNum(ans);
+    return isFinite(v) && Math.abs(v - q.answer.value) <= q.answer.tol;
+  }
+  return false;
+}
+function scoreQuiz(qs, answers) {
+  var s = 0;
+  for (var i = 0; i < qs.length; i++) {
+    var a = answers[qs[i].id];
+    if (a === undefined || a === null) continue;
+    if (gradeQuestion(qs[i], a)) s++;
+  }
+  return s;
+}
+function answeredCount(qs, answers) {
+  var n = 0;
+  for (var i = 0; i < qs.length; i++) {
+    var a = answers[qs[i].id];
+    if (a !== undefined && a !== null) n++;
+  }
+  return n;
+}
+function verdictFor(score, total) {
+  if (score >= 9) return "solid — move on";
+  if (score >= 6) return "review the flagged topics";
+  return "re-run the module notebook first";
+}
+function wrongTopics(qs, answers) {
+  var out = [];
+  for (var i = 0; i < qs.length; i++) {
+    var a = answers[qs[i].id];
+    if (a === undefined || a === null) continue;
+    if (!gradeQuestion(qs[i], a)) out.push(qs[i].topic);
+  }
+  return out;
+}
+function answerKeyBalance(qs) {
+  var counts = {}, letters = "ABCDE";
+  for (var i = 0; i < qs.length; i++) {
+    if (qs[i].kind !== "single") continue;
+    var L = letters.charAt(qs[i].answer);
+    counts[L] = (counts[L] || 0) + 1;
+  }
+  return counts;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    QUIZ_ID: QUIZ_ID, QUESTIONS: QUESTIONS, gradeQuestion: gradeQuestion,
+    scoreQuiz: scoreQuiz, answeredCount: answeredCount, verdictFor: verdictFor,
+    wrongTopics: wrongTopics, answerKeyBalance: answerKeyBalance, sameSet: sameSet
+  };
+}
+/* ══════════════════════════ PURE LOGIC END ══════════════════════════ */
+
+(function () {
+  if (typeof document === "undefined") return;
+
+  var STORE = "mlcourse-quiz-" + QUIZ_ID;
+  var SUMMARY = "mlcourse-quiz-scores";
+  var LETTERS = "ABCDE";
+  var TOTAL = QUESTIONS.length;
+  var answers = {};
+  var draft = {};   /* in-progress multi / numeric input, not yet submitted */
+
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, html) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (html !== undefined) n.innerHTML = html;
+    return n;
+  }
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function load() {
+    try {
+      var raw = window.localStorage.getItem(STORE);
+      if (!raw) return;
+      var data = JSON.parse(raw);
+      if (data && data.answers && typeof data.answers === "object") answers = data.answers;
+    } catch (e) { answers = {}; }
+  }
+  function save() {
+    var score = scoreQuiz(QUESTIONS, answers);
+    var payload = { answers: answers, score: score, total: TOTAL, ts: Date.now() };
+    try {
+      window.localStorage.setItem(STORE, JSON.stringify(payload));
+      var sum = {};
+      try { sum = JSON.parse(window.localStorage.getItem(SUMMARY) || "{}") || {}; }
+      catch (e2) { sum = {}; }
+      sum[QUIZ_ID] = { score: score, total: TOTAL, ts: payload.ts };
+      window.localStorage.setItem(SUMMARY, JSON.stringify(sum));
+    } catch (e) { /* private mode: run without persistence */ }
+  }
+
+  function isAnswered(q) {
+    var a = answers[q.id];
+    return a !== undefined && a !== null;
+  }
+
+  /* ── rendering ─────────────────────────────────────────────────── */
+  function renderQuestion(q, idx) {
+    var wrap = el("section", "q");
+    wrap.id = "qbox-" + q.id;
+
+    var head = el("div", "qhead");
+    head.appendChild(el("span", "qnum", "Q" + (idx + 1)));
+    head.appendChild(el("span", "tag", q.cat));
+    if (q.kind === "multi") head.appendChild(el("span", "tag", "select all"));
+    if (q.kind === "numeric") head.appendChild(el("span", "tag", "type a number"));
+    wrap.appendChild(head);
+
+    wrap.appendChild(el("p", "qtext", q.prompt));
+
+    if (q.code) {
+      wrap.appendChild(el("p", "snipfile", esc(q.file)));
+      wrap.appendChild(el("pre", "snip", "<code>" + esc(q.code) + "</code>"));
+    }
+
+    if (q.kind === "numeric") {
+      var row = el("div", "numrow");
+      var input = document.createElement("input");
+      input.type = "text";
+      input.inputMode = "decimal";
+      input.placeholder = "your answer";
+      input.setAttribute("aria-label", "numeric answer for question " + (idx + 1));
+      input.addEventListener("input", function () { draft[q.id] = input.value; });
+      input.addEventListener("keydown", function (ev) {
+        if (ev.key === "Enter") { ev.preventDefault(); submitNumeric(q, input); }
+      });
+      row.appendChild(input);
+      var go = el("button", "primary", "Answer");
+      go.addEventListener("click", function () { submitNumeric(q, input); });
+      row.appendChild(go);
+      wrap.appendChild(row);
+    } else {
+      var opts = el("div", "opts");
+      q.options.forEach(function (text, i) {
+        var b = el("button", "opt");
+        b.type = "button";
+        b.appendChild(el("span", "k", LETTERS.charAt(i)));
+        b.appendChild(el("span", "txt", text));
+        b.dataset.i = String(i);
+        b.addEventListener("click", function () { onOption(q, i); });
+        opts.appendChild(b);
+      });
+      wrap.appendChild(opts);
+      if (q.kind === "multi") {
+        var act = el("div", "actions");
+        var sub = el("button", "primary", "Answer");
+        sub.addEventListener("click", function () { submitMulti(q); });
+        act.appendChild(sub);
+        act.appendChild(el("span", "hint", "toggle every option you believe is true, then answer"));
+        wrap.appendChild(act);
+      }
+    }
+
+    wrap.appendChild(el("div", "expl"));
+    return wrap;
+  }
+
+  function paint(q, idx) {
+    var box = $("qbox-" + q.id);
+    if (!box) return;
+    var locked = isAnswered(q);
+    var given = answers[q.id];
+    var ok = locked && gradeQuestion(q, given);
+
+    box.classList.toggle("locked", locked);
+    box.classList.toggle("correct", locked && ok);
+    box.classList.toggle("wrong", locked && !ok);
+
+    var btns = box.querySelectorAll(".opt");
+    for (var i = 0; i < btns.length; i++) {
+      var b = btns[i], bi = Number(b.dataset.i);
+      b.classList.remove("sel", "is-correct", "is-wrong");
+      var old = b.querySelector(".mark");
+      if (old) old.parentNode.removeChild(old);
+      b.disabled = !!locked;
+
+      var picked = false;
+      if (locked) {
+        picked = q.kind === "multi" ? (given || []).indexOf(bi) !== -1 : given === bi;
+      } else {
+        picked = q.kind === "multi" ? (draft[q.id] || []).indexOf(bi) !== -1 : false;
+      }
+      if (!locked) { if (picked) b.classList.add("sel"); continue; }
+
+      var isKey = q.kind === "multi" ? q.answer.indexOf(bi) !== -1 : q.answer === bi;
+      if (isKey) b.classList.add("is-correct");
+      else if (picked) b.classList.add("is-wrong");
+      if (picked) b.appendChild(el("span", "mark " + (isKey ? "ok" : "no"), "your pick"));
+      else if (isKey) b.appendChild(el("span", "mark ok", "answer"));
+    }
+
+    if (q.kind === "numeric") {
+      var inp = box.querySelector("input");
+      var btn = box.querySelector(".numrow button");
+      if (locked) {
+        if (inp) { inp.value = String(given); inp.disabled = true; }
+        if (btn) btn.disabled = true;
+      } else {
+        if (inp) inp.disabled = false;
+        if (btn) btn.disabled = false;
+      }
+    }
+    var mbtn = box.querySelector(".actions button");
+    if (mbtn) mbtn.disabled = !!locked;
+
+    var expl = box.querySelector(".expl");
+    if (!locked) { expl.innerHTML = ""; expl.className = "expl"; return; }
+
+    expl.className = "expl " + (ok ? "ok" : "no");
+    var html = "<div class=\"head\">" + (ok ? "correct" : "not quite") + "</div>";
+    if (q.kind === "numeric") {
+      html += "<p>You entered <span class=\"mono\">" + esc(String(given)) +
+        "</span>. Accepted range: <span class=\"mono\">" +
+        (q.answer.value - q.answer.tol).toLocaleString("en-US") + " – " +
+        (q.answer.value + q.answer.tol).toLocaleString("en-US") + "</span>.</p>";
+    }
+    html += "<p>" + q.explain + "</p>";
+    html += "<p class=\"src\">" + esc(q.src) + "</p>";
+    expl.innerHTML = html;
+    if (q.tryIt) {
+      var a = el("a", "tryit", "Try it in the explorable →");
+      a.href = EXPLORABLE;
+      expl.appendChild(a);
+    }
+  }
+
+  function onOption(q, i) {
+    if (isAnswered(q)) return;
+    if (q.kind === "single") {
+      answers[q.id] = i;
+      save();
+      refresh();
+      return;
+    }
+    var cur = draft[q.id] || [];
+    var at = cur.indexOf(i);
+    if (at === -1) cur = cur.concat([i]); else cur = cur.slice(0, at).concat(cur.slice(at + 1));
+    draft[q.id] = cur;
+    refresh();
+  }
+
+  function submitMulti(q) {
+    if (isAnswered(q)) return;
+    var cur = draft[q.id] || [];
+    if (!cur.length) { window.alert("Pick at least one option first."); return; }
+    answers[q.id] = cur.slice().sort(function (a, b) { return a - b; });
+    save();
+    refresh();
+  }
+
+  function submitNumeric(q, input) {
+    if (isAnswered(q)) return;
+    var raw = (input.value || "").trim();
+    if (!raw || !isFinite(parseNum(raw))) { window.alert("Type a number first."); return; }
+    answers[q.id] = raw;
+    save();
+    refresh();
+  }
+
+  function refresh() {
+    QUESTIONS.forEach(paint);
+    var score = scoreQuiz(QUESTIONS, answers);
+    var done = answeredCount(QUESTIONS, answers);
+    $("scoreNum").textContent = String(score);
+
+    var v = $("verdict");
+    if (done < TOTAL) {
+      v.innerHTML = "<span>" + done + " of " + TOTAL +
+        " answered. Answering locks a question and reveals its explanation.</span>";
+      return;
+    }
+    var topics = wrongTopics(QUESTIONS, answers);
+    var html = "<b>" + score + " / " + TOTAL + " — " + verdictFor(score, TOTAL) + ".</b>";
+    if (topics.length) {
+      html += " Worth another pass:<ul>";
+      topics.forEach(function (t) { html += "<li>" + esc(t) + "</li>"; });
+      html += "</ul>";
+    } else {
+      html += " Nothing flagged — every topic in module 09 came back clean.";
+    }
+    v.innerHTML = html;
+  }
+
+  /* ── boot ──────────────────────────────────────────────────────── */
+  load();
+  var list = $("qlist");
+  QUESTIONS.forEach(function (q, i) { list.appendChild(renderQuestion(q, i)); });
+  refresh();
+
+  $("reset").addEventListener("click", function () {
+    if (!window.confirm("Clear your answers for the module 09 quiz?")) return;
+    answers = {};
+    draft = {};
+    try {
+      window.localStorage.removeItem(STORE);
+      var sum = JSON.parse(window.localStorage.getItem(SUMMARY) || "{}") || {};
+      delete sum[QUIZ_ID];
+      window.localStorage.setItem(SUMMARY, JSON.stringify(sum));
+    } catch (e) { /* ignore */ }
+    QUESTIONS.forEach(function (q) {
+      var box = $("qbox-" + q.id);
+      if (!box) return;
+      var inp = box.querySelector("input");
+      if (inp) { inp.value = ""; inp.disabled = false; }
+    });
+    refresh();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+})();
+</script>
+<!-- built for ml-course quizzes v1 -->
+</html>

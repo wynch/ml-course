@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Training Continuous Chain of Thought Models: A Tale of Two Regimes (Yerram, He, Choi, 2026) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="training-continuous-chain-of-thought-models-a-tale-of-two-regimes">Training Continuous Chain of Thought Models: A Tale of Two Regimes</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-09-26</span> <span>updated 2026-09-26</span> <span class="tag">latent-reasoning</span> <span class="tag">continuous-thought</span> <span class="tag">chain-of-thought</span> <span class="tag">distillation</span> <span class="tag">multi-token-prediction</span> <span class="tag">evaluation</span> <span class="tag">math-reasoning</span> <span class="tag">2026</span></div>
+<p><strong>Authors:</strong> Varun Yerram, He He, Eunsol Choi (Center for Data Science, New York University) <strong>Published:</strong> arXiv 2607.16972, v1 2026-07-18 (AdaptFM workshop, ICML 2026) <strong>Raw copy:</strong> <code>raw/arxiv-2607-16972-continuous-cot-tale-of-two-regimes.md</code> (captured 2026-09-26, full text of v1)</p>
+<p>Every claim below cites the raw file as R, with the paper's section number.</p>
+<h2 id="summary">Summary</h2>
+<p>A stress test of continuous chains of thought that compress a written chain into a few vectors. The paper sorts training methods into two regimes (R, §1, §3, Table 1):</p>
+<div class="tw"><table><thead><tr><th></th><th>Indirect supervision (Coconut, CODI, Sim-CoT)</th><th>Direct supervision (CoLaR, C-MTP)</th></tr></thead><tbody><tr><td>What a latent is</td><td>the model's own last hidden state, fed back</td><td>an average of the word embeddings of a span of the written chain</td></tr><tr><td>What supervises it</td><td>the answer, plus distillation from a teacher that reads the written chain</td><td>the words of each span, predicted all at once (teacher forcing)</td></tr><tr><td>Chain length</td><td>fixed before training (for example 6)</td><td>varies with the written chain</td></tr><tr><td>Training</td><td>several sequential forward passes</td><td>one forward pass</td></tr></tbody></table></div>
+<p>Its own method, <strong>C-MTP</strong>, is direct: cut the written chain into spans of s tokens, make each latent the average of the span's embeddings, and train the model to predict all s tokens of the next span (multi-token prediction) plus the answer (R, §3.4, Eq. 6-10). At inference it samples s tokens, averages their embeddings and feeds the average back (R, §3.4).</p>
+<p>The three test regimes: <strong>structured</strong> chains (GSM8k-Aug, bare expressions, about 25 tokens), <strong>semi-natural</strong> chains (GSM8k-Aug-NL, one sentence per step), and <strong>realistic</strong> chains the model itself writes for MATH problems, about 350 tokens on average (R, §4.1, Figure 1 caption).</p>
+<h2 id="key-results">Key results</h2>
+<p>Llama-3.2-1B-Instruct and Qwen2.5-1.5B-Instruct, LoRA, started from a checkpoint trained on written chains; 5 runs for the GSM8k tables (R, §4.1, Tables 2, 4).</p>
+<ul><li><strong>Structured, Llama 1B, GSM8k test:</strong> written CoT 61.94; Coconut 45.30 (taken from Shen et al.); CODI 53.03; Sim-CoT 53.95; C-MTP-2 53.30; CoLaR-2 41.23 (R, Table 2). C-MTP at 4× compression equals CoLaR at 2× and converges in about 5 epochs against about 50 (R, §4.2).</li><li><strong>Neither regime wins everywhere:</strong> on Llama, indirect wins in distribution and loses out of distribution; on Qwen the pattern reverses (R, §4.2).</li><li><strong>Direct is faster and generalizes better on held-out problem structures:</strong> a C-MTP step is about 2× faster than CODI; on unseen structures with 3 and 4 steps, C-MTP keeps 42.86 and 24.04 where CODI drops to 27.10 and 13.83 (R, §4.2.1). Over half the GSM8k-Aug training set reduces to 100 problem structures (R, §4.2.1).</li><li><strong>Semi-natural, Llama 1B:</strong> CODI 47.82 with 6 latents; C-MTP-2 43.49 with about 34; CoLaR-2 23.46; written CoT 53.68 (R, Table 4, §4.3). A fixed latent budget forces the indirect model to drop filler words; the direct model must predict the whole verbose chain and compounds its own errors (R, §4.3).</li><li><strong>Realistic (MATH):</strong> Llama 1B: written CoT-SFT 23.80, C-MTP-2 7.40, CODI 7.92-9.92. Qwen 1.5B: CoT-SFT 52.80, C-MTP-2 14.20, CODI 12.44-14.52 (R, Table 5). "Both regimes fall well short of CoT-SFT" (R, §1); roughly 35% of its accuracy (R, Figure 1 caption).</li><li><strong>Where it breaks:</strong> C-MTP writes the right words but drops signs and numbers, or garbles expressions, often where a span boundary cuts one; one bad token ruins the rest (R, §4.4, §4.5). On CommonsenseQA, with no maths tokens, C-MTP stays level as spans lengthen, and CODI (77.12) beats written CoT (74.40) (R, Appendix G.7).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>Two models of 1-1.5B parameters, mostly maths (R, §5).</li><li>§4.5 points to "Table 14" for the MATH results; the MATH table is Table 5, and Table 14 is CommonsenseQA.</li><li>Figure 1 gives semi-natural chains about 62 tokens, while §4.3 and Table 4 say about 70 "steps"; for structured chains Figure 1 says about 25 tokens and Table 2 about 27 "steps". The tables' "steps" look like tokens.</li><li>The Coconut row is copied from another paper, not rerun (R, Table 2 footnote).</li><li>Their CODI numbers differ from those CoLaR reported; they used the official CODI code (R, Appendix H).</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-coconut-continuous-latent-reasoning.html">source-coconut-continuous-latent-reasoning</a> — the founding indirect method; here it trails CODI and Sim-CoT on structured GSM8k (45.30 vs about 53) (R, Table 2).</li><li><a href="source-abstract-token-curriculum.html">source-abstract-token-curriculum</a> — ATC also belongs to the indirect regime (hidden state fed back) but drops the teacher. Its results are on short synthetic tasks; this paper's warning is that such setups "overstate the practical utility" once chains grow to hundreds of tokens (R, §1). ATC itself leaves long proofs open (<code>raw/arxiv-2609-19717-learn-your-own-thoughts-abstract-token-curriculum.md</code>, §8).</li><li><a href="source-soft-tokens-hard-truths.html">source-soft-tokens-hard-truths</a> — Contradiction (partial): this paper concludes that realistic traces expose "the limitations of current continuous CoT methods" (R, Abstract). Soft tokens, trained by RL on MATH with chains up to 512 tokens and read with soft inference, keep Llama 3B at 43.2% on MATH-500 (soft greedy) against 49.1% for normal-token training (<code>raw/arxiv-2509-19170-soft-tokens-hard-truths.md</code>, §4, Appendix E, Table 4). Soft tokens do not compress the chain, and model size and test set differ, so the two test different things; the claim holds for the compressing methods tested here.</li><li><a href="source-recurrent-depth-latent-reasoning.html">source-recurrent-depth-latent-reasoning</a> — cited here among looping methods; it needs no written chain at all (R, §2).</li><li><a href="source-pause-tokens.html">source-pause-tokens</a> — cited among filler-token methods (R, §2).</li><li><a href="concept-test-time-compute.html">concept-test-time-compute</a> · <a href="thread-test-time-compute.html">thread-test-time-compute</a> · <a href="concept-llm-reasoning.html">concept-llm-reasoning</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li>Raw: <code>raw/arxiv-2607-16972-continuous-cot-tale-of-two-regimes.md</code></li><li>arXiv: <a href="https://arxiv.org/abs/2607.16972" rel="noreferrer">https://arxiv.org/abs/2607.16972</a> · HTML: <a href="https://arxiv.org/html/2607.16972" rel="noreferrer">https://arxiv.org/html/2607.16972</a> · Code: <a href="https://github.com/Varun221/cmtp_research" rel="noreferrer">https://github.com/Varun221/cmtp_research</a></li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2607-16972-continuous-cot-tale-of-two-regimes.md</code></li><li><a href="https://arxiv.org/abs/2607.16972" rel="noreferrer">https://arxiv.org/abs/2607.16972</a></li><li><a href="https://github.com/Varun221/cmtp_research" rel="noreferrer">https://github.com/Varun221/cmtp_research</a></li></ul></details>
+</main>
+</body>
+</html>

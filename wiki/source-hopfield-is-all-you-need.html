@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Hopfield Networks Is All You Need · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="hopfield-networks-is-all-you-need">Hopfield Networks Is All You Need</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-06</span> <span>updated 2026-10-09</span> <span class="tag">hopfield-networks</span> <span class="tag">associative-memory</span> <span class="tag">attention</span> <span class="tag">theory</span> <span class="tag">interpretability</span> <span class="tag">2020</span></div>
+<p><strong>Hubert Ramsauer, Bernhard Schäfl, Johannes Lehner, Philipp Seidl, Michael Widrich, Lukas Gruber, Markus Holzleitner, Milena Pavlović, Geir Kjetil Sandve, Victor Greiff, David Kreil, Michael Kopp, Günter Klambauer, Johannes Brandstetter, Sepp Hochreiter — arXiv 2008.02217, ICLR 2021 (JKU Linz / IARAI)</strong></p>
+<p>The bridge paper between two literatures. Generalises Hopfield networks from binary states (Hopfield 1982) and polynomial-capacity refinements (Krotov &amp; Hopfield 2016) to a <strong>continuous-state modern Hopfield network</strong> with an exponential-interaction energy. The headline result: the resulting <strong>one-step retrieval rule is mathematically identical to the transformer's <a href="source-attention-is-all-you-need.html">source-attention-is-all-you-need</a> attention update</strong>. Attention <em>is</em> an associative memory lookup.</p>
+<h2 id="the-result-stated-plainly">The result, stated plainly</h2>
+<p>Define energy <code>E(ξ) = -lse(β · X^T ξ) + ½ ξ^T ξ + const</code>, where X is a matrix of stored patterns and <code>lse</code> is log-sum-exp. The fixed-point iteration of <code>ξ_new = X · softmax(β · X^T ξ)</code> minimises this energy. Set <code>ξ = Q</code>, <code>X = K</code> (and project the output through V), and you recover <strong>softmax(QK^T / √d) · V</strong> exactly — the transformer attention block. β = 1/√d_k.</p>
+<p>So:</p>
+<ul><li><strong>Queries</strong> = current state of the Hopfield retrieval.</li><li><strong>Keys</strong> = stored patterns.</li><li><strong>Values</strong> = associated outputs.</li><li><strong>One attention layer</strong> = one step of Hopfield retrieval.</li></ul>
+<h2 id="capacity-convergence">Capacity &amp; convergence</h2>
+<ul><li><strong>Exponential storage capacity</strong> in the embedding dimension d (vs. linear for classical Hopfield, polynomial for Krotov-Hopfield 2016): you can store ~exp(d/2) random patterns and still retrieve them with high probability.</li><li><strong>One-step retrieval</strong> typically suffices when patterns are well-separated; otherwise iterates rapidly converge to a metastable mixture (which the paper analyses as "global averaging" → "metastable cluster" → "fixed-point retrieval" regimes depending on β and pattern overlap).</li><li>The three regimes mirror, qualitatively, the "diffuse vs. focused" behaviour of attention heads observed empirically.</li></ul>
+<h2 id="empirical-demonstrations">Empirical demonstrations</h2>
+<ul><li>Drop-in <strong>HopfieldLayer</strong> modules (an associative-memory layer parameterised like attention) match or beat transformers on multiple instance learning, immune-repertoire classification, and small-data tasks.</li><li>Provides closed-form prediction of when attention will be diffuse vs. selective, useful for analysing trained transformers post-hoc.</li></ul>
+<h2 id="why-it-matters">Why it matters</h2>
+<p>This paper supplies the <strong>theoretical lens</strong> under which much of <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a> makes sense. If attention is associative memory retrieval, then "induction heads", "successor heads", and the linear-features-in-the-residual-stream picture (<a href="source-anthropic-mi-foundations.html">source-anthropic-mi-foundations</a>, <a href="source-anthropic-mi-foundations.html">source-anthropic-mi-foundations</a>) all fit naturally as patterns of stored / retrieved associations. The "FFN as memory" thread (<a href="source-memoryllm-plug-n-play-ffn.html">source-memoryllm-plug-n-play-ffn</a>) is a parallel formalisation of the same intuition for the FFN sublayer rather than the attention sublayer.</p>
+<p>It also dissolves what looked like a hard boundary between symbolic associative memory (classical Hopfield, content-addressable RAM) and modern deep learning: the transformer's softmax attention is exactly the continuous-state Hopfield update, with exponential capacity. This is one of the cleanest theoretical bridges in modern ML.</p>
+<h2 id="references">References</h2>
+<ul><li>arXiv: <a href="https://arxiv.org/abs/2008.02217" rel="noreferrer">https://arxiv.org/abs/2008.02217</a></li><li>The architecture it explains: <a href="source-attention-is-all-you-need.html">source-attention-is-all-you-need</a>, <a href="concept-transformer-architecture.html">concept-transformer-architecture</a></li><li>Adjacent "memory as architecture" thread: <a href="source-memoryllm-plug-n-play-ffn.html">source-memoryllm-plug-n-play-ffn</a></li><li>The same link from the kernel side: <a href="source-memory-mosaics-at-scale.html">source-memory-mosaics-at-scale</a> reads an associative memory as Gaussian kernel regression, which equals softmax attention only when all keys have the same length; it then builds a language model from such memories at about 10B parameters (<code>raw/arxiv-2507-03285-memory-mosaics-at-scale.md</code>, §2, Eq. 3-4).</li><li>The log-sum-exp in the energy: <a href="source-bach-spectral-log-density.html">source-bach-spectral-log-density</a> studies why it is hard to estimate from samples and offers a least-squares route (<code>raw/web-2026-francisbach-spectral-log-density.md</code>, intro)</li><li>Interpretability lens it supports: <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a>, <a href="source-anthropic-mi-foundations.html">source-anthropic-mi-foundations</a>, <a href="source-anthropic-mi-foundations.html">source-anthropic-mi-foundations</a></li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2008.02217" rel="noreferrer">https://arxiv.org/abs/2008.02217</a></li><li><code>raw/web-2026-francisbach-spectral-log-density.md</code></li><li><code>raw/arxiv-2507-03285-memory-mosaics-at-scale.md</code></li></ul></details>
+</main>
+</body>
+</html>

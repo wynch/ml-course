@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>A Path Towards Autonomous Machine Intelligence (LeCun position paper, 2022) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="a-path-towards-autonomous-machine-intelligence">A Path Towards Autonomous Machine Intelligence</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-06</span> <span>updated 2026-05-06</span> <span class="tag">jepa</span> <span class="tag">self-supervised-learning</span> <span class="tag">world-model</span> <span class="tag">yann-lecun</span> <span class="tag">meta-fair</span> <span class="tag">position-paper</span> <span class="tag">active-inference</span> <span class="tag">energy-based-models</span> <span class="tag">representation-learning</span></div>
+<p><strong>Yann LeCun — OpenReview, version 0.9.2, June 2022</strong></p>
+<p>The framing document behind every JEPA paper. LeCun lays out a <strong>complete cognitive architecture</strong> for autonomous agents and argues that the path to grounded, physical, sample-efficient intelligence runs through <strong>predictive-in-latent-space self-supervised learning plus model-predictive planning</strong> — explicitly <em>not</em> through generative pixel/token modelling at scale.</p>
+<h2 id="the-six-module-architecture">The six-module architecture</h2>
+<p>LeCun proposes an agent decomposed into six interacting modules:</p>
+<ol><li><strong>Configurator</strong> — meta-controller that conditions every other module on the current task; "the composer of the orchestra."</li><li><strong>Perception</strong> — extracts a hierarchical state estimate of the world from sensors.</li><li><strong>World model</strong> — predicts future world states given imagined action sequences. The hardest and most important module.</li><li><strong>Cost</strong> — combines an immutable <em>intrinsic</em> cost (homeostasis, curiosity) with a <em>trainable</em> critic; the agent acts to minimise expected future cost.</li><li><strong>Actor</strong> — proposes action sequences; optimised by the cost-through-world-model loop, not bootstrapped RL.</li><li><strong>Short-term memory</strong> — episodic store the configurator can read/write.</li></ol>
+<p>Inference is <strong>model-predictive</strong>: the actor proposes, the world model rolls out in latent space, the cost is summed, gradients flow back to the actor. There is no policy network learned via RL on environment rewards — RL is reserved for the few cases where the world model fails.</p>
+<h2 id="jepa-at-the-centre-and-why-not-generative">JEPA at the centre — and why not generative</h2>
+<p>The world model is built from <strong>(Hierarchical) Joint-Embedding Predictive Architectures</strong>: predict the embedding of the future, not the pixels. LeCun's argument against pixel/token generative models for grounded learning:</p>
+<ul><li>Most of the future is irrelevant or unpredictable detail. A generative model is forced to spend capacity modelling it.</li><li>A latent predictor can use a learned <strong>information-discarding encoder</strong>: things that are unpredictable (leaves blowing, faces in a crowd) get dropped, and the predictor only commits to what is predictable.</li><li>Stacking JEPAs hierarchically (H-JEPA) gives multi-time-scale predictions — short-horizon at low layers, long-horizon abstract dynamics at high layers.</li></ul>
+<p>Energy-based formalisation: a JEPA defines a low-energy region in a joint embedding space; training pushes incompatible (x, y) pairs to high energy. This is the <strong>non-contrastive, non-generative</strong> corner of the EBM space. (Later expanded in <a href="concept-energy-based-models.html">concept-energy-based-models</a> adjacent work.)</p>
+<h2 id="relationship-to-active-inference">Relationship to active inference</h2>
+<p>The predict-then-plan loop (perception → world model → cost → actor) is structurally close to <a href="concept-active-inference.html">concept-active-inference</a> / model-predictive control: act to reduce expected free energy / cost under your own generative model. LeCun's framing emphasises <strong>learning</strong> the world model from observation rather than hand-tuning a generative model (cf. <a href="source-why-learn-if-you-can-infer-active-inference.html">source-why-learn-if-you-can-infer-active-inference</a> which goes the other direction). V-JEPA 2 (<a href="source-vjepa-family.html">source-vjepa-family</a>) is the first concrete data point that this works on real robotics.</p>
+<h2 id="influence">Influence</h2>
+<p>This single document seeds the JEPA programme: <a href="source-ijepa-self-supervised-learning.html">source-ijepa-self-supervised-learning</a> (image), <a href="source-vjepa-family.html">source-vjepa-family</a> (video), <a href="source-vjepa-family.html">source-vjepa-family</a> (world model + zero-shot robotics), <a href="source-vjepa-family.html">source-vjepa-family</a> (dense features), <a href="source-vl-jepa.html">source-vl-jepa</a> (vision-language). The world-model-as-substrate-for-planning thesis is also the bridge to <a href="concept-active-inference.html">concept-active-inference</a> and to (planned) <code>concept-world-models</code>.</p>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="concept-jepa.html">concept-jepa</a> (hub)</li><li><a href="concept-representation-learning.html">concept-representation-learning</a></li><li><a href="concept-active-inference.html">concept-active-inference</a></li><li><a href="concept-energy-based-models.html">concept-energy-based-models</a></li><li><a href="entity-meta-fair.html">entity-meta-fair</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li>OpenReview PDF: <a href="https://openreview.net/pdf?id=BZ5a1r-kVsf" rel="noreferrer">https://openreview.net/pdf?id=BZ5a1r-kVsf</a></li><li>LVEBM follow-up tutorial: <a href="https://arxiv.org/abs/2306.02572" rel="noreferrer">https://arxiv.org/abs/2306.02572</a></li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://openreview.net/pdf?id=BZ5a1r-kVsf" rel="noreferrer">https://openreview.net/pdf?id=BZ5a1r-kVsf</a></li></ul></details>
+</main>
+</body>
+</html>

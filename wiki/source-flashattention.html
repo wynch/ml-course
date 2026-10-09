@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>FlashAttention v1 + v2: IO-Aware Exact Attention · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="flashattention-v1-v2">FlashAttention (v1 + v2)</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-06</span> <span>updated 2026-05-07</span> <span class="tag">attention</span> <span class="tag">transformers</span> <span class="tag">efficiency</span> <span class="tag">gpu</span> <span class="tag">systems</span> <span class="tag">foundational</span></div>
+<p>The papers that made long-context transformers economically feasible. Reframe attention as an <strong>IO problem</strong> rather than a FLOPs problem — standard attention is bottlenecked by HBM ↔ SRAM memory traffic, not arithmetic. Both versions compute <strong>exact</strong> softmax attention while reducing memory traffic by orders of magnitude.</p>
+<h2 id="flashattention-v1-dao-fu-ermon-rudra-ré-neurips-2022">FlashAttention v1 — Dao, Fu, Ermon, Rudra, Ré (NeurIPS 2022)</h2>
+<p><strong>arXiv:</strong> <a href="https://arxiv.org/abs/2205.14135" rel="noreferrer">2205.14135</a>. Stanford.</p>
+<p><strong>Method:</strong></p>
+<ul><li><strong>Tiling</strong>: split Q, K, V into blocks that fit in on-chip SRAM. Compute attention block-by-block in a fused kernel; never materialise the N×N attention matrix in HBM.</li><li><strong>Online softmax</strong>: incrementally update softmax normaliser and running max as new K-blocks stream in (Milakov &amp; Gimelshein 2018), so each output row converges to exact softmax without a global pass.</li><li><strong>Recomputation in backward</strong>: store only softmax statistics (log-sum-exp + max), recompute attention weights on the fly during backprop. Trade extra FLOPs for memory savings.</li><li>Whole forward + backward is a single CUDA kernel — no intermediate tensors round-trip to HBM.</li></ul>
+<p><strong>Key numbers:</strong></p>
+<ul><li>15% end-to-end speedup on BERT-large MLPerf, 3× faster on GPT-2 (1K seq), 2.4× on Long Range Arena.</li><li>Memory linear in N: trained transformers with 16K context (Path-X, 61% acc — first to beat chance) and 64K context (Path-256).</li><li>25–40% of A100 peak FLOPs vs ~10% for the standard PyTorch implementation.</li></ul>
+<h2 id="flashattention-2-dao-single-author-follow-up-2023">FlashAttention-2 — Dao, single-author follow-up (2023)</h2>
+<p><strong>arXiv:</strong> <a href="https://arxiv.org/abs/2307.08691" rel="noreferrer">2307.08691</a>. Princeton/Together AI.</p>
+<p>Closes most of the remaining gap to GPU theoretical peak. Same exact-attention guarantee, same IO-awareness, but reorganises kernel parallelism and work partitioning for ~2× more throughput than v1.</p>
+<p><strong>What changed vs v1:</strong></p>
+<ul><li><strong>Parallelise across the sequence dimension</strong>, not just batch×heads. v1 launched one threadblock per (batch, head); v2 also splits along Q's row blocks — dramatically better utilisation when batch×heads is small (long-context inference, large models).</li><li><strong>Better work partitioning between warps</strong>: v1 had warps split K into chunks (then needed inter-warp reduction through shared memory). v2 splits Q across warps and lets each warp own its output block — eliminating most shared-memory traffic on the critical path.</li><li><strong>Fewer non-matmul FLOPs</strong>: rewrites online softmax to defer normalisation to end of each row, so inner loop is dominated by tensor-core matmuls.</li><li><strong>Causal masking optimisation</strong>: skip blocks fully above the diagonal entirely.</li></ul>
+<p><strong>Key numbers:</strong></p>
+<ul><li>~2× faster than v1 on A100 across head-dim 64 and 128.</li><li><strong>50–73% of A100 peak FP16/BF16</strong> for forward attention; backward ~63% (v1 was ~25–40%).</li><li>End-to-end: GPT-style models train ~1.3× faster than with v1.</li></ul>
+<h2 id="why-this-matters">Why this matters</h2>
+<p>FlashAttention is the most-cited systems paper in modern LLMs. Every long-context <a href="source-attention-is-all-you-need.html">source-attention-is-all-you-need</a> deployment uses some descendant of this kernel — it's the default in PyTorch 2.0 (<code>scaled_dot_product_attention</code>), HuggingFace, vLLM, and most open-source training frameworks.</p>
+<p>Beyond performance: it reframed the architecture-vs-systems boundary. Papers proposing <strong>approximate</strong> attention (linear, low-rank, sparse) lost most of their motivation overnight, since exact attention now ran at near-optimal hardware speed. The persistent SSM thread (<a href="source-mamba-ssm.html">source-mamba-ssm</a>, <a href="source-mamba-2-ssm-duality.html">source-mamba-2-ssm-duality</a>) is partly a response to this — to beat FlashAttention you need <em>asymptotically</em> better complexity, not just smaller constants. FA-2's ~70% of peak makes that bar even higher.</p>
+<p>The hardware-aware kernel design also recurs as a pattern in <a href="concept-model-training.html">concept-model-training</a> — moving system bottlenecks closer to silicon.</p>
+<h2 id="connections">Connections</h2>
+<ul><li>Architectural baseline: <a href="source-attention-is-all-you-need.html">source-attention-is-all-you-need</a>, <a href="concept-transformer-architecture.html">concept-transformer-architecture</a></li><li>Training systems: <a href="concept-model-training.html">concept-model-training</a></li><li>Linear-time alternatives motivated by this kernel ceiling: <a href="source-mamba-ssm.html">source-mamba-ssm</a>, <a href="source-mamba-2-ssm-duality.html">source-mamba-2-ssm-duality</a>, <a href="source-olmo-hybrid-rnn-transformer.html">source-olmo-hybrid-rnn-transformer</a>, <a href="source-m2rnn-matrix-valued-states.html">source-m2rnn-matrix-valued-states</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li>v1: <a href="https://arxiv.org/abs/2205.14135" rel="noreferrer">arXiv 2205.14135</a></li><li>v2: <a href="https://arxiv.org/abs/2307.08691" rel="noreferrer">arXiv 2307.08691</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2205.14135" rel="noreferrer">https://arxiv.org/abs/2205.14135</a></li><li><a href="https://arxiv.org/abs/2307.08691" rel="noreferrer">https://arxiv.org/abs/2307.08691</a></li></ul></details>
+</main>
+</body>
+</html>

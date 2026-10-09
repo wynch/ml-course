@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>DINO Lineage: DINO → DINOv2 → DINOv3 · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="dino-lineage">DINO Lineage</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-07</span> <span>updated 2026-05-07</span> <span class="tag">self-supervised-learning</span> <span class="tag">vision</span> <span class="tag">dino</span> <span class="tag">representation-learning</span> <span class="tag">meta-fair</span> <span class="tag">foundation-models</span></div>
+<p>A 4-year evolutionary thread from Meta FAIR establishing self-supervised learning as the dominant approach to vision foundation models. Three milestones: knowledge-distillation ViTs (Caron 2021) → curated-data scaling (Oquab 2023) → Gram anchoring for dense features (Siméoni 2025).</p>
+<h2 id="dino-caron-et-al-2021-iccv">DINO — Caron et al. 2021 (ICCV)</h2>
+<p><strong>arXiv:</strong> <a href="https://arxiv.org/abs/2104.14294" rel="noreferrer">2104.14294</a>. Caron, Touvron, Misra, Jégou, Mairal, Bojanowski, Joulin.</p>
+<p>"Self-<strong>di</strong>stillation with <strong>no</strong> labels". Student and teacher are identical ViTs; teacher = EMA of student. No contrastive negatives, no clustering, no predictor MLP. Two anti-collapse tricks: <strong>centering</strong> (subtract running mean from teacher logits) and <strong>sharpening</strong> (low temperature on teacher softmax) — they balance, centering pushes uniform, sharpening pushes peaked.</p>
+<p><strong>Striking finding:</strong> self-supervised ViTs <em>spontaneously</em> learn semantic segmentation in their attention maps and produce excellent k-NN classifiers — properties that do <strong>not</strong> emerge in supervised ViTs or in self-supervised ConvNets. The "emerging properties" of the title come from the SSL × ViT combination, not either alone.</p>
+<p><strong>Key numbers:</strong> k-NN ImageNet 78.3% (ViT-S/8), linear probe 80.1% (ViT-B/8), DAVIS-2017 video object segmentation 61.8% J&amp;F just by propagating with attention.</p>
+<h2 id="dinov2-oquab-et-al-2023-tmlr-2024">DINOv2 — Oquab et al. 2023 (TMLR 2024)</h2>
+<p><strong>arXiv:</strong> <a href="https://arxiv.org/abs/2304.07193" rel="noreferrer">2304.07193</a>. 26-author Meta FAIR release.</p>
+<p>The milestone where SSL alone matched CLIP on most visual benchmarks — the proof that vision can be learned without text supervision at foundation-model scale.</p>
+<p><strong>Two breakthroughs:</strong></p>
+<ol><li><strong>LVD-142M curated dataset.</strong> Filter 142M images from 1.2B-image uncurated web pool via dedup (copy-detection) + retrieval-near-curated-seed using a self-supervised embedding for similarity. Use SSL features to bootstrap a better SSL training set. Data curation is what unlocks SSL — uncurated web data alone plateaus.</li><li><strong>Stable recipe at scale.</strong> DINO image-level loss + iBOT patch-level masked-image-modeling loss + KoLeo regularizer. Engineering for scale: FlashAttention, sequence packing, untying head weights, FSDP. ViT-g/14 with 1.1B params. Smaller ViTs (S, B, L) <strong>distilled from the ViT-g/14 teacher</strong> rather than trained from scratch — distilled-from-large beats trained-from-scratch at every scale.</li></ol>
+<p><strong>Key numbers:</strong> Linear probe ImageNet 86.5% (ViT-g/14, surpasses OpenCLIP-G), k-NN 83.5%. SOTA monocular depth (NYUd, KITTI), competitive ADE20k segmentation, OOD robustness exceeds CLIP across ImageNet-A/R/Sketch/V2. Frozen features generalise to medical, satellite, etc. better than text-aligned features.</p>
+<h2 id="dinov3-siméoni-et-al-2025">DINOv3 — Siméoni et al. 2025</h2>
+<p><strong>arXiv:</strong> <a href="https://arxiv.org/abs/2508.10104" rel="noreferrer">2508.10104</a>. Siméoni, Vo, Seitzer, Baldassarre, Oquab, Jose, Khalidov, Szafraniec, Rho, Labatut, Bojanowski et al.</p>
+<p>Scales SSL to ViT-7B on ~1.7B curated images, <strong>freezing the backbone</strong> for downstream use, and solves the long-standing <strong>dense-feature degradation</strong> problem.</p>
+<p><strong>Core problem:</strong> in self-distillation pipelines, <em>patch-level</em> features lose local spatial coherence as training proceeds — even while [CLS]-token / global features keep improving. Letting training run longer hurts dense tasks.</p>
+<p><strong>Gram anchoring (the fix):</strong></p>
+<ul><li>Periodically snapshot a "Gram teacher" — an earlier checkpoint whose patch features are still well-structured.</li><li>Define the <strong>Gram matrix</strong> of patch features: G = features × featuresᵀ (matrix of pairwise patch similarities).</li><li>Auxiliary loss aligning the <em>Gram matrix</em> of the student's patches to the Gram-teacher's — preserves <strong>inter-patch similarity structure</strong>, not the patch features themselves.</li><li>Anchors <em>geometry</em> of dense features while leaving global features free to keep improving.</li><li>Anchoring on Gram matrices (not features) avoids freezing the representation; it constrains relative structure only.</li></ul>
+<p><strong>Other recipe changes:</strong> RoPE-style position encoding (better resolution generalisation), text-aligned variant (DINOv3-LV), high-resolution post-training, distillation into smaller variants (S, B, L, H+).</p>
+<p><strong>Result:</strong> frozen ViT-7B beats specialised SOTAs on ADE20k, Cityscapes, NYU/KITTI depth, object discovery, video tracking, 3D feature matching. Gram anchoring is the conceptual contribution likely to outlive the specific model — a general technique for stabilising dense features in long self-distillation training.</p>
+<h2 id="why-this-lineage">Why this lineage</h2>
+<p>The DINO trilogy is one of the cleanest evolutionary arcs in modern SSL: each generation scales (data + parameters) and adds one architectural fix. DINO showed SSL+ViT produces emergent structure; DINOv2 showed it scales to foundation-model territory; DINOv3 closed the dense-prediction gap. Together they validate the LeCun thesis (see <a href="source-lecun-path-autonomous-intelligence.html">source-lecun-path-autonomous-intelligence</a>) that vision representations don't need text supervision.</p>
+<p><strong>Sibling thread:</strong> the same lab's <a href="concept-jepa.html">concept-jepa</a> line (<a href="source-ijepa-self-supervised-learning.html">source-ijepa-self-supervised-learning</a> → <a href="source-vjepa-family.html">source-vjepa-family</a> → <a href="source-vl-jepa.html">source-vl-jepa</a>) pursues a related "predict in representation space" idea. DINOv3's Gram-teacher mechanism is conceptually adjacent to JEPA's predictor + EMA target encoder — both are families of <em>relational</em> SSL.</p>
+<h2 id="connections">Connections</h2>
+<ul><li>Hub: <a href="concept-dino-family.html">concept-dino-family</a></li><li>Family: <a href="concept-self-supervised-learning.html">concept-self-supervised-learning</a>, <a href="concept-representation-learning.html">concept-representation-learning</a></li><li>Lab: <a href="entity-meta-fair.html">entity-meta-fair</a></li><li>Sibling lineage: <a href="concept-jepa.html">concept-jepa</a>, <a href="source-ijepa-self-supervised-learning.html">source-ijepa-self-supervised-learning</a></li><li>iBOT precursor (now in <a href="source-masked-image-modeling.html">source-masked-image-modeling</a>) → DINOv2 directly</li><li><a href="concept-model-training.html">concept-model-training</a> — LVD-142M is the poster child</li><li><a href="source-clip-radford.html">source-clip-radford</a> — DINOv2 is the SSL-only counterpart that matches CLIP without text</li></ul>
+<h2 id="references">References</h2>
+<ul><li>DINO: <a href="https://arxiv.org/abs/2104.14294" rel="noreferrer">arXiv 2104.14294</a> — facebookresearch/dino</li><li>DINOv2: <a href="https://arxiv.org/abs/2304.07193" rel="noreferrer">arXiv 2304.07193</a> — facebookresearch/dinov2</li><li>DINOv3: <a href="https://arxiv.org/abs/2508.10104" rel="noreferrer">arXiv 2508.10104</a> — facebookresearch/dinov3</li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2104.14294" rel="noreferrer">https://arxiv.org/abs/2104.14294</a></li><li><a href="https://arxiv.org/abs/2304.07193" rel="noreferrer">https://arxiv.org/abs/2304.07193</a></li><li><a href="https://arxiv.org/abs/2508.10104" rel="noreferrer">https://arxiv.org/abs/2508.10104</a></li></ul></details>
+</main>
+</body>
+</html>

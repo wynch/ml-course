@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BPE tokenization — check yourself · ML course quiz 03</title>
+<style>
+:root{--track:var(--t1)}
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d;
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67;
+  --wrong:#c0504d; --soft:rgba(31,145,141,.10); --softbad:rgba(192,80,77,.09);
+  --panel-2:#eef2f0;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --panel-2:#131a18;
+    --line:rgba(232,238,236,.18); --muted:#9daba7;
+    --t1:#8f7fd6; --t2:#37b3ae; --t3:#63c473; --accent:#37b3ae; --track-ink:#0d1211;
+    --wrong:#f0918b; --soft:rgba(55,179,174,.16); --softbad:rgba(240,145,139,.14);
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;padding-bottom:6.5rem}
+a{color:var(--accent)}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;background:var(--track);color:var(--track-ink);
+  padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.topbar .spacer{flex:1 1 auto}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:840px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 2rem}
+.intro{max-width:70ch}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+.intro p{color:var(--muted);font-size:.92rem;margin:.3rem 0}
+h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .7rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.85rem,2vw,1.2rem);margin:1.1rem 0}
+.mono,code{font-family:var(--mono);font-size:.92em}
+.muted-inline{color:var(--muted);font-size:.86em}
+button{font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:.34rem .82rem;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover:not(:disabled){color:#fff;filter:brightness(1.06)}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---- question card ---- */
+.qhead{display:flex;flex-wrap:wrap;gap:.45rem .6rem;align-items:baseline;margin-bottom:.55rem}
+.qnum{font-family:var(--mono);font-size:.8rem;color:var(--track);font-weight:700}
+.tag{font-family:var(--display);font-size:.66rem;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--muted);border:1px solid var(--line);
+  border-radius:999px;padding:.1rem .5rem}
+.qtopic{font-size:.78rem;color:var(--muted);margin-left:auto}
+.qprompt{margin:.1rem 0 .7rem;max-width:70ch}
+.qprompt .multi-note{color:var(--track);font-weight:600}
+pre.code{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--panel-2);
+  border:1px solid var(--line);border-left:3px solid var(--track);border-radius:8px;
+  padding:.6rem .75rem;overflow-x:auto;margin:0 0 .7rem}
+.codefile{font-family:var(--mono);font-size:.74rem;color:var(--muted);margin:0 0 .3rem}
+ul.opts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.4rem}
+ul.opts li{margin:0}
+.opt{display:flex;gap:.6rem;align-items:flex-start;width:100%;text-align:left;
+  font-family:var(--body);font-size:.94rem;font-weight:400;line-height:1.45;color:var(--ink);
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:.5rem .7rem;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent);color:var(--ink);background:var(--soft)}
+/* locked questions stay legible — override the generic button:disabled fade */
+.opt:disabled{opacity:1;color:var(--muted)}
+.opt.ok:disabled,.opt.bad:disabled,.opt.key:disabled{color:var(--ink)}
+.opt .ltr{font-family:var(--mono);font-size:.8rem;font-weight:700;color:var(--muted);
+  flex:0 0 1.1rem;padding-top:.1rem}
+.opt.sel{border-color:var(--track);background:var(--soft)}
+.opt.sel .ltr{color:var(--track)}
+.opt.ok{border-color:var(--accent);background:var(--soft)}
+.opt.ok .ltr{color:var(--accent)}
+.opt.bad{border-color:var(--wrong);background:var(--softbad)}
+.opt.bad .ltr{color:var(--wrong)}
+.opt.key{border-style:dashed;border-color:var(--accent)}
+.opt.key .ltr{color:var(--accent)}
+.numrow{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.numrow input{font-family:var(--mono);font-size:.95rem;color:var(--ink);background:var(--panel-2);
+  border:1px solid var(--line);border-radius:8px;padding:.4rem .6rem;width:11rem}
+.actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.6rem}
+.verd{font-family:var(--display);font-size:.74rem;font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;border-radius:999px;padding:.15rem .6rem;border:1px solid;display:inline-block}
+.verd.ok{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.verd.bad{color:var(--wrong);border-color:var(--wrong);background:var(--softbad)}
+.reveal{margin-top:.8rem;border-top:1px solid var(--line);padding-top:.65rem;
+  font-size:.9rem;max-width:72ch}
+.reveal p{margin:.45rem 0 0}
+.reveal .tryit{display:inline-block;margin-top:.5rem;font-size:.85rem;text-decoration:none;
+  border:1px solid var(--line);border-radius:999px;padding:.22rem .65rem}
+.reveal .tryit:hover{border-color:var(--accent)}
+.reveal .tol{color:var(--muted);font-size:.82rem}
+
+/* ---- sticky score bar ---- */
+.scorebar{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--panel);
+  border-top:1px solid var(--line);padding:.6rem clamp(.9rem,3vw,2rem)}
+.scorebar .inner{max-width:840px;margin:0 auto;display:flex;flex-wrap:wrap;
+  gap:.5rem .9rem;align-items:center}
+.scorebar .sc{font-family:var(--mono);font-size:1.05rem;font-weight:700;color:var(--track)}
+.scorebar .lbl{font-size:.8rem;color:var(--muted)}
+.scorebar .spacer{flex:1 1 auto}
+.scorebar .final{flex:1 1 100%;font-size:.88rem;border-top:1px dashed var(--line);
+  padding-top:.5rem;margin-top:.1rem}
+.scorebar .final ul{margin:.35rem 0 0;padding-left:1.15rem;color:var(--muted);font-size:.84rem}
+.scorebar .final li{margin:.2rem 0}
+.scorebar .final li b{color:var(--ink)}
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 1.6rem;
+  font-size:.84rem;color:var(--muted);max-width:840px;margin:0 auto}
+footer .paths{font-family:var(--mono);font-size:.82rem;margin:.25rem 0}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+@media (max-width:700px){
+  .topbar h1{font-size:.98rem}
+  .qtopic{margin-left:0;flex:1 1 100%}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>BPE tokenization — check yourself</h1>
+  <span class="pill">Module 03 · Tokenization</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">← All quizzes</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">Ten questions on byte-level BPE: the merge list as a model, the deterministic tie-break that makes Python and Zig agree, and what compression actually buys you. Answer in any order — each one locks and explains itself.</p>
+    <p>Ten questions, answerable in any order. Answering locks a question and reveals the
+      explanation — there is no going back without <b>Reset</b>. Your score is kept in this
+      browser only.</p>
+  </section>
+
+    <section class="panel" id="card-q1">
+      <div class="qhead"><span class="qnum">01</span><span class="tag">concept</span><span class="qtopic">Byte-level base vocabulary</span></div>
+      <p class="qprompt">Our from-scratch BPE is <b>byte-level</b>: the base vocabulary is the 256 raw bytes. The module claims this means there is <em>never</em> an unknown token. Why?</p>
+      <ul class="opts" id="opts-q1">
+        <li><button class="opt" data-q="q1" data-i="0"><span class="ltr">A</span><span class="txt">Every possible input is a sequence of bytes, and every byte is already a token — so any text, in any language, decomposes into tokens the vocabulary already has.</span></button></li>
+        <li><button class="opt" data-q="q1" data-i="1"><span class="ltr">B</span><span class="txt">The trainer reserves an <span class="mono">&lt;unk&gt;</span> id that anything unseen falls back to, so nothing is ever rejected.</span></button></li>
+        <li><button class="opt" data-q="q1" data-i="2"><span class="ltr">C</span><span class="txt">500 merges is enough to cover every word that appears in English, so nothing is left over.</span></button></li>
+        <li><button class="opt" data-q="q1" data-i="3"><span class="ltr">D</span><span class="txt">UTF-8 guarantees one byte per character, so a 256-entry table covers the whole Unicode range.</span></button></li>
+      </ul>
+      <div class="reveal" id="rev-q1" hidden></div>
+    </section>
+    <section class="panel" id="card-q2">
+      <div class="qhead"><span class="qnum">02</span><span class="tag">concept</span><span class="qtopic">The deterministic tie-break</span></div>
+      <p class="qprompt"><span class="mono">bpe.py</span> picks the pair to merge with <span class="mono">min(counts, key=lambda p: (-counts[p], p[0], p[1]))</span> — highest count, ties broken by the lexicographically smallest pair. Why does the module insist on that second clause?</p>
+      <ul class="opts" id="opts-q2">
+        <li><button class="opt" data-q="q2" data-i="0"><span class="ltr">A</span><span class="txt">Both implementations iterate a hash map in <em>unspecified</em> order, so ties must be broken by a total order on the pair itself; that is what lets the separate Zig trainer emit a byte-for-byte identical merge list.</span></button></li>
+        <li><button class="opt" data-q="q2" data-i="1"><span class="ltr">B</span><span class="txt">Python <span class="mono">dict</span>s preserve insertion order, so “first seen wins” is already deterministic — the tie-break is purely a speed optimisation.</span></button></li>
+        <li><button class="opt" data-q="q2" data-i="2"><span class="ltr">C</span><span class="txt">Preferring small ids makes low-numbered tokens merge more often, which measurably improves compression.</span></button></li>
+        <li><button class="opt" data-q="q2" data-i="3"><span class="ltr">D</span><span class="txt">Without it the merge list could contain the same pair twice and the vocabulary would have duplicate entries.</span></button></li>
+      </ul>
+      <div class="reveal" id="rev-q2" hidden></div>
+    </section>
+    <section class="panel" id="card-q3">
+      <div class="qhead"><span class="qnum">03</span><span class="tag">concept</span><span class="qtopic">Why the Zig lane is faster</span></div>
+      <p class="qprompt">According to <span class="mono">ALGORITHM.md</span>, which of these contribute to the Zig trainer's speed advantage over <span class="mono">bpe.py</span>? <span class="multi-note">Select all that apply.</span></p>
+      <ul class="opts" id="opts-q3">
+        <li><button class="opt" data-q="q3" data-i="0"><span class="ltr">A</span><span class="txt">Zig packs the pair into a single <span class="mono">u64</span> key (<span class="mono">a &lt;&lt; 32 | b</span>) instead of allocating a fresh tuple object per loop iteration.</span></button></li>
+        <li><button class="opt" data-q="q3" data-i="1"><span class="ltr">B</span><span class="txt"><span class="mono">zip(ids, ids[1:])</span> copies the whole tail list on every call — about a megabyte of copying per merge on the 1.1 MB corpus.</span></button></li>
+        <li><button class="opt" data-q="q3" data-i="2"><span class="ltr">C</span><span class="txt"><span class="mono">ArrayList(u32)</span> is a flat contiguous buffer, while a Python <span class="mono">list[int]</span> is an array of pointers to heap objects — far worse cache locality.</span></button></li>
+        <li><button class="opt" data-q="q3" data-i="3"><span class="ltr">D</span><span class="txt">Zig maintains incremental pair counts and only re-counts near a merge site, while Python re-counts the whole corpus each pass.</span></button></li>
+      </ul>
+      <div class="actions"><button class="primary" data-check="q3">Answer</button><span class="lbl muted-inline" id="picked-q3"></span></div>
+      <div class="reveal" id="rev-q3" hidden></div>
+    </section>
+    <section class="panel" id="card-q4">
+      <div class="qhead"><span class="qnum">04</span><span class="tag">real numbers</span><span class="qtopic">The Python/Zig scoreboard</span></div>
+      <p class="qprompt">Module 03's scoreboard — same <span class="mono">corpus/input.txt</span> (~1.1 MB), same 500 merges, Apple M-series — measures Python <span class="mono">bpe.py</span> at ~33 s. It measures the Zig <span class="mono">main.zig</span> build (<span class="mono">ReleaseFast</span>) at ~1.5 s, i.e. roughly:</p>
+      <ul class="opts" id="opts-q4">
+        <li><button class="opt" data-q="q4" data-i="0"><span class="ltr">A</span><span class="txt">~2× faster</span></button></li>
+        <li><button class="opt" data-q="q4" data-i="1"><span class="ltr">B</span><span class="txt">~21× faster, with byte-for-byte identical merges</span></button></li>
+        <li><button class="opt" data-q="q4" data-i="2"><span class="ltr">C</span><span class="txt">~210× faster</span></button></li>
+        <li><button class="opt" data-q="q4" data-i="3"><span class="ltr">D</span><span class="txt">about the same — the interpreter overhead is negligible on this workload</span></button></li>
+      </ul>
+      <div class="reveal" id="rev-q4" hidden></div>
+    </section>
+    <section class="panel" id="card-q5">
+      <div class="qhead"><span class="qnum">05</span><span class="tag">real numbers</span><span class="qtopic">Vocabulary size after training</span></div>
+      <p class="qprompt">The committed <span class="mono">artifacts/scratch_merges.txt</span> holds 500 merges and no special tokens are registered. What does <span class="mono">tok.vocab_size</span> report? <span class="muted-inline">(whole number)</span></p>
+      <div class="numrow">
+        <input type="text" inputmode="numeric" id="in-q5" aria-label="your answer" placeholder="your answer">
+        <button class="primary" data-check="q5">Answer</button>
+      </div>
+      <div class="reveal" id="rev-q5" hidden></div>
+    </section>
+    <section class="panel" id="card-q6">
+      <div class="qhead"><span class="qnum">06</span><span class="tag">real numbers</span><span class="qtopic">In-domain vs out-of-domain compression</span></div>
+      <p class="qprompt">Encoded with the committed 500-merge tokenizer, the training corpus itself compresses to about <b>2.27 bytes/token</b>. The stepper's <em>out of domain</em> preset — <span class="mono">POST /v1/embeddings HTTP/1.1 — café naïve 🤖 aaaaaaaa</span> — comes out at about:</p>
+      <ul class="opts" id="opts-q6">
+        <li><button class="opt" data-q="q6" data-i="0"><span class="ltr">A</span><span class="txt">2.30 bytes/token — byte-level BPE generalises, so the ratio barely moves</span></button></li>
+        <li><button class="opt" data-q="q6" data-i="1"><span class="ltr">B</span><span class="txt">1.20 bytes/token — most tokens stay single bytes</span></button></li>
+        <li><button class="opt" data-q="q6" data-i="2"><span class="ltr">C</span><span class="txt">3.10 bytes/token — URLs are highly repetitive so they compress better than prose</span></button></li>
+        <li><button class="opt" data-q="q6" data-i="3"><span class="ltr">D</span><span class="txt">0.65 bytes/token</span></button></li>
+      </ul>
+      <div class="reveal" id="rev-q6" hidden></div>
+    </section>
+    <section class="panel" id="card-q7">
+      <div class="qhead"><span class="qnum">07</span><span class="tag">predict the behavior</span><span class="qtopic">What merging actually shrinks</span></div>
+      <p class="qprompt">In the stepper, drag <span class="mono">merges applied</span> from 0 to 60 on the corpus preset. What happens to the <span class="mono">UTF-8 bytes</span> readout?</p>
+      <ul class="opts" id="opts-q7">
+        <li><button class="opt" data-q="q7" data-i="0"><span class="ltr">A</span><span class="txt">It falls in step with the token count — that is what “compression” means.</span></button></li>
+        <li><button class="opt" data-q="q7" data-i="1"><span class="ltr">B</span><span class="txt">It rises, because a merged token has to store both halves.</span></button></li>
+        <li><button class="opt" data-q="q7" data-i="2"><span class="ltr">C</span><span class="txt">It never changes; only the token count falls, so bytes/token climbs.</span></button></li>
+        <li><button class="opt" data-q="q7" data-i="3"><span class="ltr">D</span><span class="txt">It never changes, and neither does the token count — merges only rename ids.</span></button></li>
+      </ul>
+      <div class="reveal" id="rev-q7" hidden></div>
+    </section>
+    <section class="panel" id="card-q8">
+      <div class="qhead"><span class="qnum">08</span><span class="tag">predict the behavior</span><span class="qtopic">Merge order is the model</span></div>
+      <p class="qprompt">Merge 39 in the real merge list is <span class="mono">257 256</span> — it glues token 257 (<span class="mono">"th"</span>) onto token 256 (<span class="mono">"e "</span>) to make <span class="mono">"the "</span>. Suppose you moved that line to the top of <span class="mono">scratch_merges.txt</span> and re-encoded. What happens?</p>
+      <ul class="opts" id="opts-q8">
+        <li><button class="opt" data-q="q8" data-i="0"><span class="ltr">A</span><span class="txt">Nothing — the merges are applied to the whole sequence each pass, so they commute.</span></button></li>
+        <li><button class="opt" data-q="q8" data-i="1"><span class="ltr">B</span><span class="txt">It would fire on the raw bytes <span class="mono">t h e ␣</span> instead, giving the same token.</span></button></li>
+        <li><button class="opt" data-q="q8" data-i="2"><span class="ltr">C</span><span class="txt">It fires more often, because <span class="mono">"the "</span> is one of the most frequent strings in the corpus.</span></button></li>
+        <li><button class="opt" data-q="q8" data-i="3"><span class="ltr">D</span><span class="txt">It cannot fire at all: ids 256 and 257 do not exist until merges 0 and 1 have run, so you have built a different tokenizer.</span></button></li>
+      </ul>
+      <div class="reveal" id="rev-q8" hidden></div>
+    </section>
+    <section class="panel" id="card-q9">
+      <div class="qhead"><span class="qnum">09</span><span class="tag">read the code</span><span class="qtopic">Non-overlapping merge semantics</span></div>
+      <p class="codefile">python/src/bpe.py — as printed in ALGORITHM.md §3</p>
+      <pre class="code">def merge(ids, pair, new_id):
+    out = []
+    i = 0
+    n = len(ids)
+    while i &lt; n:
+        if i &lt; n - 1 and ids[i] == pair[0] and ids[i + 1] == pair[1]:
+            out.append(new_id); i += 2
+        else:
+            out.append(ids[i]); i += 1
+    return out</pre>
+      <p class="qprompt">What does <span class="mono">merge([1, 1, 1], (1, 1), 9)</span> return?</p>
+      <ul class="opts" id="opts-q9">
+        <li><button class="opt" data-q="q9" data-i="0"><span class="ltr">A</span><span class="txt"><span class="mono">[9, 1]</span></span></button></li>
+        <li><button class="opt" data-q="q9" data-i="1"><span class="ltr">B</span><span class="txt"><span class="mono">[9, 9]</span></span></button></li>
+        <li><button class="opt" data-q="q9" data-i="2"><span class="ltr">C</span><span class="txt"><span class="mono">[9]</span></span></button></li>
+        <li><button class="opt" data-q="q9" data-i="3"><span class="ltr">D</span><span class="txt"><span class="mono">[1, 9]</span></span></button></li>
+      </ul>
+      <div class="reveal" id="rev-q9" hidden></div>
+    </section>
+    <section class="panel" id="card-q10">
+      <div class="qhead"><span class="qnum">10</span><span class="tag">read the code</span><span class="qtopic">Encoding replays merges in order</span></div>
+      <p class="codefile">python/src/bpe.py</p>
+      <pre class="code">def encode_bytes(self, data: bytes) -&gt; list[int]:
+    """Encode raw bytes by replaying the learned merges in order."""
+    ids = list(data)
+    for k, pair in enumerate(self.merges):
+        ids = merge(ids, pair, 256 + k)
+    return ids</pre>
+      <p class="qprompt">You “optimise” this by sorting <span class="mono">self.merges</span> by descending corpus frequency before the loop. What breaks?</p>
+      <ul class="opts" id="opts-q10">
+        <li><button class="opt" data-q="q10" data-i="0"><span class="ltr">A</span><span class="txt">Nothing at encode time, but <span class="mono">decode</span> becomes slower because the vocab dict is no longer contiguous.</span></button></li>
+        <li><button class="opt" data-q="q10" data-i="1"><span class="ltr">B</span><span class="txt">Only tokens above id 500 change; the common short tokens are unaffected.</span></button></li>
+        <li><button class="opt" data-q="q10" data-i="2"><span class="ltr">C</span><span class="txt">The ids stay valid but encoding gets slower, since frequent merges now fire on longer sequences.</span></button></li>
+        <li><button class="opt" data-q="q10" data-i="3"><span class="ltr">D</span><span class="txt">Every id is renamed — <span class="mono">k</span> mints <span class="mono">256 + k</span> — and merges whose operands come from later merges never match, so the output no longer decodes to the input.</span></button></li>
+      </ul>
+      <div class="reveal" id="rev-q10" hidden></div>
+    </section>
+</main>
+
+<footer>
+  <p class="paths">module → <a href="../modules/03-tokenization/README.md">../modules/03-tokenization/README.md</a></p>
+  <p class="paths">explorable → <a href="../explorables/03-bpe-stepper.html">../explorables/03-bpe-stepper.html</a> · BPE, one merge at a time</p>
+  <p>Track: Foundations · Next in the course: Hugging Face LLM Course, Chapter 6 — The Tokenizers library —
+    <a href="https://huggingface.co/learn/llm-course/chapter6">huggingface.co/learn/llm-course/chapter6</a></p>
+</footer>
+
+<div class="scorebar">
+  <div class="inner">
+    <span class="sc" id="sc">0 / 10</span>
+    <span class="lbl" id="sc-lbl">0 of 10 answered</span>
+    <span class="spacer"></span>
+    <button id="reset">Reset quiz</button>
+    <div class="final" id="final" hidden></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const QUIZ = {"nn":"03","explorable":"03-bpe-stepper.html","explorableName":"BPE, one merge at a time","questions":[{"id":"q1","kind":"single","topic":"Byte-level base vocabulary","hint":"Re-read “Why subwords?” in the module README and the docstring at the top of python/src/bpe.py.","answer":0,"explain":"The base vocabulary \u003cspan class=\"mono\">{i: bytes([i]) for i in range(256)}\u003c/span> in \u003cspan class=\"mono\">bpe.py\u003c/span> covers the entire byte space, so encoding can always fall back to raw bytes. The tempting distractor is the \u003cspan class=\"mono\">&lt;unk&gt;\u003c/span> one — that is how \u003cem>word-level\u003c/em> tokenizers cope, and it is exactly what byte-level BPE makes unnecessary; there is no \u003cspan class=\"mono\">&lt;unk&gt;\u003c/span> id anywhere in this module.","tryIt":false},{"id":"q2","kind":"single","topic":"The deterministic tie-break","hint":"ALGORITHM.md §2, “Commentary — order independence”.","answer":0,"explain":"The tie-break is the whole basis of \u003cspan class=\"mono\">tests/test_cross_language.py\u003c/span>: a total order on \u003cspan class=\"mono\">(-count, a, b)\u003c/span> makes the winner independent of iteration order. The insertion-order distractor is seductive because it is true of Python dicts — but Zig's \u003cspan class=\"mono\">AutoHashMap\u003c/span> iterates in an arbitrary order, so “first seen” would make the two languages diverge.","tryIt":false},{"id":"q3","kind":"multi","topic":"Why the Zig lane is faster","hint":"ALGORITHM.md — the three “Commentary” boxes and the “Why recount every pass?” section.","answer":[0,1,2],"explain":"The first three are exactly the three commentary boxes in \u003cspan class=\"mono\">ALGORITHM.md\u003c/span> (hash-map keys, the \u003cspan class=\"mono\">ids[1:]\u003c/span> trap, memory layout). The fourth is the tempting one and it is false: the section “Why recount every pass?” says \u003cem>neither\u003c/em> version keeps incremental counts — that is deliberately left as a next exercise, precisely so the two languages are easy to keep in agreement.","tryIt":false},{"id":"q4","kind":"single","topic":"The Python/Zig scoreboard","hint":"The scoreboard table at the bottom of README.md and ALGORITHM.md.","answer":1,"explain":"33 s / 1.5 s ≈ 21×, and the cross-language test asserts the merge lists are identical, so the speedup is pure constant factor — the algorithm never changed. “~2×” is the tempting answer if you assume a compiled language only wins a little; here the win comes from allocation and memory layout, not from a different algorithm.","tryIt":false},{"id":"q5","kind":"numeric","topic":"Vocabulary size after training","hint":"The `vocab_size` property in python/src/bpe.py, and the line count of artifacts/scratch_merges.txt.","answer":{"value":756,"tol":0},"explain":"\u003cspan class=\"mono\">vocab_size\u003c/span> is \u003cspan class=\"mono\">256 + len(merges) + len(specials)\u003c/span> = 256 + 500 + 0 = \u003cb>756\u003c/b>. The trap is answering 500: the merge list is the \u003cem>model\u003c/em>, but the vocabulary is the 256 base bytes \u003cem>plus\u003c/em> one new id per merge — merge \u003cspan class=\"mono\">k\u003c/span> mints id \u003cspan class=\"mono\">256 + k\u003c/span>.","tryIt":false},{"id":"q6","kind":"single","topic":"In-domain vs out-of-domain compression","hint":"Encode the explorable's four presets with the committed 500-merge tokenizer and watch the bytes/token readout.","answer":1,"explain":"Merges learned on Shakespeare rarely fire on URL punctuation, accented UTF-8 continuation bytes or emoji, so the sequence stays near one token per byte (≈1.20) — that gap \u003cem>is\u003c/em> the fertility unfairness the module charts. Note 0.65 is impossible for any byte-level BPE: a token expands to at least one byte, so the ratio can never fall below 1.0.","tryIt":false},{"id":"q7","kind":"single","topic":"What merging actually shrinks","hint":"Drag “merges applied” 0 → 60 in the stepper and watch the three stat readouts together.","answer":2,"explain":"BPE does not compress bytes, it compresses \u003cem>positions\u003c/em>: the same text, described in fewer tokens. That is the economic argument — fewer positions means shorter context and cheaper attention. The first option is the natural misconception; the byte count is a property of the text, not of the tokenizer.","tryIt":true},{"id":"q8","kind":"single","topic":"Merge order is the model","hint":"In the stepper, watch which token ids merge 39 consumes — then check bpe.py's encode_bytes loop.","answer":3,"explain":"\u003cspan class=\"mono\">encode_bytes\u003c/span> replays the merges in order, minting id \u003cspan class=\"mono\">256 + k\u003c/span> at step \u003cspan class=\"mono\">k\u003c/span>; a merge whose operands are produced by later merges simply never matches. The “they commute” distractor is the one to kill — order \u003cem>is\u003c/em> the model, which is why the merge list is stored as an ordered file rather than a set.","tryIt":true},{"id":"q9","kind":"single","topic":"Non-overlapping merge semantics","hint":"Trace the while-loop by hand; the assertions at the bottom of exercises/exercise_a_merge.py are the answer key.","answer":0,"explain":"The scan is left-to-right and \u003cem>non-overlapping\u003c/em>: the first two 1s match, \u003cspan class=\"mono\">i += 2\u003c/span> skips both, and the lone trailing 1 is copied through — \u003cspan class=\"mono\">[9, 1]\u003c/span>. \u003cspan class=\"mono\">[9, 9]\u003c/span> is what you get if you advance by 1 on a hit and let occurrences overlap, which is the classic bug this exercise is designed to catch.","tryIt":false},{"id":"q10","kind":"single","topic":"Encoding replays merges in order","hint":"Note that the loop index k is what mints the new id — python/src/bpe.py:121-126.","answer":3,"explain":"The position in the list \u003cem>is\u003c/em> the token id, and it is also the dependency order, so re-sorting silently produces a different (and broken) tokenizer — \u003cspan class=\"mono\">from_merges\u003c/span> rebuilds the vocab from the same index, so the round-trip assertion in \u003cspan class=\"mono\">bpe.py\u003c/span>'s \u003cspan class=\"mono\">__main__\u003c/span> would fail. “Just slower” is the tempting read if you think of the merge list as a lookup set rather than an ordered program.","tryIt":false}]};
+
+/* ═══════════════ PURE GRADING LOGIC — DOM-free, node-testable ═══════════════ */
+
+/* single-choice: response is an option index */
+function gradeSingle(resp, key) { return resp === key; }
+
+/* multi-select: response is an array of option indices, order-insensitive */
+function gradeMulti(resp, key) {
+  if (!Array.isArray(resp) || !Array.isArray(key)) return false;
+  if (resp.length !== key.length) return false;
+  var a = resp.slice().sort(function (x, y) { return x - y; });
+  var b = key.slice().sort(function (x, y) { return x - y; });
+  for (var i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+
+/* numeric entry: response is a number, key is {value, tol} */
+function gradeNumeric(resp, key) {
+  if (typeof resp !== "number" || !isFinite(resp)) return false;
+  return Math.abs(resp - key.value) <= key.tol;
+}
+
+function gradeOne(q, resp) {
+  if (resp === undefined || resp === null) return false;
+  if (q.kind === "single") return gradeSingle(resp, q.answer);
+  if (q.kind === "multi") return gradeMulti(resp, q.answer);
+  if (q.kind === "numeric") return gradeNumeric(resp, q.answer);
+  return false;
+}
+
+/* answers: {qid: response}. Returns {score, total, answered, wrong:[qid,…]} */
+function scoreAll(questions, answers) {
+  var score = 0, answered = 0, wrong = [];
+  for (var i = 0; i < questions.length; i++) {
+    var q = questions[i];
+    if (!Object.prototype.hasOwnProperty.call(answers, q.id)) continue;
+    answered++;
+    if (gradeOne(q, answers[q.id])) score++; else wrong.push(q.id);
+  }
+  return { score: score, total: questions.length, answered: answered, wrong: wrong };
+}
+
+/* verdict thresholds: >=9 solid, 6-8 review, <=5 re-run the notebook */
+function verdictFor(score) {
+  if (score >= 9) return { tone: "ok", text: "Solid \u2014 move on to the next module." };
+  if (score >= 6) return { tone: "mid", text: "Review the flagged topics below, then move on." };
+  return { tone: "bad", text: "Re-run the module notebook first \u2014 the fundamentals aren't landing yet." };
+}
+
+/* answer-key balance: how often each option letter is the correct single-choice
+   answer. The build asserts no letter appears more than 4 times. */
+function keyBalance(questions) {
+  var counts = [0, 0, 0, 0];
+  for (var i = 0; i < questions.length; i++) {
+    if (questions[i].kind === "single") counts[questions[i].answer]++;
+  }
+  return counts;
+}
+/* ═════════════════════════ END PURE GRADING LOGIC ═════════════════════════ */
+
+
+var Q = QUIZ.questions;
+var KEY = "mlcourse-quiz-" + QUIZ.nn;
+var SUMKEY = "mlcourse-quiz-scores";
+var LETTERS = ["A", "B", "C", "D", "E", "F"];
+var answers = {};   /* locked answers only */
+var picks = {};     /* in-progress multi-select picks */
+
+function byId(x) { return document.getElementById(x); }
+function qById(id) { for (var i = 0; i < Q.length; i++) if (Q[i].id === id) return Q[i]; return null; }
+
+function load() {
+  try {
+    var raw = localStorage.getItem(KEY);
+    if (!raw) return;
+    var o = JSON.parse(raw);
+    if (o && o.answers && typeof o.answers === "object") answers = o.answers;
+  } catch (e) { answers = {}; }
+}
+
+function save() {
+  var r = scoreAll(Q, answers);
+  var rec = { answers: answers, score: r.score, total: r.total, ts: Date.now() };
+  try {
+    localStorage.setItem(KEY, JSON.stringify(rec));
+    var sum = {};
+    try { sum = JSON.parse(localStorage.getItem(SUMKEY) || "{}") || {}; } catch (e2) { sum = {}; }
+    sum[QUIZ.nn] = { score: r.score, total: r.total, ts: rec.ts };
+    localStorage.setItem(SUMKEY, JSON.stringify(sum));
+  } catch (e) { /* private mode: quiz still works, just not persisted */ }
+}
+
+function answerText(q, resp) {
+  if (q.kind === "numeric") return String(resp);
+  if (q.kind === "multi") {
+    return resp.slice().sort(function (a, b) { return a - b; })
+      .map(function (i) { return LETTERS[i]; }).join(", ");
+  }
+  return LETTERS[resp];
+}
+
+function keyText(q) {
+  if (q.kind === "numeric") return String(q.answer.value);
+  if (q.kind === "multi") return q.answer.map(function (i) { return LETTERS[i]; }).join(", ");
+  return LETTERS[q.answer];
+}
+
+/* render one question in its current state (locked or open) */
+function paint(q) {
+  var locked = Object.prototype.hasOwnProperty.call(answers, q.id);
+  var resp = answers[q.id];
+  var right = locked ? gradeOne(q, resp) : false;
+  var list = byId("opts-" + q.id);
+
+  if (list) {
+    var btns = list.querySelectorAll("button.opt");
+    for (var i = 0; i < btns.length; i++) {
+      var b = btns[i];
+      b.className = "opt";
+      b.disabled = locked;
+      if (locked) {
+        var chosen = (q.kind === "multi") ? (resp.indexOf(i) >= 0) : (resp === i);
+        var isKey = (q.kind === "multi") ? (q.answer.indexOf(i) >= 0) : (q.answer === i);
+        if (chosen && isKey) b.className = "opt ok";
+        else if (chosen && !isKey) b.className = "opt bad";
+        else if (isKey) b.className = "opt key";
+      } else if (q.kind === "multi" && picks[q.id] && picks[q.id].indexOf(i) >= 0) {
+        b.className = "opt sel";
+      }
+    }
+  }
+
+  var chk = document.querySelector("[data-check='" + q.id + "']");
+  if (chk) chk.disabled = locked;
+  var inp = byId("in-" + q.id);
+  if (inp) { inp.disabled = locked; if (locked) inp.value = String(resp); }
+  var pk = byId("picked-" + q.id);
+  if (pk) {
+    pk.textContent = locked ? "" :
+      ((picks[q.id] && picks[q.id].length)
+        ? "picked: " + picks[q.id].slice().sort(function (a, b) { return a - b; })
+            .map(function (i) { return LETTERS[i]; }).join(", ")
+        : "pick one or more, then Answer");
+  }
+
+  var rev = byId("rev-" + q.id);
+  rev.hidden = !locked;
+  if (!locked) { rev.innerHTML = ""; return; }
+
+  var html = '<span class="verd ' + (right ? "ok" : "bad") + '">' +
+    (right ? "correct" : "not quite") + "</span> ";
+  html += '<span class="tol">you answered ' + answerText(q, resp) +
+    (right ? "" : " \u00b7 answer: " + keyText(q)) + "</span>";
+  html += "<p>" + q.explain + "</p>";
+  if (q.kind === "numeric") {
+    html += '<p class="tol">Accepted: ' + q.answer.value +
+      (q.answer.tol > 0 ? " \u00b1 " + q.answer.tol : " exactly") + "</p>";
+  }
+  if (q.tryIt) {
+    html += '<a class="tryit" href="../explorables/' + QUIZ.explorable +
+      '">Try it \u2192 ' + QUIZ.explorableName + "</a>";
+  }
+  rev.innerHTML = html;
+}
+
+function paintBar() {
+  var r = scoreAll(Q, answers);
+  byId("sc").textContent = r.score + " / " + r.total;
+  byId("sc-lbl").textContent = r.answered + " of " + r.total + " answered";
+  var fin = byId("final");
+  if (r.answered < r.total) { fin.hidden = true; fin.innerHTML = ""; return; }
+  var v = verdictFor(r.score);
+  var html = '<b>' + r.score + " / " + r.total + " \u2014 " + v.text + "</b>";
+  if (r.wrong.length) {
+    html += "<ul>";
+    for (var i = 0; i < r.wrong.length; i++) {
+      var q = qById(r.wrong[i]);
+      html += "<li><b>" + q.topic + "</b> \u2014 " + q.hint + "</li>";
+    }
+    html += "</ul>";
+  }
+  fin.hidden = false;
+  fin.innerHTML = html;
+}
+
+function lock(q, resp) {
+  if (Object.prototype.hasOwnProperty.call(answers, q.id)) return;
+  answers[q.id] = resp;
+  delete picks[q.id];
+  save(); paint(q); paintBar();
+}
+
+function wire() {
+  document.addEventListener("click", function (ev) {
+    var opt = ev.target.closest ? ev.target.closest("button.opt") : null;
+    if (opt) {
+      var q = qById(opt.getAttribute("data-q"));
+      var i = parseInt(opt.getAttribute("data-i"), 10);
+      if (!q || Object.prototype.hasOwnProperty.call(answers, q.id)) return;
+      if (q.kind === "multi") {
+        if (!picks[q.id]) picks[q.id] = [];
+        var at = picks[q.id].indexOf(i);
+        if (at >= 0) picks[q.id].splice(at, 1); else picks[q.id].push(i);
+        paint(q);
+      } else {
+        lock(q, i);
+      }
+      return;
+    }
+    var chk = ev.target.closest ? ev.target.closest("[data-check]") : null;
+    if (chk) {
+      var qq = qById(chk.getAttribute("data-check"));
+      if (!qq || Object.prototype.hasOwnProperty.call(answers, qq.id)) return;
+      if (qq.kind === "multi") {
+        var p = picks[qq.id] || [];
+        if (!p.length) return;
+        lock(qq, p.slice());
+      } else {
+        var raw = (byId("in-" + qq.id).value || "").trim().replace(/[\s,_]/g, "");
+        if (raw === "") return;
+        var num = Number(raw);
+        if (!isFinite(num)) return;
+        lock(qq, num);
+      }
+    }
+  });
+
+  byId("reset").addEventListener("click", function () {
+    if (!confirm("Clear your answers for this quiz and start over?")) return;
+    answers = {}; picks = {};
+    try {
+      localStorage.removeItem(KEY);
+      var sum = {};
+      try { sum = JSON.parse(localStorage.getItem(SUMKEY) || "{}") || {}; } catch (e2) { sum = {}; }
+      delete sum[QUIZ.nn];
+      localStorage.setItem(SUMKEY, JSON.stringify(sum));
+    } catch (e) { /* ignore */ }
+    for (var i = 0; i < Q.length; i++) paint(Q[i]);
+    paintBar();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+}
+
+load();
+for (var i = 0; i < Q.length; i++) paint(Q[i]);
+paintBar();
+wire();
+
+</script>
+<!-- built for ml-course quizzes v1 -->
+</html>

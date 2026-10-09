@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>π0: A Vision-Language-Action Flow Model for General Robot Control · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="π0-pi-zero-flow-matching-action-head-for-high-frequency-vlas">π0 (Pi-Zero) — Flow-Matching Action Head for High-Frequency VLAs</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-06</span> <span>updated 2026-05-06</span> <span class="tag">robotics</span> <span class="tag">vla</span> <span class="tag">vision-language-action</span> <span class="tag">flow-matching</span> <span class="tag">physical-intelligence</span> <span class="tag">foundation-model</span></div>
+<p><strong>Black et al. (Physical Intelligence) — arXiv 2410.24164, October 2024 (RSS 2025)</strong></p>
+<p>Physical Intelligence's first public VLA foundation model, and the paper that <strong>swaps the autoregressive-token action head for a flow-matching action head</strong>. The core argument: tokenised actions (<a href="source-rt-2.html">RT-2</a>, <a href="source-openvla.html">OpenVLA</a>) are inefficient for the <strong>high-frequency, high-dimensional, continuous</strong> control signals that real dexterous manipulation demands; flow matching emits smooth continuous action chunks at 50 Hz with one VLM forward pass.</p>
+<h2 id="architecture">Architecture</h2>
+<p>A two-component design that decouples <strong>what</strong> to do (slow, semantic) from <strong>how</strong> to do it (fast, continuous):</p>
+<ul><li><strong>Pretrained VLM</strong> — a <a href="concept-multimodal.html">frontier VLM</a> (PaliGemma-class, ~3B params) ingests image observations + language instructions and produces conditioning features.</li><li><strong>Action expert (flow-matching head)</strong> — a smaller transformer trained to <em>denoise a chunk of future continuous actions</em> conditioned on the VLM features. Flow matching (<a href="source-flow-map-language-models.html">continuous flow</a>) replaces the discrete-token autoregressive head.</li></ul>
+<p>The action expert emits <strong>action chunks</strong> of 50 Hz steps in one shot, rather than one token at a time. This is the <strong>6× speed-up</strong> the paper highlights: at the same wall-clock budget, π0 can run dexterous tasks (e.g., laundry folding) that token-autoregressive VLAs cannot keep up with.</p>
+<h2 id="embodiment-coverage">Embodiment coverage</h2>
+<p>The "broad robot embodiment" claim is the second pillar. π0 is trained on data spanning:</p>
+<ul><li><strong>Single-arm robots</strong> (Franka, UR-5).</li><li><strong>Dual-arm robots</strong> (bimanual ALOHA-style platforms).</li><li><strong>Mobile manipulators</strong>.</li></ul>
+<p>…and demonstrated on practical real-world tasks including <strong>laundry folding, table cleaning, box assembly, bussing dishes</strong> — long-horizon manipulation that prior VLAs typically can't sustain.</p>
+<h2 id="training-and-results">Training and results</h2>
+<ul><li><strong>Pretraining</strong> on a broad multi-embodiment robot dataset (PI's own + OXE-class subsets), then <strong>task-specific post-training</strong> via fine-tuning.</li><li><strong>6× control-frequency speed-up</strong> vs autoregressive token VLAs at matched compute.</li><li>Zero-shot follows novel language instructions; transfers across embodiments after small fine-tunes.</li></ul>
+<h2 id="significance">Significance</h2>
+<p>π0 closes the third loop in the modern VLA design space:</p>
+<ul><li><strong>Action representation</strong>: tokens (<a href="source-rt-2.html">RT-2</a>, <a href="source-openvla.html">OpenVLA</a>) → <strong>flow-matching continuous chunks</strong> (π0).</li><li><strong>Embodiment scale</strong>: single-task → multi-task → <strong>multi-embodiment foundation</strong>.</li><li><strong>Control frequency</strong>: 5–10 Hz → <strong>50 Hz dexterous control</strong>.</li></ul>
+<p>The same continuous-flow-vs-discrete-tokens argument runs through <a href="source-flow-map-language-models.html">FMLM</a> and the <a href="concept-diffusion-language-models.html">diffusion-language-model</a> hub: discrete tokens are an awkward interface for inherently continuous signals. π0 is the canonical robotics datapoint for that thesis.</p>
+<p>Contrast with <a href="source-vjepa-family.html">V-JEPA 2-AC</a>: both target dexterous, multi-embodiment manipulation, but V-JEPA-2-AC plans via latent MPC over a learned world model; π0 amortises the policy directly. The plan-vs-amortise tension from <a href="concept-world-models.html">concept-world-models</a> is the same one playing out here in robotics.</p>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-rt-2.html">source-rt-2</a>, <a href="source-openvla.html">source-openvla</a> — autoregressive-token VLA predecessors.</li><li><a href="source-vjepa-family.html">source-vjepa-family</a> — predictive-world-model alternative pole.</li><li><a href="source-flow-map-language-models.html">source-flow-map-language-models</a> — sister continuous-flow generative idea (text branch).</li><li><a href="concept-diffusion-language-models.html">concept-diffusion-language-models</a> — same continuous-vs-discrete axis.</li><li><a href="concept-world-models.html">concept-world-models</a>, <a href="concept-ai-agents.html">concept-ai-agents</a>, <a href="concept-multimodal.html">concept-multimodal</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li>arXiv: <a href="https://arxiv.org/abs/2410.24164" rel="noreferrer">https://arxiv.org/abs/2410.24164</a></li><li>Project: <a href="https://www.physicalintelligence.company/blog/pi0" rel="noreferrer">https://www.physicalintelligence.company/blog/pi0</a></li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2410.24164" rel="noreferrer">https://arxiv.org/abs/2410.24164</a></li></ul></details>
+</main>
+</body>
+</html>

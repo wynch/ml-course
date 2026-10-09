@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>PixelRAG: Web Screenshots Beat Text for Retrieval-Augmented Generation · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="pixelrag">PixelRAG</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-07-04</span> <span>updated 2026-07-04</span> <span class="tag">retrieval</span> <span class="tag">rag</span> <span class="tag">multimodal</span> <span class="tag">vision-language-models</span> <span class="tag">embeddings</span></div>
+<p><strong>Authors:</strong> Yichuan Wang, Zhifei Li, Zirui Wang, Paul Teiletche, Lesheng Jin, Matei Zaharia, Joseph E. Gonzalez, Sewon Min (UC Berkeley — SkyLab, BAIR, Berkeley NLP) / <strong>Date:</strong> 2026-06-01 / <strong>arXiv:</strong> <a href="https://arxiv.org/abs/2606.28344" rel="noreferrer">2606.28344</a></p>
+<h2 id="summary">Summary</h2>
+<p><strong>PixelRAG</strong> is a retrieval-augmented-generation system that abandons HTML-to-text parsing entirely: it represents web pages <strong>in their native visual form</strong> and performs both retrieval and reading <strong>in pixel space</strong>. The motivating claim is that HTML-to-text conversion is a "self-inflicted bottleneck" — it discards layout, structure, tables, charts, and infographics that carry real signal. Instead PixelRAG renders each page to screenshot tiles, retrieves the relevant screenshots, and lets a vision-language model read them directly, with no intermediate text extraction.</p>
+<p>The retriever is a <strong>VLM continued-pretrained on web-page screenshots</strong>: Qwen3-VL-Embedding, fine-tuned with LoRA + contrastive training, which the authors report becomes "a surprisingly strong visual retriever." The full pipeline is render (<code>pixelshot</code>) → chunk → embed → build index → serve (FastAPI). The shipped datastore holds ~30M screenshot images across Wikipedia (~8.28M pages in the hosted index), demonstrating the approach scales to production-size corpora.</p>
+<p>Headline result: PixelRAG outperforms text-based RAG <strong>by up to +18.1%</strong> — notably including on <em>text-only</em> QA benchmarks, not just visually-rich ones — while achieving up to <strong>3× token-cost reduction</strong> at lower resolutions. Benchmarks span NQ, SimpleQA, MMSearch, LiveVQA, and MoNaCo. The broader thesis: recent VLMs read web pages more accurately and token-efficiently than text-only pipelines, so pixels beat text as the retrieval substrate for the web.</p>
+<h2 id="key-ideas">Key Ideas</h2>
+<ul><li><strong>Pixel-native RAG.</strong> Retrieval <em>and</em> reading happen on screenshots; HTML parsing is eliminated from the loop.</li><li><strong>VLM-as-retriever.</strong> Continued pretraining of Qwen3-VL-Embedding (LoRA, contrastive) on screenshots yields a strong visual embedding/retrieval model.</li><li><strong>Beats text on text-only QA (+18.1%).</strong> Preserving layout/tables/structure helps even when the answer is textual.</li><li><strong>Efficiency.</strong> Up to 3× token-cost reduction at lower resolutions.</li><li><strong>Scale.</strong> ~30M-image datastore across Wikipedia — pixel-native search at web scale.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li>A visual counterpoint to the text-retrieval lineage in <a href="source-bundle-retrieval-and-rag.html">source-bundle-retrieval-and-rag</a>, <a href="source-colbert.html">source-colbert</a>, <a href="source-dpr-dense-passage-retrieval.html">source-dpr-dense-passage-retrieval</a>, and <a href="source-bge-m3-embeddings.html">source-bge-m3-embeddings</a> — same RAG goal, but the document representation moves from tokens to pixels.</li><li>Sits at the intersection of <a href="concept-multimodal.html">concept-multimodal</a> and retrieval; the "read the rendered page" idea rhymes with document-AI and screenshot-understanding trends and with <a href="source-qwen-vl.html">source-qwen-vl</a> as the VLM backbone family.</li><li>Thematically adjacent to <a href="source-recursive-language-models.html">source-recursive-language-models</a> and <a href="concept-long-context.html">concept-long-context</a>: another way to feed large external context to a model without flattening it into a token stream.</li><li>Author Yichuan Wang (Berkeley SkyLab/BAIR) also created LEANN (efficient vector search).</li></ul>
+<h2 id="references">References</h2>
+<ul><li><a href="https://arxiv.org/abs/2606.28344" rel="noreferrer">arXiv:2606.28344</a> · <a href="https://github.com/StarTrail-org/PixelRAG" rel="noreferrer">GitHub: StarTrail-org/PixelRAG</a> · <a href="https://pixelrag.ai/" rel="noreferrer">Playground</a></li><li><a href="https://x.com/YichuanM/status/2064756382386266136" rel="noreferrer">Announcement thread (@YichuanM)</a></li><li>Raw note: <code>raw/tweet-pixelrag.md</code></li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2606.28344" rel="noreferrer">https://arxiv.org/abs/2606.28344</a></li><li><a href="https://github.com/StarTrail-org/PixelRAG" rel="noreferrer">https://github.com/StarTrail-org/PixelRAG</a></li><li><a href="https://x.com/YichuanM/status/2064756382386266136" rel="noreferrer">https://x.com/YichuanM/status/2064756382386266136</a></li></ul></details>
+</main>
+</body>
+</html>

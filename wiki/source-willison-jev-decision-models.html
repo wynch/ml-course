@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Jev introduces a new shape of LLM: System One, aka Decision Models (Willison, 2026) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="jev-a-model-that-answers-in-numbers-not-text">Jev: a model that answers in numbers, not text</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-09-26</span> <span>updated 2026-10-03</span> <span class="tag">decision-models</span> <span class="tag">classification</span> <span class="tag">inference-economics</span> <span class="tag">retrieval</span> <span class="tag">evaluation</span> <span class="tag">interpretability</span> <span class="tag">bias</span></div>
+<p><strong>Author:</strong> Simon Willison (blog post) <strong>Published:</strong> 2026-09-21, with an update dated 2026-09-22 <strong>Raw copy:</strong> <code>raw/web-2026-simonwillison-jev-decision-models.md</code> (captured 2026-09-26, full text)</p>
+<p>Every claim below cites the raw file as R, with the post's section. The post has no heading before its first section; that part is cited as "opening".</p>
+<p>This is a user's first-week report on a new model, not a paper. It gives no benchmark numbers, no architecture and no training method.</p>
+<h2 id="what-jev-is">What Jev is</h2>
+<ul><li>Jev is the first of what TypeSafe AI calls "System One models". Willison prefers Maggie Appleton's name, "decision models" (R, opening).</li><li>It takes text in and gives floating point numbers out, not text: categories, yes/no answers, ratings and confidence scores (R, opening).</li><li>TypeSafe's own line, as quoted: "unstructured state in, typed probabilistic decisions out" (R, opening).</li><li>The input is a "state": a string, a list of strings or a set of name-value pairs, such as an article or a customer record. One or more questions go with it; each gets its own reply (R, opening).</li></ul>
+<h2 id="three-kinds-of-question">Three kinds of question</h2>
+<div class="tw"><table><thead><tr><th>Kind</th><th>What comes back</th><th>Cite</th></tr></thead><tbody><tr><td>Yes/no ("Noul", short for Bernoulli, per TypeSafe's CEO on Hacker News)</td><td>one number between 0 and 1: how confident the model is that the statement is true</td><td>R, opening</td></tr><tr><td>Choice among given options</td><td>a confidence score plus a probability distribution over all options</td><td>R, opening</td></tr><tr><td>Score against numbered levels with descriptions</td><td>a number somewhere along that range</td><td>R, opening</td></tr></tbody></table></div>
+<h2 id="speed-and-price">Speed and price</h2>
+<ul><li>One state can carry as many questions as fit in the context window. The questions run in parallel, so many cost about the same time as one (R, opening).</li><li>Jev charges for input only; output is free. The first model's input price is $0.042 per million tokens, below GPT-5 Nano's $0.05 per million (R, opening).</li><li>Hundreds or thousands of trial prompts cost "just a few cents" (R, §"Black boxes are back in fashion").</li></ul>
+<h2 id="strengths-and-limits-as-reported">Strengths and limits, as reported</h2>
+<ul><li>TypeSafe's "Jev 1.13 jaggedness" page says it is weak on numbers, dates and "adversarial content" (R, opening).</li><li>Willison sees it fit any task that can be put as classification: spam detection, labels, priority, ranking (R, opening).</li><li>He uses it to rerank search results: BM25 fetches 100 likely matches, then Jev scores each for relevance to the query (R, opening).</li></ul>
+<h2 id="black-box-and-bias">Black box and bias</h2>
+<ul><li>An LLM can at least be asked to justify an answer, though the answer may be wrong; Jev returns only a number, so nothing says which signals led to, say, a spam verdict (R, §"Black boxes are back in fashion").</li><li>He warns against using it to rank job applicants: the number could hide bias that is hard to tease out by experiment (R, §"Black boxes are back in fashion").</li><li>One test: asked "Good city?" of every Bay Area city, it put Cupertino top and East Palo Alto bottom (R, §"Black boxes are back in fashion").</li><li>His conclusion: evals and structured experiments matter even more here than with ordinary LLMs (R, §"Black boxes are back in fashion").</li></ul>
+<h2 id="what-others-built-in-the-first-week">What others built in the first week</h2>
+<ul><li>jevchat makes a chat model by asking Jev, symbol by symbol, which symbol comes next; Willison calls the result "terrible" (R, §"Unconventional uses for Jev").</li><li>jev-leftpad does left-pad with a choice question whose options run from "0 spaces are needed" to "10 spaces are needed"; jev-2048 plays the 2048 puzzle (R, §"Unconventional uses for Jev").</li><li>Kev tries to rebuild a Jev-like model on Qwen 3.5 at 0.8B, 4B and 9B. A "JevBench" benchmark already compares "Jev-class decision models" (R, §"Open weight recreations").</li><li>Willison's <code>llm-typesafe</code> plugin adds Jev to his <code>llm</code> tool (R, §"Using Jev from LLM").</li></ul>
+<h2 id="what-the-post-does-not-say">What the post does not say</h2>
+<p>The post says nothing on how Jev is trained, what data it saw, its architecture or its size. It gives no accuracy figures. It never uses the word "calibration": it calls the outputs confidence scores and probabilities but does not test whether a 0.8 is right eight times in ten. Claims about Jev's training found elsewhere are not used here.</p>
+<p>Later source (2026-10-03): <a href="source-raschka-text-classification-to-jev.html">source-raschka-text-classification-to-jev</a> quotes TypeSafe's CEO, "100% of our data is synthetic", and TypeSafe's blog naming a new architecture and a training method called Reinforcement Learning for Calibrated Decisions (RLCD), not public (<code>raw/web-2026-raschka-classifier-history-and-jev.md</code>, §5). It reports 96.47% on IMDb (<code>raw/web-2026-raschka-classifier-history-and-jev.md</code>, §3.3). It too does not test calibration; it reports TypeSafe's documentation calling the probabilities well calibrated (<code>raw/web-2026-raschka-classifier-history-and-jev.md</code>, §3.3).</p>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-raschka-text-classification-to-jev.html">source-raschka-text-classification-to-jev</a> — Contradiction (partial, weak evidence on both sides): this post, citing TypeSafe's jaggedness page, says Jev is weak on numbers, dates and adversarial content (R, opening); Raschka passes on a reader's claim that the only weak task is legal reviews in non-English languages (<code>raw/web-2026-raschka-classifier-history-and-jev.md</code>, §6.2).</li><li><a href="concept-inference-economics.html">concept-inference-economics</a>: a pricing model with free output, the reverse of the usual rate gap between input and output tokens.</li><li><a href="source-bundle-retrieval-and-rag.html">source-bundle-retrieval-and-rag</a>, <a href="source-colbert.html">source-colbert</a>: Jev used as a second-stage scorer after BM25.</li><li><a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a>: the post's black-box complaint is the problem that field works on; the post runs no such study.</li><li>Open question for the wiki (not the author's): are Jev's probabilities calibrated? The compass entry <code>calibration</code> defines the test; this post gives the numbers but not the check. See <a href="concept-calibration.html">concept-calibration</a>.</li></ul>
+<h2 id="references">References</h2>
+<ul><li>Raw: <code>raw/web-2026-simonwillison-jev-decision-models.md</code></li><li>Post: <a href="https://simonwillison.net/2026/Sep/21/jev/" rel="noreferrer">https://simonwillison.net/2026/Sep/21/jev/</a></li><li>TypeSafe announcement, as linked in the post (not ingested): <a href="https://typesafe.ai/blog/introducing-system-one-models-and-jev" rel="noreferrer">https://typesafe.ai/blog/introducing-system-one-models-and-jev</a></li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/web-2026-simonwillison-jev-decision-models.md</code></li><li><a href="https://simonwillison.net/2026/Sep/21/jev/" rel="noreferrer">https://simonwillison.net/2026/Sep/21/jev/</a></li><li><code>raw/web-2026-raschka-classifier-history-and-jev.md</code></li></ul></details>
+</main>
+</body>
+</html>

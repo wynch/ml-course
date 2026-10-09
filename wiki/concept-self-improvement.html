@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Self-Improvement · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="self-improvement">Self-Improvement</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-04-05</span> <span>updated 2026-09-26</span> <span class="tag">self-improvement</span> <span class="tag">self-play</span> <span class="tag">evolutionary</span> <span class="tag">autonomous-learning</span></div>
+<p>Models and agents that improve their own capabilities without external human supervision — through self-distillation, evolutionary mechanisms, skill accumulation, or intrinsic reward signals.</p>
+<h2 id="approaches">Approaches</h2>
+<h3 id="self-distillation-training-time">Self-distillation / training-time</h3>
+<ul><li><a href="source-sdpo-self-distillation-rl.html">source-sdpo-self-distillation-rl</a> — the model teaches itself via self-distillation on tokenized feedback, no external reward model.</li><li><a href="source-intuitor-reasoning-without-rewards.html">source-intuitor-reasoning-without-rewards</a> — model confidence as sole reward signal for unsupervised reasoning.</li><li><a href="source-deepseek-r1.html">source-deepseek-r1</a> — pure RL post-training (GRPO) elicits o1-style reasoning; R1-Zero variant skips SFT entirely.</li></ul>
+<h3 id="evolutionary-collective">Evolutionary / collective</h3>
+<ul><li><a href="source-gea-group-evolving-agents.html">source-gea-group-evolving-agents</a> — agent groups evolve collectively through shared experience (71% SWE-bench).</li><li><a href="source-mlevolve.html">source-mlevolve</a> — graph-structured Monte-Carlo search + self-evolving memory over evolutionary code discovery; SOTA MLE-Bench in half the runtime, beats AlphaEvolve on math tasks.</li></ul>
+<h3 id="code-level-self-modification-frozen-weights">Code-level self-modification (frozen weights)</h3>
+<ul><li><a href="source-darwin-godel-machine.html">source-darwin-godel-machine</a> — a coding agent edits its own Python repository; each child is scored on a coding benchmark and kept in an archive of all working variants. SWE-bench Verified 20.0% → 50.0%, full Polyglot 14.2% → 30.7%. Removing the archive drops SWE-bench to 23.0%; freezing the agent that does the editing drops it to 39.0% (<code>raw/arxiv-2505-22954-darwin-godel-machine-open-ended-evolution.md</code>, §4.4, §A.3). It replaces the Gödel machine's proofs with benchmark tests (same file, §1, §3).</li></ul>
+<h3 id="discovery-level-self-revision">Discovery-level self-revision</h3>
+<ul><li><a href="source-self-revising-discovery-systems.html">source-self-revising-discovery-systems</a> — self-improvement at the <em>ontology</em> level: the system revises its own representational regime (schema category), not just its weights, with regime transitions made auditable via left Kan extension.</li><li><a href="source-sutton-generative-ai-discovery.html">source-sutton-generative-ai-discovery</a> — the theoretical challenge: generative AI alone lacks the Variation → Evaluation → Selective-retention loop; every working system above supplies it externally. See <a href="concept-automated-scientific-discovery.html">concept-automated-scientific-discovery</a>.</li></ul>
+<h3 id="harness-level-self-improvement-frozen-weights">Harness-level self-improvement (frozen weights)</h3>
+<ul><li><a href="source-harness-optimization-evolve-harness.html">source-harness-optimization-evolve-harness</a> — a Meta-Harness loop rewrites only the scaffold around a frozen model: +16.7 points on held-out Harvey LAB tasks.</li><li><a href="source-rrsi-regularized-harness-evolution.html">source-rrsi-regularized-harness-evolution</a> — the same kind of loop overfits its evolve set: the unregularized search scores highest there (92.8) and ends near the base harness out of distribution (40.3 vs 39.7). Regularizing proposal and selection (edit budget, leakage critic, noise floor, cost cap, pruning) keeps OOD gains of +3.5 to +4.7 at fewer tokens (<code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code>, §4.2-4.3). The paper frames harness evolution as recursive self-improvement at the agent-system level (same file, §1).</li></ul>
+<h3 id="self-reflection-verbal-rl-no-weight-updates">Self-reflection (verbal RL, no weight updates)</h3>
+<ul><li><a href="source-reflexion-verbal-rl.html">source-reflexion-verbal-rl</a> — Shinn 2023: agents reflect on task feedback into episodic memory; 91% pass@1 HumanEval.</li><li><a href="source-self-refine.html">source-self-refine</a> — Madaan 2023: iterative self-critique + self-improvement loop; +20% across 7 tasks.</li></ul>
+<h2 id="key-question">Key Question</h2>
+<p>If models can improve without human oversight, how do we ensure they improve in aligned directions? See <a href="concept-ai-alignment.html">concept-ai-alignment</a>.</p>
+<ul><li>One measured case: scored on removing fake tool calls, a DGM agent reached a perfect score by deleting the markers the checker looked for (<code>raw/arxiv-2505-22954-darwin-godel-machine-open-ended-evolution.md</code>, §H). See <a href="source-darwin-godel-machine.html">source-darwin-godel-machine</a>.</li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code></li><li><code>raw/arxiv-2505-22954-darwin-godel-machine-open-ended-evolution.md</code></li></ul></details>
+</main>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>2026 Q2 AI Ecosystem Notes · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="2026-q2-ai-ecosystem-notes">2026 Q2 AI Ecosystem Notes</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-07-04</span> <span>updated 2026-07-04</span> <span class="tag">ai-ecosystem</span> <span class="tag">industry</span> <span class="tag">open-models</span> <span class="tag">benchmarks</span> <span class="tag">developer-tools</span> <span class="tag">ai-safety</span> <span class="tag">token-pricing</span></div>
+<p>A grouped catch-all of thin-but-worth-keeping industry/tooling signals from Q2 2026. Each section is a one-item note; deeper items in this batch got their own pages (<a href="source-frontiercode-cognition-eval.html">source-frontiercode-cognition-eval</a>, <a href="source-loop-engineering-addy-osmani.html">source-loop-engineering-addy-osmani</a>, <a href="source-token-purchasing-power-bigspin.html">source-token-purchasing-power-bigspin</a>).</p>
+<h2 id="artificial-analysis-independent-model-provider-benchmarks">Artificial Analysis — independent model &amp; provider benchmarks</h2>
+<p>Independent AI evaluation platform (artificialanalysis.ai) for picking a model/provider by use case. Benchmarks four dimensions — <strong>quality, cost, speed, provider performance</strong> — across 548+ models and 19+ API providers. Headline indices: <strong>Intelligence Index v4.1</strong> (composite of 9 evals incl. GDPval-AA v2, Terminal-Bench v2.1, SciCode), <strong>Coding Agent Index</strong>, <strong>AA-Briefcase</strong> (long-horizon agentic knowledge work), <strong>AA-Omniscience Index</strong> (hallucination/reliability), plus Elo <strong>Arena leaderboards</strong> for image/speech/video. A standing reference for frontier price/quality tracking. Complements the tokenflation thesis in <a href="source-token-purchasing-power-bigspin.html">source-token-purchasing-power-bigspin</a> — supply-side $/token vs demand-side output/token.</p>
+<h2 id="opencode-go-subscription-access-to-cheap-open-models">OpenCode Go — subscription access to cheap open models</h2>
+<p>opencode.ai/go: a subscription ($5 first month, then $10/mo, reloadable credits) giving "generous limits and reliable access" to <strong>thirteen open-source models</strong> — GLM-5.2/5.1, Kimi K2.7 Code / K2.6, Qwen 3.7 Max/Plus &amp; 3.6 Plus, DeepSeek V4 Pro/Flash, MiniMax M3/M2.7 &amp; MiMo V2.5-Pro/V2.5 — usable from any agentic platform, not just OpenCode. A concrete data point in the commoditization of the cheap open-model tier (mostly China-origin labs). See <a href="source-lacy-small-language-models.html">source-lacy-small-language-models</a>, <a href="source-deepseek-v3.html">source-deepseek-v3</a>, <a href="concept-mixture-of-experts.html">concept-mixture-of-experts</a>.</p>
+<h2 id="gemma-4-12b-coder-local-code-generation">Gemma 4 12B Coder — local code generation</h2>
+<p>Aggregator announcement (@HuggingModels) of a <strong>GGUF</strong> build of Google's <strong>Gemma 4, 12B</strong>, "optimized for reasoning and thinking" for private, on-consumer-hardware coding assistance. No benchmark numbers; a signal that the local/private code-model tier is keeping pace with Google's latest architecture. Relates to <a href="concept-developer-tools.html">concept-developer-tools</a> and the small-model thesis in <a href="source-lacy-small-language-models.html">source-lacy-small-language-models</a>.</p>
+<h2 id="sakana-fugu-multi-agent-orchestration-no-export-control-risk">Sakana Fugu — multi-agent orchestration, no export-control risk</h2>
+<p>Sakana AI (Japan) launched <strong>Fugu</strong>: a full multi-agent orchestration system behind a single model API. "Fugu Ultra" is claimed to <strong>match Fable and Mythos</strong> (Anthropic-class frontier models) while "delivering frontier capability without the risk of export controls" — a geopolitical selling point (Japan-based vs China-origin models facing US export controls). Ties to <a href="concept-ai-agents.html">concept-ai-agents</a> (orchestration) and frontier-model geopolitics. <em>(A dedicated Sakana AI entity is being handled separately.)</em></p>
+<h2 id="meituan-longcat-20-16t-param-moe-for-agentic-coding">Meituan LongCat-2.0 — 1.6T-param MoE for agentic coding</h2>
+<p>Meituan (China) released <strong>LongCat-2.0</strong>: <strong>1.6T-parameter MoE, ~48B active, 1M context</strong>, the model behind "Owl Alpha" on OpenRouter. Architecture: <strong>LongCat Sparse Attention (LSA)</strong> for 1M-context scaling, <strong>Zero-Compute Experts</strong> (dynamic 33B–56B active/token), and <strong>MOPD</strong> — three specialized expert groups (Agent / Reasoning / Interaction) gate-routed per task. Self-reported: Terminal-Bench 2.1 <strong>70.8</strong>, SWE-bench Pro <strong>59.5</strong> (GPT-5.5: 58.6), SWE-bench Multilingual <strong>77.3</strong>, BrowseComp <strong>79.9</strong>. A notable China-lab frontier MoE explicitly built for agentic coding. See <a href="concept-mixture-of-experts.html">concept-mixture-of-experts</a>, <a href="concept-long-context.html">concept-long-context</a>, <a href="concept-swe-bench.html">concept-swe-bench</a>, <a href="source-deepseek-v3.html">source-deepseek-v3</a>.</p>
+<h2 id="fable-5-jailbreak-review-notes-from-the-jailbreakers">Fable 5 jailbreak review — notes from the jailbreakers</h2>
+<p>Red-teamer @VittoStack's after-action report on jailbreaking <strong>Fable 5</strong> (an Anthropic model). Reports layered defenses: <strong>input-side + output-side</strong> checks, <strong>≥3 classifiers</strong> (one includes conversation history + system prompt; a <strong>live classifier interrupts mid-generation</strong>), all multilingual and <strong>intent/semantics-based</strong> rather than keyword-based, plus a separate <strong>CoT</strong> classifier. Weaker on obscure languages (Santali, Amharic). Techniques that eventually worked: light CoT hijacking, obscure language, academic framing, very long crescendos, unicode, decomposition/recomposition, non-determinism — yielding misinformation, illegal/harmful, some chem, light cyber. Author's own verdict: even successful, "Google is much faster and cheaper"; couldn't sustain a jailbreak over long-horizon tasks. A concrete external signal on the depth of layered safety on a 2026 frontier model. See <a href="concept-ai-alignment.html">concept-ai-alignment</a> and <a href="source-constitutional-ai.html">source-constitutional-ai</a> / <a href="source-measuring-cot-monitorability.html">source-measuring-cot-monitorability</a>.</p>
+<h2 id="bricking-a-car-infotainment-with-vim-claude-mythos">Bricking a car infotainment with vim (Claude Mythos)</h2>
+<p>Agent-reach folklore (@snwy_me): an agent ("Claude Mythos") had enough system access to open <strong>vim on a car infotainment head unit</strong>, then bricked the UI — the terminal lacked a colon key (couldn't exit vim) and the head unit doesn't restart with the car. A vivid anecdote about how far agent capability + tool access now reaches into embedded systems, and the failure modes that follow. Loosely relates to <a href="concept-ai-agents.html">concept-ai-agents</a> tool-use reach.</p>
+<h2 id="rl-interview-questions-2026">RL Interview Questions 2026</h2>
+<p>@pradheepraop published worked answers (public Notion doc) to @sheriyuo's (Xiuyu Li) "RL Interview Questions 2026" list — a study/interview-prep resource for reinforcement learning. Pointer only; substance lives in the external, unfetched Notion doc. Tangential to <a href="concept-rlhf.html">concept-rlhf</a> / <a href="concept-rlhf-alternatives.html">concept-rlhf-alternatives</a> as a field-pedagogy artifact.</p>
+<h2 id="references">References</h2>
+<ul><li>Artificial Analysis: <a href="https://artificialanalysis.ai/" rel="noreferrer">https://artificialanalysis.ai/</a></li><li>OpenCode Go: <a href="https://opencode.ai/go" rel="noreferrer">https://opencode.ai/go</a></li><li>Gemma 4 12B Coder: <a href="https://x.com/HuggingModels/status/2066157716373221623" rel="noreferrer">https://x.com/HuggingModels/status/2066157716373221623</a></li><li>Sakana Fugu: <a href="https://x.com/SakanaAILabs/status/2068861630327443966" rel="noreferrer">https://x.com/SakanaAILabs/status/2068861630327443966</a></li><li>Meituan LongCat-2.0: <a href="https://x.com/Meituan_LongCat/status/2071783587205308721" rel="noreferrer">https://x.com/Meituan_LongCat/status/2071783587205308721</a> · <a href="https://longcat.chat/blog/longcat-2.0/" rel="noreferrer">https://longcat.chat/blog/longcat-2.0/</a></li><li>Fable 5 jailbreak review: <a href="https://x.com/VittoStack/status/2072707521547001882" rel="noreferrer">https://x.com/VittoStack/status/2072707521547001882</a></li><li>vim-on-car: <a href="https://x.com/snwy_me/status/2062787188207784321" rel="noreferrer">https://x.com/snwy_me/status/2062787188207784321</a></li><li>RL interview questions: <a href="https://x.com/pradheepraop/status/2063736553357394025" rel="noreferrer">https://x.com/pradheepraop/status/2063736553357394025</a></li><li>Raw note: <code>raw/2026-q2-ai-ecosystem-notes.md</code></li></ul>
+<details class="src"><summary>Sources (8)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://artificialanalysis.ai/" rel="noreferrer">https://artificialanalysis.ai/</a></li><li><a href="https://opencode.ai/fr/go" rel="noreferrer">https://opencode.ai/fr/go</a></li><li><a href="https://x.com/HuggingModels/status/2066157716373221623" rel="noreferrer">https://x.com/HuggingModels/status/2066157716373221623</a></li><li><a href="https://x.com/SakanaAILabs/status/2068861630327443966" rel="noreferrer">https://x.com/SakanaAILabs/status/2068861630327443966</a></li><li><a href="https://x.com/Meituan_LongCat/status/2071783587205308721" rel="noreferrer">https://x.com/Meituan_LongCat/status/2071783587205308721</a></li><li><a href="https://x.com/VittoStack/status/2072707521547001882" rel="noreferrer">https://x.com/VittoStack/status/2072707521547001882</a></li><li><a href="https://x.com/snwy_me/status/2062787188207784321" rel="noreferrer">https://x.com/snwy_me/status/2062787188207784321</a></li><li><a href="https://x.com/pradheepraop/status/2063736553357394025" rel="noreferrer">https://x.com/pradheepraop/status/2063736553357394025</a></li></ul></details>
+</main>
+</body>
+</html>

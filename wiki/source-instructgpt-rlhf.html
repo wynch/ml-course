@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Training Language Models to Follow Instructions with Human Feedback (InstructGPT) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="training-language-models-to-follow-instructions-with-human-feedback-instructgpt">Training Language Models to Follow Instructions with Human Feedback (InstructGPT)</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-06</span> <span>updated 2026-05-06</span> <span class="tag">rlhf</span> <span class="tag">alignment</span> <span class="tag">instruction-tuning</span> <span class="tag">foundational</span> <span class="tag">instructgpt</span> <span class="tag">2022</span></div>
+<p><strong>Ouyang, Wu, Jiang, Almeida, Wainwright, Mishkin, Zhang, Agarwal, Slama, Ray, Schulman et al. — arXiv 2203.02155, Mar 2022 (OpenAI)</strong></p>
+<p>The canonical recipe for turning a raw language model into a useful assistant: the <strong>three-stage RLHF pipeline</strong> (SFT → reward model → PPO). InstructGPT-1.3B is <strong>preferred to GPT-3-175B</strong> by human raters despite being <strong>&gt;100× smaller</strong>. The blueprint behind ChatGPT, Claude, Gemini, and effectively every modern aligned LLM.</p>
+<h2 id="method-the-canonical-rlhf-recipe">Method (the canonical RLHF recipe)</h2>
+<ol><li><strong>Supervised fine-tuning (SFT)</strong>: human contractors write demonstrations of desired behaviour for prompts; fine-tune GPT-3 on (prompt, demonstration) pairs.</li><li><strong>Reward model (RM)</strong>: collect human pairwise preferences over model completions; train a scalar reward model RM_θ via a Bradley–Terry / pairwise-logistic loss.</li><li><strong>PPO with KL penalty</strong>: fine-tune SFT policy with PPO against RM, regularised by KL(policy || SFT) to prevent reward-hacking and capability collapse.</li></ol>
+<p>About 13K SFT prompts and 33K RM-comparison prompts from real OpenAI API users + labellers.</p>
+<h2 id="key-numbers">Key numbers</h2>
+<ul><li><strong>1.3B InstructGPT &gt; 175B GPT-3</strong> in human preference on the API distribution.</li><li>Toxicity (RealToxicityPrompts) reduced; truthfulness (TruthfulQA) improved.</li><li>Modest <strong>alignment tax</strong>: small regressions on a few public NLP benchmarks, mostly recovered by mixing pretraining gradients into PPO ("PPO-ptx").</li><li>Generalises to held-out prompt categories not present in SFT data.</li></ul>
+<h2 id="why-it-matters">Why it matters</h2>
+<p>InstructGPT operationalised three claims that defined the post-2022 LLM era:</p>
+<ol><li><strong>Pretraining is not enough.</strong> A raw next-token predictor is <em>not</em> a usable assistant. Aligning to human intent requires a separate post-training stage. This is the foundation for <a href="concept-rlhf.html">concept-rlhf</a> and the "post-training" half of <a href="source-frontier-model-training.html">source-frontier-model-training</a> (SFT → preference optimisation → RL with verifiable rewards).</li><li><strong>Preference data &gt; demonstration data, beyond a point.</strong> RM + RL provided a scalable signal because humans are better at <em>judging</em> than <em>writing</em> — a key pillar of <a href="concept-ai-alignment.html">concept-ai-alignment</a> (steering through evaluation, not specification).</li><li><strong>Helpfulness can dominate scale.</strong> A small aligned model beating a giant base model showed that <em>capability ≠ utility</em>, redirecting investment toward alignment infrastructure.</li></ol>
+<p>The wiki's RLHF-adjacent pages frame this as the <strong>default that everything else compares to</strong>:</p>
+<ul><li><a href="source-constitutional-ai.html">source-constitutional-ai</a> keeps the structure but replaces human comparisons with model-generated critiques.</li><li><a href="source-dpo-direct-preference-optimization.html">source-dpo-direct-preference-optimization</a> eliminates the explicit RM and PPO loop entirely.</li><li><a href="concept-rlhf-alternatives.html">concept-rlhf-alternatives</a> and <a href="source-distribution-sharpening-power-sampling.html">source-distribution-sharpening-power-sampling</a> question whether the RL step is doing what we think — possibly just sharpening latent capability already present in SFT.</li></ul>
+<h2 id="references">References</h2>
+<ul><li>arXiv: <a href="https://arxiv.org/abs/2203.02155" rel="noreferrer">https://arxiv.org/abs/2203.02155</a></li><li>Builds on: <a href="source-gpt3-few-shot-learners.html">source-gpt3-few-shot-learners</a></li><li>Variants/successors: <a href="source-constitutional-ai.html">source-constitutional-ai</a>, <a href="source-dpo-direct-preference-optimization.html">source-dpo-direct-preference-optimization</a></li><li>Context: <a href="concept-rlhf.html">concept-rlhf</a>, <a href="concept-ai-alignment.html">concept-ai-alignment</a>, <a href="concept-rlhf-alternatives.html">concept-rlhf-alternatives</a></li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2203.02155" rel="noreferrer">https://arxiv.org/abs/2203.02155</a></li></ul></details>
+</main>
+</body>
+</html>

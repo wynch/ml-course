@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>World Models · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="world-models">World Models</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-05-06</span> <span>updated 2026-10-09</span> <span class="tag">world-models</span> <span class="tag">model-based-rl</span> <span class="tag">generative-models</span> <span class="tag">predictive-models</span> <span class="tag">planning</span> <span class="tag">dreamer</span> <span class="tag">genie</span> <span class="tag">vla</span></div>
+<p>A <strong>world model</strong> is a learned generative or predictive model of an environment that an agent can plan, simulate, or act inside — a "dreamable" surrogate for the real world. The defining property is <em>that you can roll it out under hypothetical actions and get back useful predictions of future state, observations, or rewards</em>.</p>
+<p>Two structural shapes show up across the lineage:</p>
+<ul><li><strong>Generative</strong> — predict full observations (pixels, video) from past + actions; the agent literally hallucinates next frames. Examples: <a href="source-ha-schmidhuber-world-models.html">source-ha-schmidhuber-world-models</a> (MDN-RNN over VAE latents), <a href="source-genie-interactive-environments.html">source-genie-interactive-environments</a>, <a href="source-genie-2-foundation-world-model.html">source-genie-2-foundation-world-model</a>.</li><li><strong>Predictive</strong> — predict only a learned latent / value-relevant signal from past + actions; never reconstruct pixels. Examples: <a href="source-tdmpc2.html">TD-MPC2</a> (reward-shaped latent), <a href="source-vjepa-family.html">V-JEPA 2</a> (JEPA-style representation prediction).</li></ul>
+<p>Both shapes serve the same role inside an agent: a substrate for planning (<a href="source-planet-latent-dynamics.html">PlaNet</a>), policy learning (<a href="source-dreamer-v1.html">source-dreamer-v1</a>, <a href="source-dreamerv3.html">source-dreamerv3</a>), or interactive simulation (<a href="source-genie-2-foundation-world-model.html">Genie 2</a>).</p>
+<h2 id="lineage-in-this-wiki">Lineage in this wiki</h2>
+<h3 id="trunk-v-m-c">Trunk: V + M + C</h3>
+<ul><li><a href="source-ha-schmidhuber-world-models.html">source-ha-schmidhuber-world-models</a> (Ha &amp; Schmidhuber 2018) — VAE + MDN-RNN + tiny linear controller; agents trained inside dreams. Establishes the canonical decomposition.</li></ul>
+<h3 id="dreamer-family-latent-dynamics-rl">Dreamer family (latent dynamics + RL)</h3>
+<ul><li><a href="source-planet-latent-dynamics.html">source-planet-latent-dynamics</a> (Hafner 2018) — RSSM and pure planning via CEM; no policy network.</li><li><a href="source-dreamer-v1.html">source-dreamer-v1</a> (Hafner 2019) — actor-critic learned via reparameterised gradients through latent dynamics. The shift from search to amortised policy.</li><li><a href="source-dreamerv3.html">source-dreamerv3</a> (Hafner 2023, Nature 2025) — single hyperparameter set across 150+ tasks; mines a Minecraft diamond from scratch. The "general world-model algorithm" claim.</li></ul>
+<h3 id="continuous-control-sibling">Continuous-control sibling</h3>
+<ul><li><a href="source-tdmpc2.html">source-tdmpc2</a> (Hansen 2023) — reward-shaped latent + MPPI planning + learned value; multi-task scaling on 80+ continuous-control tasks. Closest direct alternative to DreamerV3 for continuous control.</li></ul>
+<h3 id="generative-foundation-environments">Generative foundation environments</h3>
+<ul><li><a href="source-genie-interactive-environments.html">source-genie-interactive-environments</a> (Bruce et al. 2024) — 11B foundation model; latent actions discovered from unlabeled video; playable 2D environments.</li><li><a href="source-genie-2-foundation-world-model.html">source-genie-2-foundation-world-model</a> (DeepMind Dec 2024) — 3D playable worlds from a single image; emergent physics, NPCs, animation; ~1-minute consistent rollouts.</li></ul>
+<h3 id="predictive-sibling-cross-link">Predictive sibling (cross-link)</h3>
+<ul><li><a href="source-vjepa-family.html">source-vjepa-family</a> — JEPA-style predictive video world model; predicts in representation, not pixels. Direct counterpart to Genie 2 in the generative-vs-predictive split.</li></ul>
+<h3 id="llm-as-world-model-branch">LLM-as-world-model branch</h3>
+<ul><li><a href="source-rap-reasoning-planning.html">source-rap-reasoning-planning</a> — uses an LLM as the world model with MCTS as the planner. World-modelling without explicit dynamics learning; the LM's prior is the dynamics.</li><li><a href="source-worldcoder.html">source-worldcoder</a> — world model as an editable Python program. Crisp, symbolic, modifiable — opposite extreme of Genie 2's pixel generative model.</li></ul>
+<h2 id="key-tensions">Key tensions</h2>
+<ol><li><strong>Generative vs predictive</strong> — do you need to render the world (Genie 2, useful for embodied training, simulators, content creation) or just predict task-relevant latents (V-JEPA 2, TD-MPC2; cheaper, often sample-efficient, but unrenderable).</li><li><strong>Learned vs specified dynamics</strong> — DreamerV3 <em>learns</em> a generative model and gets generality; <a href="source-why-learn-if-you-can-infer-active-inference.html">VERSES</a> <em>specifies</em> a generative model by hand and gets sample efficiency on specific tasks. Same predict-then-plan structure (<a href="concept-active-inference.html">concept-active-inference</a>); opposite ends of the learned-vs-specified spectrum.</li><li><strong>Plan vs amortise</strong> — PlaNet plans online with CEM; DreamerV3 amortises planning into an actor; TD-MPC2 mixes both (MPPI seeded by a learned actor). The same trade-off recurs in LLM agents (<a href="source-rap-reasoning-planning.html">RAP</a> tree search vs <a href="source-react-reasoning-acting.html">ReAct</a> amortised tool use).</li><li><strong>Pixels vs program</strong> — <a href="source-worldcoder.html">source-worldcoder</a> is the symbolic limit; Genie 2 is the dense-pixel limit; Dreamer/V-JEPA 2 sit in between with continuous latents.</li></ol>
+<p>Evidence on tension 1, small scale: <a href="source-infoldm-predictive-ssl-identifiability.html">source-infoldm-predictive-ssl-identifiability</a> trains a latent predictive model of a MuJoCo hopper under random colours, lighting, camera and background. A linear probe reads the hopper's pose and velocity from its latent (velocity from the LSTM state that sums up past latents); adding an image decoder loss leaves a latent that encodes parts of the nuisance and not the state (<code>raw/arxiv-2609-37789-predictive-ssl-identifies-stochastic-signals-under-nuisance.md</code>, §4.2, Figure 3, Appendix Figure 4).</p>
+<h2 id="connections-to-other-concepts">Connections to other concepts</h2>
+<ul><li><a href="concept-active-inference.html">concept-active-inference</a> — predict-and-plan structure is shared. AIF imposes free-energy as the planning objective on a (often hand-tuned) generative model; world-model RL learns the generative model and uses task return.</li><li><a href="concept-jepa.html">concept-jepa</a> — predictive world models share JEPA's "predict in representation" core. V-JEPA 2 is the explicit fusion.</li><li><a href="concept-representation-learning.html">concept-representation-learning</a> — RSSM, VQ-VAE tokenizers (Genie), reward-shaped latents (TD-MPC2) are all latent-design choices for downstream prediction.</li><li><a href="concept-neural-symbolic-bridge.html">concept-neural-symbolic-bridge</a> — <a href="source-worldcoder.html">source-worldcoder</a> sits at the symbolic end of the world-model axis; programs as world models are an explicit neural-symbolic instance.</li><li><a href="concept-test-time-compute.html">concept-test-time-compute</a> — online planning (CEM, MPPI, MCTS) inside a world model is <em>exactly</em> test-time compute spent on imagination rather than on text reasoning.</li></ul>
+<h2 id="open-questions">Open questions</h2>
+<ul><li>Do generative video world models like Genie 2 deliver enough physical fidelity to train embodied agents that transfer to reality, or is the predictive branch (V-JEPA 2, TD-MPC2) more pragmatic for control?</li><li>How far does DreamerV3's "single config" claim hold as benchmarks expand to truly open-ended worlds?</li><li>Where is the seam between LLM-as-world-model (<a href="source-rap-reasoning-planning.html">RAP</a>) and learned-dynamics world models? When the LLM is the prior, what role do explicit dynamics models still play?</li></ul>
+<h2 id="vla-alternative">VLA alternative</h2>
+<p>Vision-Language-Action (VLA) models are the <em>direct policy</em> counterpart to world-model approaches. See <a href="concept-vla-robot-foundation-models.html">concept-vla-robot-foundation-models</a> for the lineage: <a href="source-rt-2.html">source-rt-2</a>, <a href="source-openvla.html">source-openvla</a>, <a href="source-pi-zero.html">source-pi-zero</a>. Key bridge: <a href="source-vjepa-family.html">source-vjepa-family</a> is a <em>predictive</em> substrate used as a policy via image-goal MPC, sitting between pure world models and pure VLAs.</p>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2609-37789-predictive-ssl-identifies-stochastic-signals-under-nuisance.md</code></li></ul></details>
+</main>
+</body>
+</html>

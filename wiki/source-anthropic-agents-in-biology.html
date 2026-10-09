@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Paving the Way for AI Agents in Biology · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="paving-the-way-for-ai-agents-in-biology">Paving the Way for AI Agents in Biology</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-07-04</span> <span>updated 2026-07-04</span> <span class="tag">ai-agents</span> <span class="tag">biology</span> <span class="tag">scientific-discovery</span> <span class="tag">benchmarks</span> <span class="tag">harness-as-substrate</span> <span class="tag">anthropic</span> <span class="tag">evaluation</span></div>
+<p><strong>Author:</strong> Laura Luebbert et al. (Anthropic + collaborators) / <strong>Date:</strong> 2026-06-08</p>
+<h2 id="summary">Summary</h2>
+<p>Anthropic's research team argues that the bottleneck for AI agents in biology is not model reasoning but <em>infrastructure</em>: biological data lacks the deterministic execution layers that software engineering takes for granted. Navigating biology databases is likened to "driving through an old city that was designed before cars" — idiosyncratic file formats, scattered databases, filtering logic that lives only in web UIs (not APIs), identifiers that drift across sources, and expert-only conventions opaque to machines. The claim is that this infrastructure gap limits agents more than their reasoning ability does.</p>
+<p>To make the case quantitative they build <strong>VirBench</strong>, a benchmark of 120 realistic viral-sequence retrieval queries across 40 pathogens with manually verified ground truth (e.g. retrieve human-host, African, 2014 <em>Orthoebolavirus zairense</em> sequences meeting length and ambiguity thresholds, excluding lab-passaged samples). Tested on Claude Sonnet 4, Claude Opus 4.7, GPT-5.2-pro, GPT-5.55, Biomni OSS, and Edison Analysis, agents <em>without</em> deterministic tools scored 16.9%–91.3% and were wildly inconsistent across identical repeated queries — Claude Sonnet 4 returned 106, 15, then 5 sequences when 266 were expected. This is not a cosmetic failure: phylogenetic trees built from agent-retrieved 2014 West African Ebolavirus data placed the inferred outbreak origin anywhere from January 2014 (correct) to 1922 depending on the run, and antibody-epitope analyses flickered across runs — retrieval noise directly changes the biological conclusion.</p>
+<p>The fix is <strong>gget virus</strong>, a deterministic retrieval layer built with NCBI researchers that coordinates REST / Datasets / E-utilities APIs, decides which filters belong in the API versus local post-processing, batches large corpora (SARS-CoV-2, Influenza A), pulls supplementary GenBank records, and returns standardized machine-readable output with retrieval logs. With gget virus in the loop, accuracy exceeded 90% across all agents (GPT-5.5 reached 99.7%), run-to-run variance largely vanished, and — importantly — the gap between strong and weak models collapsed, decoupling reliable results from having the newest, most expensive model. The authors generalize this to <strong>"context engines"</strong>: reliable, deterministic, agent-accessible infrastructure (alongside ToolUniverse, Edison's Robin, Biomni). Even if models eventually navigate messy portals unaided, they argue the task "shouldn't be handled (and reinvented) by an agent every time" — cost, speed, auditability, and trust favor building the deterministic layer once.</p>
+<h2 id="key-ideas">Key Ideas</h2>
+<ul><li>The binding constraint for scientific agents is <strong>deterministic tooling / data infrastructure</strong>, not raw model reasoning.</li><li><strong>VirBench</strong>: 120 verified viral-sequence queries; without tools, accuracy 16.9%–91.3% with severe run-to-run nondeterminism (266 expected vs 106/15/5 returned).</li><li>Retrieval noise propagates to conclusions: inferred Ebolavirus outbreak origin ranged from 2014 (correct) to 1922 across runs.</li><li><strong>gget virus</strong> (deterministic layer, built with NCBI) pushes all agents &gt; 90% accuracy, GPT-5.5 to 99.7%, and <em>narrows the inter-model gap</em> — cheaper models become viable.</li><li><strong>"Context engines"</strong>: build the deterministic access layer once, for cost/speed/auditability, rather than making every agent re-solve messy portals.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li>Direct empirical instance of <a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a>: the "context engine" is the deterministic substrate doing the work the model shouldn't be trusted to do stochastically.</li><li>Strong parallel to <a href="source-harness-optimization-evolve-harness.html">source-harness-optimization-evolve-harness</a> — both show a deterministic wrapper (context engine / delivered-file gate) rescuing an otherwise-competent model and <em>compressing the gap between strong and weak models</em>. Cross-domain confirmation of the same thesis (biology vs law).</li><li>Complements the automated-discovery cluster <a href="source-self-revising-discovery-systems.html">source-self-revising-discovery-systems</a>, <a href="source-alphaevolve.html">source-alphaevolve</a>, <a href="source-funsearch.html">source-funsearch</a>, <a href="source-airs-bench-research-agents.html">source-airs-bench-research-agents</a> — the reliability layer research agents need to do real science.</li><li>Publisher: <a href="entity-anthropic.html">entity-anthropic</a>. Topic tie: <a href="concept-ai-agents.html">concept-ai-agents</a> applied to scientific workflows.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><a href="https://www.anthropic.com/research/agents-in-biology" rel="noreferrer">anthropic.com/research/agents-in-biology</a></li><li>Raw snapshot: <code>raw/anthropic-agents-in-biology.md</code></li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://www.anthropic.com/research/agents-in-biology" rel="noreferrer">https://www.anthropic.com/research/agents-in-biology</a></li></ul></details>
+</main>
+</body>
+</html>

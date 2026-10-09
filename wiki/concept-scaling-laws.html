@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Scaling Laws · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="scaling-laws">Scaling Laws</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-04-05</span> <span>updated 2026-10-09</span> <span class="tag">scaling</span> <span class="tag">training</span> <span class="tag">compute</span> <span class="tag">theory</span></div>
+<p>Empirical and theoretical relationships between model size, training data, compute, and performance. The "just scale" paradigm has driven much of LLM progress, but is increasingly nuanced.</p>
+<h2 id="theoretical-grounding">Theoretical Grounding</h2>
+<ul><li><a href="source-kaplan-scaling-laws.html">source-kaplan-scaling-laws</a> — Kaplan 2020: smooth power-law L(N), L(D), L(C); the original empirical scaling-law paper. Compute-optimal favours bigger models (later corrected by Chinchilla).</li><li><a href="source-chinchilla-compute-optimal.html">source-chinchilla-compute-optimal</a> — Hoffmann 2022: corrects Kaplan; N and D should scale ~1:1. 70B / 1.4T tokens beats 280B Gopher at the same FLOPs. The compute-optimal bible cited by every model report.</li><li><a href="source-neural-scaling-laws-from-language-statistics.html">source-neural-scaling-laws-from-language-statistics</a> — First parameter-free derivation of scaling exponents from natural language statistics (token correlations and conditional entropy decay). Validated on GPT-2 and LLaMA.</li></ul>
+<h2 id="challenges-to-pure-scaling">Challenges to Pure Scaling</h2>
+<ul><li><a href="source-language-models-as-scaffolds.html">source-language-models-as-scaffolds</a> — argues existing models are "severely underutilized"; scaffolding and structural innovation can unlock capability without retraining.</li><li><a href="source-zhang-harness-blog.html">source-zhang-harness-blog</a> — same author, five months later: data scaling "will remain the biggest driver of progress", and the harness's inductive biases set its coefficients. Hand-coding strategies into harnesses will lose to the bitter lesson (<code>raw/web-2026-alexzhang-harness-compositional.md</code>, §"The Scaling Picture and Moving Forward"). Here the harness is trained through, not only used at inference.<ul><li>No contradiction with <a href="source-language-models-as-scaffolds.html">source-language-models-as-scaffolds</a>: its old wiki line "architecture matters more than raw scale" was our wording. The February post itself says scaling is not dead (checked live 2026-09-25). Both posts keep scale and add structure on top.</li></ul></li><li><a href="source-memory-mosaics-at-scale.html">source-memory-mosaics-at-scale</a> — on learning new tasks from the prompt, 8× the data does not close the gap to an architecture change: a transformer on 8T tokens scores 46.9 on RULER multi-document questions at 32k against 53.4 for Memory Mosaics v2 on 1T, and on in-context classification with anonymous labels more data makes the transformer worse (<code>raw/arxiv-2507-03285-memory-mosaics-at-scale.md</code>, §6.1, Table 5, Figure 7). The authors call this a weakness of the "more data more computation" belief (same file, §8).<ul><li>Contradiction (partial, weak) with the <a href="source-zhang-harness-blog.html">source-zhang-harness-blog</a> line above, that data scaling "will remain the biggest driver of progress". The same sentence of that post says the machinery and its inductive biases set the coefficients of that scaling, which is what this result shows; the two part only on whether data stays the biggest driver. One architecture pair, new-task measures only, and the 8T transformer differs in recipe (grouped-query attention, 8k training context; same file, Table 5 caption). The paper agrees that for knowledge from training, more data and a bigger model win (same file, §6.1, footnote 15).</li></ul></li><li><a href="source-residual-matrix-transformer.html">source-residual-matrix-transformer</a> — achieves equivalent loss with 58% fewer FLOPs by redesigning the residual stream.</li><li><a href="source-neural-depth-scaling.html">source-neural-depth-scaling</a> — Loss~1/depth suggests diminishing returns from adding layers.</li></ul>
+<h2 id="practical-scaling">Practical Scaling</h2>
+<ul><li><a href="source-frontier-model-training.html">source-frontier-model-training</a> — practical guide from 7 frontier models: data mixture and architecture choices dominate algorithmic tweaks.</li><li><a href="source-lacy-small-language-models.html">source-lacy-small-language-models</a> — small models should allocate capacity wisely, not try to learn everything.</li></ul>
+<h2 id="the-emergence-debate">The Emergence Debate</h2>
+<ul><li><a href="source-emergence-debate.html">source-emergence-debate</a> (Wei 2022 + Schaeffer 2023) — the canonical claim/rebuttal pair. Wei: emergent abilities aren't predictable from smaller-scale behaviour. Schaeffer: &gt;92% of "emergent" abilities disappear under linear/continuous metrics — emergence as a metric artefact.</li></ul>
+<h2 id="generalization-theory">Generalization Theory</h2>
+<ul><li><a href="source-litman-generalization-theory.html">source-litman-generalization-theory</a> — Litman &amp; Guo 2026: NTK partitions output space into signal/noise channels; SGD routes coherent population structure to signal directions, idiosyncratic memorization to slow diffusive walk in noise dimensions. Unifies benign overfitting, double descent, implicit bias, and grokking under one mechanism. Practical artefact: SNR preconditioner on Adam → 5× grokking acceleration.</li><li><a href="source-neural-low-degree-filtering.html">source-neural-low-degree-filtering</a> — Dandi et al. 2026: deep feature learning as iterative spectral filtering, where each layer selects accessible low-degree label-correlated directions and makes new compositional features available to later layers.</li></ul>
+<h2 id="test-time-vs-train-time-compute">Test-Time vs Train-Time Compute</h2>
+<ul><li><a href="source-snell-test-time-compute-scaling.html">source-snell-test-time-compute-scaling</a> — Snell 2024: scaling test-time compute can be more compute-efficient than scaling parameters for many tasks.</li></ul>
+<h2 id="open-questions">Open Questions</h2>
+<ul><li>Can theoretical scaling laws predict performance across architectures, not just within one family?</li><li>At what point does scaffolding/inference-time compute dominate further pre-training scale?<ul><li>One data point: an RLM gets roughly 10× the eval lift of a plain Transformer for the same train lift (<code>raw/web-2026-alexzhang-harness-compositional.md</code>, §Intro, Figure 1). One model size, one lab.</li></ul></li><li>Is "emergence" real or an artefact? See the Wei/Schaeffer pair above.</li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>wiki/source-neural-low-degree-filtering.md</code></li><li><code>raw/web-2026-alexzhang-harness-compositional.md</code></li><li><code>raw/arxiv-2507-03285-memory-mosaics-at-scale.md</code></li></ul></details>
+</main>
+</body>
+</html>

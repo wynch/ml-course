@@ -1,0 +1,632 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BPE, one merge at a time — ml-course explorable 03</title>
+<style>
+/* ---- shared design language (see explorables spec v1) ------------------ */
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --panel:#ffffff; --panel-2:#eef2f0;
+  --line:#d6ded9; --muted:#5c6b66; --accent:#1f918d;
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d;
+  --track:var(--t1);
+  --display:"Avenir Next","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --shadow:0 1px 2px rgba(28,36,34,.06),0 6px 20px rgba(28,36,34,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --panel-2:#131a18;
+    --line:#2b3733; --muted:#9aaba5; --t1:#8f7fd6;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.35);
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper); color:var(--ink); font-family:var(--body);
+  font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  padding:0 20px 48px; overflow-x:hidden;
+}
+.wrap{max-width:1080px;margin:0 auto}
+header.top{
+  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+  padding:20px 0 12px;border-bottom:1px solid var(--line);margin-bottom:18px;
+}
+header.top h1{
+  font-family:var(--display);font-size:23px;font-weight:600;margin:0;letter-spacing:-.01em;
+}
+.pill{
+  font-family:var(--display);font-size:11.5px;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;color:#fff;background:var(--track);
+  border-radius:999px;padding:3.5px 11px;white-space:nowrap;
+}
+@media (prefers-color-scheme: dark){ .pill{color:#12100f} }
+.spacer{flex:1 1 auto}
+a{color:var(--accent)}
+a.back{font-size:13.5px;text-decoration:none;white-space:nowrap}
+a.back:hover{text-decoration:underline}
+p.intro{max-width:70ch;color:var(--ink);margin:0 0 20px}
+p.intro b{font-weight:600}
+.card{
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  box-shadow:var(--shadow);padding:14px 16px;
+}
+h2.sec{font-family:var(--display);font-size:13px;font-weight:700;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+/* ---- controls --------------------------------------------------------- */
+button{
+  font:inherit;font-size:13.5px;font-family:var(--display);font-weight:600;
+  color:var(--ink);background:transparent;border:1.5px solid var(--line);
+  border-radius:999px;padding:5px 14px;cursor:pointer;transition:.15s;
+}
+button:hover:not(:disabled){border-color:var(--track);color:var(--track)}
+button:disabled{opacity:.4;cursor:default}
+button.primary{background:var(--track);border-color:var(--track);color:#fff;min-width:104px}
+@media (prefers-color-scheme: dark){ button.primary{color:#12100f} }
+button.primary:hover{opacity:.88;color:#fff}
+@media (prefers-color-scheme: dark){ button.primary:hover{color:#12100f} }
+input[type=range]{
+  -webkit-appearance:none;appearance:none;height:22px;background:transparent;
+  width:150px;cursor:pointer;vertical-align:middle;
+}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--line)}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:15px;height:15px;border-radius:50%;
+  background:var(--track);margin-top:-5.5px;border:2px solid var(--panel);
+}
+input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:var(--line)}
+input[type=range]::-moz-range-thumb{width:13px;height:13px;border:2px solid var(--panel);border-radius:50%;background:var(--track)}
+textarea,select{
+  font-family:var(--mono);font-size:13px;color:var(--ink);background:var(--panel-2);
+  border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;
+}
+select{font-family:var(--body);font-size:13.5px;width:auto}
+textarea{resize:vertical;min-height:58px;line-height:1.5}
+label.ctl{font-size:12.5px;color:var(--muted);display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--line);
+  border-bottom-width:2px;border-radius:4px;padding:0 4px;color:var(--muted)}
+/* ---- stage ------------------------------------------------------------ */
+.stage{display:grid;grid-template-columns:1fr 280px;gap:16px;align-items:start}
+@media (max-width:820px){ .stage{grid-template-columns:1fr} }
+canvas{display:block;width:100%;border-radius:8px}
+.stats{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.stat b{display:block;font-family:var(--mono);font-size:19px;font-weight:600;line-height:1.15;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+/* position:relative so each row's offsetTop is measured inside the list
+   (that is what the auto-scroll-to-current-merge maths assumes) */
+#vocab{max-height:392px;overflow-y:auto;margin:0;padding:0;list-style:none;position:relative;
+  font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums}
+#vocab li{display:flex;align-items:center;gap:8px;padding:3px 5px;border-radius:5px}
+#vocab li.cur{background:color-mix(in srgb,var(--track) 16%,transparent);outline:1px solid var(--track)}
+#vocab li.pending{opacity:.34}
+#vocab .id{color:var(--muted);min-width:30px}
+#vocab .sw{width:9px;height:9px;border-radius:2px;flex:0 0 auto}
+#vocab .str{font-weight:600;white-space:pre}
+#vocab .from{color:var(--muted);margin-left:auto;font-size:11px}
+.legend{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);margin-top:10px}
+.legend .bar{height:9px;width:110px;border-radius:5px;
+  background:linear-gradient(90deg,#440154,#46327e,#365c8d,#277f8e,#1fa187,#4ac16d,#a0da39,#fde725)}
+.note{font-size:12.5px;color:var(--muted);min-height:1.5em;margin-top:8px;font-family:var(--mono)}
+ul.notice{max-width:74ch;margin:8px 0 0;padding-left:20px}
+ul.notice li{margin-bottom:7px}
+ul.notice code{font-family:var(--mono);font-size:12.5px;background:var(--panel-2);padding:1px 4px;border-radius:4px}
+footer{margin-top:28px;padding-top:14px;border-top:1px solid var(--line);
+  font-size:12.5px;color:var(--muted);display:flex;gap:20px;flex-wrap:wrap}
+footer .path{font-family:var(--mono)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:820px){ .grid2{grid-template-columns:1fr} }
+</style>
+
+<div class="wrap">
+<header class="top">
+  <h1>BPE, one merge at a time</h1>
+  <span class="pill">Module 03 · Tokenization</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">← All explorables</a>
+</header>
+
+<p class="intro">
+  A byte-level BPE tokenizer is just <b>an ordered list of merges</b>. Start from raw UTF-8 bytes,
+  then repeatedly glue the most frequent adjacent pair into one new token. The 60 merges below are
+  the <b>real first 60</b> learned by module&nbsp;03's from-scratch trainer on tiny-shakespeare —
+  the same list its Python and Zig implementations produce byte-for-byte.
+  Press <kbd>space</kbd> to play, watch the pairs fuse, and type your own text to see the
+  <em>same</em> merges applied to something the tokenizer never trained on.
+</p>
+
+<div class="card">
+  <h2 class="sec">Text to tokenize</h2>
+  <div class="row" style="margin-bottom:10px">
+    <label class="ctl">preset
+      <select id="preset"></select>
+    </label>
+    <span class="note" style="margin:0" id="src-note">from <span class="path">corpus/input.txt</span></span>
+  </div>
+  <textarea id="text" spellcheck="false" rows="2"></textarea>
+</div>
+
+<div class="stage" style="margin-top:16px">
+  <div class="card">
+    <h2 class="sec">Token stream <span id="phase-tag" style="font-weight:600;letter-spacing:0;text-transform:none;font-family:var(--mono)"></span></h2>
+    <canvas id="cv" height="300" aria-label="Animated token stream: each chip is one token, colored by how many bytes it covers"></canvas>
+    <div class="legend"><span>token size</span><span class="bar"></span><span>1 byte → 7+ bytes</span></div>
+    <div class="note" id="note">&nbsp;</div>
+
+    <div class="row" style="margin-top:12px">
+      <button id="back" title="previous merge">◀ Back</button>
+      <button id="play" class="primary">▶ Play</button>
+      <button id="fwd" title="next merge">Step ▶</button>
+      <button id="all">Apply all 60</button>
+      <button id="reset">Reset</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <label class="ctl">merges applied
+        <input type="range" id="k" min="0" max="60" value="0" style="width:190px">
+        <b class="mono" id="klab" style="color:var(--track);min-width:3ch">0</b>
+      </label>
+      <label class="ctl">speed
+        <input type="range" id="speed" min="0" max="100" value="55" style="width:110px">
+      </label>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><b id="s-bytes">0</b><span>UTF-8 bytes</span></div>
+      <div class="stat"><b id="s-tok">0</b><span>tokens</span></div>
+      <div class="stat"><b id="s-ratio">1.00</b><span>bytes / token</span></div>
+      <div class="stat"><b id="s-vocab">256</b><span>vocab size</span></div>
+      <div class="stat"><b id="s-save">0%</b><span>sequence shrink</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="sec">The merge list <span style="font-weight:400;text-transform:none;letter-spacing:0">= the model</span></h2>
+    <ul id="vocab"></ul>
+  </div>
+</div>
+
+<div class="card" style="margin-top:16px">
+  <h2 class="sec">What to notice</h2>
+  <ul class="notice">
+    <li><b>Merge 0 is <code>"e" + " " → "e "</code></b>, not a word. Byte-level BPE learns
+      <em>trailing spaces</em> first because English is full of words ending in <code>e</code>.
+      Space-prefixed pieces (<code>" th"</code>, merge&nbsp;17) show up soon after — that's why real
+      tokenizers give you <code>"&nbsp;the"</code> rather than <code>"the"</code>.</li>
+    <li><b>Merges compose.</b> Merge 39 glues token 257 (<code>"th"</code>) to token 256
+      (<code>"e "</code>) to make <code>"the "</code>, and merge 48 glues <code>" th"</code>+<code>"e "</code>
+      into <code>"&nbsp;the&nbsp;"</code> — four bytes in one token. Later merges can only fire because
+      earlier ones already ran, so <b>order is the model</b>.</li>
+    <li><b>Watch bytes/token climb</b> while the byte count never changes. That ratio is the whole
+      economic argument for subwords: fewer positions for the same text means shorter context and
+      cheaper attention. Module 03's compression curve shows the first ~100 merges buy far more
+      than the next 400.</li>
+    <li><b>Type something un-Shakespearean</b> — a URL, French, emoji, <code>aaaaaaaa</code>. The merges
+      still apply (there is never an unknown token, because the base vocabulary is all 256 bytes),
+      but they buy much less: that gap is exactly the <em>fertility</em> unfairness the module measures
+      across languages. Some merges will report <span class="mono">no occurrence</span> — those
+      merges are dead weight for your text.</li>
+    <li><b>Colours are token length</b> (viridis). Purple chips are single bytes; yellow chips are
+      the 4–7 byte whole-word tokens that only appear once the vocabulary gets big.</li>
+  </ul>
+</div>
+
+<footer>
+  <span>module: <a class="path" href="../modules/03-tokenization/README.md">../modules/03-tokenization/README.md</a></span>
+  <span>algorithm notes: <a class="path" href="../modules/03-tokenization/ALGORITHM.md">../modules/03-tokenization/ALGORITHM.md</a></span>
+  <span><a href="https://huggingface.co/learn/llm-course/chapter6">HF LLM Course · Chapter 6 — The Tokenizers library</a></span>
+</footer>
+</div>
+
+<script>
+"use strict";
+/* ====================== PURE LOGIC (node-testable) ======================
+   Everything between these markers is DOM-free and is exercised by the
+   verification harness with `node -e`.                                    */
+
+/* The REAL first 60 merges from module 03's trained tokenizer.
+   Source: modules/03-tokenization/artifacts/scratch_merges.txt (500 merges,
+   trained on corpus/input.txt = tiny-shakespeare). Merge k produces id 256+k.
+   Python (src/bpe.py) and Zig (zig/src/main.zig) emit this list identically. */
+const MERGES = [
+  [101,32],[116,104],[116,32],[115,32],[100,32],[44,32],[111,117],[101,114],
+  [105,110],[121,32],[97,110],[58,10],[111,114],[111,32],[101,110],[10,10],
+  [97,114],[32,257],[111,110],[108,108],[104,97],[44,10],[46,271],[105,259],
+  [101,115],[121,262],[32,115],[116,269],[266,260],[111,119],[101,97],[32,109],
+  [32,119],[111,102],[32,104],[264,103],[111,109],[32,97],[99,104],[257,256],
+  [115,116],[32,98],[110,111],[105,114],[102,268],[118,256],[101,261],[105,257],
+  [273,256],[115,101],[108,105],[84,104],[275,32],[114,101],[115,258],[97,258],
+  [65,110],[73,32],[101,272],[105,109]
+];
+
+/* vocab[id] -> Uint8Array of the bytes that token expands to. */
+function buildVocab(merges){
+  const v = new Array(256 + merges.length);
+  for (let i = 0; i < 256; i++) v[i] = Uint8Array.of(i);
+  for (let k = 0; k < merges.length; k++){
+    const a = v[merges[k][0]], b = v[merges[k][1]];
+    const c = new Uint8Array(a.length + b.length);
+    c.set(a, 0); c.set(b, a.length);
+    v[256 + k] = c;
+  }
+  return v;
+}
+
+/* One BPE merge pass: replace every non-overlapping (a,b) with newId.
+   `spans` (optional) collects, per output position, the source index range —
+   the animation uses it to know which chips fused. Mirrors bpe.py:merge(). */
+function mergePass(ids, a, b, newId, spans){
+  const out = [];
+  let i = 0, n = ids.length, hits = 0;
+  while (i < n){
+    if (i < n - 1 && ids[i] === a && ids[i + 1] === b){
+      out.push(newId); if (spans) spans.push([i, i + 1]); i += 2; hits++;
+    } else {
+      out.push(ids[i]); if (spans) spans.push([i]); i += 1;
+    }
+  }
+  if (spans) spans.hits = hits;
+  return out;
+}
+
+/* Encode raw bytes by replaying the first k merges in order. */
+function bpeEncode(bytes, merges, k){
+  let ids = Array.from(bytes);
+  const n = (k === undefined) ? merges.length : k;
+  for (let i = 0; i < n; i++) ids = mergePass(ids, merges[i][0], merges[i][1], 256 + i);
+  return ids;
+}
+
+/* Count occurrences of the pair merge k would fire on, in `ids`. */
+function countPair(ids, a, b){
+  let i = 0, c = 0;
+  while (i < ids.length - 1){
+    if (ids[i] === a && ids[i + 1] === b){ c++; i += 2; } else i++;
+  }
+  return c;
+}
+
+/* viridis colormap, t in [0,1] -> [r,g,b]. Piecewise-linear over matplotlib stops. */
+const VIRIDIS_STOPS = [
+  [68,1,84],[72,40,120],[62,74,137],[49,104,142],[38,130,142],
+  [31,158,137],[53,183,121],[109,205,89],[253,231,37]
+];
+function viridis(t){
+  t = t < 0 ? 0 : t > 1 ? 1 : t;
+  const s = VIRIDIS_STOPS, x = t * (s.length - 1);
+  const i = Math.min(s.length - 2, Math.floor(x)), f = x - i;
+  return [0,1,2].map(j => Math.round(s[i][j] + (s[i+1][j] - s[i][j]) * f));
+}
+/* pick readable text colour over a given fill */
+function inkOn(rgb){
+  const L = (0.299*rgb[0] + 0.587*rgb[1] + 0.114*rgb[2]) / 255;
+  return L > 0.58 ? "#141a18" : "#ffffff";
+}
+/* ==================== END PURE LOGIC (node-testable) ==================== */
+
+const VOCAB = buildVocab(MERGES);
+const DEC = new TextDecoder("utf-8", {fatal:false});
+const ENC = new TextEncoder();
+
+/* printable label for a token's bytes: whitespace made visible, invalid
+   UTF-8 fragments shown as hex boxes so partial multi-byte chars stay legible */
+function label(bytes){
+  let s = DEC.decode(bytes);
+  if (s.indexOf("�") >= 0){
+    s = Array.from(bytes).map(b => (b >= 32 && b < 127) ? String.fromCharCode(b)
+        : "‹" + b.toString(16).padStart(2,"0") + "›").join("");
+  }
+  return s.replace(/ /g,"·").replace(/\n/g,"⏎").replace(/\t/g,"⇥");
+}
+const LAB = VOCAB.map(label);
+function colOf(id){ return viridis(Math.min(1,(VOCAB[id].length - 1) / 6)); }
+
+/* ---------------- presets (real lines from module 03's corpus) ----------- */
+const PRESETS = [
+  {n:"corpus · First Citizen", t:"First Citizen:\nBefore we proceed any further, hear me speak.",
+   s:"first two lines of <span class='path'>corpus/input.txt</span>"},
+  {n:"corpus · All", t:"All:\nSpeak, speak.\n\nFirst Citizen:\nYou are all resolved rather to die than to famish?",
+   s:"lines 4–8 of <span class='path'>corpus/input.txt</span>"},
+  {n:"held-out English", t:"the quick brown fox jumps over the lazy dog",
+   s:"never seen in training — the merges still fire"},
+  {n:"out of domain", t:"POST /v1/embeddings HTTP/1.1  — café naïve 🤖 aaaaaaaa",
+   s:"URLs, accents, emoji: bytes the merges never learned"}
+];
+
+/* ---------------- DOM ---------------- */
+const $ = id => document.getElementById(id);
+const cv = $("cv"), ctx = cv.getContext("2d");
+const els = {text:$("text"), preset:$("preset"), note:$("note"), phase:$("phase-tag"),
+  k:$("k"), klab:$("klab"), speed:$("speed"), vocab:$("vocab"), src:$("src-note"),
+  bytes:$("s-bytes"), tok:$("s-tok"), ratio:$("s-ratio"), vs:$("s-vocab"), save:$("s-save")};
+
+PRESETS.forEach((p,i) => {
+  const o = document.createElement("option"); o.value = i; o.textContent = p.n; els.preset.appendChild(o);
+});
+
+/* ---------------- state ---------------- */
+const S = {
+  bytes: new Uint8Array(0),
+  ids: [],            // token ids after `k` merges
+  k: 0,               // merges applied
+  playing: false,
+  anim: null,         // {t0, dur, phase, nextIds, spans, before, after, pair}
+  lastNote: ""
+};
+const CSS = () => getComputedStyle(document.body);
+
+/* ---------------- layout ---------------- */
+const FONT = '13px "SF Mono", ui-monospace, Menlo, Consolas, monospace';
+const PADX = 6, GAP = 4, ROWH = 27, CHH = 21, TOP = 8;
+let dpr = 1, cssW = 600, cssH = 300;
+
+function measure(id){ return Math.max(14, ctx.measureText(LAB[id]).width) + PADX * 2; }
+
+function layout(ids, width){
+  ctx.font = FONT;
+  const out = []; let x = 0, y = TOP;
+  for (const id of ids){
+    const w = measure(id);
+    if (x > 0 && x + w > width){ x = 0; y += ROWH; }
+    out.push({x, y, w, h: CHH, id});
+    x += w + GAP;
+  }
+  return {rects: out, height: y + ROWH + TOP};
+}
+
+function ensureCanvas(){
+  const w = cv.clientWidth || 600;
+  dpr = Math.min(2, window.devicePixelRatio || 1);
+  const lay = layout(S.ids, w - 4);
+  const h = S.anim ? Math.max(S.anim.before.height, S.anim.after.height) : lay.height;
+  const target = Math.max(66, Math.min(560, h));
+  if (Math.abs(cssW - w) > .5 || Math.abs(cssH - target) > .5){
+    cssW = w; cssH = target;
+    cv.style.height = target + "px";
+    cv.width = Math.round(w * dpr); cv.height = Math.round(target * dpr);
+  }
+  return lay;
+}
+
+/* ---------------- drawing ---------------- */
+function chip(r, id, opts){
+  opts = opts || {};
+  const c = opts.col || colOf(id);
+  ctx.fillStyle = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + (opts.alpha === undefined ? 1 : opts.alpha) + ")";
+  roundRect(r.x, r.y, r.w, r.h, 5); ctx.fill();
+  if (opts.glow){
+    ctx.strokeStyle = "rgba(255,255,255," + (0.9 * opts.glow) + ")";
+    ctx.lineWidth = 2 + 2 * opts.glow;
+    roundRect(r.x - 1, r.y - 1, r.w + 2, r.h + 2, 6); ctx.stroke();
+    ctx.strokeStyle = CSS().getPropertyValue("--track").trim() || "#453781";
+    ctx.lineWidth = 2; roundRect(r.x - 2.5, r.y - 2.5, r.w + 5, r.h + 5, 7); ctx.stroke();
+  }
+  ctx.font = FONT; ctx.textBaseline = "middle"; ctx.textAlign = "center";
+  ctx.fillStyle = inkOn(c);
+  ctx.globalAlpha = opts.alpha === undefined ? 1 : opts.alpha;
+  ctx.fillText(opts.text === undefined ? LAB[id] : opts.text, r.x + r.w / 2, r.y + r.h / 2 + .5);
+  ctx.globalAlpha = 1;
+}
+function roundRect(x, y, w, h, r){
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+const lerp = (a, b, t) => a + (b - a) * t;
+const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+function draw(){
+  const lay = ensureCanvas();
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, cssW, cssH);
+
+  const A = S.anim;
+  if (!A){
+    const l = layout(S.ids, cssW - 4);
+    for (const r of l.rects) chip(r, r.id);
+    return;
+  }
+  const t = Math.min(1, (performance.now() - A.t0) / A.dur);
+  if (A.phase === "highlight"){
+    const l = A.before;
+    const pulse = 0.5 + 0.5 * Math.sin(t * Math.PI * 2.4);
+    for (let i = 0; i < l.rects.length; i++) chip(l.rects[i], l.rects[i].id);
+    for (const [i, j] of A.hitPairs){
+      const a = l.rects[i], b = l.rects[j];
+      ctx.strokeStyle = CSS().getPropertyValue("--track").trim() || "#453781";
+      ctx.lineWidth = 2;
+      if (a.y === b.y) roundRect(a.x - 2.5, a.y - 2.5, (b.x + b.w) - a.x + 5, a.h + 5, 7);
+      else roundRect(a.x - 2.5, a.y - 2.5, a.w + 5, a.h + 5, 7);
+      ctx.globalAlpha = .35 + .65 * pulse; ctx.stroke(); ctx.globalAlpha = 1;
+    }
+  } else {
+    const e = ease(t), before = A.before.rects, after = A.after.rects;
+    for (let j = 0; j < after.length; j++){
+      const span = A.spans[j], tgt = after[j];
+      const b0 = before[span[0]];
+      let src;
+      if (span.length === 2){
+        const b1 = before[span[1]];
+        src = (b0.y === b1.y) ? {x:b0.x, y:b0.y, w:(b1.x + b1.w) - b0.x, h:b0.h}
+                              : {x:b0.x, y:b0.y, w:b0.w + b1.w + GAP, h:b0.h};
+      } else src = b0;
+      const r = {x: lerp(src.x, tgt.x, e), y: lerp(src.y, tgt.y, e),
+                 w: lerp(src.w, tgt.w, e), h: tgt.h};
+      const merged = span.length === 2;
+      chip(r, tgt.id, {glow: merged ? (1 - t) : 0,
+                       col: merged ? mixCol(colOf(before[span[0]].id), colOf(tgt.id), e) : undefined});
+      if (merged && t < .92){                       // fading seam where the two chips met
+        ctx.font = FONT;
+        const wa = measure(before[span[0]].id);
+        const seam = r.x + r.w * (wa / Math.max(1, src.w));
+        ctx.strokeStyle = inkOn(colOf(tgt.id));
+        ctx.globalAlpha = .55 * (1 - t / .92);
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(seam, r.y + 3); ctx.lineTo(seam, r.y + r.h - 3); ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+    }
+  }
+}
+function mixCol(a, b, t){ return [0,1,2].map(i => Math.round(lerp(a[i], b[i], t))); }
+
+/* ---------------- stepping ---------------- */
+function stepDur(){ return lerp(900, 150, els.speed.value / 100); }
+function gapDur(){ return lerp(700, 60, els.speed.value / 100); }
+
+function beginStep(){
+  if (S.k >= MERGES.length) { stop(); return false; }
+  const [a, b] = MERGES[S.k], newId = 256 + S.k;
+  const hits = countPair(S.ids, a, b);
+  const spans = [];
+  const nextIds = mergePass(S.ids, a, b, newId, spans);
+  const w = (cv.clientWidth || 600) - 4;
+  const before = layout(S.ids, w), after = layout(nextIds, w);
+  const hitPairs = [];
+  for (let j = 0; j < spans.length; j++) if (spans[j].length === 2) hitPairs.push(spans[j]);
+  S.anim = {t0: performance.now(), dur: hits ? stepDur() * .45 : 120, phase: "highlight",
+            nextIds, spans, before, after, hitPairs, hits, k: S.k};
+  setNote(S.k, a, b, newId, hits);
+  els.phase.textContent = "· merge " + S.k + ": " + fmtPair(a, b);
+  renderVocab(S.k);
+  return true;
+}
+function fmtPair(a, b){
+  return "⟨" + LAB[a] + "⟩+⟨" + LAB[b] + "⟩ → ⟨" + LAB[a] + LAB[b] + "⟩";
+}
+function setNote(k, a, b, newId, hits){
+  els.note.innerHTML = hits
+    ? "merge " + k + ": pair (" + a + "," + b + ") = ⟨" + esc(LAB[a]) + "⟩⟨" + esc(LAB[b]) +
+      "⟩ → id " + newId + "  — fires " + hits + "× here"
+    : "merge " + k + ": pair (" + a + "," + b + ") → id " + newId +
+      "  — <b>no occurrence</b> in this text (dead weight)";
+}
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+function finishStep(){
+  const A = S.anim;
+  S.ids = A.nextIds; S.k = A.k + 1; S.anim = null;
+  syncK(); updateStats();
+  nextStepAt = performance.now() + gapDur();   // breathing room before the next merge
+}
+function tickAnim(now){
+  const A = S.anim; if (!A) return;
+  if (now - A.t0 >= A.dur){
+    if (A.phase === "highlight" && A.hits > 0){
+      A.phase = "collapse"; A.t0 = now; A.dur = stepDur() * .55;
+    } else if (A.phase === "highlight"){ finishStep(); }
+    else finishStep();
+  }
+}
+
+let raf = null, nextStepAt = 0;
+function loop(now){
+  raf = null;
+  tickAnim(now);
+  if (S.playing && !S.anim){
+    if (now >= nextStepAt){
+      if (!beginStep()){ draw(); return; }
+    }
+  }
+  draw();
+  if (S.playing || S.anim) schedule();
+}
+function schedule(){ if (raf === null) raf = requestAnimationFrame(loop); }
+
+function play(){
+  if (S.k >= MERGES.length) rebuild(0);
+  S.playing = true; nextStepAt = 0;
+  $("play").textContent = "❚❚ Pause"; schedule();
+}
+function stop(){
+  S.playing = false; $("play").textContent = "▶ Play";
+}
+function stepOnce(){
+  stop();
+  if (S.anim) finishStep();
+  if (beginStep()) schedule();
+  else draw();
+}
+
+/* ---------------- rebuild / sync ---------------- */
+function rebuild(k){
+  stop(); S.anim = null;
+  S.k = Math.max(0, Math.min(MERGES.length, k));
+  S.ids = bpeEncode(S.bytes, MERGES, S.k);
+  els.phase.textContent = S.k ? "· after " + S.k + " merge" + (S.k > 1 ? "s" : "") : "· raw bytes";
+  els.note.innerHTML = S.k === 0
+    ? "step 0: every token is one raw byte — vocabulary is just the 256 bytes"
+    : (S.k >= MERGES.length
+        ? "all 60 merges applied — vocabulary 316 tokens"
+        : "after " + S.k + " merges — " + S.ids.length + " tokens, vocabulary " + (256 + S.k));
+  syncK(); renderVocab(S.k - 1); updateStats(); draw();
+}
+function syncK(){ els.k.value = S.k; els.klab.textContent = S.k; }
+
+function updateStats(){
+  const nb = S.bytes.length, nt = S.ids.length;
+  els.bytes.textContent = nb; els.tok.textContent = nt;
+  els.ratio.textContent = nt ? (nb / nt).toFixed(2) : "0.00";
+  els.vs.textContent = 256 + S.k;
+  els.save.textContent = nb ? Math.round(100 * (1 - nt / nb)) + "%" : "0%";
+}
+
+function renderVocab(cur){
+  const ul = els.vocab;
+  if (!ul.childElementCount){
+    for (let k = 0; k < MERGES.length; k++){
+      const [a, b] = MERGES[k], id = 256 + k, c = colOf(id);
+      const li = document.createElement("li");
+      li.innerHTML = "<span class='id'>" + id + "</span>" +
+        "<span class='sw' style='background:rgb(" + c + ")'></span>" +
+        "<span class='str'>" + esc(LAB[id]) + "</span>" +
+        "<span class='from'>" + a + "+" + b + "</span>";
+      ul.appendChild(li);
+    }
+  }
+  const kids = ul.children;
+  for (let k = 0; k < kids.length; k++){
+    kids[k].className = (k === cur) ? "cur" : (k > cur ? "pending" : "");
+  }
+  if (cur >= 0 && cur < kids.length){
+    const li = kids[cur], top = li.offsetTop - ul.clientHeight / 2 + li.offsetHeight / 2;
+    ul.scrollTop = Math.max(0, top);
+  } else ul.scrollTop = 0;
+}
+
+/* ---------------- events ---------------- */
+function loadText(str){
+  S.bytes = ENC.encode(str);
+  rebuild(0);
+}
+els.text.addEventListener("input", () => { els.src.innerHTML = "your text"; loadText(els.text.value); });
+els.preset.addEventListener("change", () => {
+  const p = PRESETS[+els.preset.value];
+  els.text.value = p.t; els.src.innerHTML = p.s; loadText(p.t);
+});
+$("play").addEventListener("click", () => S.playing ? stop() : play());
+$("fwd").addEventListener("click", stepOnce);
+$("back").addEventListener("click", () => rebuild(S.k - 1));
+$("all").addEventListener("click", () => rebuild(MERGES.length));
+$("reset").addEventListener("click", () => rebuild(0));
+els.k.addEventListener("input", () => rebuild(+els.k.value));
+document.addEventListener("keydown", e => {
+  if (e.target && /^(TEXTAREA|INPUT|SELECT)$/.test(e.target.tagName)) return;
+  if (e.code === "Space"){ e.preventDefault(); S.playing ? stop() : play(); }
+  else if (e.code === "ArrowRight"){ e.preventDefault(); stepOnce(); }
+  else if (e.code === "ArrowLeft"){ e.preventDefault(); rebuild(S.k - 1); }
+});
+document.addEventListener("visibilitychange", () => { if (document.hidden) stop(); });
+window.addEventListener("resize", () => { if (!S.anim) draw(); });
+if (window.matchMedia) try {
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => draw());
+} catch (_) {}
+
+els.preset.value = "0";
+els.text.value = PRESETS[0].t;
+els.src.innerHTML = PRESETS[0].s;
+loadText(PRESETS[0].t);
+</script>
+<!-- built for ml-course explorables v1 -->

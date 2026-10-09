@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Predict in Latent Space — A Stealth Theme · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="predict-in-latent-space-a-stealth-theme">Predict in Latent Space — A Stealth Theme</h1>
+<div class="meta"><span class="type">thread</span> <span>created 2026-05-07</span> <span>updated 2026-10-09</span> <span class="tag">thread</span> <span class="tag">jepa</span> <span class="tag">world-models</span> <span class="tag">representation-learning</span> <span class="tag">self-supervised-learning</span> <span class="tag">active-inference</span> <span class="tag">cross-cutting</span></div>
+<p>A bet that runs through more of the wiki than the table of contents reveals: <strong>don't predict pixels or tokens; predict a learned representation</strong>. It's the JEPA programme's headline claim, but the same idea recurs across SSL, world models, active inference, even some LLM-side architecture work. Walk the thread and the wiki's "predictive axis" sharpens.</p>
+<h2 id="the-bet-stated-cleanly">The bet, stated cleanly</h2>
+<p>Given two views (or current state + future state, or text + image, or...), train a model to predict an <strong>encoded representation</strong> of one from the other. Critically:</p>
+<ul><li><em>No</em> pixel-level / token-level reconstruction.</li><li><em>No</em> contrastive negatives.</li><li>Anti-collapse comes from architectural asymmetry (predictor + EMA target) or explicit regularisation.</li></ul>
+<p>The pay-off: capacity goes to <em>predictable</em> structure, not to surface fidelity. The cost: the representation's structure is determined by the SSL objective, not by any downstream task.</p>
+<p>Contradiction (partial): "capacity goes to predictable structure" is the intuition; a theorem that covers a random signal and nuisance together, <a href="source-infoldm-predictive-ssl-identifiability.html">source-infoldm-predictive-ssl-identifiability</a>, finds that predictive objectives keep the predictable signal but are not forced to drop nuisance unless the latent is no bigger than the signal (<code>raw/arxiv-2609-37789-predictive-ssl-identifies-stochastic-signals-under-nuisance.md</code>, §3.2, §5). It covers objectives with an entropy term (SimCLR, VICReg, InfoNCE) and never names JEPA or the EMA-target setups listed here (same file, §2, §3).</p>
+<h2 id="where-it-shows-up">Where it shows up</h2>
+<h3 id="1-ssl-vision-the-canonical-instances">1. SSL vision — the canonical instances</h3>
+<ul><li><strong><a href="source-ssl-contrastive-foundations.html">source-ssl-contrastive-foundations</a></strong> BYOL section: the founding non-contrastive instance. Predict an EMA-target encoder's embedding. No negatives. No pixels.</li><li><strong><a href="source-dino-lineage.html">source-dino-lineage</a></strong>: self-distillation on ViTs. Predict the teacher's <em>distribution</em> over multi-crop views. DINOv2 scaled to foundation-model-grade; DINOv3 added relational (Gram-matrix) prediction.</li><li><strong><a href="source-masked-image-modeling.html">source-masked-image-modeling</a></strong> iBOT half: predict an EMA-teacher's <em>embedding</em> of masked patches. The hybrid MIM+self-distillation that became DINOv2's recipe.</li></ul>
+<h3 id="2-the-jepa-programme-explicit-naming-of-the-bet">2. The JEPA programme — explicit naming of the bet</h3>
+<ul><li><strong><a href="source-lecun-path-autonomous-intelligence.html">source-lecun-path-autonomous-intelligence</a></strong>: 2022 position paper that names this the central architectural move. "Stop reconstructing input space."</li><li><strong><a href="source-ijepa-self-supervised-learning.html">source-ijepa-self-supervised-learning</a></strong>: image-JEPA proof of concept. Context block → predict target-block <em>embeddings</em>.</li><li><strong><a href="source-vjepa-family.html">source-vjepa-family</a></strong>: video-JEPA. V-JEPA 2 + action conditioning becomes a <em>world model</em>: predict next latent given current latent and action.</li><li><strong><a href="source-vl-jepa.html">source-vl-jepa</a></strong>: vision-language JEPA. Predict text <em>embeddings</em>, not tokens. 50% fewer trainable params; beats CLIP/SigLIP2 on 16 video benchmarks.</li></ul>
+<h3 id="3-world-models-the-same-idea-rl-flavoured">3. World models — the same idea, RL-flavoured</h3>
+<ul><li><strong><a href="source-planet-latent-dynamics.html">source-planet-latent-dynamics</a></strong> (Hafner 2018) and <strong><a href="source-dreamer-v1.html">source-dreamer-v1</a></strong>: RSSM predicts in a learned latent. Not pixel rollouts, latent rollouts. The Dreamer family is built on this.</li><li><strong><a href="source-tdmpc2.html">source-tdmpc2</a></strong>: reward-shaped (non-reconstructive) latent. Predict only what matters for control.</li><li><strong><a href="source-dreamerv3.html">source-dreamerv3</a></strong> (Nature 2025): single config across 150+ tasks via latent dynamics. Capstone of the predictive-world-models branch.</li></ul>
+<h3 id="4-active-inference-the-same-idea-hand-specified">4. Active inference — the same idea, hand-specified</h3>
+<ul><li><strong><a href="source-active-inference-foundations.html">source-active-inference-foundations</a></strong> (Friston 2017 + Parr/Pezzulo/Friston 2022): predict-then-plan over a generative model. When the generative model is hand-specified, the latent is symbolic by construction.</li><li><strong><a href="source-schema-based-active-inference.html">source-schema-based-active-inference</a></strong>, <strong><a href="source-why-learn-if-you-can-infer-active-inference.html">source-why-learn-if-you-can-infer-active-inference</a></strong> — apply this to robotics, beat RL on Habitat.</li></ul>
+<p><a href="source-dreamerv3.html">source-dreamerv3</a> vs VERSES is the same bet at opposite ends of the learned-vs-specified spectrum.</p>
+<h3 id="5-mech-interp-the-sae-feature-space-as-a-learned-latent">5. Mech interp — the SAE feature space as a learned latent</h3>
+<ul><li><strong><a href="source-sae-monosemanticity-2023.html">source-sae-monosemanticity-2023</a></strong>, <strong><a href="source-sae-scaling-trilogy.html">source-sae-scaling-trilogy</a></strong>: SAE features are exactly <em>a learned latent space the model didn't explicitly train for</em>. Subsequent work (circuit tracing, ROME/MEMIT, TensorLens) operates <em>in that latent</em>, not in pixel/token space.</li></ul>
+<p>A subtle case but a real one: post-hoc latent prediction is what mech interp does.</p>
+<ul><li><strong><a href="source-anthropic-global-workspace.html">source-anthropic-global-workspace</a></strong>: the <strong>J-Lens</strong> defines an internal state by <em>how it changes future-token probability</em> — an interpretability probe built on the same predict-in-latent logic. The read-out target is a vocabulary-indexed "thought" (the J-space), not a token. See <a href="concept-global-workspace.html">concept-global-workspace</a>.</li></ul>
+<h3 id="6-diffusion-the-latent-target">6. Diffusion — the latent target</h3>
+<ul><li><strong><a href="source-flow-map-language-models.html">source-flow-map-language-models</a></strong>: one-step continuous denoising in <em>embedding</em> space. Predicts the embedding flow, not the discrete tokens.</li><li><strong><a href="source-unified-latents-diffusion.html">source-unified-latents-diffusion</a></strong> (DeepMind): joint encoder + diffusion prior + diffusion decoder <em>all in latent space</em>.</li></ul>
+<p>The diffusion side of the wiki has independently converged on "predict in latent" — not because it read LeCun, but because it works.</p>
+<h3 id="7-llms-sideways-the-latent-that-isnt-pixels">7. LLMs sideways — the latent that isn't pixels</h3>
+<ul><li><strong><a href="source-engram-deepseek.html">source-engram-deepseek</a></strong>: explicit addressable N-gram <em>embedding</em> table augments the backbone. The lookup target is an embedding, not a token.</li><li><strong><a href="source-memoryllm-plug-n-play-ffn.html">source-memoryllm-plug-n-play-ffn</a></strong>: FFN-as-retrieval-memory — same shape, different language.</li><li><strong><a href="source-codelewm.html">source-codelewm</a></strong>: the code-domain instance — JEPA over source-code <em>edits</em> (state-action-state), with the sharp finding that the bet only pays when the latent substrate carries deterministic execution behavior, not textual metadata. A stress-test of <em>what</em> to predict in latent space.</li><li><strong><a href="source-next-latent-prediction.html">source-next-latent-prediction</a></strong> (NextLat): the purest LLM-side instance yet. A <em>pure-text</em> transformer is trained with an auxiliary objective to predict its <strong>own next latent state</strong> given the next token, on top of next-token prediction. The latents provably trend toward <strong>belief states</strong> (sufficient statistics of history) — i.e. the model carries a compact world model. Gains in reasoning/planning/world-modeling plus up to 3.3× faster self-speculative decoding. This is the closest the wiki has to the "pure-text JEPA" question raised below.</li></ul>
+<h3 id="8-theory-why-it-finds-the-signal">8. Theory — why it finds the signal</h3>
+<ul><li><strong><a href="source-infoldm-predictive-ssl-identifiability.html">source-infoldm-predictive-ssl-identifiability</a></strong> (Mikulasch &amp; Zenke, 2026): the predictive objective is mutual information plus distribution matching. The first keeps what is predictable; the second makes it identifiable, so a Gaussian predictor recovers the true signal up to an affine map (<code>raw/arxiv-2609-37789-predictive-ssl-identifies-stochastic-signals-under-nuisance.md</code>, §3, Corollary 1). Tested on synthetic sequences, Causal3DIdent image pairs and a MuJoCo hopper with random nuisance; with a pixel decoder loss added, the hopper's state can no longer be read from the latent (same file, §4).</li></ul>
+<h2 id="what-the-through-line-implies">What the through-line implies</h2>
+<ol><li><strong>The same anti-collapse machinery shows up.</strong> Predictor + EMA target appears in BYOL, DINO, I-JEPA, V-JEPA. See <a href="analysis-self-distillation-as-universal-lever.html">analysis-self-distillation-as-universal-lever</a> for the deeper observation that <strong>self-distillation is the universal lever</strong> that makes predict-in-latent work.</li><li><strong>The representation is the bet.</strong> The latent's structure is what determines downstream usefulness. DINOv3's Gram anchoring (preserve patch-similarity structure) and V-JEPA 2.1's Dense Predictive Loss (loss on every token) are different bets about what to preserve in the latent.</li><li><strong>Generative is the foil.</strong> The wiki's "generative world model" branch (<a href="source-genie-2-foundation-world-model.html">source-genie-2-foundation-world-model</a>) and pixel-MIM half of <a href="source-masked-image-modeling.html">source-masked-image-modeling</a> (MAE) are the explicit counter-positions. The contrast is productive: when does <em>rendering</em> pay off, and when does <em>predicting in latent</em> pay off?</li></ol>
+<h2 id="where-the-thread-might-be-heading">Where the thread might be heading</h2>
+<ul><li><strong>Audio-JEPA at scale.</strong> No public scaled audio JEPA yet (only <a href="source-wav2vec-2.html">source-wav2vec-2</a>-era contrastive audio SSL). Probably 2026/2027.</li><li><strong>Pure-text JEPA.</strong> <a href="source-vl-jepa.html">source-vl-jepa</a> uses text-embedding targets for VLM outputs. Whether a <em>pure</em> language JEPA — predict masked text embeddings from context — can match autoregressive LMs is the most interesting open question on this axis. <a href="source-next-latent-prediction.html">source-next-latent-prediction</a> is an early data point: rather than <em>replacing</em> next-token prediction, it <em>augments</em> it with next-latent prediction, getting belief-state latents while keeping the autoregressive backbone — and reports downstream gains, suggesting the predict-in-latent bet pays off on text even as an auxiliary.</li><li><strong>JEPA + diffusion fusion.</strong> "Denoising with a JEPA" (arXiv 2410.03755) is one early thread; the wiki doesn't have it yet.</li><li><strong>Hierarchical JEPA at scale.</strong> LeCun's H-JEPA (multi-time-scale prediction) is in the 2022 position paper. No scaled artefact yet.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li>Concepts most directly: <a href="concept-jepa.html">concept-jepa</a>, <a href="concept-self-supervised-learning.html">concept-self-supervised-learning</a>, <a href="concept-world-models.html">concept-world-models</a>, <a href="concept-representation-learning.html">concept-representation-learning</a>, <a href="concept-active-inference.html">concept-active-inference</a></li><li>Sibling thread: <a href="thread-test-time-compute.html">thread-test-time-compute</a> — the orthogonal axis ("how much compute to spend at inference" vs "what to predict")</li><li>Analyses: <a href="analysis-world-models-vs-vla.html">analysis-world-models-vs-vla</a>, <a href="analysis-self-distillation-as-universal-lever.html">analysis-self-distillation-as-universal-lever</a></li><li>Org page: <a href="entity-meta-fair.html">entity-meta-fair</a> (most of this thread runs through one lab)</li><li>Guide: <a href="guide-the-three-axes.html">guide-the-three-axes</a> (this thread <em>is</em> Axis 2)</li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2609-37789-predictive-ssl-identifies-stochastic-signals-under-nuisance.md</code></li></ul></details>
+</main>
+</body>
+</html>

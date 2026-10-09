@@ -1,0 +1,354 @@
+{
+  "arch": "tiny-gpt-char",
+  "vocab_size": 65,
+  "block_size": 128,
+  "n_layer": 3,
+  "n_head": 4,
+  "d_model": 128,
+  "d_head": 32,
+  "d_ff": 512,
+  "layer_norm_eps": 1e-05,
+  "tied_lm_head": true,
+  "dtype": "float32",
+  "byte_order": "little-endian",
+  "linear_weight_layout": "[out_features, in_features] row-major; y = x @ W.T + b",
+  "activation": "gelu",
+  "n_tensors": 40,
+  "total_f32": 619776,
+  "tensors": [
+    {
+      "name": "wte.weight",
+      "shape": [
+        65,
+        128
+      ],
+      "offset": 0,
+      "count": 8320
+    },
+    {
+      "name": "wpe.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "offset": 33280,
+      "count": 16384
+    },
+    {
+      "name": "blocks.0.ln1.weight",
+      "shape": [
+        128
+      ],
+      "offset": 98816,
+      "count": 128
+    },
+    {
+      "name": "blocks.0.ln1.bias",
+      "shape": [
+        128
+      ],
+      "offset": 99328,
+      "count": 128
+    },
+    {
+      "name": "blocks.0.attn.qkv.weight",
+      "shape": [
+        384,
+        128
+      ],
+      "offset": 99840,
+      "count": 49152
+    },
+    {
+      "name": "blocks.0.attn.qkv.bias",
+      "shape": [
+        384
+      ],
+      "offset": 296448,
+      "count": 384
+    },
+    {
+      "name": "blocks.0.attn.proj.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "offset": 297984,
+      "count": 16384
+    },
+    {
+      "name": "blocks.0.attn.proj.bias",
+      "shape": [
+        128
+      ],
+      "offset": 363520,
+      "count": 128
+    },
+    {
+      "name": "blocks.0.ln2.weight",
+      "shape": [
+        128
+      ],
+      "offset": 364032,
+      "count": 128
+    },
+    {
+      "name": "blocks.0.ln2.bias",
+      "shape": [
+        128
+      ],
+      "offset": 364544,
+      "count": 128
+    },
+    {
+      "name": "blocks.0.mlp.fc.weight",
+      "shape": [
+        512,
+        128
+      ],
+      "offset": 365056,
+      "count": 65536
+    },
+    {
+      "name": "blocks.0.mlp.fc.bias",
+      "shape": [
+        512
+      ],
+      "offset": 627200,
+      "count": 512
+    },
+    {
+      "name": "blocks.0.mlp.proj.weight",
+      "shape": [
+        128,
+        512
+      ],
+      "offset": 629248,
+      "count": 65536
+    },
+    {
+      "name": "blocks.0.mlp.proj.bias",
+      "shape": [
+        128
+      ],
+      "offset": 891392,
+      "count": 128
+    },
+    {
+      "name": "blocks.1.ln1.weight",
+      "shape": [
+        128
+      ],
+      "offset": 891904,
+      "count": 128
+    },
+    {
+      "name": "blocks.1.ln1.bias",
+      "shape": [
+        128
+      ],
+      "offset": 892416,
+      "count": 128
+    },
+    {
+      "name": "blocks.1.attn.qkv.weight",
+      "shape": [
+        384,
+        128
+      ],
+      "offset": 892928,
+      "count": 49152
+    },
+    {
+      "name": "blocks.1.attn.qkv.bias",
+      "shape": [
+        384
+      ],
+      "offset": 1089536,
+      "count": 384
+    },
+    {
+      "name": "blocks.1.attn.proj.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "offset": 1091072,
+      "count": 16384
+    },
+    {
+      "name": "blocks.1.attn.proj.bias",
+      "shape": [
+        128
+      ],
+      "offset": 1156608,
+      "count": 128
+    },
+    {
+      "name": "blocks.1.ln2.weight",
+      "shape": [
+        128
+      ],
+      "offset": 1157120,
+      "count": 128
+    },
+    {
+      "name": "blocks.1.ln2.bias",
+      "shape": [
+        128
+      ],
+      "offset": 1157632,
+      "count": 128
+    },
+    {
+      "name": "blocks.1.mlp.fc.weight",
+      "shape": [
+        512,
+        128
+      ],
+      "offset": 1158144,
+      "count": 65536
+    },
+    {
+      "name": "blocks.1.mlp.fc.bias",
+      "shape": [
+        512
+      ],
+      "offset": 1420288,
+      "count": 512
+    },
+    {
+      "name": "blocks.1.mlp.proj.weight",
+      "shape": [
+        128,
+        512
+      ],
+      "offset": 1422336,
+      "count": 65536
+    },
+    {
+      "name": "blocks.1.mlp.proj.bias",
+      "shape": [
+        128
+      ],
+      "offset": 1684480,
+      "count": 128
+    },
+    {
+      "name": "blocks.2.ln1.weight",
+      "shape": [
+        128
+      ],
+      "offset": 1684992,
+      "count": 128
+    },
+    {
+      "name": "blocks.2.ln1.bias",
+      "shape": [
+        128
+      ],
+      "offset": 1685504,
+      "count": 128
+    },
+    {
+      "name": "blocks.2.attn.qkv.weight",
+      "shape": [
+        384,
+        128
+      ],
+      "offset": 1686016,
+      "count": 49152
+    },
+    {
+      "name": "blocks.2.attn.qkv.bias",
+      "shape": [
+        384
+      ],
+      "offset": 1882624,
+      "count": 384
+    },
+    {
+      "name": "blocks.2.attn.proj.weight",
+      "shape": [
+        128,
+        128
+      ],
+      "offset": 1884160,
+      "count": 16384
+    },
+    {
+      "name": "blocks.2.attn.proj.bias",
+      "shape": [
+        128
+      ],
+      "offset": 1949696,
+      "count": 128
+    },
+    {
+      "name": "blocks.2.ln2.weight",
+      "shape": [
+        128
+      ],
+      "offset": 1950208,
+      "count": 128
+    },
+    {
+      "name": "blocks.2.ln2.bias",
+      "shape": [
+        128
+      ],
+      "offset": 1950720,
+      "count": 128
+    },
+    {
+      "name": "blocks.2.mlp.fc.weight",
+      "shape": [
+        512,
+        128
+      ],
+      "offset": 1951232,
+      "count": 65536
+    },
+    {
+      "name": "blocks.2.mlp.fc.bias",
+      "shape": [
+        512
+      ],
+      "offset": 2213376,
+      "count": 512
+    },
+    {
+      "name": "blocks.2.mlp.proj.weight",
+      "shape": [
+        128,
+        512
+      ],
+      "offset": 2215424,
+      "count": 65536
+    },
+    {
+      "name": "blocks.2.mlp.proj.bias",
+      "shape": [
+        128
+      ],
+      "offset": 2477568,
+      "count": 128
+    },
+    {
+      "name": "ln_f.weight",
+      "shape": [
+        128
+      ],
+      "offset": 2478080,
+      "count": 128
+    },
+    {
+      "name": "ln_f.bias",
+      "shape": [
+        128
+      ],
+      "offset": 2478592,
+      "count": 128
+    }
+  ]
+}

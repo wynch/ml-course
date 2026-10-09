@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Wavelet Scattering · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="wavelet-scattering">Wavelet Scattering</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-05-14</span> <span>updated 2026-05-14</span> <span class="tag">wavelets</span> <span class="tag">scattering-transform</span> <span class="tag">representation-learning</span> <span class="tag">signal-processing</span> <span class="tag">edge-ai</span> <span class="tag">robustness</span></div>
+<p>Wavelet scattering is a signal representation that looks like a deep convolutional network but replaces learned early filters with fixed wavelet filter banks. A scattering transform repeatedly applies wavelet convolutions, a modulus nonlinearity, and averaging or pooling to build representations that are more invariant and stable than raw pixels, audio samples, or sensor readings.</p>
+<p>The key idea for this wiki:</p>
+<p><strong>Some low-level perceptual structure may be better treated as mathematical geometry than as something the model must relearn from data.</strong></p>
+<h2 id="core-properties">Core Properties</h2>
+<ul><li><strong>Scale separation</strong>: wavelets split a signal into local variations at multiple scales.</li><li><strong>Frequency localization</strong>: coefficients preserve where and at what frequency a structure appears.</li><li><strong>Deformation stability</strong>: small warps or shifts should not destroy the representation.</li><li><strong>Variance reduction</strong>: scattering can reduce irrelevant variability before a learned head sees the signal.</li><li><strong>Fixed early filters</strong>: the substrate has no need to learn generic edges, local oscillations, or scale bands from scratch.</li></ul>
+<h2 id="why-it-is-not-just-feature-engineering">Why It Is Not Just Feature Engineering</h2>
+<p>The scattering transform is not a bag of handcrafted descriptors. It is a structured cascade with an explicit relationship to convolutional networks:</p>
+<ol><li>wavelet filters play the role of first-layer and deeper convolution filters</li><li>modulus replaces a learned nonlinearity</li><li>averaging builds local invariance</li><li>higher-order scattering captures interactions across scales</li></ol>
+<p>The difference from ordinary neural networks is where learning is placed. In scattering, the early perceptual geometry is fixed. Learning can then focus on task-specific composition, residual correction, prediction, and control.</p>
+<h2 id="tradeoff">Tradeoff</h2>
+<p>Scattering's strength is also its risk. Stability and invariance can erase information. Tasks that need exact geometry, identity, phase, causality, or controllable reconstruction may need:</p>
+<ul><li>less averaging</li><li>phase-aware statistics</li><li>adaptive wavelets</li><li>residual learners</li><li>sparse event routing</li><li>task-conditioned selection of scale and orientation</li></ul>
+<p>This is why the wiki should treat scattering as a substrate, not as a complete model.</p>
+<h2 id="2026-direction">2026 Direction</h2>
+<p>The newest relevant 2026 papers move scattering in three directions:</p>
+<ul><li><strong>Moment-constrained generation</strong>: <a href="source-mallat-2026-moment-generative-models.html">source-mallat-2026-moment-generative-models</a> uses scattering moments as constraints or feature maps for maximum-entropy and training-free generative modeling.</li><li><strong>Budgeted computation</strong>: <a href="source-scrapl-random-path-scattering.html">source-scrapl-random-path-scattering</a> samples scattering paths to reduce the cost of scattering-based objectives.</li><li><strong>Uncertainty under shift</strong>: <a href="source-bayesian-scattering-uncertainty.html">source-bayesian-scattering-uncertainty</a> couples scattering features with a probabilistic head as a distribution-shift baseline.</li></ul>
+<p>For the local research program, this makes calibration, sparse path selection, and residual prediction more important than clean accuracy alone.</p>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="entity-stephane-mallat.html">entity-stephane-mallat</a> — principal source for the scattering program.</li><li><a href="source-bundle-wavelet-scattering-and-substrate.html">source-bundle-wavelet-scattering-and-substrate</a> — selected academic corpus.</li><li><a href="analysis-2026-wavelet-scattering-update.html">analysis-2026-wavelet-scattering-update</a> — newest paper pass and experiment implications.</li><li><a href="concept-representation-learning.html">concept-representation-learning</a> — scattering is an inductive-bias-first representation.</li><li><a href="concept-self-supervised-learning.html">concept-self-supervised-learning</a> — contrast with learned feature discovery.</li><li><a href="concept-jepa.html">concept-jepa</a> and <a href="thread-predict-in-latent-space.html">thread-predict-in-latent-space</a> — scattering can define a stable low-level state whose residuals are predicted.</li><li><span class="dead" title="not published">experiment-wavelet-substrate-network</span> — proposed benchmark for edge intelligence.</li><li><span class="dead" title="not published">experiment-scale-aware-entity-persistence</span> — possible higher-level loop: rule discovery changes scale/orientation/event selection below.</li></ul>
+<h2 id="research-use-in-this-wiki">Research Use In This Wiki</h2>
+<p>The practical question is not "wavelets instead of neural networks." It is:</p>
+<p><strong>Can fixed multiscale operators reduce the amount of learned neural machinery needed for robust edge intelligence?</strong></p>
+<p>The first evidence gate should be small, strict, and comparative: same data, same budget, a tiny learned network versus scattering plus a small learned head, evaluated on accuracy per parameter, sample efficiency, latency, memory, and robustness to noise and deformation.</p>
+<h2 id="references">References</h2>
+<ul><li><a href="source-mallat-group-invariant-scattering.html">source-mallat-group-invariant-scattering</a></li><li><a href="source-kymatio-scattering-transforms-python.html">source-kymatio-scattering-transforms-python</a></li><li><a href="source-mallat-scattering-spectra-physics.html">source-mallat-scattering-spectra-physics</a></li><li><a href="source-beyond-sparse-denoising-scattering.html">source-beyond-sparse-denoising-scattering</a></li><li><a href="source-wavelet-convolutions-large-receptive-fields.html">source-wavelet-convolutions-large-receptive-fields</a></li><li><a href="source-mallat-2026-moment-generative-models.html">source-mallat-2026-moment-generative-models</a></li><li><a href="source-scrapl-random-path-scattering.html">source-scrapl-random-path-scattering</a></li><li><a href="source-bayesian-scattering-uncertainty.html">source-bayesian-scattering-uncertainty</a></li></ul>
+<details class="src"><summary>Sources (9)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/stephane-mallat-wavelet-scattering-selected-sources.md</code></li><li><code>wiki/source-mallat-group-invariant-scattering.md</code></li><li><code>wiki/source-kymatio-scattering-transforms-python.md</code></li><li><code>wiki/source-mallat-scattering-spectra-physics.md</code></li><li><code>wiki/source-beyond-sparse-denoising-scattering.md</code></li><li><code>wiki/source-wavelet-convolutions-large-receptive-fields.md</code></li><li><code>wiki/source-mallat-2026-moment-generative-models.md</code></li><li><code>wiki/source-scrapl-random-path-scattering.md</code></li><li><code>wiki/source-bayesian-scattering-uncertainty.md</code></li></ul></details>
+</main>
+</body>
+</html>

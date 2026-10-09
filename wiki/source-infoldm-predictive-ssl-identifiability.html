@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Predictive Self-Supervised Learning Provably Identifies Stochastic Signals under Nuisance (Mikulasch &amp; Zenke, 2026) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="infoldm-predictive-ssl-identifies-stochastic-signals-under-nuisance">InfoLDM: Predictive SSL Identifies Stochastic Signals under Nuisance</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-09</span> <span>updated 2026-10-09</span> <span class="tag">self-supervised-learning</span> <span class="tag">identifiability</span> <span class="tag">representation-learning</span> <span class="tag">mutual-information</span> <span class="tag">world-models</span> <span class="tag">theory</span> <span class="tag">2026</span></div>
+<p><strong>Authors:</strong> Fabian A. Mikulasch, Friedemann Zenke (Friedrich Miescher Institute for Biomedical Research and University of Basel) <strong>Published:</strong> arXiv 2609.37789, v1 2026-09-29 <strong>Raw copy:</strong> <code>raw/arxiv-2609-37789-predictive-ssl-identifies-stochastic-signals-under-nuisance.md</code> (captured 2026-10-09, full text of v1) <strong>Thread:</strong> <code>raw/tweet-zenke-infoldm-predictive-ssl-identifies.md</code> (Zenke on X, 2026-10-08, eight posts; how the link arrived) <strong>Code and Lean proof:</strong> <a href="https://github.com/fmi-basel/identifiable-stochastic-nuisance" rel="noreferrer">https://github.com/fmi-basel/identifiable-stochastic-nuisance</a> · <strong>Site:</strong> <a href="https://info-ldm.github.io/" rel="noreferrer">https://info-ldm.github.io/</a> (not captured)</p>
+<p>Every claim below cites the paper's raw file as R, with its section number, or the thread as T, with its post number.</p>
+<p>The arXiv HTML, and so R, lost the long forms of the acronyms. The PDF (https://arxiv.org/pdf/2609.37789v1, checked 2026-10-09) gives them: SSL, self-supervised learning; MI, mutual information; LDM, latent distribution matching, which R shows as "DM" and which gives InfoLDM its name; ICA, independent component analysis.</p>
+<h2 id="summary">Summary</h2>
+<p>The usual story for self-supervised learning that predicts in latent space: it works on messy data because it can ignore nuisance, the details that do not help predict (R, §1). The paper names the catch. The signal one wants is itself random, so both the signal's own noise and the nuisance make the next observation unpredictable. How would the model tell them apart (R, Abstract; T, posts 1-2)?</p>
+<p>Earlier identifiability results covered one case or the other: random signal dynamics with no nuisance, or nuisance with a signal that is the same in both views (R, §1, §2). "Identifiable" means the learned representation equals the true hidden variables up to a simple map, here an affine one.</p>
+<p>The paper's answer: the objective behind InfoNCE, SimCLR and VICReg splits into two parts, and each does one job (R, §3, Eq. 1):</p>
+<ul><li><strong>Predictive mutual information</strong> between the representation z and the encoded context z_c keeps everything the context can predict.</li><li><strong>Distribution matching</strong> forces the joint distribution of (z, z_c) to fit a simple learned model p_θ, for instance a Gaussian predictor. This part decides how the kept information is laid out, and so makes it identifiable.</li></ul>
+<p>The authors call the combined objective InfoLDM. Which entropy estimator one plugs in gives the familiar methods: a kernel density estimate relates to SimCLR, a log-determinant of the covariance to VICReg (R, §3).</p>
+<p><strong>Theorem 1.</strong> Suppose the nuisance carries no information about the context beyond the signal, the true and learned predictors are exponential families, the objective reaches its global optimum, and two diversity conditions hold. Then the true sufficient statistic is an affine function of the learned one, and the learned statistic needs at least as many dimensions as the true one (R, §3.1, Eq. 8). For Gaussian predictors this becomes s = Az + b (R, §3.2, Corollary 1, Eq. 11).</p>
+<p>The paper says neither part is enough alone: mutual information guarantees the signal is kept, and matching alone decides how it is encoded (R, §1).</p>
+<h2 id="key-results">Key results</h2>
+<ul><li><strong>Synthetic sequences:</strong> a 5-step signal with ρ = 0.9, 15 nuisance dimensions, mapped by a fixed network to 100-dimensional observations (R, §4). With the log-determinant estimator, R² against the true signal is 0.99 at 5 signal dimensions, 0.95 at 10, 0.78 at 15 and 0.68 at 20. The kernel estimator does worst: 0.92, 0.81, 0.60, 0.48 (R, §4, Table 1).</li><li><strong>Causal3DIdent images:</strong> pairs of rendered images where a chosen set of factors is linked across the pair (ρ = 0.9) and the rest varies freely (R, §4.1). With a 10-dimensional latent and the kernel estimator, every linked factor reads out at R² 0.92 to 0.98 (R, §4.1, Table 2). Some nuisance leaks: with the environment as signal and the kernel estimator, object y-position reads out at 0.47; with the object as signal and the k-nearest-neighbour estimator, background hue at 0.56 (R, Table 2), 0.69 with a nonlinear probe (R, Appendix A.4.1, Table 3).</li><li><strong>MuJoCo hopper with actions and nuisance:</strong> random body colours, lighting, camera and a noisy background change every frame (R, §4.2, Appendix A.3; T, post 5). All latent-prediction models give a 16-dimensional state from which a linear probe reads the hopper's pose and velocity (R, §4.2, Figure 3D); velocity is read from the LSTM state that sums up past latents (R, Appendix Figure 4 caption). Adding an image decoder loss gives latents that cannot be decoded to the hopper state but do encode parts of the nuisance (R, §4.2, Appendix Figure 4; T, post 6). §4.2 words this as an "image encoder with attached gradient"; Appendix A.3 describes the attached decoder loss.</li><li><strong>Proof check:</strong> the main step of Theorem 1 is formalised in Lean, starting from the conditional independences that mutual-information saturation implies; mutual information and the optimisation are not formalised (R, Appendix A.2). Generative AI helped write and correct the proofs (R, AI use statement).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>The theorem assumes the global optimum: exact distribution matching and all predictive information kept. The authors call this assumption the strongest (R, §3.1, Assumption 3). On Causal3DIdent the paper reports "intermittent optimization failures" (R, Table 2 caption).</li><li>Nothing in the theory forces the model to drop nuisance. Unless the latent has exactly as many dimensions as the signal, nuisance may be kept beside it, and the entropy term "in principle should encourage this" (R, §3.2, §5). In practice nuisance was often not decodable, either because it collapsed or because it was stored in a way hard to read (R, §5).</li><li>Results depend on the entropy estimator, and the best one changes with the data: the kernel estimator was worst on the synthetic task and best on Causal3DIdent (R, §4, §4.1). The authors call better entropy estimation "one of the most pressing open problems" (R, §5).</li><li>Only Gaussian predictors were tested (R, §5). The hopper breaks the theorem's assumptions, since noise enters at every simulation step, not every frame (R, Appendix A.3).</li><li>Recovery degrades with signal size: R² stays above 0.9 only up to 10 dimensions in the synthetic test (R, Table 1).</li><li>Small models and simulated data: MLPs, ResNet-18, a five-step synthetic sequence, rendered images, one MuJoCo body (R, §4, Appendix A.3). The hopper numbers are plots; the raw copy has captions only.</li><li>The thread's opening lists "JEPA, CPC, SimCLR" (T, post 1); the paper backs two of the three. Its theory covers the objective of Eq. 1, which it says InfoNCE, SimCLR and VICReg maximise (R, §3). InfoNCE comes from the CPC paper (Oord et al., 2018), and the related work names CPC among the contrastive methods tied to latent-variable models (R, §2, §3). The paper never names JEPA, BYOL, a stop-gradient or an EMA target; the nearest it comes is the abstract's "predicting in latent space" and a citation of Dawid and LeCun (2024) as SSL (R, Abstract, §1). It does not say whether a JEPA with an EMA target and no entropy term fits Eq. 1.</li><li>Rolling the learned dynamics forward from a few frames is "ongoing work", shown in the thread and not in the paper (T, post 7).</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="concept-jepa.html">concept-jepa</a> and <a href="source-ijepa-self-supervised-learning.html">source-ijepa-self-supervised-learning</a> — the "drop what is unpredictable" story this paper makes precise, and qualifies.</li><li><a href="thread-predict-in-latent-space.html">thread-predict-in-latent-space</a> — a theory result for the thread's central bet.</li><li><a href="concept-self-supervised-learning.html">concept-self-supervised-learning</a> — the anti-collapse terms read as distribution matching.</li><li><a href="source-ssl-contrastive-foundations.html">source-ssl-contrastive-foundations</a> — SimCLR and InfoNCE as one estimator choice (R, §3).</li><li><a href="source-ssl-decorrelation.html">source-ssl-decorrelation</a> — VICReg as the log-determinant choice (R, §3).</li><li><a href="source-contrastive-learning-gaussian-representations.html">source-contrastive-learning-gaussian-representations</a> — another result on why contrastive codes come out Gaussian.</li><li><a href="concept-representation-learning.html">concept-representation-learning</a> · <a href="concept-world-models.html">concept-world-models</a> (the hopper is a small latent world model with actions)</li></ul>
+<h2 id="references">References</h2>
+<ul><li>Raw: <code>raw/arxiv-2609-37789-predictive-ssl-identifies-stochastic-signals-under-nuisance.md</code></li><li>Thread: <code>raw/tweet-zenke-infoldm-predictive-ssl-identifies.md</code></li><li>arXiv: <a href="https://arxiv.org/abs/2609.37789" rel="noreferrer">https://arxiv.org/abs/2609.37789</a> · HTML: <a href="https://arxiv.org/html/2609.37789v1" rel="noreferrer">https://arxiv.org/html/2609.37789v1</a> · PDF: <a href="https://arxiv.org/pdf/2609.37789v1" rel="noreferrer">https://arxiv.org/pdf/2609.37789v1</a> (acronym long forms only)</li><li>Earlier work by the same authors, cited throughout: Mikulasch and Zenke, 2026 (not in this wiki)</li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2609-37789-predictive-ssl-identifies-stochastic-signals-under-nuisance.md</code></li><li><code>raw/tweet-zenke-infoldm-predictive-ssl-identifies.md</code></li><li><a href="https://arxiv.org/abs/2609.37789" rel="noreferrer">https://arxiv.org/abs/2609.37789</a></li></ul></details>
+</main>
+</body>
+</html>

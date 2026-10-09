@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Scaling up Test-Time Compute with Latent Reasoning: A Recurrent Depth Approach (Geiping et al., 2025) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="recurrent-depth-latent-reasoning-by-looping-a-block">Recurrent Depth: Latent Reasoning by Looping a Block</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-09-26</span> <span>updated 2026-10-03</span> <span class="tag">latent-reasoning</span> <span class="tag">recurrence</span> <span class="tag">looped-transformers</span> <span class="tag">test-time-compute</span> <span class="tag">adaptive-compute</span> <span class="tag">fixed-points</span> <span class="tag">pretraining</span></div>
+<p><strong>Authors:</strong> Jonas Geiping, Sean McLeish, Neel Jain, John Kirchenbauer, Siddharth Singh, Brian R. Bartoldson, Bhavya Kailkhura, Abhinav Bhatele, Tom Goldstein <strong>Published:</strong> arXiv 2502.05171, v1 2025-02-07, v2 2025-02-17 <strong>Model:</strong> Huginn-0125, 3.5B parameters, on Hugging Face (<code>tomg-group-umd/huginn-0125</code>) <strong>Raw copy:</strong> <code>raw/arxiv-2502-05171-recurrent-depth-latent-reasoning.md</code> (captured 2026-09-26, full text of v2)</p>
+<p>Every claim below cites the raw file as R, with the paper's section number.</p>
+<h2 id="summary">Summary</h2>
+<p>Here the extra room to think is not tokens but depth. The model has three parts: a prelude of 2 layers that embeds the input, a core block of 4 layers that runs r times, and a coda of 2 layers that predicts the next token. The core starts from random noise and at every step sees both its own last state and the embedded input again (R, §3.1, §3.2). With r = 32 the 8 real layers unfold to 132 (R, §3.2).</p>
+<p><strong>What supervises the loop:</strong> nothing but the ordinary next-token loss. During pretraining each sequence gets a random r, drawn from a heavy-tailed log-normal Poisson law centred on r̄ = 32, and gradients flow back through only the last 8 iterations, so memory does not grow with r (R, §3.3, §4.1). No chain-of-thought data is needed (R, §2).</p>
+<p>The run: 800B tokens of public data, a mix of code, maths, science and web text, on up to 4,096 AMD GPUs of the Frontier supercomputer; two earlier runs failed when the hidden state collapsed, which the authors trace to norms and initialization (R, §4.1-4.3, Figure 5).</p>
+<h2 id="key-results">Key results</h2>
+<ul><li><strong>More loops, better answers:</strong> GSM8k CoT (8-shot, flexible match) rises from 0.00 at r = 1 to 42.08 at r = 32; ARC-Challenge 24.06 → 38.23 (R, Table 4). Easy tasks saturate early (HellaSwag near peak at 8 loops); GSM8k and HumanEval keep gaining (R, Figure 7).</li><li><strong>Against its own non-looped twin</strong> trained the same way for 180B tokens: ARC-C 26.96 vs 29.18, HellaSwag 37.34 vs 48.80, GSM8k CoT 1.82 vs 9.02 (strict) (R, Table 4, §5.3).</li><li><strong>Against open models:</strong> roughly level with OLMo-7B (first generation) on most tasks, behind later OLMo models (R, §5.1, Table 1). GSM8k 34.80 / 42.08 (strict / flexible) with a system prompt; OLMo-2-1124-7B scores 61.94 / 66.19 (R, Table 2). With weight averaging, 47.23% flexible at r = 64 (R, §5.4). The authors put test-time compute up to the FLOPs of a 50B-parameter fixed-depth model (R, §5.1).</li><li><strong>Reasoning more than recall:</strong> on OpenBookQA with the relevant fact supplied, it gains 11.0 points (38.2 → 49.2), among the larger gains of the models compared (R, Table 5). More few-shot examples make it use more loops before saturating: about 8-12 with none, about 32 with 25-50 (R, §5.3, Figure 9).</li><li><strong>Free extras:</strong> stopping each token when the KL divergence between two successive steps falls below 5 × 10⁻⁴ keeps MTBench at 5.56 vs 5.63; high-school maths exits sooner than moral scenarios, by 3.5 steps on average (R, §6.1). Sharing a 4-step KV cache across loops: MTBench 5.86 (R, §6.2). Starting each token's loop from the previous token's final state, which the authors liken to Coconut, cuts 1-2 steps (R, §6.3).</li><li><strong>What the loop does:</strong> most token states converge to a point; some trace orbits, for example a number token in a GSM8k question; some drift steadily in one direction ("sliders"). Starting from different noise gives the same patterns (R, §7, Figures 11-12).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>One large run, a learning rate never cooled, an untested data mix; the authors call the model a proof of concept (R, §5.1, §10).</li><li>The looped model is compared to its non-looped twin only at 180B tokens (R, §5.3).</li><li>At r = 1 the final model scores 0.00 on GSM8k CoT and below its early checkpoint on SciQ (47.10 vs 54.10), so the non-looped path is not a usable fallback (R, Table 4).</li><li>Latent loops leave no text to check; the authors name the loss of oversight and offer the trajectory plots as a first answer (R, "Potential Implications of This Work").</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-loopcd-decoding-looped-transformers.html">source-loopcd-decoding-looped-transformers</a> — tests Huginn-0125 as one of four looped families. Its loop settles by the middle: next-token entropy falls from 4.1 to 2.7 nats by step 16 and stays flat to step 32 (<code>raw/arxiv-2610-02185-decoding-looped-transformers-better-for-almost.md</code>, Appendix E.3). Pushing the step-32 guess away from an early step's raises HumanEval pass@1 from 22.56 to 31.71, and at 16 loops the guided model beats unguided 32 loops on multiple choice by 1.02 points (<code>raw/arxiv-2610-02185-decoding-looped-transformers-better-for-almost.md</code>, §4.1, §4.3). The noise start shows there too: the first hidden state is mostly noise, so the hidden-state form uses step 6 or 7 (<code>raw/arxiv-2610-02185-decoding-looped-transformers-better-for-almost.md</code>, Appendix E.1).</li><li><a href="source-varunneal-diffusion-will-be-everywhere.html">source-varunneal-diffusion-will-be-everywhere</a> — an essay that cites this paper among looped models that cannot scale beyond their trained loop range, and argues text diffusion can (<code>raw/web-2026-varunneal-diffusion-everywhere.md</code>, "Test-time scaling", footnote 22). This paper's gains run to r = 32, its training mean (§3.3, §4.1, Table 4).</li><li><a href="source-equilibrium-reasoners.html">source-equilibrium-reasoners</a> — also a weight-tied block iterated to a stable state, with depth as the compute knob; that paper trains toward attractors on puzzles, this one uses only next-token loss on language.</li><li><a href="source-topological-trouble-transformers.html">source-topological-trouble-transformers</a> — puts dynamic-depth models among memory-costly workarounds. Contradiction (partial): this paper argues latent recurrence needs less memory than chain-of-thought in training and inference, and caps training memory by backpropagating through only 8 loops (R, §2, §3.3). See the line on that page.</li><li><a href="source-coconut-continuous-latent-reasoning.html">source-coconut-continuous-latent-reasoning</a> — the paper sets itself beside Coconut: both reason in latent space; Coconut finetunes a fixed-depth model on written chains, this one pretrains the loop from scratch without them (R, §6.3, §8).</li><li><a href="source-pause-tokens.html">source-pause-tokens</a> — pauses add width; the loop adds depth.</li><li><a href="source-mixture-of-depths.html">source-mixture-of-depths</a> — another route to per-token compute; here the per-token exit comes with no extra training (R, §6.1).</li><li><a href="concept-test-time-compute.html">concept-test-time-compute</a> · <a href="concept-transformer-architecture.html">concept-transformer-architecture</a> · <a href="thread-test-time-compute.html">thread-test-time-compute</a></li><li>Local tie-in: the compass fixed-point experiment found no convergence in an untied 32-layer stack; this model is one block applied again and again, where convergence has meaning, and even here some tokens orbit instead (R, §7).</li></ul>
+<h2 id="references">References</h2>
+<ul><li>Raw: <code>raw/arxiv-2502-05171-recurrent-depth-latent-reasoning.md</code></li><li>arXiv: <a href="https://arxiv.org/abs/2502.05171" rel="noreferrer">https://arxiv.org/abs/2502.05171</a> · HTML: <a href="https://arxiv.org/html/2502.05171" rel="noreferrer">https://arxiv.org/html/2502.05171</a> · Model: <a href="https://huggingface.co/tomg-group-umd/huginn-0125" rel="noreferrer">https://huggingface.co/tomg-group-umd/huginn-0125</a> · Code: <a href="https://github.com/seal-rg/recurrent-pretraining" rel="noreferrer">https://github.com/seal-rg/recurrent-pretraining</a></li></ul>
+<details class="src"><summary>Sources (6)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2502-05171-recurrent-depth-latent-reasoning.md</code></li><li><a href="https://arxiv.org/abs/2502.05171" rel="noreferrer">https://arxiv.org/abs/2502.05171</a></li><li><a href="https://huggingface.co/tomg-group-umd/huginn-0125" rel="noreferrer">https://huggingface.co/tomg-group-umd/huginn-0125</a></li><li><a href="https://github.com/seal-rg/recurrent-pretraining" rel="noreferrer">https://github.com/seal-rg/recurrent-pretraining</a></li><li><code>raw/arxiv-2610-02185-decoding-looped-transformers-better-for-almost.md</code></li><li><code>raw/web-2026-varunneal-diffusion-everywhere.md</code></li></ul></details>
+</main>
+</body>
+</html>

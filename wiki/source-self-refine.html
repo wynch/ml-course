@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Self-Refine: Iterative Refinement with Self-Feedback · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="self-refine-iterative-refinement-with-self-feedback">Self-Refine: Iterative Refinement with Self-Feedback</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-06</span> <span>updated 2026-05-18</span> <span class="tag">reasoning</span> <span class="tag">self-improvement</span> <span class="tag">scaffolding</span> <span class="tag">test-time-compute</span> <span class="tag">2023</span> <span class="tag">neurips</span></div>
+<p><strong>Madaan, Tandon, Gupta, Hallinan, Gao, Wiegreffe, Alon, Dziri, Prabhumoye, Yang, Welleck, Majumder, Gupta, Yazdanbakhsh, Clark — arXiv 2303.17651, March 2023 (NeurIPS 2023)</strong></p>
+<p>Same LLM plays three roles in a single inference loop: <strong>generator → feedback giver → refiner</strong>, repeating until a stopping condition. No supervised data, no extra model, no training — and yet on average it adds ~20 absolute percentage points across 7 diverse tasks. The minimal viable scaffold.</p>
+<h2 id="method">Method</h2>
+<p>The loop, in plain prose:</p>
+<ol><li>The LLM produces an initial answer to the task prompt.</li><li>The same LLM is re-prompted with the answer and asked to <em>critique</em> it (specific feedback: "the explanation is unclear here," "the code mishandles edge case X").</li><li>The LLM is re-prompted with the original input + previous answer + feedback, and produces a refined answer.</li><li>Repeat until self-feedback says "good enough" or a max-iteration budget is hit.</li></ol>
+<p>Crucially, <strong>prompts for the three roles are different</strong>, but the model is the same — the structure is purely in how the inference loop is wired.</p>
+<h2 id="key-numbers">Key numbers</h2>
+<ul><li>Tested on <strong>7 tasks</strong> spanning dialog response, code optimisation, code readability, math reasoning, sentiment reversal, acronym generation, constrained generation.</li><li>Average improvement: <strong>~+20 absolute percentage points</strong> over single-shot baselines.</li><li>Tested on <strong>GPT-3.5, ChatGPT, GPT-4</strong> — gains hold for the strongest model, refuting "this is just patching weak base models."</li><li>Outputs preferred by both human evaluators and automatic metrics across all task types.</li></ul>
+<h2 id="why-it-matters">Why it matters</h2>
+<p>Self-Refine is the <strong>simplest member of the 2023 scaffolding family</strong> — strictly less expressive than <a href="source-tree-of-thoughts.html">source-tree-of-thoughts</a> (no branching) and <a href="source-reflexion-verbal-rl.html">source-reflexion-verbal-rl</a> (no episodic memory across attempts), yet competitive on many tasks. That's the punchline: a <em>huge</em> amount of headroom is reachable by just <strong>asking the model to look at its own output and try again</strong>.</p>
+<p>The paper anchors three threads in this wiki:</p>
+<ul><li><a href="concept-test-time-compute.html">concept-test-time-compute</a> — the canonical "spend more tokens, get better answers" instance after <a href="source-chain-of-thought-foundations.html">source-chain-of-thought-foundations</a> and <a href="source-chain-of-thought-foundations.html">source-chain-of-thought-foundations</a>.</li><li><a href="concept-self-improvement.html">concept-self-improvement</a> — predates the gradient-free self-improvement work (<a href="source-sdpo-self-distillation-rl.html">source-sdpo-self-distillation-rl</a>, <a href="source-randopt-gaussian-noise-llms.html">source-randopt-gaussian-noise-llms</a>).</li><li><a href="concept-llm-reasoning.html">concept-llm-reasoning</a> — fuels the debate: if the model can already produce the right answer in iteration 3, why didn't it produce it in iteration 1? Either feedback is genuinely informative, or the model was <em>capable</em> but undersampled — the same question <a href="source-distribution-sharpening-power-sampling.html">source-distribution-sharpening-power-sampling</a> formalises as latent-distribution sharpening.</li></ul>
+<p>Self-Refine + <a href="source-reflexion-verbal-rl.html">source-reflexion-verbal-rl</a> differ mainly in <em>temporal scope</em>: Self-Refine refines within a single attempt; Reflexion accumulates lessons across episodes. Tree-of-Thoughts (<a href="source-tree-of-thoughts.html">source-tree-of-thoughts</a>) adds a branching topology. Together the three define the canonical 2023 scaffolding triad and seeded everything in <a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a> that followed.</p>
+<h2 id="references">References</h2>
+<ul><li>arXiv: <a href="https://arxiv.org/abs/2303.17651" rel="noreferrer">https://arxiv.org/abs/2303.17651</a></li><li>Companion scaffolds: <a href="source-tree-of-thoughts.html">source-tree-of-thoughts</a>, <a href="source-reflexion-verbal-rl.html">source-reflexion-verbal-rl</a></li><li>Predecessor: <a href="source-chain-of-thought-foundations.html">source-chain-of-thought-foundations</a>, <a href="source-chain-of-thought-foundations.html">source-chain-of-thought-foundations</a></li><li>Successors: <a href="source-pdr-rethinking-thinking-tokens.html">source-pdr-rethinking-thinking-tokens</a></li><li>Concepts: <a href="concept-llm-reasoning.html">concept-llm-reasoning</a>, <a href="concept-test-time-compute.html">concept-test-time-compute</a>, <a href="concept-self-improvement.html">concept-self-improvement</a>, <a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a></li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2303.17651" rel="noreferrer">https://arxiv.org/abs/2303.17651</a></li></ul></details>
+</main>
+</body>
+</html>

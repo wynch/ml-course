@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Local Support Learning (Ben-Kish, Kumar, Glass, Giryes, 2026) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="local-support-learning">Local Support Learning</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-03</span> <span>updated 2026-10-03</span> <span class="tag">continual-learning</span> <span class="tag">catastrophic-forgetting</span> <span class="tag">lora</span> <span class="tag">fine-tuning</span> <span class="tag">gating</span> <span class="tag">gaussian-mixture</span> <span class="tag">post-training</span> <span class="tag">2026</span></div>
+<p><strong>Authors:</strong> Assaf Ben-Kish (Tel Aviv University, visiting MIT CSAIL), Akarsh Kumar (MIT CSAIL), James Glass (MIT CSAIL), Raja Giryes (Tel Aviv University) <strong>Published:</strong> arXiv 2610.02126, v1 2026-10-01; project page <a href="https://assafbk.github.io/lsl/" rel="noreferrer">https://assafbk.github.io/lsl/</a> <strong>Raw copies:</strong> <code>raw/arxiv-2610-02126-local-support-learning.md</code> (main source, full text of v1) and <code>raw/web-2026-assafbk-local-support-learning.md</code> (project page, the link Vincent saved), both captured 2026-10-03</p>
+<p>Claims cite the paper as R and the project page as W, with section names.</p>
+<h2 id="summary">Summary</h2>
+<p>Fine-tuning a model on a new task makes it forget old skills. The paper's account: a gradient step on one weight matrix, ΔW = −α (∂L/∂v) xᵀ, changes the output for every input x not orthogonal to the training input, so old inputs move too (R, §3, Eq. 2-3). The update is global; it should be local to the data that produced it (R, §3).</p>
+<p>LSL keeps each new adapter (a LoRA) off unless the input looks like its own training data. For every weight matrix it fits two Gaussian mixtures over that matrix's inputs: Φ_pos on the new task, and a wider Φ_neg once, on about a million generic tokens. A token goes through the adapter only where Φ_pos(x) − Φ_neg(x) &gt; 0; elsewhere the matrix behaves exactly as before (R, §4, Eq. 4; W, "How does it work?"). A moving average smooths the gate over tokens (R, §4).</p>
+<p>The reason for Gaussians: their density falls fast away from the data, so the gate tends to stay shut on inputs it never saw. The paper shows that a gate's training data cannot say anything about where it opens off the data; that has to come from the model family (R, §3, Appendix E.2-E.3).</p>
+<h2 id="key-results">Key results</h2>
+<p>Qwen2.5-7B-Instruct, fine-tuned on chemistry, English→Igbo translation and cybersecurity; retention measured on GSM8K, HumanEval and IFEval; three seeds (R, §5.1, Appendix D).</p>
+<ul><li><strong>One task:</strong> near-full retention while learning the task; LoRA and OP-LoRA forget in every setting, Learning without Forgetting (a distillation penalty) less so (R, §5.1, Figure 4). The paper gives these as a plot; exact numbers are not in the text.</li><li><strong>Three tasks in turn:</strong> the LoRA baseline loses 44% on the pretraining benchmarks after one phase; LSL keeps them, and keeps each finished task (R, Figure 5 caption, §5.1). LoRA loses 8% on task 1 after two phases and 5% on task 2 after one (R, §5.1).</li><li><strong>Hyperparameters:</strong> learning rate, rank and batch size trade learning against forgetting for LoRA, but not for LSL (R, §5.1, Figure 6).</li><li><strong>Size:</strong> retention 88% at 1.5B, 97% at 3B, 99% at 7B (W, "Additional results"; R, Figure 7 shows the trend).</li><li><strong>What does the work:</strong> the Gaussian gate takes retention from 76.6% to 96.6% of the base model; smoothing adds the rest, to 98.8% (R, §4, §5.2). A union of small spheres around stored inputs retains as well but needs about 5.67 GB, against 13.8 MB for the mixtures. A small neural classifier as gate retains less, because nothing keeps it shut off its data (R, §5.2).</li><li><strong>Leaks:</strong> the gate still opens on about 16% of tokens from unrelated pretraining tasks, 5% with smoothing (R, §4).</li><li><strong>Cost:</strong> 6.9 MB per phase; 86 ms of added latency per forward pass on a B200; training time × 1.64 with the mixture fitting (R, §5.1, Efficiency).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>Retention scores appear as plots; the text gives only the ratios above.</li><li>The page says LSL adds "about 21% inference latency over a LoRA baseline (86 ms per forward pass)" (W, "Additional results"); the paper says it "adds only 86ms of inference latency per forward pass" (R, §5.1). The two read differently.</li><li>Adapters cannot be merged into the weights, so inference cost grows with the number of phases; tested phases: three (R, §6 Limitations, §5.1).</li><li>The theory covers one weight matrix; the whole network is shown only by experiment (R, §6).</li><li>The multiphase runs cap each benchmark at 300 samples (R, Appendix D). Baselines are tuned for the new task only, which shows them at full learning, where they forget most (R, §5.1).</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-lora-low-rank-adaptation.html">source-lora-low-rank-adaptation</a> — LSL leaves LoRA training unchanged and adds a gate; LoRA alone still forgets here (R, §2, §5.1).</li><li><a href="source-inkling-thinking-machines.html">source-inkling-thinking-machines</a> — another fix for forgetting: distil the tuned model back toward its old self. LSL tries to stop the damage instead of repairing it.</li><li><span class="dead" title="not published">experiment-weights-vs-context</span> — Vincent's stopped experiment found raw-text LoRA at 1.7B had no setting where new facts and instruction-following both survived. LSL reports the same trade-off for LoRA and claims a gate removes it at 1.5B-7B (R, §5.1, Figure 6). Untested on that stream.</li><li><a href="source-natively-unlearnable-llms.html">source-natively-unlearnable-llms</a> — the mirror move: switch off parts of a model at deploy time to forget.</li><li><a href="concept-continual-learning.html">concept-continual-learning</a> — the topic hub.</li><li><a href="concept-mixture-of-experts.html">concept-mixture-of-experts</a> — per-token gates look like expert routing; the wiki's reading. The paper's only router test is one gate after the embeddings for all adapters, which recovers 50-77% of LSL's gain on the new task (R, §5.2).</li></ul>
+<h2 id="references">References</h2>
+<ul><li>Paper: <code>raw/arxiv-2610-02126-local-support-learning.md</code> · <a href="https://arxiv.org/abs/2610.02126" rel="noreferrer">https://arxiv.org/abs/2610.02126</a> · HTML: <a href="https://arxiv.org/html/2610.02126v1" rel="noreferrer">https://arxiv.org/html/2610.02126v1</a></li><li>Project page: <code>raw/web-2026-assafbk-local-support-learning.md</code> · <a href="https://assafbk.github.io/lsl/" rel="noreferrer">https://assafbk.github.io/lsl/</a> · Code: <a href="https://github.com/assafbk/local_support_learning" rel="noreferrer">https://github.com/assafbk/local_support_learning</a></li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2610-02126-local-support-learning.md</code></li><li><code>raw/web-2026-assafbk-local-support-learning.md</code></li><li><a href="https://arxiv.org/abs/2610.02126" rel="noreferrer">https://arxiv.org/abs/2610.02126</a></li><li><a href="https://assafbk.github.io/lsl/" rel="noreferrer">https://assafbk.github.io/lsl/</a></li></ul></details>
+</main>
+</body>
+</html>

@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz · Fine-tuning · ML course</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d; --track:#1f918d; --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67; --grid:rgba(28,36,34,.10);
+  --warn:#c1121f; --soft:rgba(31,145,141,.10);
+  --wrong:#c0504d; --wrong-soft:rgba(192,80,77,.10);
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --grid:rgba(232,238,236,.12); --warn:#ff8f85;
+    --soft:rgba(31,145,141,.16);
+    --wrong:#f0938f; --wrong-soft:rgba(240,147,143,.13);
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;padding-bottom:5.6rem}
+a{color:var(--accent)}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;background:var(--track);color:var(--track-ink);
+  padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.topbar .spacer{flex:1 1 auto}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:920px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 2rem}
+.intro{max-width:70ch;color:var(--ink)}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .7rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.8rem,2vw,1.2rem);margin:1.4rem 0}
+button{font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:.34rem .82rem;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button:disabled{opacity:1}
+button.primary:hover{color:#fff;filter:brightness(1.06)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:.78rem;color:var(--muted);margin:.35rem 0 0}
+.mono,code{font-family:var(--mono);font-size:.92em}
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ───────── quiz-specific ───────── */
+.qhead{display:flex;flex-wrap:wrap;gap:.5rem;align-items:baseline;margin:0 0 .55rem}
+.qnum{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted)}
+.tag{font-family:var(--display);font-size:.68rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;border:1px solid var(--line);border-radius:999px;
+  padding:.1rem .5rem;color:var(--muted)}
+.tag.conceptual{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.tag.numbers{color:var(--t1);border-color:var(--t1)}
+.tag.predict{color:var(--t3);border-color:var(--t3)}
+.tag.code{color:var(--muted);border-color:var(--line);background:var(--grid)}
+.qhead .spacer{flex:1 1 auto}
+.qstate{font-family:var(--display);font-size:.7rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted)}
+.qtext{margin:0 0 .7rem;max-width:74ch}
+.qtext b{font-weight:600}
+pre.snippet{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--grid);
+  border:1px solid var(--line);border-radius:10px;padding:.65rem .8rem;margin:.2rem 0 .75rem;
+  overflow-x:auto}
+.srcfile{font-family:var(--mono);font-size:.76rem;color:var(--muted);margin:-.5rem 0 .75rem}
+.opts{display:flex;flex-direction:column;gap:.4rem;margin:0 0 .3rem}
+.opt{display:flex;gap:.6rem;align-items:flex-start;text-align:left;width:100%;
+  font-family:var(--body);font-size:.92rem;font-weight:400;line-height:1.45;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:10px;
+  padding:.55rem .7rem;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent);color:var(--ink);background:var(--soft)}
+.opt:disabled{cursor:default}
+.opt .key{font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--muted);
+  min-width:1.2em;padding-top:.08rem}
+.opt.picked{border-color:var(--accent)}
+.opt.right{border-color:var(--accent);background:var(--soft)}
+.opt.right .key{color:var(--accent)}
+.opt.wrongpick{border-color:var(--wrong);background:var(--wrong-soft)}
+.opt.wrongpick .key{color:var(--wrong)}
+.opt .mark{margin-left:auto;font-family:var(--display);font-size:.76rem;font-weight:600;
+  white-space:nowrap;padding-left:.5rem}
+.opt.right .mark{color:var(--accent)}
+.opt.wrongpick .mark{color:var(--wrong)}
+.numrow{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:0 0 .3rem}
+.numrow input{font-family:var(--mono);font-size:.9rem;color:var(--ink);background:var(--paper);
+  border:1px solid var(--line);border-radius:10px;padding:.45rem .6rem;width:15rem;max-width:100%}
+.acts{display:flex;flex-wrap:wrap;gap:.45rem;margin:.55rem 0 0}
+.verdictline{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.03em;
+  text-transform:uppercase;border-radius:999px;padding:.2rem .62rem;display:inline-block;
+  border:1px solid var(--line);margin:.7rem 0 .45rem}
+.verdictline.ok{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.verdictline.no{color:var(--wrong);border-color:var(--wrong);background:var(--wrong-soft)}
+.explain{font-size:.88rem;line-height:1.5;border-left:3px solid var(--line);
+  padding:.1rem 0 .1rem .75rem;margin:.2rem 0 0;max-width:74ch;color:var(--ink)}
+.explain .src{display:block;font-family:var(--mono);font-size:.76rem;color:var(--muted);margin-top:.4rem}
+.explain a.tryit{font-family:var(--display);font-size:.78rem;font-weight:600;text-decoration:none;
+  border:1px solid var(--accent);border-radius:999px;padding:.16rem .6rem;display:inline-block;
+  margin-top:.5rem}
+.explain a.tryit:hover{background:var(--soft)}
+.scorebar{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--panel);
+  border-top:1px solid var(--line);padding:.55rem clamp(.9rem,3vw,2rem)}
+.scorebar .inner{max-width:920px;margin:0 auto;display:flex;flex-wrap:wrap;gap:.5rem .9rem;
+  align-items:center}
+.scorebar .score{font-family:var(--mono);font-size:1rem;font-weight:600;color:var(--accent)}
+.scorebar .of{color:var(--muted);font-weight:400}
+.scorebar .msg{font-size:.84rem;color:var(--muted);flex:1 1 260px;min-width:0}
+.scorebar .msg b{color:var(--ink)}
+.scorebar .msg .review{display:block;font-size:.78rem;margin-top:.1rem}
+@media (max-width:700px){
+  .topbar h1{font-size:.98rem}
+  .scorebar .msg{flex-basis:100%}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Quiz · Fine-tuning</h1>
+  <span class="pill">Module 06 · Transformers/LLMs</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">← All quizzes</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">Ten questions on module 06 — LoRA, the SFT objective, and the module's own
+      real run: 200 steps on <span class="mono">smoltalk / everyday-conversations</span>,
+      loss 1.2516 → 0.5957.</p>
+    <p>Answer in any order; answering locks a question and reveals the explanation.
+      Your answers are kept in this browser only. Two questions ask you to <b>predict</b> what the
+      rank slider in the explorable does — commit to an answer before you go and check.</p>
+  </section>
+
+  <div id="quiz"></div>
+</main>
+
+<footer>
+  <p class="paths">module → <a href="../modules/06-fine-tuning/README.md">../modules/06-fine-tuning/README.md</a>
+    · explorable → <a href="../explorables/06-lora-rank.html">../explorables/06-lora-rank.html</a></p>
+  <p>Matching reading: Hugging Face LLM Course, Chapter 11 —
+    <a href="https://huggingface.co/learn/llm-course/chapter11">Fine-tuning LLMs</a>,
+    alongside the <a href="https://huggingface.co/learn/smol-course">smol-course</a>.</p>
+</footer>
+
+<div class="scorebar">
+  <div class="inner">
+    <span class="score"><span id="sc-score">0</span><span class="of"> / 10</span></span>
+    <span class="msg" id="sc-msg">Nothing answered yet.</span>
+    <button id="sc-reset">Reset quiz</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ═════════════════════════ PURE LOGIC START ═════════════════════════
+   Question bank + grading. Dependency-free and DOM-free: the verification
+   harness loads this file's exports under node and asserts the grading rules,
+   the score accumulation, and the answer-key balance.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const QUIZ_ID = "06";
+const STORE_KEY = "mlcourse-quiz-" + QUIZ_ID;
+const SUMMARY_KEY = "mlcourse-quiz-scores";
+
+const QUESTIONS = [
+  /* ── 1 ───────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q1", kind: "single", tag: "conceptual", topic: "Why B starts at zero",
+    text: "LoRA computes <code>h = W₀·x + (α/r)·B(A·x)</code>. In <code>peft</code>'s default " +
+          "initialisation — the one this module uses — <b>A is random and B is all zeros</b>. Why zero B?",
+    options: [
+      "It halves the number of parameters that actually need gradients, which is where LoRA's memory saving comes from.",
+      "It makes ΔW exactly zero at step 0, so the wrapped model <i>is</i> the base model and training departs from pretrained behaviour rather than from a random perturbation.",
+      "Both A and B start at zero; that symmetric start is what makes the adapter a no-op before training.",
+      "A zero B is required for the adapter to be merged back into W₀ later without reshaping any tensor."
+    ],
+    answer: 1,
+    explain: "At step 0 <code>B(A·x) = 0</code>, so the adapter contributes nothing and the fine-tune starts " +
+             "from exactly the pretrained model — no random damage to un-learn. The tempting distractor is " +
+             "“both start at zero”: if A were zero too, <code>B·A</code> and both its gradients would stay zero " +
+             "forever and the adapter could never learn. One side random, one side zero is the whole trick.",
+    source: "modules/06-fine-tuning/README.md “Where the adapter sits” · python/figures_concept.py:160-163 · figures/lora_in_attention.png"
+  },
+  /* ── 2 ───────────────────────────────────────────── real numbers ── */
+  {
+    id: "q2", kind: "single", tag: "numbers", topic: "The trainable-parameter budget",
+    text: "<code>sft_train.py</code> calls <code>trainer.model.print_trainable_parameters()</code> before " +
+          "training. For the module's default run — <b>r = 16</b>, all seven linear projections, 32 blocks — " +
+          "what did it print?",
+    options: [
+      "2,170,880 trainable — 0.5964%",
+      "17,367,040 trainable — 4.5801%",
+      "8,683,520 trainable — 2.3437%",
+      "361,821,120 trainable — 100%, because LoRA reparameterises every weight it touches"
+    ],
+    answer: 2,
+    explain: "Each block contributes 16,960·r adapter parameters across its seven projections, so " +
+             "16,960 × 16 × 32 = 8,683,520. The percentage is taken against the <i>wrapped</i> model " +
+             "(361,821,120 base + 8,683,520 adapter = 370,504,640), which is why it reads 2.3437% and not " +
+             "2.40%. The other two real numbers are the exercise-(a) runs at r=4 and r=32.",
+    source: "modules/06-fine-tuning/python/outputs/*.log via explorables/06-lora-rank.html MEASURED table · python/sft_train.py:117 · python/src/common.py:33-46"
+  },
+  /* ── 3 ───────────────────────────────────────────── real numbers ── */
+  {
+    id: "q3", kind: "numeric", tag: "numbers", topic: "The real loss curve",
+    text: "The lab logs the training loss every few steps for 200 steps and saves it to " +
+          "<code>outputs/sft-lab/loss_history.json</code>. It opens at <b>1.2516</b>. " +
+          "<b>Type the final logged loss</b> (the step-200 entry), as a decimal.",
+    answer: 0.5957, tol: 0.02, tolLabel: "±0.02 (0.5757 – 0.6157)",
+    placeholder: "e.g. 0.62",
+    explain: "1.2516 → 0.5957 over 200 steps, roughly 12 minutes on the M5's MPS backend. Note the shape: " +
+             "most of the drop happens in the first ~30 steps (1.25 → 0.68) and the rest is a slow grind — " +
+             "with a few hundred examples the model is matching a register, not learning content.",
+    source: "modules/06-fine-tuning/python/outputs/sft-lab/loss_history.json (40 entries, step 5 → step 200) · figures/loss_curve.png"
+  },
+  /* ── 4 ─────────────────────────────────────────────────── read-code ── */
+  {
+    id: "q4", kind: "single", tag: "code", topic: "Reading the LoRA config",
+    text: "The module's LoRA defaults (the target list reflowed onto two lines, values untouched). " +
+          "Given <code>h = W₀·x + (α/r)·B(A·x)</code>: what scale " +
+          "multiplies <code>B(A·x)</code>, and how many projections get an adapter in <i>each</i> decoder block?",
+    code: "LORA_R = 16\n" +
+          "LORA_ALPHA = 32\n" +
+          "LORA_DROPOUT = 0.05\n" +
+          "# All linear projections in both attention and MLP — the modern default.\n" +
+          "LORA_TARGETS = [\n" +
+          "    \"q_proj\", \"k_proj\", \"v_proj\", \"o_proj\",\n" +
+          "    \"gate_proj\", \"up_proj\", \"down_proj\",\n" +
+          "]",
+    file: "modules/06-fine-tuning/python/src/common.py",
+    options: [
+      "scale 2.0 · 7 projections per block",
+      "scale 0.5 · 7 projections per block",
+      "scale 32 · 4 projections per block (attention only)",
+      "scale 16 · 7 projections per block"
+    ],
+    answer: 0,
+    explain: "α/r = 32/16 = <b>2.0</b>, and <code>LORA_TARGETS</code> names all seven linears — four in " +
+             "attention (q, k, v, o) plus the three of the SwiGLU MLP (gate, up, down) — in every one of " +
+             "SmolLM2's 32 blocks. The 0.5 answer is the classic inversion: the scale is alpha over rank, " +
+             "not rank over alpha, which is what keeps the update's magnitude roughly stable as you change r.",
+    source: "modules/06-fine-tuning/python/src/common.py:33-46 · explorables/06-lora-rank.html panel 2"
+  },
+  /* ── 5 ─────────────────────────────────────────────────── read-code ── */
+  {
+    id: "q5", kind: "single", tag: "code", topic: "Trainer logging cadence",
+    text: "The lab's trainer config, trimmed (<code>max_steps</code> is 200 for the default run). " +
+          "After training, <code>sft_train.py</code> keeps every entry of " +
+          "<code>trainer.state.log_history</code> that has a <code>\"loss\"</code> key and writes them to " +
+          "<code>loss_history.json</code>. <b>How many entries land in that file?</b>",
+    code: "cfg = SFTConfig(\n" +
+          "    max_steps=max_steps,             # 200 for the lab run\n" +
+          "    per_device_train_batch_size=2,\n" +
+          "    gradient_accumulation_steps=4,  # effective batch = 8\n" +
+          "    lr_scheduler_type=\"cosine\",\n" +
+          "    warmup_steps=10,\n" +
+          "    logging_steps=5,\n" +
+          ")",
+    file: "modules/06-fine-tuning/python/sft_train.py",
+    options: [
+      "200 — one per optimizer step",
+      "25 — 200 steps divided by the effective batch size of 8",
+      "8 — one per pass over the 512-example slice",
+      "40 — one every logging_steps = 5 optimizer steps"
+    ],
+    answer: 3,
+    explain: "200 / 5 = 40, and the saved file does hold exactly 40 entries, first <code>step 5, " +
+             "loss 1.2516</code>, last <code>step 200, loss 0.5957</code>. The “25” distractor conflates two " +
+             "different knobs: <code>gradient_accumulation_steps</code> controls how many micro-batches make " +
+             "up one <i>step</i>, it does not change how many steps there are or how often they are logged.",
+    source: "modules/06-fine-tuning/python/sft_train.py:89-106 and :126-132 · python/outputs/sft-lab/loss_history.json"
+  },
+  /* ── 6 ───────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q6", kind: "single", tag: "conceptual", topic: "The SFT objective",
+    text: "What loss does supervised fine-tuning actually minimise, and over which tokens?",
+    options: [
+      "A contrastive loss that pulls each response's embedding toward its instruction's embedding.",
+      "Ordinary next-token cross-entropy, computed on the assistant's response tokens with the prompt masked out.",
+      "A ranking loss over a preferred and a rejected response for the same prompt.",
+      "Next-token cross-entropy over every token of the conversation, prompt included — identical to pretraining."
+    ],
+    answer: 1,
+    explain: "SFT is the <i>same</i> objective as pretraining pointed at different data: curated " +
+             "(instruction, response) pairs, with the loss masked on the prompt so the model learns to " +
+             "<i>produce</i> answers rather than to predict questions. Option C is DPO, the preference method " +
+             "the module names as what comes next; option D is the near-miss — drop the mask and you spend " +
+             "capacity modelling the user's turns.",
+    source: "modules/06-fine-tuning/README.md “The SFT objective” · the mermaid data-flow diagram (mask prompt tokens → loss on response tokens)"
+  },
+  /* ── 7 ──────────────────────────────────────────────────── predict ── */
+  {
+    id: "q7", kind: "single", tag: "predict", topic: "The low intrinsic rank of ΔW",
+    text: "In the explorable, set the matrix selector to <b>ΔW — real trained LoRA update</b> (read out of " +
+          "the exercise-(a) r=32 adapter file, sliced to 48×48) and drag the rank slider to <b>r = 32</b> of 48. " +
+          "<b>Predict</b> the reconstruction error.",
+    options: [
+      "About 41% — a real 960×960 projection is simply not low rank, trained or not.",
+      "About 17%, the same as at r=8: the spectrum has already flattened by then.",
+      "Slightly worse than at r=24 — the extra directions start fitting numerical noise.",
+      "Exactly 0 — that ΔW was produced by a rank-32 adapter, so it has at most 32 nonzero singular values."
+    ],
+    answer: 3,
+    explain: "ΔW = (α/r)·B·A is a product squeezed through an r=32 bottleneck, so numpy reports its rank as " +
+             "exactly 32 and a truncated SVD at r=32 is lossless. The 41% figure is real but belongs to the " +
+             "other matrix in the panel — the <i>frozen</i> W₀ at r=16, which stays stubbornly bright. " +
+             "That contrast is LoRA's entire premise, reproduced from files on disk.",
+    source: "explorables/06-lora-rank.html — SVD source note and “What to notice” · modules/06-fine-tuning/python/outputs/ex-a-r32/adapter/adapter_model.safetensors",
+    tryIt: { href: "../explorables/06-lora-rank.html", label: "try it — drag the rank slider in panel 1" }
+  },
+  /* ── 8 ──────────────────────────────────────────────────── predict ── */
+  {
+    id: "q8", kind: "single", tag: "predict", topic: "When factorisation stops paying",
+    text: "Still in panel 1: the matrices are 48×48, and storing the factors costs <code>r·(48+48)</code> " +
+          "numbers. <b>Predict</b> the rank at which keeping A and B stops saving any storage at all.",
+    options: [
+      "r = 24 — because 96·24 = 2,304 = 48·48.",
+      "r = 48 — you only lose at full rank, where the factorisation is exact.",
+      "r = 16 — that is the module's default rank, chosen to sit right at break-even.",
+      "There is no break-even: two skinny matrices are always smaller than the full one."
+    ],
+    answer: 0,
+    explain: "96r versus 2,304 crosses over at r = 24, i.e. half the dimension — above it the " +
+             "“compression” costs more than the matrix. Real LoRA never goes near that ratio: at d = 960 and " +
+             "r = 16, A+B together are about 3.3% of a single W₀. The r=16 distractor mistakes a default " +
+             "for a boundary — 16 is chosen because it is <i>far below</i> break-even and still enough capacity.",
+    source: "explorables/06-lora-rank.html — “Break-even is at r = 24 here” · modules/06-fine-tuning/README.md “Why LoRA works”",
+    tryIt: { href: "../explorables/06-lora-rank.html", label: "try it — watch the error curve in panel 1" }
+  },
+  /* ── 9 ────────────────────────────────────── conceptual, multi ── */
+  {
+    id: "q9", kind: "multi", tag: "conceptual", topic: "Reading before/after honestly",
+    text: "<b>Select all that apply.</b> <code>generate_compare.py</code> runs one fixed prompt set through " +
+          "the base model and through base+adapter and writes <code>sample_generations.md</code>. " +
+          "Which claims does that evidence actually support?",
+    options: [
+      "The register moved: the fine-tuned model answers in the warmer, chattier voice of everyday-conversations.",
+      "The model acquired new factual knowledge it did not have before.",
+      "The comparison is reproducible — both sides decode greedily with <code>do_sample=False</code>.",
+      "The base weights are untouched; only the LoRA A and B tensors differ between the two runs."
+    ],
+    answer: [0, 2, 3],
+    explain: "A few hundred examples move <b>register, length and format</b> — not knowledge, which is why the " +
+             "prompt set deliberately includes out-of-domain probes (a suspension bridge, a haiku) where nothing " +
+             "much changes. The load path proves the last claim: the same " +
+             "<code>AutoModelForCausalLM.from_pretrained(MODEL_ID)</code> is loaded both times and " +
+             "<code>PeftModel.from_pretrained</code> only wraps it.",
+    source: "modules/06-fine-tuning/python/generate_compare.py:34-73 · README.md “The signature deliverable” · sample_generations.md"
+  },
+  /* ── 10 ──────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q10", kind: "single", tag: "conceptual", topic: "MLX vs PyTorch/MPS",
+    text: "<code>mlx/README.md</code> measures <b>~3,500 tok/s for MLX against ~479 tok/s for PyTorch/MPS</b> " +
+          "on the same M5, same model, same data — a ~7× gap — and then calls the comparison " +
+          "“not a perfectly controlled benchmark”. What is the caveat about?",
+    options: [
+      "MLX ran on the Neural Engine while PyTorch ran on the GPU, so different silicon did the work.",
+      "The MLX lane fine-tuned SmolLM2-135M while the PyTorch lane fine-tuned the 360M model.",
+      "The two runs differ in more than the framework: MLX used batch-4 adapting the top 16 blocks, PyTorch used batch-2 on all-linear targets in every block, and the runtimes count tokens differently.",
+      "The MLX number is extrapolated from a 100-iteration run rather than measured directly."
+    ],
+    answer: 2,
+    explain: "Same model, same data, same machine — but not the same training configuration, so the honest " +
+             "claim is the <i>magnitude</i> of the gap, not the exact multiple. Both lanes really do train " +
+             "SmolLM2-<b>360M</b> on the M-series GPU, which rules out the 135M and Neural-Engine answers; " +
+             "the lesson stands anyway: on a Mac, reach for MLX when you can.",
+    source: "modules/06-fine-tuning/mlx/README.md “The teaching point” table and “Honest caveats” · README.md “The MLX lane”"
+  }
+];
+
+/* ---------------------------------------------------------------- grading */
+function sameSet(a, b) {
+  const x = a.slice().sort(function (p, q) { return p - q; });
+  const y = b.slice().sort(function (p, q) { return p - q; });
+  return x.length === y.length && x.every(function (v, i) { return v === y[i]; });
+}
+function gradeSingle(q, ans) { return typeof ans === "number" && ans === q.answer; }
+function gradeMulti(q, ans) { return Array.isArray(ans) && sameSet(ans, q.answer); }
+function gradeNumeric(q, ans) {
+  const v = typeof ans === "number" ? ans : parseFloat(String(ans).replace(/[\s,_]/g, ""));
+  return isFinite(v) && Math.abs(v - q.answer) <= q.tol;
+}
+function gradeQuestion(q, ans) {
+  if (ans === undefined || ans === null) return false;
+  if (q.kind === "multi") return gradeMulti(q, ans);
+  if (q.kind === "numeric") return gradeNumeric(q, ans);
+  return gradeSingle(q, ans);
+}
+function scoreAll(questions, answers) {
+  let score = 0, answered = 0;
+  const wrong = [];
+  questions.forEach(function (q) {
+    const a = answers[q.id];
+    if (a === undefined || a === null) return;
+    answered += 1;
+    if (gradeQuestion(q, a)) score += 1; else wrong.push(q.topic);
+  });
+  return { score: score, answered: answered, total: questions.length, wrong: wrong };
+}
+function verdictFor(score, total) {
+  if (score >= 9) return { cls: "ok", text: "solid — move on" };
+  if (score >= 6) return { cls: "no", text: "review the flagged topics" };
+  return { cls: "no", text: "re-run the module notebook first" };
+}
+/* answer-key balance: how often each option position is the correct single-choice answer */
+function keyBalance(questions) {
+  const counts = [0, 0, 0, 0];
+  questions.forEach(function (q) {
+    if (q.kind === "single") counts[q.answer] += 1;
+  });
+  return counts;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { QUIZ_ID, STORE_KEY, SUMMARY_KEY, QUESTIONS, sameSet, gradeSingle,
+                     gradeMulti, gradeNumeric, gradeQuestion, scoreAll, verdictFor, keyBalance };
+}
+/* ══════════════════════════ PURE LOGIC END ══════════════════════════ */
+
+/* ═════════════════════════ DOM / rendering ═════════════════════════ */
+(function () {
+  if (typeof document === "undefined") return;   // running under node
+  const LETTERS = ["A", "B", "C", "D", "E", "F"];
+  const root = document.getElementById("quiz");
+  let answers = {};
+
+  /* ---- persistence ---- */
+  function load() {
+    try {
+      const raw = window.localStorage.getItem(STORE_KEY);
+      if (!raw) return {};
+      const obj = JSON.parse(raw);
+      return (obj && typeof obj.answers === "object" && obj.answers) ? obj.answers : {};
+    } catch (e) { return {}; }
+  }
+  function save() {
+    const s = scoreAll(QUESTIONS, answers);
+    const payload = { quiz: QUIZ_ID, answers: answers, score: s.score,
+                      total: s.total, answered: s.answered, ts: Date.now() };
+    try {
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(payload));
+      let all = {};
+      try { all = JSON.parse(window.localStorage.getItem(SUMMARY_KEY) || "{}") || {}; }
+      catch (e) { all = {}; }
+      all[QUIZ_ID] = { score: s.score, total: s.total, ts: payload.ts };
+      window.localStorage.setItem(SUMMARY_KEY, JSON.stringify(all));
+    } catch (e) { /* private mode: quiz still works, just not remembered */ }
+  }
+
+  /* ---- one question ---- */
+  function buildQuestion(q, i) {
+    const sec = document.createElement("section");
+    sec.className = "panel";
+    sec.id = "sec-" + q.id;
+
+    const head = document.createElement("div");
+    head.className = "qhead";
+    const num = document.createElement("span");
+    num.className = "qnum";
+    num.textContent = "Question " + (i + 1);
+    const tag = document.createElement("span");
+    tag.className = "tag " + q.tag;
+    tag.textContent = { conceptual: "concept", numbers: "real numbers",
+                        predict: "predict", code: "read the code" }[q.tag] || q.tag;
+    const sp = document.createElement("span");
+    sp.className = "spacer";
+    const state = document.createElement("span");
+    state.className = "qstate";
+    state.textContent = "unanswered";
+    head.appendChild(num); head.appendChild(tag); head.appendChild(sp); head.appendChild(state);
+    sec.appendChild(head);
+
+    const txt = document.createElement("p");
+    txt.className = "qtext";
+    txt.innerHTML = q.text;
+    sec.appendChild(txt);
+
+    if (q.code) {
+      const pre = document.createElement("pre");
+      pre.className = "snippet";
+      pre.textContent = q.code;
+      sec.appendChild(pre);
+      const src = document.createElement("p");
+      src.className = "srcfile";
+      src.textContent = q.file;
+      sec.appendChild(src);
+    }
+
+    const holder = { sec: sec, state: state, opts: [], input: null, checkBtn: null,
+                     result: null, q: q };
+
+    if (q.kind === "numeric") {
+      const row = document.createElement("div");
+      row.className = "numrow";
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.inputMode = "decimal";
+      inp.setAttribute("aria-label", "your answer");
+      inp.placeholder = q.placeholder || "your answer";
+      const btn = document.createElement("button");
+      btn.className = "primary";
+      btn.textContent = "Answer";
+      btn.addEventListener("click", function () {
+        const v = parseFloat(inp.value.replace(/[\s,_]/g, ""));
+        if (!isFinite(v)) { inp.focus(); return; }
+        answers[q.id] = v;
+        save(); renderQuestion(holder); renderBar();
+      });
+      inp.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); btn.click(); }
+      });
+      row.appendChild(inp); row.appendChild(btn);
+      sec.appendChild(row);
+      holder.input = inp; holder.checkBtn = btn;
+    } else {
+      const list = document.createElement("div");
+      list.className = "opts";
+      q.options.forEach(function (opt, oi) {
+        const b = document.createElement("button");
+        b.className = "opt";
+        b.type = "button";
+        const key = document.createElement("span");
+        key.className = "key";
+        key.textContent = LETTERS[oi];
+        const body = document.createElement("span");
+        body.innerHTML = opt;
+        const mark = document.createElement("span");
+        mark.className = "mark";
+        b.appendChild(key); b.appendChild(body); b.appendChild(mark);
+        b.addEventListener("click", function () {
+          if (answers[q.id] !== undefined) return;
+          if (q.kind === "multi") {
+            const cur = holder.picked;
+            const at = cur.indexOf(oi);
+            if (at >= 0) cur.splice(at, 1); else cur.push(oi);
+            b.classList.toggle("picked", at < 0);
+            holder.checkBtn.disabled = cur.length === 0;
+          } else {
+            answers[q.id] = oi;
+            save(); renderQuestion(holder); renderBar();
+          }
+        });
+        list.appendChild(b);
+        holder.opts.push({ btn: b, mark: mark });
+      });
+      sec.appendChild(list);
+
+      if (q.kind === "multi") {
+        holder.picked = [];
+        const acts = document.createElement("div");
+        acts.className = "acts";
+        const btn = document.createElement("button");
+        btn.className = "primary";
+        btn.textContent = "Answer";
+        btn.disabled = true;
+        btn.addEventListener("click", function () {
+          if (answers[q.id] !== undefined || holder.picked.length === 0) return;
+          answers[q.id] = holder.picked.slice();
+          save(); renderQuestion(holder); renderBar();
+        });
+        acts.appendChild(btn);
+        const note = document.createElement("span");
+        note.className = "hint";
+        note.style.margin = "0";
+        note.style.alignSelf = "center";
+        note.textContent = "pick every option you believe is true, then Answer";
+        acts.appendChild(note);
+        sec.appendChild(acts);
+        holder.checkBtn = btn;
+      }
+    }
+
+    const res = document.createElement("div");
+    res.style.display = "none";
+    sec.appendChild(res);
+    holder.result = res;
+
+    return holder;
+  }
+
+  /* ---- render one question's locked / unlocked state ---- */
+  function renderQuestion(h) {
+    const q = h.q, ans = answers[q.id], locked = ans !== undefined;
+    const ok = locked && gradeQuestion(q, ans);
+
+    h.state.textContent = locked ? (ok ? "correct" : "incorrect") : "unanswered";
+    h.state.style.color = locked ? (ok ? "var(--accent)" : "var(--wrong)") : "var(--muted)";
+
+    if (h.input) {
+      h.input.disabled = locked;
+      if (locked) h.input.value = String(ans);
+      h.checkBtn.disabled = locked;
+      h.checkBtn.textContent = locked ? "answered" : "Answer";
+    }
+    const correctSet = q.kind === "multi" ? q.answer : (q.kind === "single" ? [q.answer] : []);
+    const pickedSet = !locked ? (h.picked || [])
+      : (q.kind === "multi" ? ans : (q.kind === "single" ? [ans] : []));
+
+    h.opts.forEach(function (o, oi) {
+      o.btn.disabled = locked;
+      o.btn.classList.toggle("picked", !locked && pickedSet.indexOf(oi) >= 0);
+      const isRight = correctSet.indexOf(oi) >= 0;
+      const isPicked = locked && pickedSet.indexOf(oi) >= 0;
+      o.btn.classList.toggle("right", locked && isRight);
+      o.btn.classList.toggle("wrongpick", locked && isPicked && !isRight);
+      o.mark.textContent = !locked ? ""
+        : (isRight ? (isPicked ? "✓ correct · you picked it" : "✓ correct")
+                   : (isPicked ? "✗ your pick" : ""));
+    });
+    if (h.checkBtn && q.kind === "multi") {
+      h.checkBtn.disabled = locked || (h.picked || []).length === 0;
+      h.checkBtn.textContent = locked ? "answered" : "Answer";
+    }
+
+    if (!locked) { h.result.style.display = "none"; h.result.innerHTML = ""; return; }
+
+    h.result.innerHTML = "";
+    h.result.style.display = "block";
+    const v = document.createElement("span");
+    v.className = "verdictline " + (ok ? "ok" : "no");
+    v.textContent = ok ? "Correct" : "Not quite";
+    h.result.appendChild(v);
+
+    if (q.kind === "numeric") {
+      const line = document.createElement("p");
+      line.className = "hint";
+      line.style.marginTop = "0";
+      const nf = function (v) {
+        return Number(v).toLocaleString("en-US", { maximumFractionDigits: 6 });
+      };
+      line.innerHTML = "answer <span class=\"mono\">" + nf(q.answer) +
+        "</span> · accepted " + q.tolLabel + " · you typed <span class=\"mono\">" +
+        nf(ans) + "</span>";
+      h.result.appendChild(line);
+    }
+
+    const ex = document.createElement("div");
+    ex.className = "explain";
+    ex.innerHTML = q.explain;
+    const src = document.createElement("span");
+    src.className = "src";
+    src.textContent = "source · " + q.source;
+    ex.appendChild(src);
+    if (q.tryIt) {
+      const a = document.createElement("a");
+      a.className = "tryit";
+      a.href = q.tryIt.href;
+      a.textContent = q.tryIt.label;
+      ex.appendChild(a);
+    }
+    h.result.appendChild(ex);
+  }
+
+  /* ---- score bar ---- */
+  function renderBar() {
+    const s = scoreAll(QUESTIONS, answers);
+    document.getElementById("sc-score").textContent = String(s.score);
+    const msg = document.getElementById("sc-msg");
+    msg.innerHTML = "";
+    if (s.answered === 0) {
+      msg.textContent = "Nothing answered yet.";
+    } else if (s.answered < s.total) {
+      msg.textContent = s.answered + " of " + s.total + " answered — " +
+        (s.total - s.answered) + " to go.";
+    } else {
+      const vd = verdictFor(s.score, s.total);
+      const b = document.createElement("b");
+      b.textContent = s.score + " / " + s.total + " — " + vd.text + ".";
+      msg.appendChild(b);
+      const rev = document.createElement("span");
+      rev.className = "review";
+      rev.textContent = s.wrong.length
+        ? "Review: " + s.wrong.join(" · ")
+        : "Every topic clean.";
+      msg.appendChild(rev);
+    }
+  }
+
+  /* ---- boot ---- */
+  answers = load();
+  const holders = QUESTIONS.map(function (q, i) {
+    const h = buildQuestion(q, i);
+    root.appendChild(h.sec);
+    return h;
+  });
+  holders.forEach(renderQuestion);
+  renderBar();
+
+  document.getElementById("sc-reset").addEventListener("click", function () {
+    if (!window.confirm("Clear your answers for this quiz and start over?")) return;
+    answers = {};
+    holders.forEach(function (h) { h.picked = []; });
+    try {
+      window.localStorage.removeItem(STORE_KEY);
+      let all = {};
+      try { all = JSON.parse(window.localStorage.getItem(SUMMARY_KEY) || "{}") || {}; }
+      catch (e) { all = {}; }
+      delete all[QUIZ_ID];
+      window.localStorage.setItem(SUMMARY_KEY, JSON.stringify(all));
+    } catch (e) { /* ignore */ }
+    holders.forEach(renderQuestion);
+    renderBar();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+})();
+</script>
+<!-- built for ml-course quizzes v1 -->
+</html>

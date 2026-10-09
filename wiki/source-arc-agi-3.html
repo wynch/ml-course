@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>ARC-AGI-3: Interactive Reasoning Environments for Agentic Intelligence · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="arc-agi-3">ARC-AGI-3</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-06</span> <span>updated 2026-05-06</span> <span class="tag">benchmarks</span> <span class="tag">arc-agi</span> <span class="tag">agents</span> <span class="tag">reasoning</span> <span class="tag">abstract-reasoning</span> <span class="tag">2026</span></div>
+<p><strong>Released by François Chollet &amp; the ARC Prize team, 2026</strong></p>
+<p>Third generation of the ARC-AGI benchmark, redesigned around <strong>interactive reasoning environments</strong> rather than static input/output puzzles. Tests <em>agentic</em> intelligence: the ability to act, observe, and adapt within a novel environment without prior exposure or instructions.</p>
+<h2 id="key-numbers">Key Numbers</h2>
+<ul><li><strong>100% of test environments are solvable by humans on first contact</strong> (no training, no instructions).</li><li><strong>Frontier reasoning models score under 1%</strong> at release.</li><li>The gap is structurally larger than prior ARC versions because ARC-AGI-3 requires sequential interaction, not single-shot pattern induction.</li></ul>
+<h2 id="whats-new-vs-arc-agi-2">What's New vs. ARC-AGI-2</h2>
+<ul><li>ARC-AGI-2 (<a href="source-symbolica-arc-agi-2.html">source-symbolica-arc-agi-2</a>) is still about static grids; the recent 85.28% by Symbolica's neurosymbolic program synthesis exposed how far purely-static abstraction can be pushed.</li><li>ARC-AGI-3 moves the problem into an environment loop, requiring agents to plan, hypothesise, and verify mid-trajectory.</li><li>Designed explicitly to resist the program-synthesis-on-static-grid playbook that closed the gap on ARC-AGI-2.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li>Sharpens the <a href="concept-llm-reasoning.html">concept-llm-reasoning</a> debate: ARC-AGI-3's &lt;1% frontier score is the strongest current data point for "scaling alone is not closing the abductive gap" (<a href="source-llm-reasoning-skeptics.html">source-llm-reasoning-skeptics</a>).</li><li>Hands the agent literature (<a href="concept-ai-agents.html">concept-ai-agents</a>) a benchmark that's <em>not</em> SWE-bench: tests novel interactive environments rather than coding traces. Comparable in spirit to <a href="source-airs-bench-research-agents.html">source-airs-bench-research-agents</a> but for reasoning rather than research workflow.</li><li>Open question for <a href="concept-test-time-compute.html">concept-test-time-compute</a>: do PDR-style (<a href="source-pdr-rethinking-thinking-tokens.html">source-pdr-rethinking-thinking-tokens</a>) inference-time scaffolds help on agentic ARC, or only on static ARC?</li></ul>
+<h2 id="references">References</h2>
+<ul><li><a href="https://arcprize.org/" rel="noreferrer">ARC Prize</a></li><li>Announcement: <a href="https://x.com/fchollet/status/2036861192619384989" rel="noreferrer">@fchollet</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://x.com/fchollet/status/2036861192619384989" rel="noreferrer">https://x.com/fchollet/status/2036861192619384989</a></li><li><a href="https://arcprize.org/" rel="noreferrer">https://arcprize.org/</a></li></ul></details>
+</main>
+</body>
+</html>

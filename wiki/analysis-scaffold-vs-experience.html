@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Scaffold vs Experience — Does the Bitter Lesson Apply to the Harness? · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="scaffold-vs-experience-does-the-bitter-lesson-apply-to-the-harness">Scaffold vs Experience — Does the Bitter Lesson Apply to the Harness?</h1>
+<div class="meta"><span class="type">analysis</span> <span>created 2026-07-04</span> <span>updated 2026-09-25</span> <span class="tag">analysis</span> <span class="tag">harness</span> <span class="tag">bitter-lesson</span> <span class="tag">reinforcement-learning</span> <span class="tag">self-improvement</span> <span class="tag">developer-tools</span> <span class="tag">ai-economics</span></div>
+<p>The 2026-07 ingest put two of the wiki's strongest currents on a collision course. One current says: <strong>freeze the model, engineer the substrate</strong> — the scaffold is where capability comes from today. The other is <a href="entity-richard-sutton.html">entity-richard-sutton</a>'s Bitter Lesson: <strong>human-engineered structure always washes away</strong> when general methods that leverage computation and experience catch up. Both currents are well-evidenced in the wiki. They cannot both be the long-run truth — or can they?</p>
+<h2 id="the-scaffold-current-winning-today">The scaffold current (winning today)</h2>
+<p>The empirical case that the substrate, not the weights, is the live lever:</p>
+<ul><li><a href="source-harness-optimization-evolve-harness.html">source-harness-optimization-evolve-harness</a> — a Meta-Harness loop rewrites only the scaffold around a <em>frozen</em> DeepSeek-V4-Pro: <strong>+16.7 points</strong> on a legal benchmark, zero weight changes. Deterministic I/O fixes beat prompt changes.</li><li><a href="source-anthropic-agents-in-biology.html">source-anthropic-agents-in-biology</a> — "context engines": give every agent a deterministic data/execution layer and <em>all</em> models clear 90% on VirBench; the strong-vs-weak-model gap <strong>collapses</strong>. The bottleneck was never reasoning.</li><li><a href="source-text-optimization-yoonho.html">source-text-optimization-yoonho</a> — the manifesto: the mutable text layer (prompts, memory, retrieval, harness code) is a <em>more sample-efficient</em> update mechanism than weights, and opens an "update-time compute" scaling axis.</li><li><a href="source-loop-engineering-addy-osmani.html">source-loop-engineering-addy-osmani</a> — the practice: leverage has moved from prompting agents to designing the loops that prompt them.</li><li>The economics reinforce it: <a href="source-token-purchasing-power-bigspin.html">source-token-purchasing-power-bigspin</a> shows thinking tokens are what inflate cost, so pushing work into deterministic substrate is also the <em>cheap</em> strategy (<a href="concept-inference-economics.html">concept-inference-economics</a>).</li></ul>
+<p>This is <a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a> graduating from architecture pattern to optimization target.</p>
+<h2 id="the-experience-current-predicted-to-win-eventually">The experience current (predicted to win eventually)</h2>
+<ul><li><strong>The Bitter Lesson (Sutton 2019):</strong> seventy years of AI history say methods that scale with computation (search, learning) eventually beat human-engineered knowledge — chess heuristics, vision features, linguistics-informed NLP all washed away. On its face, harness engineering <em>is</em> human-engineered structure, and the prediction is that it, too, is a sandcastle.</li><li><a href="source-sutton-generative-ai-discovery.html">source-sutton-generative-ai-discovery</a> — the 2026 sharpening: what matters is the <strong>Variation → Evaluation → Selective retention</strong> loop running on experience, with goals shared directly with the system.</li><li><a href="source-continual-interactive-causal-agents.html">source-continual-interactive-causal-agents</a> — the training-side version: replace stacked regimes with a single continual causal stream; learning lives <em>in the weights</em>, driven by interaction.</li><li>The absorption precedents are real: chain-of-thought prompting (a scaffold) was internalized by <a href="source-openai-o1-system-card.html">source-openai-o1-system-card</a> / <a href="source-deepseek-r1.html">source-deepseek-r1</a> as trained deliberation; <a href="source-next-latent-prediction.html">source-next-latent-prediction</a> internalizes a world-model bias that scaffolded recurrence supplied externally; long context keeps eating retrieval scaffolds from below.</li></ul>
+<h2 id="four-resolutions-not-two">Four resolutions, not two</h2>
+<p>The debate dissolves into something more interesting once you split the scaffold into its parts.</p>
+<h3 id="1-the-scaffold-is-the-missing-rl-loop-suttons-own-concession">1. The scaffold IS the missing RL loop (Sutton's own concession)</h3>
+<p>Sutton exempts AlphaGo, AlphaProof — and <strong>Claude-Code-style systems</strong> — from his critique: they have the Evaluation step. But an agentic harness is <em>exactly</em> that: the sandbox runs the code (Evaluation), the loop retries (Variation), memory and skill libraries keep what worked (Selective retention). <a href="source-voyager-minecraft-skill-library.html">source-voyager-minecraft-skill-library</a> was already this in 2023. On this reading, the harness cluster is not defying the Bitter Lesson — it is <strong>implementing Sutton's loop in symbols instead of weights</strong>. The scaffold is not domain knowledge; it is generate-and-test machinery.</p>
+<h3 id="2-text-layer-learning-is-experience-based-learning">2. Text-layer learning is experience-based learning</h3>
+<p><a href="source-text-optimization-yoonho.html">source-text-optimization-yoonho</a> reframes the fight: the question is not <em>whether</em> experience drives improvement but <em>where the update lands</em> — weights or text/code. Text-layer updates are sample-efficient (one failure → one durable memory entry), auditable, and portable. This is experience-based learning with a different storage medium. The Bitter Lesson never specified the substrate of learning — only that learning beat hand-coding. A harness that <em>learns its own structure</em> (<a href="source-harness-optimization-evolve-harness.html">source-harness-optimization-evolve-harness</a>'s evolved scaffolds, <a href="source-mlevolve.html">source-mlevolve</a>'s self-evolving memory) is on the learning side of Sutton's ledger, not the hand-engineering side.</p>
+<h3 id="3-the-transfer-test-separates-what-survives">3. The transfer test separates what survives</h3>
+<p>The single most diagnostic finding: in <a href="source-harness-optimization-evolve-harness.html">source-harness-optimization-evolve-harness</a>, <strong>code transfers across model families; prompts don't.</strong> Prompt incantations are model-shaped human knowledge — the Bitter Lesson predicts they wash away, and they already do (every model generation obsoletes the prompt guides of the last). Deterministic components — verifiers, sandboxes, typed I/O, data engines — are <em>world-shaped</em>, not model-shaped. There is no reason for a better model to obsolete a correct virus-genome lookup. Prediction: <strong>the prompt-like parts of the harness die with each model generation; the verifier-like parts compound.</strong></p>
+<h3 id="4-some-scaffold-must-never-be-absorbed-on-purpose">4. Some scaffold must never be absorbed — on purpose</h3>
+<p><a href="source-self-revising-discovery-systems.html">source-self-revising-discovery-systems</a> and <span class="dead" title="not published">idea-benchmark-honest-epistemic-loop</span> converge on the same point from opposite ends (formal category theory; local experiment scar tissue): the <strong>evaluator has to stay outside the learner</strong>, or you cannot trust the result. MDL/AIC gates, typed provenance, truth-path-vs-heuristic-path separation — these are epistemic infrastructure, not capability patches. Absorbing them into the model would defeat their purpose even if it were possible. The sandbox in <a href="source-claude-code-sandboxing.html">source-claude-code-sandboxing</a> is the security version of the same principle.</p>
+<h2 id="synthesis">Synthesis</h2>
+<p>The Bitter Lesson does apply to the harness — <strong>selectively</strong>. Expect a sorting process:</p>
+<div class="tw"><table><thead><tr><th>Harness component</th><th>Fate</th><th>Why</th></tr></thead><tbody><tr><td>Prompt engineering, model-specific incantations</td><td>absorbed / obsoleted</td><td>model-shaped knowledge</td></tr><tr><td>Token-efficiency tooling (<a href="entity-rtk-token-killer.html">entity-rtk-token-killer</a>, <a href="entity-codedb.html">entity-codedb</a>)</td><td>eroded by cheaper tokens &amp; longer context</td><td>compensates a model limitation</td></tr><tr><td>Deliberation scaffolds (CoT, ToT patterns)</td><td>already internalized by reasoning training</td><td>the o1/R1 precedent</td></tr><tr><td>Skill/memory libraries</td><td>partially absorbed (distilled), partially kept (auditability)</td><td>dual capability/trust role</td></tr><tr><td>Deterministic verifiers, context engines, sandboxes, provenance</td><td><strong>permanent</strong></td><td>world-shaped; trust requires externality</td></tr><tr><td>The loop itself (Variation/Evaluation/retention)</td><td>permanent, but its <em>location</em> migrates weight-ward</td><td>it is the learning method, not the knowledge</td></tr></tbody></table></div>
+<p>The scaffold current and the experience current are not opponents; the scaffold is where the experience loop lives <strong>while weights are frozen between deployments</strong>. What Sutton's position really predicts is not "harness dies" but "the harness's <em>learned</em> content keeps migrating into weights, while its <em>evaluative</em> skeleton remains" — which is also precisely the trajectory <a href="concept-neural-symbolic-bridge.html">concept-neural-symbolic-bridge</a> and <span class="dead" title="not published">idea-neural-symbolic-ecology</span> describe: symbolic structure that survives only if it pays rent.</p>
+<h2 id="what-to-watch-falsifiable-markers">What to watch (falsifiable markers)</h2>
+<ol><li><strong>Harness-gain decay:</strong> does the +16.7-pt scaffold gain of <a href="source-harness-optimization-evolve-harness.html">source-harness-optimization-evolve-harness</a> shrink against each successive frozen model? If yes → absorption is happening on schedule. If it <em>persists</em>, the deterministic-substrate thesis strengthens.<ul><li>2026-09 data point (across policy strength, not model generations): the same regularized evolution method, run separately per policy, gains +14.1 on Terminal-Bench 2.1 with Gemini 3.5 Flash but +6.0 with Claude Opus 4.8, which "starts closer to the ceiling" (<code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code>, §4.3, Table 3). Out of distribution, unregularized harness evolution keeps almost none of its gain (same file, Table 2). See <a href="source-rrsi-regularized-harness-evolution.html">source-rrsi-regularized-harness-evolution</a>.</li></ul></li><li><strong>Context-engine proliferation:</strong> if Anthropic-style <code>gget virus</code> engines appear in more domains (law, materials, finance) and <em>keep</em> collapsing the model-quality gap, the "permanent layer" column grows.</li><li><strong>Continual-weight-learning products:</strong> if <a href="source-continual-interactive-causal-agents.html">source-continual-interactive-causal-agents</a>-style continual streams ship in production agents, the text-layer memory business (<a href="source-text-optimization-yoonho.html">source-text-optimization-yoonho</a>) faces its real test.</li><li><strong>Tokenflation direction:</strong> if <a href="source-token-purchasing-power-bigspin.html">source-token-purchasing-power-bigspin</a>-style indices reverse (output-per-token recovering as models internalize efficiency), the economic case for scaffolding weakens.</li><li><strong>Update-time compute uptake:</strong> does anyone besides Yoonho Lee build a scaling <em>law</em> for update-time compute? A measured curve would promote it from manifesto to axis.</li></ol>
+<h2 id="reading-order">Reading order</h2>
+<ol><li><a href="source-sutton-generative-ai-discovery.html">source-sutton-generative-ai-discovery</a> (the challenge, 2026 form)</li><li><a href="source-harness-optimization-evolve-harness.html">source-harness-optimization-evolve-harness</a> (the strongest frozen-model counter-evidence, incl. the transfer test)</li><li><a href="source-text-optimization-yoonho.html">source-text-optimization-yoonho</a> (the reframe: text layer as learning medium)</li><li><a href="source-anthropic-agents-in-biology.html">source-anthropic-agents-in-biology</a> (the permanent-layer case)</li><li><a href="source-continual-interactive-causal-agents.html">source-continual-interactive-causal-agents</a> (the weights-side rebuttal)</li><li><span class="dead" title="not published">idea-benchmark-honest-epistemic-loop</span> (why the evaluator must stay outside — the local-experiment version)</li></ol>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a> · <a href="concept-automated-scientific-discovery.html">concept-automated-scientific-discovery</a> · <a href="concept-self-improvement.html">concept-self-improvement</a> · <a href="concept-inference-economics.html">concept-inference-economics</a> · <a href="concept-developer-tools.html">concept-developer-tools</a></li><li><a href="analysis-neural-symbolic-middle-point.html">analysis-neural-symbolic-middle-point</a> — the parent thesis; this page is its "who wins long-run" corollary</li><li><a href="analysis-emergence-vs-distribution-sharpening.html">analysis-emergence-vs-distribution-sharpening</a> — sibling debate about where capability actually lives</li><li><span class="dead" title="not published">idea-neural-symbolic-ecology</span> — the local version: symbolic structures survive only if they pay rent</li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code></li></ul></details>
+</main>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>TensorLens: End-to-End Transformer Analysis via High-Order Attention Tensors · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="tensorlens">TensorLens</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-06</span> <span>updated 2026-05-06</span> <span class="tag">mechanistic-interpretability</span> <span class="tag">transformer-architecture</span> <span class="tag">attention</span> <span class="tag">tensor-methods</span> <span class="tag">2026</span></div>
+<p><strong>Atad, Zimerman, Katz, Wolf (Tel Aviv U / IBM Research) — ACL 2026, arXiv 2601.17958</strong></p>
+<p>Reformulates a transformer as a single input-dependent <strong>high-order attention tensor</strong> that jointly encodes attention, FFNs, activations, normalisations, and residuals. Where conventional interpretability stops at attention matrices (a shallow per-head/per-layer view), TensorLens treats the whole forward pass as one composable tensor object that can be projected back to any subset of heads, layers, or paths.</p>
+<h2 id="key-claims">Key Claims</h2>
+<ul><li>Attention matrices ignore embeddings/FFNs/values and proliferate per (head, layer) — TensorLens collapses these into one object.</li><li>Tensor formulation is <strong>modular</strong>: aggregate any subset of circuits into a unified operator.</li><li>Empirically yields richer representations than prior attention-aggregation methods; useful for linear relation decoding from embeddings (<a href="source-rome-memit-factual-editing.html">source-rome-memit-factual-editing</a>-style readouts).</li><li>Provides theoretical grounding for end-to-end mechanistic interpretability.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li>Sits in the lineage of <a href="source-anthropic-mi-foundations.html">source-anthropic-mi-foundations</a> (path expansion) and <a href="source-decompiling-transformers-to-rasp.html">source-decompiling-transformers-to-rasp</a> (whole-model readout) — formalises the "look at the whole model, not one head" move.</li><li>Complements SAE-based circuit tooling (<a href="source-sae-monosemanticity-2023.html">source-sae-monosemanticity-2023</a>, <a href="source-sae-scaling-trilogy.html">source-sae-scaling-trilogy</a>) by attacking aggregation rather than feature dictionaries.</li><li>Fits <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a> as a tooling-tier contribution alongside <a href="source-circuit-tracing-methods-anthropic.html">source-circuit-tracing-methods-anthropic</a> and <a href="source-conmy-2023-acdc-automated-circuit-discovery.html">source-conmy-2023-acdc-automated-circuit-discovery</a>.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><a href="https://arxiv.org/abs/2601.17958" rel="noreferrer">arXiv 2601.17958</a></li><li><a href="https://huggingface.co/papers/2601.17958" rel="noreferrer">HuggingFace papers page</a></li><li>Author thread: <a href="https://x.com/itamarzimerman/status/2017591397172257265" rel="noreferrer">@ItamarZimerman</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2601.17958" rel="noreferrer">https://arxiv.org/abs/2601.17958</a></li><li><a href="https://x.com/itamarzimerman/status/2017591397172257265" rel="noreferrer">https://x.com/itamarzimerman/status/2017591397172257265</a></li></ul></details>
+</main>
+</body>
+</html>

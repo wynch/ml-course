@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Richard Sutton — AI Creativity and Discovery (Generative AI Cannot Discover) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="sutton-ai-creativity-and-discovery">Sutton — AI Creativity and Discovery</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-07-04</span> <span>updated 2026-09-25</span> <span class="tag">reinforcement-learning</span> <span class="tag">self-improvement</span> <span class="tag">evolutionary</span> <span class="tag">emergence</span> <span class="tag">foundational</span> <span class="tag">debate</span></div>
+<p><strong>Author:</strong> Richard S. Sutton (Turing Award; RL pioneer — Keen, UAlberta, Amii) / <strong>Date:</strong> 2026-05-31 / <strong>Type:</strong> recorded talk to the SAIR Foundation meeting (full text posted to X)</p>
+<h2 id="summary">Summary</h2>
+<p>Sutton argues, from an RL vantage, that <strong>generative AI trained by supervised learning is incapable of making novel discoveries</strong>. He opens with the reviewer's joke — "the parts that are good are not novel, and the parts that are novel are not good" — and claims it applies <em>exactly</em> to generative AI (LLMs, image/video models, and even supervised-learned world models). Because their processing is partly stochastic, they produce a variety of trajectories, but any given trajectory is <em>either</em> novel (from randomness) <em>or</em> good (from training data) — <strong>never both at the same time</strong>. When the AI's output is novel beyond its source material, that is what we call hallucination. This is fine for mimicry-as-utility (faster/cheaper/smaller/copyable), but "devastating" for science and mathematics, which require true creativity.</p>
+<p>The missing ingredient he calls <strong>Discovery</strong>: the three-step loop of <strong>Variation → Evaluation → Selective retention</strong> — the mechanism shared by evolution by natural selection, the scientific method, operant conditioning, and reinforcement learning ("generate and test"). What generative AI lacks is the <strong>Evaluation</strong> step: the generator was pre-trained by supervised learning, leaving no way at runtime to evaluate what it generates, so there is no selective retention and therefore no discovery. Novelty "flickers into existence" but, unevaluated, is lost. Systems that <em>do</em> discover — AlphaGo's move 37, AlphaZero, AlphaFold, AlphaProof, Claude-Code — all have this extra evaluation-against-a-goal machinery; they are more than garden-variety generative AI.</p>
+<p>He extends the point to <strong>backpropagation</strong>: it looks incapable of variation because weight updates are deterministic, but random weight <em>initialization</em> is a necessary (one-time) form of variation — and because it happens only once, networks can lose plasticity over time. His group's <strong>continual backpropagation</strong> (Nature) reinitializes under-used neurons periodically to keep variation and plasticity alive. His closing "call to arms": to get full AI scientists, <em>share explicit goals</em> with systems so they can create, evaluate, discover, and be fully autonomous — "Let's fully automate Creativity and Discovery."</p>
+<h2 id="key-ideas">Key Ideas</h2>
+<ul><li><strong>The novel-XOR-good claim.</strong> Generative AI's stochastic trajectories are novel <em>or</em> good, never both; novel-beyond-source = hallucination.</li><li><strong>Discovery = Variation + Evaluation + Selective retention.</strong> The engine of evolution, science, operant conditioning, and RL.</li><li><strong>The missing step is Evaluation.</strong> Supervised pre-training leaves no runtime evaluator → no selective retention → no discovery; this is absent in backprop/gradient descent and in world modeling <em>per se</em>.</li><li><strong>Blind variation.</strong> Discovery needs a partly-uninformed ("blind") variation component; fully-determined proposals can't discover.</li><li><strong>Backprop's hidden variation</strong> is random init (one-shot) — hence plasticity loss; <strong>continual backpropagation</strong> re-injects variation by reinitializing under-used neurons.</li><li><strong>Call to arms:</strong> give AI scientists explicit goals so the create-evaluate-select loop can run autonomously.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li>Sharpens the wiki's skepticism thread: complements <a href="source-llm-reasoning-skeptics.html">source-llm-reasoning-skeptics</a> and the discontinuity questions in <a href="source-emergence-debate.html">source-emergence-debate</a> — but Sutton's cut is <em>creativity/discovery</em>, not reasoning or metrics.</li><li>His Discovery loop is precisely the mechanism supplied by the evolutionary-search systems in the wiki: <a href="source-alphaevolve.html">source-alphaevolve</a>, <a href="source-funsearch.html">source-funsearch</a>, <a href="source-mlevolve.html">source-mlevolve</a>, <a href="source-gea-group-evolving-agents.html">source-gea-group-evolving-agents</a> — LLM = Variation, verifier = Evaluation, archive/selection = Selective retention. Under <a href="concept-self-improvement.html">concept-self-improvement</a> and <a href="concept-neural-symbolic-bridge.html">concept-neural-symbolic-bridge</a>.</li><li><a href="source-schmidhuber-compression-progress.html">source-schmidhuber-compression-progress</a> (2008) also puts evaluation at the core, but inside the agent: novelty is learnable-but-unknown regularity, scored by bits saved (<code>raw/arxiv-0812-4360-driven-by-compression-progress.md</code>, §2.6, §A.5). On that measure "novel" and "good" are one quantity, so the joke's split does not arise for a compressor-driven agent. Sutton speaks of supervised generative AI, which has no such step, so the two do not conflict.</li><li>Direct counterpoint to <a href="source-self-revising-discovery-systems.html">source-self-revising-discovery-systems</a>, which formalizes "discovery vs search" categorically — where Sutton says supervised generative AI <em>can't</em> discover, Buehler proposes a measurable criterion for when a system genuinely has.</li><li>The RL-as-discovery framing connects to <a href="concept-rlhf-alternatives.html">concept-rlhf-alternatives</a> and reward-driven self-improvement (<a href="source-deepseek-r1.html">source-deepseek-r1</a>, <a href="source-intuitor-reasoning-without-rewards.html">source-intuitor-reasoning-without-rewards</a>); continual backprop / plasticity ties to <a href="concept-model-training.html">concept-model-training</a>.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><a href="https://x.com/RichardSSutton/status/2061216087744946656" rel="noreferrer">X post with full speech (@RichardSSutton)</a> · <a href="https://youtu.be/K5LAFEjTlBA" rel="noreferrer">video</a></li><li>Raw note (full speech text): <code>raw/tweet-sutton-generative-ai-discovery.md</code></li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://x.com/RichardSSutton/status/2061216087744946656" rel="noreferrer">https://x.com/RichardSSutton/status/2061216087744946656</a></li><li><a href="https://youtu.be/K5LAFEjTlBA" rel="noreferrer">https://youtu.be/K5LAFEjTlBA</a></li><li><code>raw/arxiv-0812-4360-driven-by-compression-progress.md</code></li></ul></details>
+</main>
+</body>
+</html>

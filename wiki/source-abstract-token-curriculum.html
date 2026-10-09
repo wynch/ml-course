@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Learn Your Own Thoughts: Abstract Token Curriculum (Gatmiry et al., 2026) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="learn-your-own-thoughts-abstract-token-curriculum">Learn Your Own Thoughts: Abstract Token Curriculum</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-09-25</span> <span>updated 2026-09-26</span> <span class="tag">reasoning</span> <span class="tag">chain-of-thought</span> <span class="tag">continuous-thought</span> <span class="tag">curriculum-learning</span> <span class="tag">latent-reasoning</span> <span class="tag">learning-theory</span> <span class="tag">attention</span></div>
+<p><strong>Authors:</strong> Khashayar Gatmiry, Avrajit Ghosh, Parsa Mirtaheri, Jason D. Lee, Nika Haghtalab, Emmanuel Abbe, Peter Bartlett (UC Berkeley, UC San Diego, EPFL, Google DeepMind) <strong>Published:</strong> arXiv 2609.19717, v1 2026-09-17, v2 2026-09-23 <strong>Raw copy:</strong> <code>raw/arxiv-2609-19717-learn-your-own-thoughts-abstract-token-curriculum.md</code> (captured 2026-09-25, full text of v2)</p>
+<p>Every claim below cites the raw file as R, with the paper's section number.</p>
+<h2 id="summary">Summary</h2>
+<p>Chain-of-thought needs supervised thinking tokens or a hand-made scratchpad for each task (R, §1). <strong>Abstract Token Curriculum (ATC)</strong> asks for neither. Training runs in phases of rising difficulty. After phase <em>i</em> is learned, the model's last hidden state is appended to the context as a continuous "thought" token, and phase <em>i+1</em> poses a harder instance with one more thought slot. Only the final answer is ever supervised (R, §2, Figure 1).</p>
+<p>The theory is on parity. Under an idealized assumption (the latest thought already equals the parity so far, "correlation one"), one large gradient step on the attention keys makes the answer position put at least 99% of its attention on the most recent thought, with probability at least 1/4. The authors call this the <strong>attention simplicity bias</strong> and say it settles a conjecture of Abbe et al. (2024) in this setting (R, §1, §3, §4, Theorem 1). Only the keys are trained in the proof; the full-parameter case is a conjecture (R, §4).</p>
+<h2 id="key-results">Key results</h2>
+<ul><li><strong>Parity</strong> (20 bits, parity of a hidden 10-bit subset, 1-layer 1-head transformer, 20 seeds): ATC stays near perfect through all 20 phases; the same data curriculum without thought tokens degrades as the order rises; no curriculum and no thoughts stays at chance (R, §5, Figure 2).</li><li><strong>Graph reachability</strong> (two isomorphic 20-node trees, so only connectivity separates the two candidates; 2-layer GPT-2, 15 M parameters, trained from scratch; 5,000 test graphs; chance 50%): ATC 99.9%; Coconut with supervised intermediate nodes 99.9% (accuracy-gated) or 97.6% (fixed epochs); no thoughts 48.3%; discrete CoT on written shortest paths 63.5%; full latent budget without curriculum 47.8%; curriculum without thoughts 49.0% (R, §6.2.2, Table 1).</li><li><strong>Speed:</strong> ATC first hits 95% at epoch 51, against 132 and 468 for the two Coconut schedules (R, §6.2.2).</li><li><strong>Cheaper training:</strong> backpropagating through only the last 5 thoughts cuts peak memory to 27% and step time to 63%. It only works with <strong>curriculum backtracking</strong> (return to the shallowest difficulty that regressed): 97.4% with it, 51.0% without (R, §6.3, Table 2).</li><li><strong>Probes:</strong> replacing earlier thoughts with noise leaves the answer intact if the last thought is restored; corrupting the last thought breaks it. First-layer attention at readout puts about 50% on the last thought and 1.4% on earlier ones (Coconut: 39.6% and 17.0%) (R, §6.4, Figures 4-6).</li><li><strong>Eight-digit addition</strong> (2-layer model, 10 seeds): ATC 98.7-99.6% exact match; Coconut 0%. With the answer candidates never hidden (ρ = 0) the model copies them and never leaves stage 0 (R, §7, Table 3).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>The theorem assumes earlier thoughts stay intact; in experiments they did not, which is why backtracking exists (R, §1).</li><li>Training prompts show two answer candidates, one correct. They are hidden on 75% of rows to block copying; the graph test shows both, so it is a two-way choice (R, Appendix H.2-H.3).</li><li>The gate matters: τ = 0.9 with m = 1 stops at 91.8% instead of 99.9% (R, Appendix H.2). Seed counts for the graph table are not stated.</li><li>The arXiv listing's abstract is shorter than the v2 paper's own; the raw file keeps both.</li><li>Small synthetic tasks and small models only. Whether one latest thought can carry long proofs is left open (R, §8).</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-topological-trouble-transformers.html">source-topological-trouble-transformers</a> — argues continuous thinking is a costly way round the depth limit. ATC measures that cost in training (backward memory grows with chain length) and cuts it with truncation plus backtracking; the forward pass stays linear in chain length (R, §6.3).</li><li><a href="source-continuous-thought-machine.html">source-continuous-thought-machine</a> — another latent-thought model tested on parity and 2D mazes (arXiv 2505.05522 abstract); CTM adds internal ticks inside the network, ATC feeds hidden states back as tokens.</li><li><a href="source-measuring-cot-monitorability.html">source-measuring-cot-monitorability</a> — continuous thoughts leave no text to read; ATC audits them only through noise-injection probes (R, §6.4).</li><li><a href="source-chain-of-thought-foundations.html">source-chain-of-thought-foundations</a> — CoT in the prompt needs scale; ATC trains latent CoT into a 15 M-parameter model from scratch.</li><li><a href="source-coconut-continuous-latent-reasoning.html">source-coconut-continuous-latent-reasoning</a> — the original Coconut: the same feedback of the last hidden state, taught by replacing written reasoning steps stage by stage; without that curriculum it does no better than no-CoT (<code>raw/arxiv-2412-06769-coconut-reason-in-continuous-latent-space.md</code>, §3, §5.3). ATC's "Coconut" rows are the authors' re-instantiation with node or partial-sum targets, not the written-chain version (R, §6.2.1, §7).</li><li><a href="source-soft-tokens-hard-truths.html">source-soft-tokens-hard-truths</a> — another answer-only route to continuous thoughts, at 3-8B scale on maths: reinforcement learning with noise on mixed word embeddings instead of a curriculum with backpropagation (<code>raw/arxiv-2509-19170-soft-tokens-hard-truths.md</code>, §3).</li><li><a href="source-continuous-cot-two-regimes.html">source-continuous-cot-two-regimes</a> — a warning for results like ATC's: compressing continuous-CoT methods near written CoT on short structured chains fall to about 35% of its accuracy on self-written MATH chains of about 350 tokens (<code>raw/arxiv-2607-16972-continuous-cot-tale-of-two-regimes.md</code>, §4.5, Figure 1). ATC is untested at that length.</li><li><a href="source-pause-tokens.html">source-pause-tokens</a> — the older idea ATC builds on: extra slots before the answer, loss on the answer only. Pause slots hold one fixed learned token and add width, not sequential steps (<code>raw/arxiv-2310-02226-think-before-you-speak-pause-tokens.md</code>, §3.1, §6); ATC slots hold the model's own last hidden state, so each adds a step.</li><li><a href="concept-latent-reasoning.html">concept-latent-reasoning</a> — the whole line this paper sits in.</li><li><a href="concept-llm-reasoning.html">concept-llm-reasoning</a> · <a href="concept-test-time-compute.html">concept-test-time-compute</a> · <a href="concept-transformer-architecture.html">concept-transformer-architecture</a> · <a href="thread-test-time-compute.html">thread-test-time-compute</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li>Raw: <code>raw/arxiv-2609-19717-learn-your-own-thoughts-abstract-token-curriculum.md</code></li><li>arXiv: <a href="https://arxiv.org/abs/2609.19717" rel="noreferrer">https://arxiv.org/abs/2609.19717</a> · HTML: <a href="https://arxiv.org/html/2609.19717v2" rel="noreferrer">https://arxiv.org/html/2609.19717v2</a></li></ul>
+<details class="src"><summary>Sources (6)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2609-19717-learn-your-own-thoughts-abstract-token-curriculum.md</code></li><li><a href="https://arxiv.org/abs/2609.19717" rel="noreferrer">https://arxiv.org/abs/2609.19717</a></li><li><code>raw/arxiv-2310-02226-think-before-you-speak-pause-tokens.md</code></li><li><code>raw/arxiv-2412-06769-coconut-reason-in-continuous-latent-space.md</code></li><li><code>raw/arxiv-2509-19170-soft-tokens-hard-truths.md</code></li><li><code>raw/arxiv-2607-16972-continuous-cot-tale-of-two-regimes.md</code></li></ul></details>
+</main>
+</body>
+</html>

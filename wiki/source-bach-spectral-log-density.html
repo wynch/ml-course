@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Exploding variance of means of exponentials: least-squares to the rescue (Bach, 2026) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="exploding-variance-of-means-of-exponentials-least-squares-to-the-rescue">Exploding variance of means of exponentials: least-squares to the rescue</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-09-26</span> <span>updated 2026-09-26</span> <span class="tag">density-ratio</span> <span class="tag">kl-divergence</span> <span class="tag">least-squares</span> <span class="tag">softmax</span> <span class="tag">log-sum-exp</span> <span class="tag">eigenvalues</span> <span class="tag">theory</span></div>
+<p><strong>Author:</strong> Francis Bach <strong>Published:</strong> 2026-09-25 (blog post; URL slug <code>spectral_log_density_estimation</code>) <strong>URL:</strong> <a href="https://francisbach.com/spectral_log_density_estimation/" rel="noreferrer">https://francisbach.com/spectral_log_density_estimation/</a> <strong>Raw copy:</strong> <code>raw/web-2026-francisbach-spectral-log-density.md</code> (captured 2026-09-26, full text) <strong>Papers behind it:</strong> arXiv 2605.10668 (the framework, to appear at NeurIPS) and arXiv 2607.01895 (the Gaussian analysis) (R, References [7], [9]).</p>
+<p>Every claim below cites the raw file as R, with the section it came from. Formulas are the post's, in its notation.</p>
+<h2 id="terms-in-plain-words">Terms, in plain words</h2>
+<div class="tw"><table><thead><tr><th>Term</th><th>Meaning here</th></tr></thead><tbody><tr><td>log-sum-exp</td><td>$\log \int e^{v(x)}\,dq(x)$: the log of an average of exponentials; the softmax denominator when the set is finite</td></tr><tr><td>potential $v$</td><td>any real-valued function on the data space; the thing being fitted</td></tr><tr><td>relative density $dp/dq$</td><td>how much more likely a point is under $p$ than under $q$</td></tr><tr><td>KL divergence</td><td>$\mathrm{KL}(p|q)=\int \log\frac{dp}{dq}\,dp$: the average log of that ratio under $p$</td></tr><tr><td>$f$-divergence</td><td>$D(p|q)=\int f\big(\frac{dp}{dq}\big)\,dq$ for a convex $f$; KL is $f(t)=t\log t-t+1$</td></tr><tr><td>weighted chi-square</td><td>the $f$-divergence with $f(t)=\frac12\frac{(t-1)^2}{\rho t+1-\rho}$, $\rho\in[0,1]$</td></tr><tr><td>generalized eigenvalue decomposition</td><td>a basis $v_i$ with $v_i^\top\Sigma_q v_j=1_{i=j}$ and $\Sigma_p v_i=\lambda_i\Sigma_q v_i$</td></tr></tbody></table></div>
+<h2 id="summary">Summary</h2>
+<p>Many ML objectives contain a log-sum-exp: normalizing a probabilistic model, a smooth maximum, transformers (through its derivatives), entropy-regularized RL (R, intro). When the integral must be estimated from samples, the estimate is unstable. For $z\sim\mathcal N(\mu,\sigma^2)$, $n$ samples give relative squared error $\frac{e^{\sigma^2}-1}{n}$ for $\mathbb E[e^z]$: it shrinks with $n$ but grows exponentially with $\sigma$, and taking the log does not help (R, intro).</p>
+<p>The post asks whether one can keep what log-sum-exp is good for while dodging this. Its answer rewrites KL-type problems as a continuum of least-squares problems, solved all at once by one generalized eigenvalue decomposition (R, intro; §"Conclusion").</p>
+<h2 id="key-claims">Key claims</h2>
+<ul><li><strong>Testbed.</strong> Estimate $\log\frac{dp}{dq}$ from samples of $p$ and $q$. This is equivalent to estimating KL, since $\mathrm{KL}(p\|q)=\sup_v \int v\,dp+1-\int e^{v}\,dq$ (Eq. 1), or in Donsker-Varadhan form $\sup_v \int v\,dp-\log\int e^{v}\,dq$ (Eq. 2). The usual approach swaps integrals for sample averages, and the average of $e^v$ is the unstable part (R, §"Relative density estimation as a testbed").</li><li><strong>Weighted chi-square is pure least-squares.</strong> $\frac12\frac{(t-1)^2}{\rho t+1-\rho}=\sup_u (t-1)u-\frac12(\rho t+1-\rho)u^2$, so the divergence becomes a quadratic problem in $u$. It is a regression: predict $y=1/\rho$ for points from $p$ (chosen with probability $\rho$) and $y=-1/(1-\rho)$ for points from $q$. The post notes a likeness to noise-contrastive estimation (R, §"Weighted chi-square divergences").</li><li><strong>KL as a mixture of these.</strong> $t\log t-t+1=\int_0^1\frac{(t-1)^2}{\rho t+1-\rho}(1-\rho)\,d\rho$, i.e. $d\nu(\rho)=2(1-\rho)d\rho$. So KL is a weighted sum of chi-square problems over $\rho$, solved "in parallel" (Eqs. 4-6). The same holds for all $\alpha$-divergences, but not total variation. The integral form comes from the theory of operator convex functions (R, §"Extension by integration"). (The wiki checked the identity numerically at $t=0.3, 2, 5$.)</li><li><strong>Closed form with linear features.</strong> With $u(\rho,x)=\theta(\rho)^\top\varphi(x)$, $\theta(\rho)=(\rho\Sigma_p+(1-\rho)\Sigma_q)^{-1}(\mu_p-\mu_q)$, where $\mu$ and $\Sigma$ are the first and second moments of the features under $p$ and $q$. Integrating over $\rho$ gives a new divergence $F(p\|q,\varphi)$ (Eq. 7), a lower bound on $D(p\|q)$ (R, §"Linear models with closed-form spectral estimation").</li><li><strong>One eigen-decomposition.</strong> With the generalized eigenpairs of $(\Sigma_p,\Sigma_q)$, $F=\sum_i\big((\mu_p-\mu_q)^\top v_i\big)^2\frac{f(\lambda_i)}{(\lambda_i-1)^2}$. The fitted potentials are quadratic-plus-linear forms in $\varphi(x)$ (same section). The post's definition line writes $\Sigma_p v_i=\lambda_i\Sigma_q v_j$; the index is read here as $i$.</li><li><strong>Stable where single problems are not.</strong> Single problems can blow up near $\rho=0$ or $\rho=1$; after integration the estimate stays stable whenever $f(t)/(t-1)^2$ is bounded, which holds for KL (same section).</li><li><strong>Cost.</strong> $O(m^2n+m^3)$ for $m$ features and $n$ samples; with a learned $r$-dimensional representation, iterations cost $O(r^3+rmn)$ (same section).</li><li><strong>Bias for variance.</strong> Regularizing adds $\lambda I$: ridge regression for every $\rho$. In a high-dimensional Gaussian model that favours the older variational estimator, the variational one wins with many samples, the spectral one with few (R, §"Benefits of spectral estimation", first figure). In 2-D simulations with ReLU random features ($m=512$), spectral KL beats spectral Pearson and the variational estimator, except at large $n$ where spectral KL and variational are the same (same section, second figure).</li><li><strong>Closed-form softmax regression.</strong> Take $p$ as a joint law and $q$ as the product of its marginals: the log-ratio is $\log\frac{p(x_2|x_1)}{p(x_2)}$. For a finite label set this is softmax regression, in closed form. It behaves like softmax regression, not identically, and it is not least-squares on one-hot labels (that is the Pearson case, which leads to canonical correlation analysis and shows "masking", where whole classes vanish) (R, §"Mutual information and conditional estimation").</li><li><strong>Cheaper than Newton.</strong> For $k$ classes and dimension $d$: $O(nd^2k^2+d^3k^3)$ per Newton step for softmax, versus $O(d^2n+kd^3)$ once for the closed form (same section).</li><li><strong>Feature learning.</strong> Maximizing $F$ over the feature map $\varphi$ gives a minorization-maximization algorithm akin to EM (R, §"Feature learning").</li><li><strong>Outlook.</strong> The author sees the framework as a possible replacement for the last layer of neural networks, where cross-entropy and log-sum-exp rule. Rates for KL estimation are in arXiv 2605.10668 (R, §"Conclusion").</li><li><strong>SDP view.</strong> $F$ equals a semidefinite program; its constraint guarantees $w(x)+f^\ast(v(x))\le0$ for all $x$, as in sum-of-squares optimization. His earlier framework needed $\|\varphi(x)\|=1$; this one does not, which eases feature learning (R, §"Playing with SDPs").</li></ul>
+<h2 id="relevance">Relevance</h2>
+<ul><li><strong>Course.</strong> Module 00b fits Gaussian classes with equal covariance and finds a logistic posterior, and uses log-sum-exp in <code>predict_log_proba</code>; module 02 fuses softmax with cross-entropy (<code>course/modules/00b-bayes-knn-pca/README.md</code>, Part 3 and "Where this shows up later"; <code>course/modules/02-neural-networks/README.md</code>). The post targets the same setting (equal-covariance Gaussians, affine log-probabilities) and replaces the iterative fit with linear algebra (R, §"The magic of least-squares").</li><li><strong>Attention and memory.</strong> Log-sum-exp is the energy term of modern Hopfield networks (<a href="source-hopfield-is-all-you-need.html">source-hopfield-is-all-you-need</a>) and the statistic FlashAttention stores (<a href="source-flashattention.html">source-flashattention</a>). The post does not address attention beyond naming it.</li><li><strong>Contrastive learning.</strong> The regression view echoes noise-contrastive estimation (R, §"Weighted chi-square divergences"); compare the InfoNCE pages <a href="source-ssl-contrastive-foundations.html">source-ssl-contrastive-foundations</a> and <a href="source-contrastive-learning-gaussian-representations.html">source-contrastive-learning-gaussian-representations</a>.</li><li><strong>Energy-based models.</strong> The unstable normalizer is the partition function problem of <a href="concept-energy-based-models.html">concept-energy-based-models</a>.</li><li><strong>Compass.</strong> The spine's <code>softmax</code> entry defines softmax as turning scores into probabilities; this post is about the cost of its denominator when estimated from samples.</li></ul>
+<h2 id="references">References</h2>
+<ul><li>R = <code>raw/web-2026-francisbach-spectral-log-density.md</code></li><li><a href="https://francisbach.com/spectral_log_density_estimation/" rel="noreferrer">https://francisbach.com/spectral_log_density_estimation/</a></li><li>F. Bach, "A Spectral Framework for Closed-Form Relative Density Estimation", arXiv:2605.10668</li><li>F. Bach, "Regularized Variational and Spectral Log-Density-Ratio Estimation in the Gaussian Location Model", arXiv:2607.01895</li><li>Related: <a href="concept-energy-based-models.html">concept-energy-based-models</a>, <a href="source-hopfield-is-all-you-need.html">source-hopfield-is-all-you-need</a>, <a href="source-flashattention.html">source-flashattention</a>, <a href="source-ssl-contrastive-foundations.html">source-ssl-contrastive-foundations</a>, <a href="source-contrastive-learning-gaussian-representations.html">source-contrastive-learning-gaussian-representations</a>, <a href="concept-representation-learning.html">concept-representation-learning</a></li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/web-2026-francisbach-spectral-log-density.md</code></li><li><a href="https://francisbach.com/spectral_log_density_estimation/" rel="noreferrer">https://francisbach.com/spectral_log_density_estimation/</a></li><li><code>arXiv:2605.10668</code></li><li><code>arXiv:2607.01895</code></li></ul></details>
+</main>
+</body>
+</html>

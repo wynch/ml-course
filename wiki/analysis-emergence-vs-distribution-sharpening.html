@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Emergence vs Distribution Sharpening: Is RL Installing Capability or Amplifying It? · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="emergence-vs-distribution-sharpening">Emergence vs Distribution Sharpening</h1>
+<div class="meta"><span class="type">analysis</span> <span>created 2026-05-07</span> <span>updated 2026-10-03</span> <span class="tag">analysis</span> <span class="tag">scaling-laws</span> <span class="tag">emergence</span> <span class="tag">distribution-sharpening</span> <span class="tag">rlhf</span> <span class="tag">test-time-compute</span></div>
+<p>A through-line that has emerged across four nominally distinct wiki threads (scaling debates, test-time compute, RLHF alternatives, reasoning frontier) all asking the same question: <strong>when a bigger or RL-trained model performs better, is it because new capability has been installed, or because latent capability has been amplified?</strong></p>
+<h2 id="the-claim-being-contested">The claim being contested</h2>
+<p>The classical scaling story (e.g. <a href="source-kaplan-scaling-laws.html">source-kaplan-scaling-laws</a>, <a href="source-chinchilla-compute-optimal.html">source-chinchilla-compute-optimal</a>) is that bigger pre-training installs capability. The RLHF story (<a href="source-instructgpt-rlhf.html">source-instructgpt-rlhf</a>) is that RL post-training installs alignment. The reasoning-scaling story (<a href="source-chain-of-thought-foundations.html">source-chain-of-thought-foundations</a> + <a href="source-emergence-debate.html">source-emergence-debate</a> Wei half) is that <em>qualitatively new</em> reasoning appears at threshold scales. All three are versions of an "installation" hypothesis.</p>
+<p>The challenge — which has hardened into a coherent counter-position over 2022–2026 — is that what looks like capability installation is often just <strong>distribution sharpening</strong>: the underlying model already knew the answer; the apparent gain comes from concentrating probability mass on the right region, either through metric choice, sampling, or selective amplification.</p>
+<h2 id="four-data-points-for-the-amplification-hypothesis">Four data points for the amplification hypothesis</h2>
+<h3 id="1-self-consistency-wang-2022">1. Self-Consistency (Wang 2022)</h3>
+<p>Within <a href="source-chain-of-thought-foundations.html">source-chain-of-thought-foundations</a>, the Self-Consistency half is the cleanest early demonstration. Sample N CoTs from the <em>same</em> model; majority-vote the answer; GSM8K jumps from 56.9% (CoT greedy) to 74.4%. No new training, no extra prompts, no scaling — just sampling diversity + selection. <strong>The +17.5 pp gain was already latent in the model's distribution</strong>, accessible only at temperature &gt; 0.</p>
+<p>The conceptual move: <em>answer</em> is the latent variable, <em>chain</em> is a noisy decoder, majority vote selects the modal answer. Reasoning lives in the distribution, not in any single trace.</p>
+<h3 id="2-the-emergence-debate">2. The Emergence Debate</h3>
+<p><a href="source-emergence-debate.html">source-emergence-debate</a> sharpens this further at the scaling-law level. Schaeffer's NeurIPS paper shows &gt;92% of "emergent abilities" disappear under continuous metrics (token-level edit distance, Brier score). Under Multiple Choice Grade or Exact String Match, capability looks discontinuous; under continuous scoring, it looks like smooth scaling all the way down. The metric was acting as a thresholding distribution-sharpener.</p>
+<p>The same critique transfers to many reasoning benchmarks (GSM8K, MATH, HumanEval all use exact-match-flavoured scoring). Modern reasoning headlines should be read through this filter.</p>
+<h3 id="3-distribution-sharpening-power-sampling">3. Distribution-Sharpening Power Sampling</h3>
+<p><a href="source-distribution-sharpening-power-sampling.html">source-distribution-sharpening-power-sampling</a> is the cleanest formalisation. Train-free, inference-time power sampling matches GRPO post-training on math/code/QA while reducing inference cost &gt;10× over MCMC alternatives. The paper's headline framing: <strong>RL post-training is "just" distribution sharpening of latent capability</strong> — and inference-time methods can substitute for it.</p>
+<p>If true, this collapses <a href="concept-rlhf.html">concept-rlhf</a> / <a href="concept-rlhf-alternatives.html">concept-rlhf-alternatives</a> / <a href="concept-test-time-compute.html">concept-test-time-compute</a> into a single axis: how do you sharpen the latent distribution? Training (RL), constitution-based critique (CAI), preference optimisation (DPO), sampling (Self-Consistency, ToT), search (RAP, LATS), or verifier-guided inference (o1).</p>
+<h3 id="4-deepseek-r1s-r1-zero-variant">4. DeepSeek-R1's R1-Zero variant</h3>
+<p><a href="source-deepseek-r1.html">source-deepseek-r1</a> adds a hard empirical data point on the <em>other</em> side: pure RL on the base model (no SFT cold-start) elicits o1-style reasoning. R1-Zero is the existence proof that <strong>base models contain the reasoning latent capability</strong>; RL surfaces it but doesn't install it.</p>
+<p>This is consistent with distribution sharpening but more radical: not even SFT is needed to get the latent behaviour out.</p>
+<h2 id="why-these-four-belong-together">Why these four belong together</h2>
+<p>Each comes from a different sub-literature (<a href="source-chain-of-thought-foundations.html">source-chain-of-thought-foundations</a> from prompting, <a href="source-emergence-debate.html">source-emergence-debate</a> from scaling laws, <a href="source-distribution-sharpening-power-sampling.html">source-distribution-sharpening-power-sampling</a> from sampling theory, <a href="source-deepseek-r1.html">source-deepseek-r1</a> from open-weight LLM engineering) but they make the same epistemological move: <strong>the distinction between "model has this capability" and "model can be made to express this capability" is finer than the field treated it for the first decade of LLM scaling</strong>.</p>
+<h2 id="implications-across-the-wiki">Implications across the wiki</h2>
+<ul><li><strong>For <a href="concept-scaling-laws.html">concept-scaling-laws</a>:</strong> the question shifts from "what does scale add?" to "what does scale make accessible?" Continuous-metric eval becomes the methodological baseline.</li><li><strong>For <a href="concept-test-time-compute.html">concept-test-time-compute</a>:</strong> inference-time methods aren't a poor substitute for training; they're an <em>equivalent class</em> of distribution-sharpening operators. The cost frontier between train-time and test-time compute is genuinely open.</li><li><strong>For <a href="concept-rlhf.html">concept-rlhf</a> / <a href="concept-rlhf-alternatives.html">concept-rlhf-alternatives</a>:</strong> the SFT-first orthodoxy is on weaker ground than it appeared. DPO (<a href="source-dpo-direct-preference-optimization.html">source-dpo-direct-preference-optimization</a>) is a tighter version of preference-amplification; R1-Zero is a tighter version still.</li><li><strong>For <a href="concept-llm-reasoning.html">concept-llm-reasoning</a>:</strong> the reasoning-vs-pattern-matching debate is reframed. Even <em>if</em> models are just pattern-matching, the patterns they can be made to express via good distribution sharpening cover most behaviours the field calls "reasoning." The interesting question becomes: what's NOT in the latent distribution that bigger pretraining or genuinely-new RL would add?</li></ul>
+<h2 id="what-this-analysis-does-not-settle">What this analysis does NOT settle</h2>
+<ul><li><strong>The ceiling of amplification.</strong> Can sharpening reach arbitrarily-far-from-training-distribution capabilities, or only those latent within distribution? See <a href="source-llm-reasoning-skeptics.html">source-llm-reasoning-skeptics</a> (LLMs-can't-jump argument: distribution-bound by construction).</li><li><strong>A training-side data point (2026).</strong> <a href="source-frontier-learning-edge-of-capability.html">source-frontier-learning-edge-of-capability</a>: GRPO runs that keep generating new problems near the model's edge reach 72.6% on Hard and 20.7% on Extra-hard Dice levels, where every standard baseline (fixed pools and fresh random levels) stays under 5.5% (<code>raw/arxiv-2609-35426-frontier-learning-training-llm-reasoners-at.md</code>, §5.1). The wiki's reading: what RL can install may depend on the supply of problems it trains on. The paper does not measure the base model's pass@k, so it does not test the latent-capability claim directly.</li><li><strong>What <a href="source-arc-agi-3.html">source-arc-agi-3</a> tells us.</strong> &lt;1% frontier model performance on a benchmark designed for novel interactive reasoning is the strongest current counter-evidence to the strong amplification position. If sharpening could reach there, the curve would be smoother.</li><li><strong>Train-time vs test-time compute optimum.</strong> <a href="source-snell-test-time-compute-scaling.html">source-snell-test-time-compute-scaling</a> argues test-time can be more compute-efficient <em>for some problems</em>. Mapping which problems is still open.</li></ul>
+<h2 id="reading-order">Reading order</h2>
+<p>For someone coming to this debate fresh:</p>
+<ol><li><a href="source-chain-of-thought-foundations.html">source-chain-of-thought-foundations</a> (CoT + Self-Consistency, the original seed)</li><li><a href="source-emergence-debate.html">source-emergence-debate</a> (Wei vs Schaeffer — the scaling-law fight)</li><li><a href="source-distribution-sharpening-power-sampling.html">source-distribution-sharpening-power-sampling</a> (the formalised general claim)</li><li><a href="source-deepseek-r1.html">source-deepseek-r1</a> (the cleanest empirical test of the strong amplification position)</li><li><a href="source-arc-agi-3.html">source-arc-agi-3</a> (the strongest counter-evidence)</li></ol>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="concept-scaling-laws.html">concept-scaling-laws</a>, <a href="concept-test-time-compute.html">concept-test-time-compute</a>, <a href="concept-rlhf.html">concept-rlhf</a>, <a href="concept-rlhf-alternatives.html">concept-rlhf-alternatives</a>, <a href="concept-llm-reasoning.html">concept-llm-reasoning</a>, <a href="concept-self-improvement.html">concept-self-improvement</a></li><li><a href="analysis-neural-symbolic-middle-point.html">analysis-neural-symbolic-middle-point</a> — sibling synthesis on the wiki's other organising axis</li><li><a href="analysis-self-distillation-as-universal-lever.html">analysis-self-distillation-as-universal-lever</a> — a parallel "one mechanism, many guises" claim</li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2609-35426-frontier-learning-training-llm-reasoners-at.md</code></li></ul></details>
+</main>
+</body>
+</html>

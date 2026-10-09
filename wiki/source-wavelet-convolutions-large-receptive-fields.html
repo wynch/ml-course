@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Wavelet Convolutions For Large Receptive Fields · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="wavelet-convolutions-for-large-receptive-fields">Wavelet Convolutions For Large Receptive Fields</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-14</span> <span>updated 2026-05-14</span> <span class="tag">wavelets</span> <span class="tag">convolutional-networks</span> <span class="tag">computer-vision</span> <span class="tag">receptive-fields</span> <span class="tag">robustness</span> <span class="tag">efficient-architecture</span></div>
+<p><strong>Finder, Amoyal, Treister, Freifeld — ECCV 2024 / arXiv 2024</strong></p>
+<p>This is not a Mallat-authored paper, but it is a recent wavelet-neural architecture paper that fits the same broad direction: use multiscale wavelet structure to give convolutional networks larger effective receptive fields without a large parameter increase.</p>
+<h2 id="main-claim">Main Claim</h2>
+<p>The proposed wavelet convolution layer can replace depthwise convolutions and scale to large receptive fields with trainable parameters growing only logarithmically with the receptive-field size. The authors report gains in classification and downstream tasks, plus robustness to corruptions and a stronger shape response relative to texture response.</p>
+<h2 id="why-it-matters">Why It Matters</h2>
+<p>This paper is a useful counterpoint to pure scattering:</p>
+<ul><li>scattering uses mostly fixed wavelet filters</li><li>wavelet convolution keeps a learned network but changes its multiscale operator</li><li>both challenge the idea that early perception must be learned from unconstrained local kernels</li></ul>
+<p>For the wavelet-substrate experiment, this suggests a later comparison: fixed scattering front-end versus lightly trainable wavelet convolution.</p>
+<h2 id="caveat">Caveat</h2>
+<p>This is closer to an efficient convolutional-network layer than to a fixed substrate. It should not be mixed into the first benchmark unless the simpler scattering-versus-tiny-network comparison is already working.</p>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="concept-wavelet-scattering.html">concept-wavelet-scattering</a></li><li><span class="dead" title="not published">experiment-wavelet-substrate-network</span></li><li><a href="concept-transformer-architecture.html">concept-transformer-architecture</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li>arXiv: <a href="https://arxiv.org/abs/2407.05848" rel="noreferrer">https://arxiv.org/abs/2407.05848</a></li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2407.05848" rel="noreferrer">https://arxiv.org/abs/2407.05848</a></li></ul></details>
+</main>
+</body>
+</html>

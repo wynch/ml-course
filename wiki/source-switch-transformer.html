@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Switch Transformer: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="switch-transformer">Switch Transformer</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-06</span> <span>updated 2026-05-06</span> <span class="tag">moe</span> <span class="tag">mixture-of-experts</span> <span class="tag">sparsity</span> <span class="tag">scaling</span> <span class="tag">architecture</span> <span class="tag">foundational</span> <span class="tag">2021</span></div>
+<p><strong>William Fedus, Barret Zoph, Noam Shazeer — arXiv 2101.03961, JMLR 2022 (Google Brain)</strong></p>
+<p>The paper that turned mixture-of-experts (MoE) from a research curiosity into a production-grade scaling lever. Simplifies the <a href="source-shazeer-outrageously-large-moe.html">source-shazeer-outrageously-large-moe</a> sparsely-gated layer to <strong>top-1 routing</strong> ("switch routing") — every token goes to exactly one expert — and shows this routes around the instability and complexity that had previously made MoE hard to train, scaling cleanly to a <strong>1.6T-parameter</strong> model.</p>
+<h2 id="method">Method</h2>
+<ul><li><strong>Switch layer</strong>: replaces each transformer FFN with N experts (each itself an FFN) and a learned router. The router computes softmax(W_r · x) and dispatches each token to <strong>its single argmax expert</strong> — top-1 instead of top-2/top-k as in Shazeer 2017.</li><li><strong>Capacity factor</strong>: each expert can process at most <code>(tokens / experts) · capacity_factor</code> tokens per batch; overflow tokens skip the layer (residual passes through). Trades load balance vs. dropped tokens.</li><li><strong>Auxiliary load-balancing loss</strong>: encourages uniform routing (penalises mass on any single expert).</li><li><strong>Selective precision</strong>: keep router computations in float32 for stability while the rest of the model is bf16/fp16 — fixes most prior MoE training instabilities.</li><li><strong>Expert parallelism</strong> in the mesh: experts shard across devices, tokens are all-to-all'd to their assigned expert, computed, and shuffled back.</li></ul>
+<h2 id="key-numbers">Key numbers</h2>
+<ul><li><strong>Switch-Base (~7B activated, 26B total)</strong> matches T5-Base in <strong>1/7 the training time</strong>.</li><li><strong>Switch-XXL</strong> outperforms T5-XXL with <strong>4× faster pre-training</strong> at matched FLOPs.</li><li><strong>Switch-C: 1.6T parameters</strong> (2048 experts), the first openly reported trillion-param language model. Ran on TPUv3 pods with bf16.</li><li><strong>4–7× wall-clock pre-training speedup</strong> at fixed quality budget vs. the dense T5 baseline.</li></ul>
+<h2 id="why-it-matters">Why it matters</h2>
+<p>Switch made MoE the default route to "more parameters at fixed FLOPs" — every modern frontier MoE (Mixtral, DeepSeek-V2/V3, Qwen-MoE, GPT-4-class systems) descends from this template, even those that re-add top-k routing. The two key insights — <strong>simplify to top-1</strong>, and <strong>stabilise the router with float32 + load-balancing loss</strong> — are still standard.</p>
+<p>In wiki context, Switch is the direct successor of <a href="source-shazeer-outrageously-large-moe.html">source-shazeer-outrageously-large-moe</a> (the 2017 paper that introduced sparsely-gated MoE) and the architectural counterpoint to <a href="source-engram-deepseek.html">source-engram-deepseek</a>, which contrasts MoE-style learned conditional compute against a deterministic O(1) N-gram memory and finds a U-shaped scaling law trading the two off. It's also the philosophical ancestor of encoder-MoE work like <a href="source-openai-privacy-filter.html">source-openai-privacy-filter</a> (1.5B / 50M-active sparse MoE encoder for PII), which retrofits the Switch-style top-k routing into a bidirectional classifier.</p>
+<h2 id="references">References</h2>
+<ul><li>arXiv: <a href="https://arxiv.org/abs/2101.03961" rel="noreferrer">https://arxiv.org/abs/2101.03961</a></li><li>Predecessor: <a href="source-shazeer-outrageously-large-moe.html">source-shazeer-outrageously-large-moe</a></li><li>Architectural baseline: <a href="source-attention-is-all-you-need.html">source-attention-is-all-you-need</a>, <a href="concept-transformer-architecture.html">concept-transformer-architecture</a></li><li>Conditional compute alternatives / contrasts: <a href="source-engram-deepseek.html">source-engram-deepseek</a>, <a href="source-openai-privacy-filter.html">source-openai-privacy-filter</a></li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2101.03961" rel="noreferrer">https://arxiv.org/abs/2101.03961</a></li></ul></details>
+</main>
+</body>
+</html>

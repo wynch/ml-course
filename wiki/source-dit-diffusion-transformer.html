@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Scalable Diffusion Models with Transformers (DiT) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="dit-diffusion-transformer">DiT — Diffusion Transformer</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-07</span> <span>updated 2026-05-07</span> <span class="tag">diffusion</span> <span class="tag">transformer</span> <span class="tag">generative-models</span> <span class="tag">architecture</span> <span class="tag">2022</span></div>
+<p><strong>Peebles &amp; Xie — arXiv 2212.09748, ICCV 2023 (UC Berkeley / NYU)</strong></p>
+<p>Replaces the U-Net backbone of <a href="source-latent-diffusion-stable-diffusion.html">source-latent-diffusion-stable-diffusion</a> with a <strong>pure transformer</strong> operating on patches of the latent. DiT shows that diffusion models inherit the same clean <strong>scaling-law</strong> behaviour as transformer language models (<a href="source-kaplan-scaling-laws.html">source-kaplan-scaling-laws</a>, <a href="source-chinchilla-compute-optimal.html">source-chinchilla-compute-optimal</a>) — bigger transformer, more compute, monotonically better FID — and that the inductive biases of the U-Net (convolution, multiscale skip connections) are not load-bearing once you have enough scale.</p>
+<h2 id="method">Method</h2>
+<ul><li><strong>Tokenise</strong>: take VAE latents (e.g. 32×32×4 from a Stable-Diffusion-style autoencoder), partition into patches, linearly project. Add positional embeddings. Identical to ViT.</li><li><strong>Transformer blocks</strong> (12, 24, 28 layers in S/B/L/XL configs). Each block conditions on the diffusion timestep t and the class/text embedding c via <strong>adaLN-Zero</strong> — modulating LayerNorm scales and shifts. This is DiT's main empirical win over earlier conditioning recipes (in-context tokens, cross-attention only).</li><li>Output head produces noise and (optionally) variance predictions, identical to DDPM training.</li><li>Variants: DiT-S/B/L/XL at 33M / 130M / 458M / 675M parameters.</li></ul>
+<h2 id="key-numbers">Key numbers</h2>
+<ul><li>DiT-XL/2 on class-conditional ImageNet 256×256: <strong>FID 2.27</strong>, beating prior U-Net-based latent diffusion (LDM 3.60) and pixel-space ADM (FID 4.59).</li><li><strong>Clean scaling law</strong>: FID decreases monotonically with Gflops; the relationship is well-fit by a power law in compute, mirroring LLMs.</li><li>Outperforms U-Nets at every model size and compute budget tested.</li></ul>
+<h2 id="why-it-matters">Why it matters</h2>
+<p>DiT is the architectural rosetta stone that <strong>unifies language and image generation under the transformer</strong>. Three consequences:</p>
+<ol><li><strong>Generative scaling laws are universal.</strong> The same compute / parameters / data curves that govern LLMs also govern image diffusion, <em>if</em> the architecture is a transformer. U-Nets have ceilings; transformers don't (yet). This is the missing piece that motivated frontier labs to bet on transformer diffusion.</li><li><strong>It is the architecture of the modern frontier</strong>: OpenAI's Sora (video), Stable Diffusion 3 (image), Flux, Hunyuan, Sora-2, Veo all use DiT or close variants (with modifications like MMDiT for joint text–image attention). Imagen-3 likewise. Within ~18 months of publication, DiT displaced U-Net almost entirely at the frontier.</li><li><strong>adaLN-Zero as conditioning primitive.</strong> The "modulate LayerNorm with conditioning" pattern reappears across modalities — it's a more parameter-efficient and stable way to inject t and c than cross-attention everywhere.</li></ol>
+<p>DiT also sets up productive tension with one-step / few-step alternatives: standard DiT still needs 20–50 denoising steps, which is why <a href="source-flow-map-language-models.html">source-flow-map-language-models</a> and consistency-model / flow-matching lines of work aim to collapse this into a single function evaluation. DiT establishes the <em>backbone</em>; flow-matching and shortcut models change the <em>trajectory</em>.</p>
+<p>The deeper claim DiT operationalises: <strong>inductive bias is a crutch you can shed at scale</strong>. Just as transformers killed convolutional bias for vision (ViT) and recurrence for sequences (<a href="source-attention-is-all-you-need.html">source-attention-is-all-you-need</a>), they killed the U-Net's multiscale skip-connection bias for diffusion. The pattern keeps repeating across the wiki.</p>
+<h2 id="references">References</h2>
+<ul><li>arXiv: <a href="https://arxiv.org/abs/2212.09748" rel="noreferrer">https://arxiv.org/abs/2212.09748</a></li><li>Builds on: <a href="source-latent-diffusion-stable-diffusion.html">source-latent-diffusion-stable-diffusion</a>, <a href="source-attention-is-all-you-need.html">source-attention-is-all-you-need</a></li><li>Compared with: <a href="source-flow-map-language-models.html">source-flow-map-language-models</a></li><li>Context: <a href="concept-transformer-architecture.html">concept-transformer-architecture</a>, <a href="concept-diffusion-language-models.html">concept-diffusion-language-models</a>, <a href="concept-representation-learning.html">concept-representation-learning</a>, <a href="concept-scaling-laws.html">concept-scaling-laws</a></li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2212.09748" rel="noreferrer">https://arxiv.org/abs/2212.09748</a></li></ul></details>
+</main>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>CLIP: Learning Transferable Visual Models From Natural Language Supervision · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="clip-learning-transferable-visual-models-from-natural-language-supervision">CLIP — Learning Transferable Visual Models From Natural Language Supervision</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-06</span> <span>updated 2026-05-06</span> <span class="tag">multimodal</span> <span class="tag">vision-language</span> <span class="tag">contrastive-learning</span> <span class="tag">representation-learning</span> <span class="tag">zero-shot</span> <span class="tag">openai</span> <span class="tag">foundation-models</span></div>
+<p><strong>Authors:</strong> Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, Gretchen Krueger, Ilya Sutskever (OpenAI) <strong>Date:</strong> 2021-02-26 (ICML 2021) <strong>arXiv:</strong> <a href="https://arxiv.org/abs/2103.00020" rel="noreferrer">2103.00020</a></p>
+<h2 id="summary">Summary</h2>
+<p>The foundational paper for vision-language alignment. CLIP (Contrastive Language-Image Pretraining) trains a <strong>dual-encoder</strong> model — a vision encoder and a text encoder — to project images and their associated captions into a shared embedding space, where matched pairs are pulled together and mismatched pairs pushed apart. Trained on <strong>400M (image, text) pairs scraped from the internet</strong> (the WIT dataset). The result: a model whose zero-shot ImageNet classification accuracy <strong>matches a fully supervised ResNet-50</strong> without ever seeing ImageNet labels — establishing natural-language supervision as a scalable alternative to per-task supervised training.</p>
+<h2 id="architecture">Architecture</h2>
+<ul><li><strong>Image encoder</strong>: ViT or modified ResNet, producing a single embedding per image.</li><li><strong>Text encoder</strong>: a Transformer (12-layer, 8-head, 512-dim) producing a single embedding per caption.</li><li>Both encoders project into a shared embedding space via learned linear heads; embeddings are L2-normalized.</li><li>No cross-attention, no fusion: the modalities only "talk" via the contrastive objective.</li></ul>
+<h2 id="contrastive-objective">Contrastive Objective</h2>
+<ul><li>For a batch of N (image, text) pairs, compute the N×N matrix of cosine similarities.</li><li>Symmetric InfoNCE loss: each image's correct caption is the positive, the other N-1 captions are negatives (and vice versa).</li><li>This is the <strong>InfoNCE</strong> loss applied across modalities — efficient, simple, scales with batch size.</li><li>The largest CLIP model used a batch size of <strong>32,768</strong> to give the contrastive objective enough negatives.</li></ul>
+<h2 id="training-data-wit-400m">Training Data: WIT-400M</h2>
+<ul><li>400M (image, caption) pairs scraped from the public web.</li><li>Constructed by querying for ~500K query terms (Wikipedia article titles, common bigrams) and balancing per-query.</li><li>Captions are <strong>noisy alt-text and surrounding text</strong> — no human-labelled data.</li><li>This dataset and dataset-construction approach is itself a contribution: it showed weak text supervision at internet scale beats curated supervised vision data.</li></ul>
+<h2 id="zero-shot-recipe">Zero-Shot Recipe</h2>
+<p>To classify an image among K classes:</p>
+<ol><li>Embed each class name via a prompt template (e.g. "a photo of a {class}").</li><li>Embed the image.</li><li>Pick the class whose text embedding has highest cosine similarity to the image embedding.</li></ol>
+<p>This is <strong>inference without fine-tuning</strong> — and crucially, the class names themselves can be arbitrary natural language.</p>
+<h2 id="key-results">Key Results</h2>
+<ul><li><strong>Zero-shot ImageNet</strong>: ViT-L/14 reaches ~76% top-1 — matching a fully supervised ResNet-50 trained on 1.28M labelled images.</li><li><strong>30+ benchmarks</strong>: zero-shot CLIP is competitive with supervised baselines on OCR, action recognition, geo-localization, fine-grained classification.</li><li><strong>Robustness</strong>: large gains on ImageNet-A/R/Sketch/V2 over supervised baselines — text supervision yields more robust features than label supervision on the same distribution.</li><li><strong>Linear probe</strong>: CLIP features are SOTA on most transfer benchmarks under linear evaluation.</li></ul>
+<h2 id="significance">Significance</h2>
+<p>CLIP became the default vision encoder for the entire post-2021 multimodal-LLM stack. Most VLMs (<a href="source-flamingo.html">source-flamingo</a>, <a href="source-llava-visual-instruction.html">source-llava-visual-instruction</a>, BLIP, MiniGPT-4, GPT-4V's reported architecture) plug a CLIP-style ViT into a frozen or jointly-trained LLM. Its embedding space — coarse-grained, semantically aligned to language — is exactly what an LLM's word-embedding layer can consume after a small projector.</p>
+<p>It also reframed self-supervised vs supervised learning: weak text supervision at internet scale outperforms ImageNet supervision. The "CLIP-killer" milestone in pure-vision SSL came later with <a href="source-dino-lineage.html">source-dino-lineage</a>, which matched CLIP on most visual benchmarks <strong>without text supervision at all</strong> — a major datapoint for the LeCun thesis (<a href="source-lecun-path-autonomous-intelligence.html">source-lecun-path-autonomous-intelligence</a>) that vision can be learned without language.</p>
+<p>The next-generation challenge to CLIP's contrastive recipe is <a href="source-vl-jepa.html">source-vl-jepa</a> (Dec 2025), which beats CLIP / SigLIP2 / Perception Encoder on 16 video benchmarks by predicting <strong>embeddings</strong> rather than aligning them contrastively — bringing the JEPA programme into vision-language.</p>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-dino-lineage.html">source-dino-lineage</a> — DINOv2 matched CLIP on most vision tasks without any text supervision; the major SSL counter-claim.</li><li><a href="source-vl-jepa.html">source-vl-jepa</a> — outperforms CLIP / SigLIP2 / Perception Encoder on video benchmarks via embedding-prediction over contrastive alignment.</li><li><a href="source-flamingo.html">source-flamingo</a> — uses CLIP-style frozen vision encoder under gated cross-attention.</li><li><a href="source-llava-visual-instruction.html">source-llava-visual-instruction</a> — projects CLIP-ViT features into LLaMA via a single linear layer.</li><li><a href="concept-multimodal.html">concept-multimodal</a> — CLIP is the foundational reference; this page is a hub.</li><li><a href="concept-self-supervised-learning.html">concept-self-supervised-learning</a> — CLIP is often grouped with SSL because no manual labels are used; really it's "weak text supervision".</li><li><a href="concept-representation-learning.html">concept-representation-learning</a> — its shared embedding space is a canonical example of cross-modal aligned representations.</li><li><a href="entity-openai.html">entity-openai</a> — flagship multimodal release.</li><li>Sibling to <a href="source-gpt3-few-shot-learners.html">source-gpt3-few-shot-learners</a> in the early-OpenAI scaling-laws-meets-pretraining lineage.</li></ul>
+<h2 id="references">References</h2>
+<ul><li>arXiv: <a href="https://arxiv.org/abs/2103.00020" rel="noreferrer">https://arxiv.org/abs/2103.00020</a></li><li>Code &amp; checkpoints: openai/CLIP</li><li>Open replication: LAION OpenCLIP</li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2103.00020" rel="noreferrer">https://arxiv.org/abs/2103.00020</a></li></ul></details>
+</main>
+</body>
+</html>

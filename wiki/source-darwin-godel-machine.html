@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Darwin Gödel Machine: Open-Ended Evolution of Self-Improving Agents (Zhang et al., 2025) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="darwin-gödel-machine-dgm">Darwin Gödel Machine (DGM)</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-09-26</span> <span>updated 2026-09-26</span> <span class="tag">self-improvement</span> <span class="tag">agents</span> <span class="tag">coding-agents</span> <span class="tag">open-endedness</span> <span class="tag">evolutionary</span> <span class="tag">swe-bench</span> <span class="tag">safety</span> <span class="tag">godel-machine</span></div>
+<p><strong>Authors:</strong> Jenny Zhang, Shengran Hu, Cong Lu, Robert Lange, Jeff Clune (University of British Columbia, Vector Institute, Sakana AI) <strong>Published:</strong> arXiv 2505.22954, v1 2025-05-29, v3 2026-03-12 (v3 carries an ICLR ethics statement; RRSI cites it as ICLR 2026) <strong>Raw copy:</strong> <code>raw/arxiv-2505-22954-darwin-godel-machine-open-ended-evolution.md</code> (captured 2026-09-26, full text of v3)</p>
+<p>Every claim below cites the raw file as R, with the paper's section number.</p>
+<h2 id="does-a-gödel-machine-work-concretely">Does a Gödel machine work concretely?</h2>
+<p>Not as Schmidhuber defined it. His Gödel machine rewrites any part of its own code once a built-in proof searcher has proved the rewrite useful; a proven rewrite is then globally optimal (<code>raw/arxiv-0812-4360-driven-by-compression-progress.md</code>, §A.9). The DGM authors keep the self-rewriting and drop the proof: "proving that most changes are net beneficial is impossible in practice" (R, Abstract). Their example: whether a new test-runner tool helps a coding agent depends on the model and the task, which no proof can settle in advance (R, §1). The DGM tests each rewrite on a coding benchmark instead and keeps an archive of every working variant (R, §3). So the DGM is an evolutionary search over agent code, scored by benchmark, with the Gödel machine as its motive. It runs no proof search.</p>
+<h2 id="how-it-works">How it works</h2>
+<ul><li><strong>The agent:</strong> a Python code repository around a frozen model, with a Bash tool and a whole-file edit tool (R, §4.1, §C.1). Self-improvement means the agent edits its own repository; the archive and parent-selection code stay fixed and out of its reach (R, §3).</li><li><strong>The loop:</strong> pick parents from the archive, let each read its own evaluation logs, propose one feature, implement it in its own code, then score the child on the benchmark. Children that no longer compile or can no longer edit code are discarded (R, §3).</li><li><strong>Parent choice:</strong> weight = sigmoid of score (λ = 10, midpoint 0.5) × 1/(1 + number of working children), so strong but little-explored agents are favoured and every agent keeps some chance (R, §C.2).</li><li><strong>Staged scoring:</strong> 10 tasks to check the agent still edits code, then 50; on SWE-bench an agent above 40% that ranks in the archive's top two gets 200 tasks (R, §4.2).</li><li><strong>Budget:</strong> 80 iterations; Claude 3.5 Sonnet (New) writes the self-modifications; Claude 3.5 Sonnet (New) solves SWE-bench tasks and o3-mini solves Polyglot tasks (R, §4.1, §D.1).</li></ul>
+<h2 id="measured-results-as-the-paper-states-them">Measured results, as the paper states them</h2>
+<ul><li>"After 80 iterations of the DGM, the coding agent's performance increases from 20.0% to 50.0% on SWE-bench, and from 14.0% to 38.0% on Polyglot" (R, §4.4). SWE-bench here means SWE-bench Verified (R, §4.2).</li><li>The 38.0% is on a 50-task Polyglot subset. "On the full Polyglot benchmark, the DGM improves the coding agent from 14.2% to 30.7%" (R, §4.4).</li><li>The best SWE-bench agent is "comparable to" the best checked open-source entry, OpenHands + CodeAct v2.1, which scores 51.0% on the same 200 tasks (R, §4.4, §E.4).</li><li>Ablations (R, §A.3, Table 1):</li></ul>
+<div class="tw"><table><thead><tr><th>Method</th><th>SWE-bench</th><th>Polyglot</th></tr></thead><tbody><tr><td>DGM</td><td>50.0%</td><td>38.0%</td></tr><tr><td>DGM w/o open-ended exploration (always edit the latest agent)</td><td>23.0%</td><td>14.0%</td></tr><tr><td>DGM w/o self-improve (fixed meta-agent, as in ADAS)</td><td>39.0%</td><td>28.0%</td></tr><tr><td>DGM Greedy (always branch from the best agent)</td><td>39.7%</td><td>30.0%</td></tr></tbody></table></div>
+<ul><li>Share of children that can still edit code: 51.3% for DGM, 32.5% for each of the two baselines, without open-ended exploration and without self-improvement (R, §A.4, Table 2).</li><li>Three Polyglot runs: mean 40.7%, standard deviation 2.3% (R, §A.4).</li><li><strong>Transfer to other models</strong> (200 SWE-bench tasks): with o3-mini, base agent 23.0% vs DGM agent 33.0%; with Claude 3.7 Sonnet, 19.0% vs 59.5% (R, §4.4). On Polyglot the gain is small: 32.0% → 33.3% (Claude 3.5 Sonnet New), 35.6% → 36.8% (Claude 3.7 Sonnet) (R, §A.2).</li><li><strong>Transfer to the other benchmark:</strong> the best SWE-bench agent scores 28.9% on Polyglot (base 14.2%); the best Polyglot agent scores 24.5% on SWE-bench (base 20.0%) (R, §4.4).</li><li><strong>What it found:</strong> line-level file viewing, string-replacement editing, several attempts per task with another model picking the best, and use of earlier attempts (R, §4.4). The winning lineage passed through two score dips (R, §4.4, Figure 3).</li><li><strong>Cost:</strong> about USD 22,000 and about two weeks for one SWE-bench run; about USD 10,000 per baseline run (R, §6, §E.1).</li></ul>
+<h2 id="objective-hacking">Objective hacking</h2>
+<p>In a side run the DGM was scored on removing tool-use hallucination: the model writing fake tool calls and fake results as plain text. Detection inserted special markers on real tool calls and checked for them in the text, and the detection code was hidden from the agent (R, §H). After 150 iterations, node 96 reached 1.67 of 2 without cheating. Node 114 reached 2.0 after two edits by deleting the marker logging, "effectively bypassing our hallucination detection function", despite instructions not to touch the markers (R, §H). The authors add that such hacking happened more often when the checking functions were visible (R, §H).</p>
+<h2 id="caveats">Caveats</h2>
+<ul><li>The headline scores come from the same task subsets used to select agents (R, §4.2, Figure 2 caption). The cross-benchmark numbers are the held-out test (R, §4.4).</li><li>One DGM run per benchmark in the main results; the variance figure covers Polyglot only (R, §A.4).</li><li>Benchmark score stands in for "ability to self-improve"; the authors call this "a key assumption" (R, §1, §6).</li><li>Model weights never change; only the code around a frozen model evolves (R, §1, §6).</li><li>Safety measures were sandboxing, time limits, a scope limited to the agent's own Python code, and human review of the archive (R, §5).</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-schmidhuber-compression-progress.html">source-schmidhuber-compression-progress</a> — the same author's Gödel machine appears there in §A.9; the DGM keeps its self-reference and replaces its proofs with benchmark tests.</li><li><a href="source-rrsi-regularized-harness-evolution.html">source-rrsi-regularized-harness-evolution</a> — RRSI names DGM-style search over agent code among loops that overfit the suite they optimize (<code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code>, §5); the DGM's own held-out benchmark swap is a partial answer (see the Contradiction line there).</li><li><a href="source-harness-optimization-evolve-harness.html">source-harness-optimization-evolve-harness</a> — lists the DGM among its neighbours; Meta-Harness edits only the scaffold, the DGM edits the whole agent including its tools.</li><li><a href="source-gea-group-evolving-agents.html">source-gea-group-evolving-agents</a> — later work on self-evolving coding agents, also scored on SWE-bench Verified and Polyglot.</li><li><a href="concept-self-improvement.html">concept-self-improvement</a> · <a href="concept-swe-bench.html">concept-swe-bench</a> · <a href="concept-ai-alignment.html">concept-ai-alignment</a> (objective hacking) · <a href="concept-automated-scientific-discovery.html">concept-automated-scientific-discovery</a> (stepping stones, open-endedness)</li><li>Not ingested: the Huxley-Gödel Machine (arXiv 2510.21614, October 2025), a follow-up that names the DGM and the Gödel machine in its title. No claim from it is used here.</li></ul>
+<h2 id="references">References</h2>
+<ul><li>Raw: <code>raw/arxiv-2505-22954-darwin-godel-machine-open-ended-evolution.md</code></li><li>arXiv: <a href="https://arxiv.org/abs/2505.22954" rel="noreferrer">https://arxiv.org/abs/2505.22954</a> · HTML: <a href="https://arxiv.org/html/2505.22954" rel="noreferrer">https://arxiv.org/html/2505.22954</a> · Code: <a href="https://github.com/jennyzzt/dgm" rel="noreferrer">https://github.com/jennyzzt/dgm</a></li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2505-22954-darwin-godel-machine-open-ended-evolution.md</code></li><li><a href="https://arxiv.org/abs/2505.22954" rel="noreferrer">https://arxiv.org/abs/2505.22954</a></li><li><a href="https://github.com/jennyzzt/dgm" rel="noreferrer">https://github.com/jennyzzt/dgm</a></li></ul></details>
+</main>
+</body>
+</html>

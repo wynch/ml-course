@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Self-Revising Discovery Systems for Science: A Categorical Framework for Agentic AI · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="self-revising-discovery-systems-for-science">Self-Revising Discovery Systems for Science</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-07-04</span> <span>updated 2026-07-04</span> <span class="tag">ai-agents</span> <span class="tag">scientific-discovery</span> <span class="tag">category-theory</span> <span class="tag">neural-symbolic</span> <span class="tag">self-improvement</span> <span class="tag">materials-science</span></div>
+<p><strong>Authors:</strong> Fiona Y. Wang, Markus J. Buehler / <strong>Date:</strong> 2026-05-31 / <strong>arXiv:</strong> <a href="https://arxiv.org/abs/2606.01444" rel="noreferrer">2606.01444</a> [cs.AI]</p>
+<h2 id="summary">Summary</h2>
+<p>Wang and Buehler argue that scientific discovery is categorically different from answer generation: it requires <em>revising the representational regime</em> in which evidence, artifacts, operations, and verifiers are typed, not just searching within a fixed vocabulary. They formalize this with category theory. System state is a <strong>copresheaf</strong> <code>I_t: S_b -&gt; Set</code> over a schema category <code>S_b</code> (the artifact types and admissible operations of the current "discovery regime"); realized provenance is the <strong>category of elements</strong> <code>∫ I_t</code> (a typed artifact DAG). A <strong>discovery</strong> is a <em>verified regime transition</em> <code>u: S_b -&gt; S_b&#x27;</code>, where old artifacts are transported into the new vocabulary by a <strong>left Kan extension</strong> <code>Lan_u I_t</code>, and whatever falls outside the image of the comparison map is exactly the genuinely new empirical content the system had to acquire beyond mere functorial reinterpretation. This makes the distinction between retrieval, search, and discovery precise and, crucially, auditable.</p>
+<p>The framework is instantiated in two working systems. <strong>Builder/Breaker</strong> revises symbolic protein-mechanics models: a Breaker selects stress-test proteins to expose failures, a Builder proposes DAG edits, and a Minimum Description Length (MDL) gate accepts a revision only when it shortens the combined description length of model plus evidence. Across 388 proposals only 25 survive (6.4%); the final regime transition costs 10.3 bits of model code but yields a 54.3-bit MDL gain, discovering a mode-conditioned-compliance law that requires the schema to admit a <em>new product operation</em>, not just a new instance. <strong>CategoryScienceClaw</strong> wraps an execution substrate (ScienceClaw: typed skills, immutable lineage-carrying artifacts, workflow mutation) plus a discourse layer (Infinite) into a proof-carrying knowledge-computation graph, demonstrated on fiber-network mechanics where an anisotropic stiffness surrogate beats an isotropic baseline by ΔAIC = 123.87 while the rejected model is preserved as an audit object.</p>
+<p>Category theory is positioned as <em>both</em> a mathematical language and an engineering specification: verifiers, provenance auditing, and progress metrics all follow from typing the regime explicitly. The core polemic is that "scaling a fixed model is qualitatively different from building a system that can construct new representational commitments" — an argument that automated discovery must change its own ontology, not merely recombine within it.</p>
+<h2 id="key-ideas">Key Ideas</h2>
+<ul><li>Discovery = <strong>verified regime transition</strong> (change the schema/vocabulary), distinct from retrieval (add expressible artifacts) and search (recombine within a fixed vocabulary).</li><li><strong>Copresheaf <code>I_t: S_b -&gt; Set</code></strong> separates <em>what types exist</em> from <em>what instances populate them</em>; provenance recovered as the <strong>category of elements</strong> <code>∫ I_t</code>.</li><li><strong>Left Kan extension <code>Lan_u I_t</code></strong> transports old artifacts across a transition; empty comma categories mark types with genuinely new empirical content. Novelty becomes a measurable <strong>Kan obstruction</strong> — the residual beyond the transported image — an objective criterion for "did the system actually discover something?", addressing the open-endedness evaluation problem without subjective judging.</li><li><strong>MDL / AIC gates</strong> make revisions accountable: accept only when combined description length drops (protein case) or ΔAIC &gt; 0 with passing diagnostics (fiber case); rejected models retained for audit.</li><li>Two instantiations — Builder/Breaker (protein mechanics; 25/388 proposals survive; +54.3-bit gain) and CategoryScienceClaw (fiber networks; ΔAIC = 123.87).</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li>Part of the <strong>automated scientific discovery</strong> cluster with <a href="source-alphaevolve.html">source-alphaevolve</a>, <a href="source-funsearch.html">source-funsearch</a>, and <a href="source-mlevolve.html">source-mlevolve</a> — but where those keep the representational vocabulary fixed and evolve programs against a verifier, this paper's whole point is <em>revising the vocabulary itself</em> and auditing that revision. See <a href="concept-automated-scientific-discovery.html">concept-automated-scientific-discovery</a>.</li><li>The natural formal counterpart to <a href="source-sutton-generative-ai-discovery.html">source-sutton-generative-ai-discovery</a>: Sutton argues supervised generative AI can't discover (missing runtime Evaluation); Wang &amp; Buehler define <em>when</em> an agent genuinely discovers rather than merely searches, and make the novelty measurable.</li><li>Complements <a href="source-airs-bench-research-agents.html">source-airs-bench-research-agents</a> — AIRS-Bench measures research-agent capability empirically; this paper supplies a formal account of what "discovery" a research agent must perform.</li><li>The typed-substrate / proof-carrying graph resonates with <a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a> and <a href="concept-neural-symbolic-bridge.html">concept-neural-symbolic-bridge</a> — deterministic gates and provenance own correctness while an agent proposes.</li><li>Relevant to <a href="concept-self-improvement.html">concept-self-improvement</a> — a system that revises its own representational regime is self-modifying at the ontology level, not just the weight level.</li><li>Domain overlap with <a href="entity-meta-fair.html">entity-meta-fair</a>-adjacent materials-science modeling is loose; primary tie is to <a href="concept-ai-agents.html">concept-ai-agents</a> doing science.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><a href="https://arxiv.org/abs/2606.01444" rel="noreferrer">arXiv:2606.01444</a> · HTML: <a href="https://arxiv.org/html/2606.01444" rel="noreferrer">https://arxiv.org/html/2606.01444</a></li><li><a href="https://x.com/ProfBuehlerMIT/status/2062865983459475830" rel="noreferrer">Announcement thread (@ProfBuehlerMIT)</a></li><li>Raw snapshots: <code>raw/arxiv-2606-01444-self-revising-discovery.md</code>, <code>raw/tweet-buehler-self-revising-discovery.md</code></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2606.01444" rel="noreferrer">https://arxiv.org/abs/2606.01444</a></li><li><a href="https://x.com/ProfBuehlerMIT/status/2062865983459475830" rel="noreferrer">https://x.com/ProfBuehlerMIT/status/2062865983459475830</a></li></ul></details>
+</main>
+</body>
+</html>

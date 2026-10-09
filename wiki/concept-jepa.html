@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>JEPA (Joint-Embedding Predictive Architecture) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="jepa-joint-embedding-predictive-architecture">JEPA — Joint-Embedding Predictive Architecture</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-04-05</span> <span>updated 2026-10-09</span> <span class="tag">jepa</span> <span class="tag">self-supervised-learning</span> <span class="tag">yann-lecun</span> <span class="tag">representation-learning</span> <span class="tag">world-model</span> <span class="tag">meta-fair</span></div>
+<p>Yann LeCun's architecture family for self-supervised and predictive learning. The core move is to <strong>predict in a learned representation space</strong>, not in pixel/token space — and to use an information-discarding encoder that lets the predictor commit only to what is predictable. JEPA is non-generative, non-contrastive, and (when scaled) repurposable as a <strong>world model for planning</strong>.</p>
+<h2 id="key-principle">Key principle</h2>
+<p>A JEPA defines two encoders (a context encoder and a target encoder, usually EMA-coupled to prevent collapse) and a predictor that maps the context embedding plus side information to the target embedding. Loss is L2 (or similar) in embedding space, on masked / held-out targets only. No pixels, no tokens, no negatives, no augmentations.</p>
+<p>This avoids three failure modes of competing self-supervised methods:</p>
+<ul><li><strong>Pixel/token reconstruction (MAE, GPT-style)</strong> wastes capacity on irrelevant detail.</li><li><strong>Contrastive methods (SimCLR, MoCo)</strong> need carefully tuned augmentations and negatives.</li><li><strong>BYOL-style methods</strong> still depend on hand-crafted augmentations.</li></ul>
+<p>Contradiction (partial): the "information-discarding encoder" above. <a href="source-infoldm-predictive-ssl-identifiability.html">source-infoldm-predictive-ssl-identifiability</a> (Mikulasch &amp; Zenke, 2026) proves that predictive objectives recover a random signal under nuisance, but finds nothing in the theory that forces nuisance out: unless the latent has exactly the signal's dimension, nuisance may sit beside the signal, and the entropy term "in principle should encourage this" (<code>raw/arxiv-2609-37789-predictive-ssl-identifies-stochastic-signals-under-nuisance.md</code>, §3.2, §5). Being unpredictable does not mark nuisance either, since the signal's own noise is unpredictable too (same file, §1). The paper's theory covers objectives with an entropy term, which it says InfoNCE, SimCLR and VICReg maximise; it never names JEPA or an EMA target, so for JEPA proper this is a pointer, not a test (same file, §2, §3).</p>
+<h2 id="position-paper-lecuns-vision">Position paper / LeCun's vision</h2>
+<ul><li><a href="source-lecun-path-autonomous-intelligence.html">source-lecun-path-autonomous-intelligence</a> — <em>A Path Towards Autonomous Machine Intelligence</em> (2022). The framing document. Six-module cognitive architecture (configurator, perception, world model, cost, actor, short-term memory); JEPA at the core of the world model; H-JEPA for multi-time-scale prediction; explicit argument against pixel/token generative models for grounded learning.</li></ul>
+<h2 id="image-i-jepa">Image: I-JEPA</h2>
+<ul><li><a href="source-ijepa-self-supervised-learning.html">source-ijepa-self-supervised-learning</a> — predict target-block embeddings from a context block. ViT-Huge/14 trains on ImageNet in &lt;72h on 16 A100s. Beats MAE/data2vec on linear probing without augmentations. The proof of concept.</li></ul>
+<h2 id="video-v-jepa-v-jepa-2-v-jepa-21">Video: V-JEPA → V-JEPA 2 → V-JEPA 2.1</h2>
+<p>After May 2026 consolidation, the video trilogy lives at one grouped page: <strong><a href="source-vjepa-family.html">source-vjepa-family</a></strong>.</p>
+<ul><li><strong>V-JEPA</strong> (Bardes 2024) — feature prediction on 3D tubelets, 2M videos. Beats VideoMAE on motion-heavy benchmarks (Something-Something-v2).</li><li><strong>V-JEPA 2</strong> (Assran 2025) — 1B encoder, <strong>1M+ hours of video</strong>. <strong>V-JEPA 2-AC</strong> post-trained on &lt;62h of Droid videos with action conditioning, deployed <strong>zero-shot on Franka arms in two labs</strong> for pick-and-place via image-goal MPC in latent space. The world-model breakthrough.</li><li><strong>V-JEPA 2.1</strong> (Mur-Labadia 2026) — Dense Predictive Loss (loss on all tokens), Deep Self-Supervision (loss at multiple intermediate layers), Multi-Modal Tokenizers. Scaled to 2B params, 142M images. SOTA on Ego4D / EPIC-KITCHENS anticipation, +20pp real-robot grasping over V-JEPA 2.</li></ul>
+<h2 id="vision-language-vl-jepa">Vision-language: VL-JEPA</h2>
+<ul><li><a href="source-vl-jepa.html">source-vl-jepa</a> (Dec 2025) — predicts <strong>continuous text embeddings</strong>, not text tokens. 50% fewer trainable params than a token-space VLM with the same encoder and data, while beating CLIP / SigLIP2 / Perception Encoder on average across 16 video benchmarks. Native open-vocab classification + retrieval out of the embedding space.</li></ul>
+<h2 id="cross-cutting-themes">Cross-cutting themes</h2>
+<ul><li><strong>Predict-in-latent vs reconstruct-in-input.</strong> Whether the target is an image block, a video tubelet, or a text caption, the JEPA bet is the same: drop the high-bandwidth, low-information surface and supervise on a learned semantic embedding.</li><li><strong>World model for planning.</strong> V-JEPA 2-AC is the strongest live data point that this is more than a representation-learning trick. It pairs naturally with <a href="concept-active-inference.html">concept-active-inference</a> and <a href="source-why-learn-if-you-can-infer-active-inference.html">source-why-learn-if-you-can-infer-active-inference</a> (hand-tuned generative model + AIF on Habitat) — same predict-then-plan structure, different generative-model source.</li><li><strong>Everywhere Meta-FAIR.</strong> <a href="entity-meta-fair.html">entity-meta-fair</a> is the hub; the DINO lineage is its sibling self-supervised vision thread.</li><li><strong>Beyond perception: JEPA for symbolic domains.</strong> <a href="source-codelewm.html">source-codelewm</a> ports the JEPA recipe to <em>source code</em> (edit = state-action-state transition, energy-scored edit ranking) — and finds the latent <strong>substrate is everything</strong>: commit-message actions collapse, deterministic execution-behavior substrates work (mutation-surprise AUC 1.0).</li><li><strong>Why prediction in latent space finds the signal.</strong> <a href="source-infoldm-predictive-ssl-identifiability.html">source-infoldm-predictive-ssl-identifiability</a> splits the objective in two: predictive mutual information keeps all predictable information, and matching the latents to a simple learned predictor (for example a Gaussian) makes that information identifiable, up to an affine map for Gaussian predictors (<code>raw/arxiv-2609-37789-predictive-ssl-identifies-stochastic-signals-under-nuisance.md</code>, §3, Corollary 1). On a MuJoCo hopper with random colours, lighting, camera and background, a linear probe reads the hopper's state from the 16-dimensional latent (velocity from the LSTM state that sums up past latents); adding an image decoder loss destroys that and lets nuisance in (same file, §4.2, Appendix Figure 4 caption).</li><li><strong>The ecosystem is now indexed.</strong> <a href="source-awesome-jepa.html">source-awesome-jepa</a> is a maintained CC0 catalog of the JEPA space (incl. LLM-JEPA and provable/verifiable JEPA world models — both candidate future ingests). Intro-level explainer: <a href="https://youtu.be/gVEr2cnDE_8" rel="noreferrer">"How AI Learned to Teach Itself"</a>.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="concept-representation-learning.html">concept-representation-learning</a> — JEPA is one of the dominant predictive-SSL recipes</li><li><a href="concept-self-supervised-learning.html">concept-self-supervised-learning</a></li><li><a href="concept-active-inference.html">concept-active-inference</a> — shared predict-then-plan structure</li><li><a href="concept-energy-based-models.html">concept-energy-based-models</a> — JEPA framed as a non-contrastive EBM</li><li><a href="concept-multimodal.html">concept-multimodal</a> — VL-JEPA, V-JEPA 2.1's multimodal tokenizers</li><li><a href="concept-diffusion-language-models.html">concept-diffusion-language-models</a> / <a href="source-flow-map-language-models.html">source-flow-map-language-models</a> — adjacent "tokens are an unnecessary intermediate" intuition</li></ul>
+<h2 id="open-questions">Open questions</h2>
+<ul><li><strong>Audio-JEPA?</strong> No public scaled audio-JEPA yet. Predicting masked spectrogram embeddings is the obvious next domain — likely a 2026/2027 paper.</li><li><strong>Robotic-JEPA fusion.</strong> V-JEPA-2-AC plans in the <em>visual</em> latent. What happens when proprioception, force, audio, and vision share a single JEPA latent? V-JEPA 2.1's multimodal tokenizers gesture at this.</li><li><strong>JEPA for text.</strong> VL-JEPA uses an embedding target for text <strong>outputs</strong>; can a <em>pure</em> language JEPA — predict masked text embeddings from context — match autoregressive LMs at scale? Open.</li><li><strong>JEPA + diffusion.</strong> "Denoising with a JEPA" (arXiv 2410.03755) is one early thread. Whether JEPA latents are the right substrate for generative-diffusion-on-features is unsettled.</li><li><strong>Hierarchical JEPA at scale.</strong> LeCun's H-JEPA (multi-time-scale prediction) is in the 2022 position paper but not yet published as a scaled artefact.</li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2609-37789-predictive-ssl-identifies-stochastic-signals-under-nuisance.md</code></li></ul></details>
+</main>
+</body>
+</html>

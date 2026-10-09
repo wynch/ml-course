@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Inside vLLM: Anatomy of a High-Throughput LLM Inference System (Gordić, 2025) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="inside-vllm">Inside vLLM</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-09-26</span> <span>updated 2026-09-26</span> <span class="tag">inference</span> <span class="tag">serving</span> <span class="tag">kv-cache</span> <span class="tag">vllm</span> <span class="tag">speculative-decoding</span> <span class="tag">structured-generation</span> <span class="tag">systems</span></div>
+<p><strong>Author:</strong> Aleksa Gordić <strong>Published:</strong> 2025-08-29 (blog post, first of a series) <strong>URL:</strong> <a href="https://www.aleksagordic.com/blog/vllm" rel="noreferrer">https://www.aleksagordic.com/blog/vllm</a> <strong>Raw copy:</strong> <code>raw/web-2025-aleksagordic-inside-vllm.md</code> (captured 2026-09-26, full text)</p>
+<p>Every claim below cites the raw file as R, with the section it came from. The post reads vLLM's V1 engine at commit <code>42172ad</code> (2025-08-09); class names may have moved since (R, intro notes; §"LLM Engine constructor", note).</p>
+<h2 id="summary">Summary</h2>
+<p>A tour of how vLLM, an open-source LLM inference server, turns prompts into tokens at high throughput. It starts with one GPU running offline and synchronous, then adds features, then many GPUs, then a web server, then measurement (R, intro). The spine is one loop: each engine <code>step()</code> schedules requests, runs one forward pass, samples, and cleans up (R, §"Generate function").</p>
+<h2 id="key-claims">Key claims</h2>
+<ul><li><strong>Prefill vs decode.</strong> Prefill runs all prompt tokens at once and is usually compute-bound. Decode runs one new token per request and is memory-bandwidth-bound: all weights (and KV caches) must be read to make one token (R, §"Scheduler").</li><li><strong>Paged KV cache.</strong> The cache is split into blocks of 16 tokens by default, held in a pool of free blocks, often hundreds of thousands. A table maps each request to its blocks, so a request's cache need not sit in one contiguous piece of memory (R, §"LLM Engine constructor"; §"Scheduler", <code>allocate_slots</code>). Bytes per block for a standard (non-MLA) layer: 2 × block_size × num_kv_heads × head_size × dtype bytes (R, §"LLM Engine constructor").</li><li><strong>Sizing the cache.</strong> At start-up the engine runs a dummy forward pass, measures free GPU memory, and fills it with as many KV blocks as fit (R, §"LLM Engine constructor", "Initialize KV cache").</li><li><strong>Continuous batching.</strong> All sequences in a step are flattened into one long sequence; positions and masks keep each sequence attending only to itself, so no padding is needed. New requests can join after any step (R, §"Generate function"; §"Run forward pass").</li><li><strong>Scheduling.</strong> Decode requests go first, then waiting prefills, within a token budget. If blocks run out, the engine can evict low-priority requests and recompute them later (R, §"Scheduler").</li><li><strong>CUDA graphs.</strong> Unless eager mode is forced, the engine records the GPU work for a set of batch sizes at start-up and replays it, which cuts kernel-launch overhead (R, §"LLM Engine constructor"; §"Run forward pass").</li><li><strong>Chunked prefill.</strong> A long prompt is split across steps by capping new tokens per step, so it cannot hold up other requests (R, §"Chunked prefill").</li><li><strong>Prefix caching.</strong> Each full 16-token block is hashed together with the previous block's hash; a later request with the same prefix reuses those blocks. It speeds prefill, not decode, and is on by default (R, §"Prefix Caching").</li><li><strong>Guided decoding.</strong> A grammar, compiled to a finite-state machine by a third-party backend such as xgrammar, gives a bitmask per step; disallowed tokens get logit −∞ (R, §"Guided Decoding (FSM)").</li><li><strong>Speculative decoding.</strong> A cheap proposer guesses k tokens; the large model checks all of them in one pass; an accept/reject rule keeps the output distributed exactly as if the large model had sampled alone (R, §"Speculative Decoding"). At that commit V1 offered n-gram, EAGLE and Medusa proposers, not a separate draft LLM (same section).</li><li><strong>Disaggregated prefill/decode.</strong> Separate prefill and decode instances, joined by a KV transfer "connector", because the two phases have different bottlenecks (R, §"Disaggregated P/D").</li><li><strong>Scaling.</strong> Tensor parallelism inside a node, pipeline parallelism across nodes; data parallel replicas behind a coordinator and an API server; the load balancer scores an engine as <code>4 × waiting + running</code> (R, §"From UniprocExecutor to MultiProcExecutor"; §"Distributed system serving vLLM"; §"On the API server node").</li><li><strong>Latency vs throughput.</strong> Metrics: TTFT, ITL, TPOT, end-to-end latency, throughput, goodput. Below a saturation batch size a decode step is bound by memory bandwidth and costs about the same for 1 or 10 tokens; above it, step time grows with batch size. So larger batches raise throughput and inter-token latency together (R, §"Benchmarks and auto-tuning - latency vs throughput").</li></ul>
+<h2 id="relevance">Relevance</h2>
+<p><strong>Link to the course.</strong> <code>course/modules/07-inference-internals</code> builds a KV cache and int8 weights by hand on a 620K-parameter model. It covers the idea under all of this post: decode reuses cached keys and values, so a step costs O(context) instead of O(context²) (<code>course/modules/07-inference-internals/README.md</code>, "The KV cache lab").</p>
+<p>The course also states that int8 speeds decode only on large, memory-bandwidth-bound models (same README, "The quantization lab"). The post supports the premise: decode is bandwidth-bound below a saturation batch (R, §"Scheduler"; §"Benchmarks and auto-tuning"). Inference by the wiki, not in the post: above that batch size the saving in weight bytes should matter less.</p>
+<p><strong>What the post adds beyond module 07:</strong></p>
+<div class="tw"><table><thead><tr><th>Post topic</th><th>Module 07 has</th></tr></thead><tbody><tr><td>Paged KV blocks, block tables, free-block pool</td><td>one contiguous cache for one sequence</td></tr><tr><td>Continuous batching of many requests</td><td>one sequence at a time</td></tr><tr><td>Prefill as one compute-bound pass</td><td>prefill by stepping each prompt token through the decode path</td></tr><tr><td>Chunked prefill, prefix caching</td><td>none</td></tr><tr><td>Guided decoding (grammar masks)</td><td>temperature, top-k, top-p only</td></tr><tr><td>Speculative decoding</td><td>none</td></tr><tr><td>Scheduler, preemption, CUDA graphs</td><td>a plain loop</td></tr><tr><td>Tensor, pipeline, data parallelism; disaggregated P/D</td><td>single thread, one CPU</td></tr><tr><td>Latency/throughput metrics, roofline</td><td>tokens/s, cache on vs off</td></tr></tbody></table></div>
+<p>The post says nothing on quantization; for that the module and <a href="source-quantization-ground-up-ngrok.html">source-quantization-ground-up-ngrok</a> remain the wiki's sources.</p>
+<p><strong>Links.</strong> Prefix caching is the same idea as SGLang's RadixAttention (<a href="source-sglang-structured-generation.html">source-sglang-structured-generation</a>); guided decoding is the runtime side of structured generation (<a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a>). The throughput-latency trade is the supply side of <a href="concept-inference-economics.html">concept-inference-economics</a>. MLA, which the post leaves out, is DeepSeek's way to shrink the cache (<a href="source-deepseek-v3.html">source-deepseek-v3</a>). Overview of the topic: <a href="concept-llm-serving.html">concept-llm-serving</a>.</p>
+<h2 id="references">References</h2>
+<ul><li>R = <code>raw/web-2025-aleksagordic-inside-vllm.md</code></li><li><a href="https://www.aleksagordic.com/blog/vllm" rel="noreferrer">https://www.aleksagordic.com/blog/vllm</a></li><li><code>course/modules/07-inference-internals/README.md</code></li><li>Related: <a href="concept-llm-serving.html">concept-llm-serving</a>, <a href="concept-inference-economics.html">concept-inference-economics</a>, <a href="source-sglang-structured-generation.html">source-sglang-structured-generation</a>, <a href="source-quantization-ground-up-ngrok.html">source-quantization-ground-up-ngrok</a>, <a href="source-deepseek-v3.html">source-deepseek-v3</a>, <a href="concept-long-context.html">concept-long-context</a></li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/web-2025-aleksagordic-inside-vllm.md</code></li><li><a href="https://www.aleksagordic.com/blog/vllm" rel="noreferrer">https://www.aleksagordic.com/blog/vllm</a></li><li><code>course/modules/07-inference-internals/README.md</code></li></ul></details>
+</main>
+</body>
+</html>

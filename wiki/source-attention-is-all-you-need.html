@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Attention Is All You Need · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="attention-is-all-you-need">Attention Is All You Need</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-06</span> <span>updated 2026-05-06</span> <span class="tag">transformers</span> <span class="tag">architecture</span> <span class="tag">attention</span> <span class="tag">foundational</span> <span class="tag">2017</span></div>
+<p><strong>Vaswani, Shazeer, Parmar, Uszkoreit, Jones, Gomez, Kaiser, Polosukhin — arXiv 1706.03762, NeurIPS 2017 (Google Brain / Google Research / U. Toronto)</strong></p>
+<p>The paper that launched the transformer era. Introduces the <strong>Transformer</strong>, a sequence-to-sequence architecture built entirely on <strong>scaled dot-product self-attention</strong> and feed-forward blocks, with <strong>no recurrence and no convolutions</strong>. Eliminates the sequential bottleneck of RNNs and enables massive parallelism on TPUs/GPUs.</p>
+<h2 id="method">Method</h2>
+<ul><li><strong>Encoder–decoder stack</strong>, each layer = multi-head self-attention + position-wise FFN, wrapped with residual connections and LayerNorm.</li><li><strong>Multi-head attention</strong>: h=8 heads with separate Q/K/V projections; outputs concatenated and re-projected. Lets the model attend to different representation subspaces.</li><li><strong>Scaled dot-product attention</strong>: softmax(QKᵀ / √d_k) · V — the √d_k scaling prevents softmax saturation.</li><li><strong>Sinusoidal positional encodings</strong> — non-learned, allow extrapolation to longer sequences.</li><li><strong>Masked decoder self-attention</strong> for autoregressive generation.</li></ul>
+<h2 id="key-numbers">Key numbers</h2>
+<ul><li>Base model: 65M parameters, 6 encoder + 6 decoder layers, d_model=512, h=8.</li><li>WMT 2014 EN→DE: <strong>28.4 BLEU</strong>, beating prior SOTA by &gt;2 BLEU.</li><li>WMT 2014 EN→FR: <strong>41.8 BLEU</strong>, single-model SOTA.</li><li>Trained in <strong>3.5 days on 8 P100 GPUs</strong> — orders of magnitude less than competing systems.</li></ul>
+<h2 id="why-it-matters">Why it matters</h2>
+<p>The substrate everything else in this wiki is built on. Every page tagged <a href="concept-transformer-architecture.html">concept-transformer-architecture</a> inherits Vaswani's attention/FFN/residual decomposition; every paper on <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a> reverse-engineers circuits <em>inside</em> this architecture. The "residual stream + per-head Q/K/V" framing that Anthropic's interpretability program uses comes directly from here (<a href="source-anthropic-mi-foundations.html">source-anthropic-mi-foundations</a> formalises it). It's also the reference point for every architectural alternative the wiki tracks: hybrid RNNs (<a href="source-olmo-hybrid-rnn-transformer.html">source-olmo-hybrid-rnn-transformer</a>), matrix-valued states (<a href="source-m2rnn-matrix-valued-states.html">source-m2rnn-matrix-valued-states</a>), Post-LN highway depth (<a href="source-keel-post-ln-highway.html">source-keel-post-ln-highway</a>), Mix-Compress-Refine theory (<a href="source-attention-sinks-compression-valleys.html">source-attention-sinks-compression-valleys</a>), and one-step continuous-flow LMs (<a href="source-flow-map-language-models.html">source-flow-map-language-models</a>) all define themselves <em>against</em> this baseline.</p>
+<p>The deeper bet that turned out to matter: <strong>attention scales</strong> (in parameters, data, and compute) in ways recurrence did not — setting up <a href="concept-scaling-laws.html">concept-scaling-laws</a> and the entire GPT trajectory (<a href="source-gpt3-few-shot-learners.html">source-gpt3-few-shot-learners</a>).</p>
+<h2 id="references">References</h2>
+<ul><li>arXiv: <a href="https://arxiv.org/abs/1706.03762" rel="noreferrer">https://arxiv.org/abs/1706.03762</a></li><li>Built on by: <a href="source-anthropic-mi-foundations.html">source-anthropic-mi-foundations</a>, <a href="source-weiss-2021-thinking-like-transformers-rasp.html">source-weiss-2021-thinking-like-transformers-rasp</a>, <a href="source-tracr-compiled-transformers.html">source-tracr-compiled-transformers</a></li><li>Context: <a href="concept-transformer-architecture.html">concept-transformer-architecture</a>, <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a>, <a href="concept-scaling-laws.html">concept-scaling-laws</a></li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/1706.03762" rel="noreferrer">https://arxiv.org/abs/1706.03762</a></li></ul></details>
+</main>
+</body>
+</html>

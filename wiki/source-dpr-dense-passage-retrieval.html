@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Dense Passage Retrieval for Open-Domain Question Answering · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="dense-passage-retrieval-dpr">Dense Passage Retrieval (DPR)</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-07</span> <span>updated 2026-05-07</span> <span class="tag">retrieval</span> <span class="tag">dense-retrieval</span> <span class="tag">rag</span> <span class="tag">embeddings</span> <span class="tag">foundational</span> <span class="tag">2020</span></div>
+<p><strong>Karpukhin, Oguz, Min, Lewis, Wu, Edunov, Chen, Yih — arXiv 2004.04906, EMNLP 2020 (Facebook AI / U. Washington / Princeton)</strong></p>
+<p>The paper that made <strong>dense retrieval</strong> beat BM25 on open-domain QA, decisively shifting the field from sparse (TF-IDF / BM25) toward learned embedding search. Two independently trained BERT encoders — one for questions, one for passages — produce fixed-size vectors; retrieval is dot-product nearest-neighbour over a precomputed passage index.</p>
+<h2 id="method">Method</h2>
+<ul><li><strong>Dual-encoder ("bi-encoder")</strong> architecture: E_Q(question) and E_P(passage), each a BERT-base, output 768-d CLS embeddings.</li><li><strong>Similarity</strong> = simple dot product. Index built with FAISS for sub-linear ANN search.</li><li><strong>Training</strong>: contrastive loss on (question, positive passage, negatives) triples. The decisive trick: <strong>in-batch negatives</strong> — each question's positive serves as a negative for every other question in the batch. A batch of 128 gives 127 free negatives per example.</li><li><strong>Hard negatives</strong> mined from BM25's top-ranked but irrelevant passages add another ~2 points of accuracy.</li><li>Training data: ~60k question–passage pairs from Natural Questions, TriviaQA, WebQuestions, CuratedTREC, SQuAD.</li></ul>
+<h2 id="key-numbers">Key numbers</h2>
+<ul><li>Top-20 retrieval accuracy on Natural Questions: <strong>DPR 78.4 vs BM25 59.1</strong> — a ~20-point absolute gap.</li><li>End-to-end open-domain QA exact-match on NQ: <strong>41.5</strong> (vs prior 33.3 for BM25+reader).</li><li>Index of 21M Wikipedia passages searchable in milliseconds with FAISS HNSW.</li></ul>
+<h2 id="why-it-matters">Why it matters</h2>
+<p>DPR is the foundation paper of modern retrieval-augmented generation. Every RAG pipeline that uses a learned embedding model — production systems at OpenAI, Anthropic, Cohere, every vector database — descends from this dual-encoder template. The paper established three durable ideas:</p>
+<ol><li><strong>Dense beats sparse</strong> for semantic matching, given enough training data — though hybrid sparse+dense remains common in practice.</li><li><strong>In-batch negatives</strong> is the right contrastive recipe for retrieval, mirroring the contrastive vision lineage (<a href="source-ssl-contrastive-foundations.html">source-ssl-contrastive-foundations</a>) and reused everywhere from sentence-transformers to OpenAI's <code>text-embedding-3</code>.</li><li><strong>Bi-encoder cheapness is load-bearing</strong>: the passage index is precomputed once, queries are a single forward pass + ANN lookup. This is what lets retrieval scale to billions of documents and millisecond latency.</li></ol>
+<p>The follow-up tension DPR sets up: <strong>bi-encoders compress too aggressively</strong> — a single 768-d vector can't capture all token-level evidence. <a href="source-colbert.html">source-colbert</a> addresses exactly this with late interaction, trading index size for fidelity. <a href="source-retro-deepmind.html">source-retro-deepmind</a> then asks whether retrieval should be a separate pipeline at all or baked into LM pretraining. <a href="source-self-rag.html">source-self-rag</a> adds the reflection/decision layer that DPR's pipeline lacks.</p>
+<p>DPR is the retrieval-side counterpart to BERT for QA: not the most clever idea in retrospect, but the one that proved the regime works.</p>
+<h2 id="references">References</h2>
+<ul><li>arXiv: <a href="https://arxiv.org/abs/2004.04906" rel="noreferrer">https://arxiv.org/abs/2004.04906</a></li><li>Extended by: <a href="source-colbert.html">source-colbert</a>, <a href="source-retro-deepmind.html">source-retro-deepmind</a>, <a href="source-self-rag.html">source-self-rag</a>, <a href="source-bge-m3-embeddings.html">source-bge-m3-embeddings</a></li><li>Context: <a href="concept-representation-learning.html">concept-representation-learning</a>, <a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a>, <a href="concept-long-context.html">concept-long-context</a>, <a href="concept-ai-agents.html">concept-ai-agents</a></li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2004.04906" rel="noreferrer">https://arxiv.org/abs/2004.04906</a></li></ul></details>
+</main>
+</body>
+</html>

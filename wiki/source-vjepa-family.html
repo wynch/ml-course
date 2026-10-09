@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>V-JEPA Family: V-JEPA → V-JEPA 2 → V-JEPA 2.1 · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="v-jepa-family-video-joint-embedding-predictive-architecture">V-JEPA Family — Video Joint-Embedding Predictive Architecture</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-07</span> <span>updated 2026-05-07</span> <span class="tag">jepa</span> <span class="tag">self-supervised-learning</span> <span class="tag">video</span> <span class="tag">world-model</span> <span class="tag">robotics</span> <span class="tag">meta-fair</span> <span class="tag">yann-lecun</span></div>
+<p>The video branch of the JEPA programme. Three generations from Meta FAIR: V-JEPA (the basic feature-prediction recipe applied to video), V-JEPA 2 (scale + action conditioning → world-model-as-planner), V-JEPA 2.1 (dense features + multi-modal tokenizers). Each builds on the same JEPA spine: predict <strong>embeddings</strong> of masked targets, never reconstruct pixels.</p>
+<h2 id="v-jepa-bardes-et-al-feb-2024">V-JEPA — Bardes et al., Feb 2024</h2>
+<p><strong>arXiv:</strong> <a href="https://arxiv.org/abs/2404.08471" rel="noreferrer">2404.08471</a>. Bardes, Garrido, Ponce, Chen, Rabbat, LeCun, Assran, Ballas.</p>
+<p>Lifts <a href="source-ijepa-self-supervised-learning.html">source-ijepa-self-supervised-learning</a> from images to video. Same recipe — predict masked targets in <strong>representation space</strong> — applied to spatio-temporal patches. The point of the paper is the <strong>negative result for generative video pretraining</strong>: a feature-prediction objective alone, with no pixel decoder, no text, no negatives, no augmentations, beats pixel-reconstruction baselines on motion-heavy benchmarks.</p>
+<p><strong>Method:</strong></p>
+<ul><li>Clips tokenised into 3D (time × height × width) tubelets fed to a ViT.</li><li><strong>3D multi-block mask</strong> removes large connected spatio-temporal regions (a whole moving object across many frames). Critical — small random masks let the model cheat with local interpolation.</li><li>Two encoders (context + EMA target) and a predictor, all ViTs. L2 loss between predicted and target embeddings on masked tubelets only.</li><li>Trained on 2M public videos.</li></ul>
+<p><strong>Key numbers (ViT-H/16, video-only training):</strong> Kinetics-400 81.9% top-1; Something-Something-v2 72.2% (motion-heavy; pixel-recon methods like VideoMAE struggle here); ImageNet-1K 77.9% — competitive image features as a side effect of video training.</p>
+<h2 id="v-jepa-2-assran-et-al-june-2025">V-JEPA 2 — Assran et al., June 2025</h2>
+<p><strong>arXiv:</strong> <a href="https://arxiv.org/abs/2506.09985" rel="noreferrer">2506.09985</a>.</p>
+<p>Promotes the JEPA programme from a representation-learning method to a <strong>world-model substrate for robotic planning</strong>. Two ingredients: (i) scale aggressively — up to <strong>1B-parameter encoder, 1M+ hours of internet video</strong>; (ii) post-train a small <strong>action-conditioned latent world model</strong> (V-JEPA 2-AC) on barely any robot data, then plan with it.</p>
+<p><strong>Two-stage training:</strong></p>
+<ol><li><strong>Action-free pretraining.</strong> Standard V-JEPA objective on 1M+ hours of video + image set. Yields a frozen visual encoder.</li><li><strong>Action-conditioned post-training.</strong> Predictor conditioned on robot actions, trained on <strong>&lt;62 hours of unlabelled Droid videos</strong> to predict next latent given current latent and action. → V-JEPA 2-AC.</li></ol>
+<p><strong>Understanding &amp; prediction benchmarks:</strong> Something-Something-v2 77.3 top-1 (motion); Epic-Kitchens-100 long-horizon action anticipation 39.7 Recall@5 (SOTA, beats task-specific specialists).</p>
+<p><strong>The robotics result:</strong> V-JEPA 2-AC deployed <strong>zero-shot on Franka arms in two different labs</strong> — no data from those robots, no task-specific fine-tuning, no reward signal. Planning by <strong>image-goal MPC in the latent space</strong>: given a goal image, search action sequences whose predicted latent rollouts terminate near the goal embedding. ~80% success on cup pick-and-place vs ~15% for Octo (a comparable-era video-language-action policy). Headline result for the JEPA-as-world-model thesis from <a href="source-lecun-path-autonomous-intelligence.html">source-lecun-path-autonomous-intelligence</a>: world model <strong>learned from passive video</strong>, generalises across embodiments and tasks via planning.</p>
+<h2 id="v-jepa-21-mur-labadia-et-al-march-2026">V-JEPA 2.1 — Mur-Labadia et al., March 2026</h2>
+<p><strong>arXiv:</strong> <a href="https://arxiv.org/abs/2603.14482" rel="noreferrer">2603.14482</a>.</p>
+<p>Refresh that fixes V-JEPA 2's persistent weakness: dense, location-aware features. Three ingredients plus pure scaling. Reported as <strong>+20pp real-robot grasping</strong> improvement over V-JEPA 2-AC, plus SOTA on Ego4D and EPIC-KITCHENS anticipation.</p>
+<p><strong>Three ingredients:</strong></p>
+<ol><li><strong>Dense Predictive Loss.</strong> Earlier JEPAs only computed loss on masked tokens. V-JEPA 2.1 extends loss to <strong>all tokens, masked and visible</strong>. Previous setup encouraged visible tokens to act as global aggregators, hurting per-location features; loss on every token grounds each in its spatio-temporal location.</li><li><strong>Deep Self-Supervision.</strong> JEPA loss applied at <strong>multiple intermediate encoder layers</strong>, not just the output. Provides training signal throughout the network.</li><li><strong>Multi-Modal Tokenizers.</strong> Modality-specific learned tokenizers (one for images, one for videos) feed a <strong>single shared encoder</strong>. Native joint training across image and video.</li></ol>
+<p><strong>Plus scaling:</strong> image data 1M → 142M, model 300M → 2B params, with monotonic gains.</p>
+<p><strong>Key numbers:</strong> Ego4D short-term object-interaction anticipation 7.71 mAP (SOTA); EPIC-KITCHENS high-level action anticipation 40.8 Recall@5; +20pp real-robot grasping vs V-JEPA 2-AC.</p>
+<h2 id="why-this-matters-as-a-lineage">Why this matters as a lineage</h2>
+<p>V-JEPA established that video — the highest-bandwidth, most redundant signal — can be turned into useful semantic features purely by predicting in latent space. V-JEPA 2 turned that representation into a <strong>functional world model</strong> for zero-shot robot control. V-JEPA 2.1 closed the dense-features gap that had limited grounded manipulation. Each generation extends the JEPA thesis (<a href="source-lecun-path-autonomous-intelligence.html">source-lecun-path-autonomous-intelligence</a>) one rung further.</p>
+<p><strong>Pairs naturally with <a href="source-why-learn-if-you-can-infer-active-inference.html">source-why-learn-if-you-can-infer-active-inference</a>:</strong> that paper shows <strong>hand-tuned</strong> generative models beat RL on Habitat household tasks; V-JEPA 2-AC shows <strong>learned</strong> latent generative models beat task-specific RL/imitation on real Franka manipulation. Both data points argue the <a href="concept-active-inference.html">concept-active-inference</a> / <a href="concept-world-models.html">concept-world-models</a> thesis: planning under a good predictive model is a viable alternative to scaling reward-driven RL.</p>
+<h2 id="connections">Connections</h2>
+<ul><li>Hub: <a href="concept-jepa.html">concept-jepa</a></li><li>Predecessor: <a href="source-ijepa-self-supervised-learning.html">source-ijepa-self-supervised-learning</a> (image)</li><li>Successor (vision-language branch): <a href="source-vl-jepa.html">source-vl-jepa</a></li><li>Programme: <a href="source-lecun-path-autonomous-intelligence.html">source-lecun-path-autonomous-intelligence</a></li><li>World-model context: <a href="concept-world-models.html">concept-world-models</a>, <a href="concept-active-inference.html">concept-active-inference</a></li><li>Robotics counterpart: <a href="concept-vla-robot-foundation-models.html">concept-vla-robot-foundation-models</a> — direct-policy alternative to V-JEPA 2's predictive substrate</li><li><a href="concept-multimodal.html">concept-multimodal</a> — V-JEPA 2.1's shared encoder is a multimodal milestone</li><li>Lab: <a href="entity-meta-fair.html">entity-meta-fair</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li>V-JEPA: <a href="https://arxiv.org/abs/2404.08471" rel="noreferrer">arXiv 2404.08471</a></li><li>V-JEPA 2: <a href="https://arxiv.org/abs/2506.09985" rel="noreferrer">arXiv 2506.09985</a></li><li>V-JEPA 2.1: <a href="https://arxiv.org/abs/2603.14482" rel="noreferrer">arXiv 2603.14482</a></li><li>Code: facebookresearch/vjepa2; Meta blog: ai.meta.com/research/vjepa</li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2404.08471" rel="noreferrer">https://arxiv.org/abs/2404.08471</a></li><li><a href="https://arxiv.org/abs/2506.09985" rel="noreferrer">https://arxiv.org/abs/2506.09985</a></li><li><a href="https://arxiv.org/abs/2603.14482" rel="noreferrer">https://arxiv.org/abs/2603.14482</a></li><li><a href="https://github.com/facebookresearch/vjepa2" rel="noreferrer">https://github.com/facebookresearch/vjepa2</a></li></ul></details>
+</main>
+</body>
+</html>

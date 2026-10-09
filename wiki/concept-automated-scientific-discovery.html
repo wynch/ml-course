@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Automated Scientific Discovery · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="automated-scientific-discovery">Automated Scientific Discovery</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-07-04</span> <span>updated 2026-09-25</span> <span class="tag">scientific-discovery</span> <span class="tag">ai-agents</span> <span class="tag">self-improvement</span> <span class="tag">evolutionary</span> <span class="tag">neural-symbolic</span></div>
+<p>Can an AI system produce <em>genuinely new</em> scientific knowledge — not retrieve it, not interpolate it, but discover it? As of mid-2026 the wiki holds enough sources for this to be a first-class concept, with a sharp internal axis: <strong>search within a fixed vocabulary</strong> versus <strong>revision of the vocabulary itself</strong>.</p>
+<h2 id="the-central-axis-search-vs-discovery">The central axis: search vs discovery</h2>
+<ul><li><strong>Search systems</strong> keep the representational space fixed and optimize within it against a deterministic verifier: <a href="source-funsearch.html">source-funsearch</a> (function evolution → new bin-packing/cap-set results), <a href="source-alphaevolve.html">source-alphaevolve</a> (program evolution at Google scale), <a href="source-mlevolve.html">source-mlevolve</a> (graph-structured Monte-Carlo search + self-evolving memory; SOTA on MLE-Bench in half the runtime). The LLM supplies <strong>Variation</strong>; the verifier supplies <strong>Evaluation</strong>; the archive supplies <strong>Selective retention</strong>.</li><li><strong>Discovery proper</strong>, argues <a href="source-self-revising-discovery-systems.html">source-self-revising-discovery-systems</a> (Wang &amp; Buehler), requires <em>changing the schema</em>: a verified regime transition, with novelty measured objectively as a <strong>Kan obstruction</strong> — the residual that cannot be transported from the old vocabulary into the new. Retrieval adds instances; search recombines; discovery re-types the space.</li></ul>
+<h2 id="the-theoretical-challenge">The theoretical challenge</h2>
+<p><a href="source-sutton-generative-ai-discovery.html">source-sutton-generative-ai-discovery</a> gives the skeptical anchor: supervised generative AI produces trajectories that are <strong>novel XOR good</strong> — novelty without a runtime <strong>Evaluation</strong> step is just hallucination, so generative models <em>alone</em> cannot discover. The constructive reading: every working discovery system in the wiki (FunSearch, AlphaEvolve, MLEvolve, AlphaGo-style systems) is an LLM <em>wrapped in</em> the Variation → Evaluation → Selective-retention loop Sutton demands. Sutton's diagnosis and Wang &amp; Buehler's formalism are two ends of the same argument — one says what is missing, the other defines when it has been supplied.</p>
+<h2 id="an-older-measurable-definition-2008">An older, measurable definition (2008)</h2>
+<p><a href="source-schmidhuber-compression-progress.html">source-schmidhuber-compression-progress</a> defines discovery as "an unusually large compression breakthrough", with Newton's gravity law as the example (<code>raw/arxiv-0812-4360-driven-by-compression-progress.md</code>, §1, §2.8). Novelty there is data whose regularity is learnable but not yet known; white noise and a fully predictable stream are both boring (same file, §2.6). This gives one number, bits saved on the stored history, where "novel" and "good" point the same way, and an evaluator inside the agent: the old and new compressor scored on the same history (same file, §A.5). It bears on the measurement question below; it does not say how to compute that number cheaply at scale (same file, §5).</p>
+<h2 id="the-infrastructure-requirement">The infrastructure requirement</h2>
+<p><a href="source-anthropic-agents-in-biology.html">source-anthropic-agents-in-biology</a> adds the empirical bottleneck: for real domains (virology, protein engineering), the limiting factor is not reasoning but <strong>deterministic tooling</strong> — "context engines" that own data access and execution correctness. With the <code>gget virus</code> engine, all tested agents exceed 90% on VirBench and the strong-vs-weak-model gap collapses. Discovery loops need a reliability layer to evaluate against; this is <a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a> applied to science.</p>
+<h2 id="measurement">Measurement</h2>
+<p><a href="source-airs-bench-research-agents.html">source-airs-bench-research-agents</a> benchmarks research-agent capability empirically; MLE-Bench (via <a href="source-mlevolve.html">source-mlevolve</a>) covers the ML-engineering slice. The open evaluation problem — how to score <em>open-ended</em> novelty rather than fixed-task success — is exactly what the Kan-obstruction proposal targets.</p>
+<h2 id="open-questions">Open questions</h2>
+<ol><li>Do schema-revision systems actually outperform fixed-vocabulary evolution on any domain where both can run, or is regime revision a formal nicety until substrates get richer?</li><li>Sutton's "share explicit goals" call vs the verifier bottleneck: most working loops need a <em>cheap, deterministic</em> evaluator — what happens in domains (biology, mathematics conjecture, materials) where evaluation is expensive or itself model-mediated?</li><li>Where does <a href="concept-self-improvement.html">concept-self-improvement</a> end and discovery begin? MLEvolve's self-evolving memory improves the <em>searcher</em>; Wang &amp; Buehler's transitions improve the <em>search space</em>.</li></ol>
+<h2 id="key-sources">Key Sources</h2>
+<ul><li><a href="source-self-revising-discovery-systems.html">source-self-revising-discovery-systems</a> — category-theoretic definition of discovery; Builder/Breaker + CategoryScienceClaw</li><li><a href="source-sutton-generative-ai-discovery.html">source-sutton-generative-ai-discovery</a> — the Variation/Evaluation/Selective-retention argument</li><li><a href="source-mlevolve.html">source-mlevolve</a> · <a href="source-alphaevolve.html">source-alphaevolve</a> · <a href="source-funsearch.html">source-funsearch</a> · <a href="source-gea-group-evolving-agents.html">source-gea-group-evolving-agents</a> — the evolutionary-search line</li><li><a href="source-anthropic-agents-in-biology.html">source-anthropic-agents-in-biology</a> — deterministic context engines for science agents</li><li><a href="source-airs-bench-research-agents.html">source-airs-bench-research-agents</a> — research-agent benchmarking</li><li><a href="source-schmidhuber-compression-progress.html">source-schmidhuber-compression-progress</a> — discovery as compression breakthrough; curiosity as reward for compression progress</li></ul>
+<h2 id="related">Related</h2>
+<p><a href="concept-self-improvement.html">concept-self-improvement</a> · <a href="concept-neural-symbolic-bridge.html">concept-neural-symbolic-bridge</a> · <a href="concept-ai-agents.html">concept-ai-agents</a> · <a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a> · <span class="dead" title="not published">idea-benchmark-honest-epistemic-loop</span></p>
+<details class="src"><summary>Sources (10)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>source-self-revising-discovery-systems</code></li><li><code>source-mlevolve</code></li><li><code>source-sutton-generative-ai-discovery</code></li><li><code>source-anthropic-agents-in-biology</code></li><li><code>source-alphaevolve</code></li><li><code>source-funsearch</code></li><li><code>source-airs-bench-research-agents</code></li><li><code>source-gea-group-evolving-agents</code></li><li><code>source-schmidhuber-compression-progress</code></li><li><code>raw/arxiv-0812-4360-driven-by-compression-progress.md</code></li></ul></details>
+</main>
+</body>
+</html>

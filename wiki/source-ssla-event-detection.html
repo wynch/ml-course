@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Low-Latency Event-Based Object Detection with Spatially-Sparse Linear Attention · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="low-latency-event-based-object-detection-with-spatially-sparse-linear-attention">Low-Latency Event-Based Object Detection with Spatially-Sparse Linear Attention</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-09-10</span> <span>updated 2026-09-10</span> <span class="tag">event-cameras</span> <span class="tag">linear-attention</span> <span class="tag">object-detection</span> <span class="tag">low-latency</span> <span class="tag">sparsity</span> <span class="tag">edge-inference</span> <span class="tag">sequence-models</span></div>
+<p><strong>Authors:</strong> Haiqing Hao, Zhipeng Sui, Rong Zou, Zijia Dai, Nikola Zubić, Davide Scaramuzza, Wenhui Wang (Tsinghua University; Robotics and Perception Group, University of Zurich) · <strong>arXiv:</strong> <a href="https://arxiv.org/abs/2603.06228" rel="noreferrer">2603.06228v4</a> · <strong>Date:</strong> 2026-03-06, revised 2026-08-26</p>
+<h2 id="summary">Summary</h2>
+<p>An event camera reports per-pixel brightness changes as they happen, not frames on a clock, so its data is sparse in space and very fine in time. To keep that latency advantage a model must update event by event. Recurrent networks can do that but train slowly on long sequences. Linear attention (attention rewritten so it has both a parallel training form and a recurrent inference form — the family that includes state-space models) fixes training, but its state update touches every element of the state, so per-event cost grows with state size. Detection needs a large, fine-grained state to localize boxes, so the trade-off has been bad. SSLA cuts the state into one substate per overlapping P×P patch of the sensor plane; an event updates only the P² patches that contain it, and its output is the sum of those patches' outputs, which keeps the sequence length fixed so sparsity survives into deep layers. A position-aware projection re-projects the event by its offset inside each patch. Training stays parallel through a scatter-compute-gather trick: duplicate each event into its patches, run one weight-shared linear attention over the per-patch subsequences in parallel, then gather back into event order. SSLA-Det is the detector built on this.</p>
+<h2 id="key-claims">Key claims</h2>
+<ul><li><strong>Best asynchronous accuracy at far lower cost.</strong> Gen1 automotive: SSLA-L reaches 0.375 mAP (mean average precision — the standard detection score) at 0.724 MFLOPS per event, against DAGr-L's 0.321 at 17.4 — over 20× fewer operations. The smallest model, SSLA-S, already beats DAGr-L (0.334) at 0.102 MFLOPS/ev, about 171× cheaper.</li><li><strong>Same ordering on N-Caltech101.</strong> SSLA-L: 0.515 mAP, 0.743 AP₅₀, 0.926 MFLOPS/ev, versus DAGr-L's 0.732 AP₅₀ at 18.9.</li><li><strong>Per-event latency under 10 µs.</strong> A recurrent C++ build on one core of an AMD Ryzen 9 9950X3D: 3.43 µs (S), 2.44 µs (B), 6.02 µs (M), 7.20 µs (L) on Gen1 — below the roughly 200 µs the sensor itself takes to transmit. Per-event cost is O(P²D²) and so independent of sensor resolution.</li><li><strong>Parallel training pays.</strong> Against an LSTM at matched hidden size, SSLA-S cuts epoch time from 1.05 h to 0.25 h (4.2×) on 4 A800 GPUs; SSLA-B matches the LSTM's mAP (0.351 vs 0.353) with higher AP₅₀ (0.655 vs 0.631) at 3.8× less time.</li><li><strong>The sparsity is the mechanism, and they isolated it.</strong> Replacing SSLA with a dense variant that keeps the same patch decomposition and projection costs 388 MFLOPS/ev at the same 0.370 mAP — a 380× saving from sparse activation alone. Plain linear attention at matched FLOPs fails outright; SSLA-S carries a state 380× larger for the same cost.</li><li><strong>Not all of the saving is free.</strong> Temporal dropout supplies a further 10× reduction but costs accuracy: 0.370 mAP → 0.335. Sparse pooling changes no FLOPs but is load-bearing — remove it and mAP falls to 0.014.</li></ul>
+<h2 id="admitted-limitations">Admitted limitations</h2>
+<ul><li>The stated ceiling: synchronous detectors that accumulate events into frames exceed 0.5 mAP on Gen1 against SSLA-L's 0.375. The authors argue this is the accuracy-latency trade-off, not a defect, since synchronous models get image pretraining, larger parameter counts, and millisecond latency.</li><li>CPU latency does not track the FLOP savings — smaller is not always faster (SSLA-B, the larger model, is quicker than SSLA-S), because vectorization and memory access dominate. FPGAs or neuromorphic chips are named as future work, not measured.</li><li>Hybrid event-plus-image models, the current trend, are left to future work; only compatibility is asserted.</li><li>Reported failure cases: missed objects when camera and target do not move relative to each other, so no events fire, and false positives that are really missing annotations.</li></ul>
+<h2 id="relevance">Relevance</h2>
+<ul><li>A concrete data point for <span class="dead" title="not published">experiment-edge-autoresearch-and-ane</span>: the cost that matters at the edge is not model size but per-input work and the shape of the graph. Here 380× is bought by never touching most of the state, and the accuracy price is zero — the opposite outcome to the local finding that int8 quantization bought no speed on an attention-bound video encoder (<code>../ml-lab/levjepa-mobile/REPORT.md</code>, the port covered in <a href="source-levjepa.html">source-levjepa</a>).</li><li>Linear attention here plays the same parallel-train / recurrent-infer duality that the wiki records for state-space models in <a href="source-mamba-ssm.html">source-mamba-ssm</a> and <a href="source-mamba-2-ssm-duality.html">source-mamba-2-ssm-duality</a>. This paper adds a third axis those do not have: spatial sparsity in the <em>state</em>, routed geometrically rather than by a learned router.</li><li>For <a href="concept-transformer-architecture.html">concept-transformer-architecture</a>, it is a clean case of dropping softmax attention because the deployment demands a recurrent form, then paying for the lost state capacity with structure instead of parameters.</li><li>One caution on names. <span class="dead" title="not published">experiment-event-first-systems</span> uses "event" in the agent sense — observations turned into beliefs and questions — not the sensor sense used here. The shared instinct is real (process change, not frames) but no result transfers between them.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><a href="https://arxiv.org/abs/2603.06228" rel="noreferrer">arXiv 2603.06228</a> · <a href="https://arxiv.org/html/2603.06228" rel="noreferrer">HTML v4</a></li><li>Raw capture: <code>raw/arxiv-2603-06228-low-latency-event-based-object-detection.md</code></li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2603.06228" rel="noreferrer">https://arxiv.org/abs/2603.06228</a></li><li><a href="https://arxiv.org/html/2603.06228" rel="noreferrer">https://arxiv.org/html/2603.06228</a></li><li><code>raw/arxiv-2603-06228-low-latency-event-based-object-detection.md</code></li></ul></details>
+</main>
+</body>
+</html>

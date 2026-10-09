@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>RRSI: Regularized Recursive Self-Improvement of Agent Harnesses (Xia et al., 2026) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="rrsi-regularized-recursive-self-improvement-of-agent-harnesses">RRSI: Regularized Recursive Self-Improvement of Agent Harnesses</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-09-25</span> <span>updated 2026-09-26</span> <span class="tag">harness</span> <span class="tag">self-improvement</span> <span class="tag">agents</span> <span class="tag">overfitting</span> <span class="tag">regularization</span> <span class="tag">evaluation</span> <span class="tag">benchmarks</span> <span class="tag">inference-cost</span></div>
+<p><strong>Authors:</strong> Peng Xia, Rujun Han, Zifeng Wang, Yanfei Chen, Yufan Zhuang, Yoonho Lee, Chengsong Huang, Han Yu, Zhongying CuiZhu, Yifei Ming, Huaxiu Yao, Burak Gokturk, Tomas Pfister, Chen-Yu Lee (mostly Google Cloud AI Research; Lee at Stanford) <strong>Published:</strong> arXiv 2609.24972, v1 2026-09-21, v2 2026-09-23 <strong>Raw copy:</strong> <code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code> (captured 2026-09-25, full text of v2)</p>
+<p>Every claim below cites the raw file as R, with the paper's section number.</p>
+<h2 id="summary">Summary</h2>
+<p>Harness evolution loops (Meta-Harness and its kin) let an LLM rewrite the prompts, control flow, tools, memory and context rules around a frozen model, and keep an edit when it raises a score on an <strong>evolve set</strong>. The paper calls this recursive self-improvement at the agent-system level (R, §1). Because the loop re-reads the same finite evolve set every round, it overfits: gains on the evolve set shrink or vanish on other benchmarks (R, §1, §2 "Harness Evolution").</p>
+<p>RRSI keeps the edit space open (any component may change) and instead constrains the search (R, §3.1):</p>
+<div class="tw"><table><thead><tr><th>Side</th><th>Rule</th><th>Classical analogy</th><th>Section</th></tr></thead><tbody><tr><td>Proposal</td><td>Edit budget per candidate, cosine-annealed from <code>b_max</code> (3-4) to <code>b_min</code> = 1</td><td>L0 cardinality</td><td>R, §3.2</td></tr><tr><td>Proposal</td><td>History of every tried edit, its hypothesis, diff, score and cost; rejected ideas stay as negative evidence</td><td>credit assignment</td><td>R, §3.2</td></tr><tr><td>Proposal</td><td>When progress stalls inside the noise band for <code>w</code> rounds, reserve a proposal for untouched components</td><td>entropy bonus</td><td>R, §3.2</td></tr><tr><td>Selection</td><td>A critic reads each diff and rejects benchmark-specific content (task names, answers, values) before it is scored</td><td>leakage screen</td><td>R, §3.3</td></tr><tr><td>Selection</td><td>Noise band δ measured by re-running the base harness; a candidate must score ≥ best-so-far − δ</td><td>stability</td><td>R, §3.3</td></tr><tr><td>Selection</td><td>Relative token cost may rise at most β0 + β1·ΔS</td><td>L2 shrinkage</td><td>R, §3.3</td></tr><tr><td>Selection</td><td>Components with no positive gain over a pruning window become deletion targets</td><td>L1 pruning</td><td>R, §3.3</td></tr></tbody></table></div>
+<p>The authors say the norm names mark roles only; no norm-penalized objective is optimized (R, §3.1; Appendix C).</p>
+<h2 id="key-results">Key results</h2>
+<p>Policy, proposer, analyst and critic are all Claude Opus 4.8 unless noted (R, §4.1). Each domain evolves on one suite and runs unchanged elsewhere.</p>
+<ul><li><strong>Agentic workspace</strong> (evolve on Harvey LAB, 120 tasks; 40-task in-distribution held-out; JobBench, GDPval, APEX-Agents out of distribution). RRSI: evolve 90.5, ID held-out 89.2, OOD mean 43.6 vs base 39.7. Meta-Harness: highest evolve score (93.0) but OOD mean only +0.9 over base; AHE and TTHE finish below the base out of distribution (R, §4.2, Table 1).</li><li><strong>All held-out splits improve, none regress:</strong> SWE-bench Verified +1.8 (evolved on Terminal-Bench 2.1, +6.0); OOD agentic +3.5 to +4.7; Frontier-Eng +4.3 Medal points (evolved on EngDesign, +4.9) (R, §4.2).</li><li><strong>Ablation:</strong> with both regularizer groups removed, the evolve score is highest (92.8) and the OOD mean falls to 40.3, near base, at 3.80 M policy tokens per trial vs RRSI's 2.42 M and base 1.56 M (R, §4.3, Table 2).</li><li><strong>Policy robustness:</strong> evolving with Gemini 3.5 Flash lifts Terminal-Bench 2.1 from 64.6 to 78.7 (+14.1) and SWE-bench Verified +2.2. The same harness run with Gemini 3.1 Flash Lite, which never took part in the search, goes 11.2 → 14.6 (R, §4.3, Tables 3-4).</li><li><strong>Cost:</strong> RRSI's harness is the cheapest evolved one; AHE uses 58% more tokens for 4.4 fewer OOD points. No evolved harness is as cheap as the base, so part of every gain is bought with test-time compute (R, §4.3, Figure 4).</li><li><strong>Case study:</strong> a pre-completion verification audit was accepted (+3.93); a similar edit with +1.69 at +26.1% cost was rejected; a cheaper edit at −2.81 was rejected by the floor (R, Appendix E, Table 6).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>Gains sit close to the noise band: on the agentic instance δ = 0.004, i.e. 0.4 points (60 criteria of about 14,100), and the Harvey LAB evolve gain is 1.1 points, under three times δ (R, Appendix D.1, Table 5; §4.2). The paper reports single numbers, no seeds or intervals for held-out splits.</li><li>§4.3 calls the cost-acceptance rule "the L1-style budget"; §3.3 names the same rule Ridge/L2-style. Treat §3.3 as the definition.</li><li>Three of the OOD agentic benchmarks use a judge model; the authors answer this with the simulator-graded engineering domain (R, §4.2).</li><li>Frozen weights only; hyperparameters (δ, β, windows) are tuned on the evolve set (R, Limitations; Appendix D.1).</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-harness-optimization-evolve-harness.html">source-harness-optimization-evolve-harness</a> — Niklaus runs the Meta-Harness loop on the same Harvey LAB benchmark and reports held-out gains on a split of that benchmark. RRSI's point is that such in-distribution held-out gains are where all methods look alike; the split between methods appears out of distribution (R, §4.2, Table 1).</li><li><a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a> — answers "who writes the harness?" with "an LLM can, but its edits must be regularized to transfer".</li><li><a href="concept-self-improvement.html">concept-self-improvement</a> — self-improvement without weight updates, with an explicit overfitting control.</li><li><a href="source-text-optimization-yoonho.html">source-text-optimization-yoonho</a> — Yoonho Lee is a co-author; RRSI is a text-layer optimizer that treats generalization as the main risk.</li><li><span class="dead" title="not published">idea-benchmark-honest-epistemic-loop</span> — noise floors, leakage screens and held-out suites the search never sees are this idea's rules, applied to harness search.</li><li><a href="analysis-scaffold-vs-experience.html">analysis-scaffold-vs-experience</a> — evidence on harness-gain size against policy strength.</li><li><a href="concept-inference-economics.html">concept-inference-economics</a> — harness evolution tends to buy score with tokens unless cost is priced.</li><li><a href="source-zhang-harness-blog.html">source-zhang-harness-blog</a> — cited as the argument that harnesses generalize in their own right (R, §5).</li><li><a href="source-darwin-godel-machine.html">source-darwin-godel-machine</a> — RRSI lists the DGM among self-improving agents that search their own code under an empirical score and inherit the overfitting risk (R, §1, §5).</li><li>Contradiction (partial): RRSI's related work says "reported gains often do not survive a change of suite" (R, §5), citing other papers (Wang et al. 2026b, Huang et al. 2026d), not the DGM. The DGM, which has no regularizer, reports gains that did survive one: its best SWE-bench agent scores 28.9% on Polyglot against a base of 14.2%, and its best Polyglot agent 24.5% on SWE-bench against 20.0% (<code>raw/arxiv-2505-22954-darwin-godel-machine-open-ended-evolution.md</code>, §4.4). The two do not test the same thing: the DGM edits the whole agent, not a harness around a fixed policy, reports one run per benchmark, and does not compare against a regularized search.</li><li><a href="source-bundle-agent-harnesses.html">source-bundle-agent-harnesses</a> · <a href="concept-ai-agents.html">concept-ai-agents</a> · <a href="concept-swe-bench.html">concept-swe-bench</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li>Raw: <code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code></li><li>arXiv: <a href="https://arxiv.org/abs/2609.24972" rel="noreferrer">https://arxiv.org/abs/2609.24972</a> · Code: <a href="https://github.com/google-research/rrsi" rel="noreferrer">https://github.com/google-research/rrsi</a> · Project: <a href="https://regularized-rsi.com/" rel="noreferrer">https://regularized-rsi.com/</a></li></ul>
+<details class="src"><summary>Sources (5)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code></li><li><code>raw/arxiv-2505-22954-darwin-godel-machine-open-ended-evolution.md</code></li><li><a href="https://arxiv.org/abs/2609.24972" rel="noreferrer">https://arxiv.org/abs/2609.24972</a></li><li><a href="https://github.com/google-research/rrsi" rel="noreferrer">https://github.com/google-research/rrsi</a></li><li><a href="https://regularized-rsi.com/" rel="noreferrer">https://regularized-rsi.com/</a></li></ul></details>
+</main>
+</body>
+</html>

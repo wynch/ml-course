@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Qwen-VL: A Versatile Vision-Language Model for Understanding, Localization, Text Reading, and Beyond · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="qwen-vl-open-weight-vlm-with-strong-ocr-and-grounding">Qwen-VL — Open-Weight VLM with Strong OCR and Grounding</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-06</span> <span>updated 2026-05-06</span> <span class="tag">multimodal</span> <span class="tag">vision-language</span> <span class="tag">qwen</span> <span class="tag">alibaba</span> <span class="tag">ocr</span> <span class="tag">grounding</span></div>
+<p><strong>Bai, Bai, Yang, Wang, Tan, Wang, Lin, Zhou, Zhou (Alibaba) — arXiv 2308.12966, August 2023</strong></p>
+<p>Alibaba's first open-weight vision-language model, sitting between <a href="source-llava-visual-instruction.html">LLaVA</a>'s minimum-viable recipe and <a href="source-gpt4v-system-card.html">GPT-4V</a>'s closed-frontier capability. Qwen-VL emphasises three things <a href="source-llava-visual-instruction.html">LLaVA-1</a> explicitly skips: <strong>OCR / text reading</strong>, <strong>visual grounding</strong> (bounding-box outputs), and <strong>multilingual</strong> (English + Chinese) support out of the box. Comes in two flavours: base Qwen-VL and the chat-tuned Qwen-VL-Chat.</p>
+<h2 id="architecture">Architecture</h2>
+<p>Three modules stacked on a Qwen-7B language backbone:</p>
+<ol><li><strong>Visual receptor</strong> — ViT initialised from OpenCLIP's ViT-bigG, plus a position-aware <strong>vision-language adapter</strong> (single-layer cross-attention with learned queries, similar to BLIP-2's Q-Former) that compresses visual features to a fixed length of 256 tokens for the LLM.</li><li><strong>Input/output interface</strong> — special tokens delimit image regions, bounding boxes, and text spans. Images, text, and box coordinates are interleaved in a unified sequence so the model can both <em>consume</em> and <em>emit</em> spatial coordinates.</li><li><strong>Language model</strong> — Qwen-7B (Alibaba's open Chinese-English LLM).</li></ol>
+<h2 id="three-stage-training-pipeline">Three-stage training pipeline</h2>
+<ol><li><strong>Pretraining</strong> — frozen LLM, only ViT + adapter trained on 1.4B image-text pairs (English + Chinese) cleaned and deduplicated.</li><li><strong>Multi-task pretraining</strong> — ViT + adapter + LLM jointly trained on 7 task types: captioning, VQA, grounded captioning, referring-expression grounding, <strong>OCR</strong>, pure text, image-text interleaved.</li><li><strong>Supervised fine-tuning</strong> → <strong>Qwen-VL-Chat</strong>. Instruction-tuning with multimodal dialogue.</li></ol>
+<p>The grounding capability is achieved by embedding <strong>(x1,y1,x2,y2)</strong> tuples directly in the token stream as text — a clean reuse of the <a href="source-rt-2.html">RT-2</a>-style "actions/coords as tokens" trick.</p>
+<h2 id="results">Results</h2>
+<p>Sets new open-weight records (at release time) on captioning (Flickr30k, Nocaps), VQA (VQAv2, OK-VQA), referring expression comprehension (RefCOCO), and document/text VQA — the OCR-heavy benchmarks where LLaVA struggled. Beats Flamingo-9B and OpenFlamingo-9B on most few-shot settings.</p>
+<h2 id="significance">Significance</h2>
+<p>Qwen-VL is the canonical "open-weight Asian-frontier" datapoint and the reference for any open VLM that needs to <strong>read text in images</strong> or <strong>return bounding boxes</strong>. The 256-token compressed adapter sits between <a href="source-flamingo.html">Flamingo</a>'s heavy gated cross-attention and <a href="source-llava-visual-instruction.html">LLaVA</a>'s identity-shaped linear projection — a useful mid-point in the <a href="concept-multimodal.html">concept-multimodal</a> adapter-simplification axis. The unified-token treatment of bounding boxes generalises into the modern coords-as-tokens / actions-as-tokens pattern that runs through <a href="source-rt-2.html">RT-2</a>, <a href="source-openvla.html">OpenVLA</a>, and <a href="source-pi-zero.html">π0</a>.</p>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="concept-multimodal.html">concept-multimodal</a> — open-weight token-space VLM with strong OCR + grounding.</li><li><a href="source-llava-visual-instruction.html">source-llava-visual-instruction</a> — minimal-recipe sibling without OCR/grounding focus.</li><li><a href="source-gpt4v-system-card.html">source-gpt4v-system-card</a> — closed-frontier counterpart.</li><li><a href="source-flamingo.html">source-flamingo</a> — gated-cross-attention predecessor.</li><li><a href="source-rt-2.html">source-rt-2</a> — coords-as-tokens generalises to actions-as-tokens.</li></ul>
+<h2 id="references">References</h2>
+<ul><li>arXiv: <a href="https://arxiv.org/abs/2308.12966" rel="noreferrer">https://arxiv.org/abs/2308.12966</a></li><li>Code: <a href="https://github.com/QwenLM/Qwen-VL" rel="noreferrer">https://github.com/QwenLM/Qwen-VL</a></li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2308.12966" rel="noreferrer">https://arxiv.org/abs/2308.12966</a></li></ul></details>
+</main>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>ColBERT: Efficient and Effective Passage Search via Contextualized Late Interaction over BERT · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="colbert-late-interaction-retrieval">ColBERT — Late Interaction Retrieval</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-07</span> <span>updated 2026-05-07</span> <span class="tag">retrieval</span> <span class="tag">late-interaction</span> <span class="tag">dense-retrieval</span> <span class="tag">rag</span> <span class="tag">2020</span></div>
+<p><strong>Khattab &amp; Zaharia — arXiv 2004.12832, SIGIR 2020 (Stanford)</strong></p>
+<p>Sits between cheap bi-encoders (<a href="source-dpr-dense-passage-retrieval.html">source-dpr-dense-passage-retrieval</a>) and expensive full cross-encoders. ColBERT's insight: keep encoding cheap and precomputable, but defer the <strong>interaction</strong> between query and document tokens to scoring time. Each token of a query and document gets its own embedding; the relevance score is a <strong>sum over query tokens of max-similarity to any document token</strong> — the "MaxSim" operator.</p>
+<h2 id="method">Method</h2>
+<ul><li>BERT encoder applied independently to query and passage, producing <strong>per-token embeddings</strong> (typically 128-d after a linear projection).</li><li><strong>Late-interaction score</strong>: for each query token q_i, find max cosine similarity over document tokens d_j; sum those maxes: score(Q, D) = Σ_i max_j (q_i · d_j)</li><li>Document side fully precomputable and indexable. Query side computed once per query.</li><li><strong>Two-stage retrieval</strong>: ANN over individual token embeddings retrieves candidate documents; full MaxSim reranks.</li><li>ColBERTv2 (2022) adds residual compression of token embeddings — ~10× smaller index with no quality loss.</li></ul>
+<h2 id="key-numbers">Key numbers</h2>
+<ul><li>On MS MARCO passage ranking, MRR@10 <strong>~36</strong> vs BM25 <strong>~18</strong> and DPR-style single-vector models ~33.</li><li>100×+ faster than full cross-encoder reranking; ~10× more expensive index storage than DPR.</li><li>Generalises to out-of-domain (BEIR) better than single-vector dense retrievers — the per-token granularity preserves rare-term evidence that pooling destroys.</li></ul>
+<h2 id="why-it-matters">Why it matters</h2>
+<p>ColBERT is the clean illustration of a <strong>fidelity / cost tradeoff</strong> in retrieval architecture, parameterised by <em>where</em> the query and document representations interact:</p>
+<ul><li><strong>Cross-encoder</strong> (BERT(query ‖ doc)): full attention between them. Expensive, can't precompute. Best quality.</li><li><strong>Bi-encoder</strong> (DPR): collapse each to one vector, dot product. Cheap, fully precomputable. Information loss.</li><li><strong>Late interaction</strong> (ColBERT): keep per-token vectors, MaxSim. Most of the precomputability, much of the fidelity.</li></ul>
+<p>This three-tier framing is now standard in retrieval pedagogy and lives on in modern systems: ColBERTv2/PLAID powers Stanford's DSP/<a href="source-dspy-lm-programs.html">source-dspy-lm-programs</a> retrieval and the open-source <code>ragatouille</code> library; the late-interaction pattern reappears in <a href="source-bge-m3-embeddings.html">source-bge-m3-embeddings</a>' multi-vector mode. ColBERT's MaxSim is also a useful conceptual primitive — a soft, differentiable version of "which document token answers each query token?", which gives natural attribution for free.</p>
+<p>The tension ColBERT doesn't solve: it's still a separate retrieval pipeline. <a href="source-retro-deepmind.html">source-retro-deepmind</a> takes the opposite path — bake retrieval into LM pretraining as cross-attention to retrieved chunks.</p>
+<h2 id="references">References</h2>
+<ul><li>arXiv: <a href="https://arxiv.org/abs/2004.12832" rel="noreferrer">https://arxiv.org/abs/2004.12832</a></li><li>ColBERTv2: <a href="https://arxiv.org/abs/2112.01488" rel="noreferrer">https://arxiv.org/abs/2112.01488</a></li><li>Compared with: <a href="source-dpr-dense-passage-retrieval.html">source-dpr-dense-passage-retrieval</a>, <a href="source-retro-deepmind.html">source-retro-deepmind</a>, <a href="source-bge-m3-embeddings.html">source-bge-m3-embeddings</a></li><li>Context: <a href="concept-representation-learning.html">concept-representation-learning</a>, <a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a>, <a href="concept-long-context.html">concept-long-context</a></li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2004.12832" rel="noreferrer">https://arxiv.org/abs/2004.12832</a></li></ul></details>
+</main>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Flamingo: a Visual Language Model for Few-Shot Learning · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="flamingo-a-visual-language-model-for-few-shot-learning">Flamingo — a Visual Language Model for Few-Shot Learning</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-06</span> <span>updated 2026-05-06</span> <span class="tag">multimodal</span> <span class="tag">vision-language</span> <span class="tag">few-shot-learning</span> <span class="tag">cross-attention</span> <span class="tag">frozen-backbone</span> <span class="tag">deepmind</span></div>
+<p><strong>Authors:</strong> Jean-Baptiste Alayrac, Jeff Donahue, Pauline Luc, Antoine Miech, Iain Barr, Yana Hasson, Karel Lenc, Arthur Mensch, Katie Millican, Malcolm Reynolds, Roman Ring, Eliza Rutherford, Serkan Cabi, Tengda Han, Zhitao Gong, Sina Samangooei, Marianne Monteiro, Jacob Menick, Sebastian Borgeaud, Andrew Brock, Aida Nematzadeh, Sahand Sharifzadeh, Mikolaj Binkowski, Ricardo Barreira, Oriol Vinyals, Andrew Zisserman, Karen Simonyan (DeepMind) <strong>Date:</strong> 2022-04-29 (NeurIPS 2022) <strong>arXiv:</strong> <a href="https://arxiv.org/abs/2204.14198" rel="noreferrer">2204.14198</a></p>
+<h2 id="summary">Summary</h2>
+<p>Flamingo is the canonical recipe for <strong>grafting vision onto a pretrained large language model without retraining either backbone</strong>. It introduces gated cross-attention layers that interleave a <strong>frozen language model</strong> with a <strong>frozen vision encoder</strong>, processing arbitrarily interleaved sequences of images, videos, and text. Crucially, Flamingo unlocked <strong>few-shot in-context learning across modalities</strong> — the first VLM where you could prompt with a couple of (image, answer) demonstrations and get strong task generalization, mirroring <a href="source-gpt3-few-shot-learners.html">source-gpt3-few-shot-learners</a>'s in-context learning but for vision-language tasks.</p>
+<h2 id="architecture">Architecture</h2>
+<p>Three modules, two of them frozen:</p>
+<ol><li><strong>Frozen vision encoder</strong>: a Normalizer-Free ResNet (NFNet-F6) pretrained CLIP-style on image-text pairs. Produces a dense grid of visual features per image/frame.</li><li><strong>Perceiver Resampler</strong>: a small attention module with learned latent queries that <strong>maps a variable-length grid of visual features to a fixed small number of visual tokens</strong> (typically 64). This is the key bottleneck that makes Flamingo's compute tractable across video and multi-image inputs.</li><li><strong>Frozen LM</strong> (Chinchilla 1.4B / 7B / 70B), interleaved with <strong>newly inserted gated cross-attention dense (GATED XATTN-DENSE) layers</strong> that attend from text tokens to the resampled visual tokens.</li></ol>
+<p>The cross-attention layers use <strong>tanh-gated residual connections</strong> initialized to zero — at the start of training the LM behaves identically to its pretrained version, and the visual pathway is gradually ramped in. This is what lets the frozen LM be safely augmented without catastrophic forgetting.</p>
+<h2 id="training">Training</h2>
+<ul><li>Trained on a <strong>mixture of three multimodal corpora</strong>:<ul><li><strong>M3W (MultiModal MassiveWeb)</strong>: 43M web pages with interleaved images and text — the key dataset for in-context multimodal capability.</li><li><strong>ALIGN-style image-text pairs</strong> (1.8B pairs) and <strong>LTIP</strong> (long-text image pairs).</li><li><strong>VTP</strong>: short videos with paired text.</li></ul></li><li>Loss: standard next-token prediction on the text, with images appearing as special tokens that gate the cross-attention.</li><li>Only the Perceiver Resampler and the inserted cross-attention layers are trained; the vision encoder and LM stay frozen.</li></ul>
+<h2 id="key-results">Key Results</h2>
+<ul><li><strong>SOTA on 16 multimodal benchmarks</strong> (VQAv2, OK-VQA, MS-COCO captioning, TextVQA, VATEX, MSVD-QA, etc.) in the few-shot regime — beats prior fine-tuned baselines on <strong>6 of them</strong> despite using only a handful of examples per task and zero parameter updates.</li><li>32-shot Flamingo-80B beats fine-tuned per-task SOTA on tasks like OK-VQA, MSVD-QA, VATEX.</li><li>Demonstrates <strong>in-context learning</strong> for vision-language: prepending k (image, answer) examples in the prompt produces near-monotonic gains, mirroring GPT-3.</li></ul>
+<h2 id="significance">Significance</h2>
+<p>Flamingo established the dominant <strong>frozen-backbones + adapter</strong> pattern for VLMs in 2022-2023:</p>
+<ul><li>Use a strong pretrained vision encoder (CLIP-style).</li><li>Freeze it.</li><li>Use a strong pretrained LLM.</li><li>Freeze it.</li><li>Insert a small trainable adapter (cross-attention layers + resampler) that lets the LM attend to vision.</li></ul>
+<p>This drastically reduces the compute and data required to "make an LLM see," and the gated-residual + resampler primitives recur in countless follow-ups (IDEFICS, OpenFlamingo, BLIP-2's Q-Former, MiniGPT-4, OBELICS-trained models). The Perceiver Resampler in particular is the ancestor of the Q-Former.</p>
+<p><a href="source-llava-visual-instruction.html">source-llava-visual-instruction</a> simplifies Flamingo's recipe radically: replace the gated-cross-attention adapter with a <strong>single linear projection</strong> into the LLM's word-embedding space, and just supervise via instruction tuning.</p>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-clip-radford.html">source-clip-radford</a> — uses a CLIP-style contrastively pretrained vision encoder.</li><li><a href="source-llava-visual-instruction.html">source-llava-visual-instruction</a> — direct simplification: linear projection into word-embedding space, no cross-attention adapter.</li><li><a href="source-gpt3-few-shot-learners.html">source-gpt3-few-shot-learners</a> — Flamingo is the multimodal analogue of GPT-3's in-context learning.</li><li><a href="source-chinchilla-compute-optimal.html">source-chinchilla-compute-optimal</a> — Flamingo's frozen LM backbone is the Chinchilla family.</li><li><a href="concept-multimodal.html">concept-multimodal</a> — canonical "frozen LM + adapter" pattern.</li><li><a href="concept-multimodal.html">concept-multimodal</a> — few-shot in-context learning across vision and language.</li><li><a href="entity-google-deepmind.html">entity-google-deepmind</a> — flagship VLM release.</li></ul>
+<h2 id="references">References</h2>
+<ul><li>arXiv: <a href="https://arxiv.org/abs/2204.14198" rel="noreferrer">https://arxiv.org/abs/2204.14198</a></li><li>DeepMind blog post: deepmind.com/blog/tackling-multiple-tasks-with-a-single-visual-language-model</li><li>Open replication: HuggingFace IDEFICS / OpenFlamingo</li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2204.14198" rel="noreferrer">https://arxiv.org/abs/2204.14198</a></li></ul></details>
+</main>
+</body>
+</html>

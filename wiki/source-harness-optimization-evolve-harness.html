@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Don&#x27;t Train the Model, Evolve the Harness · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="dont-train-the-model-evolve-the-harness">Don't Train the Model, Evolve the Harness</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-07-04</span> <span>updated 2026-09-26</span> <span class="tag">ai-agents</span> <span class="tag">harness-as-substrate</span> <span class="tag">benchmarks</span> <span class="tag">self-improvement</span> <span class="tag">developer-tools</span> <span class="tag">evaluation</span> <span class="tag">legal</span></div>
+<p><strong>Author:</strong> Joel Niklaus (Hugging Face) / <strong>Date:</strong> 2026-07-01</p>
+<h2 id="summary">Summary</h2>
+<p>Niklaus applies the <strong>Meta-Harness</strong> loop to Harvey's <strong>Legal Agent Benchmark (LAB)</strong>: freeze an open model (<code>deepseek-ai/DeepSeek-V4-Pro</code>) and let an automated search rewrite <em>only the harness</em> — the runtime wrapper that feeds the model documents, exposes tools, executes tool calls, and decides when a run ends. A frozen model that solved 0% of LAB end-to-end was lifted, with zero weight changes, from 63.4% to 80.1% pooled criterion pass rate on a held-out test split (0% -&gt; 5.0% whole-task all-pass), landing between Sonnet 4.6 and Opus 4.6 on LAB's headline metric at far lower cost. The framing is the <strong>"mismanaged geniuses" hypothesis</strong> (Zhang et al., 2026): a weak benchmark score often measures the scaffold, not the model — an LAB agent can read the documents, spot the issues, write a sound analysis, then save it under the wrong filename so the judge (which only reads top-level <code>output/</code> files under the exact requested name) scores it zero.</p>
+<p>The loop is a reflect-mutate-keep search over harness code. A <strong>Claude proposer (Opus 4.8)</strong> reads the run history, copies the current best harness, and adds exactly one mechanism; an outer Python scaffold re-runs the candidate on a frozen 24-task dev set (3 trials each) and promotes it only if a blended score (<code>pooled + 0.5*all_pass - 0.005*tokens_per_million</code>) beats the incumbent by ≥1 point, just above three-trial noise. Two rules keep the search honest: copy-and-adapt one mechanism at a time (so wins compound and stay readable in a flat file), and never read the held-out test split. A single evaluation run costs $120–$160, dominated by ~6,300 Sonnet judge calls, which is why the dev set stays small.</p>
+<p>The findings are pointed. <strong>Five of the top six harnesses are deterministic code, not prompt edits</strong> — the biggest single gain was a post-solve step that deterministically <em>lands the deliverable</em> at the top of <code>output/</code> under the exact requested name, with zero extra model tokens, turning near-zero scores into scored work. Other gains: a matter-fidelity check that catches drafts about the wrong (distractor) matter, tool-call JSON repair, and loop-breaking. Prompt "playbooks" helped early but plateaued. Crucially, <strong>code and robustness mechanisms transfer across model families while prompt playbooks are model-specific and can backfire</strong> (DeepSeek V4 Flash +14.4 pts; different-family Nemotron-3 Ultra +0.4 pts, its tool-call fixes helping but its inherited prompts hurting). An external-harness bake-off drives the thesis home: same model and judge, wrappers scored 3.5% (mini-swe-agent), 23.2% (Goose), 45.4% (Pi), 63.4% (stock LAB), 80.1% (optimized) — "the mismanaged-geniuses hypothesis in numbers."</p>
+<h2 id="key-ideas">Key Ideas</h2>
+<ul><li><strong>Freeze the model, search the harness</strong>: an automated Meta-Harness loop (Claude Opus 4.8 proposer + strict Python verifier) rewrites the scaffold around a fixed open model.</li><li><strong>+16.7 pts held-out</strong> (63.4% -&gt; 80.1% pooled; 0% -&gt; 5.0% all-pass) on LAB with zero weight changes; open model reaches Sonnet-4.6-to-Opus-4.6 territory at lower cost.</li><li>The dominant wins are <strong>deterministic I/O discipline</strong> (deliverable landing/reassembly, matter audit, tool-call repair), not prompt engineering — 5 of top 6 harnesses are code.</li><li><strong>Transfer asymmetry</strong>: code/robustness mechanisms generalize across model families; prompt playbooks are model-specific and can regress other models.</li><li>Blended objective + one-mechanism copy-and-adapt + no-test-peeking make the search auditable; the hard part is the verifier (LAB's dense criterion-by-criterion LLM rubric).</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li>Canonical worked example of <a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a> — capability that "belongs to the model" is largely I/O discipline the deterministic scaffold guarantees.</li><li>Extends the harness-optimization line in <a href="source-bundle-agent-harnesses.html">source-bundle-agent-harnesses</a>; the "capability lives outside the weights" claim made concrete and measurable.</li><li>Same reflect-mutate-keep-against-a-verifier pattern as <a href="source-alphaevolve.html">source-alphaevolve</a> and <a href="source-funsearch.html">source-funsearch</a>, but the <em>evolved artifact is the harness</em>, not the solution program — the author names both as neighbors.</li><li>Strong cross-domain twin of <a href="source-anthropic-agents-in-biology.html">source-anthropic-agents-in-biology</a>: a deterministic wrapper (context engine / deliverable gate) both rescues a competent model and <em>compresses the strong-vs-weak-model gap</em>.</li><li><a href="source-rrsi-regularized-harness-evolution.html">source-rrsi-regularized-harness-evolution</a> reruns Meta-Harness on Harvey LAB with Claude Opus 4.8 as the frozen policy: 89.4 → 93.0 on the evolve split, 86.9 → 89.2 on a held-out split of LAB, and a mean of +0.9 over base on three other workspace benchmarks (<code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code>, §4.2, Table 1). The +16.7 points above are on a held-out split of LAB itself (<code>raw/harness-optimization-evolve-the-harness.md</code>, lines 21-22), so they test in-distribution transfer only. Policy and base score differ (DeepSeek-V4-Pro at 63.4% vs Opus 4.8 at 86.9), so the two results do not contradict each other; they measure different things. Niklaus's ≥1-point promotion threshold and the token term in his blended score are two of RRSI's selection rules in simpler form.</li><li><a href="source-darwin-godel-machine.html">source-darwin-godel-machine</a> — named here among the neighbours as the system that "rewrites its own code" (<code>raw/harness-optimization-evolve-the-harness.md</code>, "Neighbors / lineage"). The DGM evolves the whole coding agent, tools included, against SWE-bench and Polyglot; Meta-Harness evolves only the scaffold (<code>raw/arxiv-2505-22954-darwin-godel-machine-open-ended-evolution.md</code>, §3).</li><li>Base model from <a href="entity-deepseek.html">entity-deepseek</a>; proposer/judge from <a href="entity-anthropic.html">entity-anthropic</a>; published at Hugging Face. Topic: <a href="concept-ai-agents.html">concept-ai-agents</a>, <a href="concept-developer-tools.html">concept-developer-tools</a>.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><a href="https://huggingface.co/spaces/joelniklaus/harness-optimization" rel="noreferrer">Space</a> · Code: <a href="https://github.com/JoelNiklaus/harness-optimization" rel="noreferrer">https://github.com/JoelNiklaus/harness-optimization</a> · Meta-Harness: <a href="https://arxiv.org/abs/2603.28052" rel="noreferrer">arXiv:2603.28052</a></li><li>Raw snapshot: <code>raw/harness-optimization-evolve-the-harness.md</code></li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://huggingface.co/spaces/joelniklaus/harness-optimization" rel="noreferrer">https://huggingface.co/spaces/joelniklaus/harness-optimization</a></li><li><code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code></li><li><code>raw/arxiv-2505-22954-darwin-godel-machine-open-ended-evolution.md</code></li></ul></details>
+</main>
+</body>
+</html>

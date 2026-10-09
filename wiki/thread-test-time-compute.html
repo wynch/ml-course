@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Test-Time Compute Through the Wiki · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="test-time-compute-through-the-wiki">Test-Time Compute Through the Wiki</h1>
+<div class="meta"><span class="type">thread</span> <span>created 2026-05-07</span> <span>updated 2026-10-03</span> <span class="tag">thread</span> <span class="tag">test-time-compute</span> <span class="tag">reasoning</span> <span class="tag">inference</span> <span class="tag">cross-cutting</span></div>
+<p>A cross-cutting trace of one of the wiki's strongest threads: the idea that <strong>spending compute at inference time can substitute for training-time compute</strong> has gone from a prompting trick (2022) to a frontier-model architecture (2024–25) to a unifying theoretical claim (2026). This page walks the thread chronologically.</p>
+<h2 id="2022-prompting-tricks-reveal-latent-capability">2022 — Prompting tricks reveal latent capability</h2>
+<p><strong><a href="source-chain-of-thought-foundations.html">source-chain-of-thought-foundations</a></strong> (Wei + Wang, both 2022).</p>
+<ul><li>Wei's CoT: prompt the model to show its work. GSM8K 17.9% → 56.9% on PaLM 540B. No training change.</li><li>Wang's Self-Consistency: sample N CoTs and majority-vote. Same model, same prompt. GSM8K → 74.4%.</li></ul>
+<p>The seed observation: more inference tokens = more capability. Reasoning is a property of the distribution, not of any single trace.</p>
+<h2 id="2023-search-and-self-feedback-scaffolds">2023 — Search and self-feedback scaffolds</h2>
+<p><strong><a href="source-tree-of-thoughts.html">source-tree-of-thoughts</a></strong> (Yao 2023). BFS/DFS over self-evaluated thoughts. Game of 24: 4% → 74%.</p>
+<p><strong><a href="source-reflexion-verbal-rl.html">source-reflexion-verbal-rl</a></strong> (Shinn 2023). Verbal RL: agent reflects on task feedback into an episodic memory buffer. 91% pass@1 HumanEval vs GPT-4's 80%.</p>
+<p><strong><a href="source-self-refine.html">source-self-refine</a></strong> (Madaan 2023). Iterative self-critique + self-improvement loop with no extra training. +20% absolute across 7 tasks.</p>
+<p>Common shape: <em>spend more compute at inference time on structured deliberation</em>. The "training-vs-inference compute" trade-off becomes a research direction.</p>
+<h2 id="2024-test-time-compute-scales">2024 — Test-time compute scales</h2>
+<p><strong><a href="source-snell-test-time-compute-scaling.html">source-snell-test-time-compute-scaling</a></strong> (Snell 2024). The empirical paper: scaling test-time compute can be <strong>more compute-efficient than scaling parameters</strong> for many problems. Maps the trade-off explicitly.</p>
+<p><strong><a href="source-pdr-rethinking-thinking-tokens.html">source-pdr-rethinking-thinking-tokens</a></strong> (Parallel-Distill-Refine, 2024). Generate diverse drafts → distill into bounded workspace → refine. +11% on AIME 2024.</p>
+<p><strong><a href="source-recursive-language-models.html">source-recursive-language-models</a></strong> — recursive self-calls extend context 100x at inference time. Architectural variant of the same bet.</p>
+<h2 id="2024-productionised-reasoning-models">2024 — Productionised reasoning models</h2>
+<p><strong><a href="source-openai-o1-system-card.html">source-openai-o1-system-card</a></strong> (Sep 2024). Hidden chain-of-thought + RL-trained reasoning + deliberative alignment. The first frontier model where test-time compute is <em>the</em> product, not a clever trick.</p>
+<p>This is the inflection: every later frontier reasoning release (o3, R1, Gemini Thinking, Claude Extended Thinking) is some variation of this pattern.</p>
+<h2 id="2025-pure-rl-elicits-reasoning">2025 — Pure-RL elicits reasoning</h2>
+<p><strong><a href="source-deepseek-r1.html">source-deepseek-r1</a></strong> (Jan 2025). Pure RL post-training (GRPO) elicits o1-style reasoning. The R1-Zero variant <strong>skips SFT entirely</strong> — base model + RL alone produces frontier reasoning.</p>
+<p>If R1-Zero works, the reasoning capability was <em>already latent</em> in the base model. RL surfaces it; it doesn't install it.</p>
+<h2 id="2026-the-unifying-theoretical-claim">2026 — The unifying theoretical claim</h2>
+<p><strong><a href="source-distribution-sharpening-power-sampling.html">source-distribution-sharpening-power-sampling</a></strong> (2026). Inference-time power sampling matches GRPO post-training on math/code/QA. The headline framing: <strong>RL is "just" distribution sharpening</strong> — and inference-time methods can substitute for it.</p>
+<p>If this is right, the entire 2022–2025 thread is one phenomenon — distribution sharpening — surfacing under different mechanisms (sampling, search, RL, verifier-guided decoding).</p>
+<p>See <a href="analysis-emergence-vs-distribution-sharpening.html">analysis-emergence-vs-distribution-sharpening</a> for the full synthesis.</p>
+<h2 id="side-branches">Side branches</h2>
+<ul><li><strong><a href="source-ttt-kv-binding-linear-attention.html">source-ttt-kv-binding-linear-attention</a></strong> — test-time training with KV binding ≡ linear attention. The architecture-vs-inference boundary is fuzzier than it looked.</li><li><strong><a href="source-language-models-as-scaffolds.html">source-language-models-as-scaffolds</a></strong> — the thesis paper: scaffolding existing models &gt; pure scaling. Lives at the same junction.</li><li><strong><a href="source-zhang-harness-blog.html">source-zhang-harness-blog</a></strong> — the sequel moves the scaffold into training: RL through an RLM harness teaches a strategy that transfers to 8–32× longer tasks and new domains (<code>raw/web-2026-alexzhang-harness-compositional.md</code>, §"RLMs can train on short tasks…"). One partial answer to the question below: some of what is "not latent" may be reachable by recomposing what is.</li><li><strong><a href="source-claude-code-sandboxing.html">source-claude-code-sandboxing</a></strong> + <a href="source-rap-reasoning-planning.html">source-rap-reasoning-planning</a> + <a href="source-lats-tree-search-agents.html">source-lats-tree-search-agents</a> — <em>agent-level</em> test-time compute (the harness pays for deliberation).</li><li><strong><a href="source-pause-tokens.html">source-pause-tokens</a></strong> (2023) — the earliest latent branch: blank <code>&lt;pause&gt;</code> tokens give the model extra positions to compute in before it answers; the gain needs pause-pretraining (<code>raw/arxiv-2310-02226-think-before-you-speak-pause-tokens.md</code>, §4.3).</li><li><strong><a href="source-coconut-continuous-latent-reasoning.html">source-coconut-continuous-latent-reasoning</a></strong> (2024) — the model reasons in its own hidden states instead of words; written chains still teach it, stage by stage (<code>raw/arxiv-2412-06769-coconut-reason-in-continuous-latent-space.md</code>, §3).</li><li><strong><a href="source-recurrent-depth-latent-reasoning.html">source-recurrent-depth-latent-reasoning</a></strong> (2025) — test-time compute as more loops of one block, pretrained at 3.5B parameters; no written reasoning at train or test time (<code>raw/arxiv-2502-05171-recurrent-depth-latent-reasoning.md</code>, §2, §5).</li><li><strong><a href="source-soft-tokens-hard-truths.html">source-soft-tokens-hard-truths</a></strong> (2025) — continuous chains trained by RL instead of written examples; at test time the model still writes normal tokens (<code>raw/arxiv-2509-19170-soft-tokens-hard-truths.md</code>, §4).</li><li><strong><a href="source-abstract-token-curriculum.html">source-abstract-token-curriculum</a></strong> — test-time compute as latent passes rather than text: continuous thoughts learned from answers alone; the latest thought carries the state (<code>raw/arxiv-2609-19717-learn-your-own-thoughts-abstract-token-curriculum.md</code>, §6.2, §6.4).</li><li><strong><a href="source-continuous-cot-two-regimes.html">source-continuous-cot-two-regimes</a></strong> (2026) — continuous chains that compress a written one work on short structured maths and fail on realistic chains of hundreds of tokens (<code>raw/arxiv-2607-16972-continuous-cot-tale-of-two-regimes.md</code>, §4.5).</li><li><strong><a href="source-loopcd-decoding-looped-transformers.html">source-loopcd-decoding-looped-transformers</a></strong> (2026) — a decoding rule for looped models: push the last loop's guess away from the first loop's. No training; at half the loops it matches full depth on multiple choice for 22.5% to 48.2% fewer FLOPs (<code>raw/arxiv-2610-02185-decoding-looped-transformers-better-for-almost.md</code>, §4.3).</li><li><strong><a href="source-randopt-gaussian-noise-llms.html">source-randopt-gaussian-noise-llms</a></strong> — even simpler than distribution sharpening: noise + ensembling matches GRPO. Same family.</li></ul>
+<h2 id="the-big-question-this-thread-leaves-open">The big question this thread leaves open</h2>
+<p>Test-time compute is bounded by what's latent in the base model. <strong>What's NOT in the latent distribution</strong> that more training (or genuinely-new RL) would add?</p>
+<p><a href="source-arc-agi-3.html">source-arc-agi-3</a> (&lt;1% frontier model performance on novel interactive reasoning) is the strongest current counter-evidence to the "test-time compute is enough" position. If sharpening could reach there, the curve would already be smoother.</p>
+<p>This is the heart of <a href="analysis-emergence-vs-distribution-sharpening.html">analysis-emergence-vs-distribution-sharpening</a> and one of the most consequential open debates in the field.</p>
+<h2 id="connections">Connections</h2>
+<ul><li>Hub: <a href="concept-test-time-compute.html">concept-test-time-compute</a></li><li>Sibling concept: <a href="concept-llm-reasoning.html">concept-llm-reasoning</a></li><li>Latent branch in one page: <a href="concept-latent-reasoning.html">concept-latent-reasoning</a></li><li>Related thread: <a href="thread-predict-in-latent-space.html">thread-predict-in-latent-space</a> — the <em>what to predict</em> question vs the <em>how much to compute</em> question</li><li>Analyses: <a href="analysis-emergence-vs-distribution-sharpening.html">analysis-emergence-vs-distribution-sharpening</a>, <a href="analysis-self-distillation-as-universal-lever.html">analysis-self-distillation-as-universal-lever</a></li><li>Guide: <a href="guide-the-three-axes.html">guide-the-three-axes</a> (this thread sits inside Axis 3)</li></ul>
+<details class="src"><summary>Sources (8)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/web-2026-alexzhang-harness-compositional.md</code></li><li><code>raw/arxiv-2609-19717-learn-your-own-thoughts-abstract-token-curriculum.md</code></li><li><code>raw/arxiv-2310-02226-think-before-you-speak-pause-tokens.md</code></li><li><code>raw/arxiv-2412-06769-coconut-reason-in-continuous-latent-space.md</code></li><li><code>raw/arxiv-2502-05171-recurrent-depth-latent-reasoning.md</code></li><li><code>raw/arxiv-2509-19170-soft-tokens-hard-truths.md</code></li><li><code>raw/arxiv-2607-16972-continuous-cot-tale-of-two-regimes.md</code></li><li><code>raw/arxiv-2610-02185-decoding-looped-transformers-better-for-almost.md</code></li></ul></details>
+</main>
+</body>
+</html>

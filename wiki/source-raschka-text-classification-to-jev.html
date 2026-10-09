@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Language Models for Text Classification: From Bag-of-Words to Jev (Raschka, 2026) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="raschka-text-classification-from-bag-of-words-to-jev">Raschka: text classification, from bag-of-words to Jev</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-03</span> <span>updated 2026-10-03</span> <span class="tag">decision-models</span> <span class="tag">classification</span> <span class="tag">calibration</span> <span class="tag">transformers</span> <span class="tag">bert</span> <span class="tag">inference-economics</span> <span class="tag">2026</span></div>
+<p><strong>Author:</strong> Sebastian Raschka (newsletter "Ahead of AI") <strong>Published:</strong> 2026-09-29, with two updates <strong>Raw copy:</strong> <code>raw/web-2026-raschka-classifier-history-and-jev.md</code> (captured 2026-10-03, full text; figures as captions only)</p>
+<p>Every claim below cites the raw file as R, with the post's section number. Raschka states he has no tie to TypeSafe AI and no free access (R, opening).</p>
+<h2 id="summary">Summary</h2>
+<p>A history of text classifiers, written to place Jev, then a test of Jev itself. His verdict: Jev is "essentially a text classifier", yet not "just" one, because it works well on very different tasks without fine-tuning (R, opening, §3.1, Conclusion).</p>
+<p>The history, with his IMDb movie-review accuracies (balanced test set):</p>
+<div class="tw"><table><thead><tr><th>Method</th><th>What it reads</th><th>IMDb</th><th>Cite</th></tr></thead><tbody><tr><td>Bag-of-words + logistic regression</td><td>word counts, order lost</td><td>89.9%</td><td>R, §1.1, Figure 4</td></tr><tr><td>LSTM, trained from scratch</td><td>words in order, one hidden state</td><td>85.66%</td><td>R, §1.2.2</td></tr><tr><td>ULMFiT (2018), pretrained then fine-tuned RNN</td><td>same, after pretraining</td><td>95.4%</td><td>R, §1.2.2</td></tr><tr><td>Text CNN</td><td>windows of adjacent words</td><td>90.07%</td><td>R, §1.2.3</td></tr><tr><td>ModernBERT, fine-tuned</td><td>whole text, attention both ways</td><td>about 95%</td><td>R, §2.1</td></tr><tr><td>GPT-2 124M with a class head</td><td>whole text, causal attention</td><td>about 92%</td><td>R, §2.2, Figure 20</td></tr><tr><td>Jev, Choice question, no training</td><td>—</td><td>96.47%</td><td>R, §3.3</td></tr></tbody></table></div>
+<h2 id="key-claims">Key claims</h2>
+<ul><li><strong>Jev on IMDb:</strong> 25,000 test reviews, 96.47% with Choice questions (22 min 24 s, $0.6492), 96.20% with yes/no questions ($0.6345). Runs are not fully repeatable; a second run differed slightly. He warns the IMDb test set may have been in Jev's training data (R, §3.3).</li><li><strong>What it replaces:</strong> the old rule was a cheap LLM for one-off decisions and a fine-tuned classifier for repeated ones; Jev can do both cheaper and faster, though a high-volume, narrow task may still justify fine-tuning (R, §3.3, §6).</li><li><strong>A Jev-like head is easy to build:</strong> score each option by feeding text, instructions and the option's description through a transformer to one output number, then softmax across options; the option count can change without changing the model. Making it work on all kinds of tasks is the hard part, so he did not release his clone (R, §4).</li><li><strong>Training, as far as is known:</strong> TypeSafe's CEO says "100% of our data is synthetic"; TypeSafe's blog names a new architecture and a method called Reinforcement Learning for Calibrated Decisions (RLCD), not public. Raschka guesses a small ModernBERT-like model (R, §5).</li><li><strong>Calibration explained:</strong> among reviews scored about 74% positive, about 74% should be positive. Temperature scaling fits one number T on held-out data and keeps the ranking (R, §5.1). RLCR, a published method he links to RLCD only by guess, rewards c − (q − c)², the Brier penalty: a wrong answer at 0.9 confidence scores −0.81 (R, §5.2). In the RLCR paper, as he reports it, expected calibration error on HotpotQA falls from 0.37 to 0.03 with similar accuracy (R, §5.2).</li><li><strong>Is it needed?</strong> Cross-entropy alone is calibrated at its true optimum, but on finite data a model can keep cutting training loss by growing more confident, so test loss can worsen while accuracy improves (R, §5.3). Adding a Brier loss to his ModernBERT gave only a small gain (R, §5.3).</li><li><strong>Clones fall short:</strong> most open Jev-likes he checked fine-tune ModernBERT or Qwen. Two that readers pointed him to score 82.90% (Contrastive Language Models, which he ran) and 92.33% (Laya) on IMDb, and both fail the Tetris test (R, §6.2, Update 2). OpenAI announced a Jev-like "Decision API" on 2026-09-29 (R, §6.2, Update 1).</li><li><strong>Uses:</strong> spam and priority sorting; inside agent harnesses as a prompt-injection screen, a picker of effort level or skill file, a judge, a file finder (R, §6.1).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>He reports TypeSafe's documentation calling Jev's probabilities well calibrated (R, §3.3) but does not test it. No calibration measure for Jev appears in the post.</li><li>Many comparisons sit in figures not captured as text (ModernBERT vs Jev timing, GLiNER vs Jev, his Brier results) (raw header).</li><li>One benchmark, IMDb, with a contamination warning from the author; Tetris is a demo, not a score.</li><li>The "only" weak task, legal reviews in non-English languages, is hearsay from a reader (R, §6.2).</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-willison-jev-decision-models.html">source-willison-jev-decision-models</a> — the first-week report this post builds on in time. Contradiction (partial, weak evidence on both sides): Willison, citing TypeSafe's "jaggedness" page, says Jev is weak on numbers, dates and adversarial content (<code>raw/web-2026-simonwillison-jev-decision-models.md</code>, opening); Raschka passes on a reader's claim that the only weak task is legal reviews in non-English languages (R, §6.2).</li><li><a href="concept-calibration.html">concept-calibration</a> — this post's §5 is the wiki's first plain account of calibration, temperature scaling and the Brier reward.</li><li><a href="concept-inference-economics.html">concept-inference-economics</a> — 25,000 reviews for under a dollar.</li><li><a href="source-attention-is-all-you-need.html">source-attention-is-all-you-need</a> · <a href="source-gpt3-few-shot-learners.html">source-gpt3-few-shot-learners</a> — the transformer and few-shot classification steps in his history.</li><li><a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a> — Jev as a cheap decision step inside a harness (R, §6.1, Conclusion).</li></ul>
+<h2 id="references">References</h2>
+<ul><li>Raw: <code>raw/web-2026-raschka-classifier-history-and-jev.md</code></li><li>Post: <a href="https://magazine.sebastianraschka.com/p/classifier-history-and-jev" rel="noreferrer">https://magazine.sebastianraschka.com/p/classifier-history-and-jev</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/web-2026-raschka-classifier-history-and-jev.md</code></li><li><a href="https://magazine.sebastianraschka.com/p/classifier-history-and-jev" rel="noreferrer">https://magazine.sebastianraschka.com/p/classifier-history-and-jev</a></li></ul></details>
+</main>
+</body>
+</html>

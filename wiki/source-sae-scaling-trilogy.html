@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>SAE Scaling Trilogy: Scaling Monosemanticity (2024) + Matryoshka SAE (2025) + Gemma Scope 2 (2025) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="sae-scaling-trilogy">SAE Scaling Trilogy</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-07</span> <span>updated 2026-05-07</span> <span class="tag">interpretability</span> <span class="tag">sae</span> <span class="tag">sparse-autoencoders</span> <span class="tag">scale</span> <span class="tag">hierarchy</span> <span class="tag">transcoders</span> <span class="tag">gemma</span> <span class="tag">anthropic</span> <span class="tag">deepmind</span> <span class="tag">features</span> <span class="tag">2024</span> <span class="tag">2025</span></div>
+<p>Three milestones from 2024–2025 that took sparse autoencoders from "toy mech-interp tool" to "infrastructure you can run on a deployed frontier model in an afternoon": Anthropic proves dictionaries scale to Claude 3 Sonnet, the matryoshka variant fixes feature absorption and gives an explicit hierarchy, and DeepMind ships the full-stack SAE+transcoder suite for every Gemma-3 size. Read as a unit, they describe <strong>what SAEs look like when they grow up</strong>.</p>
+<h2 id="scaling-monosemanticity-templeton-conerly-marcus-olah-2024">Scaling Monosemanticity — Templeton, Conerly, Marcus, ..., Olah 2024</h2>
+<p><em>Anthropic, May 2024.</em></p>
+<p>Scales SAE dictionary learning from toy transformers to a production-scale model (Claude 3 Sonnet). Finds <strong>millions of features</strong> ranging from concrete ("Golden Gate Bridge," specific code variable names) to highly abstract ("inner conflict," "code bugs," "gender bias," "sycophancy"). Demonstrates features are causally meaningful — <strong>clamping the Golden Gate Bridge feature makes Claude believe it <em>is</em> the bridge</strong> (the "Golden Gate Claude" demo) — and that abstract multilingual / multimodal features emerge at scale.</p>
+<p><strong>Distinctive contribution:</strong> proves the dictionary-learning approach doesn't break at frontier scale; the symbolic readout gets <em>richer</em>, not noisier. Golden Gate Claude is the clearest causal evidence that an SAE feature behaves like a manipulable symbol — you can "write" to it from outside the model and watch behavior follow. The feature catalogs produced here are the <strong>nouns</strong> of LLM mech interp; later work (<a href="source-circuit-tracing-methods-anthropic.html">source-circuit-tracing-methods-anthropic</a>) adds the verbs.</p>
+<h2 id="matryoshka-sparse-autoencoders-bussmann-nabeshima-karvonen-nanda-2025">Matryoshka Sparse Autoencoders — Bussmann, Nabeshima, Karvonen, Nanda 2025</h2>
+<p><em><a href="https://arxiv.org/abs/2503.17547" rel="noreferrer">arXiv 2503.17547</a>, March 2025.</em></p>
+<p>Trains nested SAE dictionaries of increasing size so the small dictionary is forced to reconstruct inputs <em>without</em> help from the large one. The result is a <strong>hierarchy</strong> of features: inner rings carry general concepts, outer rings carry specializations.</p>
+<h3 id="key-findings">Key findings</h3>
+<ul><li>Dramatically reduces <strong>feature absorption</strong> (where one feature silently subsumes another) and <strong>feature splitting</strong> pathologies on Gemma-2-2B and TinyStories.</li><li>Small reconstruction tradeoff vs. TopK SAEs, but large wins on targeted concept erasure and sparse probing.</li></ul>
+<p><strong>Distinctive contribution:</strong> gives a literal <strong>taxonomic hierarchy</strong> over learned features — the missing structural axis for treating SAE dictionaries as symbol tables with inheritance. Rather than flat bags of concepts, the matryoshka structure expresses "this feature is a kind of that feature," which is the first thing any ontology needs.</p>
+<h2 id="gemma-scope-2-google-deepmind-2025">Gemma Scope 2 — Google DeepMind 2025</h2>
+<p><em>December 2025 release.</em></p>
+<p>Open release of <strong>SAEs and transcoders on every layer of every Gemma-3 size</strong> (270M to 27B), both pretrained and instruction-tuned, trained with Matryoshka techniques (above). Over <strong>1T parameters trained</strong>, <strong>110PB of activation data stored</strong>. Shipped with explicit tooling for chain-of-thought faithfulness analysis, jailbreak/refusal inspection, and feature steering — accessible via Neuronpedia.</p>
+<p><strong>Distinctive contribution:</strong> the first <strong>full-stack, multi-scale transcoder suite</strong> on a modern instruction-tuned family. Lets the community run circuit tracing and feature-level edits on real deployed-scale models without training their own dictionaries. The existence of this infrastructure matters as much as any single finding: it turns symbolic feature manipulation into something a researcher can do in an afternoon.</p>
+<h2 id="why-this-grouping-matters">Why this grouping matters</h2>
+<p>The trilogy traces the <strong>maturation arc</strong> of the SAE programme:</p>
+<ol><li><strong>Templeton 2024 — scale works.</strong> Frontier models contain millions of interpretable features; causal intervention behaves as predicted. The existence proof.</li><li><strong>Matryoshka 2025 — structure matters.</strong> Flat dictionaries hit pathologies (absorption, splitting); nesting fixes them and gives feature <em>hierarchy</em> for free. The structural correction.</li><li><strong>Gemma Scope 2 — infrastructure matters.</strong> Dictionaries and transcoders for every layer of every Gemma-3 size, openly available. The community-enablement step.</li></ol>
+<p>Together they answer the post-2023 question "does SAE-style dictionary learning generalise from one toy model to <em>the field</em>?" — yes, with the right scale, the right hierarchy structure, and the right tooling. They are the foundation downstream work like <a href="source-circuit-tracing-methods-anthropic.html">source-circuit-tracing-methods-anthropic</a> and <a href="source-lindsey-2025-biology-of-llm.html">source-lindsey-2025-biology-of-llm</a> stands on.</p>
+<h2 id="neuralsymbolic-bridge">Neural↔symbolic bridge</h2>
+<p>This trilogy is where SAEs stop being a technique and become an <strong>operating system</strong> for reading and writing to LLM internals: feature catalogues you can browse, hierarchies you can navigate, transcoders you can swap in. The neural net stays neural; a symbol table sits beside it.</p>
+<h2 id="connections">Connections</h2>
+<ul><li>Theoretical foundation: <a href="source-anthropic-mi-foundations.html">source-anthropic-mi-foundations</a> (Toy Models of Superposition is the structural prerequisite)</li><li>SAE precursors: <a href="source-sae-monosemanticity-2023.html">source-sae-monosemanticity-2023</a></li><li>Downstream applications: <a href="source-circuit-tracing-methods-anthropic.html">source-circuit-tracing-methods-anthropic</a>, <a href="source-lindsey-2025-biology-of-llm.html">source-lindsey-2025-biology-of-llm</a>, <a href="source-complete-replacement-lm-layers.html">source-complete-replacement-lm-layers</a></li><li>Steering: <a href="source-conditional-activation-steering-cast.html">source-conditional-activation-steering-cast</a></li><li>Model diffing: <a href="source-crosscoder-model-diffing.html">source-crosscoder-model-diffing</a></li><li>Theory tension: <a href="source-nonlinear-feature-representations.html">source-nonlinear-feature-representations</a></li><li>Surveys: <a href="source-mech-interp-surveys.html">source-mech-interp-surveys</a></li><li>Hub: <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a></li><li>Labs: <a href="entity-anthropic.html">entity-anthropic</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li>Templeton et al. — <em>Scaling Monosemanticity</em>, Anthropic 2024. <a href="https://transformer-circuits.pub/2024/scaling-monosemanticity/" rel="noreferrer">transformer-circuits.pub/2024/scaling-monosemanticity</a></li><li>Bussmann, Nabeshima, Karvonen, Nanda — <em>Learning Multi-Level Features with Matryoshka Sparse Autoencoders</em>, 2025. <a href="https://arxiv.org/abs/2503.17547" rel="noreferrer">arXiv 2503.17547</a></li><li>Google DeepMind — <em>Gemma Scope 2</em>, 2025. <a href="https://deepmind.google/blog/gemma-scope-2-helping-the-ai-safety-community-deepen-understanding-of-complex-language-model-behavior/" rel="noreferrer">deepmind.google blog</a></li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://transformer-circuits.pub/2024/scaling-monosemanticity/" rel="noreferrer">https://transformer-circuits.pub/2024/scaling-monosemanticity/</a></li><li><a href="https://arxiv.org/abs/2503.17547" rel="noreferrer">https://arxiv.org/abs/2503.17547</a></li><li><a href="https://deepmind.google/blog/gemma-scope-2-helping-the-ai-safety-community-deepen-understanding-of-complex-language-model-behavior/" rel="noreferrer">https://deepmind.google/blog/gemma-scope-2-helping-the-ai-safety-community-deepen-understanding-of-complex-language-model-behavior/</a></li></ul></details>
+</main>
+</body>
+</html>

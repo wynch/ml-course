@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Orthogonal JEPA: Factorized Predictive States for Latent World Models · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="orthogonal-jepa-factorized-predictive-states-for-latent-world-models">Orthogonal JEPA: Factorized Predictive States for Latent World Models</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-09-10</span> <span>updated 2026-09-10</span> <span class="tag">jepa</span> <span class="tag">world-models</span> <span class="tag">representation-learning</span> <span class="tag">self-supervised-learning</span> <span class="tag">planning</span> <span class="tag">factorization</span> <span class="tag">latent-dynamics</span></div>
+<p><strong>Authors:</strong> Taoyong Cui, Pheng-Ann Heng, Wanli Ouyang (Chinese University of Hong Kong) · <strong>arXiv:</strong> <a href="https://arxiv.org/abs/2608.20065" rel="noreferrer">2608.20065v1</a> · <strong>Date:</strong> 2026-08-20</p>
+<h2 id="summary">Summary</h2>
+<p>A standard JEPA (joint-embedding predictive architecture — predict a representation, not pixels) pushes everything predictable through one target vector and one predictor. The authors argue that in complex systems this lets loud, easy signals eat the capacity while weaker structure gets conflicting gradients. Orthogonal JEPA splits the target instead. K learned basis matrices (each a d×r slice, with Kr = d) analyze the frozen target embedding into K components, and each component gets its own small predictor reading a shared context representation. Predictions are concatenated and mapped back to a full latent state through the pseudoinverse of the analysis map — which is just the basis itself when the basis is orthogonal. Four terms train it: per-factor regression, an orthogonality penalty pushing basis blocks apart, a factor-activity hinge keeping each projected coordinate varying, and an online variance hinge on the encoder so no coordinate flatlines. The target encoder is still an exponential moving average of the online weights with gradients cut, so this is a modification to the JEPA target, not a replacement for JEPA. One mechanism, five domains: masked image patches, single-cell gene expression, patient records, MuJoCo control, and molecular dynamics.</p>
+<h2 id="key-claims">Key claims</h2>
+<ul><li><strong>Controlled visual binding.</strong> With DINOv3 frozen and the same learned-grid readout, held-out-cell accuracy goes .572 (standard JEPA) → .581 (orthogonal), collapse .426 → .417, grid recovery .645 → .659; SigLIP2 moves .483 → .490. Ten seeds, no spread reported.</li><li><strong>Single-cell.</strong> On PBMC-10K clustering, AvgBIO 0.7830 → 0.8001 finetuned and 0.7194 → 0.7452 zero-shot versus Cell-JEPA; perturbation-response correlation 0.787 → 0.798 (Norman), 0.937 → 0.942 (Adamson).</li><li><strong>Clinical forecasting.</strong> Predicting risk over 1,000+ future clinical events, mean PRAUC (area under precision-recall) 0.711 → 0.718 against a standard-JEPA baseline, above XGBoost 0.667 and the Delphi trajectory model 0.689.</li><li><strong>Continuous control is the one large effect.</strong> Planning by cross-entropy method (sample actions, keep the best, repeat) with an 8-step horizon over an offline model trained on 500 random trajectories: Walker2d return 4.9 ± 12.6 → 45.1 ± 11.2, HalfCheetah −11.2 → −8.5, InvertedPendulum 18.1 → 30.6. Three seeds.</li><li><strong>Rollout stability.</strong> Force-free molecular forecasting, final-position error after 100 free autoregressive steps: water 2.536 → 2.459 Å, quartz 1.912 → 1.877, paracetamol 1.868 → 1.846, benzene 0.0701 → 0.0699. Five seeds.</li><li><strong>Proposition 1 is bookkeeping, not evidence.</strong> It only states that a perfectly orthogonal basis preserves norms and reconstructs exactly. The paper says so.</li></ul>
+<h2 id="what-it-shows-versus-what-it-claims">What it shows versus what it claims</h2>
+<ul><li>Shown: with adapter, encoder, sampler, split, budget and readout held fixed, swapping a monolithic target for a factorized one moves the reported metric the right way in every table.</li><li>Claimed but not shown: that the factors mean anything. The authors state plainly that orthogonality is geometric and implies neither statistical independence nor semantic disentanglement, and that interpreting factors needs probes or a ground-truth-factor benchmark they did not run.</li><li>Also admitted: the variance hinges constrain single coordinates, not the full covariance; state synthesis depends on how well-conditioned the basis stays, which matters most in long rollouts; the predictor is deterministic and cannot represent multiple possible futures; and pixel-based closed-loop control was not tested.</li><li>Effect sizes outside control are small (0.007–0.026) and mostly reported without variance, so most of the tables are suggestive rather than decisive.</li></ul>
+<h2 id="relevance">Relevance</h2>
+<ul><li>Sits squarely in <a href="concept-world-models.html">concept-world-models</a> and <a href="concept-jepa.html">concept-jepa</a>: it keeps the latent-prediction bet of <a href="thread-predict-in-latent-space.html">thread-predict-in-latent-space</a> and changes only the shape of the target. Compare the monolithic-latent lineage in <a href="source-vjepa-family.html">source-vjepa-family</a> and <a href="source-ijepa-self-supervised-learning.html">source-ijepa-self-supervised-learning</a>, and the recurrent-latent ancestors <a href="source-ha-schmidhuber-world-models.html">source-ha-schmidhuber-world-models</a> and <a href="source-dreamerv3.html">source-dreamerv3</a>.</li><li>Vincent's gridjepa (<code>../ml-lab/gridjepa</code>) trains a JEPA world model on an ARC-style tile world on a laptop CPU, and its open questions line up with this paper's two strongest and weakest results. Its E5 gate — planning quality, settling at ~2.7–2.8× random over 1000 episodes, a stated near-miss of the literal 3× bar — is the same "planner on a frozen JEPA latent" setup as the CEM control table here.</li><li>The honest caution runs the other way too. Gridjepa's E9 found that a <strong>mixture predictor</strong> (several possible next latents instead of one) halved rollout drift, and Orthogonal JEPA's admitted limitation is exactly that its predictor is deterministic. So the two lines address different halves of the same failure: factorizing <em>what</em> is predicted versus allowing <em>several</em> things to be predicted. Neither has been tried against the other.</li><li>Gridjepa's other open gate — E8 and E10 buy results by adding two supervised dimensions, and Vincent asked whether that is still "pure JEPA" — has a mirror here: the single-cell and molecular runs keep a domain-standard auxiliary loss alongside the JEPA objective, held fixed between conditions. The comparison is fair; the resulting model is not a bare JEPA either.</li><li>For <a href="concept-representation-learning.html">concept-representation-learning</a>, the orthogonality term is another entry in the wiki's decorrelation family, but applied to learned <em>target</em> coordinates rather than to embedding statistics — the paper says so itself, citing the Barlow Twins / VICReg line covered in <a href="source-ssl-decorrelation.html">source-ssl-decorrelation</a>.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><a href="https://arxiv.org/abs/2608.20065" rel="noreferrer">arXiv 2608.20065</a> · <a href="https://arxiv.org/html/2608.20065" rel="noreferrer">HTML v1</a></li><li>Raw capture: <code>raw/arxiv-2608-20065-orthogonal-jepa-factorized-predictive-states-for.md</code></li><li>Local project: <code>../ml-lab/gridjepa/AGENTS.md</code>, <code>README.md</code></li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2608.20065" rel="noreferrer">https://arxiv.org/abs/2608.20065</a></li><li><a href="https://arxiv.org/html/2608.20065" rel="noreferrer">https://arxiv.org/html/2608.20065</a></li><li><code>raw/arxiv-2608-20065-orthogonal-jepa-factorized-predictive-states-for.md</code></li></ul></details>
+</main>
+</body>
+</html>

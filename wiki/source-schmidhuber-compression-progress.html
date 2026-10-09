@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Driven by Compression Progress (Schmidhuber, 2008-2009) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="driven-by-compression-progress">Driven by Compression Progress</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-09-25</span> <span>updated 2026-09-26</span> <span class="tag">curiosity</span> <span class="tag">intrinsic-motivation</span> <span class="tag">compression</span> <span class="tag">mdl</span> <span class="tag">reinforcement-learning</span> <span class="tag">exploration</span> <span class="tag">scientific-discovery</span> <span class="tag">learning-theory</span></div>
+<p><strong>Author:</strong> Jürgen Schmidhuber (TU Munich; IDSIA) <strong>Published:</strong> arXiv 0812.4360, v1 2008-12-23, v2 2009-04-15. Essay of 35 pages built on a 2008 keynote and 2007 invited lectures; it distills his curiosity work from 1990 on (R, abstract note). <strong>Raw copy:</strong> <code>raw/arxiv-0812-4360-driven-by-compression-progress.md</code> (captured 2026-09-25, full text of v2)</p>
+<p>Every claim below cites the raw file as R, with the paper's section number.</p>
+<h2 id="summary">Summary</h2>
+<p>An agent should keep its whole history, keep trying to compress it better, and reward itself in proportion to the bits it saves. A reinforcement learner then picks actions that lead to data it can learn to compress: the steepest part of its own learning curve (R, §1.2). The paper's claim is that one rule explains attention, curiosity, novelty, beauty, art, science and jokes as by-products (R, §2).</p>
+<p>Two definitions carry the argument (R, §2.3-2.4):</p>
+<div class="tw"><table><thead><tr><th>Term</th><th>Definition</th><th>Section</th></tr></thead><tbody><tr><td>Subjective beauty</td><td>How few bits the observer's current compressor needs for the data</td><td>R, §2.3</td></tr><tr><td>Interestingness</td><td>The first derivative of beauty over time: the compression progress still to be had</td><td>R, §2.4, Eq. 1</td></tr></tbody></table></div>
+<h2 id="key-claims">Key claims</h2>
+<ul><li><strong>Reject Shannon surprise.</strong> A dark room is boring because it is fully predictable; white noise is boring because it can never be compressed. Only data with regularities not yet learned is novel (R, §2.6).</li><li><strong>Reward the improvement, not the error.</strong> The 1990 systems rewarded prediction error; the 1991 follow-up switched to predictor improvement, because error-seeking agents get stuck on noise (R, §3.1-3.2). The 1995 variant used the KL divergence between prior and posterior, later called "Bayesian surprise" (R, §3.3).</li><li><strong>How to measure progress.</strong> Evaluate the old and the new compressor on the same stored history; reward the difference, e.g. <code>C(p_old, h) − C(p_new, h)</code> (R, §A.5-A.6). A cost variant counts one bit saved as worth halving run time (R, §A.4, Eq. 4).</li><li><strong>Discovery</strong> is an unusually large compression breakthrough, such as Newton's law of gravity compressing many falling-object records (R, §1, §2.8).</li><li><strong>Science and art share the drive.</strong> Both seek data that is new but not random; science states the saved bits formally, art may not (R, §2.15).</li><li><strong>Beyond unsupervised learning.</strong> Clustering, factorial codes and prediction are special cases of compression; the missing piece is choosing the data by action (R, §2.9).</li><li><strong>Hard-wire curiosity.</strong> Universal learners could in theory learn it, but at a constant cost too large for bounded agents, so the paper argues it should be built in (R, §1.3).</li><li><strong>Statistical learners miss algorithmic regularity:</strong> the digits of π look random to any windowed predictor although a short program computes them (R, §3.3).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>An essay and a synthesis, not a new experiment. Its evidence is prior implementations (R, §3), one cited human-attention study (R, §3.3) and the author's own drawings and anecdotes (R, §2.14-2.16, §4).</li><li>It names but does not solve the hard part: computing progress without re-running the compressor on the whole history (R, §5).</li><li>It sets aside the case where curiosity is harmful, "kill the cat" (R, §1.3, Appendix A).</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="concept-automated-scientific-discovery.html">concept-automated-scientific-discovery</a> — an early, measurable definition of discovery and novelty.</li><li><a href="source-sutton-generative-ai-discovery.html">source-sutton-generative-ai-discovery</a> — both put an evaluation step at the core; here the evaluator is the agent's own compressor.</li><li><a href="source-active-inference-foundations.html">source-active-inference-foundations</a> — the 1995 prior-to-posterior KL reward is the information-gain term active inference calls epistemic value.</li><li><span class="dead" title="not published">experiment-continual-interpretability-layer</span> — used "Schmidhuber/Oudeyer learning progress" as its curiosity signal; its signal rewards error decrease, as §3.2 asks, but on changing data rather than the same history (§A.5); see the mismatch line on that page.</li><li><span class="dead" title="not published">experiment-edge-compression-federation</span> — names this work as grounding for its bits-as-currency and "eureka" design.</li><li><a href="source-ha-schmidhuber-world-models.html">source-ha-schmidhuber-world-models</a> — the same author's later compressor-plus-controller agent (2018).</li><li><a href="source-text-optimization-yoonho.html">source-text-optimization-yoonho</a> — also argues from description length (MDL) that short updates are the efficient ones.</li><li><a href="source-darwin-godel-machine.html">source-darwin-godel-machine</a> — §A.9 here describes the Gödel machine: it rewrites any part of its own code once a proof searcher proves the rewrite useful, and such a rewrite is globally optimal. The DGM keeps the self-rewriting but says proving most changes beneficial "is impossible in practice", so it tests each rewrite on a coding benchmark instead (<code>raw/arxiv-2505-22954-darwin-godel-machine-open-ended-evolution.md</code>, Abstract, §1, §3). Not a contradiction: this essay claims optimality given a proof, not that proofs are easy to find.</li></ul>
+<h2 id="references">References</h2>
+<ul><li>Raw: <code>raw/arxiv-0812-4360-driven-by-compression-progress.md</code></li><li>arXiv: <a href="https://arxiv.org/abs/0812.4360" rel="noreferrer">https://arxiv.org/abs/0812.4360</a> · HTML: <a href="https://arxiv.org/html/0812.4360v2" rel="noreferrer">https://arxiv.org/html/0812.4360v2</a></li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-0812-4360-driven-by-compression-progress.md</code></li><li><a href="https://arxiv.org/abs/0812.4360" rel="noreferrer">https://arxiv.org/abs/0812.4360</a></li><li><code>raw/arxiv-2505-22954-darwin-godel-machine-open-ended-evolution.md</code></li></ul></details>
+</main>
+</body>
+</html>

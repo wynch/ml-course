@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Quantization from the Ground Up (ngrok blog) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="quantization-from-the-ground-up">Quantization from the Ground Up</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-04-13</span> <span>updated 2026-09-26</span> <span class="tag">quantization</span> <span class="tag">inference</span> <span class="tag">llm</span> <span class="tag">deployment</span> <span class="tag">tutorial</span></div>
+<p><strong>Sam Rose — ngrok blog, 2025/2026</strong></p>
+<p>A ground-up tutorial on LLM quantization, focused on <strong>post-training quantization (PTQ)</strong> fundamentals rather than specialized schemes like GPTQ or AWQ. Builds intuition from floating-point representation through symmetric and asymmetric integer quantization, walks through converting bfloat16 weights down to 4-bit and 2-bit representations, and benchmarks the quality cliff.</p>
+<h2 id="two-primary-approaches">Two primary approaches</h2>
+<ul><li><strong>Symmetric quantization</strong> — scale values around zero into a smaller integer range.</li><li><strong>Asymmetric quantization</strong> — use an offset "zero point" to more efficiently pack the available bits.</li></ul>
+<h2 id="benchmarked-tradeoffs-qwen35-9b">Benchmarked tradeoffs (Qwen3.5 9B)</h2>
+<div class="tw"><table><thead><tr><th>Precision</th><th>Quality</th><th>Speed</th></tr></thead><tbody><tr><td><strong>8-bit</strong></td><td>minimal loss</td><td>~2.5× faster</td></tr><tr><td><strong>4-bit</strong></td><td>~5-10% accuracy loss</td><td>~2× faster</td></tr><tr><td><strong>2-bit</strong></td><td>severe degradation</td><td>unusable</td></tr></tbody></table></div>
+<p>Key insight: <strong>degradation is non-linear</strong>. 16-bit → 8-bit is almost free; 16-bit → 4-bit retains roughly 90% quality; 2-bit falls off a cliff. Measured via perplexity, KL divergence, GPQA Diamond, and direct conversational testing.</p>
+<h2 id="relevance">Relevance</h2>
+<p>Practical counterweight to the "scaling-only" story: real deployments already live in 4-bit territory, meaning the effective inference substrate is substantially sparser than the training substrate. Relevant to <a href="concept-model-training.html">concept-model-training</a> and <a href="concept-developer-tools.html">concept-developer-tools</a>. Also interesting as a cheap approximation of <a href="source-neural-computer-metauto.html">source-neural-computer-metauto</a>'s call for <strong>sparser, more addressable</strong> substrates — quantization is the dumbest way to reduce representational redundancy, but it works, and it's what everyone actually ships.</p>
+<h2 id="why-fewer-bytes-can-mean-faster-2026-09-26">Why fewer bytes can mean faster (2026-09-26)</h2>
+<p>Decode is memory-bandwidth-bound: each step reads all weights to make one token (<code>raw/web-2025-aleksagordic-inside-vllm.md</code>, §"Scheduler"). The course's int8 lab gives the same reason for real-engine speedups and shows none at 620K parameters, where its engine is compute-bound and dequantizes at load (<code>course/modules/07-inference-internals/README.md</code>, "The quantization lab"). The speed column above fits that account; this page's source did not state the reason in the summary kept here. See <a href="concept-llm-serving.html">concept-llm-serving</a>.</p>
+<h2 id="references">References</h2>
+<ul><li><a href="https://ngrok.com/blog/quantization" rel="noreferrer">https://ngrok.com/blog/quantization</a></li><li>Context: <a href="concept-model-training.html">concept-model-training</a>, <a href="concept-developer-tools.html">concept-developer-tools</a>, <a href="concept-llm-serving.html">concept-llm-serving</a>, <a href="source-inside-vllm-gordic.html">source-inside-vllm-gordic</a></li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://ngrok.com/blog/quantization" rel="noreferrer">https://ngrok.com/blog/quantization</a></li><li><code>raw/web-2025-aleksagordic-inside-vllm.md</code></li><li><code>course/modules/07-inference-internals/README.md</code></li></ul></details>
+</main>
+</body>
+</html>

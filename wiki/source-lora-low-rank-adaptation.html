@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>LoRA: Low-Rank Adaptation of Large Language Models · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="lora-low-rank-adaptation-of-large-language-models">LoRA: Low-Rank Adaptation of Large Language Models</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-06</span> <span>updated 2026-10-03</span> <span class="tag">lora</span> <span class="tag">peft</span> <span class="tag">fine-tuning</span> <span class="tag">parameter-efficient</span> <span class="tag">foundational</span> <span class="tag">2021</span></div>
+<p><strong>Hu, Shen, Wallis, Allen-Zhu, Li, Wang, Wang, Chen — arXiv 2106.09685, Jun 2021 (Microsoft Research)</strong></p>
+<p>Parameter-efficient fine-tuning (PEFT): freeze the pretrained weights <strong>W</strong>, and learn a <strong>low-rank update</strong> <strong>ΔW = B·A</strong> (with rank r ≪ d_model) added at adaptation time. Trains <strong>&lt;1% of the parameters</strong> of full fine-tuning, with <strong>no inference-time latency</strong> (the update can be merged into W after training), and matches or beats full fine-tuning on many tasks. Now the dominant adaptation primitive for open-weight LLMs.</p>
+<h2 id="method">Method</h2>
+<ul><li>For a frozen weight matrix W ∈ ℝ^{d×k}, parameterise its update as <strong>ΔW = B A</strong> with B ∈ ℝ^{d×r}, A ∈ ℝ^{r×k}, rank r typically 4–64.</li><li>A is initialised Gaussian, B is initialised to zero, so the adapted model starts identical to the base.</li><li>Forward pass: <strong>h = Wx + (BA)x · α/r</strong> (α is a scaling hyperparameter).</li><li>Typically applied to the <strong>attention Q and V projections</strong>; some variants apply to all linear layers.</li><li>After training, <strong>ΔW = BA</strong> can be merged into W — zero extra latency at inference.</li></ul>
+<h2 id="key-results">Key results</h2>
+<ul><li>On GPT-3 175B with rank 8: <strong>trains 0.01% of parameters</strong> (~37M vs 175B), matches full-fine-tuning quality on GLUE, WikiSQL, SAMSum.</li><li>Up to <strong>3× lower GPU memory</strong> during training (no optimiser state for frozen params).</li><li><strong>No latency</strong> at inference (unlike adapter modules, which add layers).</li><li><strong>Composable</strong>: multiple LoRA adapters per base model, swappable per request — the architectural primitive for serving 1000s of customised models from one base.</li><li>Robust across ranks; r = 4 often nearly as good as r = 64 (suggesting the adaptation manifold is intrinsically low-dimensional).</li></ul>
+<h2 id="why-it-matters">Why it matters</h2>
+<p>LoRA is the <strong>economic engine</strong> of the open-weight ecosystem:</p>
+<ul><li>Hugging Face has 100k+ LoRA adapters; serving stacks (vLLM, TGI, SGLang) hot-swap them per request.</li><li>It is the default for <strong>specialising base models</strong> to a domain, persona, language, or task without copying the base weights.</li><li>Stable Diffusion's entire fine-tuning culture runs on LoRA.</li></ul>
+<p>For this wiki, LoRA matters as the <strong>first large-scale empirical evidence</strong> that fine-tuning lives on a <em>low-rank manifold</em> — an empirical fact that feeds directly into the <a href="concept-retrofitting.html">concept-retrofitting</a> framing. <a href="source-retrofitting-models-minixhofer.html">source-retrofitting-models-minixhofer</a> extends this insight: LoRA modifies parameter values without changing the architecture, but the same principles (graduality, expressivity matching, self-distillation) apply when you go further and modify the architecture itself (<a href="source-openai-privacy-filter.html">source-openai-privacy-filter</a> is the deep retrofit case study). LoRA is the entry point on a continuum:</p>
+<p>Full fine-tune  ←  LoRA  ←  Architectural retrofit  ←  From-scratch retrain.</p>
+<p>It also informs <a href="concept-model-training.html">concept-model-training</a> (efficient post-training is now a default expectation, not a research project) and <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a> (low-rank ΔW is a useful object to interpret — what <em>direction</em> in weight space does a task live on?). The "intrinsic low rank" of fine-tuning hints that <strong>task-specific behaviour occupies a tiny subspace of weight space</strong>, an idea that recurs in <a href="source-rome-memit-factual-editing.html">source-rome-memit-factual-editing</a> (rank-one factual edits) and <a href="source-from-latent-to-weight-space.html">source-from-latent-to-weight-space</a> (latent-to-weight-space mappings).</p>
+<h2 id="references">References</h2>
+<ul><li>arXiv: <a href="https://arxiv.org/abs/2106.09685" rel="noreferrer">https://arxiv.org/abs/2106.09685</a></li><li>Generalised by: <a href="source-retrofitting-models-minixhofer.html">source-retrofitting-models-minixhofer</a></li><li>Kin: <a href="source-rome-memit-factual-editing.html">source-rome-memit-factual-editing</a> (rank-one weight edits)</li><li>Forgetting: LoRA forgets less than full fine-tuning but still forgets (as cited in <code>raw/arxiv-2610-02126-local-support-learning.md</code>, §2); on Qwen2.5-7B it loses 44% on pretraining benchmarks after one fine-tuning phase, and a gate that applies the adapter only to inputs like its training data keeps them (same file, Figure 5 caption, §5.1). See <a href="source-local-support-learning.html">source-local-support-learning</a>, <a href="concept-continual-learning.html">concept-continual-learning</a>.</li><li>Context: <a href="concept-model-training.html">concept-model-training</a>, <a href="concept-retrofitting.html">concept-retrofitting</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2106.09685" rel="noreferrer">https://arxiv.org/abs/2106.09685</a></li><li><code>raw/arxiv-2610-02126-local-support-learning.md</code></li></ul></details>
+</main>
+</body>
+</html>

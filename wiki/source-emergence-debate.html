@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>The Emergence Debate: Wei (2022) vs Schaeffer (2023) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="the-emergence-debate">The Emergence Debate</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-07</span> <span>updated 2026-05-07</span> <span class="tag">scaling-laws</span> <span class="tag">emergence</span> <span class="tag">evaluation</span> <span class="tag">metrics</span> <span class="tag">foundational</span> <span class="tag">debate</span></div>
+<p>Two papers, ~10 months apart, that frame one of the most consequential ongoing debates in modern ML: <strong>are LLM capabilities qualitatively discontinuous at scale</strong>, or is "emergence" a measurement artefact? Read together — the pairing is the entry point.</p>
+<h2 id="wei-et-al-emergent-abilities-of-llms-tmlr-2022">Wei et al. — "Emergent Abilities of LLMs" (TMLR 2022)</h2>
+<p><strong>arXiv:</strong> <a href="https://arxiv.org/abs/2206.07682" rel="noreferrer">2206.07682</a>. Wei, Tay, Bommasani, Raffel, Zoph, Borgeaud, Yogatama, Bosma, Zhou, Metzler, Chi, Hashimoto, Vinyals, Liang, Dean, Fedus.</p>
+<p>Defined <strong>"emergent ability"</strong> for the LLM era and gave the field a vocabulary for sudden capability jumps with scale.</p>
+<blockquote><p>"An ability is emergent if it is not present in smaller models but is present in larger models."</p></blockquote>
+<p>The headline implication: such abilities <strong>cannot be predicted by extrapolating from smaller-scale runs</strong>, breaking the smooth-scaling worldview of <a href="source-kaplan-scaling-laws.html">source-kaplan-scaling-laws</a> and motivating training ever-larger models on the chance that <em>new</em> capabilities pop into existence.</p>
+<p><strong>Method:</strong> survey-style. Catalogues &gt;137 BIG-Bench tasks plus prompting setups (few-shot, augmented, multi-step) showing non-smooth scaling — near-random performance until a threshold, then a sharp rise. Examples of canonical "emergent" capabilities (under the discontinuous-metric framing later critiqued):</p>
+<ul><li>Multi-digit arithmetic (3-digit add/subtract)</li><li>Word unscrambling, Persian QA, modular arithmetic</li><li><strong>Few-shot chain-of-thought</strong> (<a href="source-chain-of-thought-foundations.html">source-chain-of-thought-foundations</a> — same lead author): only meaningfully helpful at ~100B+ params</li><li>Instruction following, calibration, transliteration</li></ul>
+<p><strong>Strategic impact:</strong> for two years after publication, "emergent abilities" was the most-cited justification for the <strong>scale-is-all-you-need</strong> narrative.</p>
+<h2 id="schaeffer-miranda-koyejo-emergent-abilities-a-mirage-neurips-2023-outstanding-paper">Schaeffer, Miranda, Koyejo — "Emergent Abilities a Mirage?" (NeurIPS 2023, Outstanding Paper)</h2>
+<p><strong>arXiv:</strong> <a href="https://arxiv.org/abs/2304.15004" rel="noreferrer">2304.15004</a>.</p>
+<p>A pointed counterpoint: the apparent <strong>discontinuous emergence</strong> is largely a <strong>measurement artefact</strong>. Switch from a discontinuous, non-linear metric (exact-string-match, multiple-choice grade) to a continuous one (token-level edit distance, Brier score), and the same models show <strong>smooth, predictable</strong> scaling curves. Emergence lives in the metric, not the model.</p>
+<p><strong>Three lines of evidence:</strong></p>
+<ol><li><strong>Direct test on InstructGPT/GPT-3.</strong> Pick tasks Wei et al. claimed were emergent, swap the discontinuous scoring metric for a continuous one, watch the sharp transition disappear.</li><li><strong>Meta-analysis of BIG-Bench.</strong> Survey <em>all</em> claimed-emergent abilities and check what metric they use. Result: emergence appears overwhelmingly under two specific metrics — <strong>Multiple Choice Grade</strong> and <strong>Exact String Match</strong> — and rarely under continuous ones. <strong>&gt;92% of claimed emergent abilities use one of those two.</strong></li><li><strong>Synthetic demonstration.</strong> Show that <em>any</em> smoothly-improving system (a vision classifier, a small autoencoder) can be made to look "emergent" by retroactively choosing a sufficiently nonlinear or thresholded metric. Emergence isn't unique to LLMs.</li></ol>
+<p>The argument doesn't deny that capabilities improve with scale — it denies that the improvement is <em>qualitatively discontinuous</em>.</p>
+<p><strong>Three predictions made and confirmed:</strong> (i) emergence disappears with continuous metrics, (ii) emergence disappears with finer-grained statistics, (iii) you can synthesise apparent emergence in vision tasks where smooth scaling is uncontroversial.</p>
+<h2 id="how-to-read-the-pair">How to read the pair</h2>
+<ul><li><strong>Pro-emergence (Wei):</strong> scale produces qualitatively new capabilities; sub-scale extrapolation is unreliable; you have to actually train the bigger model.</li><li><strong>Anti-emergence (Schaeffer):</strong> scale produces smooth improvements; capabilities are predictable from sub-scale runs; "emergence" is a metric artefact; the right move is more careful continuous evaluation.</li></ul>
+<p>The wiki's stance: smooth scaling and structural innovation (<a href="source-language-models-as-scaffolds.html">source-language-models-as-scaffolds</a>, <a href="source-residual-matrix-transformer.html">source-residual-matrix-transformer</a>, <a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a>) are more productive frames than faith in opaque phase transitions. Schaeffer is one reason this wiki leans that way.</p>
+<h2 id="knock-on-effects">Knock-on effects</h2>
+<p>The "metric hides smoothness" critique re-applies to many reasoning benchmarks (GSM8K, MATH, HumanEval all use exact-match-flavoured scoring), which:</p>
+<ul><li>Tempers headline gains from <a href="source-tree-of-thoughts.html">source-tree-of-thoughts</a>, <a href="source-reflexion-verbal-rl.html">source-reflexion-verbal-rl</a>, <a href="source-self-refine.html">source-self-refine</a> — large jumps in pass-rate may partly reflect the <strong>shape of pass/fail metrics</strong>.</li><li>Weakens parts of <a href="source-chain-of-thought-foundations.html">source-chain-of-thought-foundations</a>'s "CoT is emergent at 100B+" story.</li><li>Pushes back on <a href="concept-llm-reasoning.html">concept-llm-reasoning</a> arguments that lean on emergence to claim qualitatively new behaviour.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li>Concepts: <a href="concept-scaling-laws.html">concept-scaling-laws</a>, <a href="concept-llm-reasoning.html">concept-llm-reasoning</a></li><li>Adjacent canon: <a href="source-kaplan-scaling-laws.html">source-kaplan-scaling-laws</a>, <a href="source-chinchilla-compute-optimal.html">source-chinchilla-compute-optimal</a>, <a href="source-neural-scaling-laws-from-language-statistics.html">source-neural-scaling-laws-from-language-statistics</a></li><li>Wei's other paper (same theme, same period): <a href="source-chain-of-thought-foundations.html">source-chain-of-thought-foundations</a></li><li>Critical companion on inference-time gains: <a href="source-distribution-sharpening-power-sampling.html">source-distribution-sharpening-power-sampling</a>, <a href="source-snell-test-time-compute-scaling.html">source-snell-test-time-compute-scaling</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li>Wei et al.: <a href="https://arxiv.org/abs/2206.07682" rel="noreferrer">arXiv 2206.07682</a></li><li>Schaeffer et al.: <a href="https://arxiv.org/abs/2304.15004" rel="noreferrer">arXiv 2304.15004</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2206.07682" rel="noreferrer">https://arxiv.org/abs/2206.07682</a></li><li><a href="https://arxiv.org/abs/2304.15004" rel="noreferrer">https://arxiv.org/abs/2304.15004</a></li></ul></details>
+</main>
+</body>
+</html>

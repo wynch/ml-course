@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Frontier Learning: Training LLM Reasoners at the Edge of Capability (Faro et al., 2026) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="frontier-learning-training-llm-reasoners-at-the-edge-of-capability">Frontier Learning: Training LLM Reasoners at the Edge of Capability</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-03</span> <span>updated 2026-10-03</span> <span class="tag">reinforcement-learning</span> <span class="tag">rlvr</span> <span class="tag">grpo</span> <span class="tag">curriculum</span> <span class="tag">procedural-generation</span> <span class="tag">open-endedness</span> <span class="tag">post-training</span> <span class="tag">2026</span></div>
+<p><strong>Authors:</strong> Robin Faro, Shyam Sundhar Ramesh, Ilija Bogunovic, Aurelien Lucchi (University of Basel; University College London) <strong>Published:</strong> arXiv 2609.35426, v1 2026-09-28 <strong>Raw copy:</strong> <code>raw/arxiv-2609-35426-frontier-learning-training-llm-reasoners-at.md</code> (captured 2026-10-03, full text of v1)</p>
+<p>Every claim below cites the raw file as R, with the paper's section number.</p>
+<h2 id="summary">Summary</h2>
+<p>GRPO, the usual RL method for reasoning models, samples several answers to a problem and rewards each against the group's average. If all answers are right, or all wrong, the problem teaches nothing: the gradient is zero. A fixed pool of problems therefore goes stale as the model improves (R, §1, §2).</p>
+<p>Frontier learning swaps the fixed pool for a problem generator used during training. Each generator has settings (for Countdown: how many numbers, how large, the target range); one setting is a <strong>level</strong>, and any level yields as many problems as wanted (R, §3.1). The method keeps a buffer of up to 100 levels and, each step (R, §3.3, §4, Table 6):</p>
+<ol><li><strong>Scores each level by regret:</strong> for one problem, regret = 1 if solved at least once, minus the success rate. It is zero for problems never solved and for problems always solved, and positive only where the gradient is not zero. A level's regret is the mean over its recent problems; it needs no extra rollouts (R, §3.3.1, Eq. 4-6).</li><li><strong>Samples levels by priority:</strong> regret plus a small bonus for levels not seen for a while (R, Eq. 7).</li><li><strong>Explores:</strong> each slot is swapped for a random new level with probability 0.3 (R, §3.3.2, Table 6).</li><li><strong>Mutates:</strong> a sampled level gets one setting nudged, most often when it is informative (0.4), less when mastered (0.25), rarely when impossible (0.02) (R, §3.3.3, Table 6).</li></ol>
+<p>The settings need not rank difficulty in a known order; the method finds the edge from the model's own results (R, §1, Appendix A).</p>
+<h2 id="key-results">Key results</h2>
+<p>Five tasks from Reasoning Gym, scored on held-out levels never used in training, greedy decoding, four seeds (R, §5).</p>
+<ul><li><strong>200 steps:</strong> best on all three tasks. Countdown 50.9 vs 44.7 for the best baseline; Sokoban 45.2 vs 41.1; Decimal Arithmetic 34.7 vs 31.0 (R, Table 1). The gains sit on Easy and Medium levels; on Hard, methods tie (R, §5.1, Appendix F).</li><li><strong>500 steps on Dice:</strong> baselines plateau after about 100-200 steps; frontier learning keeps rising to 71.8, against 33.3 for the best baseline (SEC), 33.2 for ACE-GRPO, and 25.4 for DAPO matched on 256k rollouts (R, §5.1, Table 2). On Hard and Extra-hard levels it reaches 72.6% and 20.7%; every standard baseline stays under 5.5% (R, §5.1).</li><li><strong>What carries it:</strong> mutation. Without mutation (PLR+Explore) 33.5; with mutation but no exploration (PLR+Mut) 62.5; mutation without regret priority 47.1 (R, Table 2).</li><li><strong>Other models:</strong> Llama-3.2-3B on Countdown 39.2 vs 33.8; Olmo3-7B on Largest Island 73.7 vs 52.0 (R, Table 3).</li><li><strong>Not just more compute:</strong> at 200 steps runtimes match the baselines (R, Appendix H, Tables 8-10). On Dice it runs longer (27.8 h vs 18.7 h for PLR) because its answers grow longer, but at PLR's 18.7 h it already scores 68.0 (R, Appendix H, Table 12).</li><li><strong>Not an untuned baseline:</strong> a learning-rate sweep lifts no baseline above about 35% on Dice (R, Appendix G.2).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>Every test uses levels from the same generators the model trained on; the paper reports no test on outside benchmarks.</li><li>It needs a procedural generator with explicit settings; the authors name tasks without one as open (R, §6).</li><li>The 500-step runs add a small KL term and asymmetric clipping for every method (R, Table 5 note). The learning-rate check covers one seed and two baselines (R, Appendix G.2).</li><li>Spread is wide in places: Dice 71.8 ± 6.2; the mutation-only ablation 47.1 ± 10.8 (R, Table 2).</li><li>Models from 3B to 7B; tasks are puzzles, simple maths and grids.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-deepseek-r1.html">source-deepseek-r1</a> — GRPO, the method this paper builds on.</li><li><a href="concept-rlhf-alternatives.html">concept-rlhf-alternatives</a> — RL with checkable rewards, where the open part is which problems to train on.</li><li><a href="analysis-emergence-vs-distribution-sharpening.html">analysis-emergence-vs-distribution-sharpening</a> — Hard Dice levels where every standard baseline stays under 5.5% and this one reaches 72.6% (R, §5.1). The paper does not measure what the base model could reach with many samples, so it does not settle whether the skill was latent.</li><li><a href="source-rlsvr-spyrl.html">source-rlsvr-spyrl</a> — also works on the limits of RL with verifiable rewards, by changing the task rather than the problem supply.</li><li><a href="source-abstract-token-curriculum.html">source-abstract-token-curriculum</a> — a fixed difficulty curriculum; here the curriculum is found online from regret.</li><li><a href="source-schmidhuber-compression-progress.html">source-schmidhuber-compression-progress</a> — reward for learning progress; this paper cites the learning-progress line (Oudeyer et al., 2007) as related (R, §1, Appendix A). Regret here is a cheap proxy for where progress is possible; the link is the wiki's reading.</li><li>Background named by the paper: unsupervised environment design, PLR and ACCEL, which mutates high-regret levels in RL for games and control (R, Appendix A).</li></ul>
+<h2 id="references">References</h2>
+<ul><li>Raw: <code>raw/arxiv-2609-35426-frontier-learning-training-llm-reasoners-at.md</code></li><li>arXiv: <a href="https://arxiv.org/abs/2609.35426" rel="noreferrer">https://arxiv.org/abs/2609.35426</a> · HTML: <a href="https://arxiv.org/html/2609.35426v1" rel="noreferrer">https://arxiv.org/html/2609.35426v1</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2609-35426-frontier-learning-training-llm-reasoners-at.md</code></li><li><a href="https://arxiv.org/abs/2609.35426" rel="noreferrer">https://arxiv.org/abs/2609.35426</a></li></ul></details>
+</main>
+</body>
+</html>

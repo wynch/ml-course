@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Loop Engineering (Addy Osmani) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="loop-engineering-addy-osmani">Loop Engineering (Addy Osmani)</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-07-04</span> <span>updated 2026-07-04</span> <span class="tag">ai-agents</span> <span class="tag">coding-agents</span> <span class="tag">developer-tools</span> <span class="tag">agent-harness</span> <span class="tag">orchestration</span></div>
+<p><strong>Source:</strong> Addy Osmani (@addyosmani), X Article "Loop Engineering." <strong>Date:</strong> 2026-06-08</p>
+<h2 id="summary">Summary</h2>
+<p><strong>Loop engineering</strong> is the practice of <em>replacing yourself as the person who prompts the agent</em> — instead you design the autonomous system that prompts it. Osmani frames it as the layer <strong>above</strong> the agent harness: where harness engineering builds the environment a single agent runs inside, a <em>loop</em> runs that harness on a timer, spawns helper agents, checks their work, records state, and decides what to do next — with no human in the per-turn loop. He quotes Peter Steinberger (@steipete, "you should be designing loops that prompt your agents") and Boris Cherny (@bcherny, head of Claude Code at Anthropic, "I don't prompt Claude anymore… my job is to write loops").</p>
+<p>The central observation is that loops used to be bespoke bash you maintained forever, but <strong>the pieces now ship inside the products</strong> — and the same five primitives appear in both Codex and Claude Code, so the loop design is tool-portable. Osmani is explicitly skeptical: token costs vary wildly, slop and quality drift are real, and the loop "changes the work, it does not delete you from it."</p>
+<h2 id="key-ideas">Key Ideas</h2>
+<ul><li><strong>Five primitives + memory.</strong> A loop needs: (1) <strong>Automations</strong> — the scheduled heartbeat that does discovery/triage (<code>/loop</code>, cron, hooks, GitHub Actions; Codex Automations tab + Triage inbox); (2) <strong>Worktrees</strong> — git-worktree isolation so parallel agents don't collide (Claude Code <code>--worktree</code> flag, <code>isolation: worktree</code> subagent setting); (3) <strong>Skills</strong> — a <code>SKILL.md</code> folder that writes project intent down on the outside so the agent stops re-deriving it every session; (4) <strong>Plugins &amp; connectors</strong> — MCP-based access to issue trackers, DBs, Slack, staging APIs, so the loop <em>acts</em> instead of just advising; (5) <strong>Sub-agents</strong> — separating the maker from the checker. Plus the sixth thing: <strong>memory on disk</strong> (a markdown file or Linear board) because "the agent forgets, the repo doesn't."</li><li><strong>The <code>/goal</code> primitive as maker/checker at the stop condition.</strong> <code>/loop</code> re-runs on a cadence; <code>/goal</code> runs until a <em>verifiable</em> condition holds, and a <strong>separate small model</strong> grades doneness after each turn — the agent that wrote the code isn't the one deciding it's finished. Present in both Codex and Claude Code.</li><li><strong>Tool-portability is the point.</strong> Steinberger's list "maps almost exactly onto the Codex app, and then almost the same onto Claude Code" — so you design a loop that works regardless of which tool you're in.</li><li><strong>The three problems that get <em>sharper</em>, not easier.</strong> (a) <em>Verification</em> stays on you — an unattended loop is one making mistakes unattended; "done" is a claim, not a proof. (b) <em>Comprehension debt</em> — the faster the loop ships code you didn't write, the wider the gap between what exists and what you understand. (c) <em>Cognitive surrender</em> — taking whatever the loop returns without an opinion. "Designing the loop is the cure when you do it with judgement and the accelerant when you do it to avoid thinking, same action, opposite result."</li><li><strong>The leverage point moved, the work didn't get easier.</strong> Loop design is harder than prompt engineering, not easier: two people building the identical loop get opposite results depending on whether they use it to move faster on work they understand or to avoid understanding it. "Build the loop. Stay the engineer."</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li>The clearest articulation of the layer above <a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a> and the harness discussion in <a href="source-bundle-agent-harnesses.html">source-bundle-agent-harnesses</a> and <a href="source-claude-code-sandboxing.html">source-claude-code-sandboxing</a> — Osmani explicitly places loop engineering "one floor above the harness."</li><li>Deepens <a href="concept-ai-agents.html">concept-ai-agents</a>: the maker/checker split, sub-agent orchestration, and disk-backed memory are all core agent-loop patterns; the <code>/goal</code> verifier is a concrete instance of separating generation from evaluation.</li><li>The "would you merge this?" quality worry is the same anxiety measured by <a href="source-frontiercode-cognition-eval.html">source-frontiercode-cognition-eval</a> — loops amplify both throughput and slop.</li><li>Token-cost caution ("token rich or poor", usage varies wildly) connects directly to the tokenflation thesis in <a href="source-token-purchasing-power-bigspin.html">source-token-purchasing-power-bigspin</a> — loops are exactly the workload where per-token purchasing power matters.</li><li>MCP connectors, skills-as-plugins, and worktree isolation are all <a href="concept-developer-tools.html">concept-developer-tools</a> surface area.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><a href="https://x.com/addyosmani/status/2064127981161959567" rel="noreferrer">X Article "Loop Engineering." (@addyosmani)</a></li><li>Raw note (full article transcription): <code>raw/loop-engineering-addy-osmani.md</code></li></ul>
+<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://x.com/addyosmani/status/2064127981161959567" rel="noreferrer">https://x.com/addyosmani/status/2064127981161959567</a></li></ul></details>
+</main>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Next-Latent Prediction Transformers Learn Compact World Models · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="next-latent-prediction-nextlat">Next-Latent Prediction (NextLat)</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-06-18</span> <span>updated 2026-06-18</span> <span class="tag">world-models</span> <span class="tag">self-supervised-learning</span> <span class="tag">representation-learning</span> <span class="tag">transformers</span> <span class="tag">llm-reasoning</span> <span class="tag">test-time-compute</span></div>
+<p><strong>Authors:</strong> Jayden Teoh, Manan Tomar, Kwangjun Ahn, Edward S. Hu, Tim Pearce, Pratyusha Sharma, Akshay Krishnamurthy, Riashat Islam, Alex Lamb, John Langford <strong>Date:</strong> 2025-11-08 <strong>arXiv:</strong> <a href="https://arxiv.org/abs/2511.05963" rel="noreferrer">2511.05963</a></p>
+<h2 id="summary">Summary</h2>
+<p><strong>NextLat</strong> adds a self-supervised <strong>next-latent prediction</strong> objective on top of ordinary next-token training: the transformer learns to predict its <em>own next latent state</em> given the next token. The motivation is that next-token prediction gives a transformer no incentive to compress history into compact latent states with consistent transition rules — so it can learn solutions that generalize poorly. The auxiliary latents <strong>provably converge toward belief states</strong> (the compressed history sufficient to predict the future), injecting a <strong>recurrent inductive bias</strong> while leaving the architecture, parallel-training efficiency, and inference unchanged.</p>
+<h2 id="key-ideas">Key Ideas</h2>
+<ul><li><strong>The objective:</strong> predict next latent given next token — a cheap auxiliary loss layered onto next-token prediction.</li><li><strong>Belief states.</strong> The learned latents provably trend toward sufficient statistics of history; the transformer ends up carrying a compact internal <strong>world model</strong> rather than re-deriving state from the full context each step.</li><li><strong>Architecture-preserving.</strong> A recurrent/state-tracking inductive bias without giving up the transformer's parallel training or inference characteristics.</li><li><strong>Broad gains.</strong> Improvements over next-token prediction and other baselines across <strong>world modeling, reasoning, planning, and language modeling</strong> — in downstream accuracy, representation compression, and lookahead planning.</li><li><strong>Self-speculative decoding.</strong> Predictable latents enable variable-length <strong>self-speculative decoding</strong>, up to <strong>3.3× faster</strong> inference in language modeling.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li>The cleanest LLM-side instance of <a href="thread-predict-in-latent-space.html">thread-predict-in-latent-space</a>: a <em>pure-text</em> model trained to predict an encoded next state rather than only tokens — the open question that thread flags.</li><li><strong>Belief-state / latent-dynamics</strong> framing aligns it with <a href="concept-world-models.html">concept-world-models</a> and the RSSM lineage in <a href="source-planet-latent-dynamics.html">source-planet-latent-dynamics</a> / <a href="source-dreamerv3.html">source-dreamerv3</a>, and with the predict-in-latent bet of <a href="concept-jepa.html">concept-jepa</a> and <a href="source-vjepa-family.html">source-vjepa-family</a>.</li><li><strong>Complement to <a href="source-topological-trouble-transformers.html">source-topological-trouble-transformers</a>:</strong> that paper diagnoses transformers' missing state-tracking ability; NextLat supplies a recurrent inductive bias to address it <em>without</em> architectural change.</li><li>Self-speculative decoding and lookahead planning connect to <a href="concept-test-time-compute.html">concept-test-time-compute</a>; gains on reasoning/planning connect to <a href="concept-llm-reasoning.html">concept-llm-reasoning</a> and <a href="concept-representation-learning.html">concept-representation-learning</a>.</li><li>Lead author Jayden Teoh is a student researcher at <a href="entity-google-deepmind.html">entity-google-deepmind</a> (several co-authors at Microsoft Research).</li></ul>
+<h2 id="references">References</h2>
+<ul><li><a href="https://arxiv.org/abs/2511.05963" rel="noreferrer">arXiv page</a></li><li><a href="https://arxiv.org/html/2511.05963v1" rel="noreferrer">HTML version</a> · <a href="https://openreview.net/forum?id=Lh4ayjJIAW" rel="noreferrer">OpenReview</a></li><li><a href="https://x.com/jayden_teoh_/status/2066905213328605612" rel="noreferrer">Announcement thread (@jayden_teoh_)</a></li><li>Raw note: <code>raw/arxiv-2511-05963-next-latent-prediction.md</code></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2511.05963" rel="noreferrer">https://arxiv.org/abs/2511.05963</a></li><li><a href="https://x.com/jayden_teoh_/status/2066905213328605612" rel="noreferrer">https://x.com/jayden_teoh_/status/2066905213328605612</a></li></ul></details>
+</main>
+</body>
+</html>

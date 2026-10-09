@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>There Will Be a Scientific Theory of Deep Learning · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="there-will-be-a-scientific-theory-of-deep-learning">There Will Be a Scientific Theory of Deep Learning</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-09-10</span> <span>updated 2026-09-10</span> <span class="tag">deep-learning-theory</span> <span class="tag">learning-mechanics</span> <span class="tag">training-dynamics</span> <span class="tag">scaling-laws</span> <span class="tag">mechanistic-interpretability</span> <span class="tag">position-paper</span> <span class="tag">2026</span></div>
+<p><strong>Authors:</strong> Jamie Simon, Daniel Kunin, Alexander Atanasov + 11 others · <strong>arXiv:</strong> <a href="https://arxiv.org/abs/2604.21691" rel="noreferrer">2604.21691v1</a> · <strong>Date:</strong> 2026-04-23 <strong>Site:</strong> <a href="https://learningmechanics.pub" rel="noreferrer">learningmechanics.pub</a></p>
+<h2 id="summary">Summary</h2>
+<p>A position paper, not an experiment. Fourteen theorists argue that a theory of deep learning is already forming, and give it a name: <strong>learning mechanics</strong> — a physics-style account of how training moves aggregate quantities, rather than an account of individual weights. They survey five strands they see converging: solvable toy settings, tractable limits (behaviour as width or depth goes to infinity), simple empirical laws, theories that isolate hyperparameters, and universal behaviours shared across architectures. The shared traits they claim across all five: attention to training <em>dynamics</em>, description of <em>coarse</em> statistics, and <em>falsifiable</em> quantitative prediction. They then answer five standard objections and list ten open problems. Nothing new is measured here; the contribution is the framing and the reading list.</p>
+<h2 id="key-claims">Key claims</h2>
+<ul><li><strong>Five load-bearing strands, each with named anchors.</strong> Solvable settings: deep linear networks, the NTK (neural tangent kernel — a fixed-kernel training limit), teacher-student models. Limits: "lazy" (kernel-like) versus "rich" (feature-learning) regimes at infinite width. Empirical laws: power-law scaling, edge of stability (sharpness parking near 2/η), neural collapse (last-layer class features falling into one tight pattern). Hyperparameter theory: μP, a parameterization that transfers learning rate across widths. Universality: matched-seed models of different architectures producing near-identical outputs.</li><li><strong>The right unit is the aggregate, not the weight.</strong> They prefer accurate average-case prediction over rigorous worst-case bounds — an explicit break from statistical learning theory, whose generalization guarantees they treat as the wrong resolution rather than as wrong.</li><li><strong>Theory and interpretability are complements.</strong> Their slogan: mechanistic interpretability is the biology of deep learning; learning mechanics should be its physics.</li><li><strong>A stated failure list.</strong> The programme cannot predict scaling-law exponents from properties of the data, has no unified model of genuinely deep nonlinear learning, and cannot explain progressive sharpening (loss curvature rising during training) in realistic networks. μP is asymptotic and does not explain its own success at finite width.</li><li><strong>The theory will have regimes of applicability.</strong> The authors say up front it will not describe everything, and that "the Discretization Hypothesis" — finite networks as infinite-limit behaviour plus correction terms — is not yet validated.</li></ul>
+<h2 id="relevance">Relevance</h2>
+<ul><li>Belongs with <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a>: this proposes a division of labour with mech interp rather than a rival to it, which is a cleaner framing than most of the field's turf argument.</li><li>Gives <a href="concept-scaling-laws.html">concept-scaling-laws</a> a home in a larger programme, and names the gap the wiki keeps hitting — <a href="source-kaplan-scaling-laws.html">source-kaplan-scaling-laws</a> fits exponents, nobody derives them.</li><li>The universality strand overlaps <a href="source-platonic-representation-aristotelian.html">source-platonic-representation-aristotelian</a>: cross-architecture representation convergence is used here as evidence that some phenomena are not architecture-specific and so need a general explanation.</li><li>Reads as the programme-level companion to <a href="source-litman-generalization-theory.html">source-litman-generalization-theory</a>, which attempts one piece of the same job.</li><li>Useful discipline for <a href="concept-model-training.html">concept-model-training</a> and for the wiki's own standard in <span class="dead" title="not published">idea-benchmark-honest-epistemic-loop</span>: prefer claims a re-run can falsify.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><a href="https://arxiv.org/abs/2604.21691" rel="noreferrer">arXiv 2604.21691</a> · <a href="https://arxiv.org/html/2604.21691v1" rel="noreferrer">HTML</a></li><li><a href="https://learningmechanics.pub" rel="noreferrer">learningmechanics.pub</a></li><li>Raw capture: <code>raw/arxiv-2604-21691-there-will-be-a-scientific-theory.md</code></li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2604.21691" rel="noreferrer">https://arxiv.org/abs/2604.21691</a></li><li><a href="https://arxiv.org/html/2604.21691v1" rel="noreferrer">https://arxiv.org/html/2604.21691v1</a></li><li><code>raw/arxiv-2604-21691-there-will-be-a-scientific-theory.md</code></li></ul></details>
+</main>
+</body>
+</html>

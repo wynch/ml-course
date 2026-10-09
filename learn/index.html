@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f6f8f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121816" media="(prefers-color-scheme: dark)">
+<title>Learn with Claude</title>
+<!-- Regions between gen markers come from scripts/build_pack.py; never hand-edit them. -->
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --panel:#ffffff; --ink:#1c2422; --muted:#5c6b67; --line:rgba(28,36,34,.14);
+  --accent:#1f918d; --soft:rgba(31,145,141,.10); --code:#eef2f0; --warn:#a86b0e; --ok:#3fa34d;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{--paper:#121816; --panel:#1a2320; --ink:#e8eeec; --muted:#9daba7; --line:rgba(232,238,236,.18);
+    --accent:#37b3ae; --soft:rgba(55,179,174,.16); --code:#0d1211; --warn:#d9962e; --ok:#57c063}
+}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.55 var(--body);overflow-wrap:break-word}
+a{color:var(--accent)}
+header{padding:calc(.9rem + env(safe-area-inset-top)) 16px .9rem;background:var(--panel);border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:1.35rem}
+header p{margin:.2rem 0 0;color:var(--muted);font-size:.86rem}
+main{max-width:40rem;margin:0 auto;padding:0 16px 3rem}
+section{margin:1.4rem 0 0}
+h2{font-size:1.05rem;margin:0 0 .5rem}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:.9rem 1rem}
+pre{margin:.4rem 0 0;padding:.7rem;background:var(--code);border-radius:8px;overflow-x:auto;
+  font:.78rem/1.5 var(--mono);white-space:pre-wrap}
+.when{margin:0;color:var(--muted);font-size:.8rem}
+.go{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.go a{display:block;padding:.85rem .9rem;background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  text-decoration:none;color:var(--ink);font-weight:600;font-size:.95rem}
+.go a small{display:block;font-weight:400;color:var(--muted);font-size:.78rem;margin-top:.15rem}
+button,.btn{font:inherit;font-size:.92rem;font-weight:600;border:0;border-radius:10px;padding:.65rem 1rem;
+  background:var(--accent);color:#fff;cursor:pointer;text-decoration:none;display:inline-block;min-height:44px}
+.btn.ghost,button.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.row{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:.6rem 0 0}
+.status{font-size:.82rem;color:var(--muted);min-height:1.2em;margin:.4rem 0 0}
+.prompt{margin:.7rem 0 0;padding:.7rem 0 0;border-top:1px solid var(--line)}
+.prompt:first-of-type{border-top:0;padding-top:0}
+.prompt h3{margin:0;font-size:.95rem;font-family:var(--mono)}
+.prompt p{margin:.3rem 0 0;font-size:.86rem;color:var(--muted)}
+input[type=text]{font:inherit;font-size:16px;width:100%;padding:.55rem .7rem;border:1px solid var(--line);
+  border-radius:10px;background:var(--paper);color:var(--ink);margin:.4rem 0 0}
+ol,ul{padding-left:1.2rem;margin:.4rem 0 0}
+li{margin:.25rem 0}
+.doors{list-style:none;padding:0}
+.doors li{padding:.35rem 0;border-bottom:1px solid var(--line);font-size:.9rem}
+.doors .t{font-weight:600}
+.s{font-size:.72rem;border-radius:999px;padding:.05rem .45rem;background:var(--soft);color:var(--muted)}
+.s.owned{color:var(--ok)}
+.s.shaky{color:var(--warn)}
+.doors code{font-size:.75rem;color:var(--muted);overflow-wrap:anywhere}
+.note{font-size:.86rem;color:var(--muted)}
+details summary{cursor:pointer;color:var(--accent);font-size:.9rem;margin:.5rem 0 0}
+#packview{max-height:60vh}
+footer{max-width:40rem;margin:0 auto;padding:1rem 16px 2.5rem;color:var(--muted);font-size:.8rem}
+</style>
+</head>
+<body>
+<header>
+  <h1>Learn with Claude</h1>
+  <p>Course, compass, wiki and a Claude pack, from one phone. <!-- gen:built -->
+<span>Built 2026-10-09</span>
+<!-- /gen:built --></p>
+</header>
+
+<main>
+
+<section aria-labelledby="next-h">
+  <h2 id="next-h">Next</h2>
+  <div class="box">
+<!-- gen:next -->
+<p class="when">Printed 2026-10-09</p>
+<pre>NEXT · 2026-10-09
+learn  algorithm (F·computation) · parallelism (F·computation) · limit (F·calculus)
+test   parameter (2026-08-25) · learning rate (2026-08-25) · overfitting (2026-08-25)
+fill   Q7·measurement · Q2·algebra · Q3·geometry
+open   16 open · 2026-09-05 Q1 What landscape does my data build?</pre>
+<!-- /gen:next -->
+  </div>
+</section>
+
+<section aria-labelledby="go-h">
+  <h2 id="go-h">Open</h2>
+  <nav class="go">
+    <a href="../reader/">Reader<small>every lesson, offline</small></a>
+    <a href="../explorables/index.html">Explorables<small>the doors for walk</small></a>
+    <a href="../quizzes/index.html">Quizzes<small>after a failed test</small></a>
+    <a href="../map.html">Course map<small>modules and figures</small></a>
+    <a href="../compass/">Compass<small>snapshot of the page</small></a>
+    <a href="../wiki/">Wiki<small>search and read</small></a>
+  </nav>
+</section>
+
+<section aria-labelledby="pack-h">
+  <h2 id="pack-h">Pack for Claude</h2>
+  <div class="box">
+    <p class="note">One file holds the compass rules, spine, territory, each notion's status, Next
+      box, quiz list and links; your log of answers stays on the Mac. Set up the claude.ai Project
+      "ML compass" once: paste the instructions below as its instructions, and add the pack to its
+      knowledge (or paste it at the start of a chat).</p>
+    <div class="row">
+      <button id="copy-pack" type="button">Copy pack</button>
+      <button id="show-pack" type="button" class="ghost">Show pack</button>
+      <a class="btn ghost" href="pack.md" download>Save file</a>
+    </div>
+    <p class="status" id="pack-status" role="status"></p>
+    <pre id="packview" hidden></pre>
+    <details>
+      <summary>Project instructions</summary>
+<!-- gen:instructions -->
+<pre id="instructions">You help Vincent learn machine learning from his phone, away from his Mac. He
+learns ML well enough to ask proper questions; the measure is his understanding,
+never the volume of material.
+
+The project knowledge holds pack.md, or he pastes it at the start of a chat. It
+is his compass: the rules, his spine of defined notions, the map of angles, the
+status of each notion, the Next box and the course links. His log of questions
+and tests stays on his Mac. Treat the pack as the whole state. You have no tools:
+you cannot run code, open links or edit files.
+
+One verb per session: next, walk X, angles Qn, angle A, test or intake. Do what
+the rules in the pack say for that verb, then stop. Ask before you start anything
+else.
+
+Only his words count. Never invent a def and never change a status on your own;
+a def enters only after he confirms it in his words. Keep answers short and in
+plain English.
+
+End every session by printing the new log.jsonl rows in one code block, one JSON
+object per line, in the pack&#x27;s exact format, with the real date. If the session
+added or changed a spine entry or a territory cell, print that as YAML in a second
+block. He pastes both into his Apple Notes note &quot;ML compass log&quot; and applies them at
+home.
+
+The wiki at https://wynch.github.io/ml-course/wiki/ is reference: send him to a
+page by link when a question needs it, never quote it as his knowledge. The
+course is the door: for walk, use a course explorable; after a failed test, send
+him to the quiz the pack names, by link and question number.</pre>
+<!-- /gen:instructions -->
+      <div class="row"><button type="button" class="ghost" data-copy-from="instructions">Copy instructions</button></div>
+    </details>
+  </div>
+</section>
+
+<section aria-labelledby="prompts-h">
+  <h2 id="prompts-h">Ready prompts</h2>
+  <div class="box">
+    <div class="prompt">
+      <h3>next</h3>
+      <p>Shows what to learn, test and fill next.</p>
+      <div class="row"><button type="button" data-prompt="next">Copy</button></div>
+    </div>
+    <div class="prompt">
+      <h3>walk X</h3>
+      <p>One notion through one course door. Pick a notion with a public door (list below).</p>
+      <input type="text" id="walk-x" list="walk-list" placeholder="notion, e.g. softmax" autocomplete="off" autocapitalize="none">
+      <datalist id="walk-list"></datalist>
+      <div class="row"><button type="button" data-prompt="walk">Copy</button></div>
+    </div>
+    <div class="prompt">
+      <h3>test</h3>
+      <p>Three questions, in Next box order; a fail sends you to a quiz.</p>
+      <div class="row"><button type="button" data-prompt="test">Copy</button></div>
+    </div>
+    <p class="status" id="prompt-status" role="status"></p>
+  </div>
+</section>
+
+<section aria-labelledby="home-h">
+  <h2 id="home-h">Bring results home</h2>
+  <p class="note">At the end of a session Claude prints the new log rows; paste them into the
+    Apple Notes note "ML compass log". At the Mac they go into <code>compass/log.jsonl</code>
+    through the usual sitting.</p>
+</section>
+
+<section aria-labelledby="doors-h">
+  <h2 id="doors-h">Doors on this site</h2>
+  <p class="note">These notions have a public door, so <code>walk</code> works from the phone.</p>
+<!-- gen:doors -->
+<ul class="doors"><li><span class="t">parameter</span> <span class="s shaky">shaky</span> <a href="../explorables/01-gradient-descent.html">door</a> <a href="../explorables/02-nn-playground.html">door</a></li><li><span class="t">loss</span> <span class="s shaky">shaky</span> <a href="../explorables/01-gradient-descent.html">door</a></li><li><span class="t">gradient</span> <span class="s shaky">shaky</span> <a href="../explorables/01-gradient-descent.html">door</a></li><li><span class="t">backpropagation</span> <span class="s owned">owned</span> <a href="../explorables/01-gradient-descent.html">door</a></li><li><span class="t">learning rate</span> <span class="s shaky">shaky</span> <a href="../explorables/01-gradient-descent.html">door</a></li><li><span class="t">overfitting</span> <span class="s shaky">shaky</span> <a href="../explorables/00c-double-descent.html">door</a></li><li><span class="t">double descent</span> <span class="s shaky">shaky</span> <a href="../explorables/00c-double-descent.html">door</a></li><li><span class="t">implicit bias</span> <span class="s shaky">shaky</span> <a href="../explorables/00c-double-descent.html">door</a></li><li><span class="t">spectral bias</span> <span class="s shaky">shaky</span> <a href="../explorables/00c-double-descent.html">door</a></li><li><span class="t">embedding</span> <span class="s shaky">shaky</span> <a href="../modules/05-transformers-library/figures/embedding_pca.png">door</a></li><li><span class="t">latent space</span> <span class="s shaky">shaky</span> <a href="../modules/05-transformers-library/figures/embedding_pca.png">door</a></li><li><span class="t">feature</span> <span class="s shaky">shaky</span> <a href="../modules/05-transformers-library/figures/embedding_pca.png">door</a></li><li><span class="t">attention</span> <span class="s shaky">shaky</span> <a href="../explorables/04-attention.html">door</a></li><li><span class="t">softmax</span> <span class="s shaky">shaky</span> <a href="../explorables/04-attention.html">door</a></li><li><span class="t">temperature</span> <span class="s shaky">shaky</span> <a href="../explorables/04-attention.html">door</a></li><li><span class="t">residual stream</span> <span class="s shaky">shaky</span> <a href="../explorables/05-transformer-anatomy.html">door</a></li><li><span class="t">interpretability</span> <span class="s shaky">shaky</span> <a href="../explorables/05-transformer-anatomy.html">door</a></li><li><span class="t">calibration</span> <span class="s shaky">shaky</span> <a href="../reader/#/05a-data-evaluation">door</a></li></ul>
+<!-- /gen:doors -->
+  <details>
+    <summary>Doors that stay home</summary>
+    <p class="note">These doors sit in <code>../ml-lab/</code> or <code>compass/experiments/</code>,
+      which are private, or the notion has no door yet. From the phone, walk them through a course
+      explorable instead, or wait.</p>
+<!-- gen:private -->
+<ul class="doors"><li><span class="t">inverse problem</span> <span class="s shaky">shaky</span> <code>no door yet</code></li><li><span class="t">collapse</span> <span class="s shaky">shaky</span> <code>../ml-lab/gridjepa/runs/20260721_134506_phase1/report.md</code></li><li><span class="t">probe</span> <span class="s shaky">shaky</span> <code>../ml-lab/gridjepa/runs/20260721_134506_phase1/report.md</code></li><li><span class="t">manifold hypothesis</span> <span class="s shaky">shaky</span> <code>no door yet</code></li><li><span class="t">composition</span> <span class="s shaky">shaky</span> <code>no door yet</code></li><li><span class="t">scaling law</span> <span class="s shaky">shaky</span> <code>no door yet</code></li><li><span class="t">fixed point</span> <span class="s shaky">shaky</span> <code>compass/experiments/04-fixed-point/RESULTS.md</code></li><li><span class="t">state-space model</span> <span class="s shaky">shaky</span> <code>../ml-lab/gridjepa/README.md</code></li><li><span class="t">JEPA</span> <span class="s shaky">shaky</span> <code>../ml-lab/gridjepa/README.md, ../ml-lab/levjepa-mobile/REPORT.md</code></li><li><span class="t">mixture-of-experts</span> <span class="s shaky">shaky</span> <code>../ml-lab/gridjepa/README.md</code></li><li><span class="t">inductive bias</span> <span class="s shaky">shaky</span> <code>../ml-lab/gridjepa/README.md</code></li><li><span class="t">diffusion</span> <span class="s shaky">shaky</span> <code>../ml-lab/gridjepa/README.md</code></li><li><span class="t">hallucination</span> <span class="s shaky">shaky</span> <code>no door yet</code></li><li><span class="t">self-certification</span> <span class="s shaky">shaky</span> <code>../ml-lab/gridjepa/runs/20260721_134506_phase1/report.md</code></li><li><span class="t">pre-registration</span> <span class="s shaky">shaky</span> <code>no door yet</code></li><li><span class="t">falsifiable</span> <span class="s shaky">shaky</span> <code>no door yet</code></li><li><span class="t">baseline</span> <span class="s shaky">shaky</span> <code>no door yet</code></li></ul>
+<!-- /gen:private -->
+  </details>
+</section>
+
+</main>
+
+<footer>No tracking. The only request this page makes is for <code>pack.md</code>, on this site.</footer>
+
+<script>
+(function () {
+  "use strict";
+  var packText = null;
+  var packStatus = document.getElementById("pack-status");
+  var promptStatus = document.getElementById("prompt-status");
+
+  function loadPack() {
+    return fetch("pack.md", { cache: "no-cache" }).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.text();
+    }).then(function (t) { packText = t; return t; });
+  }
+
+  function fallbackCopy(text) {
+    var area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.opacity = "0";
+    document.body.appendChild(area);
+    area.select();
+    area.setSelectionRange(0, text.length);
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    document.body.removeChild(area);
+    return ok ? Promise.resolve() : Promise.reject(new Error("copy refused"));
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).catch(function () { return fallbackCopy(text); });
+    }
+    return fallbackCopy(text);
+  }
+
+  function today() {
+    var d = new Date();
+    function pad(n) { return (n < 10 ? "0" : "") + n; }
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  }
+
+  // Safari keeps the click's permission only for a clipboard write started inside
+  // the click, so a pack not yet loaded goes in as a promised ClipboardItem.
+  document.getElementById("copy-pack").addEventListener("click", function () {
+    packStatus.textContent = "Copying…";
+    var done = function () {
+      packStatus.textContent = "Pack copied (" + Math.round(packText.length / 1024) + " KB). Paste it into Claude.";
+    };
+    var fail = function (e) { packStatus.textContent = "Could not copy: " + e.message + ". Use Show pack, then select all."; };
+    if (packText !== null) { copyText(packText).then(done, fail); return; }
+    if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+      var blob = loadPack().then(function (t) { return new Blob([t], { type: "text/plain" }); });
+      navigator.clipboard.write([new ClipboardItem({ "text/plain": blob })]).then(done, function () {
+        blob.then(function () { return copyText(packText); }).then(done, fail);
+      });
+      return;
+    }
+    loadPack().then(copyText).then(done, fail);
+  });
+
+  document.getElementById("show-pack").addEventListener("click", function () {
+    var view = document.getElementById("packview");
+    if (!view.hidden) { view.hidden = true; return; }
+    (packText !== null ? Promise.resolve(packText) : loadPack()).then(function (t) {
+      view.textContent = t;
+      view.hidden = false;
+    }, function (e) { packStatus.textContent = "Could not load pack.md: " + e.message; });
+  });
+
+  var prompts = {
+    next: function () {
+      return "Session verb: next. Today is " + today() + ". Print the Next box from the pack, " +
+        "updated for any log rows I paste below, and wait for my verb.";
+    },
+    walk: function () {
+      var x = document.getElementById("walk-x").value.trim() || "X";
+      return "Session verb: walk " + x + ". Today is " + today() + ". Follow the walk rule in the pack: " +
+        "one notion, its angle and one neighbour angle, one door, twelve lines at most. Use the " +
+        "course door on the public site and give me its link. At the door I predict a number, move " +
+        "one control and say what I saw; then I restate it in my words. End with the log rows and " +
+        "the spine YAML to carry home.";
+    },
+    test: function () {
+      return "Session verb: test. Today is " + today() + ". Three questions, in the order the Next " +
+        "box prints, one at a time. Keep my wrong answers. After a fail I say what went wrong; send " +
+        "me to the first unused quiz from that notion's test: list, by link and question number. " +
+        "End by printing the new log.jsonl rows with today's date.";
+    }
+  };
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-prompt]"), function (button) {
+    button.addEventListener("click", function () {
+      var text = prompts[button.getAttribute("data-prompt")]();
+      copyText(text).then(function () { promptStatus.textContent = "Copied: " + text.slice(0, 60) + "…"; },
+        function (e) { promptStatus.textContent = "Could not copy: " + e.message; });
+    });
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-copy-from]"), function (button) {
+    button.addEventListener("click", function () {
+      var text = document.getElementById(button.getAttribute("data-copy-from")).textContent;
+      copyText(text).then(function () { button.textContent = "Copied"; },
+        function () { button.textContent = "Select and copy by hand"; });
+    });
+  });
+
+  var list = document.getElementById("walk-list");
+  Array.prototype.forEach.call(document.querySelectorAll(".doors .t"), function (t, i) {
+    if (t.closest("details")) return;
+    var option = document.createElement("option");
+    option.value = t.textContent;
+    list.appendChild(option);
+  });
+
+  loadPack().catch(function () {});
+})();
+</script>
+</body>
+</html>

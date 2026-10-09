@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>MLEvolve: A Self-Evolving Framework for Automated ML Algorithm Discovery · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="mlevolve">MLEvolve</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-07-04</span> <span>updated 2026-07-04</span> <span class="tag">self-improvement</span> <span class="tag">evolutionary</span> <span class="tag">ai-agents</span> <span class="tag">coding-agents</span> <span class="tag">graph-search</span> <span class="tag">memory</span></div>
+<p><strong>Authors:</strong> Shangheng Du, Xiangchao Yan, Jinxin Shi, Zongsheng Cao, Shiyang Feng, Zichen Liang, Boyuan Sun, Tianshuo Peng, Yifan Zhou, Xin Li, Jie Zhou, Liang He, Bo Zhang, Lei Bai (InternScience) / <strong>Date:</strong> 2026-06-04 / <strong>arXiv:</strong> <a href="https://arxiv.org/abs/2606.06473" rel="noreferrer">2606.06473</a></p>
+<h2 id="summary">Summary</h2>
+<p><strong>MLEvolve</strong> is an LLM-driven evolutionary framework for long-horizon <strong>machine-learning-engineering (MLE) algorithm discovery</strong> — the AlphaEvolve/FunSearch lineage, but built to <em>sustain self-evolution</em> across extended optimization horizons. The authors diagnose three failure modes in prior evolutionary code search: information compartmentalized across search branches, stateless (memoryless) exploration, and no hierarchical governance over which changes to attempt. MLEvolve addresses each with a distinct mechanism.</p>
+<p>The core structural move is <strong>Progressive MCGS (Monte-Carlo Graph Search):</strong> instead of a strict evolutionary <em>tree</em>, MLEvolve adds <strong>reference edges</strong> that turn the search into a directed graph, letting knowledge flow across branches, and uses an entropy-inspired schedule to shift progressively from exploration to exploitation. On top of this sits a <strong>Retrospective Memory</strong> — a static cold-start domain knowledge base fused with a dynamic global memory that auto-accumulates and retrieves task-specific experience. Finally, it <strong>decouples strategic planning</strong> (what/why to modify) from <strong>coding</strong> (how), adaptively picking among three coding modes based on search state for stability over long runs.</p>
+<p>Reported results: state-of-the-art average medal rate and valid-submission rate on <strong>MLE-Bench</strong> within 12 hours (half the standard runtime), and it beats <a href="source-alphaevolve.html">source-alphaevolve</a> on mathematical algorithm-optimization tasks. Flagged by Robert T. Lange (Sakana AI, author of ShinkaEvolve / The AI Scientist).</p>
+<h2 id="key-ideas">Key Ideas</h2>
+<ul><li><strong>Graph, not tree.</strong> Reference edges create cross-branch knowledge flow — a departure from the archive-database and single-tree structures of prior evolutionary search.</li><li><strong>Progressive explore→exploit</strong> via an entropy-inspired schedule inside Monte-Carlo Graph Search.</li><li><strong>Self-evolving memory.</strong> Cold-start domain KB + dynamic global memory that accumulates and retrieves task experience — contrasted explicitly with "archive databases or memoryless search."</li><li><strong>Plan/code decoupling</strong> with three adaptively-selected coding modes, for stability over long horizons.</li><li><strong>Efficiency.</strong> SOTA on MLE-Bench in 50% of standard runtime; outperforms AlphaEvolve on math-algorithm tasks.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li>Direct descendant of the LLM-as-mutation-operator + verifier-as-selection template in <a href="source-alphaevolve.html">source-alphaevolve</a> and <a href="source-funsearch.html">source-funsearch</a>; adds memory and graph structure on top.</li><li>Closest sibling in the wiki is <a href="source-gea-group-evolving-agents.html">source-gea-group-evolving-agents</a> — both target <strong>open-ended self-improvement</strong> via shared experience/memory across a population; MLEvolve is memory-over-graph-search, GEA is experience-sharing across an agent group. Both connect to <a href="concept-self-improvement.html">concept-self-improvement</a>.</li><li>The plan/code decoupling and coding-agent framing tie to <a href="concept-ai-agents.html">concept-ai-agents</a>; MLE-Bench as an autonomous-research-agent benchmark relates to <a href="source-airs-bench-research-agents.html">source-airs-bench-research-agents</a>.</li><li>Squarely within the <a href="concept-neural-symbolic-bridge.html">concept-neural-symbolic-bridge</a> pattern: neural proposer, deterministic evaluator as selection pressure.</li><li>Contrast with <a href="source-sutton-generative-ai-discovery.html">source-sutton-generative-ai-discovery</a>: Sutton argues generative AI <em>alone</em> can't discover because it lacks the Evaluation+Selective-retention loop — MLEvolve is exactly a system that supplies that loop around an LLM.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><a href="https://arxiv.org/abs/2606.06473" rel="noreferrer">arXiv:2606.06473</a> · <a href="https://github.com/InternScience/MLEvolve" rel="noreferrer">GitHub: InternScience/MLEvolve</a></li><li><a href="https://x.com/RobertTLange/status/2066086654574555229" rel="noreferrer">Announcement thread (@RobertTLange)</a></li><li>Raw note: <code>raw/tweet-mlevolve.md</code></li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2606.06473" rel="noreferrer">https://arxiv.org/abs/2606.06473</a></li><li><a href="https://github.com/InternScience/MLEvolve" rel="noreferrer">https://github.com/InternScience/MLEvolve</a></li><li><a href="https://x.com/RobertTLange/status/2066086654574555229" rel="noreferrer">https://x.com/RobertTLange/status/2066086654574555229</a></li></ul></details>
+</main>
+</body>
+</html>

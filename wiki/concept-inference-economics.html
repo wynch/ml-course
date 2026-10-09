@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Inference Economics · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="inference-economics">Inference Economics</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-07-04</span> <span>updated 2026-10-03</span> <span class="tag">ai-economics</span> <span class="tag">token-pricing</span> <span class="tag">inference</span> <span class="tag">developer-tools</span> <span class="tag">evaluation</span></div>
+<p>The economics of running LLMs: what a token <em>costs</em>, what a token <em>buys</em>, and how the gap between the two moves. New axis in the wiki as of 2026-07; previously the closest coverage was efficiency work (quantization, small models) without the demand-side lens.</p>
+<h2 id="key-ideas">Key Ideas</h2>
+<ul><li><strong>Tokenflation (demand side).</strong> <a href="source-token-purchasing-power-bigspin.html">source-token-purchasing-power-bigspin</a> shows that for a fixed model at flat nominal prices, <em>output per token</em> can collapse — a 10K-token Opus 4.6 session shipped ~0.30 PRs / ~630 LOC in Feb 2026 vs ~0.16 PRs / ~91 LOC by mid-April, driven by a job-mix shift toward thinking (1% → 18%). Real cost rises while price lists stay flat.</li><li><strong>Test-time compute is the cost driver.</strong> The same mechanism celebrated in <a href="concept-test-time-compute.html">concept-test-time-compute</a> as a capability lever is, on the invoice, the main inflator of tokens-per-task.</li><li><strong>The cheap-model tier (supply side).</strong> A deflationary counter-force: $10/mo access to open models (OpenCode Go: GLM, Kimi, Qwen, DeepSeek, MiniMax), local code models (Gemma 4 12B Coder), and 1M-context MoEs from new entrants (Meituan LongCat-2.0) — see <a href="source-2026-q2-ai-ecosystem-notes.html">source-2026-q2-ai-ecosystem-notes</a>. Related efficiency levers: <a href="source-quantization-ground-up-ngrok.html">source-quantization-ground-up-ngrok</a>, <a href="source-lacy-small-language-models.html">source-lacy-small-language-models</a>.</li><li><strong>Independent price/quality tracking.</strong> Artificial Analysis benchmarks quality-vs-price-vs-latency across 548+ models and providers (<a href="source-2026-q2-ai-ecosystem-notes.html">source-2026-q2-ai-ecosystem-notes</a>), making the supply curve legible.</li><li><strong>Harness search buys score with tokens.</strong> Unregularized harness evolution raised policy tokens per trial from 1.56 M to 3.80 M on an agentic workspace suite for +0.6 OOD points; the full regularized search, whose selection rule caps cost growth by measured gain, held it at 2.42 M for +3.9 (<code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code>, §4.3, Table 2). See <a href="source-rrsi-regularized-harness-evolution.html">source-rrsi-regularized-harness-evolution</a>.</li><li><strong>Why batching makes tokens cheap.</strong> A decode step reads every weight to make one token per request. Below a saturation batch size the step costs about the same for 1 or 10 requests, so batching spreads the weight reads over more tokens; the price is higher inter-token latency. Servers tune for "goodput", the throughput that still meets latency targets (<code>raw/web-2025-aleksagordic-inside-vllm.md</code>, §"Scheduler"; §"Benchmarks and auto-tuning - latency vs throughput"). See <a href="source-inside-vllm-gordic.html">source-inside-vllm-gordic</a>, <a href="concept-llm-serving.html">concept-llm-serving</a>.</li><li><strong>Numbers out, output free.</strong> Most LLMs charge more per output token than per input token. Jev, a "decision model" that answers only in numbers (probabilities, choice distributions, scores), charges for input alone, at $0.042 per million tokens, below GPT-5 Nano's $0.05; many questions on one input run in parallel (<code>raw/web-2026-simonwillison-jev-decision-models.md</code>, opening). Cheap enough, per Willison, that thousands of eval prompts cost a few cents (same file, §"Black boxes are back in fashion"). See <a href="source-willison-jev-decision-models.html">source-willison-jev-decision-models</a>. A measured run: 25,000 IMDb reviews in 22 min 24 s for $0.6492, at 96.47% accuracy (<code>raw/web-2026-raschka-classifier-history-and-jev.md</code>, §3.3; see <a href="source-raschka-text-classification-to-jev.html">source-raschka-text-classification-to-jev</a>).</li><li><strong>Loop budgeting.</strong> <a href="source-loop-engineering-addy-osmani.html">source-loop-engineering-addy-osmani</a> frames autonomous-loop design as explicitly <em>token-rich vs token-poor</em> engineering — the harness layer is where economics and capability meet.</li></ul>
+<h2 id="why-it-matters-for-the-wikis-axes">Why it matters for the wiki's axes</h2>
+<p>Agent harnesses (<a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a>) are usually justified by capability; the economics lens gives an independent justification — deterministic scaffolding is <em>cheap</em>, thinking tokens are <em>expensive</em>, so pushing work out of the model and into the substrate is also a cost strategy. The measurement approach (PRs shipped, survival-adjusted output) is close in spirit to <span class="dead" title="not published">idea-benchmark-honest-epistemic-loop</span>.</p>
+<h2 id="open-questions">Open Questions</h2>
+<ol><li>Is tokenflation a model-behavior drift, a task-mix drift, or a Goodhart effect of optimizing for benchmark-visible reasoning? Bigspin's own three-way decomposition is unresolved.</li><li>Does the cheap-open-model tier put a real ceiling on frontier pricing, or do capability gaps (e.g. <a href="source-frontiercode-cognition-eval.html">source-frontiercode-cognition-eval</a>'s 13.4%-max Diamond split) keep the tiers segmented?</li></ol>
+<h2 id="key-sources">Key Sources</h2>
+<ul><li><a href="source-token-purchasing-power-bigspin.html">source-token-purchasing-power-bigspin</a> — the tokenflation index</li><li><a href="source-2026-q2-ai-ecosystem-notes.html">source-2026-q2-ai-ecosystem-notes</a> — supply-side signals (Artificial Analysis, OpenCode Go, LongCat, Gemma Coder)</li><li><a href="source-loop-engineering-addy-osmani.html">source-loop-engineering-addy-osmani</a> — token-budgeted loop design</li><li><a href="source-rrsi-regularized-harness-evolution.html">source-rrsi-regularized-harness-evolution</a> — token cost as a selection rule in harness evolution</li><li><a href="source-inside-vllm-gordic.html">source-inside-vllm-gordic</a> — the server side: batching, latency and throughput</li><li><a href="source-willison-jev-decision-models.html">source-willison-jev-decision-models</a> — input-only pricing for a model that returns numbers, not text</li></ul>
+<h2 id="related">Related</h2>
+<p><a href="concept-test-time-compute.html">concept-test-time-compute</a> · <a href="concept-developer-tools.html">concept-developer-tools</a> · <a href="concept-scaling-laws.html">concept-scaling-laws</a> · <a href="concept-mixture-of-experts.html">concept-mixture-of-experts</a></p>
+<details class="src"><summary>Sources (9)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>source-token-purchasing-power-bigspin</code></li><li><code>source-2026-q2-ai-ecosystem-notes</code></li><li><code>source-loop-engineering-addy-osmani</code></li><li><code>source-lacy-small-language-models</code></li><li><code>source-quantization-ground-up-ngrok</code></li><li><code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code></li><li><code>raw/web-2025-aleksagordic-inside-vllm.md</code></li><li><code>raw/web-2026-simonwillison-jev-decision-models.md</code></li><li><code>raw/web-2026-raschka-classifier-history-and-jev.md</code></li></ul></details>
+</main>
+</body>
+</html>

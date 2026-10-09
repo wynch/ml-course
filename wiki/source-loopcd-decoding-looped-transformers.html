@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Decoding Looped Transformers Better for (Almost) Free (Liu et al., 2026) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="loopcd-decoding-looped-transformers-better-for-almost-free">LoopCD: Decoding Looped Transformers Better for (Almost) Free</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-03</span> <span>updated 2026-10-03</span> <span class="tag">looped-transformers</span> <span class="tag">recurrence</span> <span class="tag">contrastive-decoding</span> <span class="tag">test-time-compute</span> <span class="tag">latent-reasoning</span> <span class="tag">decoding</span> <span class="tag">2026</span></div>
+<p><strong>Authors:</strong> Weihao Liu, Huangjie Zheng, Tianrong Chen, Rohit Dilip, Richard He Bai, Yizhu Jiao, Yuyang Wang, Ruixiang Zhang (Apple; Liu's work done as an intern) <strong>Published:</strong> arXiv 2610.02185, v1 2026-10-01 <strong>Raw copy:</strong> <code>raw/arxiv-2610-02185-decoding-looped-transformers-better-for-almost.md</code> (captured 2026-10-03, full text of v1)</p>
+<p>Every claim below cites the raw file as R, with the paper's section number.</p>
+<h2 id="summary">Summary</h2>
+<p>A looped transformer runs one shared block several times before it emits a token. Each completed loop leaves a state that the model's own output layers can turn into a guess at the next token; ordinary decoding keeps only the last one (R, §1, §2).</p>
+<p>LoopCD uses that waste. The guess after the first loop is a weak model; the guess after the last loop is a strong one; both come from the same weights, for the same prefix. LoopCD pushes the final guess further along the line from weak to strong (R, §3):</p>
+<ul><li><strong>LoopCD-Logits:</strong> z′ = z_R + ω (z_R − z_1), where z_1 and z_R are the scores (logits) read from the first and last loop. It costs one extra pass through the layers after the loop (R, §3.1, Eq. 3).</li><li><strong>LoopCD-Hidden:</strong> the same rule applied to the hidden states before those layers; no extra pass (R, §3.1, Eq. 2).</li><li><strong>Strength ω:</strong> fixed, or adaptive: ω_max × (1 − gap between the two most likely tokens), so the push is largest where the model is torn (R, §3.2, Eq. 4).</li></ul>
+<p>No training, no second model. The idea comes from contrastive decoding, which needs a separate weak model, and from guidance in image diffusion (R, §1, Appendix H).</p>
+<p>Four model families: Ouro (the whole stack loops), Huginn (a 4-layer block looped between fixed layers; <a href="source-recurrent-depth-latent-reasoning.html">source-recurrent-depth-latent-reasoning</a>), Parcae, and Looped-Qwen3 (a frozen Qwen3-4B with a 4-layer window looped) (R, §2, Appendix A.2, Table A1).</p>
+<h2 id="key-results">Key results</h2>
+<ul><li><strong>Maths, same depth:</strong> Ouro-2.6B-Thinking, AIME 2024 pass@1 61.88 → 73.33 (adaptive); AIME 2025 49.58 → 56.88; OlympiadBench 64.05 → 67.29. Mean pass@1 gains of 5.27 to 7.33 points over the Ouro rows (R, §4.1, Table 1a). AIME has 30 problems per year; pass@1 is estimated from 16 samples per problem (R, Appendix B.2).</li><li><strong>Code, same depth:</strong> Huginn at 32 loops, HumanEval pass@1 22.56 → 31.71 with LoopCD-Hidden (R, §4.1, Table 3b). Gains on Ouro and Looped-Qwen3 are 0.37 to 2.54 points (R, Table 1b).</li><li><strong>Multiple choice, seven benchmarks:</strong> every configuration raises its mean, by +0.29 to +1.59 points (R, §4.2, Table 2).</li><li><strong>Half the loops:</strong> halving the loops costs 0.17 to 1.29 points on the multiple-choice mean; LoopCD at half depth adds 0.75 to 1.29 and matches or beats the full-depth model in all six settings, for 22.5% to 48.2% fewer forward FLOPs (R, §4.3, Table A9). Huginn at 16 of 32 loops beats its full-depth self by 1.02 points with LoopCD-Logits (R, §4.3).</li><li><strong>Why it works:</strong> the first loop alone trails the last by 4.0 to 23.7 points on the multiple-choice mean (R, §5.1). The gain follows how often the weak guess disagrees with the final one, not how good the weak guess is: Huginn's first step disagrees on 51% of ARC-Challenge questions and gives 3.07 points; its sixteenth disagrees on 7% and gives 0.17 (R, §5.1, Table A11).</li><li><strong>What it changes:</strong> few answers flip (5.8% to 14.9% on ARC-Challenge). On the least confident fifth of questions it adds +6.4 to +13.3 points; on the most confident fifth, at most +0.4 (R, §5.2, Table A12). The push splits into a part that only sharpens (like a lower temperature) and a part that reorders tokens; the reordering carries most of the gain (R, §5.2, Appendix F.3).</li><li><strong>Limits on strength:</strong> multiple choice gains across a wide band peaking near ω = 0.5; generation needs ω of 0.2 to 0.3, and beyond about 0.6 it falls steeply: Ouro-1.4B loses 20 GSM8K points at ω = 1.0 (R, §5.3, Appendix G.1).</li><li><strong>Only whole loops work as the weak model:</strong> layers inside a loop drift; using one as the reference cuts ARC-Challenge by up to 24.9 points (R, Appendix E.3). Huginn's first hidden state is mostly its starting noise, so LoopCD-Hidden on Huginn uses the sixth or seventh state (R, §5.1, Appendix B.4, E.1).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>Strengths were picked by sweeps on the same benchmark suites, shown in Figures 9 and 10 (R, Appendix B.4); the paper names no held-out tuning set.</li><li>Not every gain holds. GSM8K falls in four of ten configurations, by up to 1.29 points (R, Appendix C.1, Table A5). On Looped-Qwen3, LoopCD lowers maths pass@1 (AIME 2024 64.79 → 61.88) while raising pass@10 (R, Appendix C.2, Table A6). The main maths table shows only Ouro.</li><li>The FLOP savings are counted, not timed: a 512-token prefill, no wall-clock (R, Appendix D.1). The half-depth results cover multiple choice only (R, Appendix D.1).</li><li>The Huginn code baselines differ between tables: HumanEval at 32 loops is 23.17 in Table 1(b) and 22.56 in Table 3(b). The headline 22.56 → 31.71 uses the lower one. Each form seems to carry its own baseline run: the multiple-choice baselines also differ between Tables 2 and 3 (Huginn ARC-Challenge 37.63 against 37.97), and the paper does not explain the gap (R, Tables 1-3).</li><li>Appendix D.3 says matched seven-benchmark means "consistently favor the hidden-state form", but its numbers for Ouro-1.4B are 0.10 against 0.51.</li><li>Models up to 4B parameters (R, Table A1). The paper compares guided half depth only with unguided full depth, not with other uses of the same compute, such as more samples.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-recurrent-depth-latent-reasoning.html">source-recurrent-depth-latent-reasoning</a> — Huginn, the looped model tested here. LoopCD measures how its loop settles: next-token entropy falls from 4.1 to 2.7 nats by step 16 and stays flat to 32, while 67% of positions stay above 2 nats (R, Appendix E.3).</li><li><a href="concept-latent-reasoning.html">concept-latent-reasoning</a> — the looped row of that page; LoopCD shows each completed loop is a readable, weaker prediction.</li><li><a href="concept-test-time-compute.html">concept-test-time-compute</a> — a decoding rule that trades loops for a cheap readout.</li><li><a href="source-distribution-sharpening-power-sampling.html">source-distribution-sharpening-power-sampling</a> — another training-free way to get more out of a fixed model at decoding time. Here plain sharpening helps on ARC-Challenge and hurts on HellaSwag (R, Appendix F.3).</li><li><a href="source-equilibrium-reasoners.html">source-equilibrium-reasoners</a> — weight-tied iteration toward a stable state; LoopCD reads the path toward it rather than only the end.</li><li><a href="concept-transformer-architecture.html">concept-transformer-architecture</a> · <a href="thread-test-time-compute.html">thread-test-time-compute</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li>Raw: <code>raw/arxiv-2610-02185-decoding-looped-transformers-better-for-almost.md</code></li><li>arXiv: <a href="https://arxiv.org/abs/2610.02185" rel="noreferrer">https://arxiv.org/abs/2610.02185</a> · HTML: <a href="https://arxiv.org/html/2610.02185v1" rel="noreferrer">https://arxiv.org/html/2610.02185v1</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2610-02185-decoding-looped-transformers-better-for-almost.md</code></li><li><a href="https://arxiv.org/abs/2610.02185" rel="noreferrer">https://arxiv.org/abs/2610.02185</a></li></ul></details>
+</main>
+</body>
+</html>

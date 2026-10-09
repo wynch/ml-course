@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Coconut: Training LLMs to Reason in a Continuous Latent Space (Hao et al., 2024) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="coconut-chain-of-continuous-thought">Coconut: Chain of Continuous Thought</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-09-26</span> <span>updated 2026-09-26</span> <span class="tag">latent-reasoning</span> <span class="tag">continuous-thought</span> <span class="tag">chain-of-thought</span> <span class="tag">curriculum-learning</span> <span class="tag">test-time-compute</span> <span class="tag">planning</span> <span class="tag">search</span></div>
+<p><strong>Authors:</strong> Shibo Hao, Sainbayar Sukhbaatar, DiJia Su, Xian Li, Zhiting Hu, Jason Weston, Yuandong Tian (FAIR at Meta, UC San Diego) <strong>Published:</strong> arXiv 2412.06769, v1 2024-12-09, v4 2026-08-23 (COLM 2025) <strong>Raw copy:</strong> <code>raw/arxiv-2412-06769-coconut-reason-in-continuous-latent-space.md</code> (captured 2026-09-26, full text of v4; its section numbers differ from v1)</p>
+<p>Every claim below cites the raw file as R, with the section number of v4.</p>
+<h2 id="summary">Summary</h2>
+<p>Chain-of-thought makes a model reason in words. Coconut lets it reason in its own hidden states: between a <code>&lt;bot&gt;</code> and an <code>&lt;eot&gt;</code> marker, the last hidden state at each step goes straight back in as the next input embedding, with no word chosen in between. The paper calls each such vector a "continuous thought" (R, §3). The thoughts are differentiable, so the whole chain trains by gradient descent (R, §1, §3).</p>
+<p><strong>What supervises the thoughts:</strong> written reasoning chains, used as a curriculum. Stage 0 trains on normal chain-of-thought; at stage k the first k written steps are replaced by k × c continuous thoughts. The loss falls only on the words that remain after the thoughts, never on the thoughts, so a thought is pushed to help predict what comes next, not to copy the step it replaced (R, §3, Figure 2). Training a chain of n thoughts takes n + 1 sequential forward passes, which the authors name as a training-cost problem (R, §3).</p>
+<h2 id="key-results">Key results</h2>
+<p>GPT-2 base model; greedy decoding; the number of thoughts at inference is fixed to the last training stage (R, §4.1, §5.1). Table 1 (R, §5):</p>
+<div class="tw"><table><thead><tr><th>Method</th><th>GSM8k</th><th>ProntoQA</th><th>ProsQA</th></tr></thead><tbody><tr><td>CoT (written)</td><td>42.9</td><td>98.8</td><td>77.5</td></tr><tr><td>No-CoT</td><td>16.5</td><td>93.8</td><td>76.7</td></tr><tr><td>iCoT (written steps removed gradually)</td><td>30.0</td><td>99.8</td><td>98.2</td></tr><tr><td>Pause tokens (finetuning only)</td><td>16.4</td><td>77.7 ± 21.0</td><td>75.9</td></tr><tr><td><strong>Coconut</strong></td><td><strong>34.1</strong></td><td><strong>99.8</strong></td><td><strong>97.0</strong></td></tr><tr><td>Coconut without curriculum</td><td>14.4</td><td>52.4</td><td>76.1</td></tr><tr><td>Coconut without thoughts (curriculum only)</td><td>21.6</td><td>99.9</td><td>95.5</td></tr><tr><td>Coconut with pause tokens as thoughts</td><td>24.1</td><td>100.0</td><td>96.6</td></tr></tbody></table></div>
+<ul><li><strong>Chaining thoughts helps on math:</strong> on GSM8k, raising c (thoughts per replaced step) from 0 to 1 to 2 raises accuracy step by step; c = 3 was unstable (R, §5.3, Appendix C.1).</li><li><strong>Fewer tokens:</strong> Coconut generates 8.2 tokens on GSM8k against 25.0 for CoT, and runs in 0.09 s against 0.26 s per question on an A100 (R, Table 1, Appendix B).</li><li><strong>Without the curriculum it fails:</strong> trained on questions and answers alone, the model does no better than no-CoT (R, §5.3). The authors call for methods that learn latent reasoning "without the supervision from language reasoning chains" (R, §5.3).</li><li><strong>Latent search on ProsQA</strong> (a new dataset of graph-shaped logic puzzles): forcing the model to write the rest of the path after k thoughts shows that the probability it gives each next node works like a value estimate. It is not greedy: in one example "lempus" leads with 0.33 after the first thought, yet after the second the top value (0.87) goes to a grandchild via another branch. The authors read this as breadth-first search (R, §4.3, Figure 5). The top-1 / top-2 / top-3 gaps are wide after the first thought and narrow after the second (R, §4.3, Figure 6).</li><li><strong>Why it helps planning:</strong> nodes far from any leaf get vaguer value estimates than nodes near one, so postponing the choice pays (R, §4.4, Figure 7).</li><li><strong>Larger models:</strong> on GSM8k with c = 1, Llama 3.2-3B goes 26.0 → 31.7 and Llama 3-8B 42.2 → 43.6 over no-CoT; smaller gains than with GPT-2 (R, Appendix C.2).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>Coconut does not beat written CoT on GSM8k (34.1 vs 42.9); its case there is accuracy per token (R, §5.3, Figure 8).</li><li>On ProsQA and ProntoQA the curriculum alone nearly matches it (95.5 and 99.9 without any thoughts), and the authors grant that "the model's computational capacity may not be the bottleneck in these tasks" (R, §5.3). The BFS reading rests on probing, not on an ablation that needs the thoughts.</li><li>Written chains are required to train it (R, §3, §5.3).</li><li>The "pause token" baseline here adds pauses at finetuning only, the setting <a href="source-pause-tokens.html">source-pause-tokens</a> found weakest; it is not that paper's pause-pretrained model (R, §5.2).</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-abstract-token-curriculum.html">source-abstract-token-curriculum</a> — ATC uses the same mechanism (last hidden state fed back) but supervises only the answer and moves the curriculum from written steps to task difficulty. Its "Coconut" baselines supervise intermediate states (frontier nodes on graph reachability, partial sums on addition) rather than written chains; on eight-digit addition that baseline scores 0% (<code>raw/arxiv-2609-19717-learn-your-own-thoughts-abstract-token-curriculum.md</code>, §6.2.1, §7). ATC's "full latent budget without curriculum" control (47.8%, chance 50%) agrees with Coconut's "without curriculum" row.</li><li><a href="source-recurrent-depth-latent-reasoning.html">source-recurrent-depth-latent-reasoning</a> — reasons in latent space by looping a block rather than feeding states back as tokens; its authors call Coconut a finetuned "limited depth-recurrent" model and note theirs needs no written chains (<code>raw/arxiv-2502-05171-recurrent-depth-latent-reasoning.md</code>, §6.3).</li><li><a href="source-soft-tokens-hard-truths.html">source-soft-tokens-hard-truths</a> — a later critic: Coconut needs written chains and full backpropagation through the chain, which "limited it to 6 continuous CoT tokens", and its benefits "appear confined to a benchmark designed for this purpose" (<code>raw/arxiv-2509-19170-soft-tokens-hard-truths.md</code>, §2, §3 "In a nutshell"). Consistent with the table above: Coconut beats written CoT only on ProsQA and ProntoQA.</li><li><a href="source-continuous-cot-two-regimes.html">source-continuous-cot-two-regimes</a> — puts Coconut in the "indirect" regime; on GSM8k-Aug with Llama-3.2-1B it scores 45.30, behind CODI (53.03) and written CoT (61.94). On realistic MATH chains, indirect methods fall to about a third of written CoT (<code>raw/arxiv-2607-16972-continuous-cot-tale-of-two-regimes.md</code>, Table 2, Table 5).</li><li><a href="source-pause-tokens.html">source-pause-tokens</a> — the ancestor Coconut cites for extra latent tokens; used here as a baseline and as a variant (R, §2, §5.2).</li><li><a href="source-topological-trouble-transformers.html">source-topological-trouble-transformers</a> — names latent thinking as a costly workaround; Coconut's n + 1 sequential training passes are that cost (R, §3).</li><li><a href="source-measuring-cot-monitorability.html">source-measuring-cot-monitorability</a> — continuous thoughts are not text; Coconut reads them only by decoding them to words (R, §4.3, §5.3 Figure 9).</li><li><a href="concept-test-time-compute.html">concept-test-time-compute</a> · <a href="concept-llm-reasoning.html">concept-llm-reasoning</a> · <a href="thread-test-time-compute.html">thread-test-time-compute</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li>Raw: <code>raw/arxiv-2412-06769-coconut-reason-in-continuous-latent-space.md</code></li><li>arXiv: <a href="https://arxiv.org/abs/2412.06769" rel="noreferrer">https://arxiv.org/abs/2412.06769</a> · HTML: <a href="https://arxiv.org/html/2412.06769" rel="noreferrer">https://arxiv.org/html/2412.06769</a> · Code: <a href="https://github.com/facebookresearch/coconut" rel="noreferrer">https://github.com/facebookresearch/coconut</a></li></ul>
+<details class="src"><summary>Sources (6)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2412-06769-coconut-reason-in-continuous-latent-space.md</code></li><li><a href="https://arxiv.org/abs/2412.06769" rel="noreferrer">https://arxiv.org/abs/2412.06769</a></li><li><a href="https://github.com/facebookresearch/coconut" rel="noreferrer">https://github.com/facebookresearch/coconut</a></li><li><code>raw/arxiv-2502-05171-recurrent-depth-latent-reasoning.md</code></li><li><code>raw/arxiv-2509-19170-soft-tokens-hard-truths.md</code></li><li><code>raw/arxiv-2607-16972-continuous-cot-tale-of-two-regimes.md</code></li></ul></details>
+</main>
+</body>
+</html>

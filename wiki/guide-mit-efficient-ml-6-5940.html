@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>MIT 6.5940 Fall 2026 (Efficient AI Computing) — a tour against this wiki · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="mit-65940-fall-2026-a-tour-against-this-wiki">MIT 6.5940 Fall 2026 — a tour against this wiki</h1>
+<div class="meta"><span class="type">guide</span> <span>created 2026-09-26</span> <span>updated 2026-09-26</span> <span class="tag">guide</span> <span class="tag">syllabus</span> <span class="tag">efficiency</span> <span class="tag">quantization</span> <span class="tag">pruning</span> <span class="tag">distillation</span> <span class="tag">inference</span> <span class="tag">edge-ai</span></div>
+<p>MIT's efficient deep learning course, taught by Song Han with Shang Yang, Tuesdays and Thursdays, 2026-09-10 to 2026-12-10. It is a PhD-level class with five labs and one group project, and no exams; the stated goal is to understand efficient deep learning and to run an LLM on a laptop (R, "About"; "Logistics"). Prerequisites: MIT 6.191 (computation structures) and 6.390 (intro to ML) (R, "About").</p>
+<p>R = <code>raw/web-2026-mit-6-5940-fall-syllabus.md</code>. The syllabus gives titles and dates only; the slides and videos behind them were not ingested. On 2026-09-26 only lectures 1-5 had slides and videos linked (R, capture note).</p>
+<p>Each stop below is one block of lectures, in the course's order. "Wiki" names the pages to read beside it; "Course" names the matching module in <code>course/modules/</code>. A gap means neither has it.</p>
+<h2 id="stop-0-introduction-and-basics-lectures-1-2-sep-10-15">Stop 0 — Introduction and basics (lectures 1-2, Sep 10-15)</h2>
+<ul><li>Lecture 2, "Basics of Deep Learning"; Lab 0 out (R, "Schedule").</li><li>Course: <code>01-autograd</code>, <code>02-neural-networks</code>.</li></ul>
+<h2 id="chapter-i-efficient-inference">Chapter I — Efficient inference</h2>
+<h3 id="stop-1-pruning-and-sparsity-lectures-3-4-sep-17-22">Stop 1 — Pruning and sparsity (lectures 3-4, Sep 17-22)</h3>
+<ul><li>Wiki: thin. <a href="source-sequential-attention-google.html">source-sequential-attention-google</a> lists weight pruning among the uses of a greedy selection method, in one line; no page explains pruning. The nearest idea is sparsity by routing, where each input uses a few experts and no weight is removed: <a href="concept-mixture-of-experts.html">concept-mixture-of-experts</a>, <a href="source-mixture-of-depths.html">source-mixture-of-depths</a>.</li><li>Course: <code>00c-kernels-hopfield</code> names support vectors as "the sparsity intuition behind everything that prunes" (<code>course/modules/00c-kernels-hopfield/README.md</code>).</li></ul>
+<h3 id="stop-2-quantization-lectures-5-6-sep-24-29">Stop 2 — Quantization (lectures 5-6, Sep 24-29)</h3>
+<ul><li>Wiki: <a href="source-quantization-ground-up-ngrok.html">source-quantization-ground-up-ngrok</a> (symmetric and asymmetric integer schemes, 8/4/2-bit trade-offs); <a href="concept-llm-serving.html">concept-llm-serving</a> for why fewer bytes can mean faster decode.</li><li>Course: <code>07-inference-internals</code>, the int8 lab (per-row symmetric int8, 3.9× smaller file, perplexity unchanged to three decimals).</li></ul>
+<h3 id="stop-3-neural-architecture-search-lectures-7-8-oct-1-6">Stop 3 — Neural architecture search (lectures 7-8, Oct 1-6)</h3>
+<ul><li>Wiki: gap. The closest is automated search over programs rather than networks: <a href="source-harness-optimization-evolve-harness.html">source-harness-optimization-evolve-harness</a>, <a href="source-rrsi-regularized-harness-evolution.html">source-rrsi-regularized-harness-evolution</a>.</li><li>Course: gap.</li></ul>
+<h3 id="stop-4-knowledge-distillation-lecture-9-oct-8">Stop 4 — Knowledge distillation (lecture 9, Oct 8)</h3>
+<ul><li>Wiki: <a href="source-hinton-knowledge-distillation.html">source-hinton-knowledge-distillation</a> (the 2015 paper); <a href="analysis-self-distillation-as-universal-lever.html">analysis-self-distillation-as-universal-lever</a> (the same mechanism across many methods).</li><li>Course: gap.</li></ul>
+<h3 id="stop-5-tinyml-on-microcontrollers-lectures-10-11-oct-15-20">Stop 5 — TinyML on microcontrollers (lectures 10-11, Oct 15-20)</h3>
+<ul><li>Lecture 10 is "MCUNet: TinyML on Microcontrollers"; lecture 11 "TinyEngine and Parallel Processing" (R, "Schedule").</li><li>Wiki: Vincent's own edge work: <span class="dead" title="not published">experiment-edge-autoresearch-and-ane</span> (Apple Neural Engine), <span class="dead" title="not published">idea-wavelet-substrate-for-edge-intelligence</span>, <span class="dead" title="not published">experiment-edge-compression-federation</span>.</li><li>Course: gap (the course runs on a laptop CPU, not a microcontroller).</li></ul>
+<h2 id="chapter-ii-domain-specific-optimization">Chapter II — Domain-specific optimization</h2>
+<h3 id="stop-6-transformers-and-llms-lecture-12-oct-22">Stop 6 — Transformers and LLMs (lecture 12, Oct 22)</h3>
+<ul><li>Wiki: <a href="concept-transformer-architecture.html">concept-transformer-architecture</a>, <a href="source-attention-is-all-you-need.html">source-attention-is-all-you-need</a>.</li><li>Course: <code>04-attention-transformer</code>, <code>05-transformers-library</code>.</li></ul>
+<h3 id="stop-7-llm-quantization-and-deployment-lecture-13-oct-27">Stop 7 — LLM quantization and deployment (lecture 13, Oct 27)</h3>
+<ul><li>Wiki: <a href="source-inside-vllm-gordic.html">source-inside-vllm-gordic</a> (paged KV cache, batching, speculative decoding), <a href="concept-llm-serving.html">concept-llm-serving</a>, <a href="source-quantization-ground-up-ngrok.html">source-quantization-ground-up-ngrok</a>.</li><li>Course: <code>07-inference-internals</code> (KV cache, int8, a Zig engine that matches PyTorch). Lab 5, "LLM deployment on laptop", is the course's version of that module's closing suggestion to run a GGUF model under llama.cpp.</li></ul>
+<h3 id="stop-8-llm-post-training-lecture-14-oct-29">Stop 8 — LLM post-training (lecture 14, Oct 29)</h3>
+<ul><li>Wiki: <a href="concept-rlhf.html">concept-rlhf</a>, <a href="source-instructgpt-rlhf.html">source-instructgpt-rlhf</a>, <a href="source-dpo-direct-preference-optimization.html">source-dpo-direct-preference-optimization</a>, <a href="source-lora-low-rank-adaptation.html">source-lora-low-rank-adaptation</a>, <a href="concept-rlhf-alternatives.html">concept-rlhf-alternatives</a>.</li><li>Course: <code>06-fine-tuning</code> (SFT, LoRA, DPO).</li></ul>
+<h3 id="stop-9-long-context-lecture-15-nov-3">Stop 9 — Long context (lecture 15, Nov 3)</h3>
+<ul><li>Wiki: <a href="concept-long-context.html">concept-long-context</a>, <a href="source-flashattention.html">source-flashattention</a>; chunked prefill and the KV cache's memory cost in <a href="source-inside-vllm-gordic.html">source-inside-vllm-gordic</a>.</li><li>Course: <code>07-inference-internals</code> notes that the KV cache "is what makes long contexts so memory-hungry"; the module stops at 128 tokens.</li></ul>
+<h3 id="stop-10-vision-transformers-lecture-16-nov-5">Stop 10 — Vision transformers (lecture 16, Nov 5)</h3>
+<ul><li>Wiki: <a href="guide-ssl-vision-tour.html">guide-ssl-vision-tour</a> (DINO and later ViT-based work).</li><li>Course: <code>08-vision</code> (from convolutions to ViTs; fine-tunes ViT-tiny).</li></ul>
+<h3 id="stop-11-diffusion-models-lectures-17-18-nov-10-12">Stop 11 — Diffusion models (lectures 17-18, Nov 10-12)</h3>
+<ul><li>Wiki: <a href="source-latent-diffusion-stable-diffusion.html">source-latent-diffusion-stable-diffusion</a>, <a href="source-dit-diffusion-transformer.html">source-dit-diffusion-transformer</a>, <a href="concept-diffusion-language-models.html">concept-diffusion-language-models</a>.</li><li>Course: <code>09-diffusion</code>.</li></ul>
+<h2 id="chapter-iii-efficient-training">Chapter III — Efficient training</h2>
+<h3 id="stop-12-distributed-training-lectures-19-20-nov-17-19">Stop 12 — Distributed training (lectures 19-20, Nov 17-19)</h3>
+<ul><li>Wiki: thin. <a href="source-deepseek-v3.html">source-deepseek-v3</a> (FP8 training, MoE at scale), <a href="source-frontier-model-training.html">source-frontier-model-training</a>. Parallelism appears only on the serving side, in <a href="source-inside-vllm-gordic.html">source-inside-vllm-gordic</a> (tensor, pipeline, data).</li><li>Course: gap.</li></ul>
+<h3 id="stop-13-on-device-training-and-transfer-learning-lecture-21-nov-24">Stop 13 — On-device training and transfer learning (lecture 21, Nov 24)</h3>
+<ul><li>Wiki: <span class="dead" title="not published">experiment-edge-autoresearch-and-ane</span> (training on Apple Silicon), <a href="concept-retrofitting.html">concept-retrofitting</a>.</li><li>Course: <code>06-fine-tuning</code> and <code>08-vision</code> for transfer by fine-tuning.</li></ul>
+<h2 id="chapter-iv-advanced-topics-dec-1-10">Chapter IV — Advanced topics (Dec 1-10)</h2>
+<p>A guest lecture (Dec 1) and three sessions of final project presentations (R, "Schedule").</p>
+<h2 id="labs">Labs</h2>
+<div class="tw"><table><thead><tr><th>Lab</th><th>Topic (R, "Logistics")</th><th>Out / due (R, "Schedule")</th></tr></thead><tbody><tr><td>0</td><td>not named in the lab list; a Colab notebook</td><td>out Sep 15, due Sep 24</td></tr><tr><td>1</td><td>GPU basics</td><td>out Sep 22, due Oct 1</td></tr><tr><td>2</td><td>Quantization</td><td>out Oct 1, due Oct 15</td></tr><tr><td>3</td><td>Neural architecture search</td><td>out Oct 15, due Oct 27</td></tr><tr><td>4</td><td>Quantization</td><td>out Oct 27, due Nov 5</td></tr><tr><td>5</td><td>LLM deployment on laptop</td><td>out Nov 5, due Nov 17</td></tr></tbody></table></div>
+<p>The lab list names quantization twice and says "5 labs", while the schedule also has a Lab 0 (R, "Logistics"; "Schedule"). Kept as written.</p>
+<h2 id="where-the-wiki-is-thin">Where the wiki is thin</h2>
+<p>Pruning, neural architecture search and distributed training have no page of their own; pruning and distributed training get one-line mentions at most. Those are the lectures that would teach the most that is new here.</p>
+<h2 id="references">References</h2>
+<ul><li>R = <code>raw/web-2026-mit-6-5940-fall-syllabus.md</code></li><li><a href="https://hanlab.mit.edu/courses/2026-fall-65940" rel="noreferrer">https://hanlab.mit.edu/courses/2026-fall-65940</a> · <a href="https://efficientml.ai" rel="noreferrer">https://efficientml.ai</a></li><li><code>course/modules/</code> (modules named above)</li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/web-2026-mit-6-5940-fall-syllabus.md</code></li><li><a href="https://hanlab.mit.edu/courses/2026-fall-65940" rel="noreferrer">https://hanlab.mit.edu/courses/2026-fall-65940</a></li></ul></details>
+</main>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Mech Interp Surveys: Rai et al. Practical Review (2024) + Shu et al. SAE Survey (2025) · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="mech-interp-surveys">Mech Interp Surveys</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-07</span> <span>updated 2026-05-07</span> <span class="tag">interpretability</span> <span class="tag">survey</span> <span class="tag">mech-interp</span> <span class="tag">sparse-autoencoders</span> <span class="tag">circuits</span> <span class="tag">probing</span> <span class="tag">activation-patching</span> <span class="tag">features</span></div>
+<p>The pair of survey papers the wiki uses as authoritative entry points to mechanistic interpretability. Rai et al. zoom out across all of MI; Shu et al. zoom in on SAEs specifically. Together they are the "what to read first" reference pair for <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a>.</p>
+<h2 id="a-practical-review-of-mechanistic-interpretability-for-transformer-based-lms-rai-zhou-feng-saparov-yao-2024">A Practical Review of Mechanistic Interpretability for Transformer-Based LMs — Rai, Zhou, Feng, Saparov, Yao 2024</h2>
+<p><em><a href="https://arxiv.org/abs/2407.02646" rel="noreferrer">arXiv:2407.02646</a>, July 2024 (latest revision Oct 2025).</em></p>
+<p>A 61-page, 15-figure survey aimed at researchers entering the field. (Originally indexed in the wiki as "Bereska &amp; Gavves" — that is a <em>different</em> mech-interp survey, also 2024, focused on AI safety motivations. This page covers Rai et al.'s <strong>practical</strong> review, which is more comprehensive and task-centric.)</p>
+<p>Its distinctive move is the <strong>task-centric organisation</strong>: rather than carve up MI by methodology (probes / patching / SAEs / circuits), it groups research around the <em>questions being asked</em>.</p>
+<h3 id="coverage-map">Coverage map</h3>
+<p>The review covers the full method stack. Roughly:</p>
+<ul><li><strong>Probing</strong> — what information is linearly recoverable from a representation; classifier probes vs. structural probes; failure modes (probes succeeding doesn't mean the model uses the information).</li><li><strong>Activation patching / causal mediation</strong> — substitute a clean activation with a corrupted one (or vice versa) and measure downstream effect; the workhorse of circuit discovery from <a href="source-wang-2022-ioi-circuit-gpt2.html">source-wang-2022-ioi-circuit-gpt2</a> onward.</li><li><strong>Attribution</strong> — gradient × activation, integrated gradients, attribution patching; quantifies how much each component matters for a specific prediction.</li><li><strong>Circuit analysis</strong> — going from "this head matters" to "this head plus that MLP plus this composition implements algorithm X." The IOI / induction-head / grokking lineage. Includes <a href="source-conmy-2023-acdc-automated-circuit-discovery.html">source-conmy-2023-acdc-automated-circuit-discovery</a>-style automation and <a href="source-circuit-tracing-methods-anthropic.html">source-circuit-tracing-methods-anthropic</a> attribution graphs.</li><li><strong>Sparse autoencoders</strong> — feature decomposition of the residual stream / FFN activations into a sparse, monosemantic basis. Covers the <a href="source-sae-monosemanticity-2023.html">source-sae-monosemanticity-2023</a> → <a href="source-sae-scaling-trilogy.html">source-sae-scaling-trilogy</a> arc and architectural variants.</li><li><strong>Causal interventions</strong> — broader category encompassing patching, ablation, steering, and feature-level interventions like the ones in <a href="source-conditional-activation-steering-cast.html">source-conditional-activation-steering-cast</a>.</li></ul>
+<h3 id="task-centric-framing">Task-centric framing</h3>
+<p>The novel contribution is organising findings by <em>what question the technique answers</em>:</p>
+<ul><li>"What does this component represent?"</li><li>"What is this component computing?"</li><li>"How does this behaviour arise mechanistically?"</li><li>"How can we steer or correct this behaviour?"</li><li>"How do we evaluate whether an explanation is correct?"</li></ul>
+<p>Makes the review usable as a lookup table: a practitioner with a specific question can find the relevant techniques without learning the whole method taxonomy first.</p>
+<h3 id="snapshot-of-the-field-mid-2024">Snapshot of the field (mid-2024)</h3>
+<ul><li>The <strong>circuits foundation</strong> — Olah, Elhage, induction heads, IOI, grokking (<a href="source-anthropic-mi-foundations.html">source-anthropic-mi-foundations</a>).</li><li>The <strong>superposition + SAE turn</strong> — Anthropic toy models → Bricken → Cunningham → Templeton; the field's reorientation around features-as-directions.</li><li>The <strong>automation push</strong> — ACDC, attribution patching, transcoders, attribution graphs.</li><li>The <strong>frontier-application turn</strong> — Biology-of-Claude-3.5-Haiku (<a href="source-lindsey-2025-biology-of-llm.html">source-lindsey-2025-biology-of-llm</a>), large-scale SAE deployments.</li><li>The <strong>evaluation problem</strong> — how to tell whether an explanation is faithful, including the chain-of-thought-monitorability question (<a href="source-measuring-cot-monitorability.html">source-measuring-cot-monitorability</a>).</li></ul>
+<p>Identified gaps: scalability of circuit-level analysis, faithfulness benchmarks, the gap between "we can name features" and "we can predict behaviour from features."</p>
+<p><strong>Distinctive contribution:</strong> the <strong>survey-of-surveys reference</strong> for mech interp — the page to cite when something needs an authoritative, recent, comprehensive overview rather than a single primary source.</p>
+<h2 id="a-survey-on-sparse-autoencoders-shu-wu-zhao-rai-yao-liu-du-2025">A Survey on Sparse Autoencoders — Shu, Wu, Zhao, Rai, Yao, Liu, Du 2025</h2>
+<p><em>EMNLP 2025 Findings. <a href="https://arxiv.org/abs/2503.05613" rel="noreferrer">arXiv:2503.05613</a>, March 2025.</em></p>
+<p>A focused survey of the SAE-for-interpretability subfield. Where Rai et al. zoom out across all of MI, this one zooms in on SAEs specifically: what they are, how to train them, how to evaluate them, what to do with them.</p>
+<h3 id="four-pillars">Four pillars</h3>
+<p><strong>1. Technical framework — architectures and training.</strong> SAE variants covered:</p>
+<ul><li><strong>Standard / vanilla SAEs</strong> — encoder–decoder pair with L1-penalised hidden activations; the <a href="source-sae-monosemanticity-2023.html">source-sae-monosemanticity-2023</a> starting point.</li><li><strong>TopK SAEs</strong> — replace L1 with a hard top-k constraint; OpenAI's contribution.</li><li><strong>Batch-TopK</strong> — efficient variant for large activation spaces.</li><li><strong>JumpReLU / Gated SAEs</strong> — DeepMind variants, used in the Gemma Scope release.</li><li><strong>Matryoshka SAEs</strong> (<a href="source-sae-scaling-trilogy.html">source-sae-scaling-trilogy</a>) — nested dictionaries of increasing size, giving a feature <em>hierarchy</em> rather than a flat code.</li><li><strong>Crosscoders</strong> (<a href="source-crosscoder-model-diffing.html">source-crosscoder-model-diffing</a>) — SAEs that span multiple models or multiple layers, supporting model-diffing and cross-layer analysis.</li><li><strong>Transcoders</strong> — SAEs trained on input/output pairs of an MLP block rather than residual-stream activations; basis for <a href="source-circuit-tracing-methods-anthropic.html">source-circuit-tracing-methods-anthropic</a> and the Gemma Scope full-stack release (<a href="source-sae-scaling-trilogy.html">source-sae-scaling-trilogy</a>).</li></ul>
+<p>Training-side topics: sparsity coefficient scheduling, dead-neuron mitigation (resampling, ghost grads), feature collapse avoidance, dictionary-learning perspectives, scaling laws for SAE training compute.</p>
+<p><strong>2. Feature explanation.</strong> Two families of methods for <em>explaining</em> what an SAE feature represents:</p>
+<ul><li><strong>Input-based</strong> — top-activating examples, automated explanation via an LLM scoring activation patterns over text.</li><li><strong>Output-based</strong> — what the feature's decoder column does to the residual stream / next-token distribution; logit lens views; intervention-based readouts.</li></ul>
+<p>Connects naturally to the introspective / self-explanation thread (<a href="source-self-explanation-transluce.html">source-self-explanation-transluce</a>, <a href="source-introspective-interpretability.html">source-introspective-interpretability</a>).</p>
+<p><strong>3. Evaluation.</strong> Distinguishes:</p>
+<ul><li><strong>Structural metrics</strong> — reconstruction loss, sparsity (L0), feature-density distributions, dead-feature rate, dictionary similarity.</li><li><strong>Functional metrics</strong> — does intervening on the feature change behaviour as predicted? Does using SAE features improve probing? Does steering work? This is where the Golden-Gate-Claude-style demos in <a href="source-sae-scaling-trilogy.html">source-sae-scaling-trilogy</a> live.</li></ul>
+<p>Faithfulness — whether an explanation reflects the actual computation — is identified as the central open problem.</p>
+<p><strong>4. Applications.</strong></p>
+<ul><li><strong>Steering and control</strong> — feature-level activation steering (<a href="source-conditional-activation-steering-cast.html">source-conditional-activation-steering-cast</a>).</li><li><strong>Behaviour analysis / model biology</strong> — <a href="source-lindsey-2025-biology-of-llm.html">source-lindsey-2025-biology-of-llm</a> case studies.</li><li><strong>Model diffing</strong> — Crosscoders (<a href="source-crosscoder-model-diffing.html">source-crosscoder-model-diffing</a>).</li><li><strong>Layer replacement</strong> — using SAE features as a stand-in for the layer (<a href="source-complete-replacement-lm-layers.html">source-complete-replacement-lm-layers</a>).</li><li><strong>Safety auditing</strong> — finding deception-relevant or refusal-relevant features.</li></ul>
+<h3 id="open-questions-surfaced">Open questions surfaced</h3>
+<ul><li><strong>Faithfulness</strong> — how to validate that SAE features describe what the model is <em>doing</em>, not just plausible decompositions of activations.</li><li><strong>Dark matter</strong> — what fraction of model behaviour does the SAE basis miss? Does the residual capture something fundamental, or just noise?</li><li><strong>Scaling</strong> — SAE training cost grows with dictionary size and base-model size; can this be made tractable for 10x larger frontier models?</li><li><strong>Non-linear / dictionary structure</strong> — see <a href="source-nonlinear-feature-representations.html">source-nonlinear-feature-representations</a> for the theoretical constraints angle.</li></ul>
+<p><strong>Distinctive contribution:</strong> the <strong>canonical reference</strong> for the SAE branch of <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a> as of mid-2025. Explicitly cites and synthesises essentially every SAE source in this wiki.</p>
+<h2 id="why-this-grouping-matters">Why this grouping matters</h2>
+<p>The two surveys are <strong>complementary in scope</strong>, not redundant:</p>
+<ul><li>Rai et al. → mech interp as a <em>whole field</em> with SAEs as one branch; task-centric so you can look up "what technique answers my question."</li><li>Shu et al. → SAEs in <em>isolation</em> with the technical depth (architectures, training, evaluation, faithfulness) the broader survey can't afford.</li></ul>
+<p>Use Rai for orientation across MI; use Shu when you've decided SAEs are the tool and need to pick a variant or design an evaluation. Together they identify the same central open problem: <strong>faithfulness</strong> — does the explanation actually describe what the model is computing?</p>
+<h2 id="connections">Connections</h2>
+<ul><li>Hub: <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a></li><li>Foundations they survey: <a href="source-anthropic-mi-foundations.html">source-anthropic-mi-foundations</a>, <a href="source-olah-2020-zoom-in-circuits.html">source-olah-2020-zoom-in-circuits</a>, <a href="source-wang-2022-ioi-circuit-gpt2.html">source-wang-2022-ioi-circuit-gpt2</a>, <a href="source-sae-monosemanticity-2023.html">source-sae-monosemanticity-2023</a>, <a href="source-sae-scaling-trilogy.html">source-sae-scaling-trilogy</a>, <a href="source-conmy-2023-acdc-automated-circuit-discovery.html">source-conmy-2023-acdc-automated-circuit-discovery</a>, <a href="source-circuit-tracing-methods-anthropic.html">source-circuit-tracing-methods-anthropic</a>, <a href="source-lindsey-2025-biology-of-llm.html">source-lindsey-2025-biology-of-llm</a></li><li>Steering / interventions: <a href="source-conditional-activation-steering-cast.html">source-conditional-activation-steering-cast</a>, <a href="source-complete-replacement-lm-layers.html">source-complete-replacement-lm-layers</a></li><li>Model diffing: <a href="source-crosscoder-model-diffing.html">source-crosscoder-model-diffing</a></li><li>Self-explanation thread: <a href="source-self-explanation-transluce.html">source-self-explanation-transluce</a>, <a href="source-introspective-interpretability.html">source-introspective-interpretability</a></li><li>Theory tension: <a href="source-nonlinear-feature-representations.html">source-nonlinear-feature-representations</a></li><li>CoT faithfulness: <a href="source-measuring-cot-monitorability.html">source-measuring-cot-monitorability</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li>Rai, Zhou, Feng, Saparov, Yao — <em>A Practical Review of Mechanistic Interpretability for Transformer-Based Language Models</em>, 2024. <a href="https://arxiv.org/abs/2407.02646" rel="noreferrer">arXiv 2407.02646</a></li><li>Shu, Wu, Zhao, Rai, Yao, Liu, Du — <em>A Survey on Sparse Autoencoders</em>, EMNLP 2025 Findings. <a href="https://arxiv.org/abs/2503.05613" rel="noreferrer">arXiv 2503.05613</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2407.02646" rel="noreferrer">https://arxiv.org/abs/2407.02646</a></li><li><a href="https://arxiv.org/abs/2503.05613" rel="noreferrer">https://arxiv.org/abs/2503.05613</a></li></ul></details>
+</main>
+</body>
+</html>

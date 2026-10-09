@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KV cache &amp; int8 — ML course explorable 07</title>
+<style>
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --panel:#ffffff; --panel-2:#eef2f0;
+  --line:#d5ddda; --muted:#5d6b67; --accent:#1f918d;
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d;
+  --track:#1f918d;
+  --hot:#d2562f; --cool:#3d7fb8; --dim:#b6c2be;
+  --grid:#e3e9e7;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:"SF Mono",ui-monospace,Menlo,Monaco,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --panel-2:#141c1a;
+    --line:#2c3a36; --muted:#9aaba6; --dim:#3a4a45; --grid:#243029;
+    --hot:#f0764a; --cool:#66a9dd;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:var(--body); font-size:15px; line-height:1.6;
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:1000px;margin:0 auto;padding:0 20px 60px}
+header.top{
+  border-bottom:1px solid var(--line); background:var(--panel);
+  position:sticky; top:0; z-index:5;
+}
+header.top .inner{
+  max-width:1000px;margin:0 auto;padding:12px 20px;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+h1{
+  font-family:var(--display); font-size:19px; font-weight:600;
+  margin:0; letter-spacing:-0.01em;
+}
+.pill{
+  font-family:var(--display); font-size:11.5px; font-weight:600;
+  letter-spacing:0.04em; text-transform:uppercase;
+  color:#fff; background:var(--track);
+  padding:3px 10px; border-radius:999px; white-space:nowrap;
+}
+.back{margin-left:auto;font-size:13px;color:var(--muted);text-decoration:none;white-space:nowrap}
+.back:hover{color:var(--accent)}
+.intro{margin:26px 0 6px;max-width:74ch}
+.intro p{margin:0 0 10px}
+h2{
+  font-family:var(--display); font-size:17px; font-weight:600;
+  margin:34px 0 4px; letter-spacing:-0.01em;
+}
+h2 .num{color:var(--track);font-variant-numeric:tabular-nums;margin-right:8px}
+.lede{color:var(--muted);margin:0 0 14px;max-width:78ch;font-size:14px}
+.panel{
+  background:var(--panel); border:1px solid var(--line);
+  border-radius:12px; padding:16px;
+}
+.stage{display:grid;gap:16px}
+.two{grid-template-columns:repeat(auto-fit,minmax(270px,1fr))}
+canvas{display:block;width:100%;border-radius:6px}
+.cap{
+  font-family:var(--display);font-size:12px;font-weight:600;
+  letter-spacing:0.03em;text-transform:uppercase;color:var(--muted);
+  margin:0 0 6px;
+}
+.controls{
+  display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;
+  margin-top:14px;padding-top:14px;border-top:1px solid var(--line);
+}
+button{
+  font-family:var(--display);font-size:13px;font-weight:600;
+  color:var(--ink);background:transparent;
+  border:1.5px solid var(--line);border-radius:999px;
+  padding:6px 15px;cursor:pointer;
+}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{border-color:var(--accent);color:var(--accent)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+label.ctl{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+label.ctl b{font-family:var(--mono);font-size:12.5px;color:var(--ink);min-width:3.6em;text-align:right}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;height:4px;border-radius:2px;
+  background:var(--line);width:118px;outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+  background:var(--accent);cursor:pointer;border:none;
+}
+input[type=range]::-moz-range-thumb{
+  width:14px;height:14px;border-radius:50%;background:var(--accent);
+  cursor:pointer;border:none;
+}
+input[type=checkbox]{accent-color:var(--accent)}
+.readout{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));
+  gap:1px;background:var(--line);border:1px solid var(--line);
+  border-radius:8px;overflow:hidden;margin-top:14px;
+}
+.cell{background:var(--panel-2);padding:8px 10px}
+.cell .k{font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);font-family:var(--display);font-weight:600}
+.cell .v{font-family:var(--mono);font-size:15px;font-variant-numeric:tabular-nums;margin-top:2px}
+.cell .v small{font-size:11px;color:var(--muted)}
+.cell.hot .v{color:var(--hot)}
+.cell.cool .v{color:var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.eq{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+.eq b{color:var(--ink)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:6px}
+th,td{padding:6px 10px;text-align:right;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th{font-family:var(--display);font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr.hi td{background:var(--panel-2);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+.chip{
+  border:1px solid var(--line);border-radius:10px;padding:9px 13px;
+  background:var(--panel-2);min-width:150px;
+}
+.chip .n{font-family:var(--mono);font-size:20px;font-weight:600;display:block;line-height:1.2}
+.chip .l{font-size:11.5px;color:var(--muted);letter-spacing:0.03em}
+.chip.win .n{color:var(--accent)}
+.chip.lose .n{color:var(--hot)}
+.notice{margin-top:18px}
+.notice ul{margin:6px 0 0;padding-left:20px}
+.notice li{margin:6px 0;max-width:80ch}
+kbd{
+  font-family:var(--mono);font-size:11px;border:1px solid var(--line);
+  border-bottom-width:2px;border-radius:4px;padding:1px 5px;background:var(--panel-2);
+}
+footer.bot{
+  border-top:1px solid var(--line);margin-top:44px;padding-top:16px;
+  font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px 22px;
+}
+footer.bot a{color:var(--accent);text-decoration:none}
+footer.bot a:hover{text-decoration:underline}
+footer.bot code{font-family:var(--mono);font-size:12.5px}
+.src{font-size:12px;color:var(--muted);margin-top:10px}
+.src code{font-family:var(--mono);font-size:11.5px}
+@media (max-width:700px){
+  .wrap{padding:0 14px 48px}
+  header.top .inner{padding:10px 14px}
+  h1{font-size:17px}
+  input[type=range]{width:96px}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <h1>The KV cache, counted cell by cell</h1>
+    <span class="pill">Module 07 · Inference internals</span>
+    <a class="back" href="index.html">← All explorables</a>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="intro">
+  <p>A decoder-only transformer generating token <i>n</i> needs the keys and values of every earlier
+  token. It can either <b>recompute</b> them all &mdash; or <b>remember</b> them. That single choice is the
+  difference between a decode loop that stays fast and one that falls off a cliff.</p>
+  <p>Below, the same 128-token generation runs twice side by side, and every attention cell either
+  side computes is counted exactly. Then: the real throughput curve measured by module 07's Zig
+  engine, and the int8 quantization of a real weight row from the same checkpoint.
+  Press <kbd>space</kbd> to play or pause.</p>
+</div>
+
+<h2><span class="num">1</span>Two decode loops, every cell counted</h2>
+<p class="lede">Each square is one attention score &mdash; a dot product between the query at row <i>i</i>
+and the key at column <i>j</i>. The grid is lower-triangular because attention is causal. On the left
+the cache is on, so each step paints exactly one new row. On the right the cache is off, so each step
+repaints the <i>whole</i> triangle; cells are shaded by how many times they have been recomputed.</p>
+
+<div class="panel">
+  <div class="stage two">
+    <div>
+      <p class="cap">Cache ON — O(t) per step</p>
+      <canvas id="gridOn" aria-label="Attention grid with KV cache on"></canvas>
+    </div>
+    <div>
+      <p class="cap">Cache OFF — O(t²) per step</p>
+      <canvas id="gridOff" aria-label="Attention grid with KV cache off"></canvas>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><i style="background:var(--hot)"></i>new key/value this step</span>
+    <span><i style="background:var(--accent)"></i>read from cache (free)</span>
+    <span><i style="background:var(--dim)"></i>computed once, long ago</span>
+    <span><i style="background:linear-gradient(90deg,#440154,#21918c,#fde725)"></i>recompute count (viridis)</span>
+  </div>
+
+  <div class="readout">
+    <div class="cell"><div class="k">decode step t</div><div class="v" id="rStep">0<small> / 128</small></div></div>
+    <div class="cell cool"><div class="k">cells this step · cache on</div><div class="v" id="rOnStep">0</div></div>
+    <div class="cell hot"><div class="k">cells this step · cache off</div><div class="v" id="rOffStep">0</div></div>
+    <div class="cell cool"><div class="k">total · cache on</div><div class="v" id="rOnTot">0</div></div>
+    <div class="cell hot"><div class="k">total · cache off</div><div class="v" id="rOffTot">0</div></div>
+    <div class="cell"><div class="k">wasted work factor</div><div class="v" id="rRatio">—</div></div>
+  </div>
+
+  <p class="eq" id="eqLine" style="margin-top:12px"></p>
+
+  <div class="controls">
+    <button id="btnPlay" class="primary">▶ Play</button>
+    <button id="btnStep">Step ›</button>
+    <button id="btnReset">Reset</button>
+    <label class="ctl">context n
+      <input type="range" id="ctxN" min="8" max="128" step="8" value="48">
+      <b id="ctxNv">48</b>
+    </label>
+    <label class="ctl">speed
+      <input type="range" id="spd" min="1" max="60" step="1" value="18">
+      <b id="spdv">18/s</b>
+    </label>
+  </div>
+</div>
+
+<div class="panel" style="margin-top:16px">
+  <p class="cap">What the cache actually stores — 3 layers × 4 heads, one column per position</p>
+  <canvas id="cacheStrip" aria-label="KV cache columns growing"></canvas>
+  <div class="readout">
+    <div class="cell"><div class="k">cached floats</div><div class="v" id="rFloats">0</div></div>
+    <div class="cell"><div class="k">cache memory (f32)</div><div class="v" id="rKB">0<small> KB</small></div></div>
+    <div class="cell"><div class="k">shape</div><div class="v" id="rShape" style="font-size:12.5px">—</div></div>
+  </div>
+  <p class="src">Real checkpoint dimensions from
+  <code>04-attention-transformer/artifacts/tiny_gpt_config.json</code>:
+  vocab 65, block_size 128, n_layer 3, n_head 4, d_model 128, d_head 32, d_ff 512 — 619,776 parameters.
+  At full context the cache holds 2 × 3 × 4 × 128 × 32 = <b>98,304</b> floats (384 KB), exactly the
+  number in the module README.</p>
+</div>
+
+<h2><span class="num">2</span>Measured throughput — the real bench, 8 points</h2>
+<p class="lede">These are not modelled numbers. They come from <code>tiny-gpt bench</code> on an Apple M5,
+single thread, ReleaseFast, scalar Zig, checked into the repo as
+<code>modules/07-inference-internals/figures/bench.csv</code>. Cache on: flat. Cache off: collapsing.
+Drag the marker to read any point.</p>
+
+<div class="panel">
+  <div class="stage two" style="grid-template-columns:repeat(auto-fit,minmax(330px,1fr))">
+    <div>
+      <p class="cap">tokens / second vs context length</p>
+      <canvas id="benchChart" aria-label="Throughput chart, cache on versus off"></canvas>
+      <div class="controls" style="border-top:none;padding-top:6px;margin-top:2px">
+        <label class="ctl">context
+          <input type="range" id="benchIdx" min="0" max="7" step="1" value="7">
+          <b id="benchIdxv">128</b>
+        </label>
+        <label class="ctl"><input type="checkbox" id="logY" checked> log y-axis</label>
+      </div>
+    </div>
+    <div>
+      <p class="cap">measured vs predicted speedup</p>
+      <div style="overflow-x:auto">
+        <table id="benchTable"><thead><tr>
+          <th>ctx</th><th>on</th><th>off</th><th>measured</th><th>(t+1)/2</th>
+        </tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </div>
+  <div class="readout">
+    <div class="cell cool"><div class="k">cache on</div><div class="v" id="bOn">—<small> tok/s</small></div></div>
+    <div class="cell hot"><div class="k">cache off</div><div class="v" id="bOff">—<small> tok/s</small></div></div>
+    <div class="cell"><div class="k">measured speedup</div><div class="v" id="bSpd">—</div></div>
+    <div class="cell"><div class="k">predicted (t+1)/2</div><div class="v" id="bPred">—</div></div>
+  </div>
+  <p class="src">The cell counter in panel 1 <i>predicts</i> this chart. Per step, cache-off does
+  t(t+1)/2 cells where cache-on does t, so the ratio should be (t+1)/2 — 64.5× at t = 128. The
+  engine measures <b>62.8×</b>. Every row of the table lands within ~7% of the prediction, which is
+  how you know the counter and the wall clock are describing the same thing.</p>
+</div>
+
+<h2><span class="num">3</span>int8: 3.9× smaller, same perplexity</h2>
+<p class="lede">Weights are near-Gaussian, so almost all of a row's dynamic range is wasted on f32's
+enormous exponent. Per-row symmetric int8 (<code>scale = max|row| / 127</code>) snaps every value onto
+a 255-level grid. Below: the real distribution of all 619,776 weights, and the real 128 weights of
+row 0 of <code>blocks.0.attn.qkv.weight</code> being quantized.</p>
+
+<div class="panel">
+  <div class="stage two" style="grid-template-columns:repeat(auto-fit,minmax(290px,1fr))">
+    <div>
+      <p class="cap">all 619,776 weights (log counts, 48 bins)</p>
+      <canvas id="histCv" aria-label="Weight distribution histogram"></canvas>
+    </div>
+    <div>
+      <p class="cap">row 0 of blocks.0.attn.qkv.weight → int8 grid</p>
+      <canvas id="ladderCv" aria-label="Weights snapping onto the int8 grid"></canvas>
+    </div>
+  </div>
+  <div class="controls">
+    <label class="ctl">weight index
+      <input type="range" id="qIdx" min="0" max="127" step="1" value="98">
+      <b id="qIdxv">98</b>
+    </label>
+    <label class="ctl"><input type="checkbox" id="qErr" checked> show error segments</label>
+  </div>
+  <p class="eq" id="qMath" style="margin-top:12px"></p>
+  <div class="readout">
+    <div class="cell"><div class="k">row scale</div><div class="v" id="qScale">—</div></div>
+    <div class="cell"><div class="k">max |Δ| over row</div><div class="v" id="qMaxErr">—</div></div>
+    <div class="cell"><div class="k">bits per weight</div><div class="v" id="qBits">32 → 8</div></div>
+  </div>
+
+  <div class="chips" style="margin-top:16px">
+    <div class="chip"><span class="n">2.48 MB</span><span class="l">f32 weight blob</span></div>
+    <div class="chip win"><span class="n">0.63 MB</span><span class="l">int8 Q8 blob — 3.9× smaller</span></div>
+    <div class="chip"><span class="n">4.657</span><span class="l">perplexity, f32 (held-out Shakespeare)</span></div>
+    <div class="chip win"><span class="n">4.657</span><span class="l">perplexity, int8 — identical to 3 d.p.</span></div>
+    <div class="chip"><span class="n">0.06</span><span class="l">max |Δ logit| vs f32</span></div>
+  </div>
+  <p class="src">Real file sizes: 2,479,104 B → 634,480 B = 3.91×. Perplexity and logit error from the
+  module README's quantization table. Honest caveat carried over from the module: this engine
+  <i>dequantizes</i> at load and runs the identical f32 compute path, so decode speed is unchanged
+  (~490 tok/s either way). The win here is bytes on disk and in RAM, at essentially zero quality cost.
+  Real engines also win speed, but only on large memory-bandwidth-bound models with true int8 kernels.</p>
+</div>
+
+<div class="notice panel">
+  <p class="cap" style="margin-bottom:2px">What to notice</p>
+  <ul>
+    <li>Slide <b>context n</b> to 128 and play. The left grid paints one thin row per step and stops
+    growing in cost; the right grid keeps re-darkening the <i>same</i> early cells. Row 0's key is
+    recomputed n times for no reason at all.</li>
+    <li>The two totals are exact closed forms, not estimates: cache-on lands on
+    <b>n(n+1)/2</b> cells and cache-off on <b>n(n+1)(n+2)/6</b>. At n = 128 that is 8,256 versus
+    357,760 — a 43× difference over the whole generation.</li>
+    <li>Per <i>step</i> the gap is bigger and keeps widening: (t+1)/2. This is why the speedup in
+    panel 2 is not a constant &mdash; it is 8× at t = 16 and 63× at t = 128, and it would keep climbing.</li>
+    <li>Turn off the log axis in panel 2. The cache-on curve becomes a flat line and the cache-off
+    curve vanishes into the floor. Linear-vs-quadratic is not a subtle effect.</li>
+    <li>In panel 3, drag to index 98 &mdash; that is the row's largest-magnitude weight (0.097437), so it
+    lands exactly on code ±127 with zero error. Every other weight in the row is quantized
+    <i>relative to it</i>; that is what "per-row scale" buys you, and why max |Δ| stays under 4e-4.</li>
+    <li>The cache is free speed but not free memory. Watch the strip in panel 1: 768 floats per
+    position, 384 KB at 128 tokens for a 620K-parameter model. Scale that to a 70B model with a
+    128K context and the KV cache, not the weights, becomes the thing that does not fit.</li>
+  </ul>
+</div>
+
+<footer class="bot">
+  <span>Module source: <a href="../modules/07-inference-internals/README.md"><code>../modules/07-inference-internals/README.md</code></a></span>
+  <span>Engine: <a href="../modules/07-inference-internals/zig/src/gpt.zig"><code>zig/src/gpt.zig</code></a></span>
+  <span>Further reading: <a href="https://huggingface.co/docs/transformers/quantization">HF quantization docs</a></span>
+</footer>
+
+</div>
+
+<script>
+"use strict";
+(function(){
+
+// ---------------------------------------------------------------- palette ----
+// viridis, 10 anchor stops, linear interpolation between them.
+var VIRIDIS = [[68,1,84],[72,40,120],[62,73,137],[49,104,142],[38,130,142],
+               [31,158,137],[53,183,121],[110,206,88],[181,222,43],[253,231,37]];
+function viridis(t){
+  if(!(t>0)) t=0; if(t>1) t=1;
+  var x=t*(VIRIDIS.length-1), i=Math.floor(x), f=x-i;
+  if(i>=VIRIDIS.length-1) return 'rgb('+VIRIDIS[VIRIDIS.length-1].join(',')+')';
+  var a=VIRIDIS[i], b=VIRIDIS[i+1];
+  return 'rgb('+Math.round(a[0]+(b[0]-a[0])*f)+','+
+                Math.round(a[1]+(b[1]-a[1])*f)+','+
+                Math.round(a[2]+(b[2]-a[2])*f)+')';
+}
+function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+// ------------------------------------------------------------ canvas util ----
+function fit(cv, cssH){
+  var dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+  var w = cv.clientWidth || (cv.parentNode && cv.parentNode.clientWidth) || 320;
+  if(w < 80) w = 320;
+  cv.width  = Math.round(w * dpr);
+  cv.height = Math.round(cssH * dpr);
+  cv.style.height = cssH + 'px';
+  var ctx = cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,w,cssH);
+  return { ctx: ctx, w: w, h: cssH };
+}
+function fmt(n){ return n.toLocaleString('en-US'); }
+
+// ================================================================= PURE ======
+// Exported on window for the node-side assertions in the build notes.
+// Cache ON : step t (1-based) computes t cells; cumulative = t(t+1)/2.
+// Cache OFF: step t replays the whole causal triangle = t(t+1)/2 cells;
+//            cumulative = t(t+1)(t+2)/6.
+function cellsOnStep(t){ return t; }
+function cellsOnTotal(t){ return t*(t+1)/2; }
+function cellsOffStep(t){ return t*(t+1)/2; }
+function cellsOffTotal(t){ return t*(t+1)*(t+2)/6; }
+// Number of times cell (i,j) with i>=j has been recomputed after step t, cache off.
+function recomputeCount(i, t){ return (t >= i+1) ? (t - i) : 0; }
+// KV cache footprint in floats: 2 (K and V) * layers * heads * pos * d_head.
+function cacheFloats(pos){ return 2 * CFG.n_layer * CFG.n_head * pos * CFG.d_head; }
+
+var CFG = { vocab:65, block:128, n_layer:3, n_head:4, d_model:128, d_head:32, d_ff:512, params:619776 };
+
+// ============================================== 1. decode-loop animation =====
+var gOn = document.getElementById('gridOn');
+var gOff = document.getElementById('gridOff');
+var strip = document.getElementById('cacheStrip');
+
+// Start part-way through so both grids show something before you press play.
+var A = { n:48, t:16, playing:false, acc:0, last:0, rate:18 };
+
+function gridGeom(o, n){
+  var padL = 34, padT = 8, padB = 20, padR = 6;
+  var avail = Math.min(o.w - padL - padR, o.h - padT - padB);
+  if(avail < 20) avail = 20;
+  var cell = avail / n;
+  return { padL:padL, padT:padT, cell:cell, size:avail };
+}
+function gridAxes(o, g, n){
+  var c = o.ctx;
+  c.fillStyle = cssVar('--muted');
+  c.font = '10px ' + cssVar('--mono');
+  c.textAlign = 'left'; c.textBaseline = 'top';
+  c.fillText('key position j →  (0…' + (n-1) + ')', g.padL, g.padT + g.size + 6);
+  c.save();
+  c.translate(g.padL - 11, g.padT + g.size / 2);
+  c.rotate(-Math.PI/2);
+  c.textAlign = 'center'; c.textBaseline = 'bottom';
+  c.fillText('decode step t →', 0, 0);
+  c.restore();
+  c.strokeStyle = cssVar('--line');
+  c.lineWidth = 1;
+  c.strokeRect(g.padL - 0.5, g.padT - 0.5, g.size + 1, g.size + 1);
+}
+// Keep the triangle roughly square and filling the column width.
+function gridHeight(cv){
+  var w = cv.clientWidth || (cv.parentNode && cv.parentNode.clientWidth) || 320;
+  return Math.round(Math.min(Math.max(w, 170), 380)) + 28;
+}
+function drawOn(){
+  var o = fit(gOn, gridHeight(gOn)), n = A.n, t = A.t, g = gridGeom(o, n), c = o.ctx;
+  var dim = cssVar('--dim'), hot = cssVar('--hot'), acc = cssVar('--accent');
+  for(var i=0;i<t;i++){
+    for(var j=0;j<=i;j++){
+      if(i === t-1) c.fillStyle = (j === i) ? hot : acc;
+      else          c.fillStyle = dim;
+      c.fillRect(g.padL + j*g.cell, g.padT + i*g.cell,
+                 Math.max(1,g.cell-0.35), Math.max(1,g.cell-0.35));
+    }
+  }
+  gridAxes(o, g, n);
+  // callout: one row per step
+  if(t > 0 && g.cell > 3){
+    c.strokeStyle = hot; c.lineWidth = 1.2;
+    c.strokeRect(g.padL - 1, g.padT + (t-1)*g.cell - 1, g.size + 2, g.cell + 2);
+  }
+}
+function drawOff(){
+  var o = fit(gOff, gridHeight(gOff)), n = A.n, t = A.t, g = gridGeom(o, n), c = o.ctx;
+  if(t > 0){
+    for(var i=0;i<t;i++){
+      var k = recomputeCount(i, t);
+      var col = viridis(k / t);
+      for(var j=0;j<=i;j++){
+        c.fillStyle = col;
+        c.fillRect(g.padL + j*g.cell, g.padT + i*g.cell,
+                   Math.max(1,g.cell-0.35), Math.max(1,g.cell-0.35));
+      }
+    }
+    // the newest row is still the new token
+    c.fillStyle = cssVar('--hot');
+    c.fillRect(g.padL + (t-1)*g.cell, g.padT + (t-1)*g.cell,
+               Math.max(1,g.cell-0.35), Math.max(1,g.cell-0.35));
+  }
+  gridAxes(o, g, n);
+  if(t > 0 && g.cell > 3){
+    c.strokeStyle = cssVar('--hot'); c.lineWidth = 1.2;
+    c.strokeRect(g.padL - 1, g.padT - 1, (t)*g.cell + 2, (t)*g.cell + 2);
+  }
+}
+function drawStrip(){
+  var o = fit(strip, 132), n = A.n, t = A.t, c = o.ctx;
+  var rows = CFG.n_layer * CFG.n_head;            // 12
+  var padL = 62, padR = 8, padT = 10, padB = 16;
+  var gw = o.w - padL - padR;
+  var rowH = (o.h - padT - padB) / rows;
+  var colW = gw / CFG.block;
+  c.font = '9.5px ' + cssVar('--mono');
+  c.textBaseline = 'middle';
+  for(var r=0;r<rows;r++){
+    var L = Math.floor(r / CFG.n_head), H = r % CFG.n_head;
+    var y = padT + r*rowH;
+    // the checkpoint's hard limit: block_size = 128 positions
+    c.strokeStyle = cssVar('--grid'); c.lineWidth = 0.6;
+    c.strokeRect(padL+0.3, y+0.3, colW*CFG.block, Math.max(1,rowH-1.5));
+    // the slot for the context length currently selected
+    c.fillStyle = cssVar('--panel-2');
+    c.fillRect(padL, y, colW*n, Math.max(1,rowH-1.5));
+    c.strokeStyle = cssVar('--line'); c.lineWidth = 0.6;
+    c.strokeRect(padL+0.3, y+0.3, colW*n, Math.max(1,rowH-1.5));
+    // filled columns
+    for(var p=0;p<t;p++){
+      var isNew = (p === t-1);
+      c.fillStyle = isNew ? cssVar('--hot') : viridis(0.30 + 0.45*(p/Math.max(1,n-1)));
+      c.fillRect(padL + p*colW, y, Math.max(0.7, colW-0.25), Math.max(1,rowH-1.5));
+    }
+    if(H === 0){
+      c.fillStyle = cssVar('--muted');
+      c.textAlign = 'right';
+      c.fillText('layer '+L, padL - 8, y + rowH*CFG.n_head/2 - rowH/2 + 1);
+    }
+  }
+  c.fillStyle = cssVar('--muted');
+  c.textAlign = 'left'; c.textBaseline = 'top';
+  c.fillText('position 0 … '+(n-1)+' of block_size 128   (each column = 2 × 32 floats: one key + one value)',
+             padL, padT + rows*rowH + 3);
+}
+
+function refreshA(){
+  var n = A.n, t = A.t;
+  document.getElementById('rStep').innerHTML = t + '<small> / ' + n + '</small>';
+  document.getElementById('rOnStep').textContent  = t ? fmt(cellsOnStep(t))  : '0';
+  document.getElementById('rOffStep').textContent = t ? fmt(cellsOffStep(t)) : '0';
+  document.getElementById('rOnTot').textContent  = fmt(cellsOnTotal(t));
+  document.getElementById('rOffTot').textContent = fmt(cellsOffTotal(t));
+  var ratio = cellsOnTotal(t) > 0 ? (cellsOffTotal(t)/cellsOnTotal(t)) : 0;
+  document.getElementById('rRatio').textContent = t ? ratio.toFixed(2) + '×' : '—';
+  document.getElementById('eqLine').innerHTML =
+    'cache on: Σ t = <b>t(t+1)/2</b> = <b>' + fmt(cellsOnTotal(t)) + '</b>' +
+    ' &nbsp;·&nbsp; cache off: Σ t(t+1)/2 = <b>t(t+1)(t+2)/6</b> = <b>' + fmt(cellsOffTotal(t)) + '</b>' +
+    ' &nbsp;·&nbsp; this step the ratio is (t+1)/2 = <b>' + (t ? ((t+1)/2).toFixed(1) + '×' : '—') + '</b>';
+  var fl = cacheFloats(t);
+  document.getElementById('rFloats').textContent = fmt(fl);
+  document.getElementById('rKB').innerHTML = (fl*4/1024).toFixed(1) + '<small> KB</small>';
+  document.getElementById('rShape').textContent =
+    '2 × ' + CFG.n_layer + ' × ' + CFG.n_head + ' × ' + t + ' × ' + CFG.d_head;
+  drawOn(); drawOff(); drawStrip();
+}
+
+var btnPlay = document.getElementById('btnPlay');
+function setPlaying(p){
+  A.playing = p;
+  btnPlay.textContent = p ? '❚❚ Pause' : '▶ Play';
+  btnPlay.classList.toggle('primary', !p);
+  if(p){ A.last = 0; requestAnimationFrame(tick); }
+}
+function tick(ts){
+  if(!A.playing) return;
+  if(!A.last) A.last = ts;
+  var dt = ts - A.last; A.last = ts;
+  A.acc += dt;
+  var interval = 1000 / A.rate;
+  var moved = false;
+  while(A.acc >= interval){
+    A.acc -= interval;
+    if(A.t < A.n){ A.t++; moved = true; }
+    else { setPlaying(false); A.acc = 0; return refreshA(); }
+  }
+  if(moved) refreshA();
+  requestAnimationFrame(tick);
+}
+btnPlay.addEventListener('click', function(){
+  if(!A.playing && A.t >= A.n) A.t = 0;
+  setPlaying(!A.playing);
+});
+document.getElementById('btnStep').addEventListener('click', function(){
+  setPlaying(false);
+  if(A.t >= A.n) A.t = 0; else A.t++;
+  refreshA();
+});
+document.getElementById('btnReset').addEventListener('click', function(){
+  setPlaying(false); A.t = 0; refreshA();
+});
+document.getElementById('ctxN').addEventListener('input', function(e){
+  A.n = +e.target.value;
+  document.getElementById('ctxNv').textContent = A.n;
+  if(A.t > A.n) A.t = A.n;
+  refreshA();
+});
+document.getElementById('spd').addEventListener('input', function(e){
+  A.rate = +e.target.value;
+  document.getElementById('spdv').textContent = A.rate + '/s';
+});
+document.addEventListener('visibilitychange', function(){
+  if(document.hidden && A.playing) setPlaying(false);
+});
+document.addEventListener('keydown', function(e){
+  var tag = (e.target && e.target.tagName || '').toLowerCase();
+  if(tag === 'input' || tag === 'textarea' || tag === 'select') return;
+  if(e.code === 'Space' || e.key === ' '){
+    e.preventDefault();
+    if(!A.playing && A.t >= A.n) A.t = 0;
+    setPlaying(!A.playing);
+  }
+});
+
+// ============================================ 2. real bench.csv chart ========
+// Verbatim from modules/07-inference-internals/figures/bench.csv, produced by
+// `tiny-gpt bench` (Apple M5, single thread, ReleaseFast, scalar Zig).
+var BENCH = [
+  {n:16,  on:582.4, off:71.6},
+  {n:32,  on:526.7, off:33.1},
+  {n:48,  on:521.5, off:22.1},
+  {n:64,  on:506.6, off:16.7},
+  {n:80,  on:518.2, off:13.1},
+  {n:96,  on:512.2, off:10.6},
+  {n:112, on:495.0, off:9.0},
+  {n:128, on:490.0, off:7.8}
+];
+var benchCv = document.getElementById('benchChart');
+var B = { idx:7, log:true };
+
+function drawBench(){
+  var o = fit(benchCv, 260), c = o.ctx;
+  var padL = 46, padR = 12, padT = 12, padB = 30;
+  var pw = o.w - padL - padR, ph = o.h - padT - padB;
+  var lo = 5, hi = 700;
+  function ty(v){
+    if(B.log){
+      var a = Math.log10(lo), b = Math.log10(hi);
+      return padT + ph - ((Math.log10(Math.max(v,lo)) - a)/(b-a))*ph;
+    }
+    return padT + ph - (Math.min(v,hi)/hi)*ph;
+  }
+  function tx(n){ return padL + ((n-8)/(136-8))*pw; }
+
+  // gridlines
+  c.font = '10px ' + cssVar('--mono');
+  c.strokeStyle = cssVar('--grid'); c.lineWidth = 1;
+  c.fillStyle = cssVar('--muted');
+  c.textAlign = 'right'; c.textBaseline = 'middle';
+  var ticks = B.log ? [5,10,20,50,100,200,500] : [0,100,200,300,400,500,600,700];
+  for(var i=0;i<ticks.length;i++){
+    var y = ty(ticks[i] || lo);
+    if(!B.log && ticks[i] === 0) y = padT + ph;
+    c.beginPath(); c.moveTo(padL, y); c.lineTo(padL+pw, y); c.stroke();
+    c.fillText(String(ticks[i]), padL - 6, y);
+  }
+  c.textAlign = 'center'; c.textBaseline = 'top';
+  for(var k=0;k<BENCH.length;k++){
+    c.fillText(String(BENCH[k].n), tx(BENCH[k].n), padT + ph + 6);
+  }
+  c.textAlign = 'left';
+  c.fillText('context length (tokens)', padL, padT + ph + 19);
+  c.save(); c.translate(12, padT + ph); c.rotate(-Math.PI/2);
+  c.fillText('tokens / second' + (B.log ? ' (log)' : ''), 0, 0); c.restore();
+
+  // selected guide
+  var sel = BENCH[B.idx];
+  c.strokeStyle = cssVar('--line'); c.lineWidth = 1.5;
+  c.setLineDash([3,3]);
+  c.beginPath(); c.moveTo(tx(sel.n), padT); c.lineTo(tx(sel.n), padT+ph); c.stroke();
+  c.setLineDash([]);
+
+  function line(key, col){
+    c.strokeStyle = col; c.lineWidth = 2.2;
+    c.beginPath();
+    for(var i=0;i<BENCH.length;i++){
+      var x = tx(BENCH[i].n), y = ty(BENCH[i][key]);
+      if(i===0) c.moveTo(x,y); else c.lineTo(x,y);
+    }
+    c.stroke();
+    for(var j=0;j<BENCH.length;j++){
+      var xx = tx(BENCH[j].n), yy = ty(BENCH[j][key]);
+      var r = (j === B.idx) ? 5 : 3;
+      c.beginPath(); c.arc(xx,yy,r,0,Math.PI*2);
+      c.fillStyle = (j === B.idx) ? col : cssVar('--panel');
+      c.fill(); c.strokeStyle = col; c.lineWidth = 1.8; c.stroke();
+    }
+  }
+  line('on',  cssVar('--accent'));
+  line('off', cssVar('--hot'));
+
+  c.font = '600 11px ' + cssVar('--display');
+  c.textAlign = 'left'; c.textBaseline = 'bottom';
+  c.fillStyle = cssVar('--accent');
+  c.fillText('cache ON', tx(44), ty(582.4) - 9);
+  c.fillStyle = cssVar('--hot');
+  c.fillText('cache OFF', tx(82), ty(13.1) - 11);
+}
+function refreshB(){
+  var s = BENCH[B.idx];
+  document.getElementById('benchIdxv').textContent = s.n;
+  document.getElementById('bOn').innerHTML  = s.on.toFixed(1)  + '<small> tok/s</small>';
+  document.getElementById('bOff').innerHTML = s.off.toFixed(1) + '<small> tok/s</small>';
+  document.getElementById('bSpd').textContent  = (s.on/s.off).toFixed(1) + '×';
+  document.getElementById('bPred').textContent = ((s.n+1)/2).toFixed(1) + '×';
+  var rows = benchTbody.querySelectorAll('tr');
+  for(var i=0;i<rows.length;i++) rows[i].classList.toggle('hi', i === B.idx);
+  drawBench();
+}
+var benchTbody = document.querySelector('#benchTable tbody');
+(function buildBenchTable(){
+  var html = '';
+  for(var i=0;i<BENCH.length;i++){
+    var s = BENCH[i];
+    html += '<tr data-i="'+i+'">' +
+      '<td class="mono">'+s.n+'</td>' +
+      '<td class="mono">'+s.on.toFixed(1)+'</td>' +
+      '<td class="mono">'+s.off.toFixed(1)+'</td>' +
+      '<td class="mono">'+(s.on/s.off).toFixed(1)+'×</td>' +
+      '<td class="mono">'+((s.n+1)/2).toFixed(1)+'×</td></tr>';
+  }
+  benchTbody.innerHTML = html;
+  benchTbody.addEventListener('click', function(e){
+    var tr = e.target.closest ? e.target.closest('tr') : null;
+    if(!tr || !tr.dataset.i) return;
+    B.idx = +tr.dataset.i;
+    document.getElementById('benchIdx').value = B.idx;
+    refreshB();
+  });
+})();
+document.getElementById('benchIdx').addEventListener('input', function(e){
+  B.idx = +e.target.value; refreshB();
+});
+document.getElementById('logY').addEventListener('change', function(e){
+  B.log = e.target.checked; drawBench();
+});
+
+// ==================================== 3. int8 quantization, real weights =====
+// Row 0 of blocks.0.attn.qkv.weight, read straight out of
+// modules/04-attention-transformer/artifacts/tiny_gpt_weights.bin (f32, little-endian,
+// tensor offset 99840). Printed to 6 decimals, so max|Δ| here reads 3.832e-4 where the
+// full-precision f32 row gives 3.836e-4 — a 4e-7 artefact of the rounding, nothing more.
+var ROW = [0.045006,-0.051151,-0.006646,-0.031983,0.000008,-0.0031,0.022039,0.033149,-0.024024,-0.012372,-0.001146,0.018292,-0.001126,0.001965,0.03613,0.01645,-0.007321,0.042696,-0.029691,-0.003914,-0.020706,0.008468,0.013752,0.034492,-0.032419,-0.009355,0.011419,-0.004325,0.014126,0.001923,-0.0458,-0.027665,0.004405,-0.004687,-0.023481,-0.010129,0.01298,0.049351,0.009758,0.00541,0.016565,0.012208,0.014802,-0.01431,0.02058,-0.033347,-0.0127,-0.002002,-0.005587,0.032271,-0.018329,0.050401,0.008261,-0.002803,0.032623,0.016173,0.020877,-0.012648,-0.013676,0.028146,0.024325,-0.011969,-0.032496,-0.008184,0.029828,0.006521,0.008229,0.010791,-0.077904,-0.026791,0.025126,-0.003522,-0.000063,0.015814,-0.013359,-0.036646,0.004202,-0.006268,0.040709,-0.009724,0.012689,0.014247,-0.040793,-0.013979,0.042479,0.022139,-0.02055,-0.013706,-0.000464,-0.022978,-0.004318,-0.012077,-0.005465,0.008777,0.001257,0.043213,0.007032,-0.024422,0.097437,0.010774,-0.000621,0.044201,-0.015929,-0.031519,-0.031025,-0.047541,0.028619,-0.017715,-0.035058,0.007256,-0.000325,-0.017424,-0.022042,0.000624,-0.000925,-0.004654,0.005748,0.017549,0.036782,-0.040275,-0.041865,0.033598,-0.00421,-0.001722,0.011553,0.00578,0.023431,-0.035865];
+// Histogram of ALL 619,776 f32 weights, 48 bins over [-0.30, 0.30).
+// 618,865 of them fall in range (the rest are LayerNorm gains near 1.0).
+var HIST = [2,4,4,8,11,9,29,43,52,87,127,191,335,445,707,1101,1912,3128,5839,10944,21741,43595,84064,135841,134473,83879,43537,21800,11107,5774,3083,1829,1103,695,464,281,203,146,107,58,45,19,14,6,11,8,4,0];
+var HIST_LO = -0.30, HIST_HI = 0.30;
+
+function quantizeRow(row){
+  var amax = 0, i;
+  for(i=0;i<row.length;i++) amax = Math.max(amax, Math.abs(row[i]));
+  var scale = amax === 0 ? 1 : amax / 127;
+  var q = new Array(row.length), deq = new Array(row.length), maxErr = 0;
+  for(i=0;i<row.length;i++){
+    var v = Math.max(-127, Math.min(127, Math.round(row[i]/scale)));
+    q[i] = v; deq[i] = v*scale;
+    maxErr = Math.max(maxErr, Math.abs(row[i]-deq[i]));
+  }
+  return { amax:amax, scale:scale, q:q, deq:deq, maxErr:maxErr };
+}
+var Q = quantizeRow(ROW);
+var QS = { idx:98, showErr:true };
+
+function drawHist(){
+  var o = fit(document.getElementById('histCv'), 220), c = o.ctx;
+  var padL = 34, padR = 18, padT = 10, padB = 28;
+  var pw = o.w - padL - padR, ph = o.h - padT - padB;
+  var maxC = 0, i;
+  for(i=0;i<HIST.length;i++) maxC = Math.max(maxC, HIST[i]);
+  var lmax = Math.log10(1+maxC);
+  var bw = pw / HIST.length;
+  for(i=0;i<HIST.length;i++){
+    var hgt = (Math.log10(1+HIST[i]) / lmax) * ph;
+    var mid = HIST_LO + (i+0.5)/HIST.length*(HIST_HI-HIST_LO);
+    c.fillStyle = viridis(0.12 + 0.78*(1 - Math.abs(mid)/0.30));
+    c.fillRect(padL + i*bw, padT + ph - hgt, Math.max(1, bw-0.8), hgt);
+  }
+  // the row's ±amax clip range
+  function hx(v){ return padL + ((v-HIST_LO)/(HIST_HI-HIST_LO))*pw; }
+  c.strokeStyle = cssVar('--hot'); c.lineWidth = 1.4; c.setLineDash([4,3]);
+  c.beginPath(); c.moveTo(hx(-Q.amax), padT); c.lineTo(hx(-Q.amax), padT+ph);
+  c.moveTo(hx(Q.amax), padT); c.lineTo(hx(Q.amax), padT+ph); c.stroke();
+  c.setLineDash([]);
+  c.font = '10px ' + cssVar('--mono');
+  c.fillStyle = cssVar('--hot'); c.textAlign = 'left'; c.textBaseline = 'top';
+  c.fillText('±max|row 0| = ' + Q.amax.toFixed(4), hx(Q.amax)+4, padT+2);
+  // axis
+  c.strokeStyle = cssVar('--line'); c.lineWidth = 1;
+  c.beginPath(); c.moveTo(padL, padT+ph+0.5); c.lineTo(padL+pw, padT+ph+0.5); c.stroke();
+  c.fillStyle = cssVar('--muted'); c.textAlign = 'center';
+  var lab = [-0.3,-0.15,0,0.15,0.3];
+  for(i=0;i<lab.length;i++){
+    c.textAlign = (i === 0) ? 'left' : (i === lab.length-1 ? 'right' : 'center');
+    c.fillText(lab[i].toFixed(2), hx(lab[i]), padT+ph+5);
+  }
+  c.textAlign = 'left';
+  c.fillText('weight value', padL, padT+ph+17);
+  c.save(); c.translate(11, padT+ph); c.rotate(-Math.PI/2);
+  c.fillText('count (log₁₀)', 0, 0); c.restore();
+}
+
+function drawLadder(){
+  var o = fit(document.getElementById('ladderCv'), 220), c = o.ctx;
+  var padL = 12, padR = 12, padT = 26, padB = 26;
+  var pw = o.w - padL - padR, ph = o.h - padT - padB;
+  var lim = Q.amax * 1.06;
+  function lx(v){ return padL + ((v+lim)/(2*lim))*pw; }
+  var n = ROW.length, rowH = ph / n;
+
+  // the 255-level grid: every representable value q*scale for q in [-127,127]
+  c.strokeStyle = cssVar('--grid'); c.lineWidth = 1;
+  c.beginPath();
+  for(var q=-127;q<=127;q++){
+    var x = Math.round(lx(q*Q.scale)) + 0.5;
+    c.moveTo(x, padT); c.lineTo(x, padT+ph);
+  }
+  c.stroke();
+  // zero line
+  c.strokeStyle = cssVar('--line'); c.lineWidth = 1.4;
+  c.beginPath(); c.moveTo(lx(0), padT-4); c.lineTo(lx(0), padT+ph+4); c.stroke();
+
+  for(var i=0;i<n;i++){
+    var y = padT + (i+0.5)*rowH;
+    var xf = lx(ROW[i]), xd = lx(Q.deq[i]);
+    var isSel = (i === QS.idx);
+    if(QS.showErr){
+      c.strokeStyle = isSel ? cssVar('--hot') : cssVar('--dim');
+      c.lineWidth = isSel ? 2 : 1;
+      c.beginPath(); c.moveTo(xf, y); c.lineTo(xd, y); c.stroke();
+    }
+    c.fillStyle = isSel ? cssVar('--hot') : cssVar('--accent');
+    c.fillRect(xd - (isSel?2:1), y - Math.max(0.6, rowH*0.34),
+               (isSel?4:2), Math.max(1.4, rowH*0.68));
+    if(isSel){
+      c.strokeStyle = cssVar('--hot'); c.lineWidth = 1.2;
+      c.beginPath(); c.arc(xf, y, 3.4, 0, Math.PI*2); c.stroke();
+      c.strokeStyle = cssVar('--hot'); c.lineWidth = 0.9;
+      c.setLineDash([2,2]);
+      c.beginPath(); c.moveTo(padL, y); c.lineTo(padL+pw, y); c.stroke();
+      c.setLineDash([]);
+    }
+  }
+  c.font = '10px ' + cssVar('--mono');
+  c.fillStyle = cssVar('--muted');
+  c.textAlign = 'center'; c.textBaseline = 'bottom';
+  c.fillText('int8 −127', lx(-127*Q.scale) + 6, padT - 12);
+  c.fillText('0', lx(0), padT - 12);
+  c.fillText('+127', lx(127*Q.scale) - 6, padT - 12);
+  c.textAlign = 'left'; c.textBaseline = 'top';
+  c.fillText('255 grid lines · ○ true f32 · ▮ dequantized · one row per weight',
+             padL, padT + ph + 6);
+}
+
+function refreshQ(){
+  var i = QS.idx;
+  document.getElementById('qIdxv').textContent = i;
+  document.getElementById('qScale').textContent = Q.scale.toExponential(4);
+  document.getElementById('qMaxErr').textContent = Q.maxErr.toExponential(3);
+  var w = ROW[i], code = Q.q[i], back = Q.deq[i], err = w - back;
+  document.getElementById('qMath').innerHTML =
+    'w[' + i + '] = <b>' + w.toFixed(6) + '</b> &nbsp;→&nbsp; w / scale = ' +
+    (w/Q.scale).toFixed(3) + ' &nbsp;→&nbsp; round = <b>' + code + '</b> &nbsp;→&nbsp; ' +
+    code + ' × scale = <b>' + back.toFixed(6) + '</b> &nbsp;→&nbsp; Δ = <b>' +
+    (err >= 0 ? '+' : '') + err.toExponential(2) + '</b>';
+  drawLadder();
+}
+document.getElementById('qIdx').addEventListener('input', function(e){
+  QS.idx = +e.target.value; refreshQ();
+});
+document.getElementById('qErr').addEventListener('change', function(e){
+  QS.showErr = e.target.checked; drawLadder();
+});
+
+// ---------------------------------------------------------------- startup ----
+function redrawAll(){ refreshA(); refreshB(); drawHist(); refreshQ(); }
+var rzT = 0;
+window.addEventListener('resize', function(){
+  clearTimeout(rzT);
+  rzT = setTimeout(redrawAll, 120);
+});
+if(window.matchMedia){
+  var mq = window.matchMedia('(prefers-color-scheme: dark)');
+  if(mq.addEventListener) mq.addEventListener('change', redrawAll);
+}
+redrawAll();
+
+// expose the pure counters so they can be asserted from node (see verification)
+window.KVC = {
+  cellsOnStep:cellsOnStep, cellsOnTotal:cellsOnTotal,
+  cellsOffStep:cellsOffStep, cellsOffTotal:cellsOffTotal,
+  recomputeCount:recomputeCount, cacheFloats:cacheFloats,
+  quantizeRow:quantizeRow, viridis:viridis, BENCH:BENCH, ROW:ROW
+};
+})();
+</script>
+
+<!-- built for ml-course explorables v1 -->
+</body>
+</html>

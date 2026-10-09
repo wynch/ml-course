@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Neural-Symbolic Bridge · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="neural-symbolic-bridge">Neural-Symbolic Bridge</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-04-13</span> <span>updated 2026-04-13</span> <span class="tag">neural-symbolic</span> <span class="tag">program-synthesis</span> <span class="tag">differentiable-logic</span> <span class="tag">runtime</span></div>
+<p>The working thesis of this wiki: <strong>neural and symbolic are not opposed — they are two parts of the same machine-learning architecture</strong>. The interesting question is where the seam lives and how the two substrates articulate. This concept page maps the research actively working on that middle point.</p>
+<p>Anchor: <a href="source-neural-computer-metauto.html">source-neural-computer-metauto</a> (Zhuge, 2026) — proposes the <em>Neural Computer</em> as a new machine form that absorbs programs, agents, and world models into a single learned runtime. Its CNC criteria (Turing completeness + universal programmability + behavior-consistent updates + machine-native semantics) define what a mature bridge would look like.</p>
+<h2 id="five-axes-of-articulation">Five axes of articulation</h2>
+<h3 id="1-where-the-verifier-lives">1. Where the verifier lives</h3>
+<p>When the LLM can propose but not arbitrate. A deterministic symbolic backend checks every candidate.</p>
+<ul><li><a href="source-funsearch.html">source-funsearch</a> — evolutionary program search, verified execution</li><li><a href="source-alphaevolve.html">source-alphaevolve</a> — scaled FunSearch with plug-in evaluators</li><li><a href="source-logic-lm.html">source-logic-lm</a> — LLM parses to logic, Prolog/SAT/FOL solver answers</li><li><a href="source-satlm.html">source-satlm</a> — LLM writes SMT spec, Z3 solves</li><li><a href="source-draft-sketch-prove.html">source-draft-sketch-prove</a> — LLM drafts, Lean/Isabelle verifies</li><li><a href="source-pal-program-aided-lm.html">source-pal-program-aided-lm</a> — LLM writes Python, interpreter runs it</li></ul>
+<h3 id="2-where-the-library-lives">2. Where the library lives</h3>
+<p>The accumulating symbolic artifact — a growing typed DSL where each solved problem contributes a reusable routine. This is the closest existing analogue to the Neural Computer's "installable capabilities."</p>
+<ul><li><a href="source-dreamcoder.html">source-dreamcoder</a> — wake-sleep library growth with neural recognition</li><li><a href="source-lilo-library-learning.html">source-lilo-library-learning</a> — LLM-guided synthesis + Stitch compression + AutoDoc</li><li><a href="source-voyager-minecraft-skill-library.html">source-voyager-minecraft-skill-library</a> — an LLM accumulating a JS skill library through play</li></ul>
+<h3 id="3-where-the-translation-happens">3. Where the translation happens</h3>
+<p>Between a symbolic source language and neural weights. Ideally a round trip.</p>
+<ul><li><a href="source-weiss-2021-thinking-like-transformers-rasp.html">source-weiss-2021-thinking-like-transformers-rasp</a> — RASP as the symbolic target language</li><li><a href="source-tracr-compiled-transformers.html">source-tracr-compiled-transformers</a> — RASP → transformer compiler (forward)</li><li><a href="source-decompiling-transformers-to-rasp.html">source-decompiling-transformers-to-rasp</a> — transformer → RASP decompiler (backward)</li><li><a href="source-weights-to-code-discrete-transformer.html">source-weights-to-code-discrete-transformer</a> — weights → Python program decompilation</li><li><a href="source-weiss-dfa-extraction.html">source-weiss-dfa-extraction</a> — DFAs extracted from RNNs via L*</li><li><a href="source-subleq-transformer-computer.html">source-subleq-transformer-computer</a> — transformer manually constructed as a universal computer</li></ul>
+<h3 id="4-where-the-soft-bridge-lives">4. Where the soft bridge lives</h3>
+<p>Keep symbolic structure (logic programs, rules, proofs) but make the crisp operations <em>differentiable</em> so gradients can flow through them.</p>
+<ul><li><a href="source-neural-theorem-provers.html">source-neural-theorem-provers</a> — soft unification via embedding similarity</li><li><a href="source-deepproblog.html">source-deepproblog</a> — ProbLog with neural predicates, end-to-end via WMC compilation</li><li><a href="source-dnc-graves.html">source-dnc-graves</a> — differentiable addressable memory</li></ul>
+<h3 id="5-where-the-handles-live">5. Where the handles live</h3>
+<p>Symbolic-looking atoms that already exist inside dense weights and can be read or written at fact-level granularity.</p>
+<ul><li><a href="source-rome-memit-factual-editing.html">source-rome-memit-factual-editing</a> — facts as rank-one edits in middle-layer MLPs</li><li><a href="source-sae-scaling-trilogy.html">source-sae-scaling-trilogy</a> — Golden Gate Claude: SAE features behave like symbols</li><li><a href="source-circuit-tracing-methods-anthropic.html">source-circuit-tracing-methods-anthropic</a>, <a href="source-lindsey-2025-biology-of-llm.html">source-lindsey-2025-biology-of-llm</a> — causally-verifiable symbolic sub-computations</li><li><a href="source-conditional-activation-steering-cast.html">source-conditional-activation-steering-cast</a> — conditional rules over the feature substrate</li></ul>
+<h2 id="world-models-as-programs">World models as programs</h2>
+<p>Special case worth its own note: using code itself as the world model the agent reasons over.</p>
+<ul><li><a href="source-worldcoder.html">source-worldcoder</a> — world model <em>is</em> a Python program the LLM edits</li><li><a href="source-rap-reasoning-planning.html">source-rap-reasoning-planning</a> — LLM-as-world-model + MCTS</li></ul>
+<h2 id="relation-to-other-concepts">Relation to other concepts</h2>
+<ul><li>The <strong>harness view</strong> of neural-symbolic is distinct enough to deserve its own page: <a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a>.</li><li>Readout techniques for recovering symbolic structure from trained models live in <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a>.</li><li>Reasoning claims and counter-claims are in <a href="concept-llm-reasoning.html">concept-llm-reasoning</a> — neurosymbolic approaches like <a href="source-symbolica-arc-agi-2.html">source-symbolica-arc-agi-2</a> offer counter-evidence to "LLMs cannot reason."</li></ul>
+<h2 id="open-questions">Open questions</h2>
+<ol><li><strong>Is there a CNC-shaped architecture?</strong> Zhuge argues current dense transformers can't be the endpoint — we need sparser, addressable, more circuit-like substrates. What would that look like concretely?</li><li><strong>Can symbolic extraction scale?</strong> Decompilation to RASP/Python works on small or specially-designed transformers. Does it extend to frontier models without architectural cooperation?</li><li><strong>Are SAE features really symbols?</strong> They behave like handles, but they're still linear directions — lacking composition, types, quantifiers. What's missing to make them a language?</li><li><strong>Does the verifier-at-the-edge pattern generalize?</strong> Math/code/logic have verifiers. Most domains don't. What's the equivalent for biology, economics, social reasoning?</li><li><strong>Where does continual learning fit?</strong> Neural Computer calls for "behavior-consistent updates with trackable traces." ROME/MEMIT can edit facts but not skills. The skill-library line (DreamCoder, Voyager) accumulates but doesn't edit.</li></ol>
+<h2 id="analysis">Analysis</h2>
+<p>See <a href="analysis-neural-symbolic-middle-point.html">analysis-neural-symbolic-middle-point</a> for a synthesis of how the Neural Computer thesis maps onto the current research network.</p>
+</main>
+</body>
+</html>

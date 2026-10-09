@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>SWE-bench · ML wiki</title>
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="swe-bench">SWE-bench</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-04-05</span> <span>updated 2026-09-26</span> <span class="tag">benchmarks</span> <span class="tag">coding-agents</span> <span class="tag">evaluation</span></div>
+<p>Benchmark for evaluating AI coding agents on real-world software engineering tasks derived from GitHub issues and pull requests.</p>
+<h2 id="founding-paper">Founding paper</h2>
+<ul><li><a href="source-swe-bench-paper.html">source-swe-bench-paper</a> — Jimenez 2023 (ICLR 2024 oral): 2294 GitHub issues from 12 popular Python repos. The benchmark itself, not the agents tested on it. Now anchored in the wiki.</li></ul>
+<h2 id="wiki-results">Wiki Results</h2>
+<div class="tw"><table><thead><tr><th>System</th><th>Score</th><th>Variant</th></tr></thead><tbody><tr><td><a href="source-agyn-multi-agent-swe.html">source-agyn-multi-agent-swe</a></td><td>72.2%</td><td>SWE-bench 500</td></tr><tr><td><a href="source-gea-group-evolving-agents.html">source-gea-group-evolving-agents</a></td><td>71.0%</td><td>SWE-bench Verified</td></tr><tr><td><a href="source-darwin-godel-machine.html">source-darwin-godel-machine</a></td><td>50.0% (from 20.0%)</td><td>SWE-bench Verified, on the task subsets used for selection</td></tr></tbody></table></div>
+<p>The first two achieve &gt;70% through multi-agent approaches, suggesting organizational structure helps for complex engineering tasks. Compare with <a href="source-airs-bench-research-agents.html">source-airs-bench-research-agents</a> which benchmarks research (not just coding) capability.</p>
+<h2 id="successor-evals">Successor evals</h2>
+<ul><li><a href="source-frontiercode-cognition-eval.html">source-frontiercode-cognition-eval</a> — Cognition's FrontierCode moves past pass/fail to <em>maintainability</em> ("would you actually merge this?"); a wide-open headroom eval (best model 13.4% on the Diamond split) as SWE-bench itself saturates. See <a href="entity-cognition.html">entity-cognition</a>.</li><li><a href="source-rrsi-regularized-harness-evolution.html">source-rrsi-regularized-harness-evolution</a> uses SWE-bench Verified as an out-of-distribution check: a harness evolved only on Terminal-Bench 2.1 gains +1.8 (Opus 4.8) and +2.2 (Gemini 3.5 Flash) without ever being scored on it (<code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code>, §4.3, Table 3).</li><li><a href="source-darwin-godel-machine.html">source-darwin-godel-machine</a> reports its 50.0% on the same subsets it selects on; the best checked open-source agent scores 51.0% on those 200 tasks (<code>raw/arxiv-2505-22954-darwin-godel-machine-open-ended-evolution.md</code>, §4.2, §4.4, §E.4). Its held-out test is a benchmark swap: 28.9% on Polyglot for the SWE-bench-evolved agent, against 14.2% for the base (same file, §4.4).</li><li><a href="source-token-purchasing-power-bigspin.html">source-token-purchasing-power-bigspin</a> measures the economics side: what a coding-agent token actually ships (PRs, surviving LOC) rather than what it scores.</li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code></li><li><code>raw/arxiv-2505-22954-darwin-godel-machine-open-ended-evolution.md</code></li></ul></details>
+</main>
+</body>
+</html>
