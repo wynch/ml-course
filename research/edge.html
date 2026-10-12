@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why could a JEPA fit in your pocket? · Hidden Patch</title>
+<meta name="description" content="JEPA on the edge from the question why: what ships, why latent planning and selective decoding save compute, why training is cheap, and why isotropic embeddings might survive low-bit quantization.">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/atlas.css">
+<style>
+/* page-specific */
+.beat>*,.prose>*{min-width:0}
+.ship{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.7rem}
+.ship>div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.75rem .85rem;display:grid;gap:.3rem;align-content:start;font-size:.94rem}
+.ship .k{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.ship h4{font-size:1rem}
+.ship .gone{position:relative;opacity:.72;background:repeating-linear-gradient(-45deg,var(--hatch) 0 1px,transparent 1px 7px),var(--panel)}
+.ship .gone h4{text-decoration:line-through;text-decoration-color:var(--bad)}
+.ship .keep{border:2px solid var(--why)}
+.bars{display:grid;gap:.45rem;font-family:var(--ui);font-size:.85rem}
+.bars .r{display:grid;grid-template-columns:4.6rem minmax(0,1fr) 2.8rem;gap:.5rem;align-items:center}
+.bars .t{height:.9rem;background:var(--panel-2);border-radius:3px;overflow:hidden}
+.bars .t i{display:block;height:100%}
+.bars .v{font-family:var(--mono);font-size:.76rem;text-align:right}
+.pilot-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.8rem}
+.pilot-grid>div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.75rem .85rem;display:grid;gap:.5rem}
+.pilot-grid h4{font-size:.95rem}
+.sel-legend i.ev{background:var(--bad)}
+#q-dist{width:100%;max-width:100%}
+</style>
+</head>
+<body data-chapter="edge" data-part="3">
+<header id="topbar" class="topbar"></header>
+
+<main class="chapter">
+  <section class="opener">
+    <p class="eyebrow"><span class="sw"></span>Part 3 · Machines · Chapter 12</p>
+    <h1 class="big"><span class="w">Why</span> could a JEPA fit in your pocket?</h1>
+    <p class="because">what ships is one ordinary encoder, and the savings come from what a JEPA lets you skip afterwards: no pixels to render while planning, no decoder call while nothing changes, and possibly fewer bits per number, if the embedding is shaped like a round Gaussian cloud instead of a spiky one.</p>
+    <p class="meta"><span>6 beats · 3 labs · 6 questions</span><span>Builds on: <a href="jepa.html">02 JEPA, piece by piece</a> · <a href="gaussian.html">05 LeJEPA and SIGReg</a> · <a href="worlds.html">11 World models</a></span></p>
+    <ul class="toc">
+      <li><a href="#ships"><span class="q">?</span>Why it costs nothing extra</a></li>
+      <li><a href="#planning"><span class="q">?</span>Why latent planning is cheap</a></li>
+      <li><a href="#decode"><span class="q">?</span>Why decode rarely</a></li>
+      <li><a href="#training"><span class="q">?</span>Why training is cheap</a></li>
+      <li><a href="#bits"><span class="q">?</span>Why round clouds quantize</a></li>
+      <li><a href="#pilot"><span class="q">?</span>What our pilot found</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ BEAT 1 ============ -->
+  <section class="beat" id="ships">
+    <header>
+      <span class="num">Beat 1</span>
+      <h2><span class="w">Why</span> doesn't a JEPA cost more on the device?</h2>
+      <p class="short">Because two of its three networks exist only for training. The predictor and the slow EMA copy are thrown away, and what ships is one encoder plus a small head. A JEPA ViT-Tiny costs exactly what any ViT-Tiny costs.</p>
+    </header>
+    <div class="prose">
+      <p>The objective changes what the encoder <em>knows</em>, not how many multiplications it takes. A ViT-Tiny has about 5.5M parameters (192-wide, 12 blocks, 3 heads) whether it was trained by I-JEPA, by MAE or with labels. So "JEPA is good for the edge" cannot mean "the JEPA encoder is cheaper". It means two other things: a JEPA can make a <em>small</em> encoder <em>better</em>, because it does not spend capacity on unpredictable pixel detail (<a href="bias.html">chapter 04</a>), and it changes what you do <em>downstream</em>, where you can stay in latent space instead of going back to pixels or tokens.</p>
+    </div>
+    <div class="ship" aria-label="Which JEPA parts exist at training and at inference">
+      <div><span class="k">training and inference</span><h4>Context encoder</h4><p>The ViT that becomes your model. About 5.5M parameters for ViT-Tiny.</p></div>
+      <div class="gone"><span class="k">training only</span><h4>Predictor</h4><p>Narrow transformer that guesses hidden embeddings. Dropped for plain representation learning, <b>kept</b> in a world model, where it is the dynamics.</p></div>
+      <div class="gone"><span class="k">training only</span><h4>EMA target encoder</h4><p>A second full copy of the encoder that trails the first. LeJEPA's SIGReg deletes it even during training.</p></div>
+      <div class="keep"><span class="k">ships</span><h4>Encoder + small head</h4><p>One forward pass per input. Same latency, memory and energy as any network of that shape.</p></div>
+    </div>
+    <div class="prose">
+      <p>Where the edge story gets interesting is the column "kept in a world model". LeWorldModel (LeWM, 2026) is about 15M parameters in total: a ViT-Tiny encoder of about 5M and a predictor of about 10M. It trains in a few hours on one L40S and encodes each frame as a single 192-dimensional vector. That last detail is where the next beat starts.</p>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 2: planning ============ -->
+  <section class="beat" id="planning">
+    <header>
+      <span class="num">Beat 2</span>
+      <h2><span class="w">Why</span> is planning in latent space so much cheaper?</h2>
+      <p class="short">Because a planner calls its predictor tens of thousands of times per decision, and every call costs in proportion to the size of the state. Shrink each imagined frame from a grid of about 200 patch tokens to one 192-d vector and every one of those calls gets cheaper.</p>
+    </header>
+    <div class="prose">
+      <p>A latent world model plans by imagination. The usual recipe is the <span class="term" tabindex="0" data-def="Cross-Entropy Method: sample N action sequences, roll each one out with the model, keep the best few, fit a Gaussian to them, resample, repeat for a fixed number of iterations. Then execute the first action and replan (model-predictive control).">cross-entropy method (CEM)</span> inside model-predictive control: sample N action sequences, roll each out for H steps with the predictor, score them by distance to the goal embedding, refit, repeat I times, execute the first action, replan. So the bill for one decision is</p>
+      <div class="eq">cost per decision ≈ <var>N</var> × <var>I</var> × <var>H</var> × (predictor cost per step)<span class="c">The first three factors are the search. The last factor is the state: a transformer step on n tokens costs about 2·P·n FLOPs for P parameters, plus attention, which grows like n². Only the last factor depends on how you encode a frame.</span></div>
+      <p>DINO-WM (2024) plans on frozen DINOv2 patch features, a grid of patch tokens per frame. LeWM plans on one token per frame, about 200 times fewer. LeWM reports planning in <b>0.98 s versus 47 s</b> for DINO-WM, about <b>48×</b> faster. V-JEPA 2-AC reported about <b>16 s per action versus about 4 minutes</b> for the pixel-generative Cosmos baseline, which has to render video to imagine. A controller that never draws a pixel is the kind of thing that fits on a robot's onboard computer.</p>
+    </div>
+    <figure class="lab" id="lab-plan">
+      <div class="lab-head"><span class="tag">Lab</span><h3>The planning bill: one token per frame or a patch grid</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-plan" aria-label="Left: one imagined frame as one token or as a grid of patch tokens. Right: log-scale bars of FLOPs and estimated seconds per decision for both."></canvas></div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="pl-n">CEM samples N</label><output for="pl-n"></output></div>
+            <input type="range" id="pl-n" min="20" max="1000" step="10" value="300"></div>
+          <div class="ctrl"><div class="row"><label for="pl-i">Iterations I</label><output for="pl-i"></output></div>
+            <input type="range" id="pl-i" min="1" max="50" step="1" value="30"></div>
+          <div class="ctrl"><div class="row"><label for="pl-h">Horizon H</label><output for="pl-h"></output></div>
+            <input type="range" id="pl-h" min="1" max="20" step="1" value="5"></div>
+          <div class="ctrl"><div class="row"><label for="pl-g">Patch grid side</label><output for="pl-g"></output></div>
+            <input type="range" id="pl-g" min="2" max="16" step="1" value="14">
+            <span class="hint">14 × 14 = 196 tokens, the size of a 224 px image in 16 px patches.</span></div>
+          <div class="ctrl"><div class="row"><label for="pl-p">Predictor parameters</label><output for="pl-p"></output></div>
+            <input type="range" id="pl-p" min="1" max="50" step="1" value="10">
+            <span class="hint">Same predictor for both (LeWM's is about 10M), 6 layers, width from P ≈ 12·L·d².</span></div>
+          <div class="ctrl"><div class="row"><label for="pl-t">Effective speed</label><output for="pl-t"></output></div>
+            <input type="range" id="pl-t" min="-1" max="1.5" step="0.05" value="0">
+            <span class="hint">An assumption, not a measurement: sustained TFLOP/s your chip reaches on this workload.</span></div>
+          <dl class="readout">
+            <dt>calls</dt><dd id="pl-calls">–</dd>
+            <dt>FLOPs, 1 token</dt><dd id="pl-a">–</dd>
+            <dt>FLOPs, grid</dt><dd id="pl-b">–</dd>
+            <dt>FLOP ratio</dt><dd id="pl-r" class="hot">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>N, I and H multiply both bars equally. The <em>ratio</em> between the bars depends only on the tokens per frame (and a little on attention), which is why "make the state small" is the lever that matters.</li>
+        <li>At a 14 × 14 grid the FLOP ratio is about 200×, while LeWM measured 48× in wall-clock time. FLOPs are an upper bound on the saving: a one-token call leaves a GPU mostly idle, and fixed costs (encoding the observation and goal, sampling, Python) do not shrink with the state.</li>
+        <li>Small is not enough. SCALE (2026) shows a compact state with the wrong geometry plans badly: under a squared-distance cost each direction counts by its variance, so the latent metric has to match what matters for the task.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 3: selective decoding ============ -->
+  <section class="beat" id="decode">
+    <header>
+      <span class="num">Beat 3</span>
+      <h2><span class="w">Why</span> call the expensive decoder only when the picture changes?</h2>
+      <p class="short">Because consecutive frames of a scene have almost the same embedding, so decoding each one repeats the same sentence. A JEPA gives you a cheap continuous stream of embeddings, and a change score on that stream says when something new is there to describe.</p>
+    </header>
+    <div class="prose">
+      <p>VL-JEPA (2025) predicts the <em>embedding</em> of a text answer instead of generating tokens, and calls its text decoder only when that embedding shifts. On EgoExo4D, decoding at 0.35 Hz matched uniform 1 Hz decoding, about <b>2.85× fewer decoder calls</b> at equal quality. That is an always-on camera design: a small encoder runs on the device all the time, and the expensive model (a captioner, a VLM, an upload) is woken by events. The same signal is a built-in anomaly score: prediction error in latent space needs no decoder, unlike autoencoder-based detection.</p>
+      <p>The sim below is a stream of 32-d embeddings. Each scene has its own centre; inside a scene the embedding drifts slowly and jitters with noise; scenes change at random moments (red marks), and about 4 in 10 changes are subtle: the new scene is mostly the old one. The policy is one line: decode when the cosine distance between the current embedding and the one at the last decode exceeds a threshold.</p>
+    </div>
+    <figure class="lab" id="lab-dec">
+      <div class="lab-head"><span class="tag">Sim</span><h3>Decode on change: calls versus missed events</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-dec" aria-label="Top: change score over time with the threshold, decoder calls and true scene changes. Bottom: decoder calls against missed events as the threshold sweeps."></canvas>
+          <div class="legend sel-legend" style="margin-top:.5rem"><span><i class="ev"></i>true scene change</span><span><i style="background:var(--why)"></i>decoder call</span><span><i style="background:var(--p1)"></i>change score</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="dc-th">Threshold</label><output for="dc-th"></output></div>
+            <input type="range" id="dc-th" min="0.01" max="0.8" step="0.01" value="0.3">
+            <span class="hint">Cosine distance to the last decoded embedding that triggers a call.</span></div>
+          <div class="ctrl"><div class="row"><label for="dc-no">Frame noise</label><output for="dc-no"></output></div>
+            <input type="range" id="dc-no" min="0" max="1.5" step="0.05" value="0.4"></div>
+          <div class="ctrl"><div class="row"><label for="dc-dr">Slow drift within a scene</label><output for="dc-dr"></output></div>
+            <input type="range" id="dc-dr" min="0" max="0.12" step="0.005" value="0.03"></div>
+          <div class="btns"><button type="button" class="primary" id="dc-new">New stream</button></div>
+          <dl class="readout">
+            <dt>decoder calls</dt><dd id="dc-calls">–</dd>
+            <dt>vs every frame</dt><dd id="dc-ratio" class="hot">–</dd>
+            <dt>events caught</dt><dd id="dc-hit">–</dd>
+            <dt>empty wakes</dt><dd id="dc-fa">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>The lower plot is the whole trade-off: each dot is one threshold. Low thresholds wake the decoder on noise; high thresholds miss scene changes. The current threshold is the ringed dot.</li>
+        <li>Raise the drift: the score creeps up inside a scene and triggers "nothing happened" calls, because the reference is the last <em>decoded</em> embedding. A real system pays for every one of those.</li>
+        <li>An event counts as caught if a call lands within 3 frames after it. Nobody has yet measured what this trade buys in battery on a phone (build idea #5 in <a href="lab.html">chapter 17</a>).</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 4: training ============ -->
+  <section class="beat" id="training">
+    <header>
+      <span class="num">Beat 4</span>
+      <h2><span class="w">Why</span> is JEPA training cheap, and when is it not?</h2>
+      <p class="short">Because there is no decoder, the target is a small embedding, and capacity is not spent on unpredictable detail, so it converges in fewer steps. The catch is memory: anything that backpropagates through a second full view pays for it in activations.</p>
+    </header>
+    <div class="prose">
+      <p>I-JEPA was pitched as efficient from the start. A ViT-H/14 trained on ImageNet in under 72 hours on 16 A100s (under 1,200 GPU-hours), more than 10× cheaper than MAE ViT-H/14. Each iteration was about 7% <em>slower</em> than MAE; the saving came from converging in about 5× fewer iterations. The reasons given: one view per image, no augmentations, a context encoder that sees about 25% of the patches, and embedding targets. Fewer steps to useful features is exactly what Balestriero and LeCun's result predicts: reconstruction allocates capacity to high-variance directions, a JEPA learns features in order of predictiveness (Littwin et al., 2024).</p>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>Work</th><th>What it changes</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><td><b>I-JEPA</b> (2023)</td><td>Embedding targets, one view, no augmentations</td><td>ViT-H/14 in &lt;1,200 GPU-hours; &gt;10× more efficient than MAE, &gt;2.5× faster than iBOT ViT-S/16</td></tr>
+        <tr><td><b>SALT</b> (Apple, 2025)</td><td>Frozen teacher trained briefly by pixel reconstruction replaces the EMA teacher</td><td>ViT-L 74.9 vs 68.2 on SSv2 at 1.2 vs 1.4 ×10²¹ FLOPs against V-JEPA 2; a ViT-B teacher gives a ViT-L student that beats it</td></tr>
+        <tr><td><b>M-JEPA</b> (PACT 2026)</td><td>Systems only: shares patch embedding and context encoding across masks, fused gather/scatter, target encoder only on target tokens</td><td>1.1× (2 masks) to 1.7× (10 masks) end-to-end on V-JEPA, same objective, ~10% more memory at 10 masks</td></tr>
+        <tr><td><b>LeJEPA / SIGReg</b> (2025)</td><td>Deletes the EMA teacher and stop-gradient; one hyperparameter</td><td>Cheaper tuning, no second copy of the weights; LeWM trains in hours on one GPU</td></tr>
+        <tr><td><b>CrossJEPA</b> (2025)</td><td>8.5M-parameter point encoder predicts cached embeddings of a frozen 2D model</td><td>94.2% ModelNet40 linear probe in ~4 to 6 h on one RTX 4090, vs Point-JEPA 93.6% at 46M and ~22 h</td></tr>
+      </tbody>
+    </table></div>
+    <aside class="aside ours"><span class="k">From this project · M5 laptop, ViT-Tiny, CIFAR-100, batch 256</span>
+      Measured on Vinz's M5 (16 GB, MPS): SIGReg <b>1.8 min/epoch, 9.5 GB peak</b>; VICReg 1.75 min, 8.7 GB; EMA <b>0.9 min, 4.5 GB</b>. SIGReg "removes the teacher", yet here it is twice as slow and twice as hungry. The reason is in the training script: SIGReg and VICReg run the encoder on the full image <em>with gradients</em> (their regularizer needs them), so every activation of that second pass is kept for backprop. EMA runs its teacher under <code>no_grad</code>, which stores nothing. Deleting a 5.5M-parameter copy saves about 22 MB of weights; keeping a second pass of activations costs gigabytes. At small scale, activations dominate.
+    </aside>
+  </section>
+
+  <!-- ============ BEAT 5: quantization ============ -->
+  <section class="beat" id="bits">
+    <header>
+      <span class="num">Beat 5</span>
+      <h2><span class="w">Why</span> would a round cloud of embeddings survive fewer bits?</h2>
+      <p class="short">Because quantization lays one evenly spaced ruler over all the numbers, and the ruler's length is set by the most extreme value. A round, light-tailed (isotropic Gaussian) cloud uses the ruler well. One spiky outlier channel stretches the ruler so far that every other number falls between the same two marks.</p>
+    </header>
+    <div class="prose">
+      <p>Post-training quantization stores each number as a small integer times a scale. The symmetric round-to-nearest version used in this project's experiments is</p>
+      <div class="eq">q(x) = s · clamp(round(x / s), −Q, Q),  Q = 2<sup>b−1</sup> − 1,  s = max|x| / Q<span class="c">With b = 4 bits there are 15 levels (−7…7); with 3 bits, 7; with 2 bits, only 3 (−1, 0, 1). "Per-tensor" uses one s for every channel; "per-channel" gives each channel its own s. The rounding error per number is at most s/2.</span></div>
+      <p>Every term in that formula points at the same weakness: <b>s is set by the maximum</b>. Heavy tails (high <span class="term" tabindex="0" data-def="Excess kurtosis: the fourth standardized moment minus 3. Zero for a Gaussian; large when rare extreme values dominate. Reported here as the mean absolute value across channels, as in notebook 3.">kurtosis</span>) and outlier channels make the maximum large compared with the typical value, so most numbers land on a handful of levels. A strongly anisotropic cloud (high <span class="term" tabindex="0" data-def="Condition number: largest eigenvalue of the embedding covariance divided by the smallest. 1 means perfectly round; large means some directions are much thinner than others.">condition number</span>) has thin directions; the rounding noise is the same size in every direction, so it can swamp a thin direction that carries information.</p>
+      <p>Now the theory. LeJEPA's <b>SIGReg</b> pushes embeddings toward an isotropic Gaussian, and a 2026 free-energy analysis of SIGReg predicts a condition number near 1. A Gaussian also has zero excess kurtosis, so no fat tails. Put the two facts together and you get a hypothesis nobody had tested: <em>SIGReg-trained encoders should tolerate low-bit quantization better than VICReg- or EMA-trained ones.</em> The lab lets you see the mechanism before the evidence.</p>
+    </div>
+    <figure class="lab" id="lab-q">
+      <div class="lab-head"><span class="tag">Lab</span><h3>The quantization ruler: what survives 2 to 8 bits</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-q" aria-label="Top left: histogram of one typical channel with the quantization levels. Top right: two channels with the quantization lattice. Bottom: nearest-neighbour accuracy against bit width for four embedding shapes."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i style="background:var(--p1)"></i>isotropic</span><span><i style="background:var(--p2)"></i>anisotropic</span><span><i style="background:var(--p3)"></i>heavy-tailed</span><span><i style="background:var(--p5)"></i>heavy-tailed + outliers</span><span><i style="background:var(--why)"></i>quantized values</span></div></div>
+        <div class="side">
+          <div class="ctrl"><label for="q-dist">Embedding shape</label>
+            <select id="q-dist">
+              <option value="iso">Isotropic Gaussian (SIGReg-like)</option>
+              <option value="aniso">Anisotropic, rotated (cond ≈ 1000)</option>
+              <option value="heavy">Heavy-tailed (Student-t, 3 dof)</option>
+              <option value="outlier" selected>Heavy-tailed + 2 outlier channels</option>
+            </select></div>
+          <div class="ctrl"><div class="row"><label for="q-bits">Bit width</label><output for="q-bits"></output></div>
+            <input type="range" id="q-bits" min="2" max="8" step="1" value="3"></div>
+          <div class="ctrl"><span class="lbl">Scale</span>
+            <div class="seg" role="group" aria-label="Scaling">
+              <button type="button" id="q-pt" aria-pressed="true">Per-tensor</button><button type="button" id="q-pc" aria-pressed="false">Per-channel</button>
+            </div></div>
+          <dl class="readout">
+            <dt>NN acc. fp32</dt><dd id="q-fp">–</dd>
+            <dt>NN acc. quant.</dt><dd id="q-acc" class="hot">–</dd>
+            <dt>same neighbour</dt><dd id="q-same">–</dd>
+            <dt>error / var.</dt><dd id="q-err">–</dd>
+            <dt>kurtosis</dt><dd id="q-kurt">–</dd>
+            <dt>condition no.</dt><dd id="q-cond">–</dd>
+            <dt>outlier ratio</dt><dd id="q-out">–</dd>
+            <dt>levels, ch. 0</dt><dd id="q-lev">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>The setup: 720 embeddings in 16 dimensions from 12 classes, all shapes normalized to the same total variance. Retrieval = for each of 240 queries, find the nearest of 480 stored embeddings after quantizing both; it is right if the classes match.</li>
+        <li>Outlier channels at 3 bits per-tensor: the channel-0 histogram falls on one or two levels and retrieval collapses. Switch to <b>per-channel</b> and it recovers, because the outliers get their own ruler. That is why LLM quantization methods fight outlier channels first.</li>
+        <li>The rotated anisotropic cloud is the opposite case: per-channel scaling barely helps, because its thin directions are not aligned with any channel. The isotropic cloud is fine at 3 bits either way. Only 2 bits (three levels) breaks it.</li>
+      </ul></div>
+    </figure>
+    <div class="analogy"><span class="ico">▤</span><div><span class="k">Picture it</span><p>You are measuring a class of children with a tape that has only seven marks, and the tape must reach the tallest person in the room. If one visitor is a giraffe, the marks are a metre apart and every child is "about one mark". Per-channel scaling gives the giraffe its own tape. SIGReg's bet is simpler: train so that nobody in the room is a giraffe.</p></div></div>
+  </section>
+
+  <!-- ============ BEAT 6: pilot ============ -->
+  <section class="beat" id="pilot">
+    <header>
+      <span class="num">Beat 6</span>
+      <h2>What did this project's pilot find, and why is nobody else checking?</h2>
+      <p class="short">Because no JEPA-specific quantization, pruning or low-bit paper exists yet; the closest, a 2026 tutorial on JEPA for 6G networks, lists quantization as future work with no results. Our CPU pilot found SIGReg lost the least accuracy in every quantized setting, and that kurtosis predicted the loss better than condition number.</p>
+    </header>
+    <div class="prose">
+      <p>Notebook 3 is deliberately tiny so it runs anywhere in about 4 minutes: scikit-learn's 8 × 8 digits, a 3-layer MLP encoder with a 16-d embedding, half the pixels hidden from the context, and three anti-collapse schemes that are otherwise identical (SIGReg LeJEPA-style, VICReg, and an EMA teacher with stop-gradient), 4,000 Adam steps, 3 seeds each. A linear probe is fitted on full-precision embeddings and kept fixed, as it would be in deployment. Then either the weights (per output channel) or the output embedding (per tensor) are quantized.</p>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>Points lost</th><th>weights INT4</th><th>weights INT3</th><th>embedding INT4</th><th>embedding INT3</th><th>condition no.</th><th>kurtosis</th></tr></thead>
+      <tbody>
+        <tr><td><b>SIGReg</b> <span class="muted small">fp32 0.900</span></td><td class="n best">5.0</td><td class="n best">11.8</td><td class="n best">1.2</td><td class="n best">5.3</td><td class="n best">2.7</td><td class="n best">0.42</td></tr>
+        <tr><td><b>VICReg</b> <span class="muted small">fp32 0.865</span></td><td class="n">5.6</td><td class="n">37.1</td><td class="n">2.1</td><td class="n">7.0</td><td class="n">4,275</td><td class="n">1.20</td></tr>
+        <tr><td><b>EMA</b> <span class="muted small">fp32 0.834</span></td><td class="n">19.0</td><td class="n">27.0</td><td class="n">24.5</td><td class="n">47.6</td><td class="n">21</td><td class="n">5.04</td></tr>
+      </tbody>
+    </table></div>
+    <div class="pilot-grid">
+      <div><h4>Embedding INT3: points lost</h4>
+        <div class="bars" id="pb-e3"></div></div>
+      <div><h4>Embedding kurtosis</h4>
+        <div class="bars" id="pb-k"></div></div>
+      <div><h4>Condition number (log scale)</h4>
+        <div class="bars" id="pb-c"></div></div>
+    </div>
+    <div class="prose">
+      <p>Read the three bar groups side by side. If condition number drove the damage, VICReg (4,275) would be the disaster. It isn't: its channels have nearly equal scales and light tails, so embedding quantization hurt it only a little more than SIGReg. EMA's condition number is moderate (21), but its tails are heavy (kurtosis about 5), and it fell apart at INT4 and INT3. <b>Tail heaviness tracked embedding-quantization loss better than condition number</b>, which is what the lab above shows too: the ruler is set by the maximum. INT8 cost nothing for any method.</p>
+      <aside class="aside warn"><span class="k">Why this is only a pilot</span>Toy data and model, 3 seeds, untuned hyperparameters, and EMA starts from a lower full-precision accuracy, which confounds its drop. Round-to-nearest only: methods like SmoothQuant or GPTQ exist precisely to repair outliers like EMA's. VICReg's collapse under 3-bit <em>weights</em> (37.1 points) is unexplained; its weights may carry outliers its embedding does not show.</aside>
+      <aside class="aside ours"><span class="k">Running now</span>The real test is ViT-Tiny (5.5M parameters) on CIFAR-100 with the same three regularizers, measuring W8/W4/W3 and E8/E4/E3 plus kurtosis, condition number, effective rank and residual-stream outlier ratios. The first seed is training overnight on the M5; results are not in yet. What would confirm or refute the hypothesis is written down before the numbers arrive, in <a href="lab.html#falsify">chapter 17</a>.</aside>
+    </div>
+  </section>
+
+  <section class="remember">
+    <h2>Three things to <span class="w">remember</span></h2>
+    <ol>
+      <li><b>The encoder is ordinary; the pipeline is not.</b>A JEPA encoder costs what its shape costs. The savings come from staying in latent space: planning without pixels, decoding only on change.</li>
+      <li><b>Every imagined step pays for the state.</b>Planning cost is samples × iterations × horizon × predictor cost, and only the last factor knows how big a frame is. One token instead of 200 is the whole trick.</li>
+      <li><b>The ruler is set by the giant.</b>Low-bit quantization fails on tails and outliers. An isotropic Gaussian has neither, which is why SIGReg might be a free recipe for edge models. Kurtosis is the number to watch.</li>
+    </ol>
+  </section>
+
+  <section id="quiz"></section>
+
+  <section class="sources">
+    <h2>Sources for this chapter</h2>
+    <ol>
+      <li>Assran et al., <a href="https://arxiv.org/abs/2301.08243">I-JEPA</a>, CVPR 2023. &lt;1,200 GPU-hours for ViT-H/14, &gt;10× vs MAE.</li>
+      <li>Maes et al., <a href="https://arxiv.org/abs/2603.19312">LeWorldModel</a>, 2026. ~15M parameters, one 192-d token per frame, 0.98 s vs 47 s planning.</li>
+      <li>Zhou, Pan, LeCun, Pinto, <a href="https://arxiv.org/abs/2411.04983">DINO-WM</a>, 2024. Planning with CEM on frozen DINOv2 patch features.</li>
+      <li>Assran et al., <a href="https://arxiv.org/abs/2506.09985">V-JEPA 2 / 2-AC</a>, 2025. ~16 s per action vs ~4 min for Cosmos.</li>
+      <li><a href="https://arxiv.org/abs/2512.10942">VL-JEPA</a>, 2025. Selective decoding at 0.35 Hz matching 1 Hz, 2.85× fewer calls on EgoExo4D.</li>
+      <li>Li et al. (Apple), <a href="https://arxiv.org/abs/2509.24317">SALT: Compute-Efficient Video SSL with Frozen Teachers</a>, 2025.</li>
+      <li>Sanim et al., <a href="https://arxiv.org/abs/2609.22674">Mask-Aware Execution for Efficient JEPA Training (M-JEPA)</a>, PACT 2026.</li>
+      <li>Perera et al., <a href="https://arxiv.org/abs/2511.18424">CrossJEPA</a>, 2025.</li>
+      <li>Balestriero &amp; LeCun, <a href="https://arxiv.org/abs/2511.08544">LeJEPA</a>, 2025. SIGReg toward an isotropic Gaussian.</li>
+      <li>Arnez, Gomez-Villa, <a href="https://arxiv.org/abs/2607.13612">The SIGReg Objective as Variational Free Energy</a>, 2026. Predicts condition number near 1 (abstract only seen) <span class="pill bad">check</span></li>
+      <li>Hu et al., <a href="https://arxiv.org/abs/2608.16287">SCALE: State-Calibrated Latent Embeddings for JEPA Planning</a>, 2026 (abstract only seen) <span class="pill bad">check</span></li>
+      <li>Hassan et al., <a href="https://arxiv.org/abs/2607.09798">JEPA for AI-Native 6G</a>, 2026. Proposes quantization and pruning, no measured latency.</li>
+      <li>Balestriero &amp; LeCun, <a href="https://arxiv.org/abs/2402.11337">Learning by Reconstruction Produces Uninformative Features for Perception</a>, 2024; Littwin et al., <a href="https://arxiv.org/abs/2407.03475">How JEPA Avoids Noisy Features</a>, 2024.</li>
+      <li>Project files: <code>jepa/applications-edge-efficiency.md</code>, <code>jepa/notebooks/03-sigreg-quantization-pilot.ipynb</code>, <code>jepa/experiments/quant-vit/</code> (M5 timings measured 2026-10-10).</li>
+    </ol>
+  </section>
+
+  <nav id="pager"></nav>
+</main>
+<footer id="site-footer"></footer>
+
+<script src="assets/atlas.js"></script>
+<script>
+(function(){
+"use strict";
+const A = window.Atlas;
+const fmtE = v=>{ if(v>=1e15) return (v/1e15).toFixed(1)+" PFLOP"; if(v>=1e12) return (v/1e12).toFixed(1)+" TFLOP"; if(v>=1e9) return (v/1e9).toFixed(1)+" GFLOP"; return (v/1e6).toFixed(1)+" MFLOP"; };
+const fmtT = s=>{ if(s<1) return (s*1000).toFixed(0)+" ms"; if(s<120) return s.toFixed(s<10?2:1)+" s"; if(s<7200) return (s/60).toFixed(1)+" min"; return (s/3600).toFixed(1)+" h"; };
+
+/* =================== LAB: planning bill =================== */
+(function(){
+  const cv = document.getElementById("cv-plan");
+  const S = {N:300, I:30, H:5, g:14, P:10, t:1};
+  const L = 6;
+  function cost(n){
+    const P = S.P*1e6, d = Math.sqrt(P/(12*L));
+    return 2*P*n + 4*L*d*n*n;              // FLOPs per predictor call on n tokens
+  }
+  const view = A.canvas(cv, w=>w<560 ? 1.25 : .46, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const calls = S.N*S.I*S.H, n = S.g*S.g;
+    const fa = calls*cost(1), fb = calls*cost(n), ta = fa/(S.t*1e12), tb = fb/(S.t*1e12);
+    document.getElementById("pl-calls").textContent = calls.toLocaleString("en-US");
+    document.getElementById("pl-a").textContent = fmtE(fa);
+    document.getElementById("pl-b").textContent = fmtE(fb);
+    document.getElementById("pl-r").textContent = (fb/fa).toFixed(0)+"×";
+    // left: frame glyphs
+    const narrow = w < 560, pad = 10;
+    const lw = narrow ? w : Math.min(w*.36, 230);
+    ctx.font = `600 12px ${C.ui}`; ctx.fillStyle = C.muted; ctx.textBaseline = "alphabetic";
+    ctx.fillText("One imagined frame", pad, 14);
+    const box = narrow ? Math.min((w-3*pad)/2, 150) : Math.min(lw-2*pad, (h-60)/2.3);
+    // compact
+    const y1 = 24;
+    ctx.strokeStyle = C.lineStrong; ctx.lineWidth = 1; ctx.strokeRect(pad, y1, box, box*.9);
+    ctx.fillStyle = C.p1; ctx.beginPath(); ctx.arc(pad+box/2, y1+box*.45, Math.max(4,box*.07), 0, 7); ctx.fill();
+    ctx.fillStyle = C.ink; ctx.font = `600 11.5px ${C.ui}`; ctx.fillText("1 token × 192-d", pad, y1+box*.9+14);
+    // grid
+    const gx = narrow ? 2*pad+box : pad, y2 = narrow ? y1 : y1+box*.9+26, gs = box/S.g;
+    ctx.strokeStyle = C.lineStrong; ctx.strokeRect(gx, y2, box, box*.9);
+    ctx.fillStyle = C.p2;
+    for(let a=0;a<S.g;a++) for(let b=0;b<S.g;b++){ const r = Math.max(.8, gs*.32); ctx.beginPath(); ctx.arc(gx+(a+.5)*gs, y2+(b+.5)*gs*.9, r, 0, 7); ctx.fill(); }
+    ctx.fillStyle = C.ink; ctx.fillText(`${n} tokens (${S.g}×${S.g})`, gx, y2+box*.9+14);
+    // log bars: right of the glyphs, or below them on a phone
+    const T0 = narrow ? y1+box*.9+40 : 0;
+    const bx = narrow ? pad : lw+pad*2, bw = w-bx-pad;
+    if(bw < 80) return;
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText("Seconds per decision (log scale)", bx, T0+14);
+    const lo = -3, hi = 4;                              // 1 ms .. 10^4 s
+    const X = s=> bx + (Math.max(lo, Math.min(hi, Math.log10(Math.max(1e-9,s)))) - lo)/(hi-lo)*bw;
+    const ax = h-22;
+    ctx.strokeStyle = C.line; ctx.fillStyle = C.faint; ctx.font = `10.5px ${C.mono}`; ctx.textAlign = "center";
+    const ticks = [[-3,"1ms"],[-2,"10ms"],[-1,"0.1s"],[0,"1s"],[1,"10s"],[2,"100s"],[3,"17min"],[4,"2.8h"]];
+    ticks.forEach(([e,l],k)=>{ const x = bx+(e-lo)/(hi-lo)*bw; ctx.beginPath(); ctx.moveTo(x,T0+24); ctx.lineTo(x,ax); ctx.stroke(); if(bw>480 || k%2===0) ctx.fillText(l, x, ax+14); });
+    ctx.textAlign = "start";
+    const rows = [
+      {lab:"1 token / frame", v:ta, c:C.p1},
+      {lab:`${n} tokens / frame`, v:tb, c:C.p2},
+    ];
+    const bh = Math.min(26,(ax-T0-40)/6);
+    rows.forEach((r,k)=>{
+      const y = T0 + 44 + k*(bh+26);
+      ctx.fillStyle = C.ink; ctx.font = `600 11.5px ${C.ui}`; ctx.fillText(`${r.lab} · ${fmtT(r.v)}`, bx, y-5);
+      ctx.fillStyle = r.c; ctx.fillRect(bx, y, Math.max(2, X(r.v)-bx), bh);
+    });
+    // measured reference markers
+    const my = T0 + 44 + 2*(bh+26);
+    ctx.fillStyle = C.muted; ctx.font = `600 11px ${C.ui}`; ctx.fillText(narrow ? "Measured (other hardware):" : "Measured (different hardware and predictors):", bx, my+4);
+    const refs = [[0.98,"LeWM 0.98 s",C.p1],[47,"DINO-WM 47 s",C.p2]];
+    refs.forEach(([v,l,c],k)=>{ const x = X(v); ctx.strokeStyle = c; ctx.lineWidth = 2; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(x, my+10); ctx.lineTo(x, ax); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = c; ctx.font = `600 11px ${C.mono}`; ctx.textAlign = x > bx+bw*.7 ? "right" : "left"; ctx.fillText(l, x+(ctx.textAlign==="right"?-4:4), my+22+k*14); ctx.textAlign = "start"; });
+  }
+  A.slider("pl-n", v=>{S.N=v; view.redraw();}, v=>v);
+  A.slider("pl-i", v=>{S.I=v; view.redraw();}, v=>v);
+  A.slider("pl-h", v=>{S.H=v; view.redraw();}, v=>v);
+  A.slider("pl-g", v=>{S.g=v; view.redraw();}, v=>`${v}×${v} = ${v*v}`);
+  A.slider("pl-p", v=>{S.P=v; view.redraw();}, v=>v+"M");
+  A.slider("pl-t", v=>{S.t=Math.pow(10,v); view.redraw();}, v=>{ const t=Math.pow(10,v); return (t<1?t.toFixed(2):t.toFixed(1))+" TFLOP/s"; });
+})();
+
+/* =================== SIM: selective decoding =================== */
+(function(){
+  const cv = document.getElementById("cv-dec");
+  const T = 600, Dm = 32, TOL = 3;
+  let seed = 11, th = .3, noise = .4, drift = .03;
+  let base = null;               // {events, scene centre index per t, unit noise vectors, drift walk}
+  function gen(){
+    const r = A.rng(seed*7907+3);
+    const events = []; let t = 0;
+    while(true){ t += 25 + Math.floor(-Math.log(1-r())*55); if(t>=T-5) break; events.push(t); }
+    const nScenes = events.length+1, centres = [];
+    for(let k=0;k<nScenes;k++){ const c=[]; for(let j=0;j<Dm;j++) c.push(r.normal()); let m=Math.hypot(...c); let u=c.map(x=>x/m);
+      if(k>0){ const a = r()<.4 ? .5+r()*.25 : r()*.3; const p=centres[k-1]; u=u.map((x,j)=>a*p[j]+(1-a)*x); m=Math.hypot(...u); u=u.map(x=>x/m); }
+      centres.push(u); }
+    const sceneOf = new Int16Array(T); let s=0;
+    for(let i=0;i<T;i++){ while(s<events.length && i>=events[s]) s++; sceneOf[i]=s; }
+    const nz = [], wk = [];
+    let walk = new Array(Dm).fill(0);
+    for(let i=0;i<T;i++){
+      if(i===0 || sceneOf[i]!==sceneOf[i-1]) walk = new Array(Dm).fill(0);
+      walk = walk.map(x=>x + r.normal()/Math.sqrt(Dm));
+      wk.push(walk.slice());
+      const n=[]; for(let j=0;j<Dm;j++) n.push(r.normal()/Math.sqrt(Dm)); nz.push(n);
+    }
+    base = {events, centres, sceneOf, nz, wk};
+  }
+  function stream(){
+    const E = [];
+    for(let i=0;i<T;i++){ const c = base.centres[base.sceneOf[i]], n = base.nz[i], wv = base.wk[i];
+      E.push(c.map((x,j)=>x + noise*n[j] + drift*wv[j])); }
+    return E;
+  }
+  function cosd(a,b){ let d=0,na=0,nb=0; for(let j=0;j<a.length;j++){ d+=a[j]*b[j]; na+=a[j]*a[j]; nb+=b[j]*b[j]; } return 1 - d/Math.sqrt(na*nb); }
+  function run(E, thr){
+    const calls = [0], score = new Float32Array(T); let ref = E[0];
+    for(let i=1;i<T;i++){ const s = cosd(E[i], ref); score[i] = s; if(s>thr){ calls.push(i); ref = E[i]; } }
+    let hit = 0; const useful = new Set();
+    base.events.forEach(ev=>{ const c = calls.find(t=>t>=ev && t<=ev+TOL); if(c!==undefined){ hit++; useful.add(c); } });
+    const fa = calls.filter(t=>t>0 && !useful.has(t)).length;
+    return {calls, score, hit, miss: base.events.length-hit, fa};
+  }
+  let E = null, cur = null, sweep = [];
+  function compute(){
+    E = stream(); cur = run(E, th);
+    sweep = [];
+    for(let k=0;k<=40;k++){ const t = .01 + k*(.79/40); const r = run(E, t); sweep.push({t, calls:r.calls.length, miss:r.miss}); }
+  }
+  const view = A.canvas(cv, w=>w<560 ? 1.05 : .74, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    if(!cur) return;
+    const pad = 8, top = 20, th1 = h*.44;
+    // scene band
+    const X = i=> pad + i/(T-1)*(w-2*pad);
+    const pal = [C.p1,C.p2,C.p3,C.p4,C.p5];
+    for(let i=0;i<T;i++){ ctx.globalAlpha = .28; ctx.fillStyle = pal[base.sceneOf[i]%5]; ctx.fillRect(X(i), top, (w-2*pad)/T+.6, 8); }
+    ctx.globalAlpha = 1;
+    ctx.font = `600 11.5px ${C.ui}`; ctx.fillStyle = C.muted; ctx.fillText("scenes over time (600 frames)", pad, 13);
+    // score plot
+    const py = top+14, ph = th1 - py;
+    const maxS = Math.max(th*2.2, .35);
+    const Y = s=> py + ph - Math.min(1, s/maxS)*ph;
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(pad, py, w-2*pad, ph);
+    // threshold zone
+    ctx.fillStyle = C.panel2; ctx.fillRect(pad, py, w-2*pad, Y(th)-py);
+    A.hatch(ctx, pad, py, w-2*pad, Y(th)-py, C.hatch, 8);
+    ctx.strokeStyle = C.why; ctx.lineWidth = 1.5; ctx.setLineDash([5,4]); ctx.beginPath(); ctx.moveTo(pad, Y(th)); ctx.lineTo(w-pad, Y(th)); ctx.stroke(); ctx.setLineDash([]);
+    // events
+    ctx.strokeStyle = C.bad; ctx.lineWidth = 1.5;
+    base.events.forEach(ev=>{ ctx.beginPath(); ctx.moveTo(X(ev), top-2); ctx.lineTo(X(ev), py+ph); ctx.stroke(); });
+    // score
+    ctx.strokeStyle = C.p1; ctx.lineWidth = 1.2; ctx.beginPath();
+    for(let i=1;i<T;i++){ const x=X(i), y=Y(cur.score[i]); i===1? ctx.moveTo(x,y) : ctx.lineTo(x,y); } ctx.stroke();
+    // calls
+    ctx.fillStyle = C.why;
+    cur.calls.forEach(t=>{ ctx.beginPath(); ctx.moveTo(X(t), py+ph+2); ctx.lineTo(X(t)-4, py+ph+10); ctx.lineTo(X(t)+4, py+ph+10); ctx.closePath(); ctx.fill(); });
+    ctx.fillStyle = C.muted; ctx.font = `11px ${C.ui}`; ctx.fillText("▲ decoder calls", pad, py+ph+22);
+    ctx.textAlign="right"; ctx.fillText("threshold", w-pad-2, Y(th)-4); ctx.textAlign="start";
+    // trade-off curve
+    const cy = th1 + 58, ch = h - cy - 26, cx = pad+34, cw = w - cx - pad;
+    ctx.font = `600 11.5px ${C.ui}`; ctx.fillStyle = C.muted; ctx.fillText(w<560 ? "Threshold sweep: calls vs missed" : "Sweep the threshold: decoder calls vs missed scene changes", pad, cy-12);
+    ctx.strokeStyle = C.line; ctx.strokeRect(cx, cy, cw, ch);
+    const maxC = Math.max(...sweep.map(s=>s.calls)), nEv = base.events.length;
+    const LX = c=> cx + Math.log(c)/Math.log(Math.max(2,maxC))*cw;
+    const LY = m=> cy + ch - (m/Math.max(1,nEv))*ch;
+    ctx.fillStyle = C.faint; ctx.font = `10.5px ${C.mono}`;
+    ctx.fillText(`${nEv} missed`, cx+3, cy+11); ctx.fillText("0", cx-12, cy+ch);
+    ctx.textAlign="right"; ctx.fillText(`${maxC} calls`, cx+cw-3, cy+ch+13); ctx.textAlign="left"; ctx.fillText("1 call", cx, cy+ch+13);
+    // uniform 1-per-frame marker reference
+    ctx.strokeStyle = C.p1; ctx.lineWidth = 1.5; ctx.beginPath();
+    sweep.forEach((s,k)=>{ const x=LX(s.calls), y=LY(s.miss); k? ctx.lineTo(x,y) : ctx.moveTo(x,y); }); ctx.stroke();
+    ctx.fillStyle = C.p1; sweep.forEach(s=>{ ctx.beginPath(); ctx.arc(LX(s.calls), LY(s.miss), 2.4, 0, 7); ctx.fill(); });
+    ctx.strokeStyle = C.why; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.arc(LX(cur.calls.length), LY(cur.miss), 6.5, 0, 7); ctx.stroke();
+    ctx.save(); ctx.translate(pad+8, cy+ch/2); ctx.rotate(-Math.PI/2); ctx.textAlign="center"; ctx.fillStyle = C.muted; ctx.font = `11px ${C.ui}`; ctx.fillText("missed", 0, 0); ctx.restore();
+    // readouts
+    document.getElementById("dc-calls").textContent = cur.calls.length;
+    document.getElementById("dc-ratio").textContent = (T/cur.calls.length).toFixed(1)+"× fewer";
+    document.getElementById("dc-hit").textContent = `${cur.hit} / ${nEv}`;
+    document.getElementById("dc-fa").textContent = cur.fa;
+  }
+  function refresh(){ compute(); view.redraw(); }
+  gen();
+  A.slider("dc-th", v=>{ th=v; if(base) refresh(); }, v=>v.toFixed(2));
+  A.slider("dc-no", v=>{ noise=v; if(base) refresh(); }, v=>v.toFixed(2));
+  A.slider("dc-dr", v=>{ drift=v; if(base) refresh(); }, v=>v.toFixed(3));
+  document.getElementById("dc-new").onclick = ()=>{ seed++; gen(); refresh(); };
+  refresh();
+})();
+
+/* =================== LAB: quantization ruler =================== */
+(function(){
+  const cv = document.getElementById("cv-q");
+  const D = 16, K = 12, NDB = 480, NQ = 240, N = NDB+NQ;
+  const KINDS = ["iso","aniso","heavy","outlier"];
+  const NAMES = {iso:"isotropic", aniso:"anisotropic", heavy:"heavy-tailed", outlier:"+ outliers"};
+  let kind = "outlier", bits = 3, perch = false;
+  function gen(k){
+    const r = A.rng(5); const cent = [];
+    for(let c=0;c<K;c++){ const v=[]; for(let j=0;j<D;j++) v.push(r.normal()); cent.push(v); }
+    const tdist = ()=>{ const g=r.normal(); let s=0; for(let i=0;i<3;i++){ const x=r.normal(); s+=x*x; } return g/Math.sqrt(s/3)/Math.sqrt(3); };
+    const lab = [], Z = [];
+    for(let i=0;i<N;i++){ const c=i%K; lab.push(c); const z=[]; for(let j=0;j<D;j++){ const n = (k==="heavy"||k==="outlier") ? tdist() : r.normal(); z.push(cent[c][j]+.7*n); } Z.push(z); }
+    if(k==="aniso"){
+      const s=[]; for(let j=0;j<D;j++) s.push(Math.pow(10,-1.5*j/(D-1)));
+      const Q=[]; for(let a=0;a<D;a++){ let v=[]; for(let j=0;j<D;j++) v.push(r.normal()); for(const q of Q){ const d=v.reduce((t,x,j)=>t+x*q[j],0); v=v.map((x,j)=>x-d*q[j]); } const nm=Math.hypot(...v); Q.push(v.map(x=>x/nm)); }
+      for(const z of Z){ const y=z.map((x,j)=>x*s[j]); for(let a=0;a<D;a++){ let o=0; for(let j=0;j<D;j++) o+=Q[j][a]*y[j]; z[a]=o; } }
+    }
+    const mu=new Array(D).fill(0); Z.forEach(z=>z.forEach((x,j)=>mu[j]+=x/N));
+    let tv=0; Z.forEach(z=>z.forEach((x,j)=>tv+=(x-mu[j])**2/N)); const sc=Math.sqrt(D/tv);
+    Z.forEach(z=>z.forEach((x,j)=>z[j]=(x-mu[j])*sc));
+    if(k==="outlier") Z.forEach(z=>{ z[3]=14+.15*r.normal(); z[11]=-11+.15*r.normal(); });
+    return {Z, lab};
+  }
+  function quant(Z, b, pc){
+    const qm = Math.pow(2,b-1)-1, mx = new Array(D).fill(0); let g = 0;
+    Z.forEach(z=>z.forEach((x,j)=>{ const a=Math.abs(x); if(a>mx[j]) mx[j]=a; if(a>g) g=a; }));
+    const st = pc ? mx.map(v=>Math.max(1e-9,v)/qm) : new Array(D).fill(g/qm);
+    return {Q: Z.map(z=>z.map((x,j)=>Math.max(-qm,Math.min(qm,Math.round(x/st[j])))*st[j])), st, qm};
+  }
+  function nn(Z, lab){
+    let ok = 0; const idx = new Int32Array(NQ);
+    for(let q=NDB;q<N;q++){ let best=1e18, bi=0; const zq=Z[q];
+      for(let i=0;i<NDB;i++){ const zi=Z[i]; let d=0; for(let j=0;j<D;j++){ const t=zq[j]-zi[j]; d+=t*t; if(d>=best) break; } if(d<best){ best=d; bi=i; } }
+      idx[q-NDB]=bi; if(lab[bi]===lab[q]) ok++; }
+    return {acc: ok/NQ, idx};
+  }
+  function eigSym(M){            // Jacobi eigenvalues of a small symmetric matrix
+    const n=M.length, a=M.map(r=>r.slice());
+    for(let sweep=0; sweep<60; sweep++){
+      let off=0; for(let i=0;i<n;i++) for(let j=i+1;j<n;j++) off+=a[i][j]*a[i][j];
+      if(off<1e-18) break;
+      for(let p=0;p<n;p++) for(let q=p+1;q<n;q++){
+        if(Math.abs(a[p][q])<1e-15) continue;
+        const th=(a[q][q]-a[p][p])/(2*a[p][q]), t=Math.sign(th||1)/(Math.abs(th)+Math.sqrt(th*th+1)), c=1/Math.sqrt(t*t+1), s=t*c;
+        for(let k=0;k<n;k++){ const akp=a[k][p], akq=a[k][q]; a[k][p]=c*akp-s*akq; a[k][q]=s*akp+c*akq; }
+        for(let k=0;k<n;k++){ const apk=a[p][k], aqk=a[q][k]; a[p][k]=c*apk-s*aqk; a[q][k]=s*apk+c*aqk; }
+      }
+    }
+    return a.map((r,i)=>r[i]);
+  }
+  function geom(Z){
+    const mu=new Array(D).fill(0); Z.forEach(z=>z.forEach((x,j)=>mu[j]+=x/N));
+    const cov=[...Array(D)].map(()=>new Array(D).fill(0)), k4=new Array(D).fill(0);
+    Z.forEach(z=>{ for(let i=0;i<D;i++){ const di=z[i]-mu[i]; k4[i]+=di**4/N; for(let j=i;j<D;j++) cov[i][j]+=di*(z[j]-mu[j])/N; } });
+    for(let i=0;i<D;i++) for(let j=0;j<i;j++) cov[i][j]=cov[j][i];
+    const ev = eigSym(cov).map(v=>Math.max(v,1e-12)).sort((a,b)=>a-b);
+    const kurt = k4.reduce((t,v,i)=>t+Math.abs(v/cov[i][i]**2-3),0)/D;
+    const mx = new Array(D).fill(0); Z.forEach(z=>z.forEach((x,j)=>{ mx[j]=Math.max(mx[j],Math.abs(x)); }));
+    const sm = mx.slice().sort((a,b)=>a-b);
+    return {cond: ev[D-1]/ev[0], kurt, out: sm[D-1]/((sm[7]+sm[8])/2), mu};
+  }
+  const DATA = {}, GEOM = {}, FP = {}, SWEEP = {};
+  KINDS.forEach(k=>{ DATA[k]=gen(k); GEOM[k]=geom(DATA[k].Z); FP[k]=nn(DATA[k].Z, DATA[k].lab); });
+  function sweepFor(pc){
+    const key = pc?"pc":"pt"; if(SWEEP[key]) return SWEEP[key];
+    const out = {}; KINDS.forEach(k=>{ out[k]=[]; for(let b=2;b<=8;b++) out[k].push(nn(quant(DATA[k].Z,b,pc).Q, DATA[k].lab).acc); });
+    return SWEEP[key]=out;
+  }
+  const view = A.canvas(cv, w=>w<560 ? 1.15 : .78, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const {Z, lab} = DATA[kind], G = GEOM[kind];
+    const {Q, st, qm} = quant(Z, bits, perch);
+    const res = nn(Q, lab), fp = FP[kind];
+    let same = 0; for(let i=0;i<NQ;i++) if(res.idx[i]===fp.idx[i]) same++;
+    let err=0, vr=0; Z.forEach((z,i)=>z.forEach((x,j)=>{ err+=(x-Q[i][j])**2; vr+=(x-G.mu[j])**2; }));
+    // readouts
+    document.getElementById("q-fp").textContent = (fp.acc*100).toFixed(1)+"%";
+    document.getElementById("q-acc").textContent = `${(res.acc*100).toFixed(1)}% (${((res.acc-fp.acc)*100).toFixed(1)})`;
+    document.getElementById("q-same").textContent = (same/NQ*100).toFixed(0)+"%";
+    document.getElementById("q-err").textContent = (err/vr*100).toFixed(err/vr<.01?2:1)+"%";
+    document.getElementById("q-kurt").textContent = G.kurt.toFixed(2);
+    document.getElementById("q-cond").textContent = G.cond<100 ? G.cond.toFixed(1) : Math.round(G.cond).toLocaleString("en-US");
+    document.getElementById("q-out").textContent = G.out.toFixed(1)+"×";
+    const used = new Set(Q.map(q=>Math.round(q[0]/st[0])));
+    document.getElementById("q-lev").textContent = `${used.size} of ${2*qm+1}`;
+    // layout
+    const gap = 14, pw = (w-gap)/2, ph = Math.min(pw*.82, h*.5), oy = 18;
+    ctx.font = `600 11.5px ${C.ui}`; ctx.fillStyle = C.muted; ctx.textBaseline="alphabetic";
+    const nar = w < 560;
+    ctx.fillText(nar ? "Channel 0 + levels" : "Channel 0: values and quantization levels", 0, 12);
+    ctx.fillText(nar ? "Lattice, ch. 0 × 1" : "Channels 0 and 1: the quantization lattice", pw+gap, 12);
+    // --- histogram of channel 0
+    const xs = Z.map(z=>z[0]); const lo = -4.5, hi = 4.5, nb = 45;
+    const hist = new Array(nb).fill(0); xs.forEach(x=>{ const b=Math.floor((x-lo)/(hi-lo)*nb); if(b>=0&&b<nb) hist[b]++; });
+    const hmax = Math.max(...hist), HX = x=> (x-lo)/(hi-lo)*pw;
+    ctx.fillStyle = C.panel; ctx.fillRect(0, oy, pw, ph); ctx.strokeStyle = C.line; ctx.strokeRect(0, oy, pw, ph);
+    ctx.fillStyle = C.p1; ctx.globalAlpha = .55;
+    hist.forEach((c,b)=>{ const bh=c/hmax*(ph-34); ctx.fillRect(b/nb*pw+.5, oy+ph-18-bh, pw/nb-1, bh); });
+    ctx.globalAlpha = 1;
+    // quantized histogram as lollipops at the levels
+    const qc = {}; Q.forEach(q=>{ const k=Math.round(q[0]/st[0]); qc[k]=(qc[k]||0)+1; });
+    for(let k=-qm;k<=qm;k++){ const x = HX(k*st[0]); if(x<0||x>pw) continue;
+      ctx.strokeStyle = C.lineStrong; ctx.lineWidth = 1; ctx.setLineDash([2,3]); ctx.beginPath(); ctx.moveTo(x, oy+4); ctx.lineTo(x, oy+ph-18); ctx.stroke(); ctx.setLineDash([]);
+      const c = qc[k]||0; if(c){ const bh = c/N*(ph-34)*1.0; ctx.strokeStyle = C.why; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x, oy+ph-18); ctx.lineTo(x, oy+ph-18-Math.max(3,bh)); ctx.stroke(); ctx.fillStyle=C.why; ctx.beginPath(); ctx.arc(x, oy+ph-18-Math.max(3,bh), 3, 0, 7); ctx.fill(); }
+    }
+    ctx.fillStyle = C.faint; ctx.font = `10px ${C.mono}`; ctx.textAlign="center";
+    [-4,-2,0,2,4].forEach(v=>ctx.fillText(v, HX(v), oy+ph-5)); ctx.textAlign="start";
+    ctx.fillStyle = C.muted; ctx.font = `10.5px ${C.ui}`;
+    ctx.fillText(`step s = ${st[0].toFixed(st[0]<1?2:1)}`, 6, oy+13);
+    if(qm*st[0] > hi) { ctx.fillStyle = C.why; ctx.fillText(w<560 ? `grid to ±${(qm*st[0]).toFixed(0)}` : `grid reaches ±${(qm*st[0]).toFixed(0)}, off the chart`, 6, oy+26); }
+    // --- lattice panel
+    const ox = pw+gap, L = 4.2, LX = x=> ox + (x+L)/(2*L)*pw, LY = y=> oy + ph - (y+L)/(2*L)*ph;
+    ctx.fillStyle = C.panel; ctx.fillRect(ox, oy, pw, ph); ctx.strokeStyle = C.line; ctx.strokeRect(ox, oy, pw, ph);
+    ctx.save(); ctx.beginPath(); ctx.rect(ox, oy, pw, ph); ctx.clip();
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1;
+    for(let k=-qm;k<=qm;k++){ const x=LX(k*st[0]); if(x>=ox&&x<=ox+pw){ ctx.beginPath(); ctx.moveTo(x,oy); ctx.lineTo(x,oy+ph); ctx.stroke(); }
+      const y=LY(k*st[1]); if(y>=oy&&y<=oy+ph){ ctx.beginPath(); ctx.moveTo(ox,y); ctx.lineTo(ox+pw,y); ctx.stroke(); } }
+    ctx.fillStyle = C.ink; ctx.globalAlpha = .28;
+    Z.forEach(z=>{ ctx.fillRect(LX(z[0])-1.2, LY(z[1])-1.2, 2.4, 2.4); });
+    ctx.globalAlpha = 1;
+    const cell = {}; Q.forEach(q=>{ const key = q[0].toFixed(4)+","+q[1].toFixed(4); cell[key]=(cell[key]||0)+1; });
+    ctx.fillStyle = C.why;
+    for(const key in cell){ const [a,b] = key.split(",").map(Number); const r = Math.min(14, 2+Math.sqrt(cell[key])*1.1); ctx.globalAlpha=.85; ctx.beginPath(); ctx.arc(LX(a), LY(b), r, 0, 7); ctx.fill(); }
+    ctx.globalAlpha = 1; ctx.restore();
+    ctx.fillStyle = C.muted; ctx.font = `10.5px ${C.ui}`; ctx.fillText(`${Object.keys(cell).length} occupied cells`, ox+6, oy+13);
+    // --- sweep chart
+    const sy = oy+ph+40, sh = h - sy - 26, sx = 34, sw = w - sx - 8;
+    ctx.font = `600 11.5px ${C.ui}`; ctx.fillStyle = C.muted;
+    ctx.fillText(`${w<560?"NN accuracy":"Nearest-neighbour accuracy"} vs bits (${perch?"per-channel":"per-tensor"})`, 0, sy-12);
+    ctx.strokeStyle = C.line; ctx.strokeRect(sx, sy, sw, sh);
+    const SX = b=> sx + (b-2)/6*sw, SY = a=> sy + sh - a*sh;
+    ctx.fillStyle = C.faint; ctx.font = `10.5px ${C.mono}`; ctx.textAlign="right";
+    [0,.5,1].forEach(a=>{ ctx.fillText((a*100)+"%", sx-4, SY(a)+3); ctx.strokeStyle=C.line; ctx.beginPath(); ctx.moveTo(sx,SY(a)); ctx.lineTo(sx+sw,SY(a)); ctx.stroke(); });
+    ctx.textAlign="center"; for(let b=2;b<=8;b++) ctx.fillText(b+"b", SX(b), sy+sh+13); ctx.textAlign="start";
+    ctx.strokeStyle = C.why; ctx.lineWidth=1; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(SX(bits), sy); ctx.lineTo(SX(bits), sy+sh); ctx.stroke(); ctx.setLineDash([]);
+    const sw2 = sweepFor(perch), cols = {iso:C.p1, aniso:C.p2, heavy:C.p3, outlier:C.p5};
+    KINDS.forEach((k,ki)=>{
+      const on = k===kind; ctx.strokeStyle = cols[k]; ctx.fillStyle = cols[k]; ctx.lineWidth = on?3:1.4; ctx.globalAlpha = on?1:.7;
+      ctx.beginPath(); sw2[k].forEach((a,i)=>{ const x=SX(i+2), y=SY(a); i? ctx.lineTo(x,y) : ctx.moveTo(x,y); }); ctx.stroke();
+      sw2[k].forEach((a,i)=>{ ctx.beginPath(); ctx.arc(SX(i+2), SY(a), on?3.5:2, 0, 7); ctx.fill(); });
+      ctx.globalAlpha = 1;
+    });
+  }
+  document.getElementById("q-dist").addEventListener("change", e=>{ kind = e.target.value; view.redraw(); });
+  A.slider("q-bits", v=>{ bits=v; view.redraw(); }, v=>`${v} bits · ${Math.pow(2,v)-1} levels`);
+  const bPT = document.getElementById("q-pt"), bPC = document.getElementById("q-pc");
+  const setPC = v=>{ perch=v; bPT.setAttribute("aria-pressed", !v); bPC.setAttribute("aria-pressed", v); view.redraw(); };
+  bPT.onclick = ()=>setPC(false); bPC.onclick = ()=>setPC(true);
+})();
+
+/* =================== pilot bars =================== */
+(function(){
+  const rows = [["SIGReg","var(--good)"],["VICReg","var(--p2)"],["EMA","var(--bad)"]];
+  function fill(id, vals, max, fmt, log){
+    const el = document.getElementById(id);
+    rows.forEach(([n,c],i)=>{
+      const v = vals[i], f = log ? Math.log10(v)/Math.log10(max) : v/max;
+      el.insertAdjacentHTML("beforeend", `<div class="r"><span>${n}</span><span class="t"><i style="width:${Math.max(2,f*100)}%;background:${c}"></i></span><span class="v">${fmt(v)}</span></div>`);
+    });
+  }
+  fill("pb-e3", [5.3,7.0,47.6], 50, v=>v.toFixed(1));
+  fill("pb-k", [0.42,1.20,5.04], 5.5, v=>v.toFixed(2));
+  fill("pb-c", [2.7,4275,21], 10000, v=>v>=1000?v.toLocaleString("en-US"):v, true);
+})();
+
+/* =================== QUIZ =================== */
+A.quiz("quiz", [
+  {q:"Why does an I-JEPA ViT-Tiny run no faster on a phone than a supervised ViT-Tiny?",
+   options:["Because JEPA encoders are always larger","Because the predictor and EMA copy are dropped and what ships has exactly the same shape","Because JEPA needs a decoder at inference","Because phones cannot run transformers"],
+   answer:1, why:"The objective shapes what the weights encode, not how many operations they take. The predictor and the EMA teacher exist only for training, so the deployed encoder is an ordinary ViT-Tiny."},
+  {q:"In CEM planning, which factor does shrinking the state from a patch grid to one vector reduce?",
+   options:["The number of samples N","The number of iterations I","The predictor cost per imagined step","The horizon H"],
+   answer:2, why:"Cost ≈ N × I × H × predictor cost. The search factors are unchanged; each predictor call now processes 1 token instead of about 200, so the last factor drops by roughly that much, plus attention's n² term."},
+  {q:"LeWM's FLOP saving over a 196-token grid is about 200×, but the measured planning speedup was 48×. Why the gap?",
+   options:["The measurement must be wrong","FLOPs ignore fixed costs and hardware utilisation: one-token calls leave a GPU mostly idle, and encoding and sampling costs do not shrink","LeWM uses a bigger horizon","Latent planning needs a decoder"],
+   answer:1, why:"FLOP counts bound the saving from above. Wall-clock time also pays for things that do not scale with the state size, and a tiny state does not fill a big parallel chip."},
+  {q:"In the selective-decoding sim, why does raising the within-scene drift cause extra decoder calls?",
+   options:["Drift adds new scene changes","The change score compares to the last decoded embedding, so slow drift accumulates until it crosses the threshold","The decoder gets slower","Drift lowers the threshold"],
+   answer:1, why:"The reference is fixed at the last call. A slow walk away from it eventually exceeds the threshold even though nothing new happened, which is a wake with no event."},
+  {q:"Why can one outlier channel ruin per-tensor quantization of every other channel?",
+   options:["It adds noise to the other channels","The single scale s = max|x| / Q is set by the outlier, so the step is huge and ordinary values all round to the same few levels","Outliers change the bit width","It makes the condition number exactly 1"],
+   answer:1, why:"Per-tensor quantization uses one ruler for all channels. The ruler must reach the largest value, so its marks are far apart for everyone else. Per-channel scaling gives each channel its own ruler."},
+  {q:"In the pilot, VICReg had a condition number of 4,275 yet lost only 2.1 points at embedding INT4, while EMA (condition number 21) lost 24.5. What does that suggest?",
+   options:["Quantization does not depend on geometry","Tail heaviness (kurtosis) matters more than anisotropy for embedding quantization in this setting","VICReg was trained longer","EMA used more bits"],
+   answer:1, why:"VICReg's channels had near-equal scales and light tails, so the per-tensor ruler fit them. EMA's kurtosis was about 5: rare extreme values stretched the ruler. That is why the ViT experiment measures kurtosis first."},
+]);
+})();
+</script>
+</body>
+</html>

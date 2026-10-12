@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why do transformers fail at counting? · Hidden Patch</title>
+<meta name="description" content="Architecture from the question why: over-squashing and softmax dispersion, KV cache versus fixed recurrent state, SSMs, xLSTM, hybrids and diffusion LMs, catastrophic forgetting trained live, and why tiny recursive models catch up.">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/atlas.css">
+<style>
+/* page-specific */
+.beat>*{min-width:0}   /* .eq is nowrap; without this a grid child grows past the viewport */
+@media (max-width:560px){.eq{white-space:normal}}
+.cap{font-family:var(--ui);font-size:.78rem;color:var(--muted);margin:.35rem 0 .2rem}
+.people{display:flex;flex-wrap:wrap;gap:.4rem}
+.fam{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.6rem}
+.fam>div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:.65rem .75rem;font-family:var(--ui);font-size:.86rem;line-height:1.35;display:grid;gap:.2rem;align-content:start}
+.fam .d{font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+.fam b{font-size:1rem}
+</style>
+</head>
+<body data-chapter="architectures" data-part="3">
+<header id="topbar" class="topbar"></header>
+
+<main class="chapter">
+  <section class="opener">
+    <p class="eyebrow"><span class="sw"></span>Part 3 · Machines · Chapter 10</p>
+    <h1 class="big"><span class="w">Why</span> do transformers fail at counting?</h1>
+    <p class="because">a decoder-only transformer has to squeeze everything it read into the last token's vector through softmax averages. Two long inputs that differ by one repeated token average to almost the same vector, and in 16-bit arithmetic they become exactly the same. The alternatives fail differently: a recurrent model keeps a fixed-size state that never grows and therefore forgets. Every architecture of 2025-26 is a trade between those two failures, and the same tension decides why models stop learning after training and why tiny models that loop can beat big ones that don't.</p>
+    <p class="meta"><span>6 beats · 5 labs · 6 questions</span><span>Builds on: <a href="../explorables/04-attention.html">course: attention</a> · <a href="../index.html">course: KV cache</a> · <a href="reasoning.html">09 Search plus a verifier</a></span></p>
+    <ul class="toc">
+      <li><a href="#count"><span class="q">?</span>Why counting fails</a></li>
+      <li><a href="#memory"><span class="q">?</span>Why the cache grows</a></li>
+      <li><a href="#recall"><span class="q">?</span>Why a fixed state forgets</a></li>
+      <li><a href="#lever"><span class="q">?</span>Is architecture a lever</a></li>
+      <li><a href="#continual"><span class="q">?</span>Why learning stops</a></li>
+      <li><a href="#small"><span class="q">?</span>Why small catches up</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ BEAT 1 ============ -->
+  <section class="beat" id="count">
+    <header>
+      <span class="num">Beat 1</span>
+      <h2><span class="w">Why</span> can't a transformer tell 300 ones from 301?</h2>
+      <p class="short">Because the last token sees the sequence through a weighted average, and adding one more identical token changes that average by about 1/n². Within a few dozen tokens, the change is smaller than the gap between neighbouring 16-bit numbers, and the two inputs get the same representation.</p>
+    </header>
+    <div class="prose">
+      <p>Federico Barbero, Petar Veličković and colleagues called this <span class="term" tabindex="0" data-def="Information from many tokens has to pass through a fixed-size vector (the last token's representation), so distinct inputs get squashed onto nearly the same point. The term comes from graph neural networks, where messages from exponentially many nodes squeeze through a few edges.">over-squashing</span> in <em>Transformers need glasses!</em> (NeurIPS 2024). In a decoder-only model, all information about the prefix that reaches the output has to flow into the final token. Sequences like "1 1 1 … 1" of slightly different lengths converge to near-identical final-token vectors, and low-precision floats round them together. That explains failures at counting and at copying long repetitive strings. The lineage is graph learning: Topping, Bronstein and colleagues (2021) linked over-squashing in GNNs to bottlenecks in the graph, and a causal transformer is a fully connected graph network that inherits the problem.</p>
+      <p>A second result tightens the screw. <em>Softmax is not enough</em> (Veličković, Perivolaropoulos, Barbero, Pascanu, ICML 2025) proves that with bounded logits, softmax attention must <b>disperse</b> as the input grows:</p>
+      <div class="eq">weight on the one right token = e<sup>Δ</sup> / (e<sup>Δ</sup> + n − 1)  →  0 as n → ∞<span class="c">Δ: how much higher the right token's logit is than the others. Logits are bounded by the weights and the layer norms, so Δ cannot grow with n, and sharp retrieval fades with length. The paper proposes an adaptive temperature at inference.</span></div>
+    </div>
+    <figure class="lab" id="lab-count">
+      <div class="lab-head"><span class="tag">Lab</span><h3>The counting horizon of one attention head</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-count" aria-label="Log-log chart: the change in the final token's output when one more 1 is added, against sequence length, with the rounding step of bf16, fp16 and fp32 as reference lines. Where the change falls below the rounding step, the two lengths become indistinguishable."></canvas></div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="c-b">Final token's self-logit β</label><output for="c-b"></output></div>
+            <input type="range" id="c-b" min="-2" max="8" step="0.1" value="0">
+            <span class="hint">How much the last token attends to itself versus each "1". Higher β keeps it more distinct.</span></div>
+          <div class="ctrl"><div class="row"><label for="c-n">Sequence length n</label><output for="c-n"></output></div>
+            <input type="range" id="c-n" min="0" max="5" step="0.01" value="2"></div>
+          <dl class="readout">
+            <dt>o(n)</dt><dd id="c-o">–</dd>
+            <dt>o(n+1) − o(n)</dt><dd id="c-d">–</dd>
+            <dt>bf16 horizon</dt><dd id="c-hb" class="hot">–</dd>
+            <dt>fp16 horizon</dt><dd id="c-hh">–</dd>
+            <dt>fp32 horizon</dt><dd id="c-hf">–</dd>
+            <dt>at n: bf16 sees</dt><dd id="c-same">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>The model: one attention head, the last token attends to n identical "1" tokens (value 1) and to itself (value 0). Its output is o(n) = n / (e<sup>β</sup> + n), computed exactly, then rounded to each float format.</li>
+        <li>The change per extra token falls like e<sup>β</sup>/n². In bf16, which has 8 significant bits and is how most models run, the horizon at β = 0 is about 20 tokens. fp32 pushes it into the thousands. Low precision makes collapse worse, as Barbero's paper notes.</li>
+        <li>Raising β helps, but only by a constant factor: the horizon grows like e<sup>β/2</sup>. Real models stack many layers with layer norms and positions, which change the constants, not the 1/n² squeeze. This is why the paper's fix was "glasses", meaning input changes such as separators, not just scale.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 2: memory ============ -->
+  <section class="beat" id="memory">
+    <header>
+      <span class="num">Beat 2</span>
+      <h2><span class="w">Why</span> does attention's memory grow while a recurrent state stays fixed?</h2>
+      <p class="short">Because attention keeps every past token's key and value so any of them can be looked up exactly, and that cache grows with every token. A recurrent model folds each token into a state of fixed size, so its memory and its cost per token never grow, at the price of having to decide what to forget.</p>
+    </header>
+    <div class="prose">
+      <p>Generating one token with attention means reading the whole <b>KV cache</b>: two vectors per past token, per layer, per key-value head. Prefill (processing the prompt) costs time quadratic in its length. A state-space model or linear-attention layer replaces the cache with a matrix it updates in place: S4 (Gu, Goel, Ré, 2021), Mamba (Gu and Dao, 2023) with input-dependent "selective" updates, Mamba-2 (2024), Griffin and RecurrentGemma at DeepMind (2024), xLSTM's matrix memory (Hochreiter's group, 2024). Generation becomes constant memory and constant time per token.</p>
+      <div class="eq">KV cache = 2 · L · h<sub>kv</sub> · d<sub>head</sub> · T · bytes      state = L · d<sub>inner</sub> · N · bytes<span class="c">L layers, h<sub>kv</sub> key-value heads, d<sub>head</sub> head size, T tokens. For an SSM, d<sub>inner</sub> channels each keep an N-dimensional state. The lab uses a Llama-3-8B-shaped model (32 layers, 8 KV heads of 128) and a Mamba-style state with d<sub>inner</sub> = 8192, N = 16.</span></div>
+    </div>
+    <figure class="lab" id="lab-mem">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Memory per sequence, by architecture</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-mem" aria-label="Log-log chart of memory against context length for full attention, a 3-to-1 hybrid, sliding-window attention and a recurrent state, with a 16 GB laptop line."></canvas></div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="m-t">Context length T</label><output for="m-t"></output></div>
+            <input type="range" id="m-t" min="10" max="20" step="0.1" value="17"></div>
+          <div class="ctrl"><span class="lbl">Cache precision</span>
+            <div class="seg" role="group" aria-label="Cache precision">
+              <button type="button" data-b="2" aria-pressed="true">16-bit</button><button type="button" data-b="1" aria-pressed="false">8-bit</button><button type="button" data-b="0.5" aria-pressed="false">4-bit</button>
+            </div></div>
+          <dl class="readout">
+            <dt>full attention KV</dt><dd id="m-full" class="hot">–</dd>
+            <dt>3:1 linear hybrid</dt><dd id="m-hyb">–</dd>
+            <dt>sliding window 4K</dt><dd id="m-win">–</dd>
+            <dt>recurrent state</dt><dd id="m-rec">–</dd>
+            <dt>cache read / token</dt><dd id="m-ms">–</dd>
+            <dt>prefill attn FLOPs</dt><dd id="m-fl">–</dd>
+          </dl>
+          <span class="hint">Read time assumes 150 GB/s memory bandwidth (an assumption, laptop class). Prefill attention FLOPs ≈ 2 · L · d<sub>model</sub> · T² for causal attention, d<sub>model</sub> = 4096.</span>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>At 128K tokens the full-attention cache of an 8B-class model in 16-bit is 16 GiB: the whole memory of a 16 GB laptop, before the weights. Each new token has to read all of it.</li>
+        <li>The 3:1 hybrid (three linear layers per full-attention layer, as in Qwen3-Next and Kimi Linear) cuts the cache by 75%, which is the reduction Kimi Linear reports. It still grows with T.</li>
+        <li>The recurrent state is flat: 8 MiB at any length. That flat line is the whole edge argument for SSMs and xLSTM. Beat 3 shows what it costs.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 3: recall ============ -->
+  <section class="beat" id="recall">
+    <header>
+      <span class="num">Beat 3</span>
+      <h2><span class="w">Why</span> does a fixed-size state forget?</h2>
+      <p class="short">Because a d × d matrix can store at most about d independent key-value pairs cleanly. Write more, and new memories overwrite old ones. Attention never overwrites: it just keeps a bigger cache.</p>
+    </header>
+    <div class="prose">
+      <p>Linear attention stores pairs by adding outer products, S ← S + v kᵀ, and recalls with S q. If the keys are orthogonal, recall is exact; in d dimensions there are only d orthogonal directions, so beyond about d pairs the keys overlap and recalls get mixed. The <b>delta rule</b> used by DeltaNet and Gated DeltaNet (the linear layers in Qwen3-Next and Qwen3.5) writes only the <em>error</em>, S ← S + β(v − S k)kᵀ, so writing a key twice does not double it and a new value corrects a stale one. It still cannot beat the capacity of d × d numbers. This is why hybrids keep some full-attention layers, and why MiniMax kept full attention in M2 on purpose: they reported that efficient variants hurt multi-hop and agentic reliability.</p>
+      <div class="analogy"><span class="ico">≈</span><div><span class="k">Picture it</span><p>Attention is a library that keeps every book and grows a shelf per day. A recurrent state is a suitcase: fixed size, light enough to carry anywhere, and every new thing you pack presses on what's already inside.</p></div></div>
+    </div>
+    <figure class="lab" id="lab-recall">
+      <div class="lab-head"><span class="tag">Sim</span><h3>Associative recall: library versus suitcase</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-recall" aria-label="Top: the attention cache as a row of stored pairs and the recurrent d by d state as a heatmap. Bottom: recall accuracy against number of stored pairs for softmax attention, the delta rule and plain linear attention."></canvas></div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="r-d">State width d</label><output for="r-d"></output></div>
+            <input type="range" id="r-d" min="4" max="48" step="4" value="16">
+            <span class="hint">Keys and values live in d dimensions; the recurrent state is d × d.</span></div>
+          <div class="ctrl"><div class="row"><label for="r-k">Pairs written K</label><output for="r-k"></output></div>
+            <input type="range" id="r-k" min="1" max="128" step="1" value="24"></div>
+          <dl class="readout">
+            <dt>attention recall</dt><dd id="r-att">–</dd>
+            <dt>delta-rule recall</dt><dd id="r-del" class="hot">–</dd>
+            <dt>linear-attn recall</dt><dd id="r-lin">–</dd>
+            <dt>cache size</dt><dd id="r-cache">–</dd>
+            <dt>state size</dt><dd id="r-state">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Task: write K random (key, value) pairs, then query each key; a recall counts if the retrieved vector is closest to the right value among all K. 24 random trials per point.</li>
+        <li>Both fixed-size states are near 100% for a handful of pairs and fall once K passes d. Double d and the cliff moves right: capacity is the state size, whatever the update rule.</li>
+        <li>They fail differently. Linear attention blurs every pair a little; the delta rule overwrites, so it keeps recent pairs sharp and loses old ones. Learned gates (Gated DeltaNet, Mamba's selectivity) are about choosing <em>what</em> to lose.</li>
+        <li>Softmax attention stays near 100% because it stores every pair. Set d = 4 to see it sag: random keys overlap and softmax spreads weight onto the wrong ones, the dispersion from Beat 1.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 4: lever ============ -->
+  <section class="beat" id="lever">
+    <header>
+      <span class="num">Beat 4</span>
+      <h2>Is architecture still a lever, or did scale win?</h2>
+      <p class="short">It is a lever again. By 2025-26 flagship open models mix linear and full attention, the residual stream became a design surface, recurrence came back, and diffusion language models shipped. The transformer stayed central for so long partly because it fits GPUs, not only because it is best.</p>
+    </header>
+    <div class="prose">
+      <p>Sara Hooker's <em>Hardware Lottery</em> (2020) argues that ideas win by fitting the hardware and software of their day. Llion Jones, a co-author of the transformer paper, told MLST in 2025 that the field is stuck in a local optimum held in place by herding. The structural camp (Barbero, Veličković, Hochreiter, Jones, Hooker) says scale alone will not fix counting, copying and size generalisation. What changed in 2025-26 is that the alternatives started shipping at scale.</p>
+    </div>
+    <div class="fam">
+      <div><span class="d">2021 → 2024</span><b>State-space models</b><span>S4, Mamba, Mamba-2. Linear-time scans with input-dependent updates. NVIDIA's Nemotron-H, Nano 2 and Nemotron 3 (2025-12) are Mamba-2 + transformer + MoE hybrids.</span></div>
+      <div><span class="d">2024 → 2025</span><b>xLSTM</b><span>Exponential gating and a matrix memory. xLSTM 7B (2025) targets fast inference. Hochreiter's pitch: constant memory for robotics and industry.</span></div>
+      <div><span class="d">2021 → 2026</span><b>Liquid networks</b><span>Liquid time-constant nets (2021) and closed-form CfC (2022): small ODE cells with input-dependent time constants. Liquid AI's LFM2 (2025) are short-convolution plus attention hybrids built for devices.</span></div>
+      <div><span class="d">2025-09 → 2026-02</span><b>Linear-attention hybrids</b><span>Qwen3-Next (80B, 3B active, Gated DeltaNet), Qwen3.5 at 3:1, Kimi Linear (KV cache cut by up to 75%). DeepSeek went another way: sparse attention that picks top-k tokens.</span></div>
+      <div><span class="d">2025 → 2026</span><b>Diffusion LMs</b><span>Gemini Diffusion, Mercury (vendor claim: Haiku-level quality at a fifth of the latency), LLaDA2.0 at 100B, DiffusionGemma (open, 2026-06). Whole blocks generated in parallel.</span></div>
+      <div><span class="d">2025 → 2026</span><b>Thinking in time, residuals</b><span>Continuous Thought Machines (Sakana): neuron timing and synchrony as representation, adaptive internal ticks. DeepSeek mHC and Moonshot Attention Residuals redesign the residual stream.</span></div>
+    </div>
+    <div class="people">
+      <span class="who" data-i="FB">Federico Barbero</span><span class="who" data-i="PV">Petar Veličković</span><span class="who" data-i="SH">Sepp Hochreiter</span><span class="who" data-i="SH">Sara Hooker</span><span class="who" data-i="LJ">Llion Jones</span><span class="who" data-i="AG">Albert Gu</span>
+    </div>
+    <aside class="aside ours"><span class="k">This project</span>Two levers matter for edge JEPA. Barbero's point that low precision worsens representational collapse means quantization and collapse interact, so the quantization experiment should measure both. And the field map's bridge idea 4, an SSM or liquid <em>predictor</em> for V-JEPA, swaps the one part that sees long video for a constant-memory one. Open questions from the notes: do hybrids hold up on long agentic tasks, and do diffusion LMs ever match autoregressive ones at the frontier?</aside>
+  </section>
+
+  <!-- ============ BEAT 5: continual ============ -->
+  <section class="beat" id="continual">
+    <header>
+      <span class="num">Beat 5</span>
+      <h2><span class="w">Why</span> can't models keep learning after training?</h2>
+      <p class="short">Because gradient descent on new data moves every weight that helps the new loss, including weights the old skills depend on, and nothing in the new loss says to protect them. Old abilities are overwritten: catastrophic forgetting. So deployed models are frozen.</p>
+    </header>
+    <div class="prose">
+      <p>Catastrophic forgetting has been known since McCloskey and Cohen (1989). Sutton's group added a second problem: networks trained for long on changing data also lose <em>plasticity</em>, the ability to learn at all (Nature, 2024 <span class="pill bad">check</span>). The classic fixes are in the lab below. <b>Replay</b> mixes stored old examples into new training. <b>Elastic weight consolidation</b> (Kirkpatrick et al., 2017) penalises moving weights that the old task's Fisher information marks as important. <b>Sparse updates</b> only touch the units the new data uses most.</p>
+    </div>
+    <figure class="lab" id="lab-forget">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Learn task A, then task B, and watch A vanish</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-forget" aria-label="Left: the network's decision field over the plane with task A points on the left half and task B points on the right half. Right: test accuracy on A and on B over training steps, with a divider where training switches from A to B."></canvas></div>
+        <div class="side">
+          <div class="ctrl"><span class="lbl">Protection while learning B</span>
+            <div class="seg" role="group" aria-label="Method">
+              <button type="button" data-m="none" aria-pressed="true">None</button><button type="button" data-m="replay" aria-pressed="false">Replay</button><button type="button" data-m="ewc" aria-pressed="false">EWC</button><button type="button" data-m="sparse" aria-pressed="false">Sparse</button>
+            </div></div>
+          <div class="ctrl"><div class="row"><label for="f-s" id="f-sl">Strength</label><output for="f-s"></output></div>
+            <input type="range" id="f-s" min="0" max="1" step="0.05" value="0.5">
+            <span class="hint" id="f-hint">–</span></div>
+          <div class="btns"><button type="button" class="primary" id="f-run">Run A → B</button></div>
+          <dl class="readout">
+            <dt>step</dt><dd id="f-step">–</dd>
+            <dt>acc on A</dt><dd id="f-a" class="hot">–</dd>
+            <dt>acc on B</dt><dd id="f-b">–</dd>
+            <dt>A right after phase A</dt><dd id="f-a0">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>The network (2 → 32 tanh → 1, Adam) learns A on the left half of the plane, then only sees B on the right half, where the rule is flipped. With no protection the boundary it learns for B sweeps across the left half too, and accuracy on A falls toward chance or below.</li>
+        <li>Replay with even 20% old examples keeps A almost intact: the old loss is back in the objective. This is the strongest and most expensive fix, because you must keep the old data.</li>
+        <li>EWC needs no old data, only the Fisher of A, but here it only trades: too strong and B can't be learned, too weak and A is forgotten, with no sweet spot in between. Its quadratic guess about what A needs is too crude when B pulls this hard.</li>
+        <li>Sparse updates at full strength free only the one hidden unit B uses most relative to A: B is still learned and most of A survives. Free half the units and A is lost again. This is the logic of sparse memory finetuning.</li>
+      </ul></div>
+    </figure>
+    <div class="prose">
+      <p>The 2025-26 answers move memory into the architecture or into inference:</p>
+      <ul>
+        <li><b>Titans</b> (Google Research, 2025-01): a neural long-term memory, itself a small MLP, updated at inference by "surprise" (the gradient of its own prediction error), with momentum and weight decay as forgetting. Scales past 2M tokens. <b>MIRAS</b> (2025-04) recasts sequence models as associative memories defined by four choices.</li>
+        <li><b>Nested Learning and HOPE</b> (NeurIPS 2025): models and optimisers as nested memories updated at different speeds, a "continuum memory system", and HOPE, a self-modifying Titans variant. Google's most explicit bet on continual learning.</li>
+        <li><b>TTT-E2E</b> (2025-12): a sliding-window transformer keeps training on its own context at test time. It scales with context like full attention, which Mamba 2 and Gated DeltaNet do not, at constant latency (2.7× faster prefill at 128K), but is weak on needle-in-a-haystack.</li>
+        <li><b>Sparse memory finetuning</b> (Meta, 2025-10): update only the memory-layer slots that new data activates most, which forgets far less than full finetuning or LoRA <span class="pill bad">check</span>. <b>RL's Razor</b> (MIT, 2025): on-policy RL forgets less than supervised finetuning because it stays close in KL to what the model already does <span class="pill bad">check</span>.</li>
+      </ul>
+      <aside class="aside"><span class="k">FER's angle</span>A fractured inside (<a href="fractured.html">chapter 07</a>) should make this worse: a fact learned in one fragment does not reach the duplicate fragments elsewhere. Rawlinson and Kowadlo (2026) cite FER for exactly this. Untested at scale. No deployed frontier model yet learns persistently without forgetting or safety regressions.</aside>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 6: small ============ -->
+  <section class="beat" id="small">
+    <header>
+      <span class="num">Beat 6</span>
+      <h2><span class="w">Why</span> does a tiny network that loops beat a big one that doesn't?</h2>
+      <p class="short">Because a single forward pass can only move information as far as its depth allows, while a loop can run as many steps as the problem needs, reusing the same weights each time. Compute spent on the problem at hand beats parameters spent memorising in advance.</p>
+    </header>
+    <div class="prose">
+      <p>The ARC Prize 2025 named the theme of the year the <b>refinement loop</b>. TRM (Jolicoeur-Martineau, Samsung SAIL Montréal) is one 2-layer network of about 7M parameters that repeatedly refines a latent and an answer; it reported about 45% on ARC-AGI-1 and about 8% on ARC-AGI-2 and took first place in the paper awards. CompressARC (Liao and Gu, CMU) trains a 76K-parameter network from scratch on each puzzle with a compression objective, no pretraining. The ARC team's ablation of HRM (27M) found the brain-inspired hierarchy was not the source of its score: a plain transformer of the same size came within about 5 points, and the outer refinement loop added about 13.</p>
+      <p>The lab is the cleanest version of why. Finding the shortest route through a maze needs information to travel from the start along the whole path. A stack of D local (3 × 3) layers can carry it at most D cells in one pass. One local layer applied again and again carries it as far as needed, and can stop when nothing changes.</p>
+    </div>
+    <figure class="lab" id="lab-loop">
+      <div class="lab-head"><span class="tag">Sim</span><h3>One deep pass versus one small layer, looped</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-loop" aria-label="Two copies of a maze. Left: distances from the start computed by one pass of a D-layer local network; cells it cannot reach are hatched. Right: the same local update applied repeatedly, with the wavefront advancing until it reaches the goal."></canvas></div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="l-s">Maze size</label><output for="l-s"></output></div>
+            <input type="range" id="l-s" min="4" max="16" step="1" value="8"></div>
+          <div class="ctrl"><div class="row"><label for="l-d">Depth D of the one-pass net</label><output for="l-d"></output></div>
+            <input type="range" id="l-d" min="4" max="120" step="2" value="32"></div>
+          <div class="btns"><button type="button" class="primary" id="l-play">Play loop</button><button type="button" id="l-new">New maze</button></div>
+          <dl class="readout">
+            <dt>shortest path</dt><dd id="l-len">–</dd>
+            <dt>one pass, D layers</dt><dd id="l-big">–</dd>
+            <dt>looped, 1 layer</dt><dd id="l-small" class="hot">–</dd>
+            <dt>parameters</dt><dd id="l-par">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>The update is the same in both panels: each open cell takes the minimum of its neighbours' distances plus one. Here it is written by hand; TRM <em>learns</em> its update, but the reach argument is identical.</li>
+        <li>Grow the maze: the path outgrows D and the one-pass net fails, however well it was trained, while the loop just runs longer. Its parameters are those of one layer, D times fewer.</li>
+        <li>The loop halts when an iteration changes nothing, so easy mazes cost few steps. Adaptive compute is the same idea as CTM's internal ticks and HRM's halting.</li>
+      </ul></div>
+    </figure>
+    <div class="tbl"><table>
+      <thead><tr><th>System</th><th>Size</th><th>What loops</th><th>Reported</th></tr></thead>
+      <tbody>
+        <tr><td>TRM (2025-10)</td><td class="n">≈7M</td><td>latent and answer, same 2-layer net</td><td>≈45% ARC-AGI-1, ≈8% ARC-AGI-2</td></tr>
+        <tr><td>HRM (2025-06)</td><td class="n">27M</td><td>slow planner + fast worker, outer loop</td><td>32% ARC-AGI-1 semi-private (verified), 2% ARC-AGI-2</td></tr>
+        <tr><td>CompressARC (2025-12)</td><td class="n">76K</td><td>gradient steps on each puzzle at test time</td><td>ARC Prize 2025 paper award, 3rd</td></tr>
+        <tr><td>NCAs for ARC</td><td class="n">≈10K / task</td><td>a cellular automaton's local rule</td><td>competitive (project notes)</td></tr>
+        <tr><td>LeWorldModel (2026-03)</td><td class="n">15M</td><td>planning in latent space</td><td>48× faster planning than DINO-WM</td></tr>
+      </tbody>
+    </table></div>
+    <div class="prose"><p>Hooker's line from the governance debate fits: FLOPs, and parameter counts, are poor proxies for capability once compute can be spent at inference. Whether the pattern holds beyond puzzles and toy control is open; ARC-AGI-3's final results are one test. For this project it is the reason an M5 laptop with 16 GB is not a toy: most of the 2025-26 "small beats big" results are laptop-sized (see <a href="edge.html">chapter 12</a> and <a href="reasoning.html">chapter 09</a>).</p></div>
+  </section>
+
+  <section class="remember">
+    <h2>Three things to <span class="w">remember</span></h2>
+    <ol>
+      <li><b>Averages can't count.</b>Adding one more identical token moves the last token's average by about 1/n², and bf16 rounds that away after about 20 tokens in one head.</li>
+      <li><b>Library or suitcase.</b>Attention keeps every token and its memory grows; a recurrent state stays fixed and forgets past about d pairs. Hybrids buy some of each.</li>
+      <li><b>Loops beat layers.</b>One pass reaches as far as its depth. A small network that iterates reaches as far as the problem needs, with the parameters of one layer.</li>
+    </ol>
+  </section>
+
+  <section id="quiz"></section>
+
+  <section class="sources">
+    <h2>Sources for this chapter</h2>
+    <ol>
+      <li>Barbero, …, Pascanu, Veličković, <a href="https://arxiv.org/abs/2406.04267">Transformers need glasses! Information over-squashing in language tasks</a>, NeurIPS 2024; MLST episode with Federico Barbero, 2025-03-08.</li>
+      <li>Veličković, Perivolaropoulos, Barbero, Pascanu, <a href="https://arxiv.org/abs/2410.01104">Softmax is not Enough (for Sharp Size Generalisation)</a>, ICML 2025.</li>
+      <li>Topping, Di Giovanni, Chamberlain, Dong, Bronstein, <a href="https://arxiv.org/abs/2111.14522">Understanding over-squashing and bottlenecks on graphs via curvature</a>, 2021.</li>
+      <li>Gu, Goel, Ré, <a href="https://arxiv.org/abs/2111.00396">S4</a>, 2021; Gu &amp; Dao, <a href="https://arxiv.org/abs/2312.00752">Mamba</a>, 2023; Dao &amp; Gu, <a href="https://arxiv.org/abs/2405.21060">Mamba-2</a>, 2024 (background).</li>
+      <li>De, Smith et al., <a href="https://arxiv.org/abs/2402.19427">Griffin</a>, 2024; <a href="https://arxiv.org/abs/2404.07839">RecurrentGemma</a>, 2024.</li>
+      <li>Beck, …, Hochreiter, <a href="https://arxiv.org/abs/2405.04517">xLSTM</a>, 2024; <a href="https://arxiv.org/abs/2503.13427">xLSTM 7B</a>, 2025.</li>
+      <li>Hasani et al., <a href="https://arxiv.org/abs/2006.04439">Liquid Time-constant Networks</a>, 2021 (background).</li>
+      <li><a href="https://arxiv.org/abs/2510.26692">Kimi Linear</a>, Moonshot 2025 <span class="pill bad">check</span>; <a href="https://arxiv.org/abs/2512.20856">Nemotron 3</a>, NVIDIA 2025 <span class="pill bad">check</span>; Qwen3.5 (<a href="https://medium.com/@mlabonne/qwen3-5-nobody-agrees-on-attention-anymore-4709e1bd014b">secondary</a>), 2026.</li>
+      <li><a href="https://arxiv.org/abs/2512.15745">LLaDA2.0</a>, 2025 <span class="pill bad">check</span>; <a href="https://inceptionlabs.ai/blog/mercury-refresh">Mercury refresh</a> (vendor claims).</li>
+      <li>Darlow, Regan, Risi, Seely, Jones, <a href="https://arxiv.org/abs/2505.05522">Continuous Thought Machines</a>, 2025.</li>
+      <li>Hooker, <a href="https://arxiv.org/abs/2009.06489">The Hardware Lottery</a>, 2020.</li>
+      <li>Kirkpatrick et al., <a href="https://arxiv.org/abs/1612.00796">Overcoming catastrophic forgetting in neural networks</a> (EWC), 2017 (background); Dohare et al., <a href="https://www.nature.com/articles/s41586-024-07711-7">Loss of plasticity in deep continual learning</a>, Nature 2024 <span class="pill bad">check</span>.</li>
+      <li>Behrouz, Zhong, Mirrokni, <a href="https://arxiv.org/abs/2501.00663">Titans</a>, 2025; <a href="https://arxiv.org/abs/2504.13173">MIRAS</a>, 2025; <a href="https://research.google/blog/introducing-nested-learning-a-new-ml-paradigm-for-continual-learning/">Nested Learning / HOPE</a>, 2025.</li>
+      <li>Tandon, Dalal, …, Sun, <a href="https://arxiv.org/abs/2512.23675">End-to-End Test-Time Training for Long Context</a>, 2025.</li>
+      <li>Lin et al., <a href="https://arxiv.org/abs/2510.15103">Continual Learning via Sparse Memory Finetuning</a>, Meta 2025 <span class="pill bad">check</span>; Shenfeld, Pari, Agrawal, <a href="https://arxiv.org/abs/2509.04259">RL's Razor</a>, 2025 <span class="pill bad">check</span>.</li>
+      <li>Jolicoeur-Martineau, <a href="https://arxiv.org/abs/2510.04871">Less is More: Recursive Reasoning with Tiny Networks</a> (TRM), 2025; Liao &amp; Gu, <a href="https://arxiv.org/abs/2512.06104">ARC-AGI Without Pretraining</a>, 2025; ARC Prize, <a href="https://arcprize.org/blog/hrm-analysis">The Hidden Drivers of HRM's Performance</a>, 2025; <a href="https://arxiv.org/abs/2601.10904">ARC Prize 2025 report</a>.</li>
+      <li>Project notes: <code>landscape/ai-landscape-why.md</code> Q9, Q10, Q14 and threads 6 and 7; <code>fields/ai-alife-field-map.md</code> A4, A5, A13. Companion map: <a href="why-atlas.html">Why Atlas</a>.</li>
+    </ol>
+  </section>
+
+  <nav id="pager"></nav>
+</main>
+<footer id="site-footer"></footer>
+
+<script src="assets/atlas.js"></script>
+<script>
+(function(){
+"use strict";
+const A = window.Atlas;
+const $ = id => document.getElementById(id);
+const fmtB = b => { const u=["B","KiB","MiB","GiB","TiB"]; let i=0; while(b>=1024 && i<u.length-1){ b/=1024; i++; } return (b>=100?b.toFixed(0):b>=10?b.toFixed(1):b.toFixed(2))+" "+u[i]; };
+const fmtN = n => n>=1e6 ? (n/1048576).toFixed(n>=1e7?0:1)+"M" : n>=1e3 ? (n/1024).toFixed(n>=1e4?0:1)+"K" : String(Math.round(n));
+const sci = x => { if(!isFinite(x)||x===0) return "0"; const e=Math.floor(Math.log10(Math.abs(x))); return (x/Math.pow(10,e)).toFixed(2)+"e"+e; };
+function axisFrame(ctx, C, L, T, W, H){ ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(L,T,W,H); }
+
+/* =================== LAB: counting horizon =================== */
+(function(){
+  const cv = $("cv-count");
+  let beta = 0, nPos = 100;
+  const roundBits = (x,p) => { if(x===0) return 0; const e = Math.floor(Math.log2(Math.abs(x))); const s = Math.pow(2, p-1-e); return Math.round(x*s)/s; };
+  const F = [{k:"bf16", p:8}, {k:"fp16", p:11}, {k:"fp32", p:24}];
+  const o = n => n/(Math.exp(beta)+n);
+  function horizon(p){ for(let n=1;n<2e6;n = n<64 ? n+1 : Math.ceil(n*1.01)){ if(roundBits(o(n),p)===roundBits(o(n+1),p)){ // refine
+          let m = n<64 ? n : Math.floor(n/1.01); while(m<n && roundBits(o(m),p)!==roundBits(o(m+1),p)) m++; return m; } } return Infinity; }
+  const view = A.canvas(cv, w => w<560 ? .95 : .52, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const L = 46, T = 22, R = 10, B = 30, W = w-L-R, H = h-T-B;
+    const xmin=0, xmax=5, ymin=-14, ymax=0;
+    const X = n => L + (Math.log10(n)-xmin)/(xmax-xmin)*W, Y = v => T + (ymax-Math.log10(Math.max(v,1e-14)))/(ymax-ymin)*H;
+    ctx.font = `600 12px ${C.ui}`; ctx.fillStyle = C.muted; ctx.fillText(w<560 ? "Δ per extra '1' vs rounding step" : "Change in output from one more '1'  vs  float rounding step", L, 13);
+    axisFrame(ctx,C,L,T,W,H);
+    ctx.font = `10px ${C.mono}`; ctx.fillStyle = C.muted;
+    for(let e=0;e<=5;e++){ const x=X(Math.pow(10,e)); ctx.strokeStyle=C.line; ctx.beginPath(); ctx.moveTo(x,T); ctx.lineTo(x,T+H); ctx.stroke(); ctx.fillText(e===0?"1":"1e"+e, x-8, T+H+13); }
+    for(let e=0;e>=-14;e-=2){ const y=Y(Math.pow(10,e)); ctx.fillText("1e"+e, 4, y+3); }
+    ctx.fillText("sequence length n", L+W/2-40, h-3);
+    const cols = {bf16:C.why, fp16:C.p2, fp32:C.p4};
+    // ulp curves at o(n)
+    F.forEach(f=>{ ctx.strokeStyle = cols[f.k]; ctx.setLineDash([5,4]); ctx.lineWidth = 1.5; ctx.beginPath();
+      for(let i=0;i<=200;i++){ const n = Math.pow(10, xmin + i/200*(xmax-xmin)); const v=o(n); const ulp = Math.pow(2, Math.floor(Math.log2(v))-f.p+1)/2;
+        i?ctx.lineTo(X(n),Y(ulp)):ctx.moveTo(X(n),Y(ulp)); } ctx.stroke(); ctx.setLineDash([]); });
+    // diff curve
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 2.4; ctx.beginPath();
+    for(let i=0;i<=240;i++){ const n = Math.pow(10, xmin + i/240*(xmax-xmin)); const d = o(n+1)-o(n); i?ctx.lineTo(X(n),Y(d)):ctx.moveTo(X(n),Y(d)); } ctx.stroke();
+    // horizons
+    const hz = {};
+    F.forEach((f,i)=>{ const hn = horizon(f.p); hz[f.k]=hn; if(isFinite(hn) && hn<=1e5){ ctx.fillStyle = cols[f.k]; ctx.beginPath(); ctx.arc(X(hn), Y(o(hn+1)-o(hn)), 4.5, 0, 7); ctx.fill();
+      ctx.font = `600 10.5px ${C.mono}`; ctx.fillText(`${f.k} n≈${fmtN(hn)}`, Math.min(X(hn)+6, w-90), Y(o(hn+1)-o(hn))-6-i*0); } });
+    // legend
+    const lx = L+8; let ly = T+H-46;
+    [["Δ = o(n+1) − o(n)", C.ink, false], ["½ step bf16", cols.bf16, true], ["½ step fp16", cols.fp16, true], ["½ step fp32", cols.fp32, true]].forEach(([t,c,d],i)=>{
+      ctx.strokeStyle=c; ctx.lineWidth=d?1.5:2.4; ctx.setLineDash(d?[5,4]:[]); ctx.beginPath(); ctx.moveTo(lx, ly+i*11.5); ctx.lineTo(lx+18, ly+i*11.5); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle=C.muted; ctx.font=`10px ${C.ui}`; ctx.fillText(t, lx+22, ly+i*11.5+3); });
+    // current n marker
+    ctx.strokeStyle = C.lineStrong; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X(nPos),T); ctx.lineTo(X(nPos),T+H); ctx.stroke();
+    const n = Math.round(nPos), d = o(n+1)-o(n);
+    $("c-o").textContent = o(n).toFixed(6);
+    $("c-d").textContent = sci(d);
+    $("c-hb").textContent = isFinite(hz.bf16) ? "n ≈ "+fmtN(hz.bf16) : "> 2M";
+    $("c-hh").textContent = isFinite(hz.fp16) ? "n ≈ "+fmtN(hz.fp16) : "> 2M";
+    $("c-hf").textContent = isFinite(hz.fp32) ? "n ≈ "+fmtN(hz.fp32) : "> 2M";
+    const same = roundBits(o(n),8)===roundBits(o(n+1),8);
+    $("c-same").textContent = same ? `${n} = ${n+1}` : `${n} ≠ ${n+1}`;
+  }
+  A.slider("c-b", v=>{ beta=v; view && view.redraw(); }, v=>v.toFixed(1));
+  A.slider("c-n", v=>{ nPos=Math.max(1,Math.round(Math.pow(10,v))); view && view.redraw(); }, v=>String(Math.max(1,Math.round(Math.pow(10,v)))));
+  view.redraw();
+})();
+
+/* =================== LAB: memory scaling =================== */
+(function(){
+  const cv = $("cv-mem");
+  const Lr = 32, HKV = 8, DH = 128, DM = 4096, DIN = 8192, NST = 16, WIN = 4096, BW = 150e9, DEV = 16e9;
+  let lgT = 17, bytes = 2;
+  const full = T => 2*Lr*HKV*DH*T*bytes;
+  const rec  = () => Lr*DIN*NST*bytes;
+  const hyb  = T => full(T)/4 + rec()*3/4;
+  const win  = T => 2*Lr*HKV*DH*Math.min(T,WIN)*bytes;
+  const view = A.canvas(cv, w => w<560 ? .95 : .55, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const L = 52, T0 = 22, R = 10, B = 30, W = w-L-R, H = h-T0-B;
+    const xmin=10, xmax=20, ymin=20, ymax=38;   // log2 tokens, log2 bytes
+    const X = lt => L + (lt-xmin)/(xmax-xmin)*W, Y = b => T0 + (ymax-Math.log2(Math.max(b,1)))/(ymax-ymin)*H;
+    ctx.font = `600 12px ${C.ui}`; ctx.fillStyle = C.muted; ctx.fillText("Memory for one sequence (log-log)", L, 13);
+    axisFrame(ctx,C,L,T0,W,H);
+    ctx.font = `10px ${C.mono}`;
+    for(let lt=10; lt<=20; lt+=2){ const x=X(lt); ctx.strokeStyle=C.line; ctx.beginPath(); ctx.moveTo(x,T0); ctx.lineTo(x,T0+H); ctx.stroke(); ctx.fillStyle=C.muted; ctx.fillText(fmtN(Math.pow(2,lt)), x-10, T0+H+13); }
+    [[20,"1 MiB"],[25,"32 MiB"],[30,"1 GiB"],[35,"32 GiB"]].forEach(([e,t])=>{ const y=Y(Math.pow(2,e)); ctx.strokeStyle=C.line; ctx.beginPath(); ctx.moveTo(L,y); ctx.lineTo(L+W,y); ctx.stroke(); ctx.fillStyle=C.muted; ctx.fillText(t, 2, y+3); });
+    ctx.fillText("context length T (tokens)", L+W/2-50, h-3);
+    // device line
+    ctx.strokeStyle = C.bad; ctx.setLineDash([6,4]); ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(L,Y(DEV)); ctx.lineTo(L+W,Y(DEV)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = C.bad; ctx.font = `600 10.5px ${C.ui}`; ctx.fillText("16 GB laptop", L+6, Y(DEV)-5);
+    const series = [["full attention", full, C.why], ["3:1 hybrid", hyb, C.p2], ["sliding window 4K", win, C.p3], ["recurrent state", ()=>rec(), C.p4]];
+    series.forEach(([name,f,col],si)=>{
+      ctx.strokeStyle=col; ctx.lineWidth=2.4; ctx.beginPath();
+      for(let i=0;i<=100;i++){ const lt = xmin+i/100*(xmax-xmin); const y=Y(f(Math.pow(2,lt))); i?ctx.lineTo(X(lt),y):ctx.moveTo(X(lt),y); } ctx.stroke();
+      const yy = Y(f(Math.pow(2,lgT)));
+      ctx.fillStyle=col; ctx.beginPath(); ctx.arc(X(lgT), yy, 4, 0, 7); ctx.fill();
+      ctx.font=`600 10.5px ${C.ui}`; const lab = name; const tx = X(xmax)-ctx.measureText(lab).width-4; ctx.fillText(lab, tx, Y(f(Math.pow(2,xmax)))+(si===3?-6:14));
+    });
+    ctx.strokeStyle = C.lineStrong; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X(lgT),T0); ctx.lineTo(X(lgT),T0+H); ctx.stroke();
+    const Tn = Math.round(Math.pow(2,lgT));
+    $("m-full").textContent = fmtB(full(Tn)); $("m-hyb").textContent = fmtB(hyb(Tn)); $("m-win").textContent = fmtB(win(Tn)); $("m-rec").textContent = fmtB(rec());
+    $("m-ms").textContent = (full(Tn)/BW*1000).toFixed(1)+" ms";
+    $("m-fl").textContent = sci(2*Lr*DM*Tn*Tn);
+  }
+  A.slider("m-t", v=>{ lgT=v; view && view.redraw(); }, v=>fmtN(Math.round(Math.pow(2,v)))+" tokens");
+  cv.closest(".lab").querySelectorAll("[data-b]").forEach(b=>b.addEventListener("click",()=>{
+    bytes = +b.dataset.b; cv.closest(".lab").querySelectorAll("[data-b]").forEach(o=>o.setAttribute("aria-pressed", o===b)); view.redraw(); }));
+  view.redraw();
+})();
+
+/* =================== SIM: associative recall =================== */
+(function(){
+  const cv = $("cv-recall");
+  let d = 16, K = 24, curves = {att:[], del:[], lin:[]}, job = 0, Sshow = null;
+  const KS = [1,2,3,4,6,8,10,12,16,20,24,32,40,48,64,80,96,128];
+  function unitVec(r, d){ const v = new Float64Array(d); let s=0; for(let i=0;i<d;i++){ v[i]=r.normal(); s+=v[i]*v[i]; } s=Math.sqrt(s); for(let i=0;i<d;i++) v[i]/=s; return v; }
+  const dot = (a,b) => { let s=0; for(let i=0;i<a.length;i++) s+=a[i]*b[i]; return s; };
+  function trial(r, K, d, keepState){
+    const keys=[], vals=[]; for(let i=0;i<K;i++){ keys.push(unitVec(r,d)); vals.push(unitVec(r,d)); }
+    const Sl = new Float64Array(d*d), Sd = new Float64Array(d*d), tmp = new Float64Array(d);
+    for(let i=0;i<K;i++){ const k=keys[i], v=vals[i];
+      for(let a=0;a<d;a++) for(let b=0;b<d;b++) Sl[a*d+b]+=v[a]*k[b];
+      for(let a=0;a<d;a++){ let s=0; for(let b=0;b<d;b++) s+=Sd[a*d+b]*k[b]; tmp[a]=v[a]-s; }
+      for(let a=0;a<d;a++) for(let b=0;b<d;b++) Sd[a*d+b]+=.5*tmp[a]*k[b]; }
+    if(keepState) Sshow = {S:Sd, d};
+    const beta = 8, nq = Math.min(K, 16); let ca=0, cd=0, cl=0;
+    const nearest = out => { let best=-1e9, bi=-1; for(let j=0;j<K;j++){ const c=dot(out,vals[j]); if(c>best){best=c;bi=j;} } return bi; };
+    for(let qi=0; qi<nq; qi++){
+      const t = Math.floor(r()*K), q = keys[t];
+      // softmax attention
+      const sc = new Float64Array(K); let mx=-1e9; for(let j=0;j<K;j++){ sc[j]=beta*dot(q,keys[j]); if(sc[j]>mx) mx=sc[j]; }
+      let z=0; for(let j=0;j<K;j++){ sc[j]=Math.exp(sc[j]-mx); z+=sc[j]; }
+      const oa = new Float64Array(d); for(let j=0;j<K;j++) for(let a=0;a<d;a++) oa[a]+=sc[j]/z*vals[j][a];
+      if(nearest(oa)===t) ca++;
+      const od = new Float64Array(d), ol = new Float64Array(d);
+      for(let a=0;a<d;a++){ let s1=0,s2=0; for(let b=0;b<d;b++){ s1+=Sd[a*d+b]*q[b]; s2+=Sl[a*d+b]*q[b]; } od[a]=s1; ol[a]=s2; }
+      if(nearest(od)===t) cd++; if(nearest(ol)===t) cl++;
+    }
+    return [ca/nq, cd/nq, cl/nq];
+  }
+  function compute(){
+    const my = ++job; curves = {att:[], del:[], lin:[]}; let i = 0;
+    const next = ()=>{
+      if(my!==job) return;
+      if(i>=KS.length){ view.redraw(); return; }
+      const k = KS[i], r = A.rng(1000+k*7+d), N = 24; let sa=0, sd=0, sl=0;
+      for(let t=0;t<N;t++){ const [a,b,c] = trial(r,k,d,false); sa+=a; sd+=b; sl+=c; }
+      curves.att.push([k,sa/N]); curves.del.push([k,sd/N]); curves.lin.push([k,sl/N]); i++; view.redraw(); setTimeout(next,0);
+    };
+    next();
+  }
+  function current(){ const r = A.rng(77+K*13+d); const N=24; let s=[0,0,0]; for(let t=0;t<N;t++){ const v=trial(r,K,d,t===0); s[0]+=v[0]; s[1]+=v[1]; s[2]+=v[2]; } return s.map(x=>x/N); }
+  let cur = [0,0,0];
+  const view = A.canvas(cv, w => w<560 ? 1.2 : .62, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const narrow = w<560;
+    // top: cache strip and state heatmap
+    const topH = narrow ? h*.36 : h*.34;
+    ctx.font = `600 12px ${C.ui}`; ctx.fillStyle = C.muted;
+    ctx.fillText(`Attention cache: ${K} pairs, grows`, 4, 13);
+    const cellW = Math.max(2, Math.min(14, (w*.55-8)/K)), cacheH = 18;
+    for(let i=0;i<K;i++){ ctx.fillStyle = i%2 ? C.p1 : C.p2; ctx.globalAlpha = .75; ctx.fillRect(4+i*cellW, 22, cellW-1, cacheH); }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = C.muted; ctx.font = `10.5px ${C.mono}`; ctx.fillText(`${K} × 2 × ${d} = ${K*2*d} numbers`, 4, 22+cacheH+14);
+    const sx = narrow ? w*.58 : w*.62, ssz = Math.min(topH-24, w-sx-8);
+    ctx.font = `600 12px ${C.ui}`; ctx.fillStyle = C.muted; ctx.fillText(`Delta-rule state ${d}×${d}`, sx, 13);
+    if(Sshow){ const S=Sshow.S, dd=Sshow.d, cs=ssz/dd; let m=1e-9; for(const v of S) m=Math.max(m,Math.abs(v));
+      for(let a=0;a<dd;a++) for(let b=0;b<dd;b++){ const v=S[a*dd+b]/m; ctx.fillStyle = v>=0?C.p1:C.why; ctx.globalAlpha=Math.min(1,Math.abs(v)*1.4); ctx.fillRect(sx+b*cs, 20+a*cs, cs, cs); }
+      ctx.globalAlpha=1; ctx.strokeStyle=C.lineStrong; ctx.strokeRect(sx,20,ssz,ssz); }
+    ctx.fillStyle = C.muted; ctx.font = `10.5px ${C.mono}`; if(!narrow) ctx.fillText(`${d*d} numbers, always`, sx+ssz+6 > w-90 ? sx : sx+ssz+6, narrow? 20+ssz+12 : 20+ssz-2);
+    // bottom: curves
+    const L = 40, T = topH+16, R = 10, B = 28, W = w-L-R, H = h-T-B;
+    const X = k => L + Math.log2(k)/7*W, Y = a => T + (1-a)*H;
+    axisFrame(ctx,C,L,T,W,H);
+    ctx.font = `10px ${C.mono}`; ctx.fillStyle = C.muted;
+    [1,2,4,8,16,32,64,128].forEach(k=>{ ctx.fillText(String(k), X(k)-4, T+H+12); });
+    [0,.5,1].forEach(a=>{ ctx.fillText((a*100)+"%", 4, Y(a)+3); ctx.strokeStyle=C.line; ctx.beginPath(); ctx.moveTo(L,Y(a)); ctx.lineTo(L+W,Y(a)); ctx.stroke(); });
+    ctx.fillText("pairs written K", L+W/2-40, h-2);
+    // capacity line
+    ctx.strokeStyle = C.lineStrong; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.moveTo(X(d),T); ctx.lineTo(X(d),T+H); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = C.muted; ctx.fillText(`K = d`, X(d)+4, T+12);
+    [["att",C.p1,"softmax attention"],["del",C.why,"delta rule, β = 0.5 (d×d)"],["lin",C.p3,"linear attention (d×d)"]].forEach(([key,col,lab],i)=>{
+      const pts = curves[key]; ctx.strokeStyle=col; ctx.lineWidth=2.4; ctx.beginPath();
+      pts.forEach(([k,a],j)=>{ j?ctx.lineTo(X(k),Y(a)):ctx.moveTo(X(k),Y(a)); }); ctx.stroke();
+      ctx.fillStyle=col; ctx.font=`600 10.5px ${C.ui}`; ctx.fillText(lab, L+6, T+H-38+i*13);
+    });
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X(K),T); ctx.lineTo(X(K),T+H); ctx.stroke();
+    $("r-att").textContent = (cur[0]*100).toFixed(0)+"%"; $("r-del").textContent = (cur[1]*100).toFixed(0)+"%"; $("r-lin").textContent = (cur[2]*100).toFixed(0)+"%";
+    $("r-cache").textContent = `${K*2*d} numbers`; $("r-state").textContent = `${d*d} numbers`;
+  }
+  A.slider("r-d", v=>{ d=v; if(view){ cur=current(); compute(); } }, v=>v);
+  A.slider("r-k", v=>{ K=v; if(view){ cur=current(); view.redraw(); } }, v=>v);
+  cur = current(); compute();
+})();
+
+/* =================== LAB: catastrophic forgetting =================== */
+(function(){
+  const cv = $("cv-forget"), Hn = 32, PA = 400, PB = 600, BS = 32;
+  let method = "none", strength = .5, net, opt, hist = [], step = 0, accA0 = null, fisher = null, anchor = null, mask = null, replayBuf = [], running = false;
+  const fA = (x,y) => y > .35*Math.sin(4*x) ? 1 : 0, fB = (x,y) => y < .35*Math.sin(4*x) ? 1 : 0;
+  function makeSet(r, task, n){ const out=[]; for(let i=0;i<n;i++){ const x = task==="A" ? -1.5+r()*1.3 : .2+r()*1.3, y = -1+2*r(); out.push([x,y,(task==="A"?fA:fB)(x,y)]); } return out; }
+  const testA = makeSet(A.rng(101),"A",300), testB = makeSet(A.rng(202),"B",300);
+  const NP = Hn*2 + Hn + Hn + 1;   // W1, b1, w2, b2
+  function initNet(seed){ const r=A.rng(seed), p=new Float64Array(NP); for(let i=0;i<Hn*2;i++) p[i]=r.normal()*.9; for(let i=0;i<Hn;i++) p[Hn*3+i]=r.normal()*.3; return p; }
+  const hid = new Float64Array(Hn);
+  function fwd(p,x,y){ let z=p[Hn*4]; for(let j=0;j<Hn;j++){ const a=Math.tanh(p[j*2]*x+p[j*2+1]*y+p[Hn*2+j]); hid[j]=a; z+=p[Hn*3+j]*a; } return 1/(1+Math.exp(-z)); }
+  function grad(p, batch, g){ g.fill(0);
+    for(const [x,y,t] of batch){ const o=fwd(p,x,y), e=(o-t)/batch.length; g[Hn*4]+=e;
+      for(let j=0;j<Hn;j++){ g[Hn*3+j]+=e*hid[j]; const dh=e*p[Hn*3+j]*(1-hid[j]*hid[j]); g[j*2]+=dh*x; g[j*2+1]+=dh*y; g[Hn*2+j]+=dh; } } }
+  const acc = set => { let c=0; for(const [x,y,t] of set) if((fwd(net,x,y)>.5?1:0)===t) c++; return c/set.length; };
+  let rTrain;
+  function reset(){ net = initNet(9); opt = Adam(NP,.02); hist = []; step = 0; accA0 = null; fisher = null; anchor = null; mask = null; rTrain = A.rng(55); replayBuf = makeSet(A.rng(303),"A",60); }
+  function Adam(size, lr){ const m=new Float64Array(size), v=new Float64Array(size); let t=0;
+    return {step(p,g,msk){ t++; const c1=1-Math.pow(.9,t), c2=1-Math.pow(.999,t); for(let i=0;i<size;i++){ if(msk && !msk[i]) continue; m[i]=.9*m[i]+.1*g[i]; v[i]=.999*v[i]+.001*g[i]*g[i]; p[i]-=lr*(m[i]/c1)/(Math.sqrt(v[i]/c2)+1e-8); } }}; }
+  function endPhaseA(){
+    accA0 = acc(testA);
+    // Fisher diagonal on A (per-sample squared gradients of the log-likelihood)
+    fisher = new Float64Array(NP); const g = new Float64Array(NP), s = makeSet(A.rng(404),"A",200);
+    for(const ex of s){ grad(net,[ex],g); for(let i=0;i<NP;i++) fisher[i]+=g[i]*g[i]/s.length; }
+    let mx=1e-12; for(const f of fisher) mx=Math.max(mx,f); for(let i=0;i<NP;i++) fisher[i]/=mx;
+    anchor = Float64Array.from(net);
+    // sparse: units most used by B relative to A
+    const use = (set)=>{ const u=new Float64Array(Hn); for(const [x,y] of set){ fwd(net,x,y); for(let j=0;j<Hn;j++) u[j]+=Math.abs(hid[j])/set.length; } return u; };
+    const uA = use(makeSet(A.rng(505),"A",200)), uB = use(makeSet(A.rng(606),"B",200));
+    const score = [...Array(Hn).keys()].map(j=>[uB[j]/(uA[j]+.05), j]).sort((a,b)=>b[0]-a[0]);
+    const keep = Math.max(1, Math.round(Hn*(1-strength)*.5));   // strength 0 → half the units, 1 → one unit
+    mask = new Uint8Array(NP); mask[Hn*4]=1;
+    score.slice(0,keep).forEach(([,j])=>{ mask[j*2]=mask[j*2+1]=mask[Hn*2+j]=mask[Hn*3+j]=1; });
+  }
+  const g = new Float64Array(NP);
+  function trainStep(){
+    if(step===PA) endPhaseA();
+    if(step<PA){ grad(net, makeSet(rTrain,"A",BS), g); opt.step(net,g); }
+    else {
+      let batch = makeSet(rTrain,"B",BS);
+      if(method==="replay"){ const nr = Math.round(BS*strength*.6); for(let i=0;i<nr;i++) batch[i] = replayBuf[Math.floor(rTrain()*replayBuf.length)]; }
+      grad(net, batch, g);
+      if(method==="ewc"){ const lam = .5*Math.pow(10, 3*strength); for(let i=0;i<NP;i++) g[i]+=lam*fisher[i]*(net[i]-anchor[i]); }
+      opt.step(net, g, method==="sparse" ? mask : null);
+    }
+    step++;
+    if(step%10===0) hist.push([step, acc(testA), acc(testB)]);
+  }
+  function runAll(){ reset(); while(step<PA+PB) trainStep(); }
+  const view = A.canvas(cv, w => w<560 ? 1.25 : .5, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const narrow = w<560;
+    const fw = narrow ? w-8 : w*.5, fh = fw*(2.2/3.2), ox = 4, oy = 20;
+    ctx.font = `600 12px ${C.ui}`; ctx.fillStyle = C.muted; ctx.fillText(step<=PA ? "Decision field (training on A)" : "Decision field (training on B)", ox, 13);
+    const G = 40, cw = fw/G, ch = fh/Math.round(G*2.2/3.2), rows = Math.round(G*2.2/3.2);
+    for(let i=0;i<G;i++) for(let j=0;j<rows;j++){ const x=-1.6+(i+.5)/G*3.2, y=1.1-(j+.5)/rows*2.2; const o=fwd(net,x,y);
+      ctx.fillStyle = o>.5 ? C.p1 : C.why; ctx.globalAlpha = .12+.5*Math.abs(o-.5); ctx.fillRect(ox+i*cw, oy+j*ch, cw+.5, ch+.5); }
+    ctx.globalAlpha = 1;
+    const PX = x => ox+(x+1.6)/3.2*fw, PY = y => oy+(1.1-y)/2.2*fh;
+    const drawPts = (set, sq) => { for(const [x,y,t] of set.slice(0,110)){ ctx.fillStyle = t ? C.p1 : C.why; ctx.strokeStyle = C.bg; ctx.lineWidth=1;
+      if(sq){ ctx.fillRect(PX(x)-2.6,PY(y)-2.6,5.2,5.2); ctx.strokeRect(PX(x)-2.6,PY(y)-2.6,5.2,5.2); } else { ctx.beginPath(); ctx.arc(PX(x),PY(y),2.8,0,7); ctx.fill(); ctx.stroke(); } } };
+    drawPts(testA,false); drawPts(testB,true);
+    ctx.strokeStyle = C.lineStrong; ctx.lineWidth=1; ctx.strokeRect(ox,oy,fw,fh);
+    ctx.beginPath(); ctx.setLineDash([3,3]); ctx.moveTo(PX(0),oy); ctx.lineTo(PX(0),oy+fh); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = C.ink; ctx.font = `600 11px ${C.ui}`; ctx.fillText("task A ●", ox+6, oy+fh-6); ctx.fillText("task B ■", PX(0)+6, oy+fh-6);
+    // curves
+    const L = narrow ? 40 : fw+44, T = narrow ? oy+fh+34 : 30, R = 10, Bm = 26, W = w-L-R, H = h-T-Bm;
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText("Test accuracy", L, T-12);
+    axisFrame(ctx,C,L,T,W,H);
+    const X = s => L + s/(PA+PB)*W, Y = a => T + (1-a)*H;
+    ctx.font = `10px ${C.mono}`; ctx.fillStyle = C.muted;
+    [0,.5,1].forEach(a=>{ ctx.fillText((a*100)+"%", L-34, Y(a)+3); ctx.strokeStyle=C.line; ctx.beginPath(); ctx.moveTo(L,Y(a)); ctx.lineTo(L+W,Y(a)); ctx.stroke(); });
+    ctx.fillStyle = C.panel2; ctx.globalAlpha=.6; ctx.fillRect(X(PA),T,W-(X(PA)-L),H); ctx.globalAlpha=1;
+    ctx.fillStyle = C.muted; ctx.fillText("train A", L+6, T+H+14); ctx.fillText("train B", X(PA)+6, T+H+14);
+    [[1,C.p2,"A"],[2,C.p4,"B"]].forEach(([k,col,lab])=>{ ctx.strokeStyle=col; ctx.lineWidth=2.4; ctx.beginPath();
+      hist.forEach((r,i)=>{ i?ctx.lineTo(X(r[0]),Y(r[k])):ctx.moveTo(X(r[0]),Y(r[k])); }); ctx.stroke();
+      if(hist.length){ const r=hist[hist.length-1]; ctx.fillStyle=col; ctx.font=`600 11px ${C.ui}`; ctx.fillText(lab, Math.min(X(r[0])+4, L+W-10), Y(r[k])+(k===1?14:-6)); } });
+    const last = hist[hist.length-1] || [0,0,0];
+    $("f-step").textContent = `${step} / ${PA+PB}`;
+    $("f-a").textContent = (last[1]*100).toFixed(1)+"%"; $("f-b").textContent = (last[2]*100).toFixed(1)+"%";
+    $("f-a0").textContent = accA0==null ? "–" : (accA0*100).toFixed(1)+"%";
+  }
+  const anim = A.loop(cv, ()=>{ for(let i=0;i<8 && step<PA+PB;i++) trainStep(); view.redraw(); if(step>=PA+PB){ running=false; return false; } });
+  function play(){ reset(); running = true; anim.start(); }
+  const hints = {none:"No protection: plain training on B.", replay:"Share of each B batch drawn from 60 stored A examples (0 to 60%).", ewc:"Weight of the Fisher-weighted pull back toward the end-of-A weights.", sparse:"Higher = fewer hidden units allowed to change (most-used-by-B first)."};
+  function updHint(){ $("f-hint").textContent = hints[method]; $("f-sl").textContent = method==="none" ? "Strength (unused)" : method==="replay" ? "Replay share" : method==="ewc" ? "EWC strength" : "Sparsity"; }
+  A.slider("f-s", v=>{ strength=v; }, v=>v.toFixed(2));
+  $("f-s").addEventListener("change", ()=>{ if(!running){ runAll(); view.redraw(); } });
+  cv.closest(".lab").querySelectorAll("[data-m]").forEach(b=>b.addEventListener("click",()=>{
+    method = b.dataset.m; cv.closest(".lab").querySelectorAll("[data-m]").forEach(o=>o.setAttribute("aria-pressed", o===b)); updHint();
+    if(A.reduced){ runAll(); view.redraw(); } else play(); }));
+  $("f-run").onclick = ()=>{ if(A.reduced){ runAll(); view.redraw(); } else play(); };
+  updHint(); runAll(); view.redraw();
+  if(!A.reduced){ const io = new IntersectionObserver(es=>{ if(es[0].isIntersecting){ io.disconnect(); play(); } }, {threshold:.4}); io.observe(cv); }
+})();
+
+/* =================== SIM: maze refinement =================== */
+(function(){
+  const cv = $("cv-loop");
+  let size = 8, D = 32, seed = 4, maze, G, start, goal, trueDist, iterDist, iters = 0, done = false, playing = false;
+  function gen(){
+    G = 2*size+1; maze = new Uint8Array(G*G); const r = A.rng(seed*7919+size);
+    const vis = new Uint8Array(size*size), st = [[0,0]]; vis[0]=1; maze[G+1]=1;
+    while(st.length){ const [cx,cy]=st[st.length-1]; const nb=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy])=>[cx+dx,cy+dy]).filter(([x,y])=>x>=0&&y>=0&&x<size&&y<size&&!vis[y*size+x]);
+      if(!nb.length){ st.pop(); continue; } const [nx,ny]=nb[Math.floor(r()*nb.length)]; vis[ny*size+nx]=1;
+      maze[(2*ny+1)*G+2*nx+1]=1; maze[(cy+ny+1)*G+(cx+nx+1)]=1; st.push([nx,ny]); }
+    // open a few extra walls so there are loops
+    for(let i=0;i<size;i++){ const x=1+Math.floor(r()*(G-2)), y=1+Math.floor(r()*(G-2)); if((x+y)%2===1) maze[y*G+x]=1; }
+    start = G+1; goal = (G-2)*G+(G-2);
+    trueDist = relax(Infinity).dist; reset();
+  }
+  function stepOnce(dist){ const nd = Float64Array.from(dist); let ch=false;
+    for(let y=1;y<G-1;y++) for(let x=1;x<G-1;x++){ const i=y*G+x; if(!maze[i]) continue;
+      const m = Math.min(dist[i-1],dist[i+1],dist[i-G],dist[i+G])+1; if(m<nd[i]){ nd[i]=m; ch=true; } }
+    return {nd, ch}; }
+  function relax(maxIt){ let dist = new Float64Array(G*G).fill(Infinity); dist[start]=0; let it=0;
+    while(it<maxIt){ const {nd,ch}=stepOnce(dist); dist=nd; it++; if(!ch) break; } return {dist, it}; }
+  function reset(){ iterDist = new Float64Array(G*G).fill(Infinity); iterDist[start]=0; iters=0; done=false; }
+  function advance(){ const {nd,ch}=stepOnce(iterDist); iterDist=nd; if(ch) iters++; else done=true; }
+  const view = A.canvas(cv, w => w<560 ? 2.05 : .52, draw);
+  function panel(ctx, C, ox, oy, sz, dist, title, sub){
+    const cs = sz/G, maxd = trueDist[goal];
+    ctx.font = `600 12px ${C.ui}`; ctx.fillStyle = C.muted; ctx.fillText(title, ox, oy-20); ctx.font = `10.5px ${C.mono}`; ctx.fillText(sub, ox, oy-6);
+    for(let y=0;y<G;y++) for(let x=0;x<G;x++){ const i=y*G+x;
+      if(!maze[i]){ ctx.fillStyle = C.ink; ctx.globalAlpha=.82; ctx.fillRect(ox+x*cs, oy+y*cs, cs+.4, cs+.4); ctx.globalAlpha=1; continue; }
+      if(isFinite(dist[i])){ ctx.fillStyle = C.p1; ctx.globalAlpha = .15+.6*(1-Math.min(1,dist[i]/Math.max(1,maxd))); ctx.fillRect(ox+x*cs, oy+y*cs, cs+.4, cs+.4); ctx.globalAlpha=1; }
+      else { ctx.fillStyle = C.panel2; ctx.fillRect(ox+x*cs, oy+y*cs, cs+.4, cs+.4); A.hatch(ctx, ox+x*cs, oy+y*cs, cs+.4, cs+.4, C.hatch, 4); }
+    }
+    // path
+    if(isFinite(dist[goal])){ ctx.strokeStyle = C.why; ctx.lineWidth = Math.max(2, cs*.35); ctx.lineJoin="round"; ctx.beginPath();
+      let c = goal; ctx.moveTo(ox+(c%G+.5)*cs, oy+((c/G|0)+.5)*cs);
+      let guard=0; while(c!==start && guard++<G*G){ const nb=[c-1,c+1,c-G,c+G].filter(j=>dist[j]===dist[c]-1); if(!nb.length) break; c=nb[0]; ctx.lineTo(ox+(c%G+.5)*cs, oy+((c/G|0)+.5)*cs); } ctx.stroke(); }
+    ctx.fillStyle = C.good; ctx.beginPath(); ctx.arc(ox+1.5*cs, oy+1.5*cs, cs*.42, 0, 7); ctx.fill();
+    ctx.strokeStyle = C.why; ctx.lineWidth = 2; ctx.strokeRect(ox+(G-2)*cs+1, oy+(G-2)*cs+1, cs-2, cs-2);
+  }
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const narrow = w<560, sz = narrow ? Math.min(w-8, h/2-40) : Math.min((w-24)/2, h-40);
+    const big = relax(D).dist, bigOK = isFinite(big[goal]);
+    panel(ctx, C, 4, 36, sz, big, `One pass, ${D} layers`, bigOK ? "reached the goal" : `reach ${D} cells: goal not reached`);
+    panel(ctx, C, narrow ? 4 : sz+20, narrow ? sz+36+44 : 36, sz, iterDist, "One layer, looped", done ? `halted after ${iters} iterations` : `iteration ${iters}`);
+    const L = trueDist[goal];
+    $("l-len").textContent = `${L} cells`;
+    $("l-big").textContent = bigOK ? "solved" : "fails (path > D)";
+    $("l-small").textContent = isFinite(iterDist[goal]) ? `solved at iter ${iterDist[goal]}` : done ? "–" : "running…";
+    $("l-par").textContent = `${D}·P vs 1·P`;
+  }
+  const anim = A.loop(cv, (dt,t)=>{ acc += dt; while(acc>.05){ acc-=.05; advance(); } view.redraw(); if(done){ playing=false; $("l-play").textContent="Play loop"; return false; } });
+  let acc = 0;
+  function play(){ reset(); playing = true; $("l-play").textContent = "Restart"; acc = 0; anim.start(); }
+  A.slider("l-s", v=>{ size=v; if(view){ gen(); finishOrPlay(); } }, v=>`${v}×${v}`);
+  A.slider("l-d", v=>{ D=v; view && view.redraw(); }, v=>v);
+  function finishOrPlay(){ if(A.reduced){ while(!done) advance(); view.redraw(); } else play(); }
+  $("l-play").onclick = ()=>{ if(A.reduced){ reset(); while(!done) advance(); view.redraw(); } else play(); };
+  $("l-new").onclick = ()=>{ seed++; gen(); finishOrPlay(); };
+  gen(); while(!done) advance(); view.redraw();
+  if(!A.reduced){ const io = new IntersectionObserver(es=>{ if(es[0].isIntersecting){ io.disconnect(); play(); } }, {threshold:.4}); io.observe(cv); }
+})();
+
+/* =================== QUIZ =================== */
+A.quiz("quiz", [
+  {q:"Why does appending one more '1' to a long run of '1's barely change the last token's representation?",
+   options:["Because the tokenizer merges repeated tokens","Because attention averages: with n identical tokens, one more shifts the weighted mean by about 1/n², which low-precision floats round away","Because positional encodings saturate","Because the model has never seen long sequences"],
+   answer:1, why:"The final token sees the prefix through a softmax-weighted average. Over-squashing (Barbero et al., 2024) is the result: distinct long inputs map to nearly identical vectors, and bf16 makes them exactly identical."},
+  {q:"Why must softmax attention 'disperse' as the input gets longer?",
+   options:["Because of dropout","Because logits are bounded, so the right token's weight e^Δ/(e^Δ + n − 1) shrinks as n grows","Because the KV cache is compressed","Because of layer norm"],
+   answer:1, why:"Veličković et al. (2024) prove this for bounded logits. Sharp retrieval needs the gap Δ to grow with n, which fixed weights cannot provide; an adaptive temperature is their proposed patch."},
+  {q:"Why is a Mamba-style model attractive on a phone or laptop?",
+   options:["It has more parameters","Its state has fixed size, so memory and per-token cost don't grow with context, unlike a KV cache that is 16 GiB at 128K tokens for an 8B-class model","It doesn't need training","It uses attention more efficiently"],
+   answer:1, why:"Generation reads the whole KV cache for every token. A recurrent state replaces the cache with a constant-size matrix updated in place."},
+  {q:"In the recall simulation, why does the delta-rule state fail once K grows past about d?",
+   options:["Its learning rate is too low","A d×d matrix can hold only about d independent key-value pairs; beyond that, keys overlap and writes overwrite each other","Softmax dispersion","The values are not normalised"],
+   answer:1, why:"Capacity is set by the state size. That is why hybrids keep some full-attention layers for exact recall, and why MiniMax kept full attention for agentic reliability."},
+  {q:"Why does replay protect task A so well in the forgetting lab, while EWC is a trade-off?",
+   options:["Replay uses a bigger network","Replay puts A's loss back into the objective; EWC only approximates A's loss with a quadratic around the old weights, so too strong blocks B and too weak forgets A","EWC is not a real method","Replay trains for longer"],
+   answer:1, why:"Forgetting happens because nothing in B's loss mentions A. Replay restores that term exactly; EWC uses the Fisher to guess which weights mattered."},
+  {q:"Why can a 7M-parameter looped network like TRM compete with much larger one-pass models on ARC?",
+   options:["Because ARC is easy","Because iterating one small network gives depth of computation on demand, reaching as far as the problem needs; the HRM ablation found the outer refinement loop added about 13 points","Because it was pretrained on the test set","Because it uses a larger context window"],
+   answer:1, why:"One pass is limited by its depth. A loop reuses the same weights for as many steps as needed and can halt early, which is the 'refinement loop' theme of the ARC Prize 2025."},
+]);
+})();
+</script>
+</body>
+</html>

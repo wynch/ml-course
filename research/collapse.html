@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why doesn't everything collapse to one point? · Hidden Patch</title>
+<meta name="description" content="Collapse and its cures: complete and dimensional collapse, stop-gradient + EMA + predictor, VICReg's three terms, C-JEPA, SIGReg's random projections, and the drive-versus-decay rule for which directions escape.">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/atlas.css">
+<style>
+/* page-specific */
+.beat>*{min-width:0} /* .eq is nowrap; without this a beat grid column grows past the viewport */
+.checks{display:grid;gap:.35rem}
+.presets{display:flex;flex-wrap:wrap;gap:.3rem}
+.presets button{font-size:.76rem;padding:.26rem .6rem}
+.stage canvas+canvas{margin-top:.6rem}
+.stage .cap{font-family:var(--ui);font-size:.78rem;color:var(--muted);margin:.35rem 0 0}
+.kinds{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.8rem}
+.kinds>div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.8rem .9rem;display:grid;gap:.35rem;align-content:start;font-size:.93rem}
+.kinds svg{width:100%;height:auto;display:block;max-height:120px}
+.kinds h4{font-size:1rem}
+.kinds .k{font-family:var(--mono);font-size:.68rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.kinds .ax{stroke:var(--line-strong);stroke-width:1}
+.terms{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.7rem}
+.terms>div{border:1px solid var(--line);border-radius:12px;padding:.7rem .85rem;background:var(--panel);font-size:.93rem;display:grid;gap:.25rem;align-content:start}
+.terms b.t{font-family:var(--display);font-size:1.05rem}
+.terms .f{font-family:var(--mono);font-size:.8rem;color:var(--part)}
+.terms .blk{font-family:var(--ui);font-size:.82rem;color:var(--muted)}
+</style>
+</head>
+<body data-chapter="collapse" data-part="1">
+<header id="topbar" class="topbar"></header>
+
+<main class="chapter">
+  <section class="opener">
+    <p class="eyebrow"><span class="sw"></span>Part 1 · Predict · Chapter 03</p>
+    <h1 class="big"><span class="w">Why</span> doesn't everything collapse to one point?</h1>
+    <p class="because">something in the training rule makes it cost more to forget than to remember. A loss that only asks two views to agree is solved perfectly by an encoder that outputs the same vector for everything. Every working method adds a counter-force: a target that cannot move (stop-gradient and a slow copy), a penalty on shrinking variance (VICReg), or a test that the embeddings look like an isotropic Gaussian (SIGReg). Which directions survive is a contest between that force and decay, and for a linear JEPA it can be computed.</p>
+    <p class="meta"><span>6 beats · 3 labs · 7 questions</span><span>Builds on: <a href="jepa.html">02 Predict in latent space</a></span><span>Next: <a href="bias.html">04 Implicit bias</a></span></p>
+    <ul class="toc">
+      <li><a href="#what"><span class="q">?</span>What collapse is</a></li>
+      <li><a href="#stopgrad"><span class="q">?</span>Why stop-grad works</a></li>
+      <li><a href="#vicreg"><span class="q">?</span>Why three VICReg terms</a></li>
+      <li><a href="#drive"><span class="q">?</span>Which directions escape</a></li>
+      <li><a href="#sigreg"><span class="q">?</span>Why random shadows</a></li>
+      <li><a href="#which"><span class="q">?</span>Which cure to pick</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ BEAT 1 ============ -->
+  <section class="beat" id="what">
+    <header>
+      <span class="num">Beat 1</span>
+      <h2><span class="w">Why</span> is collapse the easy way out?</h2>
+      <p class="short">Because "make the two embeddings agree" has a zero-cost answer: ignore the input. Gradient descent finds it quickly, since shrinking every embedding toward one point lowers the disagreement on every example at once.</p>
+    </header>
+    <div class="prose">
+      <p>Reconstruction cannot collapse: its target is the raw data, which the model does not control. Joint-embedding methods (BYOL, VICReg, every JEPA) chose a learned target to escape the pixel trap of <a href="predict.html#variance">chapter 01</a>, and that freedom opens a trap of its own. If both sides of the loss are produced by networks, both can move toward the same constant.</p>
+      <p>Collapse comes in two strengths. <b>Complete collapse</b> is the extreme: every input maps to one point. <b>Dimensional collapse</b> (Jing et al., 2022) is quieter and more common in practice: the embeddings vary, but only along a few directions, so a 256-dimensional embedding might really be 10-dimensional. The standard gauge is the <span class="term" tabindex="0" data-def="exp of the entropy of the normalized singular values of the embedding matrix (Roy & Vetterli 2007). Equals d when all directions are used equally, 1 when everything lies on a line.">effective rank</span>.</p>
+      <div class="eq">erank(Z) = exp( −Σ<sub>k</sub> q<sub>k</sub> log q<sub>k</sub> ),   q<sub>k</sub> = σ<sub>k</sub> / Σ<sub>j</sub> σ<sub>j</sub><span class="c">σ<sub>k</sub> are the singular values of the centred embedding matrix. In 2-D: 2 means a full cloud, 1 a line, and a single point has no spread at all.</span></div>
+    </div>
+    <div class="kinds" aria-hidden="false">
+      <div><span class="k">healthy</span><h4>Full rank</h4><svg viewBox="0 0 120 80" role="img" aria-label="A round cloud of points"><line class="ax" x1="10" y1="40" x2="110" y2="40"/><line class="ax" x1="60" y1="5" x2="60" y2="75"/><g id="k-full"></g></svg><p>Points fill the space; four classes stay apart.</p></div>
+      <div><span class="k">dimensional</span><h4>Collapse to a line</h4><svg viewBox="0 0 120 80" role="img" aria-label="Points squeezed onto a diagonal line"><line class="ax" x1="10" y1="40" x2="110" y2="40"/><line class="ax" x1="60" y1="5" x2="60" y2="75"/><g id="k-line"></g></svg><p>Variance survives along one direction. Classes that differ only along the lost one merge.</p></div>
+      <div><span class="k">complete</span><h4>Collapse to a point</h4><svg viewBox="0 0 120 80" role="img" aria-label="All points on a single spot"><line class="ax" x1="10" y1="40" x2="110" y2="40"/><line class="ax" x1="60" y1="5" x2="60" y2="75"/><g id="k-pt"></g></svg><p>Zero loss, zero information.</p></div>
+    </div>
+    <figure class="lab" id="lab-coll">
+      <div class="lab-head"><span class="tag">Sim</span><h3>Watch an encoder give up, then stop it</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-coll" aria-label="Left: 2-D embeddings of 128 inputs from four classes, trained live. Right: effective rank and the two principal standard deviations over training."></canvas>
+          <p class="cap">Linear encoder z = W u, inputs u in 3-D: two content axes (four classes at the corners) and one nuisance axis that augmentation scrambles. Each step draws two fresh augmented views per input.</p>
+        </div>
+        <div class="side">
+          <div class="ctrl"><span class="lbl">Recipes</span>
+            <div class="presets" role="group" aria-label="Presets">
+              <button type="button" data-pre="inv" aria-pressed="true">Invariance only</button>
+              <button type="button" data-pre="var" aria-pressed="false">+ Variance</button>
+              <button type="button" data-pre="vic" aria-pressed="false">VICReg</button>
+              <button type="button" data-pre="byol" aria-pressed="false">BYOL-style</button>
+              <button type="button" data-pre="nosg" aria-pressed="false">Predictor, no stop-grad</button>
+            </div></div>
+          <div class="checks">
+            <label class="check"><input type="checkbox" id="c-sg"> Stop-gradient + EMA target</label>
+            <label class="check"><input type="checkbox" id="c-pred"> Trained predictor</label>
+            <label class="check"><input type="checkbox" id="c-var"> Variance term (std ≥ 1)</label>
+            <label class="check"><input type="checkbox" id="c-cov"> Covariance term (decorrelate)</label>
+          </div>
+          <div class="btns"><button type="button" class="primary" id="co-play">Pause</button><button type="button" id="co-reset">Restart</button></div>
+          <dl class="readout">
+            <dt>principal stds</dt><dd id="co-std">–</dd>
+            <dt>effective rank</dt><dd id="co-er" class="hot">–</dd>
+            <dt>nuisance weight</dt><dd id="co-nz">–</dd>
+            <dt>step</dt><dd id="co-step">0</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li><b>Invariance only:</b> the cloud shrinks to the origin in a few hundred steps. Nothing in the loss rewards keeping inputs apart.</li>
+        <li><b>+ Variance:</b> complete collapse is blocked, but both output dimensions slide onto the cleanest content axis. Effective rank falls to 1 and the four classes merge into two. This is dimensional collapse, live.</li>
+        <li><b>VICReg</b> adds the covariance term and the second axis comes back (rank 2, four classes). <b>BYOL-style</b> gets a full-rank, class-separated embedding with no variance or covariance term at all; turn off stop-grad (<b>Predictor, no stop-grad</b>) and it collapses again. In every working recipe the nuisance weight goes to about 0: the encoder learned to ignore what augmentation scrambles.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 2 ============ -->
+  <section class="beat" id="stopgrad">
+    <header>
+      <span class="num">Beat 2</span>
+      <h2><span class="w">Why</span> do a stop-gradient, a slow copy and a predictor prevent it?</h2>
+      <p class="short">Because with a stop-gradient the target is frozen for each step, so the online network can only move toward it and cannot drag it down to meet it. The slow EMA copy keeps the target from following too fast, and the predictor gives the dynamics a stable non-collapsed solution. Tian, Chen and Ganguli (2021) showed why in linear networks.</p>
+    </header>
+    <div class="split">
+      <div class="prose">
+        <p>BYOL (Grill et al., 2020) surprised the field: no negative pairs, no variance penalty, and still no collapse. It used an online network with a <b>predictor</b> head, a <b>target</b> network updated as an exponential moving average (EMA) of the online one, and a <b>stop-gradient</b> on the target. SimSiam (Chen and He, 2020) then removed the EMA and kept working, but collapsed the moment the stop-gradient was removed. The lab above reproduces that last fact: "Predictor, no stop-grad" goes to a point.</p>
+        <p>Tian, Chen and Ganguli analysed the linear case. The loss alone has collapse as a global minimum, but these systems never reach it, because of the <em>dynamics</em>. With stop-gradient the encoder and predictor evolve so that the predictor lines up with the eigenbasis of the encoder's output correlation, after which each eigen-direction grows or shrinks on its own. They tested this by skipping the trained predictor entirely: <b>DirectPred</b> sets it from the eigen-decomposition of the correlation matrix and worked about as well as a trained one.</p>
+        <p>That eigen-direction picture is the seed of everything below. Each direction of the data has its own fate. Which ones survive? Beat 4 answers that exactly for a linear JEPA.</p>
+      </div>
+      <div class="prose">
+        <div class="compare" style="grid-template-columns:1fr">
+          <div><span class="k">without stop-grad</span><h4>Both sides chase each other</h4><p>Gradient flows into the target too. The fastest way to make two outputs equal is to shrink both: <code>‖f(x₁) − f(x₂)‖² → 0</code> with <code>f ≡ c</code>.</p></div>
+          <div><span class="k">with stop-grad + EMA</span><h4>The target holds still</h4><p>Only the online side moves. The target is a slow average of past online weights, <code>θ̄ ← τθ̄ + (1−τ)θ</code>, so a collapse has to happen in the online net first and is not rewarded along the way.</p></div>
+          <div><span class="k">with a predictor</span><h4>An extra degree of freedom</h4><p>The predictor can absorb the mismatch between views per direction instead of the encoder throwing directions away.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 3 ============ -->
+  <section class="beat" id="vicreg">
+    <header>
+      <span class="num">Beat 3</span>
+      <h2><span class="w">Why</span> does VICReg need three terms?</h2>
+      <p class="short">Because each term blocks one failure. Invariance makes the views agree. Variance stops complete collapse by keeping every dimension's spread above a floor. Covariance stops dimensional collapse by making dimensions carry different information. Drop one and the matching failure returns.</p>
+    </header>
+    <div class="prose">
+      <p>VICReg (Bardes, Ponce and LeCun, 2022) replaces the stop-gradient trick with explicit statistics of the batch. It needs no EMA, no predictor and no negative pairs, and its objective says in plain terms what "not collapsed" means.</p>
+      <div class="eq">L = λ·s(Z, Z′) + μ·[ v(Z) + v(Z′) ] + ν·[ c(Z) + c(Z′) ]<span class="c">Z and Z′ are a batch of embeddings of two views. The paper's defaults are λ = μ = 25 and ν = 1.</span></div>
+    </div>
+    <div class="terms">
+      <div><b class="t">Invariance s</b><span class="f">mean ‖zᵢ − z′ᵢ‖²</span><span>Two views of one input should embed together.</span><span class="blk">Alone: collapses to a point.</span></div>
+      <div><b class="t">Variance v</b><span class="f">(1/d) Σⱼ max(0, γ − √(Var zⱼ + ε))</span><span>Each dimension keeps a standard deviation of at least γ = 1 across the batch.</span><span class="blk">Blocks: complete collapse.</span></div>
+      <div><b class="t">Covariance c</b><span class="f">(1/d) Σ<sub>i≠j</sub> C(Z)ᵢⱼ²</span><span>Off-diagonal covariances are pushed to zero, so dimensions stop copying each other.</span><span class="blk">Blocks: dimensional collapse.</span></div>
+    </div>
+    <div class="prose">
+      <p>The sim in beat 1 shows each term doing its job. With variance alone both outputs pick the same clean direction, because the invariance term prefers it and nothing forbids two dimensions from being the same. The covariance term is the only thing that says "be different".</p>
+      <p><b>C-JEPA</b> (Mo and Tong, NeurIPS 2024) brought this back into JEPAs. They argued that I-JEPA's EMA does not fully prevent collapse and that its mean patch embeddings are poorly estimated, and added VICReg's variance and covariance terms to the I-JEPA objective, reporting faster and more stable pretraining. The two families from <a href="predict.html#families">chapter 01</a> meet here: alignment's regularizers protect latent prediction.</p>
+      <div class="analogy"><span class="ico">≈</span><div><span class="k">Picture it</span><p>A choir told only "sing the same note as your neighbour" will happily all hum one note, or fall silent. Variance says "everyone must be audible". Covariance says "and the sopranos may not just double the altos". Only then do you get chords.</p></div></div>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 4 ============ -->
+  <section class="beat" id="drive">
+    <header>
+      <span class="num">Beat 4</span>
+      <h2><span class="w">Which</span> directions escape collapse, and why those?</h2>
+      <p class="short">Because near the collapsed point each data direction feels two forces: a <b>drive</b> from predicting the target, and a <b>decay</b> from the predictor's own penalty on the masked context. A direction escapes when drive beats decay (μ &gt; 1). Masking and predictor scale move μ; the EMA rate does not.</p>
+    </header>
+    <div class="prose">
+      <p>De Melo Costa et al. (2026, <i>Drive vs. Decay</i>) linearize JEPA training at the collapsed point. Each mode obeys one small equation, and the ratio μ = drive/decay decides its fate. The count of unstable modes bounds the effective rank, and they validated the rule on more than 800 Tabular-JEPA configurations.</p>
+      <div class="eq">λ² + (β + σ)·λ + β·σ·(1 − μ) = 0,     μ = γ / σ<span class="c">Per mode: σ is the decay (from the masked-context covariance and WₚᵀWₚ), γ the drive (from the context-target cross-covariance and the target mask), β the EMA rate. A positive root exists iff μ &gt; 1. β multiplies everything, so it sets speed, not sign.</span></div>
+      <p>The project's first notebook derived μ in closed form for stationary data (any signal whose covariance has a constant diagonal d̄, such as image or audio patches), with a fixed predictor Wₚ = αI, context keep probability <var>p</var> and target keep probability <var>p</var><sub>tgt</sub>:</p>
+      <div class="eq">μ<sub>k</sub> = (p<sub>tgt</sub> / α) · λ<sub>k</sub> / ( p·λ<sub>k</sub> + (1 − p)·d̄ )<br>escapes iff  λ<sub>k</sub> &gt; (1 − p)·d̄ / (p<sub>tgt</sub>/α − p)<span class="c">λ<sub>k</sub> is the data variance along mode k. The second factor is above 1 exactly for modes with more than average variance: masking is a spectral filter.</span></div>
+    </div>
+    <figure class="lab" id="lab-dd">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Drive vs. decay explorer</h3></div>
+      <div class="lab-body">
+        <div class="stage">
+          <canvas id="cv-dd" aria-label="Left: stability ratio mu for each of 32 data modes with the mu = 1 threshold. Right: predicted growth of each mode over time on a log scale."></canvas>
+          <canvas id="cv-map" aria-label="Escape map: number of escaping modes over context masking fraction and predictor scale. Click to set both."></canvas>
+          <p class="cap">32-dim stationary signal on a ring, Σᵢⱼ = exp(−|i−j|/ℓ), d̄ = 1, the notebook's setup. Click or drag on the map to set masking and α.</p>
+        </div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="s-p">Context keep p</label><output for="s-p"></output></div>
+            <input type="range" id="s-p" min="0.05" max="1" step="0.01" value="0.5"></div>
+          <div class="ctrl"><div class="row"><label for="s-pt">Target keep p<sub>tgt</sub></label><output for="s-pt"></output></div>
+            <input type="range" id="s-pt" min="0.1" max="1" step="0.01" value="0.8"></div>
+          <div class="ctrl"><div class="row"><label for="s-al">Predictor scale α</label><output for="s-al"></output></div>
+            <input type="range" id="s-al" min="0.3" max="2" step="0.01" value="1"></div>
+          <div class="ctrl"><div class="row"><label for="s-be">EMA rate β (log)</label><output for="s-be"></output></div>
+            <input type="range" id="s-be" min="-1.5" max="1.5" step="0.05" value="0"></div>
+          <div class="ctrl"><div class="row"><label for="s-ell">Correlation length ℓ</label><output for="s-ell"></output></div>
+            <input type="range" id="s-ell" min="0.5" max="8" step="0.1" value="3"></div>
+          <div class="presets"><button type="button" id="dd-nb">Notebook check 1</button><button type="button" id="dd-p1">No masking</button><button type="button" id="dd-big">Big predictor</button></div>
+          <dl class="readout">
+            <dt>escaping modes</dt><dd id="dd-n" class="hot">–</dd>
+            <dt>threshold λ*</dt><dd id="dd-th">–</dd>
+            <dt>top μ</dt><dd id="dd-mu">–</dd>
+            <dt>top growth rate</dt><dd id="dd-r">–</dd>
+            <dt>erank bound</dt><dd id="dd-b">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li><b>Masking is a spectral filter.</b> At the notebook's setting (p = 0.5, p<sub>tgt</sub> = 0.8, α = 1) only the low-frequency, high-variance modes clear μ = 1. Lower p and the cut moves further toward the loudest modes.</li>
+        <li><b>All or nothing at p = 1.</b> Press "No masking": μ becomes p<sub>tgt</sub>/α for every mode, so the bars are flat. Slide α across p<sub>tgt</sub> and all 32 modes flip together.</li>
+        <li><b>EMA changes speed, not outcome.</b> Sweep β over three orders of magnitude: the growth curves on the right stretch and squeeze, but no mode changes colour. On the map, with a small predictor (α &lt; p<sub>tgt</sub>) more masking removes dimensions; with a large one (α &gt; p<sub>tgt</sub>) masking is what lets any dimension escape.</li>
+      </ul></div>
+    </figure>
+    <aside class="aside ours"><span class="k">This project · notebook 1</span>The closed form is the project's own derivation, not the paper's. Checked against plain minibatch SGD with sampled masks: predicted and measured early growth rates agree within 0.008 across all 32 modes, and the escaping-mode count matches at 14 of 16 settings (the two misses are modes within about 2% of μ = 1). Later in training, minibatch noise leaks growth into every mode, but effective rank stayed at 2.05, under the bound of 5, matching the paper's caveat that the bound covers the growing component only. Not yet tested: a trained predictor, nonlinear encoders, non-stationary data. See <code>jepa/notebooks/01-drive-vs-decay.ipynb</code>.</aside>
+    <div class="prose"><p>The predictor-scale result is the paper's argument for <b>ResidualPred</b>, an identity-biased predictor that keeps α near 1. It also explains a fact from <a href="predict.html#variance">chapter 01</a> from the inside: this linear JEPA learns only the high-variance end of the spectrum, so its embedding is anisotropic by construction. The next beat is about a regularizer that pushes the other way.</p></div>
+  </section>
+
+  <!-- ============ BEAT 5 ============ -->
+  <section class="beat" id="sigreg">
+    <header>
+      <span class="num">Beat 5</span>
+      <h2><span class="w">Why</span> test random 1-D shadows instead of the whole distribution?</h2>
+      <p class="short">Because a distribution is fixed by all of its one-dimensional projections (Cramér–Wold), and a 1-D test against a Gaussian is cheap and reliable while a high-dimensional one is not. LeJEPA's SIGReg samples random directions, tests each shadow, and averages, which removes the need for stop-gradient and EMA.</p>
+    </header>
+    <div class="prose">
+      <p>LeJEPA (Balestriero and LeCun, 2025) starts from a target instead of a trick. They prove that an <b>isotropic Gaussian</b> embedding minimizes the worst-case risk of downstream linear probes, then enforce it with <b>SIGReg</b>: draw M random unit directions, project the batch onto each, and measure how far each projection is from N(0, 1) with a characteristic-function test. One trade-off hyperparameter replaces the EMA schedule, the stop-gradient and the predictor tricks. Why this is the right target is <a href="gaussian.html">chapter 05</a>; this beat is about why the test works.</p>
+      <p>VICReg checks only second moments: the covariance. A cloud can have identity covariance and still be badly non-Gaussian, for example two blobs. The characteristic function φ(t) = E[e<sup>itx</sup>] sees all moments at once, and comparing it with e<sup>−t²/2</sup> catches both the wrong scale and the wrong shape.</p>
+      <div class="eq">T(u) = N · ∫ | φ̂<sub>u</sub>(t) − e<sup>−t²/2</sup> |²<br>      · e<sup>−t²/2</sup> dt<br>φ̂<sub>u</sub>(t) = (1/N) Σ<sub>n</sub> e<sup>i t ⟨u, z<sub>n</sub>⟩</sup><span class="c">An Epps–Pulley-style statistic for one direction u. SIGReg averages it over random directions; the lab computes it on a grid of t values.</span></div>
+    </div>
+    <figure class="lab" id="lab-sig">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Shadows of a cloud</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-sig" aria-label="Left: a 2-D cloud with random projection directions; drag to stretch and rotate it. Middle: histogram of one projection against the standard normal. Right: test statistic by direction."></canvas>
+          <p class="cap">Drag on the cloud to stretch and rotate it. Click a direction in the rose to inspect its shadow.</p></div>
+        <div class="side">
+          <div class="ctrl"><span class="lbl">Cloud shape</span>
+            <div class="seg" role="group" aria-label="Shape">
+              <button type="button" data-shape="gauss" aria-pressed="true">Gaussian</button><button type="button" data-shape="blobs" aria-pressed="false">Blobs</button><button type="button" data-shape="square" aria-pressed="false">Square</button>
+            </div></div>
+          <div class="ctrl"><div class="row"><label for="s-an">Anisotropy</label><output for="s-an"></output></div>
+            <input type="range" id="s-an" min="1" max="6" step="0.05" value="3"></div>
+          <div class="ctrl"><div class="row"><label for="s-M">Random directions M</label><output for="s-M"></output></div>
+            <input type="range" id="s-M" min="1" max="48" step="1" value="12"></div>
+          <div class="btns"><button type="button" id="sg-dirs">New directions</button><button type="button" class="primary" id="sg-run">Apply SIGReg</button></div>
+          <dl class="readout">
+            <dt>mean T</dt><dd id="sg-T" class="hot">–</dd>
+            <dt>worst T</dt><dd id="sg-max">–</dd>
+            <dt>covariance</dt><dd id="sg-cov">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Pick <b>Blobs</b> at anisotropy 1: the covariance reads as identity, so a variance-and-covariance regularizer is satisfied, yet the rose shows a lobe along the blob axis. The shadow there is bimodal.</li>
+        <li>With few directions (M = 1 to 3) a lobe can be missed in one draw. Random directions are redrawn every step in training, so over many steps every direction gets tested; that is the "sketched" in SIGReg.</li>
+        <li>Press <b>Apply SIGReg</b>: gradient descent on the statistic alone moves the points until every shadow looks normal. The statistic weights the bulk (e<sup>−t²/2</sup> favours small t), so far outliers are pulled in slowly.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 6 ============ -->
+  <section class="beat" id="which">
+    <header>
+      <span class="num">Beat 6</span>
+      <h2><span class="w">Why</span> pick one cure over another?</h2>
+      <p class="short">Because they leave different geometry behind. EMA and stop-gradient prevent collapse but promise nothing about the shape of what survives. VICReg fixes the covariance. SIGReg aims at the whole distribution, and in this project's pilot it was the one that survived quantization best.</p>
+    </header>
+    <div class="tbl"><table>
+      <thead><tr><th>Cure</th><th>Mechanism</th><th>Knobs</th><th>What it guarantees</th></tr></thead>
+      <tbody>
+        <tr><td><b>Stop-grad + EMA (+ predictor)</b><br><span class="muted small">BYOL, SimSiam, I-JEPA, V-JEPA</span></td><td>Dynamics: the target cannot move toward the prediction</td><td>EMA schedule τ, predictor size, masking</td><td>No collapse in practice; which directions survive follows drive vs. decay</td></tr>
+        <tr><td><b>VICReg terms</b><br><span class="muted small">VICReg, C-JEPA, PLDM</span></td><td>Penalties on batch variance and covariance</td><td>λ, μ, ν, γ</td><td>Second moments only: unit spread, decorrelated dimensions</td></tr>
+        <tr><td><b>SIGReg</b><br><span class="muted small">LeJEPA, LeWorldModel <span class="pill bad">check</span></span></td><td>Random 1-D projections tested against N(0,1)</td><td>One trade-off weight (plus M)</td><td>Pushes the full distribution toward an isotropic Gaussian</td></tr>
+      </tbody>
+    </table></div>
+    <div class="prose">
+      <p>A 2026 theory paper (Arnez and Gomez-Villa) ranks these regularizers by the bound they give on latent entropy: VICReg and log-determinant penalties give <em>upper</em> bounds, which they call unsafe; SIGReg closes the gap, and should drive the embedding's condition number toward 1. That is algebra with no experiments, so the project ran a small one.</p>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>Pilot (8×8 digits, 16-d)</th><th>fp32 acc</th><th>weights INT4</th><th>weights INT3</th><th>emb. INT4</th><th>emb. INT3</th><th>condition no.</th><th>kurtosis</th></tr></thead>
+      <tbody>
+        <tr><td><b>SIGReg</b></td><td class="n">0.900</td><td class="n best">5.0</td><td class="n best">11.8</td><td class="n best">1.2</td><td class="n best">5.3</td><td class="n best">2.7</td><td class="n best">0.42</td></tr>
+        <tr><td><b>VICReg</b></td><td class="n">0.865</td><td class="n">5.6</td><td class="n">37.1</td><td class="n">2.1</td><td class="n">7.0</td><td class="n">4,275</td><td class="n">1.20</td></tr>
+        <tr><td><b>EMA</b></td><td class="n">0.834</td><td class="n">19.0</td><td class="n">27.0</td><td class="n">24.5</td><td class="n">47.6</td><td class="n">21</td><td class="n">5.04</td></tr>
+      </tbody>
+    </table></div>
+    <aside class="aside warn"><span class="k">Caveat · notebook 3</span>Accuracy points lost after quantization, MLP encoder, 3 seeds. Toy scale, untuned hyperparameters, and the EMA run started from lower accuracy. INT8 cost nothing for any method. Kurtosis (tail heaviness) tracked embedding-quantization loss better than condition number did. Next step in the project: ViT-Tiny on CIFAR-100. More in <a href="edge.html">chapter 12</a>.</aside>
+  </section>
+
+  <section class="remember">
+    <h2>Three things to <span class="w">remember</span></h2>
+    <ol>
+      <li><b>Agreement alone is free.</b>Any loss that only asks two learned outputs to match is solved by a constant. Something must make forgetting cost more than remembering.</li>
+      <li><b>Variance gives a line; covariance gives a plane.</b>Each VICReg term blocks one kind of collapse. Without decorrelation, dimensions copy the easiest direction.</li>
+      <li><b>Drive beats decay, mode by mode.</b>A direction escapes iff μ &gt; 1. Masking filters by variance, a large predictor kills modes, and the EMA rate only sets the speed.</li>
+    </ol>
+  </section>
+
+  <section id="quiz"></section>
+
+  <section class="sources">
+    <h2>Sources for this chapter</h2>
+    <ol>
+      <li>Tian, Chen, Ganguli, <a href="https://arxiv.org/abs/2102.06810">Understanding Self-Supervised Learning Dynamics without Contrastive Pairs</a>, ICML 2021. DirectPred.</li>
+      <li>Grill et al., <a href="https://arxiv.org/abs/2006.07733">Bootstrap Your Own Latent (BYOL)</a>, 2020. Chen &amp; He, <a href="https://arxiv.org/abs/2011.10566">Exploring Simple Siamese Representation Learning (SimSiam)</a>, 2020.</li>
+      <li>Jing, Vincent, LeCun, Tian, <a href="https://arxiv.org/abs/2110.09348">Understanding Dimensional Collapse in Contrastive Self-supervised Learning</a>, ICLR 2022. Roy &amp; Vetterli, "The effective rank", EUSIPCO 2007.</li>
+      <li>Bardes, Ponce, LeCun, <a href="https://arxiv.org/abs/2105.04906">VICReg</a>, ICLR 2022.</li>
+      <li>Mo &amp; Tong, <a href="https://arxiv.org/abs/2410.19560">Connecting JEPA with Contrastive Self-supervised Learning (C-JEPA)</a>, NeurIPS 2024.</li>
+      <li>De Melo Costa et al., <a href="https://arxiv.org/abs/2610.02344">Drive vs. Decay: On the Training Dynamics of JEPAs</a>, 2026 (abstract read).</li>
+      <li>Balestriero &amp; LeCun, <a href="https://arxiv.org/abs/2511.08544">LeJEPA: Provable and Scalable Self-Supervised Learning Without the Heuristics</a>, 2025.</li>
+      <li>Arnez &amp; Gomez-Villa, <a href="https://arxiv.org/abs/2607.13612">The SIGReg Objective as Variational Free Energy</a>, 2026 (abstract read; no experiments).</li>
+      <li>Maes et al., <a href="https://arxiv.org/abs/2603.19312">LeWorldModel</a>, 2026, trained with SIGReg. <span class="pill bad">check</span> seen in search only.</li>
+      <li>Project notebooks: <code>jepa/notebooks/01-drive-vs-decay.ipynb</code> (closed form and SGD checks) and <code>03-sigreg-quantization-pilot.ipynb</code>; findings in <code>jepa/notebooks/README.md</code>.</li>
+    </ol>
+  </section>
+
+  <nav id="pager"></nav>
+</main>
+<footer id="site-footer"></footer>
+
+<script src="assets/atlas.js"></script>
+<script>
+(function(){
+"use strict";
+const A = window.Atlas;
+
+/* =================== static: three kinds of collapse =================== */
+(function(){
+  const NS = "http://www.w3.org/2000/svg", r = A.rng(4), cols = ["var(--p1)","var(--p2)","var(--p4)","var(--p5)"];
+  const put = (g, fn)=>{ for(let i=0;i<48;i++){ const c = i%4, mx = c&1?1:-1, my = c&2?1:-1, a = mx+.3*r.normal(), b = my+.3*r.normal(); const [x,y] = fn(a,b);
+    const e = document.createElementNS(NS,"circle"); e.setAttribute("cx", 60+x*20); e.setAttribute("cy", 40-y*15); e.setAttribute("r", 2.6); e.style.fill = cols[c]; e.style.opacity = .8; g.append(e); } };
+  put(document.getElementById("k-full"), (a,b)=>[a,b]);
+  put(document.getElementById("k-line"), (a,b)=>[a*.95,a*.95+b*.04]);
+  put(document.getElementById("k-pt"), (a,b)=>[a*.03,b*.03]);
+})();
+
+/* =================== SIM: collapse =================== */
+(function(){
+  const N = 128, AUG = [.12,.35,1.2], cv = document.getElementById("cv-coll");
+  const R = A.rng(5), imgs = [];
+  for(let i=0;i<N;i++){ const c = i%4; imgs.push({c, u:[(c&1?1:-1)+.3*R.normal(), (c&2?1:-1)+.3*R.normal(), R.normal()]}); }
+  const opt = {sg:false, pred:false, v:false, c:false};
+  let W, P, Wa, step = 0, hist = [], rr;
+  const mv = (M,u)=>M.map(row=>row.reduce((s,w,k)=>s+w*u[k],0));
+  function init(){ W = [[.4,.1,.3],[.1,.4,-.3]]; P = [[1,0],[0,1]]; Wa = W.map(r=>r.slice()); step = 0; hist = []; rr = A.rng(9); }
+  function batchStats(Z){
+    const B = Z.length; let m0=0,m1=0; Z.forEach(z=>{m0+=z[0];m1+=z[1];}); m0/=B; m1/=B;
+    let a=0,b=0,c=0; Z.forEach(z=>{const x=z[0]-m0,y=z[1]-m1; a+=x*x; b+=x*y; c+=y*y;}); return [a/(B-1), b/(B-1), c/(B-1)];
+  }
+  function loss(V){
+    let L = 0; const Z1 = [], Z2 = [];
+    for(const [a,b] of V){
+      const z1 = mv(W,a); Z1.push(z1);
+      if(opt.sg){
+        const z2 = mv(W,b), t1 = mv(Wa,b), t2 = mv(Wa,a), p1 = opt.pred?mv(P,z1):z1, p2 = opt.pred?mv(P,z2):z2;
+        L += ((p1[0]-t1[0])**2+(p1[1]-t1[1])**2 + (p2[0]-t2[0])**2+(p2[1]-t2[1])**2)/2;
+      } else {
+        const z2 = mv(W,b); Z2.push(z2); const q = opt.pred?mv(P,z1):z1;
+        L += (q[0]-z2[0])**2+(q[1]-z2[1])**2;
+      }
+    }
+    L /= V.length;
+    for(const Z of (opt.sg ? [Z1] : [Z1,Z2])){
+      const [a,b,c] = batchStats(Z);
+      if(opt.v) L += (Math.max(0,1-Math.sqrt(a+1e-4)) + Math.max(0,1-Math.sqrt(c+1e-4)))/2;
+      if(opt.c) L += b*b;
+    }
+    return L;
+  }
+  function train(){
+    const V = imgs.map(im=>[im.u.map((v,k)=>v+AUG[k]*rr.normal()), im.u.map((v,k)=>v+AUG[k]*rr.normal())]);
+    const h = 1e-5, gW = [[0,0,0],[0,0,0]], gP = [[0,0],[0,0]];
+    for(let i=0;i<2;i++) for(let j=0;j<3;j++){ const o=W[i][j]; W[i][j]=o+h; const a=loss(V); W[i][j]=o-h; const b=loss(V); W[i][j]=o; gW[i][j]=(a-b)/(2*h); }
+    if(opt.pred) for(let i=0;i<2;i++) for(let j=0;j<2;j++){ const o=P[i][j]; P[i][j]=o+h; const a=loss(V); P[i][j]=o-h; const b=loss(V); P[i][j]=o; gP[i][j]=(a-b)/(2*h); }
+    const lr = .05;
+    for(let i=0;i<2;i++) for(let j=0;j<3;j++) W[i][j] -= lr*gW[i][j];
+    for(let i=0;i<2;i++) for(let j=0;j<2;j++) P[i][j] -= 5*lr*gP[i][j];
+    for(let i=0;i<2;i++) for(let j=0;j<3;j++) Wa[i][j] += .02*(W[i][j]-Wa[i][j]);
+    step++;
+    const s = measure(); if(step%4===0){ hist.push([s.er, s.s1, s.s2]); if(hist.length>400) hist.shift(); }
+  }
+  function measure(){
+    const Z = imgs.map(im=>mv(W,im.u)); const [a,b,c] = batchStats(Z);
+    const tr = a+c, det = a*c-b*b, d = Math.sqrt(Math.max(0,tr*tr/4-det)), l1 = tr/2+d, l2 = Math.max(0,tr/2-d);
+    const s1 = Math.sqrt(l1), s2 = Math.sqrt(l2);
+    let er = 1;
+    if(s1>1e-9){ const q1 = s1/(s1+s2), q2 = s2/(s1+s2); er = Math.exp(-(q1*Math.log(q1)+(q2>1e-12?q2*Math.log(q2):0))); }
+    return {Z, s1, s2, er, nz:Math.hypot(W[0][2],W[1][2])};
+  }
+  const view = A.canvas(cv, w=> w<560 ? 1.25 : .5, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const narrow = w<560;
+    const S = narrow ? {x:8,y:20,w:w-16,h:h*.62-24} : {x:8,y:20,w:w*.55-16,h:h-28};
+    const H = narrow ? {x:34,y:h*.62+26,w:w-46,h:h*.38-48} : {x:w*.55+30,y:26,w:w*.45-40,h:h-60};
+    const m = measure(), cols = [C.p1,C.p2,C.p4,C.p5];
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText("embeddings z = W u (clean inputs)", S.x, 13);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(S.x,S.y,S.w,S.h);
+    const cx = S.x+S.w/2, cy = S.y+S.h/2, sc = Math.min(S.w,S.h)/2/2.8;
+    ctx.setLineDash([3,4]); ctx.beginPath(); ctx.moveTo(S.x,cy); ctx.lineTo(S.x+S.w,cy); ctx.moveTo(cx,S.y); ctx.lineTo(cx,S.y+S.h); ctx.stroke(); ctx.setLineDash([]);
+    m.Z.forEach((z,i)=>{ const x = cx+z[0]*sc, y = cy-z[1]*sc; if(x<S.x||x>S.x+S.w||y<S.y||y>S.y+S.h) return; ctx.fillStyle = cols[imgs[i].c]; ctx.globalAlpha = .75; ctx.beginPath(); ctx.arc(x,y,3,0,7); ctx.fill(); });
+    ctx.globalAlpha = 1;
+    if(m.s1<.05){ ctx.fillStyle = C.why; ctx.font = `700 13px ${C.ui}`; ctx.fillText("complete collapse", S.x+8, S.y+S.h-10); }
+    else if(m.er<1.15){ ctx.fillStyle = C.why; ctx.font = `700 13px ${C.ui}`; ctx.fillText("dimensional collapse: a line", S.x+8, S.y+S.h-10); }
+    // history
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText("over training", H.x-26, H.y-12);
+    ctx.strokeStyle = C.line; ctx.font = `10.5px ${C.mono}`; ctx.fillStyle = C.faint;
+    const Y = v=>H.y+H.h-(Math.min(2.2,v)/2.2)*H.h;
+    [0,1,2].forEach(v=>{ ctx.beginPath(); ctx.moveTo(H.x,Y(v)); ctx.lineTo(H.x+H.w,Y(v)); ctx.stroke(); ctx.fillText(v, H.x-12, Y(v)+4); });
+    const X = i=>H.x+i/399*H.w;
+    [[0,C.why,2.4,"erank"],[1,C.p1,1.4,"std₁"],[2,C.p2,1.4,"std₂"]].forEach(([j,col,lw,lab])=>{
+      if(!hist.length) return; ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.beginPath();
+      hist.forEach((r,i)=>{ i ? ctx.lineTo(X(i),Y(r[j])) : ctx.moveTo(X(i),Y(r[j])); }); ctx.stroke();
+      const last = hist[hist.length-1]; ctx.fillStyle = col; ctx.font = `600 11px ${C.ui}`; ctx.fillText(lab, Math.min(H.x+H.w-34, X(hist.length-1)+4), Y(last[j])+(j===2?12:-4));
+    });
+    document.getElementById("co-std").textContent = `${m.s1.toFixed(2)} · ${m.s2.toFixed(2)}`;
+    document.getElementById("co-er").textContent = m.s1<.02 ? "– (a point)" : m.er.toFixed(2);
+    document.getElementById("co-nz").textContent = m.nz.toFixed(3);
+    document.getElementById("co-step").textContent = step;
+  }
+  const ids = {sg:"c-sg", pred:"c-pred", v:"c-var", c:"c-cov"};
+  const PRE = {inv:{}, var:{v:1}, vic:{v:1,c:1}, byol:{sg:1,pred:1}, nosg:{pred:1}};
+  function syncBoxes(){ for(const k in ids) document.getElementById(ids[k]).checked = opt[k]; }
+  function markPreset(){
+    document.querySelectorAll("[data-pre]").forEach(b=>{ const p = PRE[b.dataset.pre]; const on = Object.keys(ids).every(k=>!!p[k]===opt[k]); b.setAttribute("aria-pressed", on); });
+  }
+  const anim = A.loop(cv, ()=>{ for(let i=0;i<4;i++) train(); view.redraw(); if(step>2400) { pb.textContent = "Play"; return false; } });
+  const pb = document.getElementById("co-play");
+  function restart(){ init(); view.redraw(); if(!A.reduced || anim.running){ anim.start(); pb.textContent = "Pause"; } }
+  document.querySelectorAll("[data-pre]").forEach(b=>b.addEventListener("click",()=>{
+    const p = PRE[b.dataset.pre]; for(const k in ids) opt[k] = !!p[k]; syncBoxes(); markPreset(); restart();
+  }));
+  for(const k in ids) document.getElementById(ids[k]).addEventListener("change", e=>{ opt[k] = e.target.checked; markPreset(); restart(); });
+  pb.onclick = ()=>{ if(anim.running){ anim.stop(); pb.textContent = "Play"; } else { if(step>2400) init(); anim.start(); pb.textContent = "Pause"; } };
+  document.getElementById("co-reset").onclick = ()=>{ init(); view.redraw(); anim.start(); pb.textContent = "Pause"; };
+  init(); syncBoxes();
+  if(A.reduced){ for(let i=0;i<800;i++) train(); pb.textContent = "Play"; view.redraw(); }
+  else { view.redraw(); anim.start(); }
+})();
+
+/* =================== LAB: drive vs decay =================== */
+(function(){
+  const NM = 32;
+  let p = .5, pt = .8, al = 1, be = 1, ell = 3, lam = [], mapGrid = null, mapKey = "";
+  const cv = document.getElementById("cv-dd"), cm = document.getElementById("cv-map");
+  function spectrum(){
+    lam = [];
+    for(let k=0;k<NM;k++){ let s = 0; for(let j=0;j<NM;j++){ const d = Math.min(j, NM-j); s += Math.exp(-d/ell)*Math.cos(2*Math.PI*k*j/NM); } lam.push(s); }
+    lam.sort((a,b)=>b-a);
+  }
+  const mu = (l, p, pt, al)=> (pt/al) * l / (p*l + (1-p));
+  function rate(l){ const a = p*p*l + p*(1-p), c = p*l, sig = al*al*a, gam = al*pt*c, b = be+sig, C = be*(sig-gam); return (-b+Math.sqrt(b*b-4*C))/2; }
+  const M1 = [.05,.95], A1 = [.5,1.6], GX = 64, GY = 48;   // the notebook's map ranges
+  function buildMap(){
+    const key = pt+"|"+ell; if(key===mapKey) return; mapKey = key; mapGrid = [];
+    for(let j=0;j<GY;j++){ const a = A1[0]+(A1[1]-A1[0])*(j+.5)/GY, row = [];
+      for(let i=0;i<GX;i++){ const m = M1[0]+(M1[1]-M1[0])*(i+.5)/GX; let n = 0; for(const l of lam) if(mu(l,1-m,pt,a)>1) n++; row.push(n); }
+      mapGrid.push(row); }
+  }
+  const view = A.canvas(cv, w=> w<560 ? 1.05 : .42, draw);
+  const vmap = A.canvas(cm, w=> w<560 ? .78 : .36, drawMap);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const narrow = w<560;
+    const B = narrow ? {x:30,y:22,w:w-38,h:h*.5-46} : {x:30,y:22,w:w*.5-44,h:h-44};
+    const G = narrow ? {x:34,y:h*.5+28,w:w-42,h:h*.5-52} : {x:w*.5+38,y:30,w:w*.5-46,h:h-56};
+    const mus = lam.map(l=>mu(l,p,pt,al)), top = Math.min(4, Math.max(2, Math.max(...mus)*1.15));
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText("μₖ per data mode (loud → quiet)", B.x-22, 13);
+    const Y = v=>B.y+B.h-(Math.min(v,top)/top)*B.h, bw = B.w/NM;
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.font = `10.5px ${C.mono}`; ctx.fillStyle = C.faint;
+    for(let v=0; v<=top; v+=.5){ ctx.beginPath(); ctx.moveTo(B.x,Y(v)); ctx.lineTo(B.x+B.w,Y(v)); ctx.stroke(); if(v%1===0) ctx.fillText(v, B.x-14, Y(v)+4); }
+    // variance trace
+    const lmax = lam[0];
+    mus.forEach((m,k)=>{ ctx.fillStyle = m>1 ? C.why : C.p1; ctx.globalAlpha = m>1 ? .95 : .55; ctx.fillRect(B.x+k*bw+1, Y(m), Math.max(1,bw-2), B.y+B.h-Y(m)); });
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1.2; ctx.setLineDash([2,3]); ctx.beginPath();
+    lam.forEach((l,k)=>{ const y = Y(l/lmax*top*.9); k ? ctx.lineTo(B.x+(k+.5)*bw,y) : ctx.moveTo(B.x+(k+.5)*bw,y); }); ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle = C.why; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(B.x,Y(1)); ctx.lineTo(B.x+B.w,Y(1)); ctx.stroke();
+    ctx.fillStyle = C.why; ctx.font = `700 11px ${C.ui}`; ctx.fillText("μ = 1", B.x+B.w-36, Y(1)-5);
+    ctx.fillStyle = C.muted; ctx.font = `11px ${C.ui}`; ctx.fillText("dotted: variance λₖ (scaled)", B.x+4, B.y+B.h+16);
+    // growth
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText("‖W vₖ‖ over training (log)", G.x-30, G.y-14);
+    const T = 50, X = t=>G.x+t/T*G.w, LY = v=>G.y+G.h-((v+3)/6)*G.h;
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.fillStyle = C.faint; ctx.font = `10.5px ${C.mono}`;
+    [-3,0,3].forEach(v=>{ ctx.beginPath(); ctx.moveTo(G.x,LY(v)); ctx.lineTo(G.x+G.w,LY(v)); ctx.stroke(); ctx.fillText(v===0?"1":"1e"+v, G.x-26, LY(v)+4); });
+    const rates = lam.map(rate);
+    for(let k=NM-1;k>=0;k--){ const r = rates[k]; ctx.strokeStyle = mus[k]>1 ? C.why : C.p1; ctx.globalAlpha = mus[k]>1 ? .9 : .45; ctx.lineWidth = 1.3; ctx.beginPath();
+      for(let s=0;s<=60;s++){ const t = s/60*T, v = -3 + r*t/Math.LN10; const y = LY(Math.max(-3.2,Math.min(3.2,v))); s ? ctx.lineTo(X(t),y) : ctx.moveTo(X(t),y); } ctx.stroke(); }
+    ctx.globalAlpha = 1; ctx.fillStyle = C.muted; ctx.font = `11px ${C.ui}`; ctx.fillText(`time → (β = ${be.toFixed(be<1?2:1)})`, G.x+G.w-110, G.y+G.h+16);
+    const n = mus.filter(m=>m>1).length, den = pt/al - p;
+    document.getElementById("dd-n").textContent = `${n} / ${NM}`;
+    document.getElementById("dd-th").textContent = den>0 ? ((1-p)/den).toFixed(3) : "∞ (none can)";
+    document.getElementById("dd-mu").textContent = Math.max(...mus).toFixed(3);
+    document.getElementById("dd-r").textContent = Math.max(...rates).toFixed(4);
+    document.getElementById("dd-b").textContent = n;
+  }
+  function drawMap(){
+    buildMap();
+    const {ctx,w,h} = vmap, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const R0 = {x:44,y:22,w:w-56,h:h-58};
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText(`escape map: modes with μ > 1 (p_tgt = ${pt.toFixed(2)})`, 8, 13);
+    const cw = R0.w/GX, ch = R0.h/GY;
+    ctx.fillStyle = C.panel2; ctx.fillRect(R0.x,R0.y,R0.w,R0.h);
+    for(let j=0;j<GY;j++) for(let i=0;i<GX;i++){ const n = mapGrid[j][i]; if(!n) continue; ctx.fillStyle = C.why; ctx.globalAlpha = .12+.88*n/NM; ctx.fillRect(R0.x+i*cw, R0.y+R0.h-(j+1)*ch, cw+.6, ch+.6); }
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = C.lineStrong; ctx.strokeRect(R0.x,R0.y,R0.w,R0.h);
+    ctx.fillStyle = C.faint; ctx.font = `10.5px ${C.mono}`;
+    [.2,.4,.6,.8].forEach(m=>{ const x = R0.x+(m-M1[0])/(M1[1]-M1[0])*R0.w; ctx.fillText(m, x-8, R0.y+R0.h+13); });
+    [.6,1,1.4].forEach(a=>{ const y = R0.y+R0.h-(a-A1[0])/(A1[1]-A1[0])*R0.h; ctx.fillText(a.toFixed(1), R0.x-26, y+4); });
+    ctx.fillStyle = C.muted; ctx.font = `11px ${C.ui}`;
+    ctx.fillText("context masking fraction 1 − p →", R0.x, R0.y+R0.h+28); ctx.save(); ctx.translate(12, R0.y+R0.h/2+30); ctx.rotate(-Math.PI/2); ctx.fillText("predictor α →", 0, 0); ctx.restore();
+    // alpha = p_tgt line
+    if(pt>A1[0] && pt<A1[1]){ const y = R0.y+R0.h-(pt-A1[0])/(A1[1]-A1[0])*R0.h; ctx.setLineDash([4,4]); ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(R0.x,y); ctx.lineTo(R0.x+R0.w,y); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = C.ink; ctx.fillText("α = p_tgt", R0.x+R0.w-62, y-4); }
+    // marker
+    const m = 1-p, mx = R0.x+(Math.min(M1[1],Math.max(M1[0],m))-M1[0])/(M1[1]-M1[0])*R0.w, my = R0.y+R0.h-(Math.min(A1[1],Math.max(A1[0],al))-A1[0])/(A1[1]-A1[0])*R0.h;
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.fillStyle = C.panel; ctx.beginPath(); ctx.arc(mx,my,7,0,7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = C.ink; ctx.font = `600 11px ${C.mono}`; const n = lam.filter(l=>mu(l,p,pt,al)>1).length; ctx.fillText(n, mx+10, my+4);
+    vmap.R0 = R0;
+  }
+  function setFromMap(e){
+    const r = cm.getBoundingClientRect(), R0 = vmap.R0; if(!R0) return;
+    const x = (e.clientX-r.left), y = (e.clientY-r.top);
+    const m = M1[0]+Math.min(1,Math.max(0,(x-R0.x)/R0.w))*(M1[1]-M1[0]), a = A1[0]+Math.min(1,Math.max(0,(R0.y+R0.h-y)/R0.h))*(A1[1]-A1[0]);
+    setVal("s-p", +(1-m).toFixed(2)); setVal("s-al", +a.toFixed(2));
+  }
+  function setVal(id, v){ const el = document.getElementById(id); el.value = v; el.dispatchEvent(new Event("input")); }
+  let drag = false;
+  cm.addEventListener("pointerdown", e=>{ drag = true; cm.setPointerCapture(e.pointerId); setFromMap(e); });
+  cm.addEventListener("pointermove", e=>{ if(drag) setFromMap(e); });
+  cm.addEventListener("pointerup", ()=>{ drag = false; });
+  const redraw = ()=>{ view.redraw(); vmap.redraw(); };
+  spectrum();
+  A.slider("s-p", v=>{ p = v; redraw(); }, v=>v.toFixed(2));
+  A.slider("s-pt", v=>{ pt = v; redraw(); }, v=>v.toFixed(2));
+  A.slider("s-al", v=>{ al = v; redraw(); }, v=>v.toFixed(2));
+  A.slider("s-be", v=>{ be = Math.pow(10,v); view.redraw(); }, v=>Math.pow(10,v).toFixed(Math.pow(10,v)<1?3:2));
+  A.slider("s-ell", v=>{ ell = v; spectrum(); mapKey = ""; redraw(); }, v=>v.toFixed(1));
+  const preset = (o)=>{ for(const k in o) setVal(k, o[k]); };
+  document.getElementById("dd-nb").onclick = ()=>preset({"s-p":.5,"s-pt":.8,"s-al":1,"s-be":0,"s-ell":3});
+  document.getElementById("dd-p1").onclick = ()=>preset({"s-p":1,"s-pt":.8,"s-al":.7});
+  document.getElementById("dd-big").onclick = ()=>preset({"s-p":.3,"s-pt":.8,"s-al":1.4});
+})();
+
+/* =================== LAB: SIGReg projections =================== */
+(function(){
+  const N = 400, cv = document.getElementById("cv-sig");
+  const TS = []; for(let t=.3;t<=4.21;t+=.3) TS.push(t); const DT = .3;
+  let shape = "gauss", an = 3, rot = 25*Math.PI/180, M = 12, base = [], Z = [], dirs = [], sel = 0, dseed = 1, running = false;
+  function makeBase(){
+    const r = A.rng(17); base = [];
+    for(let i=0;i<N;i++){
+      let x, y;
+      if(shape==="gauss"){ x = r.normal(); y = r.normal(); }
+      else if(shape==="blobs"){ x = (i%2?.9:-.9) + .436*r.normal(); y = r.normal(); }
+      else { x = (r()*2-1)*Math.sqrt(3); y = (r()*2-1)*Math.sqrt(3); }
+      base.push([x,y]);
+    }
+  }
+  function shapeIt(){ // stretch by an (det-preserving) then rotate
+    const a = Math.sqrt(an), b = 1/Math.sqrt(an), c = Math.cos(rot), s = Math.sin(rot);
+    Z = base.map(([x,y])=>{ const u = x*a, v = y*b; return [c*u - s*v, s*u + c*v]; });
+  }
+  function newDirs(){ const r = A.rng(dseed*7+3); dirs = []; for(let i=0;i<M;i++){ const t = r()*Math.PI; dirs.push(t); } sel = Math.min(sel, M-1); }
+  function stat(x, grad){
+    const n = x.length; let S = 0; const g = grad ? new Float64Array(n) : null;
+    for(const t of TS){ let re=0, im=0; for(let i=0;i<n;i++){ re += Math.cos(t*x[i]); im += Math.sin(t*x[i]); } re/=n; im/=n;
+      const gg = Math.exp(-t*t/2), w = 2*gg*DT;   // ×2: the integrand is even in t
+      S += w*((re-gg)**2 + im*im);
+      if(grad) for(let i=0;i<n;i++) g[i] += w*(2*(re-gg)*(-t*Math.sin(t*x[i])) + 2*im*t*Math.cos(t*x[i]))/n; }
+    return {T:S*n, g};
+  }
+  const proj = th=>{ const c = Math.cos(th), s = Math.sin(th); return Z.map(z=>z[0]*c+z[1]*s); };
+  let rose = [];
+  function computeRose(){ rose = []; for(let k=0;k<36;k++){ const th = k/36*Math.PI; rose.push(stat(proj(th)).T); } }
+  function sigStep(){
+    const r = A.rng((Date.now()%9973)+1), G = Z.map(()=>[0,0]), K = 8;
+    for(let m=0;m<K;m++){ const th = r()*Math.PI, c = Math.cos(th), s = Math.sin(th); const {g} = stat(proj(th), true);
+      for(let i=0;i<N;i++){ G[i][0] += g[i]*c/K; G[i][1] += g[i]*s/K; } }
+    const lr = .5*N; Z.forEach((z,i)=>{ z[0] -= lr*G[i][0]; z[1] -= lr*G[i][1]; });
+  }
+  const view = A.canvas(cv, w=> w<560 ? 1.55 : .42, draw);
+  let L = {};
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const narrow = w<560;
+    if(narrow){ L.S = {x:8,y:20,w:w-16,h:h*.42-24}; L.H = {x:12,y:h*.42+22,w:w*.5-20,h:h*.58-50}; L.R = {x:w*.5+8,y:h*.42+22,w:w*.5-16,h:h*.58-50}; }
+    else { L.S = {x:8,y:20,w:w*.36-16,h:h-28}; L.H = {x:w*.36+10,y:26,w:w*.32-20,h:h-54}; L.R = {x:w*.68+6,y:20,w:w*.32-12,h:h-28}; }
+    const S = L.S, H = L.H, Rr = L.R;
+    // cloud
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText("embeddings (drag me)", S.x, 13);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(S.x,S.y,S.w,S.h);
+    const cx = S.x+S.w/2, cy = S.y+S.h/2, sc = Math.min(S.w,S.h)/2/4.2; L.cx = cx; L.cy = cy; L.sc = sc;
+    ctx.strokeStyle = C.lineStrong; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.arc(cx,cy,sc*2,0,7); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = C.p1; ctx.globalAlpha = .5;
+    Z.forEach(z=>{ const x = cx+z[0]*sc, y = cy-z[1]*sc; if(x<S.x||x>S.x+S.w||y<S.y||y>S.y+S.h) return; ctx.fillRect(x-1.3,y-1.3,2.6,2.6); });
+    ctx.globalAlpha = 1;
+    dirs.forEach((th,i)=>{ const c = Math.cos(th), s = Math.sin(th), Lh = Math.min(S.w,S.h)*.47; ctx.strokeStyle = i===sel ? C.why : C.faint; ctx.lineWidth = i===sel ? 2.4 : 1; ctx.beginPath(); ctx.moveTo(cx-c*Lh, cy+s*Lh); ctx.lineTo(cx+c*Lh, cy-s*Lh); ctx.stroke(); });
+    // histogram of selected
+    const th = dirs[sel], x = proj(th), st = stat(x).T;
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText(narrow ? "orange shadow" : "shadow on the orange direction", H.x, H.y-10);
+    const bins = 28, lo = -4, hi = 4, cnt = new Array(bins).fill(0); x.forEach(v=>{ const b = Math.floor((v-lo)/(hi-lo)*bins); if(b>=0&&b<bins) cnt[b]++; });
+    const dens = cnt.map(c=>c/N/((hi-lo)/bins)), ymax = .65, bw = H.w/bins;
+    const HY = d=>H.y+H.h-Math.min(1,d/ymax)*H.h;
+    ctx.strokeStyle = C.line; ctx.beginPath(); ctx.moveTo(H.x,H.y+H.h); ctx.lineTo(H.x+H.w,H.y+H.h); ctx.stroke();
+    dens.forEach((d,i)=>{ ctx.fillStyle = C.p1; ctx.globalAlpha = .55; ctx.fillRect(H.x+i*bw+.5, HY(d), bw-1, H.y+H.h-HY(d)); }); ctx.globalAlpha = 1;
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.beginPath();
+    for(let i=0;i<=80;i++){ const v = lo+(hi-lo)*i/80, d = Math.exp(-v*v/2)/Math.sqrt(2*Math.PI), X = H.x+(v-lo)/(hi-lo)*H.w; i ? ctx.lineTo(X,HY(d)) : ctx.moveTo(X,HY(d)); } ctx.stroke();
+    ctx.fillStyle = C.faint; ctx.font = `10.5px ${C.mono}`; [-3,0,3].forEach(v=>ctx.fillText(v, H.x+(v-lo)/(hi-lo)*H.w-4, H.y+H.h+13));
+    ctx.fillStyle = st>5 ? C.why : C.good; ctx.font = `700 12px ${C.mono}`; ctx.fillText(`T = ${st.toFixed(2)}`, H.x+2, H.y+12);
+    ctx.fillStyle = C.muted; ctx.font = `11px ${C.ui}`; ctx.fillText("line: N(0,1)", H.x+H.w-66, H.y+12);
+    // rose
+    computeRose();
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText("T by direction", Rr.x, narrow ? Rr.y-8 : 13);
+    const rcx = Rr.x+Rr.w/2, rcy = Rr.y+Rr.h/2, rR = Math.min(Rr.w,Rr.h)/2-6; L.rcx = rcx; L.rcy = rcy; L.rR = rR;
+    const rmax = Math.max(10, ...rose), rr = v=>rR*Math.sqrt(Math.min(1,v/rmax));
+    ctx.strokeStyle = C.line; [.25,1].forEach(f=>{ ctx.beginPath(); ctx.arc(rcx,rcy,rR*Math.sqrt(f),0,7); ctx.stroke(); });
+    ctx.fillStyle = C.why; ctx.globalAlpha = .28; ctx.beginPath();
+    for(let k=0;k<=72;k++){ const a = k/72*2*Math.PI, v = rose[Math.round((a%Math.PI)/Math.PI*36)%36], X = rcx+Math.cos(a)*rr(v), Y = rcy-Math.sin(a)*rr(v); k ? ctx.lineTo(X,Y) : ctx.moveTo(X,Y); }
+    ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1;
+    let tot = 0, mx = 0;
+    dirs.forEach((t,i)=>{ const v = stat(proj(t)).T; tot += v; mx = Math.max(mx,v); [t, t+Math.PI].forEach(a=>{ ctx.fillStyle = i===sel ? C.why : C.ink; ctx.beginPath(); ctx.arc(rcx+Math.cos(a)*rr(v), rcy-Math.sin(a)*rr(v), i===sel?5:3, 0, 7); ctx.fill(); }); });
+    ctx.fillStyle = C.faint; ctx.font = `10.5px ${C.mono}`; ctx.fillText(`outer ring T=${rmax.toFixed(0)}`, Rr.x, Rr.y+Rr.h-2);
+    let c00=0,c01=0,c11=0; Z.forEach(z=>{ c00+=z[0]*z[0]; c01+=z[0]*z[1]; c11+=z[1]*z[1]; });
+    document.getElementById("sg-T").textContent = (tot/M).toFixed(2);
+    document.getElementById("sg-max").textContent = mx.toFixed(2);
+    document.getElementById("sg-cov").textContent = `[${(c00/N).toFixed(2)} ${(c01/N).toFixed(2)}; ${(c11/N).toFixed(2)}]`;
+  }
+  // dragging the cloud: direction sets rotation, distance sets anisotropy
+  let dragging = false;
+  function hitRose(e){ const r = cv.getBoundingClientRect(), x = e.clientX-r.left, y = e.clientY-r.top;
+    if(Math.hypot(x-L.rcx, y-L.rcy) < L.rR+10){ let a = Math.atan2(-(y-L.rcy), x-L.rcx); if(a<0) a += Math.PI; let best = 0, bd = 9; dirs.forEach((t,i)=>{ const d = Math.min(Math.abs(t-a), Math.PI-Math.abs(t-a)); if(d<bd){ bd = d; best = i; } }); sel = best; view.redraw(); return true; } return false; }
+  function dragTo(e){ const r = cv.getBoundingClientRect(), x = e.clientX-r.left-L.cx, y = -(e.clientY-r.top-L.cy);
+    const d = Math.hypot(x,y)/L.sc; if(d<.2) return; rot = Math.atan2(y,x); const v = Math.max(1, Math.min(6, d*d/2.2));
+    const s = document.getElementById("s-an"); s.value = v.toFixed(2); s.dispatchEvent(new Event("input")); }
+  cv.addEventListener("pointerdown", e=>{ if(hitRose(e)) return; const r = cv.getBoundingClientRect(), x = e.clientX-r.left, y = e.clientY-r.top;
+    if(x>L.S.x && x<L.S.x+L.S.w && y>L.S.y && y<L.S.y+L.S.h){ dragging = true; cv.setPointerCapture(e.pointerId); stopRun(); dragTo(e); } });
+  cv.addEventListener("pointermove", e=>{ if(dragging) dragTo(e); });
+  cv.addEventListener("pointerup", ()=>{ dragging = false; });
+  const runBtn = document.getElementById("sg-run");
+  const anim = A.loop(cv, ()=>{ sigStep(); view.redraw(); if(++iters>260){ stopRun(); return false; } });
+  let iters = 0;
+  function stopRun(){ anim.stop(); runBtn.textContent = "Apply SIGReg"; }
+  runBtn.onclick = ()=>{ if(anim.running){ stopRun(); return; } iters = 0; anim.start(); runBtn.textContent = "Stop"; };
+  makeBase(); shapeIt(); newDirs();
+  A.slider("s-an", v=>{ an = v; shapeIt(); view.redraw(); }, v=>v.toFixed(2)+"×");
+  A.slider("s-M", v=>{ M = v; newDirs(); view.redraw(); }, v=>v);
+  document.getElementById("sg-dirs").onclick = ()=>{ dseed++; newDirs(); view.redraw(); };
+  document.querySelectorAll("[data-shape]").forEach(b=>b.addEventListener("click",()=>{
+    shape = b.dataset.shape; document.querySelectorAll("[data-shape]").forEach(o=>o.setAttribute("aria-pressed", o===b)); stopRun(); makeBase(); shapeIt(); view.redraw();
+  }));
+})();
+
+/* =================== QUIZ =================== */
+A.quiz("quiz", [
+  {q:"Why can't a masked autoencoder collapse, while a JEPA can?",
+   options:["MAEs are smaller","An MAE's target is raw pixels, which the model does not control; a JEPA's target is produced by a network that can move","MAEs use stop-gradient","JEPAs have no decoder, so they cannot train"],
+   answer:1, why:"Collapse needs both sides of the loss to be movable. A fixed target (pixels, tokens) rules it out; a learned target makes the constant map a zero-loss solution."},
+  {q:"In the sim, VICReg with only the variance term ends at effective rank 1. Why?",
+   options:["The variance floor is too low","Variance keeps each dimension spread out, but nothing stops both dimensions from encoding the same clean direction","The covariance term is always on","The learning rate is too high"],
+   answer:1, why:"Invariance prefers the direction with least augmentation noise, and both outputs can choose it. Only the covariance term penalizes two dimensions copying each other, which is dimensional collapse."},
+  {q:"SimSiam has no EMA. Which single change makes it collapse?",
+   options:["Removing the predictor's bias","Removing the stop-gradient","Using smaller batches","Training longer"],
+   answer:1, why:"Chen and He found the stop-gradient essential. Without it, gradients flow into the target branch and the fastest way to agree is for both sides to shrink. The sim's 'Predictor, no stop-grad' shows the same."},
+  {q:"In the drive vs. decay closed form, what happens with no context masking (p = 1)?",
+   options:["Only the loudest mode escapes","μ = p_tgt/α for every mode, so all modes escape or none do","μ becomes infinite","The EMA rate decides which modes escape"],
+   answer:1, why:"At p = 1 the factor λ/(pλ+(1−p)d̄) equals 1 for every mode. Masking is what makes μ depend on the mode's variance, turning it into a spectral filter."},
+  {q:"Why does the EMA rate β not change which modes escape?",
+   options:["β is always 1","β multiplies the constant term of each mode's quadratic, so it scales how fast a mode moves but not the sign of its growth","β only affects the predictor","It does change it, at high β"],
+   answer:1, why:"The mode equation λ² + (β+σ)λ + βσ(1−μ) = 0 has a positive root iff μ > 1, whatever β > 0 is. The notebook swept β over three orders of magnitude and never saw a mode flip."},
+  {q:"Two blobs with identity covariance: why does SIGReg flag them when VICReg's variance and covariance terms do not?",
+   options:["SIGReg uses labels","SIGReg compares each 1-D projection's full characteristic function with a Gaussian's, which sees higher moments; VICReg only sees second moments","VICReg is turned off","Blobs have zero variance"],
+   answer:1, why:"Identity covariance satisfies VICReg's statistics exactly. The bimodal shadow along the blob axis has the right variance but the wrong shape, which the characteristic-function test catches."},
+  {q:"Why does SIGReg use random 1-D directions instead of testing the full embedding distribution?",
+   options:["Random directions are faster to backpropagate than matrices","By Cramér–Wold, all 1-D projections determine the distribution, and 1-D Gaussianity tests are cheap and reliable while high-dimensional ones are not","It only cares about one dimension","To add noise to training"],
+   answer:1, why:"Testing in d dimensions directly scales badly. Sampling fresh directions each step tests the whole distribution over time at a cost linear in batch size and dimension."},
+]);
+})();
+</script>
+</body>
+</html>

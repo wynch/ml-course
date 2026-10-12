@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hidden Patch</title>
+<meta name="description" content="An interactive field guide to JEPA, LLMs, world models, interpretability and artificial life, where every idea starts from the question why.">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/atlas.css">
+<style>
+.hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(1.2rem,4vw,3.2rem);align-items:center;padding-block:clamp(2rem,6vw,4.5rem) 1.4rem}
+.hero>*{min-width:0}
+@media (max-width:880px){.hero{grid-template-columns:1fr}}
+.hero h1{font-size:clamp(3rem,10vw,6.6rem);font-weight:800;letter-spacing:-.045em;line-height:.9}
+.hero h1 .h{display:inline-block;color:var(--why);position:relative}
+.hero h1 .h::after{content:"";position:absolute;left:.02em;right:.04em;bottom:.02em;height:.13em;background:repeating-linear-gradient(-45deg,var(--why) 0 2px,transparent 2px 6px);opacity:.7}
+.hero .tag{font-family:var(--display);font-size:clamp(1.2rem,2.6vw,1.6rem);line-height:1.3;font-weight:500;margin-top:1rem;max-width:30ch}
+.hero .tag b{color:var(--why)}
+.hero .lede{margin-top:1rem;max-width:56ch;font-size:1.02rem;color:var(--muted)}
+.ticker{margin-top:1.3rem;font-family:var(--mono);font-size:.9rem;display:flex;gap:.6rem;align-items:baseline;flex-wrap:wrap;min-height:2.6em}
+.ticker .k{color:var(--muted);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase}
+.ticker a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--why)}
+.ticker a:hover{color:var(--why)}
+.ticker .cur{display:inline-block;width:.55em;height:1.05em;background:var(--why);vertical-align:-.15em;margin-left:.1em;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.ticker .cur{animation:none}}
+.cta{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.4rem}
+.cta a{font-family:var(--ui);font-weight:650;font-size:.95rem;text-decoration:none;padding:.6rem 1.05rem;border-radius:999px;border:1px solid var(--line-strong);color:var(--ink)}
+.cta a.go{background:var(--why);border-color:var(--why);color:var(--on-why)}
+.cta a:hover{border-color:var(--why)}
+.cta a.go:hover{filter:brightness(1.07);color:var(--on-why)}
+.herofig{margin:0;display:grid;gap:.5rem}
+.herofig canvas{width:100%;display:block;border-radius:14px;border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow)}
+.herofig figcaption{font-family:var(--ui);font-size:.82rem;color:var(--muted);display:flex;gap:1rem;flex-wrap:wrap}
+.herofig figcaption i{display:inline-block;width:.8rem;height:.8rem;border-radius:2px;vertical-align:-.1em;margin-right:.3rem}
+
+.sect{padding-block:2.6rem 0}
+.sect>h2{font-size:var(--fs-xl);font-weight:750;letter-spacing:-.02em;margin-bottom:.4rem}
+.sect>h2 .w{color:var(--why)}
+.sect>p.sub{color:var(--muted);max-width:66ch;margin-bottom:1.2rem}
+
+/* parts board */
+.parts{display:grid;gap:1.6rem}
+.part{display:grid;grid-template-columns:200px minmax(0,1fr);gap:1rem 1.4rem;align-items:start;padding-top:1.1rem;border-top:2px solid var(--pc)}
+@media (max-width:760px){.part{grid-template-columns:1fr}}
+.part .ph{display:grid;gap:.25rem}
+.part .ph .n{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--pc)}
+.part .ph b{font-family:var(--display);font-size:1.5rem;font-weight:750;letter-spacing:-.02em}
+.part .ph span{font-size:.9rem;color:var(--muted);font-family:var(--ui)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.7rem}
+.card{position:relative;display:grid;gap:.35rem;align-content:start;text-decoration:none;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.85rem .9rem 1rem;transition:transform .15s,border-color .15s}
+.card:hover{border-color:var(--pc);transform:translateY(-2px);color:var(--ink)}
+.card .top{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.card .top .st{color:var(--good)}
+.card .q{font-family:var(--display);font-size:1.08rem;font-weight:680;line-height:1.22;letter-spacing:-.01em}
+.card .q .w{color:var(--why)}
+.card .s{font-family:var(--ui);font-size:.84rem;color:var(--muted)}
+.card::after{content:"";position:absolute;right:.7rem;bottom:.7rem;width:16px;height:16px;border-radius:3px;border:1.5px solid var(--pc);background:repeating-linear-gradient(-45deg,var(--pc) 0 1.2px,transparent 1.2px 4px);opacity:.55}
+.card.seen::after{background:var(--pc);opacity:.9}
+
+/* anatomy */
+.anat{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.5rem;counter-reset:a}
+@media (max-width:900px){.anat{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:520px){.anat{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.anat div{border:1px solid var(--line);border-radius:10px;padding:.7rem .75rem;background:var(--panel);font-size:.88rem;display:grid;gap:.2rem;align-content:start}
+.anat div b{font-family:var(--display);font-size:1rem}
+.anat div::before{counter-increment:a;content:counter(a);font-family:var(--mono);font-size:.7rem;color:var(--why)}
+
+/* questions map */
+.qmap{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:.4rem 1.6rem;list-style:none;padding:0;margin:0;counter-reset:q}
+.qmap li{margin:0;display:grid;grid-template-columns:2.4rem 1fr;gap:.6rem;align-items:baseline;padding:.45rem 0;border-bottom:1px dashed var(--line)}
+.qmap li::before{counter-increment:q;content:"Q"counter(q);font-family:var(--mono);font-size:.78rem;color:var(--why)}
+.qmap a{text-decoration:none;color:var(--ink);font-size:.97rem}
+.qmap a:hover{color:var(--why)}
+.qmap small{display:block;font-family:var(--ui);font-size:.76rem;color:var(--muted)}
+
+.prog{display:flex;gap:1.6rem;flex-wrap:wrap;align-items:center;font-family:var(--ui)}
+.prog .big{font-family:var(--display);font-size:2.6rem;font-weight:800;letter-spacing:-.03em;line-height:1}
+.prog .big small{font-size:1rem;color:var(--muted);font-weight:500}
+.prog .lbl{font-size:.8rem;color:var(--muted)}
+.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.7rem}
+.links a{display:grid;gap:.2rem;padding:.85rem .95rem;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-decoration:none;color:var(--ink)}
+.links a:hover{border-color:var(--why)}
+.links a b{font-family:var(--display);font-size:1.05rem}
+.links a span{font-size:.86rem;color:var(--muted);font-family:var(--ui)}
+</style>
+</head>
+<body data-chapter="" data-part="1">
+<header id="topbar" class="topbar"></header>
+
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <h1>Hidden<br><span class="h">Patch</span></h1>
+      <p class="tag">Modern AI, one <b>why</b> at a time. Cover part of the world, guess what is under it, and see how far that idea goes.</p>
+      <p class="lede">Eighteen interactive chapters built from the JEPA explorations project: 57 JEPA papers, 35 application papers, a 23-field map of AI and artificial life, about 330 works from the 2025 to 2026 frontier, and three theory notebooks run on a laptop. Every chapter opens with a question, gives the short answer, then lets you poke the mechanism until it makes sense.</p>
+      <p class="ticker" aria-live="polite"><span class="k">Today's question</span><a id="tick" href="jepa.html">Why predict in latent space?</a><span class="cur" aria-hidden="true"></span></p>
+      <div class="cta"><a class="go" href="predict.html">Start at chapter 01</a><a href="jepa.html">Jump to JEPA</a><a href="glossary.html">Glossary</a></div>
+    </div>
+    <figure class="herofig">
+      <canvas id="hero" aria-label="A grid of image patches. A block is hidden by hatching; the model fills it with a predicted summary, drawn as small bars, rather than with pixels."></canvas>
+      <figcaption><span><i style="background:repeating-linear-gradient(-45deg,var(--hatch) 0 2px,transparent 2px 5px);border:1px solid var(--line-strong)"></i>hidden patch</span><span><i style="background:var(--why)"></i>predicted embedding, not pixels</span><span id="hero-err" class="mono"></span></figcaption>
+    </figure>
+  </section>
+
+  <section class="sect" id="path">
+    <h2>Five parts, eighteen <span class="w">why</span>s</h2>
+    <p class="sub">Read in order for the full arc, or jump to the question that bugs you. A filled square means you have opened the chapter on this device.</p>
+    <div class="parts" id="parts"></div>
+  </section>
+
+  <section class="sect" id="anatomy">
+    <h2>How every chapter works</h2>
+    <p class="sub">The same six moves, so you always know where you are.</p>
+    <div class="anat">
+      <div><b>Why?</b>The chapter's question, in plain words.</div>
+      <div><b>Because</b>The short answer first, before any detail.</div>
+      <div><b>Beats</b>Smaller why-questions, each with its own short answer.</div>
+      <div><b>Labs</b>Live simulations you can break. Each lists what to notice.</div>
+      <div><b>Remember</b>Three lines worth keeping.</div>
+      <div><b>Check</b>A quiz on the reasons, then the sources.</div>
+    </div>
+  </section>
+
+  <section class="sect" id="questions">
+    <h2>The fourteen questions of the big map</h2>
+    <p class="sub">The project's landscape study sorted about 330 works under fourteen open questions. Each one lives in a chapter here. The full map with every person and paper is the companion <a href="why-atlas.html">Why Atlas</a>.</p>
+    <ol class="qmap">
+      <li><a href="generalize.html">Why do neural networks generalize at all?<small>Chapter 06</small></a></li>
+      <li><a href="fractured.html">Why do different models end up with similar representations, and is the inside any good?<small>Chapter 07</small></a></li>
+      <li><a href="jepa.html">Why predict in a latent space instead of pixels or tokens?<small>Chapter 02</small></a></li>
+      <li><a href="bias.html">Why does the order of learning shape what is learned?<small>Chapters 04 and 07</small></a></li>
+      <li><a href="open.html">Why do objectives deceive, and why does open-ended search find what optimization misses?<small>Chapter 14</small></a></li>
+      <li><a href="reasoning.html">Why does search plus learning plus a verifier keep winning?<small>Chapter 09</small></a></li>
+      <li><a href="reasoning.html#skill">Why is skill not the same as intelligence?<small>Chapter 09</small></a></li>
+      <li><a href="worlds.html">Why do agents need world models, and which kind?<small>Chapter 11</small></a></li>
+      <li><a href="architectures.html">Why can't models keep learning after training?<small>Chapter 10</small></a></li>
+      <li><a href="architectures.html">Why do transformers fail at counting and copying?<small>Chapter 10</small></a></li>
+      <li><a href="interp.html">Why can we read anything inside a network at all?<small>Chapter 08</small></a></li>
+      <li><a href="alife.html">Why does life-like complexity emerge from simple rules?<small>Chapter 13</small></a></li>
+      <li><a href="predict.html">Why might intelligence be prediction, and why might prediction not be enough?<small>Chapters 01 and 05</small></a></li>
+      <li><a href="edge.html">Why does small and efficient keep catching up?<small>Chapters 10 and 12</small></a></li>
+    </ol>
+  </section>
+
+  <section class="sect" id="progress">
+    <h2>Your trail</h2>
+    <p class="sub">Stored only in this browser.</p>
+    <div class="prog">
+      <div><div class="big" id="pv">0<small> / 18</small></div><div class="lbl">chapters opened</div></div>
+      <div><div class="big" id="pq">0<small> / 0</small></div><div class="lbl">quiz answers right</div></div>
+      <div><a class="tb-btn" id="resume" href="predict.html">Continue →</a></div>
+    </div>
+  </section>
+
+  <section class="sect" id="more">
+    <h2>Companions</h2>
+    <div class="links">
+      <a href="../index.html"><b>Build ML From Scratch</b><span>The hands-on course underneath: autograd, attention, LoRA, KV cache, diffusion, agents. Basics live there.</span></a>
+      <a href="why-atlas.html"><b>Why Atlas</b><span>The big map: about 85 people and papers linked to the fourteen questions.</span></a>
+      <a href="jepa-field-map.html"><b>JEPA field map</b><span>57 JEPA papers by theme, nine theory insights, open questions.</span></a>
+      <a href="lab.html"><b>The laptop lab</b><span>What this project is testing right now on an M5 with 16 GB, and what comes next.</span></a>
+    </div>
+  </section>
+</main>
+<footer id="site-footer"></footer>
+
+<script src="assets/atlas.js"></script>
+<script>
+(function(){
+"use strict";
+const A = window.Atlas;
+
+/* ---------- parts board ---------- */
+const visited = A.store.get("visited",{}), quiz = A.store.get("quiz",{});
+const board = document.getElementById("parts");
+A.PARTS.forEach(p=>{
+  const sec = A.el("div",{class:"part",style:`--pc:var(--p${p.n})`});
+  sec.append(A.el("div",{class:"ph"}, A.el("span",{class:"n"},`Part ${p.n}`), A.el("b",null,p.name), A.el("span",null,p.blurb)));
+  const cards = A.el("div",{class:"cards"});
+  A.CHAPTERS.forEach((c,i)=>{ if(c.part!==p.n) return;
+    const q = quiz[c.slug];
+    const title = c.title.replace(/^Why/, '<span class="w">Why</span>');
+    cards.append(A.el("a",{class:"card"+(visited[c.slug]?" seen":""),href:c.slug+".html"},
+      A.el("span",{class:"top"}, String(i+1).padStart(2,"0"), A.el("span",{class:"st"}, q ? `quiz ${q.right}/${q.total}` : "")),
+      A.el("span",{class:"q",html:title}), A.el("span",{class:"s"},c.short)));
+  });
+  sec.append(cards); board.append(sec);
+});
+
+/* ---------- progress ---------- */
+const nv = Object.keys(visited).filter(k=>A.CHAPTERS.some(c=>c.slug===k)).length;
+let r=0,t=0; Object.values(quiz).forEach(q=>{ r+=q.right; t+=q.total; });
+document.getElementById("pv").innerHTML = `${nv}<small> / ${A.CHAPTERS.length}</small>`;
+document.getElementById("pq").innerHTML = `${r}<small> / ${t}</small>`;
+const next = A.CHAPTERS.find(c=>!visited[c.slug]);
+const res = document.getElementById("resume");
+if(next){ res.href = next.slug+".html"; res.textContent = nv ? `Continue with ${String(A.chapterIndex(next.slug)+1).padStart(2,"0")} →` : "Start →"; }
+else { res.href = "glossary.html"; res.textContent = "All opened. Review the glossary →"; }
+
+/* ---------- question ticker ---------- */
+const tick = document.getElementById("tick");
+const qs = A.CHAPTERS.filter(c=>c.title.startsWith("Why"));
+let qi = Math.floor(Math.random()*qs.length);
+function setQ(){ const c = qs[qi%qs.length]; tick.textContent = c.title; tick.href = c.slug+".html"; }
+setQ();
+if(!A.reduced) setInterval(()=>{ qi++; setQ(); }, 4200);
+
+/* ---------- hero: hide a block, predict its meaning ---------- */
+const cv = document.getElementById("hero");
+const GX = 12, GY = 9;
+const R = A.rng(11);
+// a little scene: sky, sun, hills, a house, a tree; values are data colours
+const scene = [];
+for(let y=0;y<GY;y++) for(let x=0;x<GX;x++){
+  let c;
+  const hill = 5.2 + Math.sin(x*.55)*0.9;
+  if(y < hill){ const t=y/GY; c=[120+60*t,175+40*t,228-8*t]; } else { const n=R()*26; c=[66+n,138+n*.8,70+n*.3]; }
+  if(Math.hypot(x-9.2,y-1.6)<1.3) c=[250,205,96];
+  if(x>=2&&x<=4&&y>=5&&y<=7) c=[203,98,72];
+  if(y===4&&x>=2&&x<=4) c=[126,62,56];
+  if(x===3&&y===7) c=[90,60,40];
+  if(x===7&&y>=5&&y<=7) c=[104,72,46];
+  if(Math.hypot(x-7,y-3.6)<1.5) c=[52,118,62];
+  scene.push(c.map(v=>Math.max(0,Math.min(255,v+(R()-.5)*16))));
+}
+// a fixed random "encoder": 6-d embedding of a patch = projection of its colour and position context
+const W = Array.from({length:6},()=>[R()-.5,R()-.5,R()-.5]);
+const emb = c => W.map(w=>Math.tanh((w[0]*c[0]+w[1]*c[1]+w[2]*c[2])/120));
+let bx = 5, by = 3, bw = 4, bh = 3, phase = 0, err = 0;
+const view = A.canvas(cv, .74, draw);
+function draw(){
+  const {ctx,w,h} = view, C = A.colors();
+  ctx.clearRect(0,0,w,h);
+  const pad = 14, cell = Math.min((w-2*pad)/GX, (h-2*pad)/GY), ox = (w-cell*GX)/2, oy = (h-cell*GY)/2;
+  const reveal = Math.max(0, Math.min(1, (phase-.15)/.6));  // how much prediction is drawn
+  let e = 0, n = 0;
+  for(let y=0;y<GY;y++) for(let x=0;x<GX;x++){
+    const i = y*GX+x, c = scene[i], X = ox+x*cell, Y = oy+y*cell;
+    const hid = x>=bx && x<bx+bw && y>=by && y<by+bh;
+    if(!hid){ ctx.fillStyle = `rgb(${c[0]|0},${c[1]|0},${c[2]|0})`; ctx.fillRect(X+1,Y+1,cell-2,cell-2); continue; }
+    ctx.fillStyle = C.panel2; ctx.fillRect(X+1,Y+1,cell-2,cell-2);
+    A.hatch(ctx, X+1, Y+1, cell-2, cell-2, C.hatch, 6);
+    // "prediction": average embedding of visible neighbours ring, nudged toward truth as training proceeds
+    const truth = emb(c);
+    const ctxv = [0,0,0,0,0,0]; let k=0;
+    for(let yy=Math.max(0,by-1); yy<=Math.min(GY-1,by+bh); yy++) for(let xx=Math.max(0,bx-1); xx<=Math.min(GX-1,bx+bw); xx++){
+      const inside = xx>=bx && xx<bx+bw && yy>=by && yy<by+bh; if(inside) continue;
+      const v = emb(scene[yy*GX+xx]); v.forEach((q,j)=>ctxv[j]+=q); k++; }
+    const guess = ctxv.map((q,j)=>{ const m=q/k; return m + (truth[j]-m)*.7; });
+    const bwid = (cell-10)/6;
+    for(let j=0;j<6;j++){
+      const v = guess[j]*reveal, bh2 = Math.abs(v)*(cell*.38);
+      ctx.fillStyle = C.why; ctx.globalAlpha = .9;
+      ctx.fillRect(X+5+j*bwid+1, Y+cell/2 - (v>0?bh2:0), Math.max(1,bwid-2), bh2);
+      ctx.globalAlpha = 1;
+      e += Math.abs(guess[j]-truth[j]); n++;
+    }
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X+4, Y+cell/2); ctx.lineTo(X+cell-4, Y+cell/2); ctx.stroke();
+  }
+  ctx.strokeStyle = C.why; ctx.lineWidth = 2; ctx.strokeRect(ox+bx*cell+.5, oy+by*cell+.5, bw*cell-1, bh*cell-1);
+  ctx.font = `600 11px ${C.mono}`;
+  const lx = ox+bx*cell, ly = by>0 ? oy+by*cell-16 : oy+(by+bh)*cell, tw = ctx.measureText("target block").width+10;
+  ctx.fillStyle = C.why; ctx.fillRect(lx, ly, tw, 16);
+  ctx.fillStyle = C.bg; ctx.fillText("target block", lx+5, ly+12);
+  err = n ? e/n : 0;
+  document.getElementById("hero-err").textContent = `latent error ${err.toFixed(3)}`;
+}
+const anim = A.loop(cv, dt=>{
+  phase += dt/2.4;
+  if(phase > 2.2){ phase = 0;
+    bw = 3+Math.floor(R()*3); bh = 2+Math.floor(R()*2);
+    bx = Math.floor(R()*(GX-bw+1)); by = Math.floor(R()*(GY-bh+1)); }
+  view.redraw();
+});
+if(A.reduced){ phase = 1; view.redraw(); } else { phase = 1; view.redraw(); anim.start(); }
+})();
+</script>
+</body>
+</html>

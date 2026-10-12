@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why do networks generalize at all? · Hidden Patch</title>
+<meta name="description" content="Generalization from the question why: the random-label puzzle, double descent, minimum-norm interpolation and the implicit bias of gradient descent, grokking and weight decay, lazy versus rich training, and the competing theories.">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/atlas.css">
+<style>
+/* page-specific */
+.beat{grid-template-columns:minmax(0,1fr)}
+.beat>*,.prose>*{min-width:0}
+.eq{max-width:min(100%,var(--measure))}
+.people{display:flex;flex-wrap:wrap;gap:.4rem}
+.lab .stage canvas.drag{cursor:ns-resize}
+.theory{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.8rem}
+.theory>div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.85rem .95rem;display:grid;gap:.35rem;align-content:start;font-size:.95rem}
+.theory h4{font-size:1.02rem}
+.theory .k{font-family:var(--mono);font-size:.7rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.theory .pred{font-family:var(--ui);font-size:.84rem;color:var(--muted);border-top:1px dashed var(--line);padding-top:.35rem}
+.theory .pred b{color:var(--ink)}
+</style>
+</head>
+<body data-chapter="generalize" data-part="2">
+<header id="topbar" class="topbar"></header>
+
+<main class="chapter">
+  <section class="opener">
+    <p class="eyebrow"><span class="sw"></span>Part 2 · Theory · Chapter 06</p>
+    <h1 class="big"><span class="w">Why</span> do networks generalize at all?</h1>
+    <p class="because">training does not pick a random solution among the millions that fit the data. Gradient descent from small weights, weight decay and the architecture all lean toward small, smooth, compressible functions, and for real data the simple fit is usually the right one. Past the point where a model can fit everything, extra parameters give the optimizer more room to find that simple fit, which is why test error can fall a second time.</p>
+    <p class="meta"><span>6 beats · 3 labs · 6 questions</span><span>Builds on: <a href="bias.html">04 Implicit bias and depth</a></span><span>Leads to: <a href="fractured.html">07 FER and convergence</a></span></p>
+    <ul class="toc">
+      <li><a href="#puzzle"><span class="q">?</span>Why it is a puzzle</a></li>
+      <li><a href="#descent"><span class="q">?</span>Why error falls twice</a></li>
+      <li><a href="#which"><span class="q">?</span>Why the simple fit wins</a></li>
+      <li><a href="#grok"><span class="q">?</span>Why generalization arrives late</a></li>
+      <li><a href="#lazy"><span class="q">?</span>Why not just a kernel</a></li>
+      <li><a href="#theories"><span class="q">?</span>Why so many theories</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ BEAT 1 ============ -->
+  <section class="beat" id="puzzle">
+    <header>
+      <span class="num">Beat 1</span>
+      <h2><span class="w">Why</span> is generalization a puzzle in the first place?</h2>
+      <p class="short">Because the same network that generalizes on real labels can also memorize pure noise. Whatever makes it generalize cannot be a lack of capacity. It has to be a preference for <em>which</em> of the many fitting solutions it ends up in.</p>
+    </header>
+    <div class="prose">
+      <p>The textbook story is a U-curve. Too few parameters and the model underfits (bias). Too many and it fits the noise in the training set (variance). Choose the size at the bottom of the U. Counting arguments back this up: if a model class can label <var>n</var> points in every possible way, then fitting <var>n</var> training points tells you nothing about point <var>n+1</var>.</p>
+      <p>In 2017 Zhang, Bengio, Hardt, Recht and Vinyals ran the experiment that broke this story for deep learning. They took standard CIFAR-10 and ImageNet architectures and replaced the labels with random ones. The networks still reached 100 percent training accuracy. Train the <em>same</em> network on the true labels and it generalizes well. Same architecture, same capacity, opposite outcomes. Explicit regularization (weight decay, dropout, augmentation) helped a little but was not what made the difference.</p>
+      <p>So the question shifts from "how big is the model class" to "among all the weight settings that fit the data, which one does training land in, and why is that one good?" Every answer in this chapter is an answer to that second question.</p>
+    </div>
+    <div class="compare">
+      <div><span class="k">Classical picture</span><h4>Capacity decides</h4><p>Fewer parameters than data points. Test error is a U in model size. Interpolating the training set (zero training error) is a sign of overfitting.</p></div>
+      <div><span class="k">What deep nets do</span><h4>The solution decides</h4><p>Many more parameters than data points. Training error goes to zero and test error often keeps improving. The model could memorize noise, and does when asked to, but on real data it finds something else.</p></div>
+    </div>
+    <div class="prose"><p>Five lines of explanation are active in 2026. The landscape notes (Q1) put them side by side, with the people who hold them:</p></div>
+    <div class="tbl"><table>
+      <thead><tr><th>Answer</th><th>Who</th><th>Mechanism in one line</th></tr></thead>
+      <tbody>
+        <tr><td>Soft inductive bias</td><td>Andrew Gordon Wilson (MLST 2025-09)</td><td>A flexible hypothesis space plus a preference for simple solutions. PAC-Bayes and Bayesian marginalisation already explain benign overfitting and double descent; bigger models can have a <em>stronger</em> simplicity bias.</td></tr>
+        <tr><td>Spline geometry</td><td>Randall Balestriero (MLST 2025-02)</td><td>ReLU nets cut input space into linear regions ("elastic origami"). Grokking and robustness are changes in that partition.</td></tr>
+        <tr><td>Compression</td><td>Yi Ma (MLST 2025-12)</td><td>Learning finds low-dimensional structure. A transformer block is one step of optimising a rate-reduction objective (CRATE).</td></tr>
+        <tr><td>Training dynamics</td><td>Saxe et al.; Simon Prince (MLST 2023-12)</td><td>Gradient descent picks particular solutions among many. Prince lists this beside overparameterisation, the manifold hypothesis and smooth landscapes as distinct, partly open explanations.</td></tr>
+        <tr><td>Mechanistic cleanup</td><td>Neel Nanda et al. 2023</td><td>The net first memorizes, then weight decay slowly favours a compact algorithm (Fourier features for modular addition).</td></tr>
+      </tbody>
+    </table></div>
+    <div class="people"><span class="who" data-i="AW">Andrew Gordon Wilson</span><span class="who" data-i="RB">Randall Balestriero</span><span class="who" data-i="YM">Yi Ma</span><span class="who" data-i="SP">Simon Prince</span><span class="who" data-i="NN">Neel Nanda</span></div>
+  </section>
+
+  <!-- ============ BEAT 2: double descent ============ -->
+  <section class="beat" id="descent">
+    <header>
+      <span class="num">Beat 2</span>
+      <h2><span class="w">Why</span> does test error go up, then down again, as the model grows?</h2>
+      <p class="short">Because at exactly as many parameters as data points there is only one way to fit the data, and it has to thread through every noisy point, so its weights explode. Add more parameters and many fits appear. The smallest of them is smooth, and that is the one ridgeless regression and gradient descent return.</p>
+    </header>
+    <div class="prose">
+      <p>Belkin, Hsu, Ma and Mandal (2019) drew the full curve and called it <b>double descent</b>: the classical U up to the <span class="term" tabindex="0" data-def="The model size at which it can first fit the training set exactly. For a linear model on p features with n data points, p = n.">interpolation threshold</span>, a peak there, then a second descent. Nakkiran et al. (2019) found the same peak in ResNets and transformers when sweeping width, training epochs, or even the number of samples.</p>
+      <p>The cleanest place to see it is a <b>random-features model</b>: a two-layer network whose first layer is frozen at random and whose last layer is fitted by least squares. With <var>p</var> features and <var>n</var> data points, the lab fits</p>
+      <div class="eq">f(x) = Σ<sub>j≤p</sub> w<sub>j</sub> · √(2/p) cos(ω<sub>j</sub> x + b<sub>j</sub>),   ω<sub>j</sub> ~ N(0, σ²)<br>p ≤ n:  w = (ΦᵀΦ + λI)⁻¹ Φᵀy        p &gt; n:  w = Φᵀ(ΦΦᵀ + λI)⁻¹ y<span class="c">With λ → 0, the right-hand formula is the <b>minimum-norm interpolant</b>: of all weight vectors that fit the data exactly, the one with the smallest ‖w‖. Everything is computed live in your browser, averaged (geometric mean) over 15 independent draws of the random first layer.</span></div>
+    </div>
+    <figure class="lab" id="lab-dd">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Sweep the number of random features through n</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-dd" aria-label="Left: test error versus number of features on log axes, with a peak at p equals n. Right: the fitted curve for the selected number of features, the data points and the true function."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i style="background:var(--why)"></i>test error (geometric mean of 15 draws)</span><span><i style="background:var(--p1)"></i>train error</span><span><i style="background:var(--p2)"></i>‖w‖ (scaled)</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="dd-p">Features p</label><output for="dd-p"></output></div>
+            <input type="range" id="dd-p" min="0" max="60" step="1" value="58">
+            <span class="hint">Pick the model to draw on the right. The curve on the left is always the full sweep.</span></div>
+          <div class="ctrl"><div class="row"><label for="dd-n">Data points n</label><output for="dd-n"></output></div>
+            <input type="range" id="dd-n" min="8" max="40" step="1" value="20"></div>
+          <div class="ctrl"><div class="row"><label for="dd-noise">Label noise</label><output for="dd-noise"></output></div>
+            <input type="range" id="dd-noise" min="0" max="0.6" step="0.01" value="0.25"></div>
+          <div class="ctrl"><div class="row"><label for="dd-lam">Ridge λ</label><output for="dd-lam"></output></div>
+            <input type="range" id="dd-lam" min="-10" max="0" step="0.5" value="-9">
+            <span class="hint">Raise it to see explicit regularization erase the peak.</span></div>
+          <div class="ctrl"><div class="row"><label for="dd-sig">Feature frequency σ</label><output for="dd-sig"></output></div>
+            <input type="range" id="dd-sig" min="4" max="24" step="1" value="13"></div>
+          <div class="btns"><button type="button" class="primary" id="dd-new">New data</button><button type="button" id="dd-at">Jump to p = n</button></div>
+          <dl class="readout">
+            <dt>p / n</dt><dd id="dd-r-ratio">–</dd>
+            <dt>train MSE</dt><dd id="dd-r-tr">–</dd>
+            <dt>test MSE</dt><dd id="dd-r-te" class="hot">–</dd>
+            <dt>‖w‖</dt><dd id="dd-r-w">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Click <b>Jump to p = n</b>: the fit passes through every point, noise included, and swings wildly between them. ‖w‖ peaks there too. The error is not caused by too many parameters; it is caused by having just barely enough.</li>
+        <li>Move far right (hundreds of features): training error stays at zero, yet the curve calms down and test error drops again. Many interpolants exist now and the minimum-norm one spreads the weight over many features instead of pushing a few to extremes.</li>
+        <li>Set label noise to 0: the peak shrinks a lot. The peak is noise amplification; with clean labels there is little to amplify. Raise λ to 10⁻² and the peak disappears, which is why tuned ridge never shows double descent.</li>
+        <li>In one dimension, random features with nearby frequencies are partly redundant, so the worst point can sit a few features above n. In high-dimensional data the peak lines up with p = n much more sharply.</li>
+      </ul></div>
+    </figure>
+    <aside class="aside"><span class="k">Wilson's reading</span>Double descent and benign overfitting are not special to deep learning: a linear model on random features does it, as above. Wilson (2025) argues the classical tools already cover it once you measure complexity by how much the model <em>prefers</em> simple solutions, not by how many parameters it has. His group also shows generalization bounds that get <em>tighter</em> along compute-optimal LLM scaling (Finzi et al. 2025).</aside>
+  </section>
+
+  <!-- ============ BEAT 3: min-norm ============ -->
+  <section class="beat" id="which">
+    <header>
+      <span class="num">Beat 3</span>
+      <h2><span class="w">Why</span> does training pick the simple interpolant out of infinitely many?</h2>
+      <p class="short">Because gradient descent started from zero can only move inside the span of the training inputs. It never adds a component the data did not ask for, so it stops at the minimum-norm fit. "Simple" then means whatever the parameterization makes cheap.</p>
+    </header>
+    <div class="prose">
+      <p>For least squares with more features than points, the gradient is Φᵀ(Φw − y), a combination of the rows of Φ. Start at w = 0 and every step stays in the row space. The component of w in the null space (directions that do not change any training prediction) is zero at the start and stays zero forever. The only interpolant with no null-space part is the minimum-norm one. That is a theorem, and it is the simplest case of <span class="term" tabindex="0" data-def="A preference among equally good solutions that comes from the optimizer and initialization, not from an explicit penalty in the loss.">implicit bias</span>.</p>
+      <p>Richer models have richer versions. On separable classification data, gradient descent on logistic loss converges in direction to the max-margin solution (Soudry et al. 2018). In matrix factorization it drifts toward low rank (Gunasekar et al. 2017). Neural networks fit low frequencies first (spectral bias, Rahaman et al. 2019), and random networks are already biased toward simple functions before any training (Valle-Pérez, Camargo and Louis 2019). <a href="bias.html">Chapter 04</a> shows the JEPA version: deep encoders learn the most predictable features first.</p>
+    </div>
+    <figure class="lab" id="lab-mn">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Many perfect fits, one chosen by gradient descent</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-mn" class="drag" aria-label="Seven data points, the minimum-norm interpolant as a thick line, three other exact interpolants as faint lines, and the current gradient descent iterate as a dashed line."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i style="background:var(--why)"></i>minimum-norm fit</span><span><i style="background:var(--faint)"></i>other exact fits</span><span><i style="background:var(--p2)"></i>gradient descent iterate</span><span>drag a point up or down</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="mn-s">Simplicity weighting s</label><output for="mn-s"></output></div>
+            <input type="range" id="mn-s" min="0" max="2" step="0.05" value="1.2">
+            <span class="hint">Features are 41 sines and cosines; harmonic k is scaled by 1/kˢ. s = 0 makes every frequency equally cheap.</span></div>
+          <div class="btns"><button type="button" class="primary" id="mn-gd0">GD from zero</button><button type="button" id="mn-gdr">GD from random init</button><button type="button" id="mn-alt">Other fits</button></div>
+          <dl class="readout">
+            <dt>‖w‖ min-norm</dt><dd id="mn-r-min">–</dd>
+            <dt>‖w‖ other fits</dt><dd id="mn-r-alt">–</dd>
+            <dt>GD step</dt><dd id="mn-r-step">–</dd>
+            <dt>GD train loss</dt><dd id="mn-r-loss">–</dd>
+            <dt>‖w<sub>GD</sub> − w<sub>min</sub>‖</dt><dd id="mn-r-dist" class="hot">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>All faint curves pass exactly through all seven points: the data cannot tell them apart. Only the minimum-norm one looks like a reasonable guess between points.</li>
+        <li><b>GD from zero</b> walks to the minimum-norm fit: the distance readout goes to zero. <b>GD from random init</b> also reaches zero training loss but stops at a different interpolant, because the null-space part of the random start never gets a gradient. Small initialization is part of the bias.</li>
+        <li>Slide s to 0: the minimum-norm fit turns spiky, because a high harmonic now costs as little as a low one. Simplicity is defined by the parameterization. This is also the logic of Dinh et al.'s (2017) warning about flatness: rescale the parameters and "flat" or "small" changes meaning.</li>
+      </ul></div>
+    </figure>
+    <div class="prose">
+      <h3>Flat minima, and why the idea needs care</h3>
+      <p>Hochreiter and Schmidhuber (1997) argued that minima in wide, flat basins generalize, because you can describe the weights with fewer bits (a minimum-description-length argument). Keskar et al. (2017) found that large-batch SGD lands in sharper minima and generalizes worse, which made "SGD noise finds flat minima" a popular explanation. Dinh et al. (2017) then showed that for ReLU networks you can rescale layers to make any minimum as sharp as you like without changing the function, so raw sharpness cannot be the whole story. The useful idea survives in reparameterization-aware forms, such as PAC-Bayes bounds that ask how much you can perturb the weights before the loss rises.</p>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 4: grokking ============ -->
+  <section class="beat" id="grok">
+    <header>
+      <span class="num">Beat 4</span>
+      <h2><span class="w">Why</span> can a network memorize first and generalize thousands of steps later?</h2>
+      <p class="short">Because memorizing and computing the rule both reach zero training loss, but the rule needs much smaller weights. Weight decay keeps shrinking whatever the loss does not need, so it slowly trades the large memorizing solution for the compact algorithm. Without decay there is no pressure to switch.</p>
+    </header>
+    <div class="prose">
+      <p>Power et al. (2022) trained small transformers on tables like <var>a + b mod p</var> with part of the table held out. Training accuracy hit 100 percent early; test accuracy sat at chance for a long time, then jumped. They called it <b>grokking</b>. Nanda et al. (2023) reverse-engineered the trained network: it embeds each number as rotations at a handful of frequencies and computes cos(ω(a + b − c)), which peaks at the right answer c. The memorizing circuit forms first; the Fourier circuit grows underneath it; weight decay then removes the memorization. Liu, Michaud and Tegmark (Omnigrok, 2022) tied the timing to the weight norm: generalizing solutions live at smaller norm, and the delay is how long it takes decay to get there.</p>
+      <p>The lab trains a real network on <var>a + b mod 31</var> in your browser: each number gets a learned 64-dimensional embedding, the two are summed, squared element-wise, and read out to 31 logits (the two-layer MLP with quadratic activation that Gromov (2023) used to study grokking analytically). Full-batch AdamW, cross-entropy.</p>
+    </div>
+    <figure class="lab" id="lab-grok">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Grokking modular addition, live</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-grok" aria-label="Top: training and test accuracy and weight norm over training steps. Bottom: a heatmap of each hidden neuron's embedding power across Fourier frequencies."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i style="background:var(--p1)"></i>train accuracy</span><span><i style="background:var(--why)"></i>test accuracy</span><span><i style="background:var(--p2)"></i>weight norm</span></div>
+        </div>
+        <div class="side">
+          <div class="btns"><button type="button" class="primary" id="gk-run">Pause</button><button type="button" id="gk-reset">Restart</button></div>
+          <div class="ctrl"><div class="row"><label for="gk-wd">Weight decay</label><output for="gk-wd"></output></div>
+            <input type="range" id="gk-wd" min="0" max="2" step="0.1" value="1">
+            <span class="hint">Applies to the next restart. Try 0.</span></div>
+          <div class="ctrl"><div class="row"><label for="gk-frac">Training fraction</label><output for="gk-frac"></output></div>
+            <input type="range" id="gk-frac" min="0.25" max="0.8" step="0.05" value="0.4">
+            <span class="hint">Share of the 961 pairs (a, b) seen in training. Applies to the next restart.</span></div>
+          <dl class="readout">
+            <dt>step</dt><dd id="gk-r-step">–</dd>
+            <dt>train acc</dt><dd id="gk-r-tr">–</dd>
+            <dt>test acc</dt><dd id="gk-r-te" class="hot">–</dd>
+            <dt>weight norm</dt><dd id="gk-r-norm">–</dd>
+            <dt>frequency purity</dt><dd id="gk-r-four">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Training accuracy reaches 100 percent within a few hundred steps while test accuracy is still near chance (1/31 ≈ 3 percent). That gap is memorization. Then test accuracy climbs while training accuracy has nothing left to gain.</li>
+        <li>Watch the heatmap. At the start every neuron's embedding is spread over all 15 frequencies (a faint smear). As test accuracy rises, each column collapses to one bright cell: every neuron now reads a single frequency of a and b, which is the Fourier algorithm Nanda et al. found in transformers. The purity readout (average share of each neuron's power in its main frequency) climbs from under 20 percent to almost 90.</li>
+        <li>Restart with weight decay 0: training is just as perfect, test accuracy stays near chance, purity stays near 25 percent and the weight norm grows well past the decayed run. Decay is not what fits the data; it is what chooses between fits. A smaller training fraction slows the switch.</li>
+      </ul></div>
+    </figure>
+    <aside class="aside"><span class="k">Not only toys</span>Humayun, Balestriero and Baraniuk (2024) report that adversarial robustness in ordinary image classifiers also "groks" long after training accuracy saturates, and track it with the local complexity of the network's spline partition. Kumar et al. (2025) list grokking-style cleanup as one possible route from fractured to unified internals; see <a href="fractured.html">chapter 07</a>.</aside>
+  </section>
+
+  <!-- ============ BEAT 5: NTK vs feature learning ============ -->
+  <section class="beat" id="lazy">
+    <header>
+      <span class="num">Beat 5</span>
+      <h2><span class="w">Why</span> isn't a very wide network just a kernel machine?</h2>
+      <p class="short">Because the kernel limit only holds when the weights barely move. Then the features are frozen at their random values, exactly like the random-features lab. Real networks are trained in a regime where the hidden features change, and learning those features is where most of their advantage comes from.</p>
+    </header>
+    <div class="prose">
+      <p>Jacot, Gabriel and Hongler (2018) showed that as width goes to infinity under the standard scaling, gradient descent on a network behaves like kernel regression with a fixed kernel, the <span class="term" tabindex="0" data-def="Neural tangent kernel: K(x, x') = ∇θ f(x) · ∇θ f(x'), the inner product of the network's parameter gradients at two inputs. In the infinite-width limit it stays constant during training.">neural tangent kernel</span>. That gave the first clean convergence and generalization theory for wide nets, and it explained why overparameterized nets reach zero training loss. Chizat, Oyallon and Bach (2019) named this the <b>lazy</b> regime and showed it is a consequence of scaling, not of width itself: rescale the output and the same network becomes rich.</p>
+      <p>Lazy networks are kernel machines, so they inherit kernel limits: no new features, no hierarchy, no reuse. Yang and Hu (2021) worked out a parameterization (μP) where infinite-width nets still learn features. Grokking fits this picture: Kumar, Bordelon, Gershman and Pehlevan (2024) describe it as a transition from lazy to rich dynamics, where the early fit uses the initial features and the late generalizing solution builds new ones.</p>
+    </div>
+    <div class="compare">
+      <div><span class="k">Lazy (NTK) regime</span><h4>Features frozen, last step linear</h4><p>Weights move by a vanishing amount. Function = kernel regression with the initial tangent kernel. Analysable, predicts the minimum-norm interpolant in the kernel's norm. Lab 1 is this case with an explicit random layer.</p></div>
+      <div><span class="k">Rich (feature-learning) regime</span><h4>Features adapt to the task</h4><p>Hidden units change, become sparse and specialised (the Fourier frequencies in lab 3). Better sample efficiency and transfer. Theory is harder: dynamics are nonlinear and depend on initialization scale, learning rate and depth.</p></div>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 6: theories ============ -->
+  <section class="beat" id="theories">
+    <header>
+      <span class="num">Beat 6</span>
+      <h2><span class="w">Why</span> are there so many theories, and do they agree?</h2>
+      <p class="short">Because each one explains a different slice: why the chosen solution is simple, how to measure that simplicity, and what the network is doing when it gets there. They mostly agree in-distribution. None of them yet predicts practice well enough to steer it, and none says whether "simple" also means well organized inside.</p>
+    </header>
+    <div class="theory">
+      <div><span class="k">Occam, made precise</span><h4>PAC-Bayes and marginal likelihood</h4><p>Wilson and Izmailov (2020): averaging over posterior modes acts as an automatic Occam's razor. Bounds depend on how compressible the trained weights are, not on parameter count.</p><p class="pred"><b>Predicts:</b> bigger models can generalize better if their prior favours simple functions more strongly.</p></div>
+      <div><span class="k">Geometry</span><h4>Spline partitions</h4><p>Balestriero and Baraniuk (2018): a ReLU net is a continuous piecewise-affine map. Balestriero, Pesenti and LeCun (2021): in high dimension test points almost never lie inside the training set's convex hull, so all learning is extrapolation.</p><p class="pred"><b>Predicts:</b> local complexity (density of linear regions) tracks memorization and grokking.</p></div>
+      <div><span class="k">Compression</span><h4>Rate reduction</h4><p>Yi Ma: intelligence is parsimony (compress to low-dimensional structure) plus self-consistency (a closed loop that regenerates and corrects). ReduNet and CRATE derive layers as unrolled steps of the MCR² objective, landing close to ViT on ImageNet.</p><p class="pred"><b>Predicts:</b> architectures can be derived instead of searched, and are interpretable by construction.</p></div>
+      <div><span class="k">Singular learning theory</span><h4>Degenerate minima count less</h4><p>Watanabe: neural nets are singular models, so the usual "k parameters cost (k/2) log n" is wrong. The Bayesian free energy is about nLₙ + λ log n, where the learning coefficient λ measures the effective dimension of the solution set. Lau et al. (2023) estimate a local λ for real networks.</p><p class="pred"><b>Predicts:</b> training phases (like grokking) show up as drops in the local learning coefficient.</p></div>
+    </div>
+    <div class="prose">
+      <p>Alexander Mattick's complaint on MLST (2026-09) is the honest summary: no single theory predicts practice well enough to guide it. Wilson's view is the most conservative and best supported for in-distribution generalization. Out of distribution, the question turns into whether different models learn the same thing (<a href="fractured.html">chapter 07</a>) and whether skill is intelligence (<a href="reasoning.html">chapter 09</a>).</p>
+      <p>One open question links this chapter to the next. Does a simplicity bias favour <em>unified</em> solutions or just <em>small</em> ones? The FER paper's SGD-trained skull is not bigger than the evolved one. It has the same architecture and the same output; it is organized worse. Norm and compressibility do not see that difference.</p>
+    </div>
+    <aside class="aside ours"><span class="k">This project</span>Notebook 01 (drive versus decay) gives a closed-form threshold for which directions a linear JEPA learns: weight decay <em>removes</em> weak directions. Grokking says weight decay can also <em>reorganize</em> a solution. The landscape notes propose the bridge: retrain the FER skull with SGD for much longer under weight decay and check whether symmetry moves into early layers. Kumar et al. name grokking as a possible cleanup route; no one has tested it.</aside>
+  </section>
+
+  <section class="remember">
+    <h2>Three things to <span class="w">remember</span></h2>
+    <ol>
+      <li><b>The fit is not the question; the choice is.</b>A network that can memorize noise still generalizes on real data because training prefers some interpolants over others.</li>
+      <li><b>Barely enough is the worst.</b>At p = n there is one forced fit through every noisy point. More parameters make room for a smaller, smoother fit, so error falls again.</li>
+      <li><b>Decay chooses, it does not fit.</b>In grokking, training loss is already zero. Weight decay slowly swaps the large memorizing solution for the compact algorithm.</li>
+    </ol>
+  </section>
+
+  <section id="quiz"></section>
+
+  <section class="sources">
+    <h2>Sources for this chapter</h2>
+    <ol>
+      <li>Zhang, Bengio, Hardt, Recht, Vinyals, <a href="https://arxiv.org/abs/1611.03530">Understanding deep learning requires rethinking generalization</a>, ICLR 2017.</li>
+      <li>Belkin, Hsu, Ma, Mandal, <a href="https://arxiv.org/abs/1812.11118">Reconciling modern machine-learning practice and the classical bias–variance trade-off</a>, PNAS 2019.</li>
+      <li>Nakkiran et al., <a href="https://arxiv.org/abs/1912.02292">Deep Double Descent</a>, 2019.</li>
+      <li>Wilson, <a href="https://arxiv.org/abs/2503.02113">Deep Learning is Not So Mysterious or Different</a>, 2025; Finzi et al., <a href="https://arxiv.org/abs/2504.15208">Compute-Optimal LLMs Provably Generalize Better With Scale</a>, 2025; Wilson &amp; Izmailov, <a href="https://arxiv.org/abs/2002.08791">Bayesian Deep Learning and a Probabilistic Perspective of Generalization</a>, 2020. MLST episode 2025-09-19.</li>
+      <li>Soudry et al., <a href="https://arxiv.org/abs/1710.10345">The Implicit Bias of Gradient Descent on Separable Data</a>, 2018; Gunasekar et al., <a href="https://arxiv.org/abs/1705.09280">Implicit Regularization in Matrix Factorization</a>, 2017.</li>
+      <li>Rahaman et al., <a href="https://arxiv.org/abs/1806.08734">On the Spectral Bias of Neural Networks</a>, 2019; Valle-Pérez, Camargo, Louis, <a href="https://arxiv.org/abs/1805.08522">Deep learning generalizes because the parameter-function map is biased towards simple functions</a>, 2019.</li>
+      <li>Hochreiter &amp; Schmidhuber, Flat Minima, Neural Computation 1997; Keskar et al., <a href="https://arxiv.org/abs/1609.04836">On Large-Batch Training for Deep Learning: Generalization Gap and Sharp Minima</a>, 2017; Dinh et al., <a href="https://arxiv.org/abs/1703.04933">Sharp Minima Can Generalize For Deep Nets</a>, 2017.</li>
+      <li>Power et al., <a href="https://arxiv.org/abs/2201.02177">Grokking: Generalization Beyond Overfitting on Small Algorithmic Datasets</a>, 2022; Nanda et al., <a href="https://arxiv.org/abs/2301.05217">Progress measures for grokking via mechanistic interpretability</a>, 2023; Liu, Michaud, Tegmark, <a href="https://arxiv.org/abs/2210.01117">Omnigrok</a>, 2022; Gromov, <a href="https://arxiv.org/abs/2301.02679">Grokking modular arithmetic</a>, 2023.</li>
+      <li>Humayun, Balestriero, Baraniuk, <a href="https://arxiv.org/abs/2402.15555">Deep Networks Always Grok and Here is Why</a>, 2024; Balestriero &amp; Baraniuk, <a href="https://proceedings.mlr.press/v80/balestriero18b.html">A Spline Theory of Deep Networks</a>, ICML 2018; Balestriero, Pesenti, LeCun, <a href="https://arxiv.org/abs/2110.09485">Learning in High Dimension Always Amounts to Extrapolation</a>, 2021.</li>
+      <li>Jacot, Gabriel, Hongler, <a href="https://arxiv.org/abs/1806.07572">Neural Tangent Kernel</a>, 2018; Chizat, Oyallon, Bach, <a href="https://arxiv.org/abs/1812.07956">On Lazy Training in Differentiable Programming</a>, 2019; Yang &amp; Hu, <a href="https://arxiv.org/abs/2011.14522">Feature Learning in Infinite-Width Neural Networks</a>, 2021; Kumar, Bordelon, Gershman, Pehlevan, <a href="https://arxiv.org/abs/2310.06110">Grokking as the transition from lazy to rich training dynamics</a>, ICLR 2024.</li>
+      <li>Yi Ma: <a href="https://arxiv.org/abs/2105.10446">ReduNet</a>, 2021; <a href="https://arxiv.org/abs/2207.04630">Parsimony and Self-Consistency</a>, 2022; <a href="https://arxiv.org/abs/2306.01129">CRATE</a>, 2023. MLST episode 2025-12-13.</li>
+      <li>Watanabe, Algebraic Geometry and Statistical Learning Theory, Cambridge 2009; Lau, Furman, Wang, Murfet, Wei, <a href="https://arxiv.org/abs/2308.12108">The Local Learning Coefficient</a>, 2023. SLT is not covered in the project's source dossiers; these two are background.</li>
+      <li>Prince, <a href="https://udlbook.github.io/udlbook/">Understanding Deep Learning</a>, MIT Press 2023 (MLST 2023-12-26).</li>
+      <li>Project notes: <code>landscape/ai-landscape-why.md</code> (Q1, section 9) and <code>landscape/sources/mlst-guests-theory-interp-efficiency-agents.md</code>. Interactive map: <a href="why-atlas.html">Why Atlas</a>. For the basics of MLPs and backprop, see <a href="../index.html">Build ML From Scratch</a>.</li>
+    </ol>
+  </section>
+
+  <nav id="pager"></nav>
+</main>
+<footer id="site-footer"></footer>
+
+<script src="assets/atlas.js"></script>
+<script>
+(function(){
+"use strict";
+const A = window.Atlas;
+
+/* ---------- small linear algebra ---------- */
+function solve(Ain, bin, n){            // Gaussian elimination with partial pivoting
+  const Am = Float64Array.from(Ain), b = Float64Array.from(bin);
+  for(let c=0;c<n;c++){
+    let p=c, mx=Math.abs(Am[c*n+c]);
+    for(let r=c+1;r<n;r++){ const v=Math.abs(Am[r*n+c]); if(v>mx){mx=v;p=r;} }
+    if(p!==c){ for(let k=0;k<n;k++){ const t=Am[c*n+k]; Am[c*n+k]=Am[p*n+k]; Am[p*n+k]=t; } const t=b[c]; b[c]=b[p]; b[p]=t; }
+    const d = Am[c*n+c] || 1e-300;
+    for(let r=c+1;r<n;r++){ const f=Am[r*n+c]/d; if(!f) continue; for(let k=c;k<n;k++) Am[r*n+k]-=f*Am[c*n+k]; b[r]-=f*b[c]; }
+  }
+  const x = new Float64Array(n);
+  for(let r=n-1;r>=0;r--){ let s=b[r]; for(let k=r+1;k<n;k++) s-=Am[r*n+k]*x[k]; x[r]=s/(Am[r*n+r]||1e-300); }
+  return x;
+}
+/* ridge / min-norm fit of Phi (n×p, row-major) to y */
+function ridge(Phi, y, n, p, lam){
+  if(p<=n){
+    const M=new Float64Array(p*p), b=new Float64Array(p);
+    for(let a=0;a<p;a++){ for(let c=a;c<p;c++){ let s=0; for(let i=0;i<n;i++) s+=Phi[i*p+a]*Phi[i*p+c]; M[a*p+c]=M[c*p+a]=s; } M[a*p+a]+=lam;
+      let s=0; for(let i=0;i<n;i++) s+=Phi[i*p+a]*y[i]; b[a]=s; }
+    return solve(M,b,p);
+  }
+  const K=new Float64Array(n*n);
+  for(let i=0;i<n;i++) for(let j=i;j<n;j++){ let s=0; for(let a=0;a<p;a++) s+=Phi[i*p+a]*Phi[j*p+a]; K[i*n+j]=K[j*n+i]=s; }
+  for(let i=0;i<n;i++) K[i*n+i]+=lam;
+  const al=solve(K,y,n), w=new Float64Array(p);
+  for(let a=0;a<p;a++){ let s=0; for(let i=0;i<n;i++) s+=Phi[i*p+a]*al[i]; w[a]=s; }
+  return w;
+}
+const fmt = v => !isFinite(v) ? "∞" : v>=1e4 ? v.toExponential(1) : v>=100 ? v.toFixed(0) : v>=1 ? v.toFixed(2) : v.toFixed(3);
+
+/* =================== LAB 1: double descent =================== */
+(function(){
+  const cv = document.getElementById("cv-dd");
+  const NT = 160, XT = Array.from({length:NT},(_,i)=>-1+2*i/(NT-1));
+  const f = x => Math.sin(2.5*x) + 0.5*x*Math.cos(6*x);
+  const YT = XT.map(f), DRAWS = 15, PMAX = 400;
+  let n=20, noise=.25, lam=1e-9, sig=13, dataSeed=5, pIdx=58;
+  let xs=[], ys=[], grid=[], curve=[], banks=[], ready=false;
+  function makeGrid(){
+    const s = new Set();
+    for(let p=1;p<=Math.min(2*n+6,PMAX);p++) s.add(p);
+    for(let k=0;k<=26;k++) s.add(Math.round(Math.exp(Math.log(2*n+6)+(Math.log(PMAX)-Math.log(2*n+6))*k/26)));
+    grid = [...s].filter(p=>p>=1&&p<=PMAX).sort((a,b)=>a-b);
+    const inp = document.getElementById("dd-p"); inp.max = grid.length-1;
+  }
+  function makeData(){
+    const r = A.rng(dataSeed*7919+3);
+    xs = Array.from({length:n},(_,i)=>-1+(i+.15+.7*r())*2/n);
+    ys = xs.map(x=>f(x)+noise*r.normal());
+  }
+  function makeBanks(){
+    banks = [];
+    for(let d=0;d<DRAWS;d++){ const r=A.rng(1000+d*31); const om=new Float64Array(PMAX), b=new Float64Array(PMAX);
+      for(let j=0;j<PMAX;j++){ om[j]=r.normal()*sig; b[j]=r()*Math.PI*2; } banks.push({om,b}); }
+  }
+  function phi(x, p, bank){ const out=new Float64Array(x.length*p), sc=Math.sqrt(2/p);
+    for(let i=0;i<x.length;i++) for(let j=0;j<p;j++) out[i*p+j]=sc*Math.cos(bank.om[j]*x[i]+bank.b[j]); return out; }
+  function fitOne(p, bank){
+    const w = ridge(phi(xs,p,bank), ys, n, p, lam);
+    const Pt = phi(XT,p,bank), pred = new Float64Array(NT); let te=0;
+    for(let i=0;i<NT;i++){ let s=0; for(let j=0;j<p;j++) s+=Pt[i*p+j]*w[j]; pred[i]=s; te+=(s-YT[i])**2; }
+    const Pn = phi(xs,p,bank); let tr=0;
+    for(let i=0;i<n;i++){ let s=0; for(let j=0;j<p;j++) s+=Pn[i*p+j]*w[j]; tr+=(s-ys[i])**2; }
+    let nw=0; for(let j=0;j<p;j++) nw+=w[j]*w[j];
+    return {te:te/NT, tr:tr/n, nw:Math.sqrt(nw), pred};
+  }
+  const med = a => Math.exp(a.reduce((s,v)=>s+Math.log(Math.max(v,1e-12)),0)/a.length);
+  function sweep(){
+    curve = grid.map(p=>{ const te=[],tr=[],nw=[]; banks.forEach(bk=>{ const o=fitOne(p,bk); te.push(o.te); tr.push(o.tr); nw.push(o.nw); });
+      return {p, te:med(te), tr:med(tr), nw:med(nw)}; });
+  }
+  const view = A.canvas(cv, w => w<560 ? 1.22 : .46, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const narrow = w<560, gap = 18;
+    const L = narrow ? {x:36,y:22,w:w-46,h:h*.46-40} : {x:40,y:22,w:w*.52-50,h:h-56};
+    const R = narrow ? {x:8,y:h*.46+18,w:w-16,h:h*.54-24} : {x:w*.52+gap,y:22,w:w*.48-gap-8,h:h-40};
+    ctx.font = `600 12px ${C.ui}`; ctx.fillStyle = C.muted; ctx.textBaseline="alphabetic";
+    ctx.fillText("Test error vs number of features (log–log)", L.x-28, L.y-8);
+    // axes for curve
+    const lx = p => L.x + Math.log(p)/Math.log(PMAX)*L.w;
+    const errs = curve.map(c=>c.te).filter(isFinite);
+    const lo = Math.log10(Math.max(1e-4, Math.min(...curve.map(c=>Math.max(c.te,1e-4)))))-.2;
+    const hi = Math.min(4, Math.log10(Math.max(...errs))+.2);
+    const ly = v => L.y + L.h - (Math.log10(Math.max(v,1e-6))-lo)/(hi-lo)*L.h;
+    ctx.strokeStyle = C.line; ctx.lineWidth=1; ctx.strokeRect(L.x, L.y, L.w, L.h);
+    ctx.fillStyle = C.muted; ctx.font = `10.5px ${C.mono}`;
+    for(let e=Math.ceil(lo); e<=Math.floor(hi); e++){ const y=ly(10**e); ctx.fillText(`1e${e}`, L.x-34, y+3); ctx.strokeStyle=C.line; ctx.beginPath(); ctx.moveTo(L.x,y); ctx.lineTo(L.x+L.w,y); ctx.stroke(); }
+    for(const p of [1,10,100,400]){ const x=lx(p); ctx.textAlign = p===400 ? "right" : p===1 ? "left" : "center"; ctx.fillText(String(p), x, L.y+L.h+13); } ctx.textAlign="start";
+    // interpolation threshold
+    ctx.setLineDash([4,4]); ctx.strokeStyle = C.lineStrong; ctx.beginPath(); ctx.moveTo(lx(n),L.y); ctx.lineTo(lx(n),L.y+L.h); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = C.ink; ctx.font = `600 11px ${C.ui}`; ctx.fillText("p = n", lx(n)+4, L.y+12);
+    ctx.save(); ctx.beginPath(); ctx.rect(L.x,L.y,L.w,L.h); ctx.clip();
+    // norm curve scaled into the same box
+    const nmax = Math.log10(Math.max(...curve.map(c=>c.nw).filter(isFinite))+1e-9), nmin = Math.log10(Math.min(...curve.map(c=>Math.max(c.nw,1e-6))));
+    const ny = v => L.y + L.h - (Math.log10(Math.max(v,1e-6))-nmin)/(nmax-nmin+1e-9)*L.h*.9 - L.h*.05;
+    const line = (key, col, wd, yf)=>{ ctx.strokeStyle=col; ctx.lineWidth=wd; ctx.beginPath(); curve.forEach((c,i)=>{ const x=lx(c.p), y=yf(c[key]); i?ctx.lineTo(x,y):ctx.moveTo(x,y); }); ctx.stroke(); };
+    ctx.globalAlpha=.55; line("nw", C.p2, 1.5, ny); ctx.globalAlpha=1;
+    line("tr", C.p1, 1.6, v=>ly(Math.max(v,10**lo*1.05)));
+    line("te", C.why, 2.4, ly);
+    const sel = curve[pIdx];
+    if(sel){ ctx.fillStyle=C.why; ctx.beginPath(); ctx.arc(lx(sel.p), ly(sel.te), 5, 0, 7); ctx.fill(); ctx.strokeStyle=C.panel; ctx.lineWidth=2; ctx.stroke(); }
+    ctx.restore();
+    ctx.fillStyle = C.muted; ctx.font = `10.5px ${C.ui}`; ctx.fillText("features p →", L.x+L.w-70, L.y+L.h+26);
+    // right panel: fitted function
+    const p = grid[pIdx], o = fitOne(p, banks[0]);
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText(`Fit with p = ${p} features (draw 1)`, R.x, R.y-8);
+    ctx.fillStyle = C.panel; ctx.strokeStyle = C.line; ctx.lineWidth=1; ctx.fillRect(R.x,R.y,R.w,R.h); ctx.strokeRect(R.x,R.y,R.w,R.h);
+    const yr = 2.4, fx = x => R.x + (x+1)/2*R.w, fy = y => R.y + R.h/2 - y/yr*R.h/2;
+    ctx.save(); ctx.beginPath(); ctx.rect(R.x,R.y,R.w,R.h); ctx.clip();
+    ctx.setLineDash([5,4]); ctx.strokeStyle = C.lineStrong; ctx.lineWidth=1.5; ctx.beginPath(); XT.forEach((x,i)=>{ i?ctx.lineTo(fx(x),fy(YT[i])):ctx.moveTo(fx(x),fy(YT[i])); }); ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle = C.why; ctx.lineWidth=2.2; ctx.beginPath(); XT.forEach((x,i)=>{ const y=Math.max(-50,Math.min(50,o.pred[i])); i?ctx.lineTo(fx(x),fy(y)):ctx.moveTo(fx(x),fy(y)); }); ctx.stroke();
+    ctx.fillStyle = C.ink; xs.forEach((x,i)=>{ ctx.beginPath(); ctx.arc(fx(x),fy(ys[i]),3.6,0,7); ctx.fill(); });
+    ctx.restore();
+    ctx.fillStyle = C.muted; ctx.font = `10.5px ${C.ui}`; ctx.fillText("dashed: true function · dots: noisy data", R.x+6, R.y+R.h-7);
+    document.getElementById("dd-r-ratio").textContent = (p/n).toFixed(2);
+    document.getElementById("dd-r-tr").textContent = fmt(sel.tr);
+    document.getElementById("dd-r-te").textContent = fmt(sel.te);
+    document.getElementById("dd-r-w").textContent = fmt(sel.nw);
+  }
+  const outP = document.querySelector('output[for="dd-p"]');
+  function setP(i){ pIdx = Math.max(0,Math.min(grid.length-1,i)); document.getElementById("dd-p").value = pIdx; outP.textContent = grid[pIdx]; }
+  function full(){ if(!ready) return; sweep(); view.redraw(); }
+  makeGrid(); makeData(); makeBanks();
+  A.slider("dd-p", v=>{ pIdx=v|0; if(curve.length){ outP.textContent=grid[pIdx]; view.redraw(); } }, v=>grid[v|0]);
+  A.slider("dd-n", v=>{ const keep = grid[pIdx]; n=v; makeGrid(); makeData(); if(banks.length){ setP(grid.findIndex(p=>p>=keep)); full(); } }, v=>v);
+  A.slider("dd-noise", v=>{ noise=v; if(banks.length){ makeData(); full(); } }, v=>v.toFixed(2));
+  A.slider("dd-lam", v=>{ lam=10**v; if(banks.length) full(); }, v=>`1e${v}`);
+  A.slider("dd-sig", v=>{ sig=v; if(banks.length){ makeBanks(); full(); } }, v=>v);
+  document.getElementById("dd-new").onclick = ()=>{ dataSeed++; makeData(); full(); };
+  document.getElementById("dd-at").onclick = ()=>{ setP(grid.indexOf(n)); view.redraw(); };
+  ready=true; setP(grid.length-1); full();
+})();
+
+/* =================== LAB 2: min-norm interpolation and GD =================== */
+(function(){
+  const cv = document.getElementById("cv-mn");
+  const K = 20, D = 2*K+1, NT = 200, XT = Array.from({length:NT},(_,i)=>-1+2*i/(NT-1));
+  let s = 1.2;
+  let xs = [-.86,-.58,-.3,-.02,.27,.55,.83], ys = [.1,.75,.45,-.35,-.1,.6,.2];
+  const n = xs.length;
+  let wMin=null, alts=[], gd=null, gdStep=0, gdLoss=NaN, showAlt=true;
+  const feat = (x, j) => { if(j===0) return 1; const k=Math.ceil(j/2), t=k*Math.PI*x/1.25; return (j%2 ? Math.cos(t) : Math.sin(t))/Math.pow(k,s); };
+  let Phi = null;
+  function build(){
+    Phi = new Float64Array(n*D); for(let i=0;i<n;i++) for(let j=0;j<D;j++) Phi[i*D+j]=feat(xs[i],j);
+    wMin = ridge(Phi, ys, n, D, 1e-12);
+    // other interpolants: wMin + null-space components of random vectors
+    const r = A.rng(77); alts = [];
+    const nm = Math.hypot(...wMin);
+    for(let a=0;a<3;a++){
+      const z = Float64Array.from({length:D}, ()=>r.normal());
+      const Pz = new Float64Array(n); for(let i=0;i<n;i++){ let t=0; for(let j=0;j<D;j++) t+=Phi[i*D+j]*z[j]; Pz[i]=t; }
+      const c = ridge(Phi, Pz, n, D, 1e-12);       // row-space part of z
+      let zn=0; for(let j=0;j<D;j++){ z[j]-=c[j]; zn+=z[j]*z[j]; } zn=Math.sqrt(zn)||1;
+      const scale = nm*(.8+.6*a)/zn; alts.push(Float64Array.from(wMin,(v,j)=>v+scale*z[j]));
+    }
+  }
+  const evalW = (w,x) => { let t=0; for(let j=0;j<D;j++) t+=w[j]*feat(x,j); return t; };
+  const view = A.canvas(cv, w => w<560 ? .85 : .5, draw);
+  let box = null;
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    box = {x:10,y:10,w:w-20,h:h-20};
+    const fx = x => box.x+(x+1)/2*box.w, fy = y => box.y+box.h/2 - y/2*box.h/2;
+    ctx.fillStyle = C.panel; ctx.fillRect(box.x,box.y,box.w,box.h); ctx.strokeStyle=C.line; ctx.strokeRect(box.x,box.y,box.w,box.h);
+    ctx.strokeStyle=C.line; ctx.beginPath(); ctx.moveTo(box.x,fy(0)); ctx.lineTo(box.x+box.w,fy(0)); ctx.stroke();
+    ctx.save(); ctx.beginPath(); ctx.rect(box.x,box.y,box.w,box.h); ctx.clip();
+    const curve = (wv, col, lw, dash) => { ctx.setLineDash(dash||[]); ctx.strokeStyle=col; ctx.lineWidth=lw; ctx.beginPath(); XT.forEach((x,i)=>{ const y=evalW(wv,x); i?ctx.lineTo(fx(x),fy(y)):ctx.moveTo(fx(x),fy(y)); }); ctx.stroke(); ctx.setLineDash([]); };
+    if(showAlt) alts.forEach(a=>curve(a, C.faint, 1.3));
+    curve(wMin, C.why, 2.8);
+    if(gd) curve(gd.w, C.p2, 2, [6,4]);
+    ctx.restore();
+    xs.forEach((x,i)=>{ ctx.fillStyle=C.ink; ctx.beginPath(); ctx.arc(fx(x),fy(ys[i]),6,0,7); ctx.fill(); ctx.strokeStyle=C.panel; ctx.lineWidth=2; ctx.stroke(); });
+    const nrm = v=>Math.hypot(...v);
+    document.getElementById("mn-r-min").textContent = nrm(wMin).toFixed(2);
+    document.getElementById("mn-r-alt").textContent = alts.map(a=>nrm(a).toFixed(1)).join(" · ");
+    document.getElementById("mn-r-step").textContent = gd ? gdStep.toLocaleString() : "–";
+    document.getElementById("mn-r-loss").textContent = gd ? gdLoss.toExponential(1) : "–";
+    document.getElementById("mn-r-dist").textContent = gd ? Math.hypot(...gd.w.map((v,j)=>v-wMin[j])).toFixed(3) : "–";
+  }
+  // gradient descent on 1/2n ||Phi w - y||^2
+  let eta = 0;
+  function startGD(random){
+    // step size from power iteration on Phi^T Phi
+    let v = new Float64Array(D).fill(1), lmax=1;
+    for(let it=0;it<60;it++){ const u=new Float64Array(n); for(let i=0;i<n;i++){ let t=0; for(let j=0;j<D;j++) t+=Phi[i*D+j]*v[j]; u[i]=t; }
+      const v2=new Float64Array(D); for(let j=0;j<D;j++){ let t=0; for(let i=0;i<n;i++) t+=Phi[i*D+j]*u[i]; v2[j]=t; } lmax=Math.hypot(...v2); v=v2.map(x=>x/lmax); }
+    eta = 1.8/lmax;
+    const r = A.rng(5);
+    gd = {w: Float64Array.from({length:D}, ()=> random ? r.normal()*.35 : 0)}; gdStep = 0; anim.start();
+  }
+  const anim = A.loop(cv, ()=>{
+    if(!gd) return false;
+    for(let k=0;k<60;k++){
+      const res=new Float64Array(n); let L=0; for(let i=0;i<n;i++){ let t=-ys[i]; for(let j=0;j<D;j++) t+=Phi[i*D+j]*gd.w[j]; res[i]=t; L+=t*t; }
+      gdLoss = L/(2*n);
+      for(let j=0;j<D;j++){ let g=0; for(let i=0;i<n;i++) g+=Phi[i*D+j]*res[i]; gd.w[j]-=eta*g; }
+      gdStep++;
+    }
+    view.redraw();
+    return gdStep < 30000 && gdLoss > 1e-13;
+  });
+  A.slider("mn-s", v=>{ s=v; build(); if(gd){ gd=null; } view.redraw(); }, v=>v.toFixed(2));
+  document.getElementById("mn-gd0").onclick = ()=>startGD(false);
+  document.getElementById("mn-gdr").onclick = ()=>startGD(true);
+  const altB = document.getElementById("mn-alt"); altB.setAttribute("aria-pressed","true");
+  altB.onclick = ()=>{ showAlt=!showAlt; altB.setAttribute("aria-pressed", showAlt); view.redraw(); };
+  // drag points vertically
+  let dragI = -1;
+  const toLocal = e => { const r=cv.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; };
+  cv.addEventListener("pointerdown", e=>{ const [mx,my]=toLocal(e); const fx=x=>box.x+(x+1)/2*box.w, fy=y=>box.y+box.h/2-y/2*box.h/2;
+    let best=-1,bd=24; xs.forEach((x,i)=>{ const d=Math.hypot(fx(x)-mx,fy(ys[i])-my); if(d<bd){bd=d;best=i;} }); dragI=best; if(best>=0){ cv.setPointerCapture(e.pointerId); e.preventDefault(); } });
+  cv.addEventListener("pointermove", e=>{ if(dragI<0) return; const [,my]=toLocal(e); ys[dragI]=Math.max(-1.9,Math.min(1.9,-(my-box.y-box.h/2)/(box.h/2)*2)); build(); gd=null; view.redraw(); });
+  const up = ()=>{ dragI=-1; }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  build(); view.redraw();
+})();
+
+/* =================== LAB 3: grokking =================== */
+(function(){
+  const cv = document.getElementById("cv-grok");
+  const P = 31, H = 64, LR = .01, B1=.9, B2=.98, MAXS = 4000;
+  let wd = 1, frac = .4, run = !A.reduced;
+  let E1,E2,W, m, v, t, tr, te, hist, step, seed=1;
+  const g = [new Float64Array(P*H), new Float64Array(P*H), new Float64Array(P*H)];
+  const h=new Float64Array(H), z=new Float64Array(H), lo=new Float64Array(P), dz=new Float64Array(H);
+  function reset(){
+    const R = A.rng(seed*977+5);
+    const pairs=[]; for(let a=0;a<P;a++) for(let b=0;b<P;b++) pairs.push([a,b]);
+    for(let i=pairs.length-1;i>0;i--){ const j=Math.floor(R()*(i+1)); [pairs[i],pairs[j]]=[pairs[j],pairs[i]]; }
+    const nTr = Math.round(frac*pairs.length); tr = pairs.slice(0,nTr); te = pairs.slice(nTr);
+    E1=new Float64Array(P*H); E2=new Float64Array(P*H); W=new Float64Array(P*H);
+    for(let i=0;i<P*H;i++){ E1[i]=R.normal()*.5; E2[i]=R.normal()*.5; W[i]=R.normal()/Math.sqrt(H); }
+    m=[0,0,0].map(()=>new Float64Array(P*H)); v=[0,0,0].map(()=>new Float64Array(P*H)); t=0; step=0; hist=[];
+    record();
+  }
+  function forward(a,b){
+    let mx=-1e9; for(let k=0;k<H;k++){ const x=E1[a*H+k]+E2[b*H+k]; h[k]=x; z[k]=x*x; }
+    for(let o=0;o<P;o++){ let s=0; const off=o*H; for(let k=0;k<H;k++) s+=W[off+k]*z[k]; lo[o]=s; if(s>mx) mx=s; }
+    return mx;
+  }
+  function acc(set){ let c=0; for(const [a,b] of set){ forward(a,b); let arg=0; for(let o=1;o<P;o++) if(lo[o]>lo[arg]) arg=o; if(arg===(a+b)%P) c++; } return c/set.length; }
+  function trainStep(){
+    g[0].fill(0); g[1].fill(0); g[2].fill(0);
+    const inv = 1/tr.length;
+    for(const [a,b] of tr){
+      const mx = forward(a,b); let se=0; for(let o=0;o<P;o++){ lo[o]=Math.exp(lo[o]-mx); se+=lo[o]; }
+      dz.fill(0); const y=(a+b)%P;
+      for(let o=0;o<P;o++){ const d=(lo[o]/se-(o===y?1:0))*inv, off=o*H; for(let k=0;k<H;k++){ g[2][off+k]+=d*z[k]; dz[k]+=d*W[off+k]; } }
+      for(let k=0;k<H;k++){ const dh=dz[k]*2*h[k]; g[0][a*H+k]+=dh; g[1][b*H+k]+=dh; }
+    }
+    t++; const c1=1-Math.pow(B1,t), c2=1-Math.pow(B2,t), ps=[E1,E2,W];
+    for(let q=0;q<3;q++){ const p=ps[q], gg=g[q], mm=m[q], vv=v[q];
+      for(let i=0;i<p.length;i++){ mm[i]=B1*mm[i]+(1-B1)*gg[i]; vv[i]=B2*vv[i]+(1-B2)*gg[i]*gg[i]; p[i]-=LR*((mm[i]/c1)/(Math.sqrt(vv[i]/c2)+1e-8)+wd*p[i]); } }
+    step++;
+  }
+  function spectrum(){ // per-neuron power of the summed embeddings at each frequency k=1..15
+    const nb=(P-1)/2, M=[];
+    for(let k=0;k<H;k++){ const row=new Float64Array(nb+1);
+      for(const E of [E1,E2]){ let mean=0; for(let a=0;a<P;a++) mean+=E[a*H+k]; mean/=P;
+        for(let f=1;f<=nb;f++){ let re=0,im=0; for(let a=0;a<P;a++){ const v=E[a*H+k]-mean; re+=v*COS[f][a]; im+=v*SIN[f][a]; } row[f]+=re*re+im*im; } }
+      let tot=0, best=1; for(let f=1;f<=nb;f++){ tot+=row[f]; if(row[f]>row[best]) best=f; }
+      M.push({row, tot:tot||1, best, pur:row[best]/(tot||1)}); }
+    return M;
+  }
+  const COS=[], SIN=[]; for(let f=0;f<=(P-1)/2;f++){ COS.push(Float64Array.from({length:P},(_,a)=>Math.cos(2*Math.PI*f*a/P))); SIN.push(Float64Array.from({length:P},(_,a)=>Math.sin(2*Math.PI*f*a/P))); }
+  function norm(){ let s=0; for(const p of [E1,E2,W]) for(let i=0;i<p.length;i++) s+=p[i]*p[i]; return Math.sqrt(s); }
+  function record(){ hist.push({s:step, tr:acc(tr), te:acc(te), n:norm()}); }
+  const view = A.canvas(cv, w => w<560 ? 1.05 : .52, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const T = {x:34,y:22,w:w-44,h:h*.56-30}, S = {x:34,y:h*.56+26,w:w-44,h:h*.44-46};
+    ctx.font=`600 12px ${C.ui}`; ctx.fillStyle=C.muted; ctx.fillText("Accuracy over training steps", T.x-26, T.y-8);
+    ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.strokeRect(T.x,T.y,T.w,T.h);
+    const smax = Math.max(MAXS*0.5, step), sx = s => T.x + s/smax*T.w, ay = a => T.y+T.h - a*T.h;
+    ctx.font=`10.5px ${C.mono}`; ctx.fillStyle=C.muted;
+    [0,.5,1].forEach(a=>{ ctx.fillText(`${a*100|0}%`, T.x-32, ay(a)+3); ctx.strokeStyle=C.line; ctx.beginPath(); ctx.moveTo(T.x,ay(a)); ctx.lineTo(T.x+T.w,ay(a)); ctx.stroke(); });
+    for(let s=0;s<=smax;s+=1000){ ctx.textAlign = s===0 ? "left" : sx(s)>T.x+T.w-20 ? "right" : "center"; ctx.fillText(String(s), sx(s), T.y+T.h+13); } ctx.textAlign="start";
+    const nmax = Math.max(...hist.map(o=>o.n))*1.05;
+    const line=(key,col,lw,yf)=>{ ctx.strokeStyle=col; ctx.lineWidth=lw; ctx.beginPath(); hist.forEach((o,i)=>{ const x=sx(o.s), y=yf(o[key]); i?ctx.lineTo(x,y):ctx.moveTo(x,y); }); ctx.stroke(); };
+    ctx.globalAlpha=.7; line("n", C.p2, 1.5, v=>T.y+T.h-v/nmax*T.h); ctx.globalAlpha=1;
+    line("tr", C.p1, 2, ay); line("te", C.why, 2.4, ay);
+    ctx.setLineDash([3,4]); ctx.strokeStyle=C.lineStrong; ctx.beginPath(); ctx.moveTo(T.x,ay(1/P)); ctx.lineTo(T.x+T.w,ay(1/P)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle=C.muted; ctx.font=`10.5px ${C.ui}`; ctx.fillText("chance", T.x+T.w-40, ay(1/P)-4);
+    // neuron x frequency heatmap
+    const M = spectrum().sort((a,b)=>a.best-b.best || b.pur-a.pur), nb=(P-1)/2, pur = M.reduce((a,o)=>a+o.pur,0)/H;
+    ctx.font=`600 12px ${C.ui}`; ctx.fillStyle=C.muted; ctx.fillText(w<560 ? "Neurons × Fourier frequency k" : "Each column: one hidden neuron's power per Fourier frequency k", S.x-26, S.y-8);
+    const cw=S.w/H, ch=S.h/nb;
+    ctx.fillStyle=C.panel; ctx.fillRect(S.x,S.y,S.w,S.h);
+    M.forEach((o,c)=>{ for(let f=1;f<=nb;f++){ const v=o.row[f]/o.tot; if(v<.02) continue; ctx.globalAlpha=Math.min(1,v*1.6); ctx.fillStyle=C.why; ctx.fillRect(S.x+c*cw, S.y+(f-1)*ch, Math.max(1,cw-.5), ch-.5); } });
+    ctx.globalAlpha=1; ctx.strokeStyle=C.line; ctx.strokeRect(S.x,S.y,S.w,S.h);
+    ctx.fillStyle=C.muted; ctx.font=`10px ${C.mono}`; [1,5,10,15].forEach(f=>ctx.fillText(String(f), S.x-18, S.y+(f-.5)*ch+3));
+    ctx.font=`10.5px ${C.ui}`; ctx.fillText("neurons, sorted by main frequency →", S.x, S.y+S.h+13);
+    const last = hist[hist.length-1];
+    document.getElementById("gk-r-step").textContent = step.toLocaleString();
+    document.getElementById("gk-r-tr").textContent = (last.tr*100).toFixed(1)+"%";
+    document.getElementById("gk-r-te").textContent = (last.te*100).toFixed(1)+"%";
+    document.getElementById("gk-r-norm").textContent = last.n.toFixed(1);
+    document.getElementById("gk-r-four").textContent = (pur*100).toFixed(0)+"%";
+  }
+  const btn = document.getElementById("gk-run");
+  const setBtn = ()=>{ btn.textContent = run ? "Pause" : (step>0 ? "Resume" : "Train"); };
+  const anim = A.loop(cv, ()=>{
+    if(!run) return false;
+    const t0 = performance.now();
+    while(performance.now()-t0 < 22 && step < MAXS){ trainStep(); if(step%20===0) record(); }
+    view.redraw();
+    if(step>=MAXS){ run=false; setBtn(); return false; }
+  });
+  btn.onclick = ()=>{ run=!run; setBtn(); if(run) anim.start(); };
+  document.getElementById("gk-reset").onclick = ()=>{ reset(); run=true; setBtn(); view.redraw(); anim.start(); };
+  A.slider("gk-wd", v=>{ wd=v; }, v=>v.toFixed(1));
+  A.slider("gk-frac", v=>{ frac=v; }, v=>Math.round(v*100)+"%");
+  reset(); setBtn(); view.redraw(); if(run) anim.start();
+})();
+
+/* =================== QUIZ =================== */
+A.quiz("quiz", [
+  {q:"Zhang et al. trained standard image networks on randomly shuffled labels. Why did that result matter?",
+   options:["It showed the networks were too small","It showed the same networks can memorize noise, so their capacity cannot be what makes them generalize on real labels","It showed random labels improve accuracy","It proved SGD always finds global minima"],
+   answer:1, why:"If the model class can fit anything, fitting the training set says nothing by itself. Generalization must come from which fitting solution training selects."},
+  {q:"In the double-descent lab, why is test error worst near p = n?",
+   options:["The model has too many parameters","There is exactly one interpolant and it must pass through every noisy point, so its weights blow up between points","The optimizer has not converged","Random features stop working at p = n"],
+   answer:1, why:"At the interpolation threshold the system is square and badly conditioned. The unique fit amplifies the label noise. With more features there are many fits and the minimum-norm one is tame."},
+  {q:"Why does gradient descent from w = 0 on an underdetermined least-squares problem end at the minimum-norm solution?",
+   options:["Because it adds an explicit L2 penalty","Because every gradient is a combination of the training inputs, so the null-space component starts at zero and never changes","Because it uses a small learning rate","Because the loss is convex"],
+   answer:1, why:"The null space holds directions that change no training prediction, so the gradient never points there. Starting from zero, the iterate is always in the row space, and the only interpolant there is the minimum-norm one."},
+  {q:"In the grokking lab, training accuracy is already 100% when test accuracy starts rising. What drives the late change?",
+   options:["The learning rate warms up","Weight decay keeps shrinking weights the loss doesn't need, and the compact Fourier solution survives at a smaller norm than memorization","More data arrives","The test set gets easier"],
+   answer:1, why:"Both solutions fit the training set. Weight decay prefers the smaller one. With decay set to 0 the network stays in the memorizing solution."},
+  {q:"Setting the simplicity weighting s to 0 makes the minimum-norm interpolant spiky. What does that show?",
+   options:["Minimum-norm solutions never generalize","'Simple' is defined relative to the parameterization; change what is cheap and the preferred solution changes","Sines are worse than cosines","Gradient descent is broken"],
+   answer:1, why:"With all harmonics equally cheap, a high-frequency wiggle costs no more than a smooth bump. The same point underlies Dinh et al.'s critique of raw sharpness as a generalization measure."},
+  {q:"Why can't the neural tangent kernel picture be the whole story for real networks?",
+   options:["It only applies to convolutional nets","In the NTK limit features stay frozen at initialization, while real networks change their hidden features and much of their advantage comes from that","It ignores the training data","It requires infinite data"],
+   answer:1, why:"The lazy regime is kernel regression with a fixed kernel. Feature learning (the rich regime) is what produces things like the sparse Fourier features in grokking."},
+]);
+})();
+</script>
+</body>
+</html>

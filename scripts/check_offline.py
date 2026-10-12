@@ -23,7 +23,7 @@ MARKDOWN_IMAGE = re.compile(r'!\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)')
 MARKDOWN_LINK = re.compile(r'(?<!!)\[[^\]]+\]\(([^)]+)\)')
 # Kept in step with VIEWABLE in build_reader.py and app.js.
 VIEWABLE = re.compile(r"\.(cfg|csv|ini|json|lock|md|py|sh|toml|txt|ya?ml|zig|zon)$", re.I)
-ASSET_ROOTS = ("explorables", "quizzes")
+ASSET_ROOTS = ("explorables", "quizzes", "research")
 
 
 def normalize(path: str) -> str:
@@ -110,7 +110,7 @@ def check_links(reader: Path) -> int:
             href = raw.split("#")[0].split("?")[0]
             if not href or re.match(r"^(https?:|mailto:|data:|//)", href):
                 continue
-            if "' +" in raw or '" +' in raw or "\n" in raw:
+            if re.search(r"['\"]\s*\+|\$\{", raw) or "\n" in raw:
                 continue  # a JavaScript-built href, not a literal one
             checked += 1
             if not resolves(reader, normalize(f"{directory}/{href}")):
@@ -152,6 +152,10 @@ def check_reader() -> None:
         reader / "quizzes" / "01.html",
         reader / "quizzes" / "05a.html",
         reader / "content" / "modules" / "10-agents" / "README.md",
+        reader / "research" / "index.html",
+        reader / "research" / "why-atlas.html",
+        reader / "research" / "jepa-field-map.html",
+        reader / "research" / "assets" / "fonts.css",
     ]
     missing = [str(path.relative_to(ROOT)) for path in required if not path.exists()]
     if missing:
@@ -176,6 +180,7 @@ def check_reader() -> None:
         reader / "index.html",
         *(reader / "explorables").glob("*.html"),
         *quizzes,
+        *(reader / "research").glob("*.html"),
     ]:
         text = html.read_text()
         parser = DependencyParser()

@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why can't greatness be planned? · Hidden Patch</title>
+<meta name="description" content="Open-endedness from the question why: deceptive objectives, novelty search, MAP-Elites, stepping stones, POET and OMNI, the novelty-plus-learnability definition, and AI scientists built as archives.">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/atlas.css">
+<style>
+/* page-specific */
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:.4rem 1rem}
+.duo .h{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.duo dl{margin:0}
+.swatch{display:inline-block;width:.7rem;height:.7rem;border-radius:50%;vertical-align:-.05em;margin-right:.3rem}
+.ramp{height:10px;border-radius:4px;border:1px solid var(--line)}
+select{width:100%;max-width:100%}
+.oe{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.6rem}
+.oe>div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.7rem .85rem;font-size:.92rem;display:grid;gap:.25rem;align-content:start}
+.oe b{font-family:var(--display)}
+.oe .t{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.oe .y{color:var(--good);font-family:var(--mono);font-size:.78rem}
+.oe .n{color:var(--bad);font-family:var(--mono);font-size:.78rem}
+</style>
+</head>
+<body data-chapter="open" data-part="4">
+<header id="topbar" class="topbar"></header>
+
+<main class="chapter">
+  <section class="opener">
+    <p class="eyebrow"><span class="sw"></span>Part 4 · Life · Chapter 14</p>
+    <h1 class="big"><span class="w">Why</span> can't greatness be planned?</h1>
+    <p class="because">the stepping stones to an ambitious goal rarely look like progress toward it. A search that rewards "closer to the goal" climbs into the nearest dead end. A search that rewards "different from what we have" collects stepping stones, and some of them lead where no measure of closeness pointed.</p>
+    <p class="meta"><span>6 beats · 3 labs · 6 questions</span><span>Builds on: <a href="alife.html">13 Why life grows from simple rules</a></span><span>Map: <a href="why-atlas.html">Why Atlas</a></span></p>
+    <ul class="toc">
+      <li><a href="#deceive"><span class="q">?</span>Why aiming fails</a></li>
+      <li><a href="#qd"><span class="q">?</span>Why keep a thousand solutions</a></li>
+      <li><a href="#stones"><span class="q">?</span>Why the path looks unrelated</a></li>
+      <li><a href="#worlds"><span class="q">?</span>Why evolve the problems too</a></li>
+      <li><a href="#define"><span class="q">?</span>What counts as open-ended</a></li>
+      <li><a href="#scientists"><span class="q">?</span>Why AI scientists keep archives</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ BEAT 1: deception ============ -->
+  <section class="beat" id="deceive">
+    <header>
+      <span class="num">Beat 1</span>
+      <h2><span class="w">Why</span> does aiming straight at the goal keep you from reaching it?</h2>
+      <p class="short">Because a fitness function scores where you are, not where a step can lead. When the route to the goal first goes away from it, every step along that route scores worse than the dead end next to the goal, so selection throws the route away. That is a <em>deceptive</em> objective.</p>
+    </header>
+    <div class="prose">
+      <p>Joel Lehman and Kenneth Stanley tested the idea with the simplest deceptive problem they could build: a robot in a maze, scored by how close it ends to the goal (ALIFE 2008, then <a href="https://doi.org/10.1162/EVCO_a_00025">"Abandoning Objectives"</a>, <i>Evolutionary Computation</i> 2011). Then they did something that sounds absurd. They threw the goal away and rewarded <b>novelty</b> alone: how far a robot's final position is from the final positions already seen. Novelty search solved the maze far more often, because "go somewhere new" keeps pushing into corridors that "get closer" refuses to enter.</p>
+      <div class="eq">novelty(x) = (1/k) · Σ<sub>i=1..k</sub> dist( b(x), b(μ<sub>i</sub>) )
+        <span class="c">b(x) is a behaviour descriptor (here: where the robot ends). μ<sub>1..k</sub> are the k nearest behaviours among the current population and an archive of past novel ones. No goal appears anywhere.</span></div>
+      <p>The lab is a re-creation, not the original. Each robot is a list of 24 headings; it moves 24 short segments and slides along walls. Both populations use the same mutation, the same population size (100) and the same selection (keep the top 10, mutate them). Only the score differs.</p>
+    </div>
+    <figure class="lab" id="lab-maze">
+      <div class="lab-head"><span class="tag">Sim</span><h3>The deceptive maze: same robots, two kinds of ambition</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-maze" aria-label="Two copies of a maze. Left: objective search, its population piled under a wall near the goal. Right: novelty search spreading through the maze."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i style="background:var(--p1)"></i>final positions, objective</span><span><i style="background:var(--p2)"></i>final positions, novelty</span><span><i style="background:var(--faint)"></i>novelty archive</span><span><i style="background:var(--why)"></i>best path · goal</span></div>
+        </div>
+        <div class="side">
+          <div class="btns"><button type="button" class="primary" id="mz-play">Pause</button><button type="button" id="mz-step">+1 generation</button><button type="button" id="mz-new">New run</button></div>
+          <div class="ctrl"><div class="row"><label for="mz-speed">Generations per second</label><output for="mz-speed"></output></div>
+            <input type="range" id="mz-speed" min="1" max="60" step="1" value="12"></div>
+          <div class="ctrl"><div class="row"><label for="mz-k">k nearest (novelty)</label><output for="mz-k"></output></div>
+            <input type="range" id="mz-k" min="3" max="30" step="1" value="12"></div>
+          <dl class="readout">
+            <dt>run · generation</dt><dd id="mz-gen">–</dd>
+            <dt>objective: best distance</dt><dd id="mz-od">–</dd>
+            <dt>objective: reached goal</dt><dd id="mz-os">–</dd>
+            <dt>novelty: best distance</dt><dd id="mz-nd">–</dd>
+            <dt>novelty: reached goal</dt><dd id="mz-ns" class="hot">–</dd>
+            <dt>archive size</dt><dd id="mz-ar">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>The objective population piles up under the first wall, right below the goal, at distance 0.45. That pocket is the best score anywhere nearby, and the opening on the far right scores worse (about 0.9), so nothing that heads there survives selection.</li>
+        <li>Novelty spreads out first, fills the bottom room, finds the opening because it is <em>new</em>, then fills the corridor, then the goal room. In 20 seeded runs of this exact code, novelty reached the goal in all 20 (median about 100 generations); objective search did in 7, and the other 13 were still stuck at 0.45 after 400.</li>
+        <li>Novelty is not magic: it works here because the behaviour space is small (a 2-D position) so "everything new" runs out quickly. In a huge behaviour space pure novelty wanders forever, which is why later methods add quality back in (beat 2).</li>
+      </ul></div>
+    </figure>
+    <div class="analogy"><span class="ico">⤳</span><div><span class="k">Picture it</span><p>A hiker told "always walk uphill toward the summit you can see" ends on the nearest false peak. A hiker told "always go somewhere you have not been" eventually stands on every peak, including the real one, though nobody told them which it was.</p></div></div>
+  </section>
+
+  <!-- ============ BEAT 2: QD ============ -->
+  <section class="beat" id="qd">
+    <header>
+      <span class="num">Beat 2</span>
+      <h2><span class="w">Why</span> keep a thousand mediocre solutions instead of one good one?</h2>
+      <p class="short">Because each one is the best-known way to do something slightly different, and any of them may be the stepping stone to the solution you need later. Quality-diversity search keeps the best solution <em>per kind of behaviour</em>, so it gets diversity and quality at once.</p>
+    </header>
+    <div class="prose">
+      <p><b>MAP-Elites</b> (Jean-Baptiste Mouret and Jeff Clune, 2015) is the cleanest version. Pick a few behaviour dimensions and cut them into a grid. Keep one elite per cell, the best solution whose behaviour falls in that cell. Then loop: pick a random elite, mutate it, evaluate it, and put the child in its own cell if the cell is empty or the child beats the incumbent. Cully, Clune, Tarapore and Mouret used such a map of walking gaits to let a six-legged robot recover from a broken leg by trying elites from the map (<i>Nature</i>, 2015).</p>
+      <p>The lab is the standard toy from the quality-diversity literature: a planar arm with 8 joints. The behaviour is where the hand ends up (a 2-D grid); the quality is smoothness (all joint angles alike, so low variance is better). Each cell of the map is literally the place the hand reaches, so you can click a cell and see the arm.</p>
+    </div>
+    <figure class="lab" id="lab-me">
+      <div class="lab-head"><span class="tag">Lab</span><h3>MAP-Elites filling a map of an 8-joint arm, live</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-me" aria-label="A grid of cells coloured by fitness, filled by MAP-Elites; an arm drawn from the centre to the selected cell; a chart of coverage over evaluations."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i class="ramp" style="width:4rem;display:inline-block;vertical-align:middle;background:linear-gradient(90deg,color-mix(in srgb,var(--p2) 22%,var(--panel)),var(--p2))"></i> fitness: jerky → smooth</span><span><i style="background:var(--why)"></i>selected elite</span></div>
+        </div>
+        <div class="side">
+          <div class="btns"><button type="button" class="primary" id="me-play">Pause</button><button type="button" id="me-reset">Reset</button></div>
+          <div class="ctrl"><span class="lbl">Show archive of</span>
+            <div class="seg" role="group" aria-label="Archive shown"><button type="button" data-v="me" aria-pressed="true">MAP-Elites</button><button type="button" data-v="rnd" aria-pressed="false">Random search</button></div>
+            <span class="hint">Random search gets the same number of evaluations, sampled uniformly from genome space, and is binned into the same grid.</span></div>
+          <div class="ctrl"><div class="row"><label for="me-sig">Mutation size</label><output for="me-sig"></output></div>
+            <input type="range" id="me-sig" min="0.02" max="0.6" step="0.01" value="0.15"></div>
+          <span class="hint muted small">Click a cell to see its arm.</span>
+          <dl class="readout">
+            <dt>evaluations</dt><dd id="me-ev">0</dd>
+            <dt>MAP-Elites cells</dt><dd id="me-c" class="hot">–</dd>
+            <dt>random-search cells</dt><dd id="me-rc">–</dd>
+            <dt>mean fitness, MAP-Elites</dt><dd id="me-q">–</dd>
+            <dt>mean fitness, random</dt><dd id="me-rq">–</dd>
+            <dt>selected</dt><dd id="me-sel">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Random arms are random walks: their hands cluster near the shoulder, and the outer ring, where the arm must be almost straight, stays empty. MAP-Elites reaches it by mutating the elites one ring in, which were themselves mutated from the ring before. Every ring is a stepping stone for the next.</li>
+        <li>Let it run to 60,000 evaluations: in our offline run MAP-Elites filled about 1,070 cells with mean fitness near −0.006, random search about 760 cells at −0.69. More kinds of solution, and each one far better.</li>
+        <li>Click a cell near the edge: the elite is a smooth arc. Click near the centre: the arm folds back on itself, and the best fold is still recorded, because some later problem may need exactly that.</li>
+        <li>This "keep the best of every kind" pattern is everywhere now: Go-Explore's archive of states (Montezuma's Revenge), Rainbow Teaming's grid of adversarial prompts, Digital Red Queen's MAP-Elites of Core War programs, and VPO's diversity objective inside LLM RL.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 3: stepping stones ============ -->
+  <section class="beat" id="stones">
+    <header>
+      <span class="num">Beat 3</span>
+      <h2><span class="w">Why</span> does the path to a great result go through things that look unrelated?</h2>
+      <p class="short">Because the stepping stones are judged by what they make <em>possible</em>, and that is invisible to a similarity score. In Picbreeder, the images that led to a skull did not look like skulls; they built symmetry first. Searching for the skull directly scores those ancestors as failures.</p>
+    </header>
+    <div class="split">
+      <div class="prose">
+        <p><b>Picbreeder</b> (Secretan, Stanley and colleagues, 2008) was a website where people bred images. Each image is drawn by a <span class="term" tabindex="0" data-def="Compositional Pattern-Producing Network: a small network that maps pixel coordinates (x, y, distance from centre) to a colour, using functions like sine, Gaussian and absolute value, so symmetry and repetition come cheap. Evolved with NEAT in Picbreeder.">CPPN</span>. A user picks the images they like from 15 children, those get mutated, and anyone can continue from anyone else's image. Nobody had a target. Users still produced skulls, butterflies, cars and faces.</p>
+        <p>Stanley noticed that when someone found a car, they had not been looking for a car. And when people tried to evolve a specific image as a target, they failed. In the FER paper (<a href="fractured.html">chapter 07</a>) the famous skull took about 74 picks along a path where <b>left-right symmetry appeared around picks 20 to 36</b>, long before anything looked like a skull. The resulting network uses symmetry once and reuses it; an SGD-trained network that draws the same skull is a tangle. In <i>Why Greatness Cannot Be Planned</i> (2015), Stanley and Lehman make the same point about history: the people who built vacuum tubes were not trying to build computers.</p>
+      </div>
+      <aside class="aside"><span class="k">How the lab was made</span>We ran a novelty search over small fixed-topology CPPNs (8 + 4 hidden units, activations sin, Gaussian, sigmoid, abs, tanh, identity; Picbreeder's NEAT also grows the topology, which we skip). From its archive we took one image, an "eye", and recorded its 24-step lineage from the first random image. The lab replays that lineage, scores every ancestor by pixel correlation with the eye, and lets you run a greedy search that tries to evolve the eye directly from the same first image.</aside>
+    </div>
+    <figure class="lab" id="lab-stones">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Re-evolve the eye: the lineage that found it, and a search that aims at it</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-stones" aria-label="Top: 24 ancestor images of the target with their similarity scores. Bottom: the target, the greedy search's best image, and similarity over generations."></canvas></div>
+        <div class="side">
+          <div class="btns"><button type="button" class="primary" id="st-run">Chase the target directly</button><button type="button" id="st-stop">Stop</button></div>
+          <div class="ctrl"><div class="row"><label for="st-pop">Greedy population</label><output for="st-pop"></output></div>
+            <input type="range" id="st-pop" min="10" max="80" step="5" value="40">
+            <span class="hint">Keep the 5 most similar, fill the rest with mutated copies (tournament of 3). Up to 300 generations.</span></div>
+          <dl class="readout">
+            <dt>lineage steps</dt><dd>24</dd>
+            <dt>best ancestor before the last 2</dt><dd id="st-anc">–</dd>
+            <dt>greedy generation</dt><dd id="st-gen">–</dd>
+            <dt>greedy evaluations</dt><dd id="st-ev">–</dd>
+            <dt>greedy best similarity</dt><dd id="st-best" class="hot">–</dd>
+          </dl>
+          <span class="hint muted small">Click any ancestor to see it large.</span>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Read the numbers under the ancestors. By the only measure an objective can use, every ancestor scores about zero, including the ring shapes two steps before the end: their rings sit in the wrong places. The open-ended search that found the eye never asked for it.</li>
+        <li>Greedy search starts from the same first image. At the default population of 40 it gets 12,000 evaluations, and in our 10 offline runs it stopped between 0.32 and 0.48 similarity (median 0.40). Larger populations creep a little higher but stay far from 1. It improves fast, then stalls in a picture that half-matches. The eye is one of the most reachable things in this space, just not by aiming at it.</li>
+        <li>This is a toy version of Woolley and Stanley's 2011 test, where re-evolving Picbreeder images as targets failed, and of the AI Picbreeder study (2026), where vision-language agents replaced the humans: they still lost to humans on most measures and showed mode collapse.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 4: evolving worlds ============ -->
+  <section class="beat" id="worlds">
+    <header>
+      <span class="num">Beat 4</span>
+      <h2><span class="w">Why</span> let the problems evolve too, and who decides which are interesting?</h2>
+      <p class="short">Because a fixed problem runs out of stepping stones: once it is solved, nothing new is asked. Co-evolving environments keep generating new problems at the edge of what the agents can do, and a model of human interest keeps that stream from filling with trivial variations.</p>
+    </header>
+    <div class="split">
+      <div class="prose">
+        <p><b><a href="https://arxiv.org/abs/1901.01753">POET</a></b> (Wang, Lehman, Clune and Stanley, 2019; GECCO best paper) evolves pairs of 2-D walking terrains and walkers. New terrains are kept only if they are neither too easy nor too hard for current walkers, and walkers are regularly <em>transferred</em> between terrains. Some hard terrains were solved only by a walker that had first learned on a different terrain, a stepping stone no curriculum designer would have picked. Enhanced POET (2020) added a general measure of novelty for environments and an unbounded terrain encoding.</p>
+        <p>The weak point was "interesting". An algorithm can generate endless levels that differ only in irrelevant ways. <b><a href="https://arxiv.org/abs/2306.01711">OMNI</a></b> (Zhang, Lehman, Stanley and Clune, 2023) asks a language model which tasks a human would find interesting and trains on tasks that are both learnable and interesting. <b><a href="https://arxiv.org/abs/2405.15568">OMNI-EPIC</a></b> (2024) lets foundation models write new environments and their reward functions in code, filtered the same way, for a potentially endless stream of tasks.</p>
+        <p>Jeff Clune's <a href="https://arxiv.org/abs/1905.10985">AI-generating algorithms</a> (2019) names the program: meta-learn the architectures, meta-learn the learning algorithms, and <b>generate the learning environments</b>. Clune on MLST (2025-01): "Agent AI needs Darwin".</p>
+      </div>
+      <ol class="timeline">
+        <li><span class="d">2008 · 2011</span><br><b>Novelty search</b><br>Reward being different; beats objectives on deceptive mazes.</li>
+        <li><span class="d">2008</span><br><b>Picbreeder</b><br>Collaborative open-ended image breeding; stepping stones.</li>
+        <li><span class="d">2015</span><br><b>MAP-Elites</b> · <b>Why Greatness Cannot Be Planned</b><br>Quality-diversity; the objective paradox, as a book.</li>
+        <li><span class="d">2019</span><br><b>POET</b> · <b>Go-Explore</b> · <b>AI-GAs</b><br>Evolve the problems; return then explore; the manifesto.</li>
+        <li><span class="d">2022</span><br><b>ELM</b><br>An LLM as the mutation operator for code.</li>
+        <li><span class="d">2023 · 2024</span><br><b>OMNI</b> · <b>OMNI-EPIC</b> · <b>QDAIF</b> · <b>ASAL</b><br>Foundation models as judges of interestingness.</li>
+        <li><span class="d">2024</span><br><b>Open-endedness is essential for ASI</b><br>A formal definition: novelty plus learnability.</li>
+        <li><span class="d">2024 to 2026</span><br><b>AI Scientist</b> · <b>DGM</b> · <b>AlphaEvolve</b> · <b>Hyperagents</b><br>Archives of programs, agents and papers (beat 6).</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 5: definition ============ -->
+  <section class="beat" id="define">
+    <header>
+      <span class="num">Beat 5</span>
+      <h2><span class="w">What</span> exactly makes a process open-ended?</h2>
+      <p class="short">A system is open-ended for an observer when its outputs keep surprising the observer (novelty) and the observer can still learn to predict them from enough history (learnability). Noise fails the second test, a repeating pattern fails the first.</p>
+    </header>
+    <div class="prose">
+      <p>Edward Hughes, Michael Dennis, Jack Parker-Holder, Tim Rocktäschel and colleagues at Google DeepMind turned the slogan into a definition in <a href="https://arxiv.org/abs/2406.04268">"Open-Endedness is Essential for Artificial Superhuman Intelligence"</a> (ICML 2024). Take a system producing artifacts over time and an observer with a model that predicts them.</p>
+      <div class="eq" style="white-space:normal"><b>novel</b>: the observer's loss on artifacts from later and later times keeps rising<br><b>learnable</b>: at any time, giving the observer a longer history lowers its loss
+        <span class="c">Both are measured relative to the observer. The same stream can be open-ended for a mouse and boring for a physicist, or the reverse.</span></div>
+      <p>Rocktäschel's MLST argument (2024-10) is that foundation models finally make this practical: they are good observers (models of what humans find interesting) and good generators (of environments, prompts and programs). Promptbreeder, Rainbow Teaming and Genie world models are his examples.</p>
+    </div>
+    <div class="oe">
+      <div><span class="t">Static noise</span><b>TV snow</b><span class="y">novel ✓</span><span class="n">learnable ✗</span><span class="muted small">Always surprising, never more predictable.</span></div>
+      <div><span class="t">A blinker in Life</span><b>Fixed cycle</b><span class="n">novel ✗</span><span class="y">learnable ✓</span><span class="muted small">Learned in two frames, then nothing new.</span></div>
+      <div><span class="t">A converged optimiser</span><b>One answer</b><span class="n">novel ✗</span><span class="y">learnable ✓</span><span class="muted small">Objective search ends here, by design.</span></div>
+      <div><span class="t">Science, evolution, Picbreeder</span><b>Open-ended</b><span class="y">novel ✓</span><span class="y">learnable ✓</span><span class="muted small">Each discovery is surprising, then becomes a stepping stone you can learn from.</span></div>
+    </div>
+    <div class="split">
+      <aside class="aside ours"><span class="k">Why a JEPA fits this definition</span>The definition is written in terms of an observer's <em>prediction loss</em>. A JEPA is an observer whose whole job is prediction in a learned latent space: surprise is its prediction error, and learnability is how fast that error falls with more context. That is the project's bridge idea from <a href="alife.html">chapter 13</a>: a JEPA encoder as the judge in ASAL, or as the behaviour space for novelty search, so that "new" means "my world model did not expect this" rather than "these pixels differ".</aside>
+      <aside class="aside warn"><span class="k">Still open</span>No accepted metric of open-endedness exists. Lehman and Stanley's <a href="https://arxiv.org/abs/2501.13075">Knightian Blindspot</a> paper (2025) argues ML's formalisms (fixed environments, expected-value objectives) leave out unknown unknowns, which evolution survives by persisting, diversifying and building niches. Edward Hughes (MLST 2026-09): creativity is not optimisation; the missing piece is judgement about which questions are worth asking.</aside>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 6: scientists ============ -->
+  <section class="beat" id="scientists">
+    <header>
+      <span class="num">Beat 6</span>
+      <h2><span class="w">Why</span> are AI scientists and self-improving agents built as archives?</h2>
+      <p class="short">Because the same deception hits them. An agent that only keeps its single best version gets stuck on a local peak; keeping an archive of many working variants, and branching from old ones, lets a temporarily worse change become the stepping stone to a much better one. Where a cheap verifier exists, the archive plus the verifier does the rest.</p>
+    </header>
+    <div class="prose">
+      <p>Large language models changed the mutation operator. <b><a href="https://arxiv.org/abs/2206.08896">ELM</a></b> (Lehman et al., 2022) used an LLM to propose code mutations. FunSearch and then <b><a href="https://arxiv.org/abs/2506.13131">AlphaEvolve</a></b> (Novikov, Balog and colleagues at Google DeepMind, 2025) wrapped Gemini in an evolutionary loop with automatic evaluators: a population of programs, an LLM that proposes edits, and a scorer that runs them. AlphaEvolve found a way to multiply 4 × 4 complex matrices with 48 scalar multiplications, plus data-centre scheduling and kernel speed-ups. That is open-ended search pinned to a verifier; <a href="reasoning.html">chapter 09</a> is the story of why "search plus a verifier" keeps winning. Sakana's <a href="https://arxiv.org/abs/2509.19349">ShinkaEvolve</a> (2025) rejects samples that are not novel and matched a state-of-the-art circle packing with about 150 evaluations.</p>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>System</th><th>What is in the archive</th><th>Reported result</th></tr></thead>
+      <tbody>
+        <tr><td><b><a href="https://arxiv.org/abs/2408.06292">The AI Scientist</a></b><br><span class="muted small">Lu, Lu, Lange, Foerster, Clune, Ha · Sakana · 2024</span></td><td>Ideas, code, experiments, papers, automated reviews</td><td>v2 (2025): a fully generated paper scored 6.33 at an ICLR 2025 workshop, above the acceptance bar (withdrawn by design). <i>Nature</i> version 2026-03: the automated reviewer reached 69% balanced accuracy; quality scales with the base model; hallucinated citations remain.</td></tr>
+        <tr><td><b><a href="https://arxiv.org/abs/2505.22954">Darwin Gödel Machine</a></b><br><span class="muted small">Zhang, Hu, Lu, Lange, Clune · 2025</span></td><td>Coding agents that rewrote their own code</td><td>SWE-bench from 20% to 50%, Polyglot from 14% to 31%, by branching from an archive selected on score plus novelty.</td></tr>
+        <tr><td><b><a href="https://arxiv.org/abs/2510.21614">Huxley-Gödel Machine</a></b><br><span class="muted small">Wang, …, Schmidhuber · 2025</span></td><td>Agents, chosen by how good their <em>descendants</em> are</td><td>61.4% on SWE-bench Verified with fewer CPU-hours than DGM. Scoring a lineage instead of an individual is the stepping-stone idea made explicit.</td></tr>
+        <tr><td><b><a href="https://arxiv.org/abs/2603.19461">Hyperagents (DGM-H)</a></b><br><span class="muted small">Zhang, …, Clune, Jiang · 2026</span></td><td>Agents whose self-modification procedure is itself editable</td><td>Beats DGM on coding, paper review, robotics reward design and math grading; meta-improvements transfer across domains.</td></tr>
+        <tr><td><b><a href="https://arxiv.org/abs/2601.03335">Digital Red Queen</a></b><br><span class="muted small">Kumar et al. · Sakana · 2026</span></td><td>Core War programs, MAP-Elites, each round vs all past champions</td><td>Warriors become more general over rounds; across 96 runs behaviour converges while code stays diverse.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="prose">
+      <p>Two cautions from the same community. Zhengyao Jiang (Weco, MLST 2026-09): an agent that improved the scaffolding around a fixed LLM over 8 days is not yet evidence that the system became a better <em>improver</em>, because the search still runs inside a space humans designed. And Lehman, Clune and colleagues keep a running catalogue of systems that "find a way" around the objective (<a href="https://arxiv.org/abs/2608.23875">AI Finds A Way</a>, 2026): open-ended search is also very good at reward hacking.</p>
+    </div>
+  </section>
+
+  <section class="remember">
+    <h2>Three things to <span class="w">remember</span></h2>
+    <ol>
+      <li><b>Closer is not the same as on the way.</b>A deceptive objective scores the dead end above the detour, so selection discards the only route.</li>
+      <li><b>Keep the best of every kind.</b>Novelty search and MAP-Elites collect stepping stones; the one you need later is usually one you would have thrown away.</li>
+      <li><b>Novel and learnable, for someone.</b>Open-endedness is surprise that an observer can learn from. A predictive model, like a JEPA, is a natural observer.</li>
+    </ol>
+  </section>
+
+  <section id="quiz"></section>
+
+  <section class="sources">
+    <h2>Sources for this chapter</h2>
+    <ol>
+      <li>Lehman &amp; Stanley, <a href="https://doi.org/10.1162/EVCO_a_00025">Abandoning Objectives: Evolution through the Search for Novelty Alone</a>, <i>Evolutionary Computation</i> 2011 (DOI from memory in the project notes) <span class="pill bad">check</span></li>
+      <li>Stanley &amp; Lehman, <i>Why Greatness Cannot Be Planned: The Myth of the Objective</i>, Springer 2015.</li>
+      <li>Mouret &amp; Clune, <a href="https://arxiv.org/abs/1504.04909">Illuminating search spaces by mapping elites</a>, 2015; Cully, Clune, Tarapore &amp; Mouret, "Robots that can adapt like animals", <i>Nature</i> 2015 (background).</li>
+      <li>Secretan et al., Picbreeder, CHI 2008 and <i>ECJ</i> 2011 <span class="pill bad">check</span>; Woolley &amp; Stanley, "On the deleterious effects of a priori objectives on evolution and representation", GECCO 2011 (background).</li>
+      <li>Kumar, Clune, Lehman, Stanley, <a href="https://arxiv.org/abs/2505.11581">The Fractured Entangled Representation Hypothesis</a>, 2025 (skull path, ~74 picks).</li>
+      <li>Earle et al., <a href="https://arxiv.org/abs/2605.23908">Replicating Picbreeder with Large Vision-Language Models</a>, GECCO 2026; <a href="https://pub.sakana.ai/picbreeder-vlm/">project page</a>.</li>
+      <li>Wang, Lehman, Clune, Stanley, <a href="https://arxiv.org/abs/1901.01753">POET</a>, 2019 <span class="pill bad">check</span>; Ecoffet et al., <a href="https://arxiv.org/abs/1901.10995">Go-Explore</a>, 2019 <span class="pill bad">check</span></li>
+      <li>Clune, <a href="https://arxiv.org/abs/1905.10985">AI-GAs: AI-generating algorithms</a>, 2019 <span class="pill bad">check</span></li>
+      <li>Zhang, Lehman, Stanley, Clune, <a href="https://arxiv.org/abs/2306.01711">OMNI</a>, 2023 <span class="pill bad">check</span>; Faldor, Zhang, Cully, Clune, <a href="https://arxiv.org/abs/2405.15568">OMNI-EPIC</a>, 2024 <span class="pill bad">check</span></li>
+      <li>Hughes, Dennis, Parker-Holder, Behbahani, Mavalankar, Shi, Schaul, Rocktäschel, <a href="https://arxiv.org/abs/2406.04268">Open-Endedness is Essential for Artificial Superhuman Intelligence</a>, ICML 2024.</li>
+      <li>Lehman, Meyerson, El-Gaaly, Stanley, Ziyaee, <a href="https://arxiv.org/abs/2501.13075">Evolution and The Knightian Blindspot of Machine Learning</a>, 2025.</li>
+      <li>Lehman et al., <a href="https://arxiv.org/abs/2206.08896">Evolution through Large Models (ELM)</a>, 2022 <span class="pill bad">check</span>; Novikov et al., <a href="https://arxiv.org/abs/2506.13131">AlphaEvolve</a>, 2025; Lange et al., <a href="https://arxiv.org/abs/2509.19349">ShinkaEvolve</a>, 2025.</li>
+      <li>Lu et al., <a href="https://arxiv.org/abs/2408.06292">The AI Scientist</a>, 2024; Yamada et al., <a href="https://arxiv.org/abs/2504.08066">The AI Scientist-v2</a>, 2025; <i>Nature</i> 2026 version (secondary report).</li>
+      <li>Zhang et al., <a href="https://arxiv.org/abs/2505.22954">Darwin Gödel Machine</a>, 2025; Wang et al., <a href="https://arxiv.org/abs/2510.21614">Huxley-Gödel Machine</a>, 2025; Zhang et al., <a href="https://arxiv.org/abs/2603.19461">Hyperagents</a>, 2026.</li>
+      <li>Kumar et al., <a href="https://arxiv.org/abs/2601.03335">Digital Red Queen</a>, 2026; Bahlous-Boldi et al., <a href="https://arxiv.org/abs/2605.22817">VPO</a>, 2026; Dharna et al., <a href="https://arxiv.org/abs/2608.23875">AI Finds A Way</a>, 2026.</li>
+      <li>MLST episodes: Rocktäschel (2024-10-04), Clune (2025-01-04), AlphaEvolve team (2025-05-14), Edward Hughes (2026-09-11), Zhengyao Jiang (2026-09-26).</li>
+      <li>Project notes: <code>landscape/ai-landscape-why.md</code> (Q5, section 4), <code>landscape/sources/akarsh-kumar-and-open-endedness.md</code>, <code>landscape/sources/frontier-2025-2026.md</code> §6, <code>landscape/sources/mlst-guests-theory-interp-efficiency-agents.md</code> §D.</li>
+    </ol>
+  </section>
+
+  <nav id="pager"></nav>
+</main>
+<footer id="site-footer"></footer>
+
+<script src="assets/atlas.js"></script>
+<script>
+(function(){
+"use strict";
+const A = window.Atlas;
+function rgb(c){
+  c = (c||"").trim();
+  if(c[0]==="#"){ let h=c.slice(1); if(h.length===3) h=h.split("").map(x=>x+x).join(""); const n=parseInt(h.slice(0,6),16); return [(n>>16)&255,(n>>8)&255,n&255]; }
+  const m = c.match(/[\d.]+/g); return m ? [+m[0],+m[1],+m[2]] : [128,128,128];
+}
+const mix = (a,b,t)=>[a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t];
+const css = c=>`rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;
+const narrow = w => w < 560;
+
+/* =================== LAB 1: deceptive maze =================== */
+(function(){
+  const MZ = {W:[[0,0.48,0.84,0.52],[0.16,0.22,1,0.26]], S:[0.1,0.9], G:[0.08,0.08], K:24, STEP:0.13, PR:0.012, POP:100, EL:10, AR:4, KN:12, R:0.05};
+  function mzHit(x,y){ const P=MZ.PR; if(x<P||y<P||x>1-P||y>1-P) return true; for(const w of MZ.W) if(x>w[0]-P&&x<w[2]+P&&y>w[1]-P&&y<w[3]+P) return true; return false; }
+  function mzSim(g, path){ let x=MZ.S[0], y=MZ.S[1]; if(path) path.push([x,y]);
+    for(let k=0;k<MZ.K;k++){ const dx=Math.cos(g[k])*MZ.STEP/4, dy=Math.sin(g[k])*MZ.STEP/4;
+      for(let j=0;j<4;j++){ if(!mzHit(x+dx,y+dy)){ x+=dx; y+=dy; } else if(!mzHit(x+dx,y)) x+=dx; else if(!mzHit(x,y+dy)) y+=dy; }
+      if(path) path.push([x,y]); }
+    return [x,y]; }
+  function mzRun(mode, seed){
+    const r = A.rng(seed), st = {mode, gen:0, pop:[], archive:[], solved:-1, best:null, last:null};
+    for(let i=0;i<MZ.POP;i++){ const g=[]; for(let k=0;k<MZ.K;k++) g.push(-Math.PI/2 + r.normal()*.5); st.pop.push({g}); }
+    st.step = function(){
+      const pop = st.pop;
+      for(const p of pop){ p.b = mzSim(p.g); p.d = Math.hypot(p.b[0]-MZ.G[0], p.b[1]-MZ.G[1]); }
+      let bi = 0; for(let i=1;i<pop.length;i++) if(pop[i].d<pop[bi].d) bi=i;
+      if(!st.best || pop[bi].d < st.best.d) st.best = pop[bi];
+      if(st.solved<0 && pop[bi].d < MZ.R) st.solved = st.gen;
+      if(mode==="nov"){
+        const pts = pop.map(p=>p.b).concat(st.archive), kn = new Float64Array(MZ.KN+1);
+        for(const p of pop){ kn.fill(Infinity);
+          for(const q of pts){ const d = Math.hypot(p.b[0]-q[0], p.b[1]-q[1]); if(d<kn[MZ.KN]){ let j=MZ.KN; while(j>0 && kn[j-1]>d){ kn[j]=kn[j-1]; j--; } kn[j]=d; } }
+          let m=0; for(let j=1;j<=MZ.KN;j++) m+=kn[j]; p.f = m/MZ.KN; }
+        const srt = [...pop].sort((a,b)=>b.f-a.f); for(let i=0;i<MZ.AR;i++) st.archive.push(srt[i].b);
+      } else for(const p of pop) p.f = -p.d;
+      const el = [...pop].sort((a,b)=>b.f-a.f).slice(0,MZ.EL);
+      const next = el.slice(0,2).map(p=>({g:p.g.slice()}));
+      while(next.length<MZ.POP){ const g = el[(r()*MZ.EL)|0].g.slice(); for(let k=0;k<MZ.K;k++) if(r()<.2) g[k] += r.normal()*.7; next.push({g}); }
+      st.last = pop; st.pop = next; st.gen++;
+    };
+    return st;
+  }
+  const MAXG = 400;
+  let run = 1, O, Nv, acc = 0, speed = 12;
+  function start(){ O = mzRun("obj", run*7919+1); Nv = mzRun("nov", run*104729+3); O.step(); Nv.step(); }
+  function stepBoth(){ if(O.gen < MAXG){ O.step(); } if(Nv.gen < MAXG){ Nv.step(); } }
+  const cv = document.getElementById("cv-maze");
+  const view = A.canvas(cv, w => narrow(w) ? 2.16 : .53, draw);
+  function panel(ctx, C, st, ox, oy, s, title, col){
+    ctx.font = `600 12px ${C.ui}`; ctx.fillStyle = C.ink; ctx.textBaseline = "alphabetic"; ctx.fillText(title, ox, oy-8);
+    ctx.fillStyle = C.panel; ctx.fillRect(ox, oy, s, s);
+    ctx.fillStyle = C.ink; for(const w of MZ.W) ctx.fillRect(ox+w[0]*s, oy+w[1]*s, (w[2]-w[0])*s, (w[3]-w[1])*s);
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.strokeRect(ox+1, oy+1, s-2, s-2);
+    // archive
+    if(st.archive.length){ ctx.fillStyle = C.faint; for(const a of st.archive){ ctx.fillRect(ox+a[0]*s-1, oy+a[1]*s-1, 2.2, 2.2); } }
+    // goal + start
+    ctx.strokeStyle = C.why; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(ox+MZ.G[0]*s, oy+MZ.G[1]*s, MZ.R*s, 0, 7); ctx.stroke();
+    ctx.fillStyle = C.why; ctx.beginPath(); ctx.arc(ox+MZ.G[0]*s, oy+MZ.G[1]*s, 3, 0, 7); ctx.fill();
+    ctx.fillStyle = C.muted; ctx.font = `600 10.5px ${C.ui}`; ctx.fillText("goal", ox+MZ.G[0]*s+MZ.R*s+4, oy+MZ.G[1]*s+4); ctx.fillText("start", ox+MZ.S[0]*s+10, oy+MZ.S[1]*s+4);
+    ctx.strokeStyle = C.muted; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(ox+MZ.S[0]*s, oy+MZ.S[1]*s, 4, 0, 7); ctx.stroke();
+    // best path of the current generation
+    if(st.best){ const path = []; mzSim(st.best.g, path); ctx.strokeStyle = C.why; ctx.globalAlpha = .85; ctx.lineWidth = 1.8; ctx.beginPath(); path.forEach((p,i)=> i ? ctx.lineTo(ox+p[0]*s, oy+p[1]*s) : ctx.moveTo(ox+p[0]*s, oy+p[1]*s)); ctx.stroke(); ctx.globalAlpha = 1; }
+    // population
+    if(st.last){ ctx.fillStyle = col; for(const p of st.last){ ctx.beginPath(); ctx.arc(ox+p.b[0]*s, oy+p.b[1]*s, 2.6, 0, 7); ctx.fill(); } }
+    if(st.solved>=0){ ctx.fillStyle = C.good; ctx.font = `700 12px ${C.ui}`; const t = `reached the goal at gen ${st.solved}`; ctx.fillText(t, ox+s-ctx.measureText(t).width-6, oy+s-8); }
+  }
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    if(narrow(w)){ const s = Math.min(w, (h-48)/2); const ox = (w-s)/2; panel(ctx,C,O,ox,20,s,"Objective: get close to the goal",C.p1); panel(ctx,C,Nv,ox,s+48,s,"Novelty: end somewhere new",C.p2); }
+    else { const gap = 22, s = Math.min((w-gap)/2, h-22); const ox = (w-2*s-gap)/2; panel(ctx,C,O,ox,20,s,"Objective: get close to the goal",C.p1); panel(ctx,C,Nv,ox+s+gap,20,s,"Novelty: end somewhere new",C.p2); }
+    document.getElementById("mz-gen").textContent = `${run} · ${Math.max(O.gen,Nv.gen)-1}`;
+    document.getElementById("mz-od").textContent = O.best ? O.best.d.toFixed(3) : "–";
+    document.getElementById("mz-nd").textContent = Nv.best ? Nv.best.d.toFixed(3) : "–";
+    document.getElementById("mz-os").textContent = O.solved>=0 ? `gen ${O.solved}` : "not yet";
+    document.getElementById("mz-ns").textContent = Nv.solved>=0 ? `gen ${Nv.solved}` : "not yet";
+    document.getElementById("mz-ar").textContent = Nv.archive.length;
+  }
+  const anim = A.loop(cv, dt=>{ acc += dt*speed; let k=0; while(acc>=1 && k<6){ stepBoth(); acc-=1; k++; } if(k) view.redraw(); if(O.gen>=MAXG && Nv.gen>=MAXG){ setPlay(false); return false; } });
+  const playBtn = document.getElementById("mz-play");
+  function setPlay(on){ if(on){ anim.start(); playBtn.textContent = "Pause"; } else { anim.stop(); playBtn.textContent = "Play"; } }
+  playBtn.onclick = ()=>{ if(!anim.running && O.gen>=MAXG && Nv.gen>=MAXG){ run++; start(); } setPlay(!anim.running); };
+  document.getElementById("mz-step").onclick = ()=>{ setPlay(false); stepBoth(); view.redraw(); };
+  document.getElementById("mz-new").onclick = ()=>{ run++; start(); view.redraw(); if(!A.reduced) setPlay(true); };
+  A.slider("mz-speed", v=>{ speed = v; }, v=>v);
+  A.slider("mz-k", v=>{ MZ.KN = v; }, v=>v);
+  start(); for(let k=0;k<25;k++) stepBoth(); view.redraw();
+  if(!A.reduced) setPlay(true); else setPlay(false);
+})();
+
+/* =================== LAB 2: MAP-Elites, planar arm =================== */
+(function(){
+  const J = 8, G = 36, LINK = 1/J;
+  let sig = .15, ev = 0, view_ = "me", sel = -1;
+  let rng = A.rng(3);
+  let me, rnd, hist;
+  function fk(a, pts){ let x=0, y=0, th=0; if(pts) pts.push([0,0]); for(let i=0;i<J;i++){ th += a[i]; x += LINK*Math.cos(th); y += LINK*Math.sin(th); if(pts) pts.push([x,y]); } return [x,y]; }
+  function fit(a){ let m=0; for(let i=1;i<J;i++) m+=a[i]; m/=(J-1); let v=0; for(let i=1;i<J;i++) v+=(a[i]-m)**2; return -v/(J-1); }
+  const cell = p => { const cx = Math.floor((p[0]+1)/2*G), cy = Math.floor((1-(p[1]+1)/2)*G); return (cx<0||cy<0||cx>=G||cy>=G) ? -1 : cy*G+cx; };
+  const randG = ()=>{ const a=[]; a.push((rng()*2-1)*Math.PI); for(let i=1;i<J;i++) a.push((rng()*2-1)*Math.PI); return a; };
+  function insert(arch, a){ const p = fk(a), c = cell(p); if(c<0) return; const f = fit(a); if(!arch[c] || f > arch[c].f) arch[c] = {a, f}; }
+  function reset(){ me = new Array(G*G).fill(null); rnd = new Array(G*G).fill(null); ev = 0; hist = []; rng = A.rng(3); sel = -1; for(let i=0;i<100;i++){ const a = randG(); insert(me, a); insert(rnd, randG()); ev++; } }
+  function count(arch){ let n=0, q=0; for(const e of arch) if(e){ n++; q += e.f; } return [n, n ? q/n : 0]; }
+  function batch(n){
+    const filled = []; for(let i=0;i<G*G;i++) if(me[i]) filled.push(i);
+    for(let k=0;k<n;k++){
+      const par = me[filled[(rng()*filled.length)|0]].a, ch = par.slice();
+      for(let i=0;i<J;i++){ ch[i] += rng.normal()*sig; if(ch[i]>Math.PI) ch[i]=Math.PI; if(ch[i]<-Math.PI) ch[i]=-Math.PI; }
+      insert(me, ch); insert(rnd, randG()); ev++;
+    }
+    hist.push([ev, count(me)[0], count(rnd)[0]]);
+  }
+  const cv = document.getElementById("cv-me");
+  const view = A.canvas(cv, w => narrow(w) ? 1.45 : .62, draw);
+  function geom(w,h){ if(narrow(w)){ const s = w; return {mx:0, my:0, s, chx:0, chy:s+30, chw:w, chh:h-s-50}; } const s = h; return {mx:0, my:0, s, chx:s+36, chy:28, chw:w-s-44, chh:h-60}; }
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const g = geom(w,h), cs = g.s/G, arch = view_==="me" ? me : rnd;
+    ctx.fillStyle = C.panel; ctx.fillRect(g.mx, g.my, g.s, g.s);
+    // reachable disc
+    ctx.strokeStyle = C.line; ctx.setLineDash([3,4]); ctx.beginPath(); ctx.arc(g.mx+g.s/2, g.my+g.s/2, g.s/2, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+    const lo = mix(rgb(C.panel), rgb(C.p2), .22), hi = rgb(C.p2);
+    let fmin = 0, fmax = -Infinity; for(const e of arch) if(e){ fmin = Math.min(fmin, e.f); fmax = Math.max(fmax, e.f); }
+    for(let i=0;i<G*G;i++){ const e = arch[i]; if(!e) continue; const x=i%G, y=(i/G)|0;
+      const t = fmax>fmin ? Math.pow((e.f-fmin)/(fmax-fmin), 2) : 1; ctx.fillStyle = css(mix(lo, hi, t)); ctx.fillRect(g.mx+x*cs+.4, g.my+y*cs+.4, cs-.8, cs-.8); }
+    // arms
+    const drawArm = (a, col, lw, alpha)=>{ const pts=[]; fk(a, pts); ctx.globalAlpha = alpha; ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.lineJoin = "round"; ctx.beginPath();
+      pts.forEach((p,i)=>{ const X = g.mx+(p[0]+1)/2*g.s, Y = g.my+(1-(p[1]+1)/2)*g.s; i?ctx.lineTo(X,Y):ctx.moveTo(X,Y); }); ctx.stroke();
+      ctx.fillStyle = col; pts.forEach(p=>{ ctx.beginPath(); ctx.arc(g.mx+(p[0]+1)/2*g.s, g.my+(1-(p[1]+1)/2)*g.s, lw*.9, 0, 7); ctx.fill(); }); ctx.globalAlpha = 1; };
+    if(sel>=0 && arch[sel]) drawArm(arch[sel].a, C.why, 2.6, 1);
+    else { // a few sample elites
+      const idx = []; for(let i=0;i<G*G;i+=97) if(arch[i]) idx.push(i); idx.slice(0,5).forEach(i=>drawArm(arch[i].a, C.ink, 1.4, .45)); }
+    ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(g.mx+g.s/2, g.my+g.s/2, 3.5, 0, 7); ctx.fill();
+    ctx.fillStyle = C.muted; ctx.font = `600 11px ${C.ui}`; ctx.fillText(view_==="me" ? "MAP-Elites archive" : "Random search, binned", g.mx+6, g.my+14);
+    // coverage chart
+    ctx.fillStyle = C.muted; ctx.font = `600 11px ${C.ui}`; ctx.fillText("cells filled vs evaluations", g.chx, g.chy-10);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(g.chx, g.chy, g.chw, g.chh);
+    if(hist.length>1){
+      const e1 = hist[hist.length-1][0], ymax = Math.max(50, ...hist.map(r=>r[1]));
+      const X = e => g.chx + e/e1*g.chw, Y = v => g.chy + g.chh - v/ymax*g.chh*.92;
+      [[1,C.p2],[2,C.faint]].forEach(([k,col])=>{ ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.beginPath(); hist.forEach((r,i)=> i?ctx.lineTo(X(r[0]),Y(r[k])):ctx.moveTo(X(r[0]),Y(r[k]))); ctx.stroke(); });
+      const last = hist[hist.length-1]; ctx.font = `600 11px ${C.ui}`;
+      ctx.fillStyle = C.p2; ctx.fillText(`MAP-Elites ${last[1]}`, g.chx+6, Math.max(g.chy+14, Y(last[1])-6));
+      ctx.fillStyle = C.muted; ctx.fillText(`random ${last[2]}`, g.chx+6, Math.min(g.chy+g.chh-6, Y(last[2])+14));
+      ctx.fillStyle = C.faint; ctx.font = `10px ${C.mono}`; const lb = `${e1} evals`; ctx.fillText(lb, g.chx+g.chw-ctx.measureText(lb).width-4, g.chy+g.chh+14);
+    }
+    const [n, q] = count(me), [rn, rq] = count(rnd);
+    document.getElementById("me-ev").textContent = ev;
+    document.getElementById("me-c").textContent = `${n} of ${G*G}`;
+    document.getElementById("me-rc").textContent = rn;
+    document.getElementById("me-q").textContent = q.toFixed(3); document.getElementById("me-rq").textContent = rq.toFixed(3);
+    document.getElementById("me-sel").textContent = sel>=0 && arch[sel] ? `fitness ${arch[sel].f.toFixed(3)}` : "none";
+  }
+  const anim = A.loop(cv, ()=>{ if(ev >= 60000){ setPlay(false); return false; } batch(120); view.redraw(); });
+  const playBtn = document.getElementById("me-play");
+  function setPlay(on){ if(on){ anim.start(); playBtn.textContent="Pause"; } else { anim.stop(); playBtn.textContent="Play"; } }
+  playBtn.onclick = ()=>setPlay(!anim.running);
+  document.getElementById("me-reset").onclick = ()=>{ reset(); view.redraw(); if(!A.reduced) setPlay(true); };
+  document.querySelectorAll("#lab-me [data-v]").forEach(b=>b.addEventListener("click",()=>{ view_ = b.dataset.v; document.querySelectorAll("#lab-me [data-v]").forEach(o=>o.setAttribute("aria-pressed", o===b)); view.redraw(); }));
+  A.slider("me-sig", v=>{ sig = v; }, v=>v.toFixed(2)+" rad");
+  cv.addEventListener("click", e=>{ const r = cv.getBoundingClientRect(), g = geom(view.w, view.h); const x = e.clientX-r.left-g.mx, y = e.clientY-r.top-g.my; if(x<0||y<0||x>=g.s||y>=g.s) return; sel = Math.floor(y/(g.s/G))*G + Math.floor(x/(g.s/G)); view.redraw(); });
+  reset(); for(let k=0;k<12;k++) batch(250); view.redraw();
+  if(!A.reduced) setPlay(true); else setPlay(false);
+})();
+
+/* =================== LAB 3: stepping stones (CPPN lineage) =================== */
+(function(){
+  // lineage: [activations, weights] for 24 steps, from a novelty-search run (see text)
+  const LIN = [[[5,2,0,3,5,5,3,0,2,5,1,5],[4.377,0.886,0.499,1.573,-0.533,-0.566,0.829,0.663,0.264,2.277,0.836,0.885,-1.98,0.939,-1.033,0.812,-1.382,0.208,-0.072,-1.788,-0.308,-1.497,-0.462,-0.631,-0.592,0.631,0.592,1.402,-1.852,0.342,1.414,0.39,-1.038,0.386,0.548,-0.196,-0.255,-0.624,-0.23,-0.239,0.248,0.401,1.815,-2.119,2.112,0.992,0.398,-0.784,-0.007,0.867,0.455,0.995,-0.106,-0.126,0.933,-0.043,1.526,0.942,0.9,-0.936,-0.035,-0.696,0.998,-0.832,-0.093,-0.126,-1.062,0.528,-0.558,0.637,0.794,-0.87,2.392]],
+[[5,2,0,3,5,5,3,0,2,5,1,5],[4.377,0.886,0.784,1.003,-0.533,-0.566,0.829,0.663,0.264,2.871,0.209,0.885,-1.98,1.369,-1.033,0.812,-1.382,0.208,-0.072,-1.788,-0.308,-1.497,-0.462,0.202,-0.592,0.631,0.592,1.402,-1.852,0.342,2.157,0.39,-1.038,0.386,0.941,-0.196,-0.255,0.207,-0.825,-0.239,0.248,0.401,1.815,-2.119,2.112,0.992,0.398,-0.784,-0.007,0.867,0.455,0.995,-0.106,-0.126,1.164,-0.043,1.526,0.942,0.9,-0.936,-0.18,-0.696,0.998,-0.832,-0.093,-0.126,-1.062,0.528,-0.558,0.637,0.794,-0.266,2.392]],
+[[5,2,0,3,5,5,3,0,2,5,1,5],[4.377,0.886,0.784,1.003,-0.533,-0.016,0.829,0.663,0.844,2.871,0.209,0.885,-1.98,1.369,-1.033,0.812,-1.382,0.291,0.406,-1.843,-0.308,-1.497,-0.462,0.565,-0.592,0.631,0.083,1.402,-1.852,0.342,2.228,0.39,-1.101,0.386,0.941,-0.196,0.059,0.207,-0.825,-0.239,0.248,0.401,1.815,-2.119,2.112,0.992,0.398,-0.814,-0.007,0.867,0.455,2.292,-0.106,-0.126,1.164,-0.043,1.526,0.942,0.9,-0.936,-0.18,-0.696,0.998,-0.832,0.228,-0.126,-1.062,0.528,-0.558,0.637,0.794,-0.266,2.392]],
+[[5,2,0,3,5,5,3,0,2,5,1,5],[4.377,0.587,0.784,1.003,-0.533,-0.436,0.829,0.663,0.844,2.871,0.209,0.885,-1.98,1.369,-1.033,0.812,-1.382,0.291,0.406,-1.843,-0.308,-1.497,-0.462,0.578,-0.592,0.631,0.083,1.402,-1.852,0.342,2.228,-0.476,-1.101,0.386,0.941,-0.196,0.059,0.207,-0.825,-0.239,0.248,0.401,0.754,-2.119,2.112,0.992,0.398,-0.814,-0.007,0.867,0.455,2.292,-0.578,-0.126,1.164,-0.043,1.526,0.942,0.9,-0.936,-0.496,-0.669,0.998,-0.832,0.228,-0.126,-1.062,0.528,-0.558,0.637,0.794,-0.266,2.392]],
+[[5,2,0,3,5,5,3,0,2,0,1,5],[4.377,0.587,0.784,1.003,-0.533,-0.786,0.829,1.002,0.844,2.871,0.209,0.885,-1.98,1.369,-1.033,0.812,-1.382,0.291,0.406,-1.843,-0.308,-1.497,-0.462,0.578,-0.592,-0.087,0.083,1.402,-1.852,0.342,2.228,-0.476,-1.101,0.386,0.941,-0.196,0.059,0.207,-0.825,-0.239,0.248,1.081,1.926,-1.921,2.298,0.992,0.46,-0.814,-0.007,0.867,0.455,2.292,-0.578,-0.126,0.895,-0.043,1.526,0.942,0.9,-0.936,-0.496,-0.669,0.998,-0.832,0.228,-0.126,-1.062,0.528,-0.348,0.637,0.794,-0.266,2.392]],
+[[2,2,0,3,5,5,3,0,2,0,1,5],[4.377,0.587,0.784,1.003,-0.533,-0.786,0.829,1.002,0.844,3.146,0.164,0.885,-1.98,1.369,-1.033,0.812,-1.382,0.291,1.245,-1.843,-0.308,-1.497,-0.462,1.018,-0.592,1.313,0.083,1.402,-1.852,0.342,2.415,-0.414,-1.101,0.386,0.941,-0.196,0.059,0.207,-0.825,-0.239,0.248,1.081,1.926,-1.921,2.298,0.992,0.46,-0.814,-0.007,0.867,0.455,2.131,-0.578,-0.126,0.895,-0.043,1.856,0.942,0.9,-0.936,-0.496,-0.669,0.998,-0.832,0.228,0.131,-1.062,0.528,-0.348,0.637,0.794,-0.266,2.392]],
+[[4,2,0,3,5,5,3,0,2,0,1,5],[4.377,0.587,0.784,1.003,-0.533,-0.786,0.829,1.482,1.503,3.146,0.164,0.885,-1.721,1.369,-1.033,0.812,-1.382,0.291,1.245,-1.843,-0.308,-1.497,-0.462,1.018,-0.592,1.313,0.083,1.402,-1.852,0.342,2.415,-0.414,-1.799,0.386,0.941,-0.196,0.059,0.207,-0.825,-0.239,0.248,1.081,1.926,-1.921,2.298,0.992,0.46,-0.814,-0.007,0.867,0.455,2.131,-0.578,-0.126,0.895,-0.043,1.856,0.942,0.9,-0.936,-0.496,-0.669,0.998,-0.322,0.228,0.131,-1.062,0.528,-0.348,0.637,0.794,-0.266,2.392]],
+[[4,2,0,3,5,5,3,0,2,0,1,5],[4.377,0.587,0.784,1.003,-0.533,-0.786,1.665,1.482,1.503,3.084,0.437,0.885,-1.721,1.369,-1.033,2.067,-1.382,0.291,1.245,-1.843,-0.308,-1.497,-0.462,1.018,-0.592,1.313,0.083,1.402,-1.852,0.342,2.415,-0.387,-1.799,0.386,0.941,-0.196,0.059,0.207,-0.825,-0.239,0.248,1.081,1.926,-2.186,2.062,0.992,0.46,-0.814,-0.007,0.867,0.455,2.131,-0.578,-0.126,0.895,-0.043,1.856,0.942,0.9,-0.936,-0.496,-0.669,0.998,-0.322,0.116,0.131,-1.062,0.528,-0.514,1.514,0.794,-0.266,2.392]],
+[[4,2,0,3,5,5,4,0,2,0,1,5],[4.377,0.587,0.784,1.003,-0.533,-0.786,1.665,1.482,1.503,3.084,0.437,0.885,-1.721,1.369,-1.033,2.067,-1.382,0.291,1.245,-1.843,-0.308,-1.497,-0.462,1.018,-0.592,1.313,0.083,1.365,-1.852,0.342,2.415,-0.387,-1.799,0.386,0.941,-0.196,0.059,0.207,-0.825,0.284,0.248,1.081,2.109,-2.186,2.062,0.992,0.46,-0.814,-0.007,0.867,0.532,2.131,-0.578,-0.126,0.895,-0.043,1.856,0.942,0.9,-0.936,-0.496,-0.669,0.998,-0.322,0.116,0.131,-1.062,0.528,0.245,1.514,0.794,-0.266,2.392]],
+[[4,2,0,3,5,5,4,0,2,0,1,5],[4.377,0.587,0.784,1.003,-0.533,-0.786,1.665,1.482,0.788,3.084,0.437,0.885,-1.721,1.369,-1.033,2.022,-1.382,0.233,1.245,-1.843,-0.308,-1.497,-0.462,1.018,-0.592,1.313,1.125,1.365,-1.852,0.342,2.415,-0.387,-1.799,0.386,0.941,-0.196,0.059,0.207,-0.825,0.284,0.248,1.081,2.109,-2.186,1.695,0.992,0.46,-1.411,-0.007,0.867,0.532,2.131,-0.578,-0.126,0.895,-0.043,1.856,0.413,0.9,-0.936,-0.496,-0.669,0.998,-0.322,0.477,0.131,-0.237,0.528,0.245,1.514,0.794,-0.266,1.717]],
+[[4,2,0,3,5,5,4,0,2,0,1,5],[4.377,0.587,0.784,0.134,-0.533,-0.786,1.665,1.482,0.788,3.084,0.437,0.964,-0.757,1.369,-1.033,2.022,-1.382,0.233,1.245,-1.843,-0.308,-1.497,-0.462,1.018,-0.592,1.313,1.125,1.365,-1.852,0.342,2.415,-0.387,-1.799,0.386,0.941,-0.196,0.059,-0.623,-0.825,0.284,0.248,1.2,2.109,-2.186,1.695,0.992,0.46,-1.411,-0.007,0.867,0.532,2.131,-0.578,-0.126,0.895,-0.043,1.856,0.413,0.9,-0.936,-0.496,-0.669,0.998,-0.322,0.477,0.131,-0.237,0.528,0.245,1.514,1.295,-0.266,1.717]],
+[[4,2,0,3,5,5,4,0,2,0,1,5],[4.377,0.587,0.784,0.134,-0.533,-0.478,1.665,1.482,0.968,3.084,0.437,0.964,-0.757,1.369,-1.033,2.022,-1.504,0.233,1.245,-1.843,-0.308,-1.497,0.017,1.018,-0.592,1.313,1.125,1.365,-1.815,0.342,2.415,-0.387,-1.799,0.386,0.941,-0.196,0.059,-0.623,-0.825,0.284,0.248,1.2,2.109,-2.186,1.695,0.992,0.46,-1.411,-0.007,0.867,0.532,2.131,-0.578,-0.126,0.702,-0.043,1.856,0.413,0.9,-0.936,-0.496,-0.669,0.998,-0.322,0.477,0.131,-0.237,0.528,0.245,1.514,1.295,-0.266,1.717]],
+[[4,2,0,3,5,5,4,0,2,0,1,5],[4.377,0.587,0.784,0.134,-0.533,-0.735,1.665,1.482,-0.067,3.084,0.437,1.301,-0.132,1.369,-1.033,2.022,-1.504,0.233,1.245,-1.843,-0.308,-1.497,0.017,1.018,-0.592,1.313,1.125,1.365,-1.278,0.342,2.415,-0.387,-1.799,0.386,0.941,-0.196,0.059,-0.623,-0.825,-0.352,0.248,1.015,2.109,-2.186,1.924,0.992,1.262,-1.411,0.032,0.867,0.532,2.131,-0.578,-0.126,0.702,-0.043,1.856,0.413,0.9,-0.936,-0.496,-0.669,0.998,-0.322,0.457,0.131,0.692,0.866,0.245,1.514,1.295,-0.266,1.717]],
+[[4,2,0,3,5,5,4,0,2,0,1,5],[4.377,0.587,0.784,0.134,-0.533,-0.735,1.665,1.482,-0.067,3.084,0.407,1.301,-0.132,1.369,-1.033,2.022,-2.663,0.233,1.245,-1.843,-0.308,-1.497,0.017,1.018,-0.592,1.313,1.742,1.365,-1.278,0.342,2.415,-0.387,-1.799,0.386,0.941,-0.196,0.059,-0.623,-0.825,-0.352,0.248,1.015,2.109,-2.186,1.924,0.914,1.262,-1.411,0.032,0.867,0.532,2.131,-0.578,-0.126,0.702,-0.043,1.856,0.413,0.9,-0.936,-0.496,-0.669,1.118,-0.322,0.457,0.131,0.692,1.298,0.245,1.514,1.295,-0.266,1.717]],
+[[4,2,0,3,5,5,4,0,2,0,1,5],[4.377,0.587,0.784,0.134,-0.533,-0.761,1.665,1.482,0.09,3.084,0.407,1.301,-0.132,1.204,-1.033,2.022,-2.663,0.233,1.245,-1.843,-0.308,-1.497,0.017,1.018,-0.592,1.313,1.742,1.365,-1.278,0.342,2.415,-0.387,-1.799,0.386,0.941,-0.196,0.059,-0.623,-0.825,-0.352,0.248,0.649,2.109,-2.186,1.924,0.914,1.262,0.19,-0.646,0.867,0.532,2.131,-0.578,-0.126,-0.09,-0.043,1.856,0.413,0.9,-0.936,-0.496,-0.669,1.179,-0.322,0.457,0.131,0.692,1.298,0.245,1.514,1.295,-0.266,1.717]],
+[[4,2,0,3,5,5,4,0,2,0,1,5],[4.377,0.587,0.277,0.134,-0.533,-0.761,1.665,2.029,0.09,3.084,0.407,1.301,-0.132,1.204,-1.638,2.022,-2.011,0.233,1.245,-1.843,-0.308,-1.335,0.017,1.018,-0.592,1.313,1.742,1.365,-1.278,0.342,2.415,-0.387,-1.799,0.386,0.941,-0.196,0.38,-0.623,-0.825,-0.352,0.248,0.649,2.039,-2.396,1.924,0.914,1.262,0.19,-0.646,0.867,0.532,2.131,-0.578,-0.126,-0.09,-0.043,1.856,0.413,1.467,-0.936,-0.496,-0.669,1.179,-0.322,0.457,-0.061,0.692,1.298,0.245,2.376,1.295,-0.266,1.717]],
+[[4,2,4,3,5,5,4,0,2,0,1,5],[4.377,0.587,0.277,0.134,-0.533,-1.239,1.665,2.029,0.09,3.084,0.407,1.301,-0.132,1.204,-1.638,2.014,-2.011,0.233,1.278,-1.843,-0.527,-1.335,0.017,1.018,-0.592,1.313,1.742,1.365,-1.278,0.342,2.415,-0.387,-1.799,0.386,0.941,-0.282,0.38,-0.623,-0.825,-0.352,0.248,0.024,2.039,-2.396,1.924,0.914,1.262,0.19,-0.646,0.867,0.532,2.131,-0.578,-0.126,-0.09,-0.043,1.72,0.413,1.467,-0.936,-0.496,-0.669,1.179,-0.322,0.457,-0.061,0.692,1.298,0.245,2.376,1.295,-0.266,1.717]],
+[[4,2,4,3,5,4,4,0,2,0,1,5],[4.377,0.321,0.277,0.134,-0.533,-0.139,1.665,2.029,0.09,3.027,0.407,0.858,-0.132,1.204,-1.638,2.014,-2.011,0.233,1.278,-1.843,-0.527,-0.603,0.017,1.018,-0.592,1.313,1.742,1.365,-1.278,0.342,2.415,-0.583,-1.136,0.386,0.941,-0.354,0.38,-0.623,-0.825,-0.352,0.248,0.024,1.351,-2.396,1.924,0.914,1.262,0.19,-0.646,0.867,0.532,2.131,-0.578,-0.126,-0.09,-1.466,1.72,0.413,1.467,-1.906,-0.496,-0.669,1.179,-0.322,0.457,-0.061,0.692,1.533,0.245,2.376,1.367,-0.266,1.717]],
+[[4,2,4,3,5,4,4,0,2,0,1,5],[4.377,0.863,0.277,0.134,0.306,-0.139,1.665,2.029,0.09,3.027,0.407,0.14,-0.132,-0.415,-1.638,2.014,-2.011,0.233,1.278,-1.843,-0.527,-0.603,0.017,1.018,-0.592,1.313,1.742,1.365,-0.651,0.342,1.983,-0.485,-1.136,0.386,0.941,-0.354,0.38,-0.14,-0.825,-0.352,0.248,0.024,1.351,-2.396,1.924,0.914,1.262,0.162,-0.646,0.867,0.532,2.131,-0.578,-0.126,-0.09,-1.466,1.72,0.413,1.467,-1.906,-0.496,-0.669,1.179,-0.561,0.457,-0.061,0.692,1.533,0.245,2.376,1.367,-0.266,1.717]],
+[[4,2,4,3,5,4,4,0,2,0,1,5],[4.377,0.863,0.277,-0.257,0.306,-0.139,1.665,2.029,0.09,3.027,0.407,0.14,-0.132,-0.691,-2.01,2.014,-2.011,0.233,1.278,-2.314,-0.527,-0.817,0.017,1.018,-0.592,1.313,1.794,1.365,-0.651,0.342,1.983,-0.485,-1.136,0.386,0.996,-0.354,0.38,-0.14,-0.825,-0.352,0.248,0.024,1.351,-2.396,1.924,0.914,1.262,0.162,-0.646,0.867,0.532,2.131,-0.578,-0.126,-0.09,-1.466,1.72,0.413,1.467,-1.906,-0.496,-0.669,1.179,-0.561,-0.483,-0.547,0.692,2.463,0.245,2.376,1.367,-0.266,1.717]],
+[[4,2,4,3,5,4,4,0,2,0,1,5],[4.377,0.426,0.277,-0.257,0.306,-0.139,1.665,2.029,0.09,2.45,0.407,0.14,-0.132,-0.691,-2.01,2.014,-2.011,0.186,1.278,-2.314,-0.527,-0.609,0.017,1.018,-0.592,1.313,1.794,1.365,-0.651,0.342,1.983,-0.485,-1.136,0.386,0.996,-0.354,0.38,-0.14,-0.825,-0.352,0.138,0.894,1.351,-2.328,1.924,0.914,1.262,0.162,-0.646,0.867,0.532,2.131,-0.578,-0.126,-0.09,-1.466,1.72,0.413,1.467,-1.906,-0.496,-0.669,1.046,-0.561,-0.483,-0.112,0.692,2.463,0.245,2.376,1.367,-0.266,1.717]],
+[[4,2,4,3,5,4,4,0,2,0,1,5],[4.377,0.426,0.277,-0.257,0.306,-0.139,2.056,2.029,0.09,2.45,0.407,0.14,-0.132,-0.691,-2.01,2.014,-2.011,0.186,1.278,-2.314,-0.527,-0.609,0.017,1.018,-0.798,1.313,1.794,1.365,-0.651,0.342,1.983,-0.485,-1.136,0.386,0.996,-0.354,0.38,-0.14,-0.825,-0.352,0.138,0.894,1.572,-2.328,2.534,0.914,1.262,0.162,-0.646,-0.04,0.532,2.131,-0.578,-0.126,-0.09,-1.466,1.72,0.413,1.467,-1.25,-0.496,-0.669,1.046,-0.561,-0.483,-0.112,0.692,2.463,0.245,2.376,1.367,-0.266,1.717]],
+[[4,2,4,3,5,4,4,0,2,0,1,5],[3.883,0.426,0.277,-0.257,0.306,-1.218,2.056,2.029,0.09,2.45,0.407,0.14,-0.132,-0.691,-2.01,2.014,-2.011,0.186,1.278,-2.314,-0.527,-0.609,0.017,1.018,-0.798,1.313,1.794,1.365,-0.651,-0.407,1.983,-0.485,-1.136,0.386,0.996,-0.354,0.38,-0.14,-0.83,-0.352,0.138,0.894,1.857,-2.328,2.534,0.914,1.262,0.162,-0.646,-0.04,0.532,2.131,-0.578,-0.126,-0.09,-1.466,1.72,0.413,1.467,-1.25,-0.496,-0.669,1.046,-0.561,-0.483,-0.112,0.692,2.463,0.245,2.376,1.367,-0.266,1.717]],
+[[4,2,4,3,4,4,4,0,2,0,1,5],[3.883,0.426,0.277,-0.257,0.306,-1.218,2.056,2.029,0.491,2.45,0.407,0.14,-0.132,-0.691,-2.01,2.014,-2.011,0.186,1.278,-2.314,-0.527,-0.609,0.017,1.018,-0.798,1.313,1.794,1.365,-0.651,-0.407,1.983,-1.841,-1.136,0.386,0.996,-0.354,0.38,-0.14,-0.83,-0.352,0.138,0.894,1.857,-2.328,2.534,0.914,1.262,1.098,-0.646,-0.04,0.532,2.131,-0.578,-1.049,-0.09,-1.466,2.513,0.413,1.467,-1.25,-1.671,-0.669,1.046,-0.561,-0.483,-0.112,0.692,2.814,0.245,2.376,1.367,-0.266,1.717]]];
+  const ACT = [Math.sin, x=>Math.exp(-x*x*2), x=>1/(1+Math.exp(-x)), Math.abs, Math.tanh, x=>x];
+  const H1 = 8, H2 = 4, NW = H1*4 + H2*(H1+1) + (H2+1);
+  const genome = e => ({a:e[0], w:e[1]});
+  function img(g, res){ const out = new Float32Array(res*res), h1 = new Float64Array(H1), h2 = new Float64Array(H2), w = g.w;
+    for(let j=0;j<res;j++) for(let i=0;i<res;i++){ const x=(i+.5)/res*2-1, y=(j+.5)/res*2-1, d=Math.hypot(x,y)*1.2;
+      for(let k=0;k<H1;k++){ const b=k*4; h1[k] = ACT[g.a[k]](w[b]*x*2 + w[b+1]*y*2 + w[b+2]*d*2 + w[b+3]); }
+      for(let k=0;k<H2;k++){ const b=H1*4+k*(H1+1); let v=w[b+H1]; for(let m=0;m<H1;m++) v += w[b+m]*h1[m]; h2[k] = ACT[g.a[H1+k]](v); }
+      const b = H1*4+H2*(H1+1); let o = w[b+H2]; for(let k=0;k<H2;k++) o += w[b+k]*h2[k]*2; out[j*res+i] = 1/(1+Math.exp(-o*1.5)); }
+    return out; }
+  function sim(a,b){ let ma=0, mb=0; const n=a.length; for(let i=0;i<n;i++){ ma+=a[i]; mb+=b[i]; } ma/=n; mb/=n; let sab=0, saa=0, sbb=0;
+    for(let i=0;i<n;i++){ const x=a[i]-ma, y=b[i]-mb; sab+=x*y; saa+=x*x; sbb+=y*y; } return saa*sbb>1e-9 ? sab/Math.sqrt(saa*sbb) : 0; }
+  function mut(g, r){ const c = {w:g.w.slice(), a:g.a.slice()}; for(let i=0;i<c.w.length;i++) if(r()<.1) c.w[i] += r.normal()*.5; if(r()<.2) c.a[(r()*c.a.length)|0] = (r()*ACT.length)|0; return c; }
+  const RES = 24, TH = 40;
+  const lin = LIN.map(genome), target = lin[lin.length-1], T24 = img(target, RES);
+  const thumbs = lin.map(g=>img(g, TH)), sims = lin.map(g=>sim(img(g,RES), T24));
+  document.getElementById("st-anc").textContent = Math.max(...sims.slice(0, sims.length-2)).toFixed(2);
+  let pick = lin.length-1, gr = null, grRun = 0, POPN = 40;
+  function grStart(){ const r = A.rng(++grRun*31+7); const pop = [lin[0]]; for(let i=1;i<POPN;i++) pop.push(mut(lin[0], r)); gr = {r, pop, gen:0, ev:0, best:null, curve:[]}; }
+  function grStep(){ const {r} = gr; let pop = gr.pop;
+    for(const p of pop) if(p.f===undefined){ p.f = sim(img(p,RES), T24); gr.ev++; }
+    pop.sort((a,b)=>b.f-a.f); gr.best = pop[0]; gr.curve.push(pop[0].f);
+    const next = pop.slice(0,5); while(next.length<POPN){ let b=null; for(let t=0;t<3;t++){ const c = pop[(r()*pop.length)|0]; if(!b||c.f>b.f) b=c; } next.push(mut(b, r)); }
+    gr.pop = next; gr.gen++; }
+  const off = document.createElement("canvas"), octx = off.getContext("2d");
+  function blit(ctx, data, res, x, y, s, C){ off.width = off.height = res; const im = octx.createImageData(res,res), bg = rgb(C.panel), ink = rgb(C.ink);
+    for(let i=0;i<res*res;i++){ const c = mix(ink, bg, data[i]); im.data[i*4]=c[0]; im.data[i*4+1]=c[1]; im.data[i*4+2]=c[2]; im.data[i*4+3]=255; }
+    octx.putImageData(im,0,0); ctx.imageSmoothingEnabled = false; ctx.drawImage(off, x, y, s, s); }
+  const cv = document.getElementById("cv-stones");
+  function needH(w){ const cols = narrow(w) ? 6 : 12, rows = Math.ceil(lin.length/cols), ts = (w-6*(cols-1))/cols, rowH = ts*.78+18, by = 22+rows*rowH+22;
+    if(narrow(w)){ const big = (w-6)/2; return by + big + 26 + 130 + 18; } return by + Math.min(w*.24, 230) + 10; }
+  const view = A.canvas(cv, w => needH(w)/w, draw);
+  let hits = [];
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h); hits = [];
+    const cols = narrow(w) ? 6 : 12, rows = Math.ceil(lin.length/cols), gap = 6;
+    const ts = (w - gap*(cols-1))/cols, th = ts*0.78, rowH = th + 18;
+    ctx.font = `600 11px ${C.ui}`; ctx.fillStyle = C.muted; ctx.textBaseline = "alphabetic";
+    ctx.fillText(narrow(w) ? "Lineage 1 → 24 · similarity to the final image" : "The lineage, step 1 → 24, with each ancestor's similarity to the final image", 0, 12);
+    const top0 = 22;
+    lin.forEach((g,i)=>{ const cx = (i%cols)*(ts+gap), cy = top0 + Math.floor(i/cols)*rowH, x = cx + (ts-th)/2;
+      blit(ctx, thumbs[i], TH, x, cy, th, C);
+      ctx.strokeStyle = i===pick ? C.why : C.line; ctx.lineWidth = i===pick ? 2 : 1; ctx.strokeRect(x+.5, cy+.5, th-1, th-1);
+      const v = sims[i]; ctx.font = `600 10.5px ${C.mono}`; ctx.fillStyle = v>.5 ? C.good : (v>.2 ? C.ink : C.muted);
+      const t = (i===lin.length-1 ? "1.00" : v.toFixed(2)); ctx.fillText(t, cx + (ts-ctx.measureText(t).width)/2, cy+th+12);
+      hits.push([x, cy, th, i]); });
+    // bottom row: picked image, greedy best, chart
+    const by = top0 + rows*rowH + 22, bh = h - by - 6;
+    const big = narrow(w) ? (w-gap)/2 : Math.min(w*.24, 230);
+    ctx.font = `600 11px ${C.ui}`; ctx.fillStyle = C.muted;
+    ctx.fillText(pick===lin.length-1 ? "Target: step 24" : `Ancestor: step ${pick+1}`, 0, by-6);
+    blit(ctx, img(lin[pick], 64), 64, 0, by, big, C); ctx.strokeStyle = C.why; ctx.lineWidth = 2; ctx.strokeRect(1, by+1, big-2, big-2);
+    const gx = big + gap*2;
+    ctx.fillStyle = C.muted; ctx.fillText("Greedy search's best", gx, by-6);
+    if(gr && gr.best){ blit(ctx, img(gr.best, 64), 64, gx, by, big, C); } else { ctx.fillStyle = C.panel2; ctx.fillRect(gx, by, big, big); A.hatch(ctx, gx, by, big, big, C.hatch, 7); }
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(gx+.5, by+.5, big-1, big-1);
+    // chart
+    let cx0, cy0, cw, chh;
+    if(narrow(w)){ cx0 = 26; cy0 = by + big + 26; cw = w - cx0 - 4; chh = h - cy0 - 18; } else { cx0 = gx + big + 40; cy0 = by; cw = w - cx0 - 4; chh = big; }
+    ctx.fillStyle = C.muted; ctx.fillText("similarity to target", cx0, cy0-6);
+    ctx.strokeStyle = C.line; ctx.strokeRect(cx0, cy0, cw, chh);
+    const Y = v => cy0 + chh - Math.max(0, v)*chh;
+    ctx.fillStyle = C.faint; ctx.font = `10px ${C.mono}`; ctx.fillText("1", cx0-10, cy0+8); ctx.fillText("0", cx0-10, cy0+chh);
+    // lineage path (x = step / 24 of the axis)
+    ctx.strokeStyle = C.p2; ctx.lineWidth = 2; ctx.beginPath(); sims.forEach((v,i)=>{ const X = cx0 + i/(lin.length-1)*cw*.3; i?ctx.lineTo(X,Y(v)):ctx.moveTo(X,Y(v)); }); ctx.stroke();
+    ctx.fillStyle = C.p2; ctx.font = `600 10.5px ${C.ui}`; ctx.fillText("lineage (24 steps)", cx0+4, cy0+14);
+    if(gr && gr.curve.length){ ctx.strokeStyle = C.why; ctx.lineWidth = 2; ctx.beginPath(); gr.curve.forEach((v,i)=>{ const X = cx0 + cw*.32 + i/300*cw*.66; i?ctx.lineTo(X,Y(v)):ctx.moveTo(X,Y(v)); }); ctx.stroke();
+      ctx.fillStyle = C.why; ctx.fillText(`greedy (gen ${gr.gen})`, cx0 + cw*.34, cy0+14); }
+    ctx.setLineDash([3,4]); ctx.strokeStyle = C.line; ctx.beginPath(); ctx.moveTo(cx0+cw*.31, cy0); ctx.lineTo(cx0+cw*.31, cy0+chh); ctx.stroke(); ctx.setLineDash([]);
+    document.getElementById("st-gen").textContent = gr ? gr.gen : "–";
+    document.getElementById("st-ev").textContent = gr ? gr.ev : "–";
+    document.getElementById("st-best").textContent = gr && gr.best ? gr.best.f.toFixed(3) : "–";
+  }
+  cv.addEventListener("click", e=>{ const r = cv.getBoundingClientRect(), x = e.clientX-r.left, y = e.clientY-r.top; for(const [hx,hy,s,i] of hits) if(x>=hx && x<=hx+s && y>=hy && y<=hy+s){ pick = i; view.redraw(); } });
+  const anim = A.loop(cv, ()=>{ if(!gr || gr.gen>=300) return false; for(let k=0;k<3 && gr.gen<300;k++) grStep(); view.redraw(); if(gr.gen>=300) return false; });
+  document.getElementById("st-run").onclick = ()=>{ grStart(); anim.start(); };
+  document.getElementById("st-stop").onclick = ()=>{ anim.stop(); };
+  A.slider("st-pop", v=>{ POPN = v; }, v=>v);
+  // open with a short greedy run already done, so the comparison is visible
+  grStart(); for(let k=0;k<40;k++) grStep(); view.redraw();
+  if(!A.reduced) anim.start();
+})();
+
+/* =================== QUIZ =================== */
+A.quiz("quiz", [
+  {q:"In the maze, why does objective search pile up under the wall below the goal?",
+   options:["The pocket under the wall is the closest reachable point, and every route toward the real opening first moves farther away, so selection discards it","Its mutation is weaker","The robots cannot turn","Novelty search uses more evaluations"],
+   answer:0, why:"Both searches share the same mutation, population and selection. Only the score differs. A distance score ranks the dead end above the detour: that is what deceptive means."},
+  {q:"Novelty search ignores the goal. Why does it still reach it?",
+   options:["It secretly measures the distance","It keeps pushing to behaviours unlike any seen, and in a small behaviour space that eventually covers every region, including the goal room","It mutates more","It starts closer to the goal"],
+   answer:1, why:"Novelty exhausts the easy regions first and is then forced through the opening because that is the only new place left. That works when the behaviour space is small; in huge spaces you need quality as well."},
+  {q:"Why does MAP-Elites reach the outer ring of the arm map that random search never fills?",
+   options:["It samples more genomes","The grid is smaller","Its fitness rewards long reach","Elites one ring in are mutated into the next ring out, so each ring is a stepping stone for the next; random genomes are random walks that end near the shoulder"],
+   answer:3, why:"Random sampling never conditions on past discoveries. MAP-Elites keeps the best arm for every cell and mutates from there, so reachable regions grow outward from what has already been found."},
+  {q:"In the stepping-stones lab, the ancestors of the eye score near zero similarity. What does that show?",
+   options:["The similarity metric has a bug","The ancestors were random","The path to the target ran through images that a similarity objective would rank as failures, so aiming at the target would have discarded them","The target is unreachable"],
+   answer:2, why:"The lineage reached the eye in 24 steps, yet an objective that scores closeness would have thrown away almost every ancestor. Greedy search from the same start stalls around 0.4."},
+  {q:"By the Hughes and Rocktäschel definition, why is TV static not open-ended?",
+   options:["It is not novel","It is too predictable","It is novel but not learnable: more history never makes it more predictable for the observer","Only biological systems qualify"],
+   answer:2, why:"Open-endedness needs both: each new artifact surprises the observer, and the observer can learn from history. Noise only passes the first test, a repeating pattern only the second."},
+  {q:"Why do the Darwin Gödel Machine and similar self-improving agents keep an archive instead of only their best version?",
+   options:["Because a change that makes the agent worse today can be the stepping stone to a much better agent later; an archive lets the search branch from it","To save compute","Because benchmarks require it","To make the agent smaller"],
+   answer:0, why:"Keeping only the best is greedy hill-climbing, which is exactly what deception defeats. The archive, scored by performance plus novelty, is MAP-Elites logic applied to agents."},
+]);
+})();
+</script>
+</body>
+</html>

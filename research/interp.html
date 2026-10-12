@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why can we read anything inside a network? · Hidden Patch</title>
+<meta name="description" content="Interpretability from the question why: linear directions, superposition trained live, sparse autoencoders, why DeepMind stepped back from SAEs, attribution graphs, probes and steering, and SAEs on JEPA features.">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/atlas.css">
+<style>
+/* page-specific */
+.cap{font-family:var(--ui);font-size:.78rem;color:var(--muted);margin:.35rem 0 .2rem}
+.stage canvas+.cap{margin-top:.6rem}
+.verdict{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.7rem}
+.verdict>div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.75rem .85rem;display:grid;gap:.3rem;align-content:start;font-size:.93rem}
+.verdict h4{font-size:1rem}
+.verdict .k{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.people{display:flex;flex-wrap:wrap;gap:.4rem}
+.tl-wrap{max-width:var(--measure)}
+.beat>*{min-width:0}
+@media (max-width:560px){.eq{white-space:normal}}   /* .eq is nowrap; without this a grid child grows past the viewport */
+</style>
+</head>
+<body data-chapter="interp" data-part="2">
+<header id="topbar" class="topbar"></header>
+
+<main class="chapter">
+  <section class="opener">
+    <p class="eyebrow"><span class="sw"></span>Part 2 · Theory · Chapter 08</p>
+    <h1 class="big"><span class="w">Why</span> can we read anything inside a network?</h1>
+    <p class="because">a trained network tends to store each concept as a direction in its activation space, and the next layer reads those directions with dot products. Concepts are also rare, so the network packs far more of them than it has neurons, overlapping like an overbooked hotel. A sparse dictionary can pull them apart, a linear probe can find one, and adding a direction can steer behaviour. None of these readings is guaranteed to be the one the model uses, so each has to be tested by intervention.</p>
+    <p class="meta"><span>7 beats · 3 labs · 6 questions</span><span>Builds on: <a href="fractured.html">07 The broken inside</a> · <a href="../explorables/04-attention.html">course: attention</a></span></p>
+    <ul class="toc">
+      <li><a href="#direction"><span class="q">?</span>Why a direction</a></li>
+      <li><a href="#superposition"><span class="q">?</span>Why more features than neurons</a></li>
+      <li><a href="#sae"><span class="q">?</span>Why a sparse dictionary</a></li>
+      <li><a href="#deprioritised"><span class="q">?</span>Why DeepMind stepped back</a></li>
+      <li><a href="#circuits"><span class="q">?</span>Why trace mechanisms</a></li>
+      <li><a href="#steer"><span class="q">?</span>Why probes and steering</a></li>
+      <li><a href="#jepa"><span class="q">?</span>Why look inside a JEPA</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ BEAT 1 ============ -->
+  <section class="beat" id="direction">
+    <header>
+      <span class="num">Beat 1</span>
+      <h2><span class="w">Why</span> would a concept be a direction?</h2>
+      <p class="short">Because every layer reads its input with weighted sums. If a later layer needs to know "is this French?", the cheapest place to keep that fact is along one direction that a single row of weights can pick up.</p>
+    </header>
+    <div class="prose">
+      <p>An activation vector <code>x</code> in the middle of a network is consumed by the next layer as <code>W x</code>: each output unit takes a dot product with <code>x</code>. Whatever the network wants downstream units to use cheaply, it has an incentive to make <em>linearly</em> readable. The <span class="term" tabindex="0" data-def="The working assumption that high-level concepts are represented as (approximately) linear directions in activation space, so that 'how much of concept i is present' is a dot product.">linear representation hypothesis</span> turns that incentive into a claim: an activation is roughly a sum of feature directions, each scaled by how strongly the feature is present.</p>
+      <div class="eq">x ≈ Σ<sub>i</sub> f<sub>i</sub> · <var>d</var><sub>i</sub>   ,   f<sub>i</sub> ≥ 0 mostly zero<span class="c">x: activation vector. <var>d</var><sub>i</sub>: unit direction for feature i. f<sub>i</sub>: how active the feature is on this input. Reading feature i is a dot product, writing it is an addition.</span></div>
+      <p>The evidence is old and steady. Word vectors did analogies by arithmetic (Mikolov et al., 2013: king − man + woman lands near queen). Linear probes recover syntax, position and truth from hidden states (Alain and Bengio, 2016, onward). In 2024 Arditi, Nanda and colleagues found that refusal in chat models is mediated by a <em>single</em> direction in the residual stream: project it out and the model stops refusing, add it and the model refuses harmless requests. Anthropic's persona vectors (2025) extend the same move to traits like sycophancy.</p>
+      <p>The hypothesis is a hypothesis. Anthropic's 2025 work on a line-breaking task found character counts stored on a <em>curved</em> manifold, with the computation done by rotating it. Some computation is geometric and does not reduce to a list of independent directions. The rest of this chapter is about what you can read when the linear picture holds, and how you find out when it doesn't.</p>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 2: TMS ============ -->
+  <section class="beat" id="superposition">
+    <header>
+      <span class="num">Beat 2</span>
+      <h2><span class="w">Why</span> can a network hold more features than it has neurons?</h2>
+      <p class="short">Because features are sparse. If two features are almost never active on the same input, they can share neurons at nearly orthogonal angles, and the small crosstalk they cause on the rare overlap is cheaper than dropping one of them. A ReLU then cleans up the negative crosstalk.</p>
+    </header>
+    <div class="prose">
+      <p>Elhage and colleagues at Anthropic built the cleanest possible test in <em>Toy Models of Superposition</em> (2022). Take <code>n</code> input features, squeeze them through <code>m &lt; n</code> hidden dimensions, and ask the network to rebuild them:</p>
+      <div class="eq">h = W x  (m × n)    x′ = ReLU(Wᵀ h + b)    L = Σ<sub>i</sub> I<sub>i</sub> (x<sub>i</sub> − x′<sub>i</sub>)²<span class="c">Each feature x<sub>i</sub> is zero with probability S (the sparsity) and uniform in [0,1] otherwise. I<sub>i</sub> = decay<sup>i</sup> is how much the loss cares about feature i. Column i of W is the direction feature i gets in the hidden space.</span></div>
+      <p>With dense features (S = 0) the best a network can do is keep the <code>m</code> most important ones, at right angles, and give up on the rest, exactly like PCA. As features become sparse, a phase change happens: the network starts to store extra features in the same two dimensions, as antipodal pairs, triangles and, with five features and two neurons, a pentagon. The lab below trains that exact model in your browser.</p>
+      <div class="analogy"><span class="ico">≈</span><div><span class="k">Picture it</span><p>Superposition is a hotel that books more guests than it has rooms, betting that most guests never show up on the same night. When two who share a room both arrive, someone sleeps in the corridor: that is interference. The sparser the guests, the more rooms the hotel can sell twice.</p></div></div>
+    </div>
+    <figure class="lab" id="lab-tms">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Toy Models of Superposition, trained live</h3></div>
+      <div class="lab-body">
+        <div class="stage">
+          <canvas id="cv-tms" aria-label="Left: each feature's learned direction in the 2-D hidden space, drawn as an arrow. Right: the matrix W-transpose-W, showing each feature's norm on the diagonal and interference off the diagonal."></canvas>
+          <p class="cap">Sparsity sweep: features represented (‖W<sub>i</sub>‖ &gt; 0.5) after training a fresh model at each feature probability. The marker is your current setting.</p>
+          <canvas id="cv-sweep" aria-label="Line chart: number of features represented against feature probability on a log axis."></canvas>
+        </div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="t-n">Features n</label><output for="t-n"></output></div>
+            <input type="range" id="t-n" min="3" max="8" step="1" value="5">
+            <span class="hint">Hidden dimensions m = 2, so you can see every direction.</span></div>
+          <div class="ctrl"><div class="row"><label for="t-s">Sparsity S</label><output for="t-s"></output></div>
+            <input type="range" id="t-s" min="0" max="2.3" step="0.05" value="1.3">
+            <span class="hint">Each feature is active with probability 1 − S.</span></div>
+          <div class="ctrl"><div class="row"><label for="t-d">Importance decay</label><output for="t-d"></output></div>
+            <input type="range" id="t-d" min="0.5" max="1" step="0.01" value="0.8">
+            <span class="hint">I<sub>i</sub> = decay<sup>i</sup>. Feature 0 matters most.</span></div>
+          <label class="check"><input type="checkbox" id="t-relu" checked> ReLU on the output (uncheck for a purely linear model)</label>
+          <div class="btns"><button type="button" class="primary" id="t-play">Pause</button><button type="button" id="t-init">Re-init</button><button type="button" id="t-sweep">Run sweep</button></div>
+          <dl class="readout">
+            <dt>step</dt><dd id="t-step">–</dd>
+            <dt>loss</dt><dd id="t-loss">–</dd>
+            <dt>features represented</dt><dd id="t-rep" class="hot">–</dd>
+            <dt>dims per feature</dt><dd id="t-dpf">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Drag S to 0: only two arrows survive, at right angles. The network is doing PCA and drops every other feature.</li>
+        <li>Push S above about 0.9 with n = 5: arrows appear for features the hidden space "has no room for", first as opposite pairs, then as a pentagon. The off-diagonal cells on the right are the interference each pair pays.</li>
+        <li>Uncheck ReLU and keep S high: superposition disappears. Without a nonlinearity to clip negative crosstalk, packing extra features never pays, which is the paper's central control.</li>
+        <li>"Dims per feature" is the paper's m / ‖W‖²<sub>F</sub>. At 1.0 each feature has a whole dimension; 0.4 means five features in two dimensions.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 3: SAE ============ -->
+  <section class="beat" id="sae">
+    <header>
+      <span class="num">Beat 3</span>
+      <h2><span class="w">Why</span> does a sparse dictionary pull the features back apart?</h2>
+      <p class="short">Because the features were packed using sparsity, and sparsity is also the key to unpack them. An autoencoder that must rebuild each activation from very few active latents, with many more latents than dimensions, is pushed to put one latent on each feature direction.</p>
+    </header>
+    <div class="prose">
+      <p>If x ≈ Σ f<sub>i</sub> <var>d</var><sub>i</sub> with few f<sub>i</sub> non-zero, then recovering the <var>d</var><sub>i</sub> from many samples of x is classic <span class="term" tabindex="0" data-def="Learning an overcomplete set of basis vectors (atoms) so that each data point is a sparse combination of them. Studied since Olshausen and Field (1996) for natural images.">dictionary learning</span>. A <b>sparse autoencoder</b> (SAE) does it with gradient descent:</p>
+      <div class="eq">f = σ(W<sub>enc</sub>(x − b<sub>dec</sub>) + b<sub>enc</sub>)    x̂ = W<sub>dec</sub> f + b<sub>dec</sub>    L = ‖x − x̂‖² + λ Σ<sub>j</sub> f<sub>j</sub><span class="c">W<sub>dec</sub> has k ≫ m columns of unit norm (the dictionary). σ is a ReLU in the original recipe, with λ trading reconstruction against sparsity. Later variants change σ: TopK keeps only the k largest latents (OpenAI, 2024); JumpReLU adds a learned threshold (Gemma Scope, 2024).</span></div>
+      <p>Anthropic scaled this from a one-layer model (Towards Monosemanticity, 2023) to Claude 3 Sonnet (Scaling Monosemanticity, 2024), where clamping one SAE feature produced "Golden Gate Claude". DeepMind released Gemma Scope in 2024 (more than 400 JumpReLU SAEs on Gemma 2) and Gemma Scope 2 in December 2025 (SAEs on every layer plus transcoders for every Gemma 3 size from 270M to 27B, about 110 PB of activations and more than 1T trained parameters). The lab trains an SAE on activations that really are in superposition.</p>
+    </div>
+    <figure class="lab" id="lab-sae">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Unpacking the pentagon with a sparse autoencoder</h3></div>
+      <div class="lab-body">
+        <div class="stage">
+          <canvas id="cv-sae" aria-label="Left: 2-D activations as dots, true feature directions as dashed lines and learned dictionary atoms as arrows. Right: for each true feature, the best cosine match among the dictionary atoms."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i style="background:var(--ink);opacity:.5"></i>true feature direction</span><span><i style="background:var(--why)"></i>learned atom (alive)</span><span><i style="background:var(--faint)"></i>dead atom</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="a-k">Dictionary size k</label><output for="a-k"></output></div>
+            <input type="range" id="a-k" min="2" max="14" step="1" value="8"></div>
+          <div class="ctrl"><span class="lbl">Sparsity rule</span>
+            <div class="seg" role="group" aria-label="Sparsity rule">
+              <button type="button" data-sp="1" aria-pressed="true">TopK 1</button><button type="button" data-sp="2" aria-pressed="false">TopK 2</button><button type="button" data-sp="0" aria-pressed="false">ReLU + L1</button>
+            </div></div>
+          <div class="ctrl"><div class="row"><label for="a-l">L1 penalty λ</label><output for="a-l"></output></div>
+            <input type="range" id="a-l" min="0" max="0.4" step="0.01" value="0.08">
+            <span class="hint">Used only by ReLU + L1.</span></div>
+          <div class="ctrl"><div class="row"><label for="a-p">Feature density</label><output for="a-p"></output></div>
+            <input type="range" id="a-p" min="0.02" max="0.6" step="0.01" value="0.1">
+            <span class="hint">Probability each true feature is active. Low = sparse activations.</span></div>
+          <div class="btns"><button type="button" class="primary" id="a-play">Pause</button><button type="button" id="a-init">Re-init SAE</button><button type="button" id="a-new">New features</button><button type="button" id="a-copy">Use toy model's W</button></div>
+          <dl class="readout">
+            <dt>recovered (cos &gt; 0.97)</dt><dd id="a-rec" class="hot">–</dd>
+            <dt>variance explained</dt><dd id="a-ve">–</dd>
+            <dt>L0 (active latents)</dt><dd id="a-l0">–</dd>
+            <dt>dead latents</dt><dd id="a-dead">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>At low density every dot lies on one feature's ray, and the atoms snap onto the dashed lines. The dictionary recovers features the hidden space never had room for.</li>
+        <li>Raise the density past about 0.3: dots fill the plane because several features fire at once, and recovery falls apart. SAEs depend on the same sparsity that made superposition possible.</li>
+        <li>Set k below the number of true features and some features are never found. Set k large and two atoms share one feature, or die. Real SAEs show both: <b>feature splitting</b> and <b>dead latents</b>.</li>
+        <li>Switch to <b>ReLU + L1</b>: atoms often settle <em>between</em> two rays and share the work, and recovery becomes a matter of luck. The L1 penalty also shrinks activations. TopK (OpenAI, 2024) and JumpReLU (Gemma Scope, 2024) were introduced to fix exactly these problems. With λ = 0 the codes stop being sparse at all.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 4: deprioritised ============ -->
+  <section class="beat" id="deprioritised">
+    <header>
+      <span class="num">Beat 4</span>
+      <h2><span class="w">Why</span> did DeepMind step back from SAEs in 2025?</h2>
+      <p class="short">Because when they tested SAE features on a task they cared about, detecting harmful intent on unfamiliar inputs, a plain linear probe trained on the raw activations did better. A dictionary that reconstructs well is not automatically a tool that works.</p>
+    </header>
+    <div class="prose">
+      <p>In March 2025 the Google DeepMind mechanistic interpretability team (Lewis Smith, Senthooran Rajamanoharan, Neel Nanda and others) posted <em>Negative Results for SAEs on Downstream Tasks and Deprioritising SAE Research</em>. SAE-based classifiers lost to linear probes on out-of-distribution harmful-intent detection, so the team moved its effort to "model biology" and pragmatic tools. A companion ICML 2025 paper, <em>Are Sparse Autoencoders Useful? A Case Study in Sparse Probing</em> (Kantamneni, Engels, Rajamanoharan, Tegmark, Nanda), found SAE probes do not beat simple baselines across many datasets. Nanda calls the new stance <b>pragmatic interpretability</b>: judge a method by what it lets you do downstream.</p>
+      <p>The lab above already shows why this can happen. An SAE optimises reconstruction plus sparsity. Nothing in that objective says "carve at the concepts you will later ask about". On real models the same issues appear at scale: features <span class="term" tabindex="0" data-def="As the dictionary grows, one feature (say 'math') splits into many narrower ones ('algebra', 'LaTeX', 'proof words'), so which concept you get depends on dictionary size.">split</span>, general features are <span class="term" tabindex="0" data-def="A broad feature stops firing on some inputs because a more specific latent 'absorbs' those cases to save sparsity, leaving holes in the broad feature.">absorbed</span> by specific ones, and some reconstruction error is left over that no feature explains.</p>
+      <p>The tools did not disappear. DeepMind still shipped Gemma Scope 2 in December 2025, now aimed at circuit tracing with transcoders. The change was in the claim: SAEs are one lens, not the master key.</p>
+    </div>
+    <div class="verdict">
+      <div><span class="k">Linear probe</span><h4>Supervised direction</h4><p>Needs labels for the concept. Cheap, strong, and the 2025 baseline that SAEs failed to beat. Says the concept is <em>decodable</em>, not that the model uses it.</p></div>
+      <div><span class="k">Sparse autoencoder</span><h4>Unsupervised dictionary</h4><p>Finds features nobody labelled. Good for exploration. Features depend on k and λ; split, absorb and die.</p></div>
+      <div><span class="k">Transcoder</span><h4>Replace an MLP</h4><p>Predicts an MLP layer's <em>output</em> from its input through sparse features, so features describe computation. "Transcoders beat SAEs" (2025) found them more faithful.</p></div>
+      <div><span class="k">Steering vector</span><h4>Causal test</h4><p>Add a direction and watch behaviour change. The refusal direction (2024) and persona vectors (2025) passed this test.</p></div>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 5: circuits ============ -->
+  <section class="beat" id="circuits">
+    <header>
+      <span class="num">Beat 5</span>
+      <h2><span class="w">Why</span> trace mechanisms instead of listing features?</h2>
+      <p class="short">Because a feature list says what is represented, while behaviour comes from how features feed each other. Attribution graphs follow the path from prompt to answer through interpretable features, so you can see a model plan, add or look things up.</p>
+    </header>
+    <div class="split">
+      <div class="prose">
+        <p>In March 2025 Anthropic published <em>Circuit Tracing</em> and <em>On the Biology of a Large Language Model</em>. They replaced Claude 3.5 Haiku's MLPs with <b>cross-layer transcoders</b>, then drew <b>attribution graphs</b>: which features, at which token, pushed which later features, up to the output. Among the findings: two-hop reasoning done internally, a rhyme word chosen <em>before</em> the line that leads to it, and concepts shared across languages. For 36 + 59 the model ran fuzzy parallel paths, one estimating the rough size and one getting the last digit, which the FER paper later cited as a "right answer, odd inside" example (see <a href="fractured.html">chapter 07</a>).</p>
+        <p>Follow-ups closed the gaps. Attention itself was traced in July 2025. In October 2025 a counting mechanism turned out to be <b>rotations of curved feature manifolds</b>, a case where "list of features" is the wrong description. Then came tests of whether a model's self-reports track its insides: concept injection let Claude Opus 4 and 4.1 notice and name injected "thoughts", but only about 20% of the time in the best setting.</p>
+        <p>In April 2026 Anthropic found emotion-like representations in Claude Sonnet 4.5, organised much like human affect space. Steering toward "desperation" raised rates of blackmail and reward hacking; "calm" lowered them. The authors do not claim the model feels anything. The claim is functional: an internal state that can be measured also drives misbehaviour.</p>
+        <aside class="aside warn"><span class="k">Careful</span>Most of these results come from one lab's models. Whether they replicate on other architectures is the open question the project notes flag. The July 2026 "global workspace" result (a small "J-space" in middle layers, under 10% of activation variance, holding what the model could verbalise) is known here only from a secondary source <span class="pill bad">check</span>.</aside>
+      </div>
+      <div class="tl-wrap">
+        <ol class="timeline">
+          <li><span class="d">2022-09</span><br><b>Toy Models of Superposition</b><br><span class="small muted">Features outnumber neurons when sparse.</span></li>
+          <li><span class="d">2023 · 2024</span><br><b>Towards / Scaling Monosemanticity</b><br><span class="small muted">SAEs from a 1-layer model to Claude 3 Sonnet.</span></li>
+          <li><span class="d">2024-06</span><br><b>Refusal is one direction</b><br><span class="small muted">Arditi, Nanda et al. Ablate it, refusal goes.</span></li>
+          <li><span class="d">2024-07</span><br><b>Gemma Scope</b><br><span class="small muted">400+ open JumpReLU SAEs on Gemma 2.</span></li>
+          <li><span class="d">2025-03</span><br><b>Biology of an LLM · GDM negative results</b><br><span class="small muted">Attribution graphs; SAEs lose to probes.</span></li>
+          <li><span class="d">2025-07</span><br><b>Tracing attention</b><br><span class="small muted">QK interactions in the graphs.</span></li>
+          <li><span class="d">2025-10</span><br><b>Counting on manifolds · introspection</b><br><span class="small muted">Rotations of curved features; ~20% self-detection <span class="pill bad">check</span></span></li>
+          <li><span class="d">2025-11</span><br><b>Weight-sparse transformers</b><br><span class="small muted">OpenAI: train sparse, read circuits <span class="pill bad">check</span></span></li>
+          <li><span class="d">2025-12</span><br><b>Gemma Scope 2 · Activation Oracles</b><br><span class="small muted">Transcoders for all Gemma 3; LLMs that read activations.</span></li>
+          <li><span class="d">2026-04</span><br><b>Emotion concepts</b><br><span class="small muted">Functional states that steer misbehaviour.</span></li>
+          <li><span class="d">2026-05</span><br><b>Natural-language autoencoders</b><br><span class="small muted">Explanations in words, not dictionaries.</span></li>
+        </ol>
+      </div>
+    </div>
+    <div class="people">
+      <span class="who" data-i="NN">Neel Nanda</span><span class="who" data-i="CO">Chris Olah</span><span class="who" data-i="JL">Jack Lindsey</span><span class="who" data-i="LG">Leo Gao</span><span class="who" data-i="YM">Yi Ma</span><span class="who" data-i="LR">Laura Ruis</span>
+    </div>
+    <div class="prose"><p class="small muted">Two other routes avoid dictionaries altogether. <b>Interpretable by design</b>: OpenAI's weight-sparse transformers and Yi Ma's white-box CRATE, where each layer is a step on a known objective. <b>From the data side</b>: Laura Ruis's influence functions trace reasoning back to procedural documents in pretraining.</p></div>
+  </section>
+
+  <!-- ============ BEAT 6: probe + steer ============ -->
+  <section class="beat" id="steer">
+    <header>
+      <span class="num">Beat 6</span>
+      <h2><span class="w">Why</span> can a probe find a concept the model doesn't use?</h2>
+      <p class="short">Because a probe is trained to predict a label, and it will use any direction that helps, including ones that only correlate with the label in its training data. Steering asks the causal question: if I push along this direction, does the model's own output move?</p>
+    </header>
+    <div class="prose">
+      <p>The lab builds a 16-dimensional "residual stream". One direction <b>c</b> carries the concept the model actually uses: a fixed downstream head outputs "positive" when the activation's <b>c</b> component is above zero. A second direction <b>u</b> is a nuisance (think "the text is long") that correlates with the label in the training set but not in deployment. You train a logistic-regression probe and then steer deployment activations along three candidate directions.</p>
+    </div>
+    <figure class="lab" id="lab-steer">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Probe, then push</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-steer" aria-label="Scatter of activations projected on the true concept axis and the nuisance axis, with the probe's direction, the model head's boundary and steering arrows; on the right, bars of how many outputs each steering direction flips."></canvas></div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="p-rho">Spurious correlation in training</label><output for="p-rho"></output></div>
+            <input type="range" id="p-rho" min="0" max="1.5" step="0.05" value="0.9">
+            <span class="hint">How strongly the nuisance u tracks the label in probe-training data. In deployment it doesn't.</span></div>
+          <div class="ctrl"><div class="row"><label for="p-n">Training examples</label><output for="p-n"></output></div>
+            <input type="range" id="p-n" min="10" max="400" step="10" value="120"></div>
+          <div class="ctrl"><div class="row"><label for="p-a">Steering strength α</label><output for="p-a"></output></div>
+            <input type="range" id="p-a" min="0" max="4" step="0.1" value="1.5"></div>
+          <div class="ctrl"><span class="lbl">Show steering along</span>
+            <div class="seg" role="group" aria-label="Steering direction">
+              <button type="button" data-dir="probe" aria-pressed="true">Probe</button><button type="button" data-dir="mean" aria-pressed="false">Mean diff</button><button type="button" data-dir="true" aria-pressed="false">True c</button>
+            </div></div>
+          <div class="btns"><button type="button" id="p-new">New data</button></div>
+          <dl class="readout">
+            <dt>probe acc (train dist.)</dt><dd id="p-tr">–</dd>
+            <dt>probe acc (deployment)</dt><dd id="p-ood">–</dd>
+            <dt>cos(probe, c)</dt><dd id="p-cos" class="hot">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>With strong spurious correlation the probe scores well on its own distribution, then drops in deployment, and its direction leans toward u. This is the shape of the 2025 out-of-distribution failures.</li>
+        <li>Steering along the probe flips fewer outputs than steering along c at the same α, because only its c component reaches the head. Flip rate is a causal measurement; accuracy is not.</li>
+        <li>Set the correlation to 0: probe, mean difference and c line up, and all three steer the same. When the data is clean, decodable and used coincide.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 7: JEPA bridge ============ -->
+  <section class="beat" id="jepa">
+    <header>
+      <span class="num">Beat 7</span>
+      <h2><span class="w">Why</span> look inside a JEPA?</h2>
+      <p class="short">Because almost all of this toolkit was built on language models that predict tokens. A JEPA predicts embeddings and never has to name anything, so nobody knows what its features look like. That makes it the cheapest open question in this chapter.</p>
+    </header>
+    <div class="prose">
+      <p>The project's field map ranks <b>sparse autoencoders on I-JEPA features</b> as its top bridge between JEPA and the wider field: as far as the notes found, no one has a clean feature dictionary of a JEPA encoder, and the experiment is laptop-sized. The 2025 negative results change how to run it. Pair the SAE with linear probes from the first day, so every SAE feature has a baseline to beat, and add FER-style weight sweeps (<a href="fractured.html">chapter 07</a>) to ask whether the inside is unified or fractured.</p>
+    </div>
+    <aside class="aside ours"><span class="k">This project</span>The plan, as the notes suggest it: (1) take a small I-JEPA ViT and collect patch embeddings from a mid layer; (2) train an SAE with k = 8 to 16 × width; (3) for every concept you can label (object class, texture, position), compare the best SAE latent with a linear probe; (4) steer: add an SAE atom to a patch embedding and see whether the predictor's output for neighbouring masked patches moves the way the label says. A predictor that changes its guess is the JEPA version of a causal test. Compare the same pipeline on SIGReg, VICReg and EMA encoders (<a href="collapse.html">chapter 03</a>, <a href="gaussian.html">chapter 05</a>): an isotropic embedding may spread features more evenly, which should change how much superposition the SAE has to undo.</aside>
+    <div class="tbl"><table>
+      <thead><tr><th>Question</th><th>Tool</th><th>What would count as an answer</th></tr></thead>
+      <tbody>
+        <tr><td>Are JEPA features sparse and linear?</td><td>SAE on patch embeddings</td><td>High variance explained at low L0, atoms that fire on recognisable parts</td></tr>
+        <tr><td>Are they useful?</td><td>Linear probe vs best SAE latent</td><td>SAE within a few points of the probe, out of distribution too</td></tr>
+        <tr><td>Are they used?</td><td>Steer an atom, read the predictor</td><td>Predicted embeddings of masked neighbours shift toward the concept</td></tr>
+        <tr><td>Unified or fractured?</td><td>FER weight sweeps</td><td>Single-weight changes move one meaningful property</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="remember">
+    <h2>Three things to <span class="w">remember</span></h2>
+    <ol>
+      <li><b>Concepts are directions.</b>Layers read by dot products, so whatever the next layer needs tends to sit along a direction you can probe or push.</li>
+      <li><b>Sparse guests share rooms.</b>When features rarely co-occur, a network stores more of them than it has neurons, and a ReLU cleans up the rare collisions.</li>
+      <li><b>A reading is a hypothesis until you push.</b>Dictionaries and probes find what is decodable. Only steering and ablation show what the model uses.</li>
+    </ol>
+  </section>
+
+  <section id="quiz"></section>
+
+  <section class="sources">
+    <h2>Sources for this chapter</h2>
+    <ol>
+      <li>Elhage et al., <a href="https://transformer-circuits.pub/2022/toy_model/index.html">Toy Models of Superposition</a>, Anthropic 2022.</li>
+      <li>Park, Choe, Veitch, <a href="https://arxiv.org/abs/2311.03658">The Linear Representation Hypothesis and the Geometry of Large Language Models</a>, 2023 (background).</li>
+      <li>Mikolov et al., <a href="https://arxiv.org/abs/1301.3781">Efficient Estimation of Word Representations in Vector Space</a>, 2013; Alain &amp; Bengio, <a href="https://arxiv.org/abs/1610.01644">Understanding intermediate layers using linear classifier probes</a>, 2016 (background).</li>
+      <li>Bricken et al., <a href="https://transformer-circuits.pub/2023/monosemantic-features">Towards Monosemanticity</a>, 2023; Templeton et al., <a href="https://transformer-circuits.pub/2024/scaling-monosemanticity/">Scaling Monosemanticity</a>, 2024 (background).</li>
+      <li>Gao et al., <a href="https://arxiv.org/abs/2406.04093">Scaling and evaluating sparse autoencoders</a> (TopK SAEs), OpenAI 2024 (background).</li>
+      <li>Arditi, Obeso, …, Nanda, <a href="https://arxiv.org/abs/2406.11717">Refusal in Language Models Is Mediated by a Single Direction</a>, 2024.</li>
+      <li>Lieberum et al., <a href="https://arxiv.org/abs/2408.05147">Gemma Scope</a>, 2024; <a href="https://deepmind.google/blog/gemma-scope-2-helping-the-ai-safety-community-deepen-understanding-of-complex-language-model-behavior/">Gemma Scope 2</a>, DeepMind 2025-12.</li>
+      <li>Smith, Rajamanoharan, Nanda et al., <a href="https://www.alignmentforum.org/s/AtTZjoDm8q3DbDT8Z">Negative Results for SAEs on Downstream Tasks and Deprioritising SAE Research</a>, 2025-03 <span class="pill bad">check</span> (exact post URL not verified).</li>
+      <li>Kantamneni, Engels, Rajamanoharan, Tegmark, Nanda, <a href="https://arxiv.org/abs/2502.16681">Are Sparse Autoencoders Useful? A Case Study in Sparse Probing</a>, ICML 2025 <span class="pill bad">check</span></li>
+      <li>Anthropic, <a href="https://transformer-circuits.pub/">Circuit Tracing; On the Biology of a Large Language Model; Tracing Attention; When Models Manipulate Manifolds; Natural Language Autoencoders</a>, transformer-circuits.pub, 2025-2026.</li>
+      <li>Chen et al., <a href="https://www.anthropic.com/research/persona-vectors">Persona vectors</a>, Anthropic 2025 <span class="pill bad">check</span></li>
+      <li>Lindsey, <a href="https://arxiv.org/abs/2601.01828">Emergent Introspective Awareness in Large Language Models</a>, 2025 <span class="pill bad">check</span></li>
+      <li>Gao et al., <a href="https://arxiv.org/abs/2511.13653">Weight-sparse transformers have interpretable circuits</a>, OpenAI 2025 <span class="pill bad">check</span></li>
+      <li>Anthropic, <a href="https://anthropic.com/research/emotion-concepts-function">Emotion Concepts and their Function in a Large Language Model</a>, 2026-04.</li>
+      <li>Verbalizable Representations Form a Global Workspace (<a href="https://aiweekly.co/node/5577">secondary coverage</a>), 2026-07 <span class="pill bad">check</span></li>
+      <li>Nanda et al., <a href="https://arxiv.org/abs/2301.05217">Progress measures for grokking via mechanistic interpretability</a>, 2023; MLST episodes with Neel Nanda, 2023-06 and 2024-12.</li>
+      <li>Project notes: <code>landscape/ai-landscape-why.md</code> Q11, <code>fields/ai-alife-field-map.md</code> A2 and bridge idea 1. Companion map: <a href="why-atlas.html">Why Atlas</a>.</li>
+    </ol>
+  </section>
+
+  <nav id="pager"></nav>
+</main>
+<footer id="site-footer"></footer>
+
+<script src="assets/atlas.js"></script>
+<script>
+(function(){
+"use strict";
+const A = window.Atlas;
+const $ = id => document.getElementById(id);
+const featCol = (C,i) => [C.why,C.p1,C.p2,C.p4,C.p3,C.p5,C.ink,C.muted][i%8];
+
+/* ---------- tiny Adam ---------- */
+function Adam(size, lr){
+  const m = new Float64Array(size), v = new Float64Array(size); let t = 0;
+  return { lr, step(p, g){ t++; const b1=.9, b2=.999, c1=1-Math.pow(b1,t), c2=1-Math.pow(b2,t);
+    for(let i=0;i<size;i++){ m[i]=b1*m[i]+(1-b1)*g[i]; v[i]=b2*v[i]+(1-b2)*g[i]*g[i]; p[i]-= this.lr*(m[i]/c1)/(Math.sqrt(v[i]/c2)+1e-8); } } };
+}
+
+/* ---------- Toy model of superposition (m = 2) ---------- */
+function TMS(n, seed){
+  const m = 2, r = A.rng(seed);
+  const P = new Float64Array(m*n + n);         // W (m×n row-major) then b
+  for(let i=0;i<m*n;i++) P[i] = r.normal()*0.35;
+  const G = new Float64Array(P.length), opt = Adam(P.length, .02);
+  const x = new Float64Array(n), h = new Float64Array(m), y = new Float64Array(n), dy = new Float64Array(n), dh = new Float64Array(m);
+  let lastLoss = 0, steps = 0;
+  function step(B, S, decay, relu){
+    G.fill(0); let L = 0; const p = 1-S;
+    for(let s=0;s<B;s++){
+      for(let i=0;i<n;i++) x[i] = r()<p ? r() : 0;
+      for(let k=0;k<m;k++){ let a=0; for(let i=0;i<n;i++) a+=P[k*n+i]*x[i]; h[k]=a; }
+      for(let i=0;i<n;i++){
+        let a = P[m*n+i]; for(let k=0;k<m;k++) a+=P[k*n+i]*h[k];
+        const o = relu ? Math.max(0,a) : a, imp = Math.pow(decay,i), e = o-x[i];
+        L += imp*e*e; dy[i] = (relu && a<=0) ? 0 : 2*imp*e/B; y[i]=a;
+      }
+      dh.fill(0);
+      for(let i=0;i<n;i++){ const d=dy[i]; if(!d) continue; G[m*n+i]+=d;
+        for(let k=0;k<m;k++){ G[k*n+i]+=d*h[k]; dh[k]+=P[k*n+i]*d; } }
+      for(let k=0;k<m;k++){ const d=dh[k]; if(!d) continue; for(let i=0;i<n;i++) G[k*n+i]+=d*x[i]; }
+    }
+    opt.step(P, G); lastLoss = L/B; steps++;
+  }
+  return { n, m, P, step, get loss(){return lastLoss;}, get steps(){return steps;},
+    norm(i){ return Math.hypot(P[i], P[n+i]); },
+    represented(){ let c=0; for(let i=0;i<n;i++) if(this.norm(i)>.5) c++; return c; },
+    dpf(){ let f=0; for(let i=0;i<2*n;i++) f+=P[i]*P[i]; return f>1e-9 ? 2/f : Infinity; } };
+}
+
+let tmsModel = null;   // shared with SAE lab ("use toy model's W")
+
+(function(){
+  const cv = $("cv-tms"), cs = $("cv-sweep");
+  let n = 5, S = .95, decay = .8, relu = true, seed = 11, model, running = !A.reduced;
+  const sweep = {pts:[], busy:false, key:""};
+  const P_LIST = [1,.7,.5,.35,.25,.18,.12,.08,.055,.035,.022,.014,.009,.006];
+  function init(){ model = TMS(n, seed++); tmsModel = model; for(let k=0;k<1500;k++) model.step(64, S, decay, relu); }
+  const view = A.canvas(cv, w => w<560 ? 1.32 : .5, draw), sv = A.canvas(cs, w => w<560 ? .55 : .3, drawSweep);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const P = model.P, nn = model.n;
+    // left: arrows
+    const narrow = w<560;
+    const side = narrow ? Math.min(w-8, h*.56) : Math.min(h-24, w*.5-14), cx = narrow ? w/2 : side/2+4, cy = 20+side/2, R = side*.40;
+    ctx.font = `600 12px ${C.ui}`; ctx.fillStyle = C.muted; ctx.textBaseline = "alphabetic";
+    ctx.fillText("Columns of W in the 2-D hidden space", 4, 13);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx,cy,R,0,7); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx-R*1.15,cy); ctx.lineTo(cx+R*1.15,cy); ctx.moveTo(cx,cy-R*1.15); ctx.lineTo(cx,cy+R*1.15); ctx.stroke();
+    for(let i=nn-1;i>=0;i--){
+      const wx = P[i], wy = P[nn+i], len = Math.hypot(wx,wy), col = featCol(C,i);
+      const ex = cx + wx*R, ey = cy - wy*R;
+      ctx.globalAlpha = len>.5 ? 1 : .35; ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2.6;
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(ex,ey); ctx.stroke();
+      if(len>.05){ const a = Math.atan2(ey-cy, ex-cx); ctx.beginPath(); ctx.moveTo(ex,ey);
+        ctx.lineTo(ex-9*Math.cos(a-.4), ey-9*Math.sin(a-.4)); ctx.lineTo(ex-9*Math.cos(a+.4), ey-9*Math.sin(a+.4)); ctx.fill(); }
+      ctx.beginPath(); ctx.arc(ex,ey,3,0,7); ctx.fill();
+      const lx = cx + wx*R*1.0 + (wx>=0?8:-16), ly = cy - wy*R*1.0 + (wy>=0?-6:14);
+      ctx.font = `600 12px ${C.mono}`; ctx.fillText(String(i), lx, ly);
+      ctx.globalAlpha = 1;
+    }
+    // right: W^T W heatmap + bias
+    const ox = narrow ? 14 : side+30, oy = narrow ? side+52 : 30, avail = w-ox-6, cell = Math.min((avail-26)/(nn+1.4), (h-oy-24)/nn);
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText("WᵀW (interference)", ox, oy-17);
+    ctx.font = `10px ${C.mono}`; ctx.fillText("bias", ox+cell*(nn+.4), oy-4);
+    for(let i=0;i<nn;i++){
+      for(let j=0;j<nn;j++){
+        const v = P[i]*P[j] + P[nn+i]*P[nn+j];
+        ctx.fillStyle = C.panel2; ctx.fillRect(ox+j*cell, oy+i*cell, cell-1, cell-1);
+        ctx.globalAlpha = Math.min(1,Math.abs(v)); ctx.fillStyle = v>=0 ? C.p1 : C.why;
+        ctx.fillRect(ox+j*cell, oy+i*cell, cell-1, cell-1); ctx.globalAlpha = 1;
+      }
+      const b = P[2*nn+i];
+      ctx.fillStyle = C.panel2; ctx.fillRect(ox+cell*(nn+.4), oy+i*cell, cell-1, cell-1);
+      ctx.globalAlpha = Math.min(1,Math.abs(b)); ctx.fillStyle = b>=0 ? C.p1 : C.why;
+      ctx.fillRect(ox+cell*(nn+.4), oy+i*cell, cell-1, cell-1); ctx.globalAlpha = 1;
+      ctx.fillStyle = featCol(C,i); ctx.fillRect(ox-7, oy+i*cell+2, 4, cell-5);
+    }
+    ctx.fillStyle = C.muted; ctx.font = `10.5px ${C.ui}`;
+    const ly = oy+nn*cell+14;
+    ctx.fillStyle = C.p1; ctx.fillRect(ox, ly-8, 9, 9); ctx.fillStyle = C.muted; ctx.fillText("+", ox+12, ly);
+    ctx.fillStyle = C.why; ctx.fillRect(ox+26, ly-8, 9, 9); ctx.fillStyle = C.muted; ctx.fillText("−  diagonal = ‖Wᵢ‖²", ox+38, ly);
+    $("t-step").textContent = model.steps;
+    $("t-loss").textContent = model.loss.toFixed(4);
+    $("t-rep").textContent = `${model.represented()} of ${nn}`;
+    const d = model.dpf(); $("t-dpf").textContent = isFinite(d) ? d.toFixed(2) : "–";
+  }
+  function drawSweep(){
+    const {ctx,w,h} = sv, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const L = 34, Rr = 10, T = 10, Bm = 26, pw = w-L-Rr, ph = h-T-Bm;
+    const lx = p => L + (Math.log10(1/p)/Math.log10(1/P_LIST[P_LIST.length-1]))*pw;
+    const ly = c => T + ph - c/n*ph;
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.font = `10px ${C.mono}`; ctx.fillStyle = C.muted;
+    for(let c=0;c<=n;c++){ ctx.beginPath(); ctx.moveTo(L,ly(c)); ctx.lineTo(L+pw,ly(c)); ctx.stroke(); if(c%1===0) ctx.fillText(String(c), L-14, ly(c)+3); }
+    [1,.1,.01].forEach(p=>{ ctx.fillText(p===1?"1":String(p), lx(p)-6, h-12); });
+    ctx.fillText("1 − S  (feature probability)", L+pw*.42, h-1);
+    ctx.strokeStyle = C.lineStrong; ctx.beginPath(); ctx.moveTo(L,ly(2)); ctx.lineTo(L+pw,ly(2)); ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillText("m = 2", L+4, ly(2)-4);
+    if(sweep.pts.length){
+      ctx.strokeStyle = C.part; ctx.lineWidth = 2; ctx.beginPath();
+      sweep.pts.forEach(([p,c],i)=>{ const X=lx(p), Y=ly(c); i?ctx.lineTo(X,Y):ctx.moveTo(X,Y); }); ctx.stroke();
+      ctx.fillStyle = C.part; sweep.pts.forEach(([p,c])=>{ ctx.beginPath(); ctx.arc(lx(p),ly(c),3,0,7); ctx.fill(); });
+    }
+    const cp = Math.max(P_LIST[P_LIST.length-1], 1-S);
+    ctx.strokeStyle = C.why; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(lx(cp),T); ctx.lineTo(lx(cp),T+ph); ctx.stroke();
+    ctx.fillStyle = C.why; ctx.font = `600 10px ${C.mono}`; ctx.fillText(sweep.busy ? "training…" : "you", Math.min(lx(cp)+4, w-58), T+10);
+  }
+  function runSweep(){
+    const key = `${n}|${decay}|${relu}`; sweep.pts = []; sweep.busy = true; sweep.key = key; let i = 0;
+    const next = ()=>{
+      if(sweep.key!==key) return;
+      if(i>=P_LIST.length){ sweep.busy=false; sv.redraw(); return; }
+      const p = P_LIST[i], md = TMS(n, 1000+i);
+      const ns = Math.round(2200*Math.max(1,Math.sqrt(.08/p))); for(let k=0;k<ns;k++) md.step(48, 1-p, decay, relu);
+      sweep.pts.push([p, md.represented()]); i++; sv.redraw(); setTimeout(next, 0);
+    };
+    setTimeout(next, 30);
+  }
+  const anim = A.loop(cv, ()=>{ for(let k=0;k<12;k++) model.step(64, S, decay, relu); view.redraw(); });
+  const playBtn = $("t-play");
+  function setRun(on){ running = on; playBtn.textContent = on ? "Pause" : "Train"; on ? anim.start() : anim.stop(); }
+  A.slider("t-n", v=>{ if(v!==n || !model){ n=v; init(); if(view) { view.redraw(); runSweep(); } } }, v=>v);
+  A.slider("t-s", v=>{ S = 1-Math.pow(10,-v); if(model){ view.redraw(); sv.redraw(); } }, v=>{ const s=1-Math.pow(10,-v); return `${s.toFixed(s>.99?3:2)} · on ${(100*(1-s)).toFixed((1-s)<.1?1:0)}%`; });
+  A.slider("t-d", v=>{ decay=v; }, v=>v.toFixed(2));
+  $("t-d").addEventListener("change", runSweep);
+  $("t-relu").addEventListener("change", e=>{ relu = e.target.checked; runSweep(); });
+  $("t-init").onclick = ()=>{ init(); view.redraw(); };
+  $("t-sweep").onclick = runSweep;
+  playBtn.onclick = ()=>setRun(!running);
+  view.redraw(); runSweep();
+  setRun(running);
+})();
+
+/* =================== LAB: SAE =================== */
+(function(){
+  const cv = $("cv-sae");
+  let k = 8, lam = .08, topk = 1, dens = .1, nT = 5, seed = 5, sSeed = 77, running = !A.reduced;
+  let D = [];          // true directions [[x,y],...]
+  let We, be, Wd, bd, opt, rng, steps = 0, stats = {ve:0,l0:0,dead:0,act:[]}, cloud = [];
+  function newFeatures(){
+    const r = A.rng(seed++); D = [];
+    const off = r()*Math.PI*2;
+    for(let i=0;i<nT;i++){ const a = off + i*2*Math.PI/nT + (r()-.5)*.5; D.push([Math.cos(a), Math.sin(a)]); }
+  }
+  function sample(r){
+    let x=0,y=0;
+    for(let i=0;i<D.length;i++) if(r()<dens){ const f=r(); x+=f*D[i][0]; y+=f*D[i][1]; }
+    return [x+r.normal()*.01, y+r.normal()*.01];
+  }
+  function initSAE(){
+    rng = A.rng(sSeed++);
+    We = new Float64Array(k*2); be = new Float64Array(k); Wd = new Float64Array(2*k); bd = new Float64Array(2);
+    for(let j=0;j<k;j++){ const a = rng()*Math.PI*2; Wd[j]=Math.cos(a); Wd[k+j]=Math.sin(a); We[j*2]=Wd[j]; We[j*2+1]=Wd[k+j]; }
+    opt = {We:Adam(k*2,.01), be:Adam(k,.01), Wd:Adam(2*k,.01), bd:Adam(2,.01)}; steps = 0;
+    const cr = A.rng(4242); cloud = []; for(let i=0;i<500;i++) cloud.push(sample(cr));
+  }
+  function trainStep(B){
+    const gWe = new Float64Array(k*2), gbe = new Float64Array(k), gWd = new Float64Array(2*k), gbd = new Float64Array(2);
+    const f = new Float64Array(k), u = new Float64Array(k);
+    let se=0, sv=0, l0=0; const fired = new Uint8Array(k);
+    let mx=0,my=0; const batch=[];
+    for(let s=0;s<B;s++){ const p=sample(rng); batch.push(p); mx+=p[0]; my+=p[1]; } mx/=B; my/=B;
+    for(const [x0,x1] of batch){
+      const c0=x0-bd[0], c1=x1-bd[1];
+      for(let j=0;j<k;j++) u[j]=We[j*2]*c0+We[j*2+1]*c1+be[j];
+      if(topk){ const idx=[...u.keys()].sort((a,b)=>u[b]-u[a]); for(let q=topk;q<k;q++) u[idx[q]]=-1; }
+      for(let j=0;j<k;j++){ f[j]=u[j]>0?u[j]:0; if(f[j]>1e-6){ l0++; fired[j]=1; } }
+      let h0=bd[0], h1=bd[1]; for(let j=0;j<k;j++){ h0+=Wd[j]*f[j]; h1+=Wd[k+j]*f[j]; }
+      const r0=h0-x0, r1=h1-x1; se += r0*r0+r1*r1; sv += (x0-mx)**2+(x1-my)**2;
+      const g0=2*r0/B, g1=2*r1/B; gbd[0]+=g0; gbd[1]+=g1;
+      for(let j=0;j<k;j++){
+        gWd[j]+=g0*f[j]; gWd[k+j]+=g1*f[j];
+        if(u[j]<=0) continue;
+        const du = Wd[j]*g0 + Wd[k+j]*g1 + (topk ? 0 : lam/B);
+        gWe[j*2]+=du*c0; gWe[j*2+1]+=du*c1; gbe[j]+=du;
+        gbd[0]-=du*We[j*2]; gbd[1]-=du*We[j*2+1];
+      }
+    }
+    opt.We.step(We,gWe); opt.be.step(be,gbe); opt.Wd.step(Wd,gWd); opt.bd.step(bd,gbd);
+    for(let j=0;j<k;j++){ const nrm=Math.hypot(Wd[j],Wd[k+j])||1; Wd[j]/=nrm; Wd[k+j]/=nrm; }
+    steps++;
+    if(steps%150===0) resample(batch);
+    // smooth stats
+    const a=.1; stats.ve = (1-a)*stats.ve + a*(1-se/Math.max(1e-9,sv)); stats.l0 = (1-a)*stats.l0 + a*(l0/B);
+    if(!stats.act.length || stats.act.length!==k) stats.act = new Array(k).fill(1);
+    for(let j=0;j<k;j++) stats.act[j] = .97*stats.act[j] + .03*fired[j];
+  }
+  // dead-latent resampling (Towards Monosemanticity, 2023): point dead atoms at badly reconstructed inputs
+  function resample(batch){
+    for(let j=0;j<k;j++){
+      if(stats.act.length!==k || stats.act[j]>=.02) continue;
+      let best=null, be2=-1;
+      for(const [x0,x1] of batch){ const c0=x0-bd[0], c1=x1-bd[1]; let h0=bd[0], h1=bd[1];
+        for(let q=0;q<k;q++){ const u=We[q*2]*c0+We[q*2+1]*c1+be[q]; if(u>0){ h0+=Wd[q]*u; h1+=Wd[k+q]*u; } }
+        const e=(h0-x0)**2+(h1-x1)**2 + rng()*1e-6; if(e>be2){ be2=e; best=[c0,c1]; } }
+      const l = Math.hypot(best[0],best[1])||1; Wd[j]=best[0]/l; Wd[k+j]=best[1]/l;
+      We[j*2]=Wd[j]*.5; We[j*2+1]=Wd[k+j]*.5; be[j]=0; stats.act[j]=.05;
+    }
+  }
+  function match(){
+    return D.map(d=>{ let best=-1, bj=-1;
+      for(let j=0;j<k;j++){ if(stats.act[j]<.02) continue; const c=d[0]*Wd[j]+d[1]*Wd[k+j]; if(c>best){best=c;bj=j;} }
+      return [best,bj]; });
+  }
+  const view = A.canvas(cv, w => w<560 ? 1.35 : .52, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const narrow = w<560;
+    const side = narrow ? Math.min(w-8, h*.66) : Math.min(h-24, w*.56), cx = narrow ? w/2 : side/2+4, cy = 20+side/2, R = side*.30;
+    ctx.font = `600 12px ${C.ui}`; ctx.fillStyle = C.muted; ctx.fillText("Activations, true features, learned atoms", 4, 13);
+    ctx.fillStyle = C.p1; ctx.globalAlpha = .55;
+    for(const [x,y] of cloud){ ctx.beginPath(); ctx.arc(cx+x*R*1.4, cy-y*R*1.4, 2, 0, 7); ctx.fill(); } ctx.globalAlpha = 1;
+    ctx.setLineDash([5,4]); ctx.lineWidth = 1.4; ctx.strokeStyle = C.ink; ctx.globalAlpha = .55;
+    D.forEach(d=>{ ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+d[0]*R*1.55, cy-d[1]*R*1.55); ctx.stroke(); });
+    ctx.setLineDash([]); ctx.globalAlpha = 1;
+    for(let j=0;j<k;j++){
+      const alive = stats.act[j]>=.02, ex=cx+Wd[j]*R*1.3, ey=cy-Wd[k+j]*R*1.3;
+      ctx.strokeStyle = alive ? C.why : C.faint; ctx.fillStyle = ctx.strokeStyle; ctx.lineWidth = alive?2.4:1.4;
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(ex,ey); ctx.stroke();
+      ctx.beginPath(); ctx.arc(ex,ey,alive?3.5:2.5,0,7); ctx.fill();
+    }
+    // right: match bars
+    const ox = narrow ? 6 : side+22, top = narrow ? side+44 : 32, ms = match(), bw = w-ox-10, bh = Math.min(20,(h-top-10)/Math.max(1,D.length)/1.6);
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText("Best match per true feature", ox, top-19);
+    let rec = 0;
+    ms.forEach(([c],i)=>{
+      const y = top + i*bh*1.6, v = Math.max(0,c), ok = c>.97; if(ok) rec++;
+      ctx.fillStyle = C.muted; ctx.font = `10.5px ${C.mono}`; ctx.fillText(`f${i}`, ox, y+bh*.75);
+      ctx.fillStyle = C.panel2; ctx.fillRect(ox+22, y, bw-62, bh);
+      ctx.fillStyle = ok ? C.good : C.why; ctx.fillRect(ox+22, y, (bw-62)*v, bh);
+      ctx.fillStyle = C.ink; ctx.fillText(c<0?"none":c.toFixed(3), ox+bw-36, y+bh*.75);
+    });
+    $("a-rec").textContent = `${rec} of ${D.length}`;
+    $("a-ve").textContent = (100*Math.max(0,stats.ve)).toFixed(1)+"%";
+    $("a-l0").textContent = stats.l0.toFixed(2);
+    $("a-dead").textContent = `${stats.act.filter(a=>a<.02).length} of ${k}`;
+  }
+  function warm(n){ for(let i=0;i<n;i++) trainStep(64); }
+  const anim = A.loop(cv, ()=>{ for(let i=0;i<10;i++) trainStep(64); view.redraw(); });
+  const playBtn = $("a-play");
+  function setRun(on){ running=on; playBtn.textContent = on?"Pause":"Train"; on?anim.start():anim.stop(); }
+  newFeatures(); initSAE(); warm(2500);
+  A.slider("a-k", v=>{ if(v!==k){ k=v; stats.act=[]; initSAE(); warm(300); view.redraw(); } }, v=>v);
+  A.slider("a-l", v=>{ lam=v; }, v=>v.toFixed(2));
+  A.slider("a-p", v=>{ dens=v; const cr=A.rng(4242); cloud=[]; for(let i=0;i<500;i++) cloud.push(sample(cr)); view.redraw(); }, v=>v.toFixed(2));
+  $("a-init").onclick = ()=>{ stats.act=[]; initSAE(); view.redraw(); };
+  $("a-new").onclick = ()=>{ newFeatures(); stats.act=[]; initSAE(); view.redraw(); };
+  $("a-copy").onclick = ()=>{
+    if(!tmsModel) return; const P = tmsModel.P, nn = tmsModel.n; const nd = [];
+    for(let i=0;i<nn;i++){ const l=Math.hypot(P[i],P[nn+i]); if(l>.3) nd.push([P[i]/l, P[nn+i]/l]); }
+    if(nd.length){ D = nd; stats.act=[]; initSAE(); view.redraw(); }
+  };
+  playBtn.onclick = ()=>setRun(!running);
+  cv.closest(".lab").querySelectorAll("[data-sp]").forEach(b=>b.addEventListener("click",()=>{
+    topk = +b.dataset.sp; cv.closest(".lab").querySelectorAll("[data-sp]").forEach(o=>o.setAttribute("aria-pressed", o===b));
+    stats.act=[]; initSAE(); warm(300); view.redraw(); }));
+  view.redraw(); setRun(running);
+})();
+
+/* =================== LAB: probe + steer =================== */
+(function(){
+  const cv = $("cv-steer"), DIM = 16;
+  let rho = .9, N = 120, alpha = 1.5, dir = "probe", seed = 3;
+  let train = [], test = [], probe = null, meanDir = null;
+  function gen(r, n, corr){
+    const out = [];
+    for(let i=0;i<n;i++){
+      const y = r()<.5 ? -1 : 1, a = new Float64Array(DIM);
+      for(let d=0;d<DIM;d++) a[d] = r.normal();
+      a[0] += y*1.0;                          // concept c = e0
+      a[1] += corr ? y*corr*1.6 : 0;          // nuisance u = e1, correlated only in training
+      out.push({a,y});
+    }
+    return out;
+  }
+  function fit(){
+    const w = new Float64Array(DIM); let b = 0;
+    for(let it=0; it<400; it++){
+      const g = new Float64Array(DIM); let gb = 0;
+      for(const {a,y} of train){ let z=b; for(let d=0;d<DIM;d++) z+=w[d]*a[d];
+        const p = 1/(1+Math.exp(-z)), t = y>0?1:0, e = p-t; for(let d=0;d<DIM;d++) g[d]+=e*a[d]; gb+=e; }
+      for(let d=0;d<DIM;d++) w[d] -= .5*(g[d]/train.length + .01*w[d]); b -= .5*gb/train.length;
+    }
+    probe = {w,b};
+    const mp = new Float64Array(DIM), mn = new Float64Array(DIM); let np=0, nm=0;
+    for(const {a,y} of train){ if(y>0){ np++; for(let d=0;d<DIM;d++) mp[d]+=a[d]; } else { nm++; for(let d=0;d<DIM;d++) mn[d]+=a[d]; } }
+    meanDir = new Float64Array(DIM); for(let d=0;d<DIM;d++) meanDir[d] = mp[d]/Math.max(1,np) - mn[d]/Math.max(1,nm);
+  }
+  const unit = v => { let s=0; for(const x of v) s+=x*x; s=Math.sqrt(s)||1; return Array.from(v, x=>x/s); };
+  const acc = set => { let c=0; for(const {a,y} of set){ let z=probe.b; for(let d=0;d<DIM;d++) z+=probe.w[d]*a[d]; if((z>0)===(y>0)) c++; } return c/set.length; };
+  function flipRate(v){ // fraction of head-negative deployment points pushed to positive by alpha*v
+    let neg=0, fl=0; for(const {a} of test){ if(a[0]<=0){ neg++; if(a[0]+alpha*v[0]>0) fl++; } } return neg? fl/neg : 0;
+  }
+  function rebuild(){ const r = A.rng(seed*31+7); train = gen(r, N, rho); test = gen(A.rng(seed*97+3), 400, 0); fit(); }
+  const view = A.canvas(cv, w => w<560 ? 1.72 : .58, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const dirs = {probe: unit(probe.w), mean: unit(meanDir), true: (()=>{ const v=new Array(DIM).fill(0); v[0]=1; return v; })()};
+    const v = dirs[dir];
+    const narrow = w<560;
+    const pw = narrow ? w-12 : Math.min(w*.62, h*1.05), ph = narrow ? Math.min(w-12, h*.6) : h-34, ox = 6, oy = 22, sc = Math.min(pw,ph)/9;
+    const X = a => ox+pw/2 + a*sc, Y = b => oy+ph/2 - b*sc;
+    ctx.font = `600 12px ${C.ui}`; ctx.fillStyle = C.muted; ctx.fillText("Deployment activations on (c, u)", ox, 13);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(ox, oy, pw, ph);
+    // head boundary c = 0
+    ctx.strokeStyle = C.lineStrong; ctx.setLineDash([5,4]); ctx.beginPath(); ctx.moveTo(X(0),oy); ctx.lineTo(X(0),oy+ph); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = C.muted; ctx.font = `10.5px ${C.ui}`; ctx.fillText("model head: c > 0 → positive", X(0)+4, oy+ph-6);
+    // probe boundary on this plane: w0 c + w1 u + b = 0
+    const w0 = probe.w[0], w1 = probe.w[1];
+    ctx.save(); ctx.beginPath(); ctx.rect(ox,oy,pw,ph); ctx.clip();
+    if(Math.abs(w1)>1e-6 || Math.abs(w0)>1e-6){
+      ctx.strokeStyle = C.p2; ctx.lineWidth = 1.6; ctx.beginPath();
+      if(Math.abs(w1) > Math.abs(w0)){ const uAt = c=>-(w0*c+probe.b)/w1; ctx.moveTo(X(-6),Y(uAt(-6))); ctx.lineTo(X(6),Y(uAt(6))); }
+      else { const cAt = u=>-(w1*u+probe.b)/w0; ctx.moveTo(X(cAt(-6)),Y(-6)); ctx.lineTo(X(cAt(6)),Y(6)); }
+      ctx.stroke();
+    }
+    // points: deployment, steered negatives
+    for(const {a,y} of test.slice(0,220)){
+      const neg = a[0]<=0, sx = neg ? a[0]+alpha*v[0] : a[0], sy = neg ? a[1]+alpha*v[1] : a[1];
+      ctx.globalAlpha = .75; ctx.fillStyle = y>0 ? C.p1 : C.why;
+      ctx.beginPath(); ctx.arc(X(sx),Y(sy),2.4,0,7); ctx.fill();
+    }
+    ctx.globalAlpha = 1; ctx.restore();
+    // arrows
+    const arrow = (vx,vy,col,lab,len)=>{ const ex=X(0)+vx*sc*len, ey=Y(0)-vy*sc*len; ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=2.6;
+      ctx.beginPath(); ctx.moveTo(X(0),Y(0)); ctx.lineTo(ex,ey); ctx.stroke(); const an=Math.atan2(ey-Y(0),ex-X(0));
+      ctx.beginPath(); ctx.moveTo(ex,ey); ctx.lineTo(ex-9*Math.cos(an-.4),ey-9*Math.sin(an-.4)); ctx.lineTo(ex-9*Math.cos(an+.4),ey-9*Math.sin(an+.4)); ctx.fill();
+      ctx.font=`600 11px ${C.mono}`; ctx.fillText(lab, ex+5, ey-4); };
+    arrow(v[0], v[1], C.ink, "steer", 3.2);
+    ctx.fillStyle = C.muted; ctx.font = `10.5px ${C.mono}`; ctx.fillText("c →", ox+pw-30, Y(0)-4); ctx.fillText("u ↑", X(0)+4, oy+12);
+    ctx.fillStyle = C.p2; ctx.font = `10.5px ${C.ui}`; ctx.fillText("probe boundary", ox+6, oy+14);
+    // bars
+    const bx = narrow ? ox : ox+pw+16, by0 = narrow ? oy+ph+18 : 0, bw = w-bx-6, bH = narrow ? h-by0 : h, names = [["probe","Probe"],["mean","Mean diff"],["true","True c"]];
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText(`Outputs flipped by α = ${alpha.toFixed(1)}`, bx, by0+13);
+    names.forEach(([key,lab],i)=>{
+      const fr = flipRate(dirs[key]), rowH = narrow ? 58 : (bH-50)/3, y = by0+(narrow?34:40) + i*rowH, bh = Math.min(22,rowH-34);
+      ctx.fillStyle = key===dir ? C.ink : C.muted; ctx.font = `600 11px ${C.ui}`; ctx.fillText(lab, bx, y);
+      ctx.fillStyle = C.panel2; ctx.fillRect(bx, y+5, bw, bh);
+      ctx.fillStyle = key==="true" ? C.good : key==="probe" ? C.p2 : C.p3; ctx.fillRect(bx, y+5, bw*fr, bh);
+      ctx.fillStyle = C.ink; ctx.font = `600 11px ${C.mono}`; ctx.fillText(`${Math.round(fr*100)}%`, bx+4, y+5+bh*.7);
+      ctx.fillStyle = C.muted; ctx.font = `10px ${C.mono}`; ctx.fillText(`cos to c ${dirs[key][0].toFixed(2)}`, bx, y+bh+18);
+    });
+    $("p-tr").textContent = (acc(gen(A.rng(seed*13+1), 400, rho))*100).toFixed(1)+"%";
+    $("p-ood").textContent = (acc(test)*100).toFixed(1)+"%";
+    $("p-cos").textContent = dirs.probe[0].toFixed(2);
+  }
+  A.slider("p-rho", v=>{ rho=v; if(view){ rebuild(); view.redraw(); } }, v=>v.toFixed(2));
+  A.slider("p-n", v=>{ N=v; if(view){ rebuild(); view.redraw(); } }, v=>v);
+  A.slider("p-a", v=>{ alpha=v; if(view) view.redraw(); }, v=>v.toFixed(1));
+  cv.closest(".lab").querySelectorAll("[data-dir]").forEach(b=>b.addEventListener("click",()=>{
+    dir = b.dataset.dir; cv.closest(".lab").querySelectorAll("[data-dir]").forEach(o=>o.setAttribute("aria-pressed", o===b)); view.redraw(); }));
+  $("p-new").onclick = ()=>{ seed++; rebuild(); view.redraw(); };
+  rebuild(); view.redraw();
+})();
+
+/* =================== QUIZ =================== */
+A.quiz("quiz", [
+  {q:"Why would a network store a concept as a linear direction rather than some arbitrary code?",
+   options:["Because gradient descent can only produce linear functions","Because the next layer reads its input through dot products, so a direction is the cheapest thing for it to use","Because ReLU forces linearity","Because training data is linearly separable"],
+   answer:1, why:"A downstream unit computes w·x. A fact stored along one direction can be read by one row of weights. Anything more tangled costs more layers to decode."},
+  {q:"In the toy model, why does the network represent only 2 of 5 features when features are dense, but all 5 when they are sparse?",
+   options:["Sparse features are smaller, so they fit","With dense features, two features sharing directions collide on almost every input; with sparse ones collisions are rare and the ReLU clips most of the crosstalk","The learning rate changes with sparsity","Dense features have lower importance"],
+   answer:1, why:"Superposition trades interference for capacity. Interference only costs loss when features co-occur, which sparsity makes rare. That is the phase change in Elhage et al. (2022)."},
+  {q:"Why does removing the output ReLU make superposition disappear in the toy model?",
+   options:["The model becomes too small","Without a nonlinearity, negative crosstalk can't be clipped, so the optimum is plain PCA: keep the top-m features orthogonally","Linear models can't be trained with Adam","ReLU adds parameters"],
+   answer:1, why:"A linear autoencoder's optimum projects onto the top principal directions. The ReLU (with a negative bias) zeroes out small negative interference, which is what makes packing extra features worth it."},
+  {q:"An SAE reconstructs activations with 99% variance explained. Why might its features still be a poor tool for detecting harmful intent?",
+   options:["99% is too low","Its objective is reconstruction plus sparsity, not the concepts you later care about; features can split, be absorbed or miss the concept, and a probe trained for the task can do better","SAEs only work on images","SAEs ignore the residual stream"],
+   answer:1, why:"That is DeepMind's March 2025 finding: SAE-based classifiers lost to linear probes out of distribution. Good reconstruction is not the same as useful carving."},
+  {q:"In the steering lab, the probe has 95% accuracy but steering along it flips fewer outputs than steering along c. Why?",
+   options:["The probe overfits the test set","The probe also uses the nuisance direction u that correlated with the label in training; only the c component reaches the model's head","α is too small","Logistic regression can't find directions"],
+   answer:1, why:"A probe uses whatever predicts the label in its data. Steering tests what the model's own computation reads. They agree only when no spurious direction is available."},
+  {q:"Why is 'SAEs on I-JEPA features' a good first experiment for this project?",
+   options:["JEPAs have no superposition","Nobody has a clean feature dictionary of a JEPA encoder, it fits on a laptop, and the JEPA predictor gives a natural causal test: steer a patch, read how predictions of masked neighbours move","SAEs work better on images than text","It replaces the need for probes"],
+   answer:1, why:"The field map ranks it as the top bridge. Pairing it with probes and predictor-based steering answers the 2025 critique from the start."},
+]);
+})();
+</script>
+</body>
+</html>

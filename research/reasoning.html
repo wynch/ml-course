@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why does search plus a verifier keep winning? · Hidden Patch</title>
+<meta name="description" content="Reasoning from the question why: why next-token prediction gets so far, why it stalls, why RL on checkable answers, test-time compute and evolutionary search with a verifier keep winning, and why skill is not intelligence.">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/atlas.css">
+<style>
+/* page-specific */
+.prog{font-family:var(--mono);font-size:.78rem;background:var(--code-bg);border-radius:8px;padding:.45rem .55rem;line-height:1.35;word-break:break-all;min-height:2.6em}
+.prog .k{display:block;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.15rem;word-break:normal}
+.chain{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.6rem}
+.chain>div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.7rem .8rem;font-family:var(--ui);font-size:.88rem;line-height:1.35;position:relative}
+.chain>div b{display:block;font-family:var(--display);font-size:1.02rem;margin-bottom:.15rem}
+.chain>div .n{font-family:var(--mono);font-size:.68rem;color:var(--why);letter-spacing:.08em;text-transform:uppercase}
+.wholist{display:flex;flex-wrap:wrap;gap:.4rem}
+</style>
+</head>
+<body data-chapter="reasoning" data-part="3">
+<header id="topbar" class="topbar"></header>
+
+<main class="chapter">
+  <section class="opener">
+    <p class="eyebrow"><span class="sw"></span>Part 3 · Machines · Chapter 09</p>
+    <h1 class="big"><span class="w">Why</span> does search plus a verifier keep winning?</h1>
+    <p class="because">a model that proposes is cheap and often wrong, a checker that disposes is slow but reliable, and together they turn raw compute into answers you can trust. Every accepted step is correct, so errors stop compounding, and whatever survives the check can be fed back to train a better proposer. Pretraining built the proposer. Reinforcement learning, test-time sampling and evolutionary search are three ways of wiring it to a checker.</p>
+    <p class="meta"><span>6 beats · 4 labs · 7 questions</span><span>Builds on: <a href="predict.html">01 Prediction as a teacher</a> · <a href="generalize.html">06 Why networks generalize</a></span></p>
+    <ul class="toc">
+      <li><a href="#scale"><span class="q">?</span>Why prediction gets so far</a></li>
+      <li><a href="#stall"><span class="q">?</span>Why it stalls</a></li>
+      <li><a href="#rl"><span class="q">?</span>Why RL on checkable answers</a></li>
+      <li><a href="#testtime"><span class="q">?</span>Why a verifier beats a vote</a></li>
+      <li><a href="#search"><span class="q">?</span>Why search discovers</a></li>
+      <li><a href="#skill"><span class="q">?</span>Why skill is not intelligence</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ BEAT 1: scaling ============ -->
+  <section class="beat" id="scale">
+    <header>
+      <span class="num">Beat 1</span>
+      <h2><span class="w">Why</span> does next-token prediction get so far?</h2>
+      <p class="short">Because the cheapest way to predict text written by people who reason is to compress some of that reasoning. And the loss falls as a smooth power law in parameters, data and compute, so every extra order of magnitude buys a predictable improvement.</p>
+    </header>
+    <div class="prose">
+      <p>A language model is trained to put high probability on the next token. To do that on the internet it has to compress grammar, facts, code, arithmetic and the habits of people explaining things. Prediction is compression: a model that assigns probability <i>q</i> to the real next token can encode it in −log₂ <i>q</i> bits, so lowering the loss is literally shrinking the file. (If you built the tokenizer and attention by hand in <a href="../index.html">Build ML From Scratch</a>, this is the same objective, run on a trillion tokens; see the <a href="../explorables/04-attention.html">attention explorable</a> for the core block.)</p>
+      <p>Kaplan et al. (OpenAI, 2020) found that test loss follows power laws over seven orders of magnitude: <span class="term" tabindex="0" data-def="Kaplan et al. 2020 fitted L(N) ≈ (Nc/N)^0.076 for parameters, L(D) ≈ (Dc/D)^0.095 for tokens and L(C) ≈ (Cc/C)^0.050 for compute, each with the other factors not limiting.">L ∝ N<sup>−0.076</sup> in parameters, D<sup>−0.095</sup> in tokens</span>, with architecture details mattering far less than size. They concluded that a bigger compute budget should go mostly into a bigger model. Hoffmann et al. (DeepMind, 2022) refitted with learning-rate schedules matched to each run length and got a different answer: grow parameters and tokens <em>equally</em>. Their 70B-parameter Chinchilla, trained on 1.4T tokens, beat the 280B Gopher trained on 300B tokens at about the same compute. The rule of thumb that came out of it: about 20 training tokens per parameter.</p>
+    </div>
+    <div class="eq">L(N, D) = E + A / N<sup>α</sup> + B / D<sup>β</sup> &nbsp;&nbsp; E = 1.69, A = 406.4, B = 410.7, α = 0.34, β = 0.28 &nbsp;&nbsp; C ≈ 6 N D
+      <span class="c">Hoffmann et al.'s parametric fit (their "Approach 3"). E is the irreducible entropy of text; the two other terms are what a finite model and finite data cost you. Training compute C is about 6 FLOPs per parameter per token.</span></div>
+    <figure class="lab" id="lab-chin">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Spend a compute budget: bigger model or more data?</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-chin" aria-label="Loss as a function of model size for a fixed compute budget, with the optimum, the 20 tokens per parameter rule and your choice marked."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i style="background:var(--p1)"></i>loss along the budget (isoFLOP)</span><span><i style="background:var(--p4)"></i>formula optimum</span><span><i style="background:var(--p2)"></i>20 tokens / param</span><span><i style="background:var(--why)"></i>your split</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="s-C">Compute budget</label><output for="s-C"></output></div>
+            <input type="range" id="s-C" min="18" max="26" step="0.05" value="23.76">
+            <span class="hint">FLOPs, log scale. 5.8 × 10²³ is about what Chinchilla and Gopher used.</span></div>
+          <div class="ctrl"><div class="row"><label for="s-r">Tokens per parameter</label><output for="s-r"></output></div>
+            <input type="range" id="s-r" min="0" max="3.3" step="0.02" value="0.03">
+            <span class="hint">Your allocation. Gopher used about 1, Chinchilla 20, many 2025 small models train at 1000+.</span></div>
+          <div class="btns"><button type="button" id="b-gopher">Gopher split</button><button type="button" id="b-chin">20 × rule</button><button type="button" id="b-opt" class="primary">Formula optimum</button></div>
+          <dl class="readout">
+            <dt>params N</dt><dd id="r-N">–</dd>
+            <dt>tokens D</dt><dd id="r-D">–</dd>
+            <dt>your loss</dt><dd id="r-L" class="hot">–</dd>
+            <dt>optimum loss</dt><dd id="r-Lo">–</dd>
+            <dt>optimum split</dt><dd id="r-ro">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Press <b>Gopher split</b> (≈1 token per parameter, 280B on 300B tokens): the loss sits well up the left wall of the valley. Chinchilla's split at the same budget is clearly lower, which is the 2022 result in one picture.</li>
+        <li>The valley floor is flat. The 20 × rule and the formula's own optimum differ by a factor of 2 to 5 in model size but only by about 0.006 nats in loss. A rule of thumb is safe because the optimum is shallow.</li>
+        <li>Approach 3's fit puts the optimum at more tokens per parameter than the 20 × rule from Approaches 1 and 2. A 2024 replication (Besiroglu et al.) traced part of that gap to the original fit. Since inference is paid per call, 2025 labs train small models far past both, on purpose.</li>
+        <li>Each ×10 in compute buys a smaller drop in loss, and E = 1.69 never moves. That shrinking return is half of why the field went looking for a second axis.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 2: why it stalls ============ -->
+  <section class="beat" id="stall">
+    <header>
+      <span class="num">Beat 2</span>
+      <h2><span class="w">Why</span> does prediction alone stall on reasoning?</h2>
+      <p class="short">Because imitation has no ground truth. The loss rewards text that looks like a good derivation whether or not it is right, and in a long chain one wrong token poisons everything after it, with nothing in the loop to notice.</p>
+    </header>
+    <div class="split">
+      <div class="prose">
+        <p>Next-token loss scores how <em>typical</em> a continuation is. A confident wrong proof and a correct one can be equally typical. Nothing in pretraining checks the answer, and nothing teaches the model to back up when a step fails.</p>
+        <p>Errors also compound. If each step of a derivation is right with probability 1 − ε and steps fail independently, an <i>n</i>-step chain is right with probability (1 − ε)<sup><i>n</i></sup>. LeCun's long-standing objection to autoregressive models is this exponential: the longer the answer, the likelier it has left the set of correct answers.</p>
+        <p>Three critics put it three ways. <span class="who" data-i="SK">Subbarao Kambhampati</span> calls LLMs "approximate retrieval engines" that cannot verify their own plans, and proposes <b>LLM-Modulo</b>: let the model generate, let sound external checkers decide. <span class="who" data-i="RS">Richard Sutton</span> says imitation of human text has no goal and no ground truth, so it is a dead end for intelligence. <span class="who" data-i="FC">François Chollet</span> says scale buys memorised skill, not the ability to acquire new skill (Beat 6).</p>
+      </div>
+      <div>
+        <div class="eq">P(chain correct) = (1 − ε)<sup>n</sup><br>ε = 1%, n = 10 &nbsp;→ 0.90<br>ε = 1%, n = 100 → 0.37<br>ε = 1%, n = 500 → 0.007
+          <span class="c">The independence assumption is crude, but the shape is the point: per-step accuracy has to rise as answers get longer, or something has to catch errors.</span></div>
+        <div class="analogy" style="margin-top:1rem"><span class="ico">≈</span><div><span class="k">Picture it</span><p>Pretraining makes a brilliant improviser: fluent, fast, never stops to check. A verifier is the editor who reads every line and sends back what doesn't hold. The improviser alone gets worse as the piece gets longer. The pair gets better the more drafts you can afford.</p></div></div>
+      </div>
+    </div>
+    <div class="chain">
+      <div><span class="n">Propose</span><b>A learned model</b>Pretrained LLM, policy network or code generator. Cheap, broad, unreliable.</div>
+      <div><span class="n">Search</span><b>Many proposals</b>Sampling, tree search, evolution, longer chains of thought.</div>
+      <div><span class="n">Verify</span><b>An automatic check</b>Unit tests, a math answer key, a Lean kernel, a game result, a simulator.</div>
+      <div><span class="n">Learn</span><b>Train on survivors</b>RL updates, fine-tuning on accepted traces, a new parent population.</div>
+    </div>
+    <div class="prose"><p class="small muted">The recipe of Q6 in the project's landscape notes. Sutton's Bitter Lesson (2019) names the two general methods that keep scaling with compute: search and learning. The verifier is what lets them run unattended.</p></div>
+  </section>
+
+  <!-- ============ BEAT 3: RL ============ -->
+  <section class="beat" id="rl">
+    <header>
+      <span class="num">Beat 3</span>
+      <h2><span class="w">Why</span> does RL on checkable answers produce reasoning?</h2>
+      <p class="short">Because a reward from an answer checker pays only for being right. Every behaviour that raises the hit rate (writing out steps, checking, backtracking, trying again) gets reinforced, and none of it has to be shown by a human first.</p>
+    </header>
+    <div class="prose">
+      <p>OpenAI's o1 (September 2024) was the first widely used model trained this way, and showed accuracy rising with both RL compute and the length of its hidden chain of thought. DeepSeek made the recipe public. <b>DeepSeek-R1-Zero</b> (January 2025) started from the V3 base model and used only reinforcement learning with rule-based rewards: is the final answer right, is the format respected. Responses grew longer over training and started to include re-checking and "wait, let me reconsider" moves no one had written for it. The full R1 paper went through peer review and appeared in <i>Nature</i> in September 2025, disclosing roughly US$294k of RL compute on top of the base model <span class="pill bad">check</span>.</p>
+      <p>The algorithm is <span class="term" tabindex="0" data-def="Group Relative Policy Optimization, introduced in DeepSeekMath (2024). PPO without the value network: the baseline is the average reward of a group of samples for the same prompt.">GRPO</span>. For each question, sample a group of G answers, score each with the checker, and use the group itself as the baseline. Answers better than their siblings get pushed up, worse ones pushed down. No value network is trained, which halves the memory bill compared with PPO.</p>
+    </div>
+    <div class="eq">A<sub>i</sub> = (r<sub>i</sub> − mean(r<sub>1..G</sub>)) / std(r<sub>1..G</sub>) &nbsp;&nbsp;&nbsp; θ ← θ + η · Σ<sub>i</sub> A<sub>i</sub> ∇ log π<sub>θ</sub>(answer<sub>i</sub>)
+      <span class="c">The group-relative advantage. If every answer in a group gets the same reward (all right or all wrong), every A<sub>i</sub> is zero and that question teaches nothing. Real GRPO adds PPO-style clipping and a KL penalty to a reference model; the toy below keeps only the core.</span></div>
+    <figure class="lab" id="lab-grpo">
+      <div class="lab-head"><span class="tag">Sim</span><h3>GRPO on two-digit addition</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-grpo" aria-label="Left: policy probabilities over six answering strategies. Right: accuracy over training steps. Bottom: one sampled group with rewards and advantages."></canvas></div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="s-p0">Base model's prior on the right method</label><output for="s-p0"></output></div>
+            <input type="range" id="s-p0" min="0" max="0.3" step="0.005" value="0.04">
+            <span class="hint">How often pretraining already samples "carry correctly". Set it to 0 and watch.</span></div>
+          <div class="ctrl"><div class="row"><label for="s-G">Group size G</label><output for="s-G"></output></div>
+            <input type="range" id="s-G" min="2" max="16" step="1" value="8"></div>
+          <div class="ctrl"><div class="row"><label for="s-lr">Learning rate</label><output for="s-lr"></output></div>
+            <input type="range" id="s-lr" min="0.05" max="2" step="0.05" value="0.6"></div>
+          <div class="ctrl"><span class="lbl">Reward</span>
+            <div class="seg" role="group" aria-label="Reward"><button type="button" id="rw-check" aria-pressed="true">Checker</button><button type="button" id="rw-rand" aria-pressed="false">Random coin</button></div></div>
+          <div class="btns"><button type="button" class="primary" id="g-play">Train</button><button type="button" id="g-step">1 step</button><button type="button" id="g-reset">Reset</button></div>
+          <dl class="readout">
+            <dt>step</dt><dd id="g-r-step">0</dd>
+            <dt>accuracy (pass@1)</dt><dd id="g-r-acc" class="hot">–</dd>
+            <dt>P(right method)</dt><dd id="g-r-pm">–</dd>
+            <dt>groups with no signal</dt><dd id="g-r-zero">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Each strategy is a real procedure run on real problems. "Forget the carry" is right whenever no column carries, about 31% of the time on these problems, so it gets reinforced early. The checker only sees answers, so a lucky wrong method is rewarded too, until the right method out-scores it.</li>
+        <li>Set the prior to <b>0</b>: accuracy climbs to whatever the partial methods allow and stalls, because no sample ever uses the right method, so nothing can reinforce it. RL sharpens what the model can already sample. That is the core of the "creates or surfaces" dispute.</li>
+        <li>Shrink G to 2: many groups are all-right or all-wrong, their advantages are zero, and learning slows. Large groups are how GRPO finds a signal on hard questions.</li>
+        <li>Switch to <b>Random coin</b>: the policy drifts aimlessly. In this toy a random reward teaches nothing; on Qwen2.5-Math it raised scores anyway (Spurious Rewards, 2025), which says the gain came from what pretraining had already put there.</li>
+      </ul></div>
+    </figure>
+    <div class="tbl"><table>
+      <thead><tr><th>Paper (2025)</th><th>Claim</th><th>Reading</th></tr></thead>
+      <tbody>
+        <tr><td>Yue et al. <span class="pill bad">check</span></td><td>At large k, base models match or beat their RL-trained versions on pass@k.</td><td>RL mostly <em>surfaces</em>: it concentrates probability on paths the base model could already sample.</td></tr>
+        <tr><td>ProRL (NVIDIA) <span class="pill bad">check</span></td><td>Long, stabilised RL (KL control, reference resets, diverse tasks) solves problems the base model fails at any k.</td><td>RL can <em>create</em>, if you train long enough.</td></tr>
+        <tr><td>Spurious Rewards <span class="pill bad">check</span></td><td>Random or wrong rewards still lift Qwen2.5-Math on MATH, but not Llama or OLMo.</td><td>Some "gains" are pretraining surfacing. Test on more than one model family.</td></tr>
+        <tr><td>RL's Razor <span class="pill bad">check</span></td><td>On-policy RL forgets less than supervised fine-tuning.</td><td>RL prefers solutions close (in KL) to the base policy.</td></tr>
+      </tbody></table></div>
+    <aside class="aside"><span class="k">What would settle it</span>Pass@k at large k on model families with weak priors, after long RL (the project's fault-line table). The toy above is the cartoon version: with prior 0, no amount of RL finds the method; with any small prior, RL finds it fast.</aside>
+  </section>
+
+  <!-- ============ BEAT 4: test-time compute ============ -->
+  <section class="beat" id="testtime">
+    <header>
+      <span class="num">Beat 4</span>
+      <h2><span class="w">Why</span> does a verifier beat majority voting?</h2>
+      <p class="short">Because voting can only amplify whatever answer is most common, and when the model has a favourite mistake, more samples make the mistake win harder. A verifier checks each answer on its merits, so more samples only add chances to be right.</p>
+    </header>
+    <div class="prose">
+      <p>Test-time compute is the second scaling axis: spend more inference per question instead of more training. There are two ways to spend it. <b>Think longer</b>: one long chain of thought with self-checks, which is what RL-trained models learn to do. <b>Sample wider</b>: draw N answers and pick one. Picking needs a rule. <b>Self-consistency</b> (Wang et al., 2022) takes the majority answer. <b>Best-of-N with a verifier</b> scores each answer: a trained outcome verifier (Cobbe et al., 2021, on GSM8K), a process reward model that grades each step (Lightman et al., 2023, "Let's Verify Step by Step"), or an exact checker such as unit tests. Snell et al. (2024) showed that spending test-time compute well can beat a model about 14 times larger at matched FLOPs, on problems of moderate difficulty.</p>
+      <p>The lab below computes, by simulation, how accuracy grows with N under each rule. Each sample is right with probability <i>p</i>. Wrong answers are not uniform: a share of them land on one popular wrong answer, the way a model has a favourite misconception.</p>
+    </div>
+    <figure class="lab" id="lab-bon">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Best-of-N: vote, verify, or oracle</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-bon" aria-label="Accuracy as a function of the number of samples N for majority voting, verifier selection and an oracle."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i style="background:var(--faint)"></i>oracle pass@N (any sample right)</span><span><i style="background:var(--why)"></i>verifier, then vote among accepted</span><span><i style="background:var(--p1)"></i>majority vote</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="s-bp">Per-sample accuracy p</label><output for="s-bp"></output></div>
+            <input type="range" id="s-bp" min="0.02" max="0.9" step="0.01" value="0.3"></div>
+          <div class="ctrl"><div class="row"><label for="s-bw">Share of errors on the popular wrong answer</label><output for="s-bw"></output></div>
+            <input type="range" id="s-bw" min="0" max="1" step="0.01" value="0.5">
+            <span class="hint">The rest spread over 9 other wrong answers.</span></div>
+          <div class="ctrl"><div class="row"><label for="s-rec">Verifier recall</label><output for="s-rec"></output></div>
+            <input type="range" id="s-rec" min="0.1" max="1" step="0.01" value="0.9">
+            <span class="hint">Chance it accepts a right answer.</span></div>
+          <div class="ctrl"><div class="row"><label for="s-fa">Verifier false-accept rate</label><output for="s-fa"></output></div>
+            <input type="range" id="s-fa" min="0" max="0.6" step="0.01" value="0.05">
+            <span class="hint">Chance it accepts a wrong answer.</span></div>
+          <div class="ctrl"><div class="row"><label for="s-bn">Samples N</label><output for="s-bn"></output></div>
+            <input type="range" id="s-bn" min="0" max="7" step="0.1" value="4"></div>
+          <dl class="readout">
+            <dt>verifier precision</dt><dd id="b-prec">–</dd>
+            <dt>majority vote</dt><dd id="b-vote">–</dd>
+            <dt>verifier</dt><dd id="b-ver" class="hot">–</dd>
+            <dt>oracle</dt><dd id="b-or">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>At the opening setting the popular wrong answer gets 0.7 × 0.5 = 35% of samples and the right one 30%. Majority voting creeps up, then goes <em>down</em> as N grows: with enough votes the favourite mistake always wins. Lower the share below about 0.43 and voting climbs again.</li>
+        <li>The verifier curve climbs toward 100% even though only 30% of samples are right. Voting among <em>accepted</em> answers works as long as the right answer is accepted more often than the popular wrong one: p·recall &gt; (1 − p)·share·false-accept. Picking one accepted answer at random would instead cap you at the precision shown in the readout.</li>
+        <li>Push false-accept toward 0: the verifier curve hugs the oracle. That is the regime of exact checkers (unit tests, Lean, a game result), which is why maths, code and games fell first.</li>
+        <li>Set p to 0.10 and false-accept to 0.60: the popular mistake now passes the check more often (0.9 × 0.5 × 0.6 = 0.27) than the right answer (0.1 × 0.9 = 0.09), and the verifier fails just like voting. A learned reward model that can be fooled is this kind of verifier, and RL against it learns to fool it.</li>
+      </ul></div>
+    </figure>
+    <aside class="aside warn"><span class="k">Careful</span>Kambhampati (MLST, "Do o1 models search?", 2025-01) warns against reading the intermediate tokens of a reasoning model as a faithful trace of its reasoning: their content often does not track whether the final answer is correct. Thinking longer helps, but the tokens are not proof that it reasoned the way the text says.</aside>
+  </section>
+
+  <!-- ============ BEAT 5: search + verifier ============ -->
+  <section class="beat" id="search">
+    <header>
+      <span class="num">Beat 5</span>
+      <h2><span class="w">Why</span> does search plus a verifier make discoveries?</h2>
+      <p class="short">Because when a score is cheap and trustworthy, you can try millions of candidates no human would think of and keep only what scores. The model supplies good guesses, the verifier supplies the truth, and evolution keeps the best ideas alive long enough to be improved.</p>
+    </header>
+    <ul class="timeline">
+      <li><span class="d">2016 · 2017</span><br><b>AlphaGo, AlphaZero.</b> A policy network proposes moves, Monte Carlo tree search explores, the game result verifies, and self-play trains the next network. AlphaZero dropped human games entirely.</li>
+      <li><span class="d">2019 · 2020</span><br><b>MuZero.</b> The same search with a <em>learned</em> model of the game that predicts only reward, value and policy. It is the bridge to <a href="worlds.html">chapter 11</a>.</li>
+      <li><span class="d">2023-06</span><br><b>AlphaDev.</b> AlphaZero-style search over assembly code; faster sorting routines merged into LLVM libc++.</li>
+      <li><span class="d">2023-12</span><br><b>FunSearch.</b> An LLM writes small Python programs, an evaluator scores them, an evolutionary database keeps the best. New cap-set constructions and bin-packing heuristics. The first new maths result from an LLM.</li>
+      <li><span class="d">2024-07</span><br><b>AlphaProof + AlphaGeometry 2.</b> RL in Lean, with the proof checker as the reward and test-time RL on generated variants: IMO silver, 28/42.</li>
+      <li><span class="d">2025-05</span><br><b>AlphaEvolve.</b> Gemini-powered evolutionary coding agent: a 4 × 4 complex matrix multiplication in 48 multiplications, about 20% of 50+ open problems improved, about 0.7% of Google's fleet compute recovered.</li>
+      <li><span class="d">2025-07</span><br><b>IMO gold in natural language.</b> OpenAI's experimental model and Gemini Deep Think both scored 35/42, with no formal tools, a year after AlphaProof needed Lean.</li>
+      <li><span class="d">2025-11</span><br><b>Tao et al.</b> AlphaEvolve on 67 problems in analysis, combinatorics and geometry, often matching or improving the state of the art.</li>
+      <li><span class="d">2026-02</span><br><b>Aletheia.</b> A Deep Think research agent (generate, verify, revise, admit failure) run on 700 open Erdős problems; 4 solved autonomously. The authors grade it no higher than level 2 of 4 on their own autonomy scale.</li>
+      <li><span class="d">2026-05</span><br><b>AlphaEvolve impact report.</b> Next-generation TPU design, quantum circuits with 10 × lower error on Willow, new Ramsey and TSP bounds, Spanner write amplification down 20%.</li>
+    </ul>
+    <div class="prose">
+      <p>FunSearch's loop is simple enough to run in a browser. Below, the "LLM" is replaced by random edits to small expression trees, which is weaker but honest: the point is the loop. The task is the one FunSearch used: <b>online bin packing</b>. Items arrive one at a time; a heuristic gives each open bin a score and the item goes into the highest-scoring bin that fits. The verifier packs a set of instances and counts bins against the lower bound ⌈Σ sizes / capacity⌉. Programs that crash or return NaN or infinity (say, a division by zero) are rejected.</p>
+    </div>
+    <figure class="lab" id="lab-evo">
+      <div class="lab-head"><span class="tag">Sim</span><h3>Evolve a bin-packing heuristic against a verifier</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-evo" aria-label="Top: excess bins over the lower bound by generation, with first-fit and best-fit baselines. Bottom: the packing produced by the current best program."></canvas></div>
+        <div class="side">
+          <div class="prog" id="evo-prog" aria-live="polite"><span class="k">best score(item s, room c)</span>–</div>
+          <div class="ctrl"><span class="lbl">Verifier</span>
+            <div class="seg" role="group" aria-label="Verifier strength"><button type="button" id="v-full" aria-pressed="true">6 × 150 items</button><button type="button" id="v-weak" aria-pressed="false">1 × 12 items</button></div>
+            <span class="hint">Held-out score always uses 6 fresh instances (capacity 100, sizes 1 to 100).</span></div>
+          <div class="ctrl"><div class="row"><label for="s-pop">Population</label><output for="s-pop"></output></div>
+            <input type="range" id="s-pop" min="8" max="80" step="4" value="32"></div>
+          <div class="btns"><button type="button" class="primary" id="e-play">Evolve</button><button type="button" id="e-step">1 generation</button><button type="button" id="e-reset">Restart</button></div>
+          <dl class="readout">
+            <dt>generation</dt><dd id="e-gen">0</dd>
+            <dt>programs scored</dt><dd id="e-n">0</dd>
+            <dt>rejected by verifier</dt><dd id="e-rej">0</dd>
+            <dt>best, train</dt><dd id="e-tr" class="hot">–</dd>
+            <dt>best, held-out</dt><dd id="e-ho">–</dd>
+            <dt>first fit / best fit</dt><dd id="e-base">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Generation 0 holds only constant programs, which all behave as first fit (ties go to the first bin). Within a generation or two a single mutation finds <b>best fit</b> (put the item where it leaves the least room) without being told it exists: any score that falls as the room c grows, such as −c or 1.4 − c, is best fit in disguise. Then the curve goes flat. Random edits rarely beat best fit; FunSearch needed an LLM writing whole programs, and far more samples, to find heuristics that beat it on OR-Library and Weibull benchmarks.</li>
+        <li>Switch to the <b>weak verifier</b> (one instance of 12 items) and restart: the train score quickly hits 0% excess while held-out stays worse. The program fits the checker, not the problem. A verifier is only as good as its coverage, the ARC Prize 2025 "knowledge overfitting" worry in miniature.</li>
+        <li>Count the rejected programs. A crash-proof evaluator is what lets the proposer be wild: bad ideas cost one evaluation, never a wrong answer.</li>
+      </ul></div>
+    </figure>
+    <div class="prose">
+      <p>Open clones put the same loop on a laptop. OpenEvolve and ShinkaEvolve (state-of-the-art circle packing in about 150 evaluations) run with small models; ThetaEvolve adds test-time RL to an 8B open model. Self-modifying agents apply it to their own code: the Darwin Gödel Machine raised SWE-bench from 20% to 50%, and the Huxley-Gödel Machine (Schmidhuber's lab) selects agents by how good their <em>descendants</em> are, reaching 61.4% on SWE-bench Verified. Zhengyao Jiang (MLST, 2026-09) points out that this "recursive self-improvement" still runs inside search spaces humans designed. The open-endedness side of the story is <a href="open.html">chapter 14</a>.</p>
+    </div>
+    <aside class="aside ours"><span class="k">For this project</span>A JEPA objective could be discovered this way: evolve the anti-collapse term with an LLM, scored by linear-probe accuracy plus quantization robustness. The verifier is an experiment the project already runs (see <a href="collapse.html">chapter 03</a> and <a href="lab.html">chapter 17</a>).</aside>
+    <aside class="aside warn"><span class="k">Where it stops</span>No verifier, no loop. Taste, research synthesis and open questions have no cheap checker. Kosmos reached 79% statement accuracy but 58% on synthesis, and the AI Scientist paper in <i>Nature</i> still hallucinated citations. DeepSeekMath-V2 tries to move the line by <em>learning</em> a proof verifier.</aside>
+  </section>
+
+  <!-- ============ BEAT 6: skill vs intelligence ============ -->
+  <section class="beat" id="skill">
+    <header>
+      <span class="num">Beat 6</span>
+      <h2><span class="w">Why</span> is skill not the same as intelligence?</h2>
+      <p class="short">Because skill can be bought with data: memorise enough solved tasks and you look clever on anything similar. Intelligence, in Chollet's definition, is how efficiently you turn a few examples and some priors into a skill you did not have. ARC was built so that only the second kind scores.</p>
+    </header>
+    <div class="prose">
+      <p>Chollet's <i>On the Measure of Intelligence</i> (2019) defines intelligence as <b>skill-acquisition efficiency</b> and introduces ARC: grid puzzles that need only "core knowledge" priors (objects, counting, symmetry, contact), each shown with two to five input-output examples. A child-level rule, never seen before, inferred from a handful of examples. Big frozen models did badly on it for years.</p>
+      <p>What lifted the scores was not bigger frozen models. It was <b>adapting per task at test time</b>, which is search plus a verifier in disguise: the task's own examples are the verifier. Test-time fine-tuning (MindsAI, the ARChitects), program synthesis guided by a model, and in 2025 the "refinement loop": propose an answer or program, check it against the examples, refine, repeat. The ARC team's ablation of HRM found the outer refinement loop gave about +13 points, while the brain-inspired hierarchy added little over a plain transformer of the same size.</p>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>When</th><th>Benchmark / system</th><th>Result</th><th>Why it matters</th></tr></thead>
+      <tbody>
+        <tr><td>2024</td><td>ARC Prize 2024, ARC-AGI-1 private</td><td class="n">33% → 55.5%</td><td>Test-time training and guided program synthesis named as the advances.</td></tr>
+        <tr><td>2025-05</td><td>ARC-AGI-2 launch</td><td class="n">low single digits</td><td>Pure LLMs; human panels solve every task.</td></tr>
+        <tr><td>2025</td><td>NVARC, Kaggle ARC-AGI-2 winner</td><td class="n best">24.03%</td><td>About $0.20 per task.</td></tr>
+        <tr><td>2025</td><td>Claude Opus 4.5 (Thinking), best bare commercial</td><td class="n">37.6%</td><td>$2.20 per task.</td></tr>
+        <tr><td>2025</td><td>Poetiq refinement harness on Gemini 3 Pro</td><td class="n best">54%</td><td>About $30 per task: the loop beats the raw model.</td></tr>
+        <tr><td>2025-10</td><td>TRM, 7M parameters, 2 layers, recursive</td><td class="n">~45% / ~8%</td><td>ARC-AGI-1 / -2. Recursion depth stands in for size. Paper award, 1st.</td></tr>
+        <tr><td>2025-12</td><td>CompressARC, 76K parameters</td><td class="n">no pretraining</td><td>Trained from scratch on each puzzle with a compression objective. Paper award, 3rd.</td></tr>
+        <tr><td>2026-03</td><td>ARC-AGI-3 launch: 135 interactive games, no instructions</td><td class="n">&lt; 1%</td><td>Frontier models at launch; humans 100%. Scored on action efficiency.</td></tr>
+        <tr><td>2026-07</td><td>Milestone #1, Tufa Labs</td><td class="n">≈ 1%</td><td>A local Qwen 27B writes Python world models of each game in a REPL and searches them.</td></tr>
+      </tbody></table></div>
+    <div class="compare">
+      <div><span class="k">Skill</span><h4>What you can do now</h4><p>Measured by accuracy on a fixed task set. Grows with training data and model size. Can be "knowledge-overfit": the ARC Prize 2025 report warns frontier models are starting to cover ARC-AGI-1 and -2 by sheer exposure.</p></div>
+      <div><span class="k">Intelligence (Chollet)</span><h4>How fast you get new skill</h4><p>Measured per unit of experience and prior. ARC-AGI-3 scores <em>action efficiency</em>: how few moves an agent needs to work out an unfamiliar game. That is a world-model-learning test (<a href="worlds.html">chapter 11</a>).</p></div>
+      <div><span class="k">The other voices</span><h4>Not everyone agrees</h4><p>Melanie Mitchell: accuracy overstates abstraction. Laura Ruis: LLMs do use generalisable procedures. Christopher Summerfield: that text alone teaches rich world knowledge is a real scientific surprise. Marcus and Saba: no compositional semantics without symbols.</p></div>
+    </div>
+    <aside class="aside"><span class="k">Where the evidence stands (October 2026)</span>Abstraction on ARC comes from per-task adaptation (refinement, test-time training, program search), not from bigger frozen models, and small models with deep iteration are competitive. Chollet's lab Ndea bets on deep-learning-guided program synthesis. Final ARC Prize 2026 results are due 2026-12-04. The fault line, in the project's map: <a href="why-atlas.html">Why Atlas</a> and <a href="landscape.html">chapter 15</a>.</aside>
+  </section>
+
+  <section class="remember">
+    <h2>Three things to <span class="w">remember</span></h2>
+    <ol>
+      <li><b>A checker turns compute into truth.</b>Propose cheaply, verify strictly, train on what survives. Every accepted step is correct, so errors stop compounding.</li>
+      <li><b>Votes amplify the popular mistake.</b>Majority voting converges to the most common answer, right or wrong. A verifier converges to the right one, as long as it lets the truth through more often than any single mistake.</li>
+      <li><b>Skill is the output, intelligence is the rate.</b>Memorised skill scales with data. ARC rewards adapting to a new task from a few examples, and so far per-task refinement loops win it.</li>
+    </ol>
+  </section>
+
+  <section id="quiz"></section>
+
+  <section class="sources">
+    <h2>Sources for this chapter</h2>
+    <ol>
+      <li>Kaplan et al., <a href="https://arxiv.org/abs/2001.08361">Scaling Laws for Neural Language Models</a>, 2020.</li>
+      <li>Hoffmann et al., <a href="https://arxiv.org/abs/2203.15556">Training Compute-Optimal Large Language Models</a> (Chinchilla), 2022. Parametric fit constants from Approach 3.</li>
+      <li>Besiroglu et al., <a href="https://arxiv.org/abs/2404.10102">Chinchilla Scaling: A Replication Attempt</a>, 2024.</li>
+      <li>Sutton, <a href="http://www.incompleteideas.net/IncIdeas/BitterLesson.html">The Bitter Lesson</a>, 2019.</li>
+      <li>Kambhampati et al., <a href="https://arxiv.org/abs/2402.01817">LLMs Can't Plan, But Can Help Planning in LLM-Modulo Frameworks</a>, ICML 2024; <a href="https://arxiv.org/abs/2504.09762">Stop Anthropomorphizing Intermediate Tokens</a>, 2025.</li>
+      <li>Shao et al., <a href="https://arxiv.org/abs/2402.03300">DeepSeekMath</a> (introduces GRPO), 2024. DeepSeek-AI, <a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1</a>, 2025; <a href="https://www.scientificamerican.com/article/secrets-of-chinese-ai-model-deepseek-revealed-in-landmark-paper">Nature publication coverage</a> <span class="pill bad">check</span>.</li>
+      <li>Yue et al., <a href="https://arxiv.org/abs/2504.13837">Does RL Really Incentivize Reasoning Capacity Beyond the Base Model?</a> <span class="pill bad">check</span>; <a href="https://arxiv.org/abs/2505.24864">ProRL</a> <span class="pill bad">check</span>; <a href="https://arxiv.org/abs/2506.10947">Spurious Rewards</a> <span class="pill bad">check</span>; <a href="https://arxiv.org/abs/2509.04259">RL's Razor</a> <span class="pill bad">check</span>, all 2025.</li>
+      <li>Cobbe et al., <a href="https://arxiv.org/abs/2110.14168">Training Verifiers to Solve Math Word Problems</a>, 2021. Wang et al., <a href="https://arxiv.org/abs/2203.11171">Self-Consistency</a>, 2022. Lightman et al., <a href="https://arxiv.org/abs/2305.20050">Let's Verify Step by Step</a>, 2023. Snell et al., <a href="https://arxiv.org/abs/2408.03314">Scaling LLM Test-Time Compute Optimally</a>, 2024.</li>
+      <li>Silver et al., <a href="https://arxiv.org/abs/1712.01815">AlphaZero</a>, 2017. Schrittwieser et al., <a href="https://arxiv.org/abs/1911.08265">MuZero</a>, 2019. <a href="https://deepmind.google/blog/alphadev-discovers-faster-sorting-algorithms">AlphaDev</a> <span class="pill bad">check</span>.</li>
+      <li>Romera-Paredes et al., <a href="https://deepmind.google/blog/funsearch-making-new-discoveries-in-mathematical-sciences-using-large-language-models">FunSearch</a>, Nature 2023 <span class="pill bad">check</span>. <a href="https://deepmind.google/blog/ai-solves-imo-problems-at-silver-medal-level/">AlphaProof and AlphaGeometry 2</a>, 2024 <span class="pill bad">check</span>.</li>
+      <li>Novikov et al., <a href="https://arxiv.org/abs/2506.13131">AlphaEvolve</a>, 2025 <span class="pill bad">check</span>; <a href="https://deepmind.google/blog/alphaevolve-impact">AlphaEvolve: scaling impact across fields</a>, 2026-05; Georgiev, Gómez-Serrano, Tao, Wagner, <a href="https://arxiv.org/abs/2511.02864">Mathematical exploration and discovery at scale</a>, 2025 <span class="pill bad">check</span>.</li>
+      <li><a href="https://deepmind.google/blog/advanced-version-of-gemini-with-deep-think-officially-achieves-gold-medal-standard-at-the-international-mathematical-olympiad">Gemini Deep Think IMO gold</a> and <a href="https://the-decoder.com/openai-claims-a-breakthrough-in-llm-reasoning-on-complex-math-problems/">OpenAI IMO 2025 coverage</a>, 2025 <span class="pill bad">check</span>. Feng et al., <a href="https://arxiv.org/abs/2602.10177">Towards Autonomous Mathematics Research</a> (Aletheia), 2026.</li>
+      <li><a href="https://arxiv.org/abs/2509.19349">ShinkaEvolve</a>, <a href="https://arxiv.org/abs/2511.23473">ThetaEvolve</a>, <a href="https://arxiv.org/abs/2505.22954">Darwin Gödel Machine</a>, <a href="https://arxiv.org/abs/2510.21614">Huxley-Gödel Machine</a>, <a href="https://arxiv.org/abs/2511.02824">Kosmos</a>.</li>
+      <li>Chollet, <a href="https://arxiv.org/abs/1911.01547">On the Measure of Intelligence</a>, 2019. <a href="https://arxiv.org/abs/2412.04604">ARC Prize 2024 report</a>; <a href="https://arxiv.org/abs/2505.11831">ARC-AGI-2</a>; <a href="https://arxiv.org/abs/2601.10904">ARC Prize 2025 report</a> and <a href="https://arcprize.org/blog/arc-prize-2025-results-analysis">results</a>; <a href="https://arcprize.org/blog/hrm-analysis">HRM analysis</a>; <a href="https://arxiv.org/abs/2603.24621">ARC-AGI-3</a>; <a href="https://arcprize.org/blog/arc-prize-2026-milestone-1">Milestone #1</a>.</li>
+      <li>Jolicoeur-Martineau, <a href="https://arxiv.org/abs/2510.04871">TRM: Less is More</a>, 2025. Liao &amp; Gu, <a href="https://arxiv.org/abs/2512.06104">CompressARC</a>, 2025.</li>
+      <li>Project notes: <code>landscape/ai-landscape-why.md</code> (Q6, Q7, fault lines), <code>landscape/sources/frontier-2025-2026.md</code>, <code>deepmind-2023-2026.md</code>, <code>mlst-guests-intelligence-reasoning-world-models.md</code>, <code>fields/ai-alife-field-map.md</code> (A3, A9).</li>
+    </ol>
+  </section>
+
+  <nav id="pager"></nav>
+</main>
+<footer id="site-footer"></footer>
+
+<script src="assets/atlas.js"></script>
+<script>
+(function(){
+"use strict";
+const A = window.Atlas;
+const $ = id => document.getElementById(id);
+const fmtSI = v => { const u=[[1e12,"T"],[1e9,"B"],[1e6,"M"],[1e3,"K"]]; for(const [k,s] of u) if(v>=k) return parseFloat((v/k).toPrecision(3))+s; return String(parseFloat(v.toPrecision(3))); };
+const sup = n => String(n).replace(/[-0-9]/g, d=>"⁻⁰¹²³⁴⁵⁶⁷⁸⁹"["-0123456789".indexOf(d)]);
+const fmtE = v => { const e = Math.floor(Math.log10(v)), m = v/Math.pow(10,e); return m.toFixed(1)+" × 10"+sup(e); };
+function rr(ctx,x,y,w,h,r){ ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(x,y,w,h,r); else ctx.rect(x,y,w,h); }
+
+/* =================== LAB: Chinchilla allocator =================== */
+(function(){
+  const E=1.69, Ac=406.4, Bc=410.7, al=.34, be=.28;
+  const L = (N,D)=> E + Ac/Math.pow(N,al) + Bc/Math.pow(D,be);
+  let lc = 23.76, lr = Math.log10(20);
+  const cv = $("cv-chin"), view = A.canvas(cv, w=>w<560?.8:.58, draw);
+  const optAt = C => { let best=null; for(let i=0;i<=1200;i++){ const N=Math.pow(10,6+i*7/1200), D=C/(6*N); if(D<1) continue; const l=L(N,D); if(!best||l<best.l) best={l,N,D}; } return best; };
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const Cb = Math.pow(10,lc), o = optAt(Cb);
+    const r = Math.pow(10,lr), N = Math.sqrt(Cb/(6*r)), D = r*N, Lu = L(N,D);
+    const N20 = Math.sqrt(Cb/120), L20 = L(N20,20*N20);
+    // x range: log N from opt/1000 .. opt*1000 clipped
+    const x0 = Math.log10(o.N)-2.6, x1 = Math.log10(o.N)+2.6;
+    const pts=[]; let ymin=1e9, ymax=-1e9;
+    for(let i=0;i<=200;i++){ const lx = x0+(x1-x0)*i/200, n=Math.pow(10,lx), d=Cb/(6*n), l=L(n,d); pts.push([lx,l]); ymin=Math.min(ymin,l); ymax=Math.max(ymax,l); }
+    ymax = Math.min(ymax, ymin+ (ymin-E)*1.2 + .05);
+    const pad={l:46,r:12,t:24,b:34}, pw=w-pad.l-pad.r, ph=h-pad.t-pad.b;
+    const X = lx => pad.l + (lx-x0)/(x1-x0)*pw, Y = l => pad.t + (1-(l-ymin+.01)/(ymax-ymin+.02))*ph;
+    ctx.font = `600 12px ${C.ui}`; ctx.fillStyle = C.muted; ctx.fillText(`Loss vs model size at C = ${fmtE(Cb)} FLOPs`, pad.l, 15);
+    // axes
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(pad.l, pad.t, pw, ph);
+    ctx.font = `11px ${C.mono}`; ctx.fillStyle = C.muted; ctx.textAlign="center";
+    for(let k=Math.ceil(x0); k<=x1; k++){ const x=X(k); ctx.strokeStyle=C.line; ctx.beginPath(); ctx.moveTo(x,pad.t); ctx.lineTo(x,pad.t+ph); ctx.stroke(); ctx.fillText(fmtSI(Math.pow(10,k)), x, pad.t+ph+14); }
+    ctx.fillText("parameters N (tokens D = C / 6N)", pad.l+pw/2, h-4);
+    ctx.textAlign="right";
+    const step = (ymax-ymin)>.4 ? .1 : (ymax-ymin)>.15 ? .05 : .02;
+    for(let v=Math.ceil(ymin/step)*step; v<=ymax; v+=step){ const y=Y(v); if(y<pad.t||y>pad.t+ph) continue; ctx.fillText(v.toFixed(2), pad.l-5, y+4); ctx.strokeStyle=C.line; ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+pw,y); ctx.stroke(); }
+    ctx.textAlign="start";
+    // curve
+    ctx.save(); ctx.beginPath(); ctx.rect(pad.l,pad.t,pw,ph); ctx.clip();
+    ctx.strokeStyle = C.p1; ctx.lineWidth = 2.4; ctx.beginPath(); pts.forEach(([lx,l],i)=>{ i?ctx.lineTo(X(lx),Y(l)):ctx.moveTo(X(lx),Y(l)); }); ctx.stroke();
+    ctx.restore();
+    const mark = (n,l,col,lab,dy)=>{ const lx=Math.log10(n); if(lx<x0||lx>x1) return; const x=X(lx), y=Math.max(pad.t+4,Math.min(pad.t+ph-4,Y(l)));
+      ctx.strokeStyle=col; ctx.setLineDash([3,3]); ctx.lineWidth=1.2; ctx.beginPath(); ctx.moveTo(x,pad.t); ctx.lineTo(x,pad.t+ph); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle=col; ctx.beginPath(); ctx.arc(x,y,5.5,0,7); ctx.fill();
+      ctx.font=`600 11px ${C.ui}`; const tw=ctx.measureText(lab).width; ctx.fillText(lab, Math.min(Math.max(x+7,pad.l+2), pad.l+pw-tw-2), pad.t+12+dy); };
+    mark(o.N,o.l,C.p4,"optimum",0); mark(N20,L20,C.p2,"20×",14); mark(N,Lu,C.why,"you",28);
+    $("r-N").textContent = fmtSI(N); $("r-D").textContent = fmtSI(D);
+    $("r-L").textContent = Lu.toFixed(4); $("r-Lo").textContent = o.l.toFixed(4);
+    $("r-ro").textContent = (o.D/o.N).toFixed(0)+" tok/param";
+  }
+  const sC = A.slider("s-C", v=>{ lc=v; view.redraw(); }, v=>fmtE(Math.pow(10,v)));
+  const sR = A.slider("s-r", v=>{ lr=v; view.redraw(); }, v=>{ const r=Math.pow(10,v); return (r<10? r.toFixed(1) : r.toFixed(0)); });
+  const setR = r=>{ sR.value = Math.log10(r).toFixed(2); sR.dispatchEvent(new Event("input")); };
+  $("b-gopher").onclick = ()=>setR(300/280);
+  $("b-chin").onclick = ()=>setR(20);
+  $("b-opt").onclick = ()=>{ const o=optAt(Math.pow(10,lc)); setR(Math.min(1995, o.D/o.N)); };
+  setR(300/280);
+})();
+
+/* =================== LAB: GRPO toy =================== */
+(function(){
+  const noCarry = (a,b)=> ((a%10+b%10)%10) + 10*(((a/10|0)+(b/10|0))%10);
+  const S = [
+    {n:"carry correctly",  f:(a,b)=>a+b},
+    {n:"forget the carry", f:noCarry},
+    {n:"round to tens",    f:(a,b)=>Math.round(a/10)*10+Math.round(b/10)*10},
+    {n:"guess nearby",     f:(a,b,u)=>a+b+[0,1,-1,10,-10][Math.floor(u*5)]},
+    {n:"off by one",       f:(a,b)=>a+b+1},
+    {n:"echo larger",      f:(a,b)=>Math.max(a,b)},
+  ];
+  const basePrior = [0, .32, .2, .2, .16, .12];
+  let p0 = .04, G = 8, lr = .6, rewardMode = "check";
+  let theta, theta0, step, hist, zeroFrac, lastGroup, rng;
+  const evalR = A.rng(99), evalSet = []; for(let i=0;i<400;i++) evalSet.push([10+Math.floor(evalR()*80), 10+Math.floor(evalR()*80)]);
+  const accS = S.map((s,k)=>{ let c=0; const r=A.rng(7+k); evalSet.forEach(([a,b])=>{ if(s.f(a,b,r())===a+b) c++; }); return c/evalSet.length; });
+  const softmax = th=>{ const m=Math.max(...th), e=th.map(t=>Math.exp(t-m)), z=e.reduce((x,y)=>x+y,0); return e.map(v=>v/z); };
+  const acc = pi => pi.reduce((s,v,k)=>s+v*accS[k],0);
+  function reset(){
+    const pr = basePrior.map((v,k)=> k===0 ? p0 : v*(1-p0));
+    theta = pr.map(v=> v>0 ? Math.log(v) : -1e9); theta0 = theta.slice();
+    step = 0; hist = [acc(softmax(theta))]; zeroFrac = null; rng = A.rng(1234); lastGroup = null;
+    view.redraw(); upd();
+  }
+  function trainStep(){
+    const pi = softmax(theta), grad = new Array(S.length).fill(0), P = 8; let zero = 0;
+    for(let q=0;q<P;q++){
+      const a=10+Math.floor(rng()*80), b=10+Math.floor(rng()*80), group=[];
+      for(let i=0;i<G;i++){ let u=rng(), k=0, c=pi[0]; while(u>c && k<S.length-1){ k++; c+=pi[k]; }
+        const ans = S[k].f(a,b,rng()); const r = rewardMode==="check" ? (ans===a+b?1:0) : (rng()<.5?1:0); group.push({k,ans,r}); }
+      const mu = group.reduce((s,g)=>s+g.r,0)/G, sd = Math.sqrt(group.reduce((s,g)=>s+(g.r-mu)**2,0)/G);
+      if(sd<1e-9) zero++;
+      group.forEach(g=>{ g.A = sd<1e-9 ? 0 : (g.r-mu)/sd; for(let j=0;j<S.length;j++) grad[j] += g.A*((j===g.k?1:0)-pi[j]); });
+      if(q===0) lastGroup = {a,b,group};
+    }
+    for(let j=0;j<S.length;j++) if(theta[j]>-1e8) theta[j] += lr*grad[j]/(P*G);
+    step++; hist.push(acc(softmax(theta))); zeroFrac = zero/P;
+  }
+  const cv = $("cv-grpo"), view = A.canvas(cv, w=>w<520?1.25:.7, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const pi = softmax(theta), pi0 = softmax(theta0);
+    const narrow = w < 520;
+    const topH = h*.62, lw = narrow ? w : w*.48;
+    // policy bars
+    ctx.font = `600 12px ${C.ui}`; ctx.fillStyle = C.muted; ctx.fillText("Policy: P(strategy)", 0, 13);
+    const bars = narrow ? {x:0,y:20,w:w,h:topH*.52} : {x:0,y:20,w:lw,h:topH-24};
+    const bh = bars.h/S.length;
+    S.forEach((s,k)=>{
+      const y = bars.y + k*bh, lab = 112, bw = bars.w-lab-46;
+      ctx.fillStyle = C.ink; ctx.font = `${k===0?600:400} 11.5px ${C.ui}`; ctx.fillText(s.n, 0, y+bh*.62);
+      ctx.fillStyle = C.panel2; ctx.fillRect(lab, y+bh*.18, bw, bh*.6);
+      ctx.fillStyle = k===0 ? C.good : C.p1; ctx.fillRect(lab, y+bh*.18, bw*pi[k], bh*.6);
+      ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; const x0 = lab+bw*pi0[k]; ctx.beginPath(); ctx.moveTo(x0, y+bh*.08); ctx.lineTo(x0, y+bh*.88); ctx.stroke();
+      ctx.fillStyle = C.muted; ctx.font = `10.5px ${C.mono}`; ctx.fillText((pi[k]*100).toFixed(pi[k]<.1?1:0)+"%", lab+bw+5, y+bh*.62);
+    });
+    ctx.fillStyle = C.faint; ctx.font = `10.5px ${C.ui}`; ctx.fillText("| = base model", bars.x+112, bars.y+bars.h+10);
+    // reward curve
+    const cb = narrow ? {x:30,y:bars.y+bars.h+40,w:w-34,h:topH*.36} : {x:lw+34,y:20,w:w-lw-38,h:topH-40};
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText("Accuracy (pass@1) by step", cb.x-30, cb.y-7);
+    ctx.strokeStyle = C.line; ctx.lineWidth=1; ctx.strokeRect(cb.x,cb.y,cb.w,cb.h);
+    ctx.font = `10px ${C.mono}`; ctx.fillStyle = C.muted; ctx.textAlign="right";
+    [0,.5,1].forEach(v=>{ const y=cb.y+cb.h*(1-v); ctx.fillText(v.toFixed(1), cb.x-4, y+3); ctx.strokeStyle=C.line; ctx.beginPath(); ctx.moveTo(cb.x,y); ctx.lineTo(cb.x+cb.w,y); ctx.stroke(); });
+    ctx.textAlign="start";
+    const nmax = Math.max(60, hist.length);
+    ctx.strokeStyle = C.why; ctx.lineWidth = 2.2; ctx.beginPath();
+    hist.forEach((v,i)=>{ const x=cb.x+cb.w*i/(nmax-1), y=cb.y+cb.h*(1-v); i?ctx.lineTo(x,y):ctx.moveTo(x,y); }); ctx.stroke();
+    // ceiling without right method
+    const ceil = Math.max(...accS.slice(1));
+    ctx.setLineDash([4,4]); ctx.strokeStyle = C.faint; ctx.lineWidth=1; const yc = cb.y+cb.h*(1-ceil); ctx.beginPath(); ctx.moveTo(cb.x,yc); ctx.lineTo(cb.x+cb.w,yc); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = C.faint; ctx.font=`10px ${C.ui}`; ctx.fillText("best wrong method", cb.x+4, yc-3);
+    // group strip
+    const gy = narrow ? cb.y+cb.h+22 : topH+16, gh = h-gy-2;
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`;
+    if(!lastGroup){ ctx.fillText("One sampled group appears here after the first step.", 0, gy+14); return; }
+    const {a,b,group} = lastGroup;
+    ctx.fillText(`One group: ${a} + ${b} = ?   (right: ${a+b})`, 0, gy+13);
+    const cw = Math.min(64, (w-4)/group.length - 4), ch = Math.min(gh-24, 46);
+    group.forEach((g,i)=>{
+      const x = i*(cw+4), y = gy+20;
+      ctx.fillStyle = C.panel; ctx.strokeStyle = g.r ? C.good : C.line; ctx.lineWidth = g.r?2:1; rr(ctx,x,y,cw,ch,6); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = C.ink; ctx.font = `600 ${cw<40?10:12}px ${C.mono}`; ctx.textAlign="center"; ctx.fillText(String(g.ans), x+cw/2, y+ch*.42);
+      ctx.fillStyle = g.A>0 ? C.good : g.A<0 ? C.bad : C.faint; ctx.font = `${cw<40?9:10.5}px ${C.mono}`;
+      ctx.fillText((g.A>0?"+":"")+g.A.toFixed(1), x+cw/2, y+ch*.82); ctx.textAlign="start";
+    });
+  }
+  function upd(){
+    const pi = softmax(theta);
+    $("g-r-step").textContent = step; $("g-r-acc").textContent = (acc(pi)*100).toFixed(1)+"%";
+    $("g-r-pm").textContent = (pi[0]*100).toFixed(1)+"%";
+    $("g-r-zero").textContent = zeroFrac==null ? "–" : Math.round(zeroFrac*100)+"%";
+  }
+  let acc_t = 0;
+  const playBtn = $("g-play");
+  const anim = A.loop(cv, dt=>{ acc_t += dt; if(acc_t < .07) return; acc_t = 0; trainStep(); view.redraw(); upd(); if(step>=240){ playBtn.textContent="Train"; return false; } });
+  playBtn.onclick = ()=>{ if(anim.running){ anim.stop(); playBtn.textContent="Train"; } else { if(step>=240) reset(); anim.start(); playBtn.textContent="Pause"; } };
+  $("g-step").onclick = ()=>{ trainStep(); view.redraw(); upd(); };
+  $("g-reset").onclick = ()=>{ anim.stop(); playBtn.textContent="Train"; reset(); };
+  A.slider("s-p0", v=>{ p0=v; if(theta) { anim.stop(); playBtn.textContent="Train"; reset(); } }, v=>(v*100).toFixed(1)+"%");
+  A.slider("s-G", v=>{ G=v; }, v=>v);
+  A.slider("s-lr", v=>{ lr=v; }, v=>v.toFixed(2));
+  const rc=$("rw-check"), rn=$("rw-rand");
+  const setRw = m=>{ rewardMode=m; rc.setAttribute("aria-pressed",m==="check"); rn.setAttribute("aria-pressed",m==="rand"); anim.stop(); playBtn.textContent="Train"; reset(); };
+  rc.onclick=()=>setRw("check"); rn.onclick=()=>setRw("rand");
+  reset();
+  for(let i=0;i<25;i++) trainStep();   // open mid-training so the curve is visible
+  view.redraw(); upd();
+})();
+
+/* =================== LAB: best-of-N =================== */
+(function(){
+  let p=.3, wPop=.5, rec=.9, fa=.05, lN=4;
+  const Ns = [1,2,3,4,6,8,12,16,24,32,48,64,96,128];
+  const T = 1400, NW = 10;
+  function sim(){
+    const r = A.rng(4242), vote=[], ver=[];
+    const cnt = new Int32Array(NW+1), cntA = new Int32Array(NW+1);
+    const plural = (c)=>{ let best=-1, ties=[]; for(let k=0;k<=NW;k++){ if(c[k]>best){best=c[k]; ties=[k];} else if(c[k]===best) ties.push(k); } return {best, pick: ties[Math.floor(r()*ties.length)]}; };
+    for(const N of Ns){
+      let okV=0, okF=0;
+      for(let t=0;t<T;t++){
+        cnt.fill(0); cntA.fill(0); let anyA=false;
+        for(let i=0;i<N;i++){
+          let k;
+          if(r()<p) k=0; else k = r()<wPop ? 1 : 2+Math.floor(r()*(NW-1));
+          cnt[k]++;
+          const acc = k===0 ? r()<rec : r()<fa;
+          if(acc){ cntA[k]++; anyA=true; }
+        }
+        if(plural(cnt).pick===0) okV++;
+        const pa = anyA ? plural(cntA) : plural(cnt);
+        if(pa.pick===0) okF++;
+      }
+      vote.push(okV/T); ver.push(okF/T);
+    }
+    return {vote, ver};
+  }
+  let res = null;
+  const cv = $("cv-bon"), view = A.canvas(cv, w=>w<560?.85:.62, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    if(!res) res = sim();
+    const pad={l:40,r:12,t:22,b:32}, pw=w-pad.l-pad.r, ph=h-pad.t-pad.b;
+    const X = n => pad.l + Math.log2(n)/7*pw, Y = v => pad.t + (1-v)*ph;
+    ctx.font=`600 12px ${C.ui}`; ctx.fillStyle=C.muted; ctx.fillText("Accuracy vs number of samples N", pad.l, 14);
+    ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.strokeRect(pad.l,pad.t,pw,ph);
+    ctx.font=`10.5px ${C.mono}`; ctx.textAlign="center";
+    [1,2,4,8,16,32,64,128].forEach(n=>{ const x=X(n); ctx.strokeStyle=C.line; ctx.beginPath(); ctx.moveTo(x,pad.t); ctx.lineTo(x,pad.t+ph); ctx.stroke(); ctx.fillStyle=C.muted; ctx.fillText(n, x, pad.t+ph+13); });
+    ctx.fillText("N (log scale)", pad.l+pw/2, h-3);
+    ctx.textAlign="right"; [0,.25,.5,.75,1].forEach(v=>{ const y=Y(v); ctx.fillStyle=C.muted; ctx.fillText(v.toFixed(2), pad.l-4, y+4); ctx.strokeStyle=C.line; ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+pw,y); ctx.stroke(); });
+    ctx.textAlign="start";
+    // single-sample line
+    ctx.setLineDash([2,4]); ctx.strokeStyle=C.muted; ctx.beginPath(); ctx.moveTo(pad.l,Y(p)); ctx.lineTo(pad.l+pw,Y(p)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle=C.muted; ctx.font=`10.5px ${C.ui}`; ctx.fillText("one sample: p", pad.l+4, Y(p)-4);
+    // oracle
+    const line = (fn,col,wd,dash)=>{ ctx.strokeStyle=col; ctx.lineWidth=wd; ctx.setLineDash(dash||[]); ctx.beginPath(); for(let i=0;i<=140;i++){ const n=Math.pow(2,i/20); const x=X(n), y=Y(fn(n)); i?ctx.lineTo(x,y):ctx.moveTo(x,y);} ctx.stroke(); ctx.setLineDash([]); };
+    line(n=>1-Math.pow(1-p,n), C.faint, 2, [6,4]);
+    const series = (arr,col)=>{ ctx.strokeStyle=col; ctx.lineWidth=2.6; ctx.beginPath(); arr.forEach((v,i)=>{ const x=X(Ns[i]), y=Y(v); i?ctx.lineTo(x,y):ctx.moveTo(x,y); }); ctx.stroke(); ctx.fillStyle=col; arr.forEach((v,i)=>{ ctx.beginPath(); ctx.arc(X(Ns[i]),Y(v),2.6,0,7); ctx.fill(); }); };
+    series(res.vote, C.p1); series(res.ver, C.why);
+    // current N
+    const Nc = Math.pow(2,lN), xN = X(Nc);
+    ctx.strokeStyle=C.ink; ctx.lineWidth=1; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(xN,pad.t); ctx.lineTo(xN,pad.t+ph); ctx.stroke(); ctx.setLineDash([]);
+    const interp = arr=>{ const l=Math.log2(Nc); for(let i=0;i<Ns.length-1;i++){ const a=Math.log2(Ns[i]), b=Math.log2(Ns[i+1]); if(l>=a && l<=b){ const t=(l-a)/(b-a||1); return arr[i]*(1-t)+arr[i+1]*t; } } return arr[arr.length-1]; };
+    const prec = p*rec/(p*rec+(1-p)*fa || 1);
+    $("b-prec").textContent = (prec*100).toFixed(1)+"%";
+    $("b-vote").textContent = (interp(res.vote)*100).toFixed(1)+"%";
+    $("b-ver").textContent = (interp(res.ver)*100).toFixed(1)+"%";
+    $("b-or").textContent = ((1-Math.pow(1-p,Nc))*100).toFixed(1)+"%";
+  }
+  let pend = 0; const re = ()=>{ res=null; cancelAnimationFrame(pend); pend=requestAnimationFrame(()=>view.redraw()); };
+  A.slider("s-bp", v=>{ p=v; re(); }, v=>v.toFixed(2));
+  A.slider("s-bw", v=>{ wPop=v; re(); }, v=>v.toFixed(2));
+  A.slider("s-rec", v=>{ rec=v; re(); }, v=>v.toFixed(2));
+  A.slider("s-fa", v=>{ fa=v; re(); }, v=>v.toFixed(2));
+  A.slider("s-bn", v=>{ lN=v; view.redraw(); }, v=>Math.round(Math.pow(2,v)));
+})();
+
+/* =================== LAB: FunSearch-style evolution =================== */
+(function(){
+  const CAP = 100;
+  function makeInst(seed, n){ const r=A.rng(seed), a=[]; for(let i=0;i<n;i++) a.push(1+Math.floor(r()*100)); return a; }
+  const fullTrain = [1,2,3,4,5,6].map(s=>makeInst(1000+s,150));
+  const weakTrain = [makeInst(77,12)];
+  const heldOut = [11,12,13,14,15,16].map(s=>makeInst(5000+s,150));
+  let train = fullTrain;
+  const LB = inst => Math.ceil(inst.reduce((x,y)=>x+y,0)/CAP);
+  // expression trees
+  const OPS = ["+","-","*","/","min","max"];
+  function rnd(r, d){
+    if(d<=0 || r()<.3){ const u=r(); return u<.38?{t:"s"}:u<.76?{t:"c"}:{t:"k",v:Math.round((r()*4-2)*10)/10}; }
+    return {t:"op",o:OPS[Math.floor(r()*OPS.length)],a:rnd(r,d-1),b:rnd(r,d-1)};
+  }
+  const clone = n => n.t==="op" ? {t:"op",o:n.o,a:clone(n.a),b:clone(n.b)} : {...n};
+  const size = n => n.t==="op" ? 1+size(n.a)+size(n.b) : 1;
+  function compile(n){
+    if(n.t==="s") return (s,c)=>s; if(n.t==="c") return (s,c)=>c; if(n.t==="k"){ const v=n.v; return ()=>v; }
+    const a=compile(n.a), b=compile(n.b);
+    switch(n.o){ case "+": return (s,c)=>a(s,c)+b(s,c); case "-": return (s,c)=>a(s,c)-b(s,c); case "*": return (s,c)=>a(s,c)*b(s,c);
+      case "/": return (s,c)=>a(s,c)/b(s,c); case "min": return (s,c)=>Math.min(a(s,c),b(s,c)); default: return (s,c)=>Math.max(a(s,c),b(s,c)); }
+  }
+  function show(n){
+    if(n.t==="s") return "s"; if(n.t==="c") return "c"; if(n.t==="k") return String(n.v);
+    if(n.o==="min"||n.o==="max") return `${n.o}(${show(n.a)}, ${show(n.b)})`;
+    return `(${show(n.a)} ${n.o==="*"?"×":n.o==="/"?"÷":n.o} ${show(n.b)})`;
+  }
+  function pack(f, inst, keep){
+    const room = []; let bad=false, packs = keep ? [] : null;
+    for(const s of inst){
+      let best=-1, bs=-Infinity;
+      for(let j=0;j<room.length;j++){ if(room[j]<s) continue; const v=f(s,room[j]); if(!isFinite(v)){ bad=true; break; } if(v>bs){ bs=v; best=j; } }
+      if(bad) return null;
+      if(best<0){ room.push(CAP-s); if(keep) packs.push([s]); } else { room[best]-=s; if(keep) packs[best].push(s); }
+    }
+    return keep ? packs : room.length;
+  }
+  function score(f, set){ let ex=0; for(const inst of set){ const nb=pack(f,inst,false); if(nb==null) return null; const lb=LB(inst); ex += (nb-lb)/lb; } return ex/set.length*100; }
+  const FF = (s,c)=>1, BF = (s,c)=>s-c;
+  const base = {ff: score(FF,heldOut), bf: score(BF,heldOut)};
+  let rng, pop, gen, nScored, nRej, hist, popSize = 32;
+  function evalInd(tree){ const f = compile(tree); const sc = score(f,train); nScored++; if(sc==null || !isFinite(sc)){ nRej++; return null; } return {tree, f, sc, fit: sc + .02*size(tree)}; }
+  function reset(){
+    rng = A.rng(31337 + (reset.k = (reset.k||0)+1)); gen=0; nScored=0; nRej=0; hist=[];
+    pop = [evalInd({t:"k",v:1})];
+    while(pop.length < popSize){ const ind = evalInd({t:"k",v:Math.round((rng()*4-2)*10)/10}); if(ind) pop.push(ind); }   // seed: trivial programs only, as FunSearch starts from a trivial seed
+    pop.sort((a,b)=>a.fit-b.fit); record();
+  }
+  function record(){ const b = pop[0]; hist.push({tr:b.sc, ho:score(b.f,heldOut)}); }
+  function pick(){ let b=null; for(let i=0;i<3;i++){ const c=pop[Math.floor(rng()*pop.length)]; if(!b||c.fit<b.fit) b=c; } return b; }
+  function nodes(n, acc=[]){ acc.push(n); if(n.t==="op"){ nodes(n.a,acc); nodes(n.b,acc); } return acc; }
+  function mutate(tree){
+    const t = clone(tree), ns = nodes(t), n = ns[Math.floor(rng()*ns.length)], u = rng();
+    if(u<.4){ Object.assign(n, rnd(rng, 2)); if(n.t!=="op"){ delete n.o; delete n.a; delete n.b; } }
+    else if(u<.65 && n.t==="op"){ n.o = OPS[Math.floor(rng()*OPS.length)]; }
+    else if(u<.85 && n.t==="k"){ n.v = Math.round((n.v + (rng()-.5))*10)/10; }
+    else { const other = nodes(pick().tree), donor = clone(other[Math.floor(rng()*other.length)]); for(const k of Object.keys(n)) delete n[k]; Object.assign(n, donor); }
+    return size(t) > 25 ? tree : t;
+  }
+  function generation(){
+    const kids = [];
+    for(let i=0;i<popSize;i++){ const ind = evalInd(mutate(pick().tree)); if(ind) kids.push(ind); }
+    pop = pop.concat(kids).sort((a,b)=>a.fit-b.fit);
+    const seen = new Set(), next=[]; for(const p of pop){ const k=show(p.tree); if(seen.has(k)) continue; seen.add(k); next.push(p); if(next.length>=popSize) break; }
+    pop = next; gen++; record();
+  }
+  const cv = $("cv-evo"), view = A.canvas(cv, w=>w<560?1.0:.66, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const topH = h*.5, pad={l:38,r:10,t:22,b:20}, pw=w-pad.l-pad.r, ph=topH-pad.t-pad.b;
+    ctx.font=`600 12px ${C.ui}`; ctx.fillStyle=C.muted; ctx.fillText("Excess bins over lower bound (lower is better)", pad.l, 14);
+    const ymax = Math.max(base.ff, ...hist.map(x=>Math.max(x.tr,x.ho)))*1.1 || 10;
+    const gmax = Math.max(40, hist.length-1);
+    const X = g => pad.l + g/gmax*pw, Y = v => pad.t + (1-v/ymax)*ph;
+    ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.strokeRect(pad.l,pad.t,pw,ph);
+    ctx.font=`10px ${C.mono}`; ctx.textAlign="right";
+    for(let v=0; v<=ymax; v+= ymax>12?4:2){ const y=Y(v); ctx.fillStyle=C.muted; ctx.fillText(v+"%", pad.l-4, y+3); }
+    ctx.textAlign="start";
+    const hline = (v,col,lab)=>{ ctx.strokeStyle=col; ctx.setLineDash([5,4]); ctx.lineWidth=1.3; ctx.beginPath(); ctx.moveTo(pad.l,Y(v)); ctx.lineTo(pad.l+pw,Y(v)); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle=col; ctx.font=`10.5px ${C.ui}`; ctx.fillText(lab, pad.l+pw-ctx.measureText(lab).width-4, Y(v)-4); };
+    hline(base.ff, C.muted, `first fit, held-out ${base.ff.toFixed(1)}%`); hline(base.bf, C.p4, `best fit, held-out ${base.bf.toFixed(1)}%`);
+    const ser = (key,col,wd)=>{ ctx.strokeStyle=col; ctx.lineWidth=wd; ctx.beginPath(); hist.forEach((x,i)=>{ const X_=X(i), Y_=Y(x[key]); i?ctx.lineTo(X_,Y_):ctx.moveTo(X_,Y_); }); ctx.stroke(); };
+    ser("ho", C.p1, 2); ser("tr", C.why, 2.4);
+    ctx.font=`10.5px ${C.ui}`; ctx.fillStyle=C.why; ctx.fillText("train", pad.l+6, pad.t+ph-6); ctx.fillStyle=C.p1; ctx.fillText("held-out", pad.l+44, pad.t+ph-6);
+    ctx.fillStyle=C.muted; ctx.font=`10px ${C.mono}`; ctx.fillText(`generation ${hist.length-1}`, pad.l, topH-3);
+    // packing of held-out instance 0
+    const packs = pack(pop[0].f, heldOut[0], true), lb = LB(heldOut[0]);
+    const by = topH+22, bh = h-by-4, n = packs.length, bw = Math.min(16, (w-4)/n);
+    ctx.fillStyle=C.muted; ctx.font=`600 12px ${C.ui}`; ctx.fillText(w<560 ? `Held-out packing: ${n} bins (bound ${lb})` : `Best program on a held-out instance: ${n} bins (lower bound ${lb})`, 0, by-8);
+    packs.forEach((items,j)=>{
+      const x = j*bw; let y = by+bh;
+      ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.strokeRect(x+.5, by, bw-1.5, bh);
+      items.forEach((s,i)=>{ const hh = s/CAP*bh; y -= hh; ctx.fillStyle = [C.p1,C.p2,C.p3,C.p4][i%4]; ctx.globalAlpha=.75; ctx.fillRect(x+1, y+.5, bw-2.5, hh-1); ctx.globalAlpha=1; });
+      const free = by + bh - items.reduce((a,b)=>a+b,0)/CAP*bh; if(free-by > 2){ A.hatch(ctx, x+1, by+1, bw-2.5, free-by-1, C.hatch, 4); }
+    });
+    if(n>lb){ const x=lb*bw; ctx.strokeStyle=C.why; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(x,by-2); ctx.lineTo(x,by+bh); ctx.stroke(); }
+    $("evo-prog").innerHTML = `<span class="k">best score(item s, room c)</span>${show(pop[0].tree)}`;
+    $("e-gen").textContent = gen; $("e-n").textContent = nScored; $("e-rej").textContent = nRej;
+    const last = hist[hist.length-1];
+    $("e-tr").textContent = last.tr.toFixed(2)+"%"; $("e-ho").textContent = last.ho.toFixed(2)+"%";
+    $("e-base").textContent = `${base.ff.toFixed(1)}% / ${base.bf.toFixed(1)}%`;
+  }
+  let t_=0; const playBtn = $("e-play");
+  const anim = A.loop(cv, dt=>{ t_+=dt; if(t_<.12) return; t_=0; generation(); view.redraw(); if(gen>=150){ playBtn.textContent="Evolve"; return false; } });
+  playBtn.onclick = ()=>{ if(anim.running){ anim.stop(); playBtn.textContent="Evolve"; } else { if(gen>=150) reset(); anim.start(); playBtn.textContent="Pause"; } };
+  $("e-step").onclick = ()=>{ generation(); view.redraw(); };
+  $("e-reset").onclick = ()=>{ reset(); view.redraw(); };
+  A.slider("s-pop", v=>{ popSize=v; }, v=>v);
+  const bF=$("v-full"), bW=$("v-weak");
+  const setV = m=>{ train = m==="weak"?weakTrain:fullTrain; bF.setAttribute("aria-pressed",m!=="weak"); bW.setAttribute("aria-pressed",m==="weak"); reset(); view.redraw(); };
+  bF.onclick=()=>setV("full"); bW.onclick=()=>setV("weak");
+  reset(); for(let i=0;i<2;i++) generation(); view.redraw();
+  if(!A.reduced){ const io = new IntersectionObserver(es=>{ if(es[0].isIntersecting){ io.disconnect(); if(gen<150){ anim.start(); playBtn.textContent="Pause"; } } }); io.observe(cv); }
+})();
+
+/* =================== QUIZ =================== */
+A.quiz("quiz", [
+  {q:"Chinchilla (70B params, 1.4T tokens) beat Gopher (280B, 300B tokens) at about the same compute. Why?",
+   options:["Chinchilla used a better tokenizer","At a fixed budget, loss is minimised by growing parameters and tokens together; Gopher had too many parameters for its data","Gopher was undertrained because of a bug","Smaller models always generalise better"],
+   answer:1, why:"With L = E + A/N^α + B/D^β and C ≈ 6ND, the two finite-size terms trade off. Gopher's split (about 1 token per parameter) sits far up the data-starved wall of the isoFLOP valley."},
+  {q:"Why does pure next-token pretraining struggle with long derivations?",
+   options:["Transformers cannot represent arithmetic","The loss rewards typical-looking text with no check of correctness, and per-step errors compound over the chain","The context window is too short","Tokenizers split numbers badly, and that is the whole story"],
+   answer:1, why:"Nothing in the imitation loss distinguishes a fluent wrong proof from a right one, and (1 − ε)^n shrinks fast with n. A verifier in the loop is what stops errors from accumulating."},
+  {q:"In GRPO, a question where all G sampled answers are wrong contributes what to the update?",
+   options:["A large negative update","Nothing: every advantage is zero, because each reward equals the group mean","A small positive update toward the most common answer","It is skipped only if G is odd"],
+   answer:1, why:"The advantage is (r − mean)/std inside the group. If all rewards are equal, every advantage is zero. That is why RL needs the right behaviour to appear at least sometimes: it can sharpen what is sampled, not invent what never is."},
+  {q:"A model is right 30% of the time, and 35% of its samples land on one favourite wrong answer. What happens to majority-vote accuracy as N grows?",
+   options:["It rises toward 100%","It stays at 30%","It falls toward 0%, because the favourite mistake becomes the plurality almost surely","It oscillates"],
+   answer:2, why:"Voting converges to the most frequent answer. When that is a wrong one, more samples make the error more certain. A verifier judges each sample on its merits, so it keeps improving with N."},
+  {q:"Why did maths, code and games fall to search plus verification before research synthesis did?",
+   options:["They need less data","They have cheap, exact checkers (proof kernels, unit tests, game results), so the verifier's false-accept rate is near zero","They are easier for humans","LLMs were trained mostly on code"],
+   answer:1, why:"A lenient verifier lets the popular mistakes through and selection then amplifies them. Exact checkers make the loop trustworthy; where no checker exists (taste, synthesis), Kosmos's 58% shows the limit."},
+  {q:"In the evolution lab, why does the weak verifier (one 12-item instance) produce worse held-out heuristics?",
+   options:["Evolution runs slower","The search optimises what is checked; a narrow check rewards programs that fit that instance and not the problem","It rejects more programs","Small instances have no lower bound"],
+   answer:1, why:"Search exploits its verifier. Coverage of the check decides generalisation, which is the ARC Prize 2025 knowledge-overfitting concern at small scale."},
+  {q:"In Chollet's terms, why can a model with huge skill still score low on ARC-AGI?",
+   options:["ARC uses unusual image formats","ARC measures how efficiently a new skill is acquired from a few examples; memorised skill on similar tasks does not transfer to novel rules","ARC requires language understanding","ARC tasks are random"],
+   answer:1, why:"Each ARC task is a new rule shown in two to five examples. Scores rose with per-task adaptation (test-time training, refinement loops, program search), where the examples themselves act as the verifier."},
+]);
+})();
+</script>
+</body>
+</html>

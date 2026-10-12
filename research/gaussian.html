@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why an isotropic Gaussian? · Hidden Patch</title>
+<meta name="description" content="LeJEPA from the question why: why the isotropic Gaussian is the safest embedding for unknown tasks, how SIGReg tests it with random projections, when it makes a world model identifiable, and why it reads as variational free energy.">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/atlas.css">
+<style>
+/* page-specific */
+.beat{grid-template-columns:minmax(0,1fr)}
+.beat>*,.prose>*{min-width:0}
+.eq{max-width:min(100%,var(--measure))}
+#cw-shapes button{padding:.28rem .62rem}
+.log{font-family:var(--mono);font-size:.74rem;line-height:1.45;color:var(--muted);min-height:4.4em}
+.log b{color:var(--ink)}
+.agentstats{display:grid;grid-template-columns:auto auto auto;gap:.15rem .7rem;font-family:var(--mono);font-size:.76rem;border-top:1px solid var(--line);padding-top:.55rem}
+.agentstats span{text-align:right}
+.agentstats span:nth-child(3n+1){text-align:left;color:var(--muted)}
+.agentstats .h{color:var(--muted);font-size:.68rem;text-transform:uppercase;letter-spacing:.06em}
+</style>
+</head>
+<body data-chapter="gaussian" data-part="2">
+<header id="topbar" class="topbar"></header>
+
+<main class="chapter">
+  <section class="opener">
+    <p class="eyebrow"><span class="sw"></span>Part 2 · Theory · Chapter 05</p>
+    <h1 class="big"><span class="w">Why</span> an isotropic Gaussian?</h1>
+    <p class="because">an encoder is trained before anyone knows the downstream task, and the shape that does least damage to the <em>worst</em> task is a round cloud with equal spread in every direction. LeJEPA proves this, then enforces it cheaply by checking random 1-D shadows of the embedding against a bell curve. The same target also makes latent world models identifiable and turns the loss into a variational free energy.</p>
+    <p class="meta"><span>5 beats · 3 labs · 6 questions</span><span>Builds on: <a href="collapse.html">03 Collapse</a> · <a href="bias.html">04 Implicit bias</a></span></p>
+    <ul class="toc">
+      <li><a href="#risk"><span class="q">?</span>Why round is safest</a></li>
+      <li><a href="#shadows"><span class="q">?</span>Why random shadows suffice</a></li>
+      <li><a href="#ident"><span class="q">?</span>Why Gaussian recovers the world</a></li>
+      <li><a href="#free"><span class="q">?</span>Why it is a free energy</a></li>
+      <li><a href="#act"><span class="q">?</span>Why acting adds something</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ BEAT 1: worst-case risk ============ -->
+  <section class="beat" id="risk">
+    <header>
+      <span class="num">Beat 1</span>
+      <h2><span class="w">Why</span> is a round cloud the safest embedding for tasks you have not seen?</h2>
+      <p class="short">Because a downstream probe pays most on the direction the embedding squashed. With the total spread fixed, the smallest direction is as large as it can be exactly when all directions are equal. Isotropy maximizes the worst case.</p>
+    </header>
+    <div class="prose">
+      <p>After pretraining, an encoder gets judged by probes: a linear classifier or regressor trained on a few labeled examples of a task nobody told the encoder about. Suppose a task's answer lives along a direction where the embedding has tiny variance <var>s</var>. To get a unit of signal out of that direction, the probe needs a weight of size 1/√<var>s</var>. A regularized probe shrinks large weights, so it underfits there (bias). An unregularized one estimates that weight from a direction with almost no signal, so it is noisy (variance).</p>
+      <p>Balestriero and LeCun (LeJEPA, 2025) turn this into a theorem: anisotropy amplifies both the bias and the variance of linear probes, and the isotropic Gaussian is the embedding distribution that minimizes worst-case downstream risk. Their result also covers nonlinear probes such as k-NN, which is where "Gaussian" and not merely "equal variances" comes in. The lab simulates the linear case.</p>
+      <div class="eq">worst task ∝ 1/s<sub>min</sub>,  with  s<sub>1</sub> + … + s<sub>d</sub> = d<br>⟹  best: s<sub>1</sub> = … = s<sub>d</sub> = 1<span class="c">Fixing the total variance is the fair comparison: any encoder can be rescaled, so only the shape counts. Under that budget, the minimum eigenvalue is largest when the spectrum is flat.</span></div>
+    </div>
+    <figure class="lab" id="lab-risk">
+      <div class="lab-head"><span class="tag">Sim</span><h3>Ridge probes on an 8-d embedding: average task vs worst task</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-risk" aria-label="Left: a 2-D slice of the embedding cloud with the worst task direction. Right: worst-case and average probe error versus condition number, with the minimum at isotropy."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i style="background:var(--why)"></i>worst task (over directions)</span><span><i style="background:var(--p1)"></i>average of 16 random tasks</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="k-kap">Anisotropy (condition no.)</label><output for="k-kap"></output></div>
+            <input type="range" id="k-kap" min="0" max="3" step="0.05" value="1.3">
+            <span class="hint">Largest / smallest variance. Total variance stays fixed at 8.</span></div>
+          <div class="ctrl"><div class="row"><label for="k-lam">Probe ridge λ</label><output for="k-lam"></output></div>
+            <input type="range" id="k-lam" min="-2.5" max="0" step="0.1" value="-1"></div>
+          <div class="ctrl"><div class="row"><label for="k-n">Labeled examples</label><output for="k-n"></output></div>
+            <input type="range" id="k-n" min="12" max="200" step="2" value="30"></div>
+          <dl class="readout">
+            <dt>smallest variance</dt><dd id="k-smin">–</dd>
+            <dt>worst-task error</dt><dd id="k-worst" class="hot">–</dd>
+            <dt>average-task error</dt><dd id="k-mean">–</dd>
+            <dt>worst at isotropy</dt><dd id="k-iso">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Each task has the same label signal (variance 1) plus noise of std 0.5; error is the probe's excess test MSE, averaged over 40 seeded training sets. The curves are computed live, not drawn.</li>
+        <li>The <b>worst</b> curve is lowest at condition number 1 and climbs as the cloud flattens. The <b>average</b> curve stays flat or even dips. Anisotropy does not hurt the typical task; it creates a blind spot that some task will hit.</li>
+        <li>Shrink λ toward 0.003: the worst case nearly flattens, because with almost no shrinkage the bias is gone and only estimation variance is left. Raise λ to 1 or drop to 12 labels and the gap between isotropic and anisotropic grows.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 2: Cramér–Wold ============ -->
+  <section class="beat" id="shadows">
+    <header>
+      <span class="num">Beat 2</span>
+      <h2><span class="w">Why</span> can you test a 1,000-dimensional distribution with 1-D shadows?</h2>
+      <p class="short">Because of the Cramér–Wold theorem: a distribution is fully determined by all its 1-D projections. So "is the embedding an isotropic Gaussian?" becomes "is every shadow a standard bell curve?", and a few random shadows per batch are a cheap, unbiased spot check.</p>
+    </header>
+    <div class="prose">
+      <p>Matching a full high-dimensional density is hopeless at batch size 256. Matching moments is cheap but blind: VICReg pushes each dimension's variance to 1 and the off-diagonal covariances to 0, which fixes the second moment and nothing else. <b>SIGReg</b> (Sketched Isotropic Gaussian Regularization) does this instead:</p>
+      <ol>
+        <li>Draw <var>K</var> random unit directions <var>a</var><sub>k</sub> (LeJEPA resamples them every step).</li>
+        <li>Project the batch: <var>p</var> = <var>Z a</var><sub>k</sub>, one number per sample.</li>
+        <li>Compare the empirical <span class="term" tabindex="0" data-def="φ(t) = E[exp(i t X)]. A complete fingerprint of a 1-D distribution. For a standard normal it is exp(−t²/2).">characteristic function</span> of <var>p</var> with that of N(0, 1) using the <b>Epps–Pulley</b> statistic, and average over directions.</li>
+      </ol>
+      <div class="eq">EP = N · ∫ | (1/N) Σ<sub>j</sub> e<sup>i t p<sub>j</sub></sup> − e<sup>−t²/2</sup> |² · e<sup>−t²/2</sup> dt<br>SIGReg = mean over k of EP(Z a<sub>k</sub>)<span class="c">Cost is linear in batch size and in K; there are no pairwise distances and no matrix inverses. The integral is a sum over a small grid of t (this project's notebook uses 33 points on [−5, 5]). Total loss: (1 − w)·prediction + w·SIGReg, with one trade-off weight w.</span></div>
+      <p>Because the target is a fixed distribution with unit spread, collapse is not a quiet minimum any more: a collapsed embedding casts a spike as its shadow, and EP is huge. That is why LeJEPA can drop the stop-gradient, the EMA teacher and the other heuristics from <a href="collapse.html">chapter 03</a>.</p>
+    </div>
+    <figure class="lab" id="lab-cw">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Gaussian shadows, X-shaped body</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-cw" aria-label="Left: a 2-D point cloud with a projection direction. Right: histogram of the projection against a standard normal curve. Bottom: the Epps–Pulley statistic for every direction, with the random SIGReg directions marked."></canvas></div>
+        <div class="side">
+          <div class="ctrl"><span class="lbl">Embedding cloud</span>
+            <div class="btns" role="group" aria-label="Cloud shape" id="cw-shapes">
+              <button type="button" data-s="x" aria-pressed="true">X shape</button><button type="button" data-s="gauss" aria-pressed="false">Gaussian</button><button type="button" data-s="ring" aria-pressed="false">Ring</button><button type="button" data-s="blobs" aria-pressed="false">Two blobs</button><button type="button" data-s="stretch" aria-pressed="false">Stretched</button><button type="button" data-s="square" aria-pressed="false">Square</button><button type="button" data-s="collapse" aria-pressed="false">Collapsed</button>
+            </div></div>
+          <div class="ctrl"><div class="row"><label for="cw-ang">Projection angle</label><output for="cw-ang"></output></div>
+            <input type="range" id="cw-ang" min="0" max="179" step="1" value="0"></div>
+          <div class="ctrl"><div class="row"><label for="cw-k">Random directions K</label><output for="cw-k"></output></div>
+            <input type="range" id="cw-k" min="1" max="32" step="1" value="6"></div>
+          <div class="btns"><button type="button" class="primary" id="cw-new">New directions</button><button type="button" id="cw-play">Sweep angle</button></div>
+          <dl class="readout">
+            <dt>EP at this angle</dt><dd id="cw-ep" class="hot">–</dd>
+            <dt>SIGReg (K dirs)</dt><dd id="cw-sig">–</dd>
+            <dt>var x · var y</dt><dd id="cw-var">–</dd>
+            <dt>cov xy</dt><dd id="cw-cov">–</dd>
+            <dt>VICReg would say</dt><dd id="cw-vic">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>The <b>X shape</b> is x ~ N(0, 1) and y = ±x with a fair coin. Along both axes its shadow is an exact bell curve, and its covariance is the identity, so VICReg's variance and covariance terms are both satisfied. Turn the angle to 45°: the shadow has a spike at zero, and EP jumps.</li>
+        <li>A single direction can be fooled; random directions almost never all are. Raise K and watch SIGReg settle; LeJEPA's trick is to draw fresh directions every step so no direction is safe for long.</li>
+        <li>Try <b>Collapsed</b>: every shadow is a spike, EP is enormous. Try <b>Stretched</b>: the right shape, wrong scale in most directions, so SIGReg also corrects anisotropy, which ties this lab back to the one above.</li>
+      </ul></div>
+    </figure>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Anti-collapse rule</th><th>What it constrains</th><th>X shape passes?</th><th>Cost per batch</th></tr></thead>
+        <tbody>
+          <tr><td>EMA teacher + stop-grad (BYOL, I-JEPA)</td><td>Nothing explicit; dynamics keep it alive</td><td>n/a</td><td>a second encoder copy</td></tr>
+          <tr><td>VICReg</td><td>per-dim variance ≥ 1, off-diagonal covariance → 0</td><td>yes</td><td>d × d covariance</td></tr>
+          <tr><td>SIGReg (LeJEPA)</td><td>every 1-D shadow ≈ N(0, 1), in distribution</td><td>no</td><td>K projections × t grid</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <aside class="aside ours"><span class="k">This project</span>Notebook 3 implemented SIGReg in about ten lines of PyTorch (64 directions, 33-point t grid, weight 0.1) on an 8×8-digits JEPA. It gave by far the most isotropic embedding (condition number about 3 vs about 4,000 for VICReg and about 20 for EMA), the best fp32 probe accuracy (0.900) and the smallest losses under 3- and 4-bit quantization. Toy scale, 3 seeds; table in <a href="bias.html#spread">chapter 04</a>.</aside>
+  </section>
+
+  <!-- ============ BEAT 3: identifiability ============ -->
+  <section class="beat" id="ident">
+    <header>
+      <span class="num">Beat 3</span>
+      <h2><span class="w">Why</span> would a Gaussian target let a JEPA recover the true state of the world?</h2>
+      <p class="short">Because if the hidden state is Gaussian and evolves with additive noise, then an encoder whose output is forced to be Gaussian and predictable can only differ from the truth by a linear map. Klindt, LeCun and Balestriero (2026) report that the Gaussian is the only latent law for which this holds.</p>
+    </header>
+    <div class="split">
+      <div class="prose">
+        <p>Good probe accuracy does not mean the encoder found the <em>real</em> variables. Many embeddings predict equally well. <span class="term" tabindex="0" data-def="A model is identifiable if the training objective pins down the true latent variables, up to a stated, harmless ambiguity (a permutation, a scaling, a linear map).">Identifiability</span> asks when the objective forces the recovered latents to match the true ones, up to a harmless ambiguity.</p>
+        <p><b>When does LeJEPA learn a world model?</b> The setting: true latent states with stationary dynamics plus additive noise, observed through an unknown nonlinear mixing (pixels). The abstract states that LeJEPA then recovers the latents up to a linear map, that the Gaussian is the only latent law for which this works, that recovery degrades gracefully when the assumptions are off, and that this enables optimal planning in the latent space. <span class="pill part">abstract only</span></p>
+        <p>An intuition (ours, not the paper's proof): independent component analysis has the mirror-image result. ICA can undo a linear mix of sources <em>unless</em> they are Gaussian, because a rotated Gaussian looks identical. LeJEPA asks for less (a linear map, not the exact axes), and here the Gaussian's rotation symmetry is the leftover freedom rather than an obstacle.</p>
+      </div>
+      <div class="compare" style="grid-template-columns:1fr">
+        <div><span class="k">Passive prediction</span><h4>Up to a linear map</h4><p>Klindt et al. 2026: Gaussian latents with additive-noise dynamics, LeJEPA objective. A linear probe can read the true state out. <span class="pill part">abstract only</span></p></div>
+        <div><span class="k">With actions</span><h4>Up to permutation and per-component transforms</h4><p>Liu, Huang, Shi 2026, "I Act Therefore I Am": prediction accuracy alone does not imply correct latents. A likelihood plus entropy objective identifies the causal state variables, up to component-wise transforms and permutation, <em>if and only if</em> actions induce enough variation across the transition mechanisms. Their instance is called A-JEPA. <span class="pill part">abstract only</span></p></div>
+        <div><span class="k">Theory of the planner</span><h4>Error bounds regret</h4><p>Cui et al. 2026: JEPA pretraining is a low-rank factorization of an action-conditioned co-occurrence matrix, and pretraining error bounds planning regret. <span class="pill part">abstract only</span></p></div>
+      </div>
+    </div>
+    <div class="analogy"><span class="ico">≈</span><div><span class="k">Picture it</span><p>You watch shadows of a juggler on a wall. Many different jugglers cast the same shadows. If you also know the balls fly on simple parabolas with a bit of wind (stationary dynamics, additive noise), and you insist your reconstruction moves the same way, the only jugglers left are the real one seen from a different angle: a linear map away. Being allowed to <em>push</em> a ball (actions) narrows it further, to the real juggler up to relabeling.</p></div></div>
+  </section>
+
+  <!-- ============ BEAT 4: free energy ============ -->
+  <section class="beat" id="free">
+    <header>
+      <span class="num">Beat 4</span>
+      <h2><span class="w">Why</span> does SIGReg look like a variational free energy?</h2>
+      <p class="short">Because a free energy is "prediction error minus entropy of your beliefs", and SIGReg's job is to keep the embedding's entropy at its maximum for a fixed spread. Read that way, JEPA plus SIGReg is a variational objective, and the other anti-collapse terms are looser or one-sided bounds on the same entropy.</p>
+    </header>
+    <div class="prose">
+      <p>Among all distributions with a given covariance, the Gaussian has the highest entropy. So "make the embedding an isotropic Gaussian with unit variance" is the same as "make its entropy as large as it can be at that scale". Collapse is the opposite: entropy going to minus infinity.</p>
+      <p>Two 2026 papers make the link formal. <b>Var-JEPA</b> (Gögl, Yau) shows the encoder and predictor match the variational posterior and a learned conditional prior of a coupled latent-variable model; ordinary JEPA is its deterministic special case, and a single ELBO removes the need for ad hoc anti-collapse terms while giving latent uncertainty. <b>Arnez and Gomez-Villa</b> read SIGReg as the entropy term of a variational free energy and rank regularizers by how they bound the latent entropy. Both <span class="pill part">abstract only</span>.</p>
+    </div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Regularizer</th><th>Bound on latent entropy</th><th>Reading (Arnez &amp; Gomez-Villa 2026)</th></tr></thead>
+        <tbody>
+          <tr><td>VICReg</td><td>upper bound</td><td>unsafe: the loss can look fine while true entropy is lower</td></tr>
+          <tr><td>LogDet (covariance log-determinant)</td><td>upper bound</td><td>unsafe, same reason</td></tr>
+          <tr><td>PairDist (pairwise distances)</td><td>lower bound</td><td>safe but loose</td></tr>
+          <tr><td>SIGReg</td><td>closes the gap</td><td class="best">tight; predicts an embedding condition number near 1</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="prose">
+      <p class="small muted">The paper's algebra is verified in Lean 4 and it has no experiments. Its condition-number prediction is testable: this project's pilot measured about 2.7 under SIGReg, against about 4,275 for VICReg, so "near 1" was approached but not reached at toy scale. The same paper notes current JEPA world models miss a state-epistemic term, which is the bridge to Beat 5.</p>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 5: active inference ============ -->
+  <section class="beat" id="act">
+    <header>
+      <span class="num">Beat 5</span>
+      <h2><span class="w">Why</span> would an agent minimizing free energy go looking for information?</h2>
+      <p class="short">Because when free energy is projected into the future, it splits into <em>risk</em> (expected outcomes far from preferred ones) and <em>ambiguity</em> (outcomes that would not tell you the state). Minimizing ambiguity is curiosity. It comes out of the same objective with no exploration bonus added.</p>
+    </header>
+    <div class="prose">
+      <p>Karl Friston's free-energy principle says any system that persists must keep minimizing variational free energy, a bound on surprise, under a generative model of what causes its sensations. Perception, learning and action are all inference. To plan, an <span class="term" tabindex="0" data-def="An agent that picks actions by minimizing expected free energy under its generative model, rather than by maximizing a reward function.">active-inference</span> agent scores each policy by its <b>expected free energy</b>:</p>
+      <div class="eq">G(a) = KL[ q(o | a) ‖ C(o) ] + E<sub>q(s | a)</sub> H[ p(o | s) ]<br>     = risk + ambiguity<br>     = − (expected log preference) − (expected information gain)<span class="c">C(o) is a preferred-outcome distribution: the agent's goals, written as beliefs. The second line is how Friston usually writes it; the third shows the same quantity as "pragmatic value" plus "epistemic value", both to be maximized.</span></div>
+      <p>The lab is the classic T-maze. A reward sits in the left or right arm. Arms pay 75 percent when correct and 25 percent when wrong, and entering an arm ends the trial. A cue at the bottom tells you which arm is correct (with a reliability you set). Two greedy agents look one step ahead: one minimizes G, the other maximizes expected reward only.</p>
+    </div>
+    <figure class="lab" id="lab-ai">
+      <div class="lab-head"><span class="tag">Sim</span><h3>T-maze: expected free energy vs reward only</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-ai" aria-label="A T-maze with the agent, cue and arms, and a bar chart of epistemic and pragmatic value for each possible move."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i style="background:var(--p2)"></i>epistemic value (info gain)</span><span><i style="background:var(--why)"></i>pragmatic value (expected log preference, shifted)</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><span class="lbl">Agent</span>
+            <div class="seg" role="group" aria-label="Agent type"><button type="button" id="ai-efe" aria-pressed="true">Free energy</button><button type="button" id="ai-rew" aria-pressed="false">Reward only</button></div></div>
+          <div class="ctrl"><div class="row"><label for="ai-p">Prior: reward on the left</label><output for="ai-p"></output></div>
+            <input type="range" id="ai-p" min="0.5" max="0.99" step="0.01" value="0.6"></div>
+          <div class="ctrl"><div class="row"><label for="ai-r">Cue reliability</label><output for="ai-r"></output></div>
+            <input type="range" id="ai-r" min="0.5" max="1" step="0.01" value="0.95"></div>
+          <div class="ctrl"><div class="row"><label for="ai-c">Preference for reward c</label><output for="ai-c"></output></div>
+            <input type="range" id="ai-c" min="0" max="6" step="0.25" value="2"></div>
+          <div class="btns"><button type="button" class="primary" id="ai-step">Step</button><button type="button" id="ai-ep">New trial</button><button type="button" id="ai-run">Run 1,000 trials</button></div>
+          <p class="log" id="ai-log" aria-live="polite"></p>
+          <div class="agentstats" id="ai-stats"><span class="h">1,000 trials</span><span class="h">reward</span><span class="h">cue visits</span><span>free energy</span><span id="s-er">–</span><span id="s-ec">–</span><span>reward only</span><span id="s-rr">–</span><span id="s-rc">–</span></div>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>At prior 0.6 the free-energy agent walks to the cue first and earns about 0.69 reward per trial (it visits the cue in about 77% of trials); the reward-only agent mostly goes straight to the more likely arm and earns about 0.58. Nobody told the first agent that information is valuable.</li>
+        <li>Raise the prior toward 0.9: the cue has little left to teach, epistemic value shrinks, and the free-energy agent also goes straight to the arm. Curiosity switches itself off when you already know.</li>
+        <li>Set reliability to 0.5 (a useless cue): its ambiguity equals its outcome entropy, information gain is zero, and the free-energy agent almost never visits it. Set c to 0: the free-energy agent still visits the cue, the reward-only agent wanders at random.</li>
+        <li>Fairness: a reward-only planner that looks two steps ahead would also find the cue's value. Active inference gets it from a one-step score, and that is the claim: exploration is in the objective, not in the search depth.</li>
+      </ul></div>
+    </figure>
+    <div class="split">
+      <div class="prose">
+        <h3 style="margin-top:0">Where JEPA meets Friston</h3>
+        <p>LeCun's JEPA world model plus a cost module plus model-predictive planning is structurally close to Friston's generative model plus expected-free-energy planning. The project's field notes list the differences: JEPA is non-generative and energy-based, not a likelihood; active inference is fully Bayesian and builds epistemic value into planning. SIGReg as free energy and Var-JEPA as an ELBO narrow the first gap. The missing state-epistemic term, flagged by Arnez and Gomez-Villa, is the second.</p>
+        <p>The disagreement is live. Friston argues on MLST that intelligence is accumulating evidence for one's world model and that curiosity comes "for free". Mattick (MLST, 2026-09) argues prediction is not control. Bengio argues for building the predictor deliberately without agency. See the <a href="why-atlas.html">Why Atlas</a> map, question 13.</p>
+      </div>
+      <div class="prose">
+        <h3 style="margin-top:0">People</h3>
+        <p><span class="who" data-i="RB">Randall Balestriero</span> <span class="who" data-i="YL">Yann LeCun</span> <span class="who" data-i="DK">David Klindt</span> <span class="who" data-i="KF">Karl Friston</span></p>
+        <p class="small">Balestriero (Brown, ex-Meta FAIR) is the most direct MLST voice on this chapter: his 2025 episodes argue that reconstruction wastes capacity on high-variance detail and that joint embedding with a principled isotropic-Gaussian regularizer is the heuristic-free route. Friston appeared on MLST five times between 2023 and 2025.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="remember">
+    <h2>Three things to <span class="w">remember</span></h2>
+    <ol>
+      <li><b>Round protects the worst task.</b>With total variance fixed, equal variances maximize the smallest one, which is where an unseen task would hurt most. The average task barely cares.</li>
+      <li><b>Every shadow must be a bell.</b>Cramér–Wold turns a high-dimensional test into random 1-D ones. The X shape passes VICReg and fails SIGReg.</li>
+      <li><b>Max entropy is a free energy.</b>The Gaussian is the maximum-entropy law at fixed spread, which makes SIGReg an entropy term, the latents identifiable up to a linear map, and curiosity a short step away.</li>
+    </ol>
+  </section>
+
+  <section id="quiz"></section>
+
+  <section class="sources">
+    <h2>Sources for this chapter</h2>
+    <ol>
+      <li>Balestriero &amp; LeCun, <a href="https://arxiv.org/abs/2511.08544">LeJEPA: Provable and Scalable Self-Supervised Learning Without the Heuristics</a>, 2025. Isotropic Gaussian minimizes worst-case downstream risk; SIGReg; no stop-grad or EMA; one trade-off hyperparameter. Reported stable up to about 1.8B parameters <span class="pill bad">check</span></li>
+      <li>Klindt, LeCun, Balestriero, <a href="https://arxiv.org/abs/2605.26379">When Does LeJEPA Learn a World Model?</a>, 2026. <span class="pill part">abstract only</span></li>
+      <li>Liu, Huang, Shi, <a href="https://arxiv.org/abs/2609.31161">I Act Therefore I Am: When Is JEPA's Action-Conditioning Enough to Learn Causal Mechanisms?</a>, 2026. <span class="pill part">abstract only</span></li>
+      <li>Gögl &amp; Yau, <a href="https://arxiv.org/abs/2603.20111">Var-JEPA: A Variational Formulation of the Joint-Embedding Predictive Architecture</a>, 2026. <span class="pill part">abstract only</span></li>
+      <li>Arnez &amp; Gomez-Villa, <a href="https://arxiv.org/abs/2607.13612">The SIGReg Objective as Variational Free Energy: A Theoretical Active-Inference Account of JEPA World Models</a>, 2026. <span class="pill part">abstract only</span></li>
+      <li>Cui, Zhang, Wen, Cheng, Wang, <a href="https://arxiv.org/abs/2606.27014">A Generalization Theory for JEPA-Based World Models</a>, 2026. <span class="pill part">abstract only</span></li>
+      <li>Shwartz-Ziv et al., <a href="https://arxiv.org/abs/2303.00633">An Information-Theoretic Perspective on Variance-Invariance-Covariance Regularization</a>, 2023 (VICReg as a mutual-information bound under Gaussian assumptions).</li>
+      <li>Friston, "The free-energy principle: a unified brain theory?", Nature Reviews Neuroscience 11:127, 2010. Parr, Pezzulo, Friston, <a href="https://direct.mit.edu/books/oa-monograph/5299/Active-InferenceThe-Free-Energy-Principle-in-Mind">Active Inference</a>, MIT Press 2022 <span class="pill bad">check</span></li>
+      <li>Friston et al., <a href="https://arxiv.org/abs/2212.01354">Designing Ecosystems of Intelligence from First Principles</a>, 2022.</li>
+      <li>MLST episodes with Balestriero (2025-02-08, 2025-04-23) and Friston (2023 to 2025), as summarized in <code>landscape/sources/mlst-guests-*.md</code>.</li>
+      <li>Project notebook <code>jepa/notebooks/03-sigreg-quantization-pilot.ipynb</code> (SIGReg implementation and measured condition numbers).</li>
+    </ol>
+  </section>
+
+  <nav id="pager"></nav>
+</main>
+<footer id="site-footer"></footer>
+
+<script src="assets/atlas.js"></script>
+<script>
+(function(){
+"use strict";
+const A = window.Atlas;
+const $ = id => document.getElementById(id);
+
+/* =================== SIM: worst-case probe risk =================== */
+(function(){
+  const d = 8, T = 40, NMAX = 200, sig = .5, cv = $("cv-risk");
+  let logk = 1.3, lam = .1, n = 30;
+  const r = A.rng(31);
+  const G = new Float64Array(T*NMAX*d), E = new Float64Array(T*NMAX);
+  for(let i=0;i<G.length;i++) G[i] = r.normal(); for(let i=0;i<E.length;i++) E[i] = r.normal();
+  const rdirs = []; for(let k=0;k<16;k++){ const u = []; let s=0; for(let j=0;j<d;j++){ u.push(r.normal()); s+=u[j]*u[j]; } rdirs.push(u.map(v=>v/Math.sqrt(s))); }
+  const spectrum = k => { const s = []; for(let i=0;i<d;i++) s.push(Math.pow(k, -i/(d-1))); const sum = s.reduce((a,b)=>a+b,0); return s.map(v=>v*d/sum); };
+  // Cholesky solve
+  function chol(M){ const L = new Float64Array(d*d); for(let i=0;i<d;i++) for(let j=0;j<=i;j++){ let s = M[i*d+j]; for(let k=0;k<j;k++) s -= L[i*d+k]*L[j*d+k]; L[i*d+j] = i===j ? Math.sqrt(Math.max(s,1e-12)) : s/L[j*d+j]; } return L; }
+  function solve(L, b){ const y = new Float64Array(d), x = new Float64Array(d); for(let i=0;i<d;i++){ let s=b[i]; for(let k=0;k<i;k++) s-=L[i*d+k]*y[k]; y[i]=s/L[i*d+i]; } for(let i=d-1;i>=0;i--){ let s=y[i]; for(let k=i+1;k<d;k++) s-=L[k*d+i]*x[k]; x[i]=s/L[i*d+i]; } return x; }
+  function riskAt(k){
+    const s = spectrum(k), sq = s.map(Math.sqrt);
+    const tasks = [];
+    for(let i=0;i<d;i++){ const b = new Float64Array(d); b[i] = 1/sq[i]; tasks.push(b); }
+    for(const u of rdirs){ let q=0; for(let j=0;j<d;j++) q += u[j]*u[j]*s[j]; tasks.push(Float64Array.from(u, v=>v/Math.sqrt(q))); }
+    const acc = new Float64Array(tasks.length);
+    const S = new Float64Array(d*d), c = new Float64Array(d);
+    for(let t=0;t<T;t++){
+      S.fill(0); c.fill(0);
+      for(let m=0;m<n;m++){ const o = (t*NMAX+m)*d, e = E[t*NMAX+m];
+        for(let i=0;i<d;i++){ const zi = G[o+i]*sq[i]; c[i] += zi*e; for(let j=0;j<=i;j++) S[i*d+j] += zi*G[o+j]*sq[j]; } }
+      for(let i=0;i<d;i++){ c[i] = c[i]*sig/n; for(let j=0;j<=i;j++){ S[i*d+j]/=n; S[j*d+i]=S[i*d+j]; } }
+      const M = Float64Array.from(S); for(let i=0;i<d;i++) M[i*d+i] += lam;
+      const L = chol(M);
+      tasks.forEach((b,ti)=>{
+        const rhs = new Float64Array(d); for(let i=0;i<d;i++){ let v = sig ? c[i] : 0; for(let j=0;j<d;j++) v += S[i*d+j]*b[j]; rhs[i] = v; }
+        const bh = solve(L, rhs); let err = 0; for(let i=0;i<d;i++){ const e = b[i]-bh[i]; err += s[i]*e*e; } acc[ti] += err/T;
+      });
+    }
+    let worst = 0; for(let i=0;i<d;i++) worst = Math.max(worst, acc[i]);
+    let mean = 0; for(let i=d;i<acc.length;i++) mean += acc[i]/(acc.length-d);
+    return {worst, mean, s};
+  }
+  let curve = [], cur = null;
+  function compute(){
+    curve = []; for(let lk=0; lk<=3.0001; lk+=.125) curve.push({lk, ...riskAt(Math.pow(10,lk))});
+    cur = riskAt(Math.pow(10,logk));
+    $("k-smin").textContent = cur.s[d-1].toFixed(3);
+    $("k-worst").textContent = cur.worst.toFixed(3);
+    $("k-mean").textContent = cur.mean.toFixed(3);
+    $("k-iso").textContent = curve[0].worst.toFixed(3);
+  }
+  const view = A.canvas(cv, w => w<560 ? 1.15 : .46, draw);
+  const pts = []; { const rr = A.rng(8); for(let i=0;i<260;i++) pts.push([rr.normal(), rr.normal()]); }
+  function draw(){
+    if(!cur) return;
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const narrow = w < 560;
+    const sq = narrow ? Math.min(w*.62, h*.44) : Math.min(h-24, w*.36);
+    const sx = narrow ? (w-sq)/2 : 0, sy = 18;
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.textAlign = "start";
+    ctx.fillText("Largest vs smallest direction", sx, 12);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(sx, sy, sq, sq);
+    const cx = sx+sq/2, cy = sy+sq/2, sc = sq/ (2*Math.sqrt(8)*1.6);
+    const a = Math.sqrt(cur.s[0]), b = Math.sqrt(cur.s[d-1]);
+    ctx.save(); ctx.beginPath(); ctx.rect(sx, sy, sq, sq); ctx.clip();
+    ctx.fillStyle = C.p1; ctx.globalAlpha = .55;
+    pts.forEach(([u,v])=>{ ctx.beginPath(); ctx.arc(cx+u*a*sc, cy-v*b*sc, 2, 0, 7); ctx.fill(); }); ctx.globalAlpha = 1;
+    ctx.strokeStyle = C.lineStrong; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.ellipse(cx, cy, 2*a*sc, Math.max(.5,2*b*sc), 0, 0, 7); ctx.stroke(); ctx.restore();
+    // worst task arrow (needed weight 1/sqrt(s_min), drawn capped)
+    const len = Math.min(sq*.46, sq*.12/b);
+    ctx.strokeStyle = C.why; ctx.fillStyle = C.why; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx, cy-len); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx-5, cy-len+8); ctx.lineTo(cx, cy-len); ctx.lineTo(cx+5, cy-len+8); ctx.fill();
+    ctx.font = `600 11px ${C.ui}`; ctx.fillText(`probe weight 1/√s = ${(1/b).toFixed(1)}`, sx+6, sy+sq-8);
+    // curve panel
+    const px = narrow ? 38 : sq + 60, py = narrow ? sy + sq + 34 : 26, pw = w - px - 8, ph = narrow ? h - py - 34 : h - py - 34;
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText("Probe excess error vs anisotropy", px - (narrow?38:0), py-10);
+    const ymax = Math.max(...curve.map(c=>c.worst), .05)*1.1;
+    const X = lk => px + lk/3*pw, Y = v => py + ph - v/ymax*ph;
+    ctx.strokeStyle = C.line; ctx.strokeRect(px, py, pw, ph);
+    ctx.fillStyle = C.faint; ctx.font = `10px ${C.mono}`; ctx.textAlign = "center";
+    [[0,"1"],[1,"10"],[2,"100"],[3,"1000"]].forEach(([lk,t])=>ctx.fillText(t, X(lk), py+ph+12));
+    ctx.fillText("condition number (log)", px+pw/2, py+ph+25);
+    ctx.textAlign = "end"; [0, ymax/2, ymax].forEach(v=>ctx.fillText(v.toFixed(2), px-4, Y(v)+3));
+    for(const [key,col] of [["mean",C.p1],["worst",C.why]]){
+      ctx.strokeStyle = col; ctx.lineWidth = 2.4; ctx.beginPath();
+      curve.forEach((c,i)=>{ i ? ctx.lineTo(X(c.lk), Y(c[key])) : ctx.moveTo(X(c.lk), Y(c[key])); }); ctx.stroke();
+    }
+    ctx.strokeStyle = C.lineStrong; ctx.setLineDash([3,3]); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X(logk), py); ctx.lineTo(X(logk), py+ph); ctx.stroke(); ctx.setLineDash([]);
+    for(const [key,col] of [["mean",C.p1],["worst",C.why]]){ ctx.fillStyle = col; ctx.beginPath(); ctx.arc(X(logk), Y(cur[key]), 5, 0, 7); ctx.fill(); }
+    ctx.fillStyle = C.good; ctx.beginPath(); ctx.arc(X(0), Y(curve[0].worst), 3.5, 0, 7); ctx.fill();
+    ctx.textAlign = "start"; ctx.font = `600 11px ${C.ui}`; ctx.fillStyle = C.good; ctx.fillText("isotropic", X(0)+7, Y(curve[0].worst)-7);
+  }
+  let pend = 0; const upd = full => { cancelAnimationFrame(pend); pend = requestAnimationFrame(()=>{ if(full) compute(); else { cur = riskAt(Math.pow(10,logk)); $("k-smin").textContent = cur.s[d-1].toFixed(3); $("k-worst").textContent = cur.worst.toFixed(3); $("k-mean").textContent = cur.mean.toFixed(3); } view.redraw(); }); };
+  let ready = false;
+  A.slider("k-kap", v=>{ logk=v; if(ready) upd(false); }, v=>Math.pow(10,v).toFixed(v<1?1:0)+"×");
+  A.slider("k-lam", v=>{ lam=Math.pow(10,v); if(ready) upd(true); }, v=>Math.pow(10,v).toPrecision(2));
+  A.slider("k-n", v=>{ n=v; if(ready) upd(true); }, v=>v);
+  compute(); ready = true; view.redraw();
+})();
+
+/* =================== LAB: Cramér–Wold / Epps–Pulley =================== */
+(function(){
+  const N = 500, cv = $("cv-cw");
+  let shape = "x", ang = 0, K = 6, dirSeed = 1, pts = [], dirs = [], epCurve = [];
+  const TG = []; for(let i=0;i<33;i++) TG.push(-5 + 10*i/32);
+  function makeShape(){
+    const r = A.rng({x:1,gauss:2,ring:3,blobs:4,stretch:5,square:6,collapse:7}[shape]*977);
+    pts = [];
+    for(let i=0;i<N;i++){
+      let x, y;
+      if(shape==="x"){ x = r.normal(); y = (r()<.5?-1:1)*x + .06*r.normal(); }
+      else if(shape==="gauss"){ x = r.normal(); y = r.normal(); }
+      else if(shape==="ring"){ const t = r()*Math.PI*2, R = Math.SQRT2 + .08*r.normal(); x = R*Math.cos(t); y = R*Math.sin(t); }
+      else if(shape==="blobs"){ x = (r()<.5?-.9:.9) + .436*r.normal(); y = r.normal(); }
+      else if(shape==="stretch"){ const u = 1.6*r.normal(), v = .4*r.normal(), c = Math.cos(.52), s = Math.sin(.52); x = c*u - s*v; y = s*u + c*v; }
+      else if(shape==="square"){ x = (r()*2-1)*Math.sqrt(3); y = (r()*2-1)*Math.sqrt(3); }
+      else { x = .05*r.normal() + .3; y = .05*r.normal() - .2; }
+      pts.push([x,y]);
+    }
+  }
+  function ep(theta){
+    const c = Math.cos(theta), s = Math.sin(theta);
+    let tot = 0;
+    const val = TG.map(t=>{
+      let re=0, im=0; for(const [x,y] of pts){ const p = (x*c+y*s)*t; re += Math.cos(p); im += Math.sin(p); }
+      re/=N; im/=N; const g = Math.exp(-t*t/2); return ((re-g)*(re-g) + im*im)*g;
+    });
+    for(let i=0;i<TG.length-1;i++) tot += (val[i]+val[i+1])/2*(TG[i+1]-TG[i]);
+    return tot*N;
+  }
+  function makeDirs(){ const r = A.rng(dirSeed*131+7); dirs = []; for(let k=0;k<K;k++) dirs.push(r()*Math.PI); }
+  function computeCurve(){ epCurve = []; for(let i=0;i<=90;i++) epCurve.push(ep(i/90*Math.PI)); }
+  function readouts(){
+    const e = ep(ang*Math.PI/180); $("cw-ep").textContent = e.toFixed(2);
+    const sg = dirs.reduce((a,t)=>a+ep(t),0)/dirs.length; $("cw-sig").textContent = sg.toFixed(2);
+    let mx=0,my=0; pts.forEach(([x,y])=>{ mx+=x; my+=y; }); mx/=N; my/=N;
+    let vx=0,vy=0,cxy=0; pts.forEach(([x,y])=>{ vx+=(x-mx)**2; vy+=(y-my)**2; cxy+=(x-mx)*(y-my); }); vx/=N-1; vy/=N-1; cxy/=N-1;
+    $("cw-var").textContent = `${vx.toFixed(2)} · ${vy.toFixed(2)}`; $("cw-cov").textContent = cxy.toFixed(2);
+    const ok = Math.abs(vx-1)<.15 && Math.abs(vy-1)<.15 && Math.abs(cxy)<.12;
+    $("cw-vic").textContent = ok ? "all fine" : (vx<.5||vy<.5 ? "collapse" : "fix covariance");
+  }
+  const view = A.canvas(cv, w => w<560 ? 1.1 : .5, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const narrow = w < 560;
+    const sq = narrow ? Math.min(w*.5-6, h*.4) : Math.min(h*.62, w*.3);
+    const sx = 0, sy = 18, cx = sx+sq/2, cy = sy+sq/2, sc = sq/9;
+    const th = ang*Math.PI/180, c = Math.cos(th), s = Math.sin(th);
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.textAlign = "start"; ctx.fillText("Embedding (2-D)", sx, 12);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(sx, sy, sq, sq);
+    // random directions
+    ctx.strokeStyle = C.p2; ctx.globalAlpha = .35; ctx.lineWidth = 1;
+    dirs.forEach(t=>{ ctx.beginPath(); ctx.moveTo(cx-Math.cos(t)*sq*.48, cy+Math.sin(t)*sq*.48); ctx.lineTo(cx+Math.cos(t)*sq*.48, cy-Math.sin(t)*sq*.48); ctx.stroke(); });
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = C.p1; ctx.globalAlpha = .55;
+    pts.forEach(([x,y])=>{ const X = cx+x*sc, Y = cy-y*sc; if(X>sx&&X<sx+sq&&Y>sy&&Y<sy+sq){ ctx.beginPath(); ctx.arc(X, Y, 1.7, 0, 7); ctx.fill(); } });
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = C.why; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(cx-c*sq*.48, cy+s*sq*.48); ctx.lineTo(cx+c*sq*.48, cy-s*sq*.48); ctx.stroke();
+    // histogram of projection
+    const hx = narrow ? sq + 12 : sq + 26, hy = sy, hw = narrow ? w - hx : w*.36, hh = sq;
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText(`Shadow at ${ang}°`, hx, 12);
+    ctx.strokeStyle = C.line; ctx.strokeRect(hx, hy, hw, hh);
+    const B = 31, lo = -4, hi = 4, cnt = new Array(B).fill(0);
+    pts.forEach(([x,y])=>{ const p = x*c + y*s, k = Math.floor((p-lo)/(hi-lo)*B); if(k>=0&&k<B) cnt[k]++; });
+    const bwid = (hi-lo)/B, dens = cnt.map(v=>v/N/bwid), dmax = Math.max(.5, ...dens.map(v=>Math.min(v,3)));
+    const HX = p => hx + (p-lo)/(hi-lo)*hw, HY = v => hy + hh - Math.min(v,dmax)/dmax*(hh-8);
+    ctx.fillStyle = C.why; ctx.globalAlpha = .55;
+    dens.forEach((v,k)=>{ const x0 = HX(lo+k*bwid); ctx.fillRect(x0+.5, HY(v), hw/B-1, hy+hh-HY(v)); }); ctx.globalAlpha = 1;
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1.8; ctx.beginPath();
+    for(let i=0;i<=120;i++){ const p = lo + (hi-lo)*i/120, v = Math.exp(-p*p/2)/Math.sqrt(2*Math.PI); i ? ctx.lineTo(HX(p), HY(v)) : ctx.moveTo(HX(p), HY(v)); }
+    ctx.stroke();
+    ctx.fillStyle = C.ink; ctx.font = `10.5px ${C.ui}`; ctx.fillText("line: N(0, 1)", hx+6, hy+14);
+    // EP vs angle strip
+    const ex = narrow ? 34 : hx + hw + 44, ey = narrow ? sy + sq + 36 : sy, ew = w - ex - 6, eh = narrow ? h - ey - 30 : sq;
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText("Epps–Pulley by angle (log)", narrow ? 0 : ex - 34, ey - 6 - (narrow?0:0) + (narrow?0:-0));
+    const lmin = -1, lmax = Math.max(2, Math.ceil(Math.log10(Math.max(...epCurve)+1e-9)));
+    const EX = a => ex + a/180*ew, EY = v => ey + eh - (Math.log10(Math.max(v,.1))-lmin)/(lmax-lmin)*eh;
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(ex, ey, ew, eh);
+    ctx.fillStyle = C.faint; ctx.font = `10px ${C.mono}`; ctx.textAlign = "end";
+    for(let e=lmin; e<=lmax; e++){ ctx.fillText(e<0?"0.1":String(Math.pow(10,e)), ex-4, EY(Math.pow(10,e))+3); }
+    ctx.textAlign = "center"; [0,45,90,135,180].forEach(a=>ctx.fillText(a+"°", EX(a), ey+eh+12));
+    ctx.strokeStyle = C.why; ctx.lineWidth = 2; ctx.beginPath();
+    epCurve.forEach((v,i)=>{ const X = EX(i*2), Y = EY(v); i ? ctx.lineTo(X,Y) : ctx.moveTo(X,Y); }); ctx.stroke();
+    ctx.fillStyle = C.p2; dirs.forEach(t=>{ const a = t*180/Math.PI, v = epCurve[Math.round(a/2)]; ctx.beginPath(); ctx.arc(EX(a), EY(v), 3.2, 0, 7); ctx.fill(); });
+    ctx.strokeStyle = C.ink; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(EX(ang), ey); ctx.lineTo(EX(ang), ey+eh); ctx.stroke(); ctx.setLineDash([]);
+    ctx.textAlign = "start"; ctx.fillStyle = C.p2; ctx.font = `10.5px ${C.ui}`; ctx.fillText("dots: SIGReg's random directions", ex+6, ey+eh-6);
+  }
+  function full(){ makeShape(); makeDirs(); computeCurve(); readouts(); view.redraw(); }
+  const btns = [...document.querySelectorAll("#cw-shapes button")];
+  btns.forEach(b=>b.addEventListener("click",()=>{ shape = b.dataset.s; btns.forEach(o=>o.setAttribute("aria-pressed", o===b)); full(); }));
+  let ready = false;
+  A.slider("cw-ang", v=>{ ang = v; if(ready){ readouts(); view.redraw(); } }, v=>v+"°");
+  A.slider("cw-k", v=>{ K = v; if(ready){ makeDirs(); readouts(); view.redraw(); } }, v=>v);
+  $("cw-new").onclick = ()=>{ dirSeed++; makeDirs(); readouts(); view.redraw(); };
+  const angEl = $("cw-ang"), playB = $("cw-play");
+  const sweep = A.loop(cv, (dt)=>{ ang = (ang + dt*30) % 180; angEl.value = Math.round(ang); angEl.dispatchEvent(new Event("input")); });
+  let sweeping = false;
+  playB.onclick = ()=>{ sweeping = !sweeping; playB.textContent = sweeping ? "Stop" : "Sweep angle"; sweeping ? sweep.start() : sweep.stop(); };
+  full(); ready = true;
+})();
+
+/* =================== SIM: active inference T-maze =================== */
+(function(){
+  const V = .75, GAMMA = 8, cv = $("cv-ai");
+  let prior = .6, rel = .95, pref = 2, agent = "efe";
+  // outcomes: 0 null, 1 cueL, 2 cueR, 3 reward, 4 no reward ; states: context L (reward left) or R
+  const H = p => p.reduce((a,v)=> v>0 ? a - v*Math.log(v) : a, 0);
+  function lik(action){
+    if(action==="cue") return [[0,rel,1-rel,0,0],[0,1-rel,rel,0,0]];
+    if(action==="left") return [[0,0,0,V,1-V],[0,0,0,1-V,V]];
+    return [[0,0,0,1-V,V],[0,0,0,V,1-V]];
+  }
+  function score(action, b){
+    const [pL,pR] = lik(action), q = pL.map((v,i)=>b*v + (1-b)*pR[i]);
+    const U = [0,0,0,pref,-pref], lz = Math.log(U.reduce((a,u)=>a+Math.exp(u),0)), lnC = U.map(u=>u-lz);
+    let risk = 0; q.forEach((v,i)=>{ if(v>0) risk += v*(Math.log(v)-lnC[i]); });
+    const amb = b*H(pL) + (1-b)*H(pR);
+    const info = H(q) - amb, prag = q.reduce((a,v,i)=>a+v*lnC[i],0), eu = q.reduce((a,v,i)=>a+v*U[i],0);
+    return {action, risk, amb, G: risk+amb, info, prag, eu};
+  }
+  function choose(scores, kind, r){
+    const v = scores.map(s => kind==="efe" ? -s.G : s.eu);
+    const m = Math.max(...v), w = v.map(x=>Math.exp(GAMMA*(x-m))), z = w.reduce((a,b)=>a+b,0);
+    let u = r()*z; for(let i=0;i<w.length;i++){ u -= w[i]; if(u<=0) return i; } return w.length-1;
+  }
+  const ACTS = ["left","right","cue"];
+  // episode state
+  const rr = A.rng(99);
+  let ep = null;
+  function newEpisode(){
+    ep = {ctx: rr() < prior ? "L" : "R", loc: "start", b: prior, steps: 0, done: false, reward: null, cue: null, log: []};
+    ep.log.push(`New trial. Reward is hidden on the <b>${ep.ctx==="L"?"left":"right"}</b> (the agent doesn't know). Belief P(left) = ${prior.toFixed(2)}.`);
+  }
+  function stepEpisode(){
+    if(ep.done){ newEpisode(); view.redraw(); return; }
+    const sc = ACTS.map(a=>score(a, ep.b)), k = choose(sc, agent, rr), a = ACTS[k];
+    ep.steps++;
+    if(a==="cue"){
+      const correct = rr() < rel, saysL = (ep.ctx==="L") === correct;
+      ep.cue = saysL ? "L" : "R"; ep.loc = "cue";
+      const lL = saysL ? rel : 1-rel, lR = saysL ? 1-rel : rel;
+      ep.b = ep.b*lL / (ep.b*lL + (1-ep.b)*lR);
+      ep.log.push(`Step ${ep.steps}: checks the cue, which points <b>${saysL?"left":"right"}</b>. Belief P(left) = ${ep.b.toFixed(2)}.`);
+      if(ep.steps>=3){ ep.done = true; ep.reward = false; ep.log.push("Out of time: no reward."); }
+    } else {
+      ep.loc = a; const win = rr() < ((a==="left") === (ep.ctx==="L") ? V : 1-V);
+      ep.done = true; ep.reward = win;
+      ep.log.push(`Step ${ep.steps}: enters the <b>${a}</b> arm. ${win ? "Reward." : "No reward."}`);
+    }
+    view.redraw();
+  }
+  function simulate(kind, trials){
+    const r = A.rng(4242); let rew = 0, cues = 0;
+    for(let t=0;t<trials;t++){
+      const ctxL = r() < prior; let b = prior, visited = false, done = false;
+      for(let s=0; s<3 && !done; s++){
+        const sc = ACTS.map(a=>score(a,b)), a = ACTS[choose(sc, kind, r)];
+        if(a==="cue"){ visited = true; const correct = r() < rel, saysL = ctxL === correct; const lL = saysL?rel:1-rel, lR = saysL?1-rel:rel; b = b*lL/(b*lL+(1-b)*lR); }
+        else { done = true; if(r() < ((a==="left")===ctxL ? V : 1-V)) rew++; }
+      }
+      if(visited) cues++;
+    }
+    return [rew/trials, cues/trials];
+  }
+  function runAll(){
+    const [er, ec] = simulate("efe", 1000), [rw, rc] = simulate("rew", 1000);
+    $("s-er").textContent = er.toFixed(2); $("s-ec").textContent = Math.round(ec*100)+"%";
+    $("s-rr").textContent = rw.toFixed(2); $("s-rc").textContent = Math.round(rc*100)+"%";
+  }
+  const view = A.canvas(cv, w => w<560 ? 1.1 : .5, draw);
+  function draw(){
+    if(!ep) return;
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const narrow = w < 560;
+    const mw = narrow ? w : w*.46, mh = narrow ? h*.48 : h;
+    // maze geometry
+    const cw = Math.min(mw*.2, mh*.2), top = 34, cxm = mw/2;
+    const armY = top + 4, armH = cw, stemX = cxm - cw/2, junctY = armY + armH, stemH = Math.min(mh - junctY - 30, cw*3.4);
+    ctx.fillStyle = C.panel2; ctx.strokeStyle = C.lineStrong; ctx.lineWidth = 1.4;
+    const rect = (x,y,ww,hh)=>{ ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x,y,ww,hh,8) : ctx.rect(x,y,ww,hh); ctx.fill(); ctx.stroke(); };
+    rect(8, armY, mw-16, armH); rect(stemX, armY, cw, junctY - armY + stemH);
+    ctx.fillStyle = C.panel2; ctx.fillRect(stemX-2, armY+1.5, cw+4, armH-3); ctx.fillRect(stemX+1, armY+armH-2, cw-2, 4);
+    const pos = {left:[8+cw*.6, armY+armH/2], right:[mw-8-cw*.6, armY+armH/2], start:[cxm, junctY + stemH*.35], cue:[cxm, junctY + stemH - cw*.45]};
+    // arms: reveal reward when done
+    for(const side of ["left","right"]){
+      const [x,y] = pos[side], hidden = !ep.done;
+      if(hidden){ A.hatch(ctx, x-cw*.45, y-armH*.4, cw*.9, armH*.8, C.hatch, 5); }
+      else if((side==="left") === (ep.ctx==="L")){ ctx.fillStyle = C.good; ctx.font = `700 ${Math.round(cw*.42)}px ${C.ui}`; ctx.textAlign = "center"; ctx.fillText("★", x, y+cw*.15); }
+      ctx.fillStyle = C.muted; ctx.font = `600 11px ${C.ui}`; ctx.textAlign = "center"; ctx.fillText(side, x, armY + armH + 14);
+    }
+    // cue
+    const [qx,qy] = pos.cue;
+    ctx.fillStyle = C.panel; ctx.strokeStyle = C.p2; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(qx, qy, cw*.3, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = C.p2; ctx.font = `700 ${Math.round(cw*.34)}px ${C.ui}`; ctx.textAlign = "center";
+    ctx.fillText(ep.cue ? (ep.cue==="L" ? "←" : "→") : "?", qx, qy + cw*.12);
+    ctx.font = `600 11px ${C.ui}`; ctx.textAlign = "start"; ctx.fillText("cue", qx + cw*.5 + 6, qy - 2); ctx.fillText(`${Math.round(rel*100)}% reliable`, qx + cw*.5 + 6, qy + 12);
+    // agent
+    const [ax,ay] = pos[ep.loc];
+    ctx.fillStyle = C.why; ctx.beginPath(); ctx.arc(ax, ay, cw*.2, 0, 7); ctx.fill();
+    // belief bar
+    ctx.textAlign = "start"; ctx.fillStyle = C.muted; ctx.font = `600 11px ${C.ui}`; ctx.fillText(`belief P(reward left) = ${ep.b.toFixed(2)}`, 8, 12);
+    // value bars
+    const bx = narrow ? 0 : mw + 24, by = narrow ? mh + 24 : 26, bw = narrow ? w : w - bx, bh = narrow ? h - by - 6 : h - by - 6;
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`;
+    ctx.fillText(ep.done ? "Trial over · press Step for a new one" : `Scores for the next move (${agent==="efe"?"free energy":"reward only"} agent)`, bx, by - 8);
+    const sc = ACTS.map(a=>score(a, ep.b));
+    const shift = Math.min(...sc.map(s=>s.prag));
+    const vals = sc.map(s=>({info: Math.max(0,s.info), prag: s.prag - shift}));
+    const vmax = Math.max(.3, ...vals.map(v=>v.info+v.prag));
+    const lab = 52, rowH = Math.min(60, bh/3.8);
+    const pick = agent==="efe" ? sc.reduce((bi,s,i)=> s.G < sc[bi].G ? i : bi, 0) : sc.reduce((bi,s,i)=> s.eu > sc[bi].eu ? i : bi, 0);
+    sc.forEach((s,i)=>{
+      const y = by + 6 + i*rowH, L = bw - lab - 70, v = vals[i];
+      ctx.fillStyle = i===pick && !ep.done ? C.why : C.ink; ctx.font = `${i===pick?700:500} 12px ${C.ui}`; ctx.fillText(s.action, bx, y + rowH*.38);
+      const w1 = v.prag/vmax*L, w2 = v.info/vmax*L;
+      ctx.fillStyle = C.why; ctx.fillRect(bx+lab, y+2, w1, rowH*.28);
+      ctx.fillStyle = C.p2; ctx.fillRect(bx+lab+w1, y+2, w2, rowH*.28);
+      ctx.fillStyle = C.muted; ctx.font = `10px ${C.mono}`;
+      ctx.fillText(`G=${s.G.toFixed(2)}  risk ${s.risk.toFixed(2)} + amb ${s.amb.toFixed(2)}`, bx+lab, y + rowH*.28 + 14);
+      ctx.fillText(`E[reward] ${s.eu>=0?"+":""}${s.eu.toFixed(2)}`, bx+lab, y + rowH*.28 + 26);
+    });
+    const ny = by + 6 + 3*rowH + 6;
+    ctx.fillStyle = C.ink; ctx.font = `600 11.5px ${C.ui}`;
+    if(!ep.done){
+      const efePick = ACTS[sc.reduce((bi,s,i)=> s.G < sc[bi].G ? i : bi, 0)];
+      const rwV = sc.map(s=>s.eu), rwMax = Math.max(...rwV), ties = rwV.filter(v=>Math.abs(v-rwMax)<1e-9).length;
+      const rwPick = ties>1 ? "a coin flip" : ACTS[rwV.indexOf(rwMax)];
+      ctx.fillText(`Lowest G: ${efePick}.  Highest reward: ${rwPick}.`, bx, Math.min(ny, h-6));
+    } else {
+      ctx.fillText(ep.reward ? "Rewarded." : "Not rewarded.", bx, Math.min(ny, h-6));
+    }
+    $("ai-log").innerHTML = ep.log.slice(-3).join("<br>");
+  }
+  const reset = ()=>{ newEpisode(); runAll(); view.redraw(); };
+  let ready = false;
+  A.slider("ai-p", v=>{ prior=v; if(ready) reset(); }, v=>v.toFixed(2));
+  A.slider("ai-r", v=>{ rel=v; if(ready) reset(); }, v=>v.toFixed(2));
+  A.slider("ai-c", v=>{ pref=v; if(ready) reset(); }, v=>v.toFixed(2));
+  const bE = $("ai-efe"), bR = $("ai-rew");
+  const setAgent = a=>{ agent=a; bE.setAttribute("aria-pressed", a==="efe"); bR.setAttribute("aria-pressed", a==="rew"); newEpisode(); view.redraw(); };
+  bE.onclick = ()=>setAgent("efe"); bR.onclick = ()=>setAgent("rew");
+  $("ai-step").onclick = stepEpisode;
+  $("ai-ep").onclick = ()=>{ newEpisode(); view.redraw(); };
+  $("ai-run").onclick = runAll;
+  newEpisode(); runAll(); ready = true; view.redraw();
+})();
+
+/* =================== QUIZ =================== */
+A.quiz("quiz", [
+  {q:"Total embedding variance is fixed. Why does an anisotropic embedding hurt the <em>worst</em> downstream task more than the average one?",
+   options:["Anisotropic embeddings have fewer dimensions","A task living in the squashed direction needs a huge probe weight, which regularization shrinks (bias) or few labels estimate badly (variance)","Linear probes cannot rotate the embedding","Anisotropy makes training slower"],
+   answer:1, why:"Signal along a direction of variance s needs weight 1/√s. With the trace fixed, the smallest s is largest when all are equal. Most random tasks mix many directions and barely notice; the worst task sits right in the blind spot."},
+  {q:"Why can SIGReg check a high-dimensional distribution using only 1-D projections?",
+   options:["Because high-dimensional data is secretly low-dimensional","Cramér–Wold: a distribution is determined by all its 1-D projections, so random projections are an unbiased spot check","Because the embedding is always Gaussian already","Because projections remove noise"],
+   answer:1, why:"If every 1-D shadow is N(0,1), the full distribution is N(0, I). Checking K fresh random directions per step makes it very hard for a non-Gaussian embedding to hide."},
+  {q:"The X-shaped cloud (y = ±x) has identity covariance. What does each regularizer say?",
+   options:["Both VICReg and SIGReg flag it","VICReg is satisfied; SIGReg flags it because the shadow at 45° has a spike at zero","SIGReg is satisfied; VICReg flags it","Neither can see it"],
+   answer:1, why:"VICReg only constrains variances and covariances, which are exactly right. The Epps–Pulley test compares whole characteristic functions, so the non-Gaussian diagonal shadows give a large statistic."},
+  {q:"Why does a Gaussian target relate to free energy?",
+   options:["Gaussians are easy to sample","At fixed covariance the Gaussian has maximum entropy, so pushing toward it is maximizing the entropy term of a variational free energy","Because Friston used Gaussians","Because free energy is defined only for Gaussians"],
+   answer:1, why:"Free energy trades prediction error against entropy. Arnez and Gomez-Villa read SIGReg as that entropy term and show VICReg and LogDet only upper-bound it, PairDist lower-bounds it, and SIGReg closes the gap (abstract-level claim)."},
+  {q:"In the T-maze at prior 0.6, why does the free-energy agent check the cue while the greedy reward-only agent does not?",
+   options:["The cue gives a small reward","Expected free energy includes ambiguity, so its epistemic value (expected information gain) makes the cue attractive with no exploration bonus","The free-energy agent has a longer planning horizon","The reward-only agent cannot see the cue"],
+   answer:1, why:"G = risk + ambiguity = −(pragmatic value) − (information gain). Both agents look one step ahead; only the free-energy one counts what an observation would teach it. When the prior is already near certain, that term vanishes and it goes straight to an arm."},
+  {q:"According to the identifiability results, what does an action-conditioned JEPA add over passive prediction?",
+   options:["Nothing: prediction accuracy already guarantees correct latents","If actions vary the transition mechanisms enough, causal state variables become identifiable up to permutation and component-wise transforms, a stronger guarantee than a linear map","It removes the need for any regularizer","It makes the latent space discrete"],
+   answer:1, why:"\"I Act Therefore I Am\" shows prediction accuracy alone does not imply correct latents, and gives an iff condition on action-induced variation. Passive LeJEPA with Gaussian latents gets recovery up to a linear map (Klindt et al.). Both are abstract-level claims here."},
+]);
+})();
+</script>
+</body>
+</html>

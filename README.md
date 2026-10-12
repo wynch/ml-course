@@ -194,6 +194,23 @@ generated `map.html`, which is the template with every module figure inlined as
 a data: URI. The map first lived as a one-off claude.ai artifact; the copy
 published here on GitHub Pages is now the maintained home.
 
+### Research companion
+
+[`research/`](research/) holds three interactive pages that connect the course
+to current research, all built around one question: *why* does this work?
+
+- **Hidden Patch** ([`research/index.html`](research/index.html)): eighteen
+  chapters on predictive learning and JEPA, collapse, implicit bias,
+  generalization, interpretability, reasoning, world models, edge efficiency and
+  artificial life, each with live labs, three takeaways and a quiz.
+- **The Why Atlas** ([`research/why-atlas.html`](research/why-atlas.html)):
+  about 85 people and papers linked to fourteen "why" questions.
+- **JEPA field map** ([`research/jepa-field-map.html`](research/jepa-field-map.html)):
+  the JEPA literature, filterable by theme.
+
+They are plain HTML with self-hosted fonts and no runtime network calls, and the
+reader bundles them, so they work offline at `reader/research/`.
+
 ---
 
 ## Toolchain
