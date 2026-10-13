@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why does life grow from simple rules? · Hidden Patch</title>
+<meta name="description" content="Artificial life from the question why: Game of Life, Lenia creatures, self-repairing tissue, self-replicators that appear in a soup of random programs, and foundation models as judges of what looks alive.">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/atlas.css">
+<style>
+/* page-specific */
+.prog{font-family:var(--mono);font-size:.74rem;line-height:1.35;word-break:break-all;background:var(--code-bg);border-radius:8px;padding:.4rem .5rem;min-height:3.2em}
+.prog i{font-style:normal;color:var(--faint)}
+.prog b{font-weight:600}
+.keys{display:flex;flex-wrap:wrap;gap:.25rem .7rem;font-family:var(--mono);font-size:.74rem;color:var(--muted)}
+.keys span i{display:inline-block;width:.7rem;height:.7rem;border-radius:2px;vertical-align:-.05em;margin-right:.3rem}
+.asal svg{width:100%;height:auto;display:block}
+.asal .box{fill:var(--panel);stroke:var(--line-strong);stroke-width:1.5}
+.asal .lbl{font-family:var(--ui);font-size:13px;fill:var(--ink);font-weight:600}
+.asal .sub{font-family:var(--mono);font-size:10.5px;fill:var(--muted)}
+.asal .wire{stroke:var(--line-strong);stroke-width:1.6;fill:none}
+.asal .judge .box{stroke:var(--why);stroke-width:2.2}
+.asal .q{font-family:var(--display);font-size:13px;fill:var(--why);font-weight:700}
+.rulebox{font-family:var(--mono);font-size:.8rem}
+.lab .stage canvas.small{margin-top:.5rem}
+select{width:100%;max-width:100%}
+canvas.mini{display:block;width:100%;height:auto;border-radius:6px;background:var(--panel-2)}
+</style>
+</head>
+<body data-chapter="alife" data-part="4">
+<header id="topbar" class="topbar"></header>
+
+<main class="chapter">
+  <section class="opener">
+    <p class="eyebrow"><span class="sw"></span>Part 4 · Life · Chapter 13</p>
+    <h1 class="big"><span class="w">Why</span> does life grow from simple rules?</h1>
+    <p class="because">a local rule applied everywhere, at the same time, over and over, keeps building on what the last step left behind. Nobody draws the glider, the creature or the copying program. They are the shapes that a rule plus time keeps rebuilding, and once something can rebuild itself, copies of it win by default.</p>
+    <p class="meta"><span>6 beats · 4 labs · 6 questions</span><span>Builds on: <a href="worlds.html">11 Why agents need a world model</a></span><span>Map: <a href="why-atlas.html">Why Atlas</a></span></p>
+    <ul class="toc">
+      <li><a href="#life"><span class="q">?</span>Why four rules make a glider</a></li>
+      <li><a href="#lenia"><span class="q">?</span>Why smooth rules grow animals</a></li>
+      <li><a href="#repair"><span class="q">?</span>Why tissue regrows</a></li>
+      <li><a href="#soup"><span class="q">?</span>Why copiers appear unasked</a></li>
+      <li><a href="#judge"><span class="q">?</span>Why ask a model what looks alive</a></li>
+      <li><a href="#forai"><span class="q">?</span>Why AI should care</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ BEAT 1: Life ============ -->
+  <section class="beat" id="life">
+    <header>
+      <span class="num">Beat 1</span>
+      <h2><span class="w">Why</span> can four rules make a glider?</h2>
+      <p class="short">Because the rules are applied to their own output. A shape that happens to recreate itself one cell over after four steps is a fixed point of "apply the rule four times, then shift", and fixed points persist. Persistence is the first property of anything we call alive.</p>
+    </header>
+    <div class="prose">
+      <p>John Conway's Game of Life (1970, made famous by Martin Gardner's column in <i>Scientific American</i>) is a grid of cells that are dead or alive. At every tick each cell counts its eight neighbours. A dead cell with exactly 3 live neighbours is born. A live cell with 2 or 3 survives. Everything else dies. In rule notation that is <code>B3/S23</code>. That is the whole physics.</p>
+      <p>What comes out is a zoo. Still lifes (a 2 × 2 block) are fixed points. Oscillators (the blinker, the pulsar) are cycles. Gliders are cycles that travel: the same five-cell shape reappears every 4 ticks, shifted one cell diagonally. In 1970 Bill Gosper found the <b>glider gun</b>, a finite pattern that emits a glider every 30 ticks forever, which settled Conway's question of whether a pattern could grow without bound. Gliders can carry bits and collide like logic gates, and Life was later shown to be <span class="term" tabindex="0" data-def="Able to simulate any computer program, given enough space and time. Shown for Life by Conway, Berlekamp and Guy in Winning Ways (1982).">Turing complete</span>.</p>
+      <p>Change the numbers and most worlds die or boil. There are 2<sup>18</sup> "Life-like" rules (any subset of 0–8 for birth, any subset for survival). In 2024 the ASAL paper scored all of them for open-endedness with a vision foundation model, and Conway's rule landed in the top 5%. The interesting rules sit on a thin band between frozen and chaotic: the <span class="term" tabindex="0" data-def="The regime between order (everything freezes) and chaos (everything boils), where structures can persist and also interact. Often associated with the richest dynamics.">edge of chaos</span>.</p>
+    </div>
+    <figure class="lab" id="lab-life">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Life and its cousins: same grid, different numbers</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-life" aria-label="A Game of Life grid running; draw on it to add cells."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i style="background:var(--p4)"></i>alive</span><span><i style="background:var(--why)"></i>born this tick</span><span><i style="background:var(--line-strong)"></i>recently died</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><label for="life-pat">Start from</label>
+            <select id="life-pat">
+              <option value="gun" selected>Gosper glider gun</option>
+              <option value="glider">Gliders</option>
+              <option value="rpent">R-pentomino (5 cells, 1103 ticks of chaos)</option>
+              <option value="acorn">Acorn</option>
+              <option value="pulsar">Pulsar and blinkers</option>
+              <option value="lwss">Spaceships</option>
+              <option value="soup">Random soup</option>
+            </select></div>
+          <div class="ctrl"><label for="life-rule">Rule</label>
+            <select id="life-rule">
+              <option value="B3/S23" selected>Life · B3/S23</option>
+              <option value="B36/S23">HighLife · B36/S23</option>
+              <option value="B2/S">Seeds · B2/S</option>
+              <option value="B3678/S34678">Day &amp; Night · B3678/S34678</option>
+              <option value="B3/S12345">Maze · B3/S12345</option>
+              <option value="B1/S1">Gnarl · B1/S1</option>
+            </select></div>
+          <div class="ctrl"><div class="row"><label for="life-speed">Ticks per second</label><output for="life-speed"></output></div>
+            <input type="range" id="life-speed" min="2" max="60" step="1" value="20"></div>
+          <div class="btns"><button type="button" class="primary" id="life-play">Pause</button><button type="button" id="life-step">Step</button><button type="button" id="life-reset">Reset</button><button type="button" id="life-clear">Clear</button></div>
+          <span class="hint muted small">Click or drag on the grid to draw cells.</span>
+          <dl class="readout">
+            <dt>tick</dt><dd id="life-gen">0</dd>
+            <dt>alive</dt><dd id="life-pop" class="hot">0</dd>
+            <dt>rule</dt><dd id="life-rr">B3/S23</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>The gun is 36 cells of "machinery" that never changes in the long run, yet it never stops producing. Count the ticks between gliders: 30.</li>
+        <li>Switch to <b>Seeds</b> (born with exactly 2, nobody survives) on the soup: it explodes. <b>Maze</b> freezes into corridors. Life sits between the two.</li>
+        <li>The R-pentomino is 5 cells. On an unbounded grid it takes 1103 ticks to settle and throws off six gliders on the way. Nothing in the rule says "make gliders".</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 2: Lenia ============ -->
+  <section class="beat" id="lenia">
+    <header>
+      <span class="num">Beat 2</span>
+      <h2><span class="w">Why</span> does a smooth Game of Life grow animals?</h2>
+      <p class="short">Because making space, time and states continuous turns "count the neighbours" into "measure the mass in a ring around you", and a blob whose own shape keeps its ring-mass in the sweet spot on one side and out of it on the other will keep growing at the front and dying at the back. That is locomotion.</p>
+    </header>
+    <div class="split">
+      <div class="prose">
+        <p>Bert Chan's <b>Lenia</b> (2019) keeps Life's structure and smooths every part. Each cell holds a value between 0 and 1. The neighbourhood count becomes a convolution with a smooth ring-shaped kernel <var>K</var> of radius <var>R</var>. The birth/survival table becomes a smooth growth curve <var>G</var>, positive near a preferred neighbourhood value <var>μ</var> and negative elsewhere. Time advances in small steps <var>dt</var>.</p>
+        <div class="eq">A<sub>t+dt</sub> = clip( A<sub>t</sub> + dt · G(K ∗ A<sub>t</sub>), 0, 1 )<br>G(u) = 2·exp( −(u − μ)² / 2σ² ) − 1
+          <span class="c">K ∗ A is the weighted mass in a ring around each cell. G says: grow if that mass is close to μ (within about σ), decay otherwise.</span></div>
+        <p>With the right numbers you get <b>Orbium</b>, the creature below: a crescent that glides at constant speed, survives collisions with small debris and has a front and a back. Chan catalogued hundreds of such species with names, families and "anatomy". The descendants push in two directions. <b>Flow-Lenia</b> (Plantec et al., 2023 to 2025) conserves mass, so matter is moved around instead of created, creatures become common, and the parameters travel with the matter, so different species share one world and evolve. <b>Particle Lenia</b> (2023) replaces the grid with particles that move down an energy landscape.</p>
+        <p>The cost is one convolution per step. Here it is done with a 2-D FFT on a 128 × 128 torus, which is why it runs in real time.</p>
+      </div>
+      <figure class="lab" id="lab-lenia" style="margin:0">
+        <div class="lab-head"><span class="tag">Sim</span><h3>Lenia, with Orbium swimming</h3></div>
+        <div class="lab-body stack">
+          <div class="stage"><canvas id="cv-lenia" aria-label="A Lenia field with a moving creature. Click to paint."></canvas>
+            <canvas id="cv-lenia-g" class="mini small" aria-label="The kernel profile and growth curve for the current settings."></canvas></div>
+          <div class="side" style="border-left:0;border-top:1px solid var(--line)">
+            <div class="ctrl"><div class="row"><label for="ln-mu">μ, preferred neighbourhood mass</label><output for="ln-mu"></output></div>
+              <input type="range" id="ln-mu" min="0.05" max="0.4" step="0.001" value="0.15"></div>
+            <div class="ctrl"><div class="row"><label for="ln-sig">σ, tolerance</label><output for="ln-sig"></output></div>
+              <input type="range" id="ln-sig" min="0.003" max="0.06" step="0.001" value="0.015"></div>
+            <div class="ctrl"><div class="row"><label for="ln-r">Kernel radius R</label><output for="ln-r"></output></div>
+              <input type="range" id="ln-r" min="6" max="24" step="1" value="13"></div>
+            <div class="ctrl"><div class="row"><label for="ln-dt">Time step dt</label><output for="ln-dt"></output></div>
+              <input type="range" id="ln-dt" min="0.02" max="0.5" step="0.01" value="0.1"></div>
+            <div class="btns"><button type="button" class="primary" id="ln-play">Pause</button><button type="button" id="ln-reset">Reset Orbium</button><button type="button" id="ln-soup">Random soup</button><button type="button" id="ln-clear">Clear</button></div>
+            <dl class="readout">
+              <dt>time</dt><dd id="ln-t">0</dd>
+              <dt>total mass</dt><dd id="ln-m" class="hot">–</dd>
+              <dt>centre of mass moved</dt><dd id="ln-v">–</dd>
+            </dl>
+          </div>
+        </div>
+        <div class="notice"><ul>
+          <li>Orbium is tuned at μ = 0.15, σ = 0.015, R = 13, and the window is narrow. In our runs σ = 0.02 still swims (a little fatter), σ = 0.024 spreads into a film that fills the torus, and σ = 0.013 starves it to nothing. μ = 0.13 works, 0.12 explodes, 0.17 dies.</li>
+          <li>Time step matters too: dt = 0.2 still swims, dt = 0.3 kills it. Coarse steps make the smooth rule behave like Life's discrete jumps, and this creature only exists in the smooth limit.</li>
+          <li>Click to paint a random blob. Most blobs die or explode. A creature is a rare, stable solution, which is why searching for them needs help (beat 5).</li>
+        </ul></div>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 3: repair ============ -->
+  <section class="beat" id="repair">
+    <header>
+      <span class="num">Beat 3</span>
+      <h2><span class="w">Why</span> can a tissue regrow what you cut off?</h2>
+      <p class="short">Because the shape is stored in a rule every cell follows, so every cell still knows it after damage. If cells grow only where a signal says "the body continues here", then removing tissue removes the signal's stop condition and growth restarts until the shape is back.</p>
+    </header>
+    <div class="prose">
+      <p><b>Growing Neural Cellular Automata</b> (Mordvintsev, Randazzo, Niklasson and Levin, <i>Distill</i> 2020) made this a learning problem. Each cell has 16 channels (colour, an "alive" alpha and 12 hidden channels). It perceives its 3 × 3 neighbourhood through fixed Sobel filters, and a tiny shared network of about 8,000 parameters outputs an update. Cells fire at random times, so nothing is synchronised. Trained to grow an emoji from one seed, the first version grew it and then kept growing into a mess. Training from a pool of past states made the pattern stable, and training on damaged states made it <b>regenerate</b>: cut a lizard's tail and the cells regrow it.</p>
+      <p>The lab uses a hand-designed rule instead of trained weights (we cannot ship trained NCA weights here, and the hand rule makes the mechanism readable). One <b>organiser</b> cell emits a signal. The signal diffuses through living tissue and decays, so it falls with distance. A dead cell next to tissue comes alive if its neighbour's signal is above a threshold. A living cell whose signal falls well below that threshold dies. A living cell that finds itself at a local peak of a fading signal becomes a new organiser. That is Lewis Wolpert's <span class="term" tabindex="0" data-def="Wolpert (1969): cells read their position from the concentration of a diffusing morphogen and pick a fate by thresholds, like the three stripes of a French flag.">positional information</span> with growth and death added.</p>
+    </div>
+    <figure class="lab" id="lab-repair">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Cut it and watch it grow back (hand-designed local rule)</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-repair" aria-label="A blob of cells grown from one organiser. Drag across it to cut away cells."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i style="background:var(--why)"></i>organiser</span><span><i style="background:var(--p4)"></i>high signal</span><span><i style="background:var(--p1)"></i>low signal</span><span><i class="h"></i>cut away</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="rp-range">Signal range</label><output for="rp-range"></output></div>
+            <input type="range" id="rp-range" min="6" max="16" step="1" value="10">
+            <span class="hint">Decay length of the signal, in cells. It sets the body size; nothing else does.</span></div>
+          <div class="ctrl"><div class="row"><label for="rp-brush">Scalpel width</label><output for="rp-brush"></output></div>
+            <input type="range" id="rp-brush" min="1" max="8" step="1" value="3"></div>
+          <div class="btns"><button type="button" class="primary" id="rp-half">Cut in half</button><button type="button" id="rp-org">Remove organiser</button><button type="button" id="rp-reset">Reset</button></div>
+          <span class="hint muted small">Drag across the body to cut.</span>
+          <dl class="readout">
+            <dt>tick</dt><dd id="rp-t">0</dd>
+            <dt>living cells</dt><dd id="rp-n" class="hot">0</dd>
+            <dt>organisers</dt><dd id="rp-o">0</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Cut a notch: growth restarts only where the signal is now above threshold, and stops when the outline is back. No cell knows the shape. Each one only reads its neighbours.</li>
+        <li><b>Cut in half</b> through the organiser: the half without one fades, a cell at the fading peak takes over the job, and you get two bodies. Planarian flatworms do this for real, and Michael Levin's lab showed that bioelectric signals, not only genes, set how many heads a fragment grows.</li>
+        <li>Make the range larger after the body has grown: it grows. Make it smaller: it shrinks. Shape is a setpoint the collective holds, which is Levin's definition of a goal.</li>
+      </ul></div>
+    </figure>
+    <div class="split">
+      <div class="prose">
+        <p><b>Why this counts as cognition for Levin.</b> Michael Levin (Tufts) argues in <a href="https://arxiv.org/abs/2201.10346">TAME</a> (2022) that intelligence is competence at reaching a goal in some space by more than one path, and that cells and tissues do this in "morphospace". Evidence he points to: frog (<i>Xenopus</i>) skin cells freed from the embryo assemble into <b>xenobots</b> (Kriegman et al., 2020) that swim and, in later work, gather loose cells into new xenobots; adult human airway cells form <b>anthrobots</b> (2023) that move on their own. Even a classic sorting algorithm, run as a distributed array of cells with some broken ones, sorts around the damage and shows side goals nobody programmed (<a href="https://arxiv.org/abs/2401.05375">Zhang, Goldstein and Levin, 2024</a>).</p>
+      </div>
+      <div class="prose">
+        <div class="analogy"><span class="ico">∿</span><div><span class="k">Picture it</span><p>A building where each brick carries the blueprint and checks its neighbours: knock out a wall and the bricks at the hole start laying new bricks until the wall is back. That is cheaper than a foreman, and it survives the foreman being shot.</p></div></div>
+        <aside class="aside warn"><span class="k">Careful</span>The lab rule is hand-written: it shows that local rules <em>can</em> store and restore a shape. Growing NCA learn such rules by gradient descent through many simulation steps, and their hidden channels play the role our single signal plays here.</aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 4: soup ============ -->
+  <section class="beat" id="soup">
+    <header>
+      <span class="num">Beat 4</span>
+      <h2><span class="w">Why</span> do self-copying programs appear when nobody asks for them?</h2>
+      <p class="short">Because in a world where programs can write onto each other, a program that copies itself onto its neighbour turns that neighbour into another copier. Copying compounds and everything else does not, so the first accidental copier, however crude, takes over. No fitness function is needed: persistence through copying is the fitness.</p>
+    </header>
+    <div class="prose">
+      <p>"Computational Life" (<a href="https://arxiv.org/abs/2406.19108">Agüera y Arcas, Alakuijala, Evans, Laurie, Mordvintsev, Niklasson, Randazzo and Versari, 2024</a>) built a primordial soup out of code. Each "organism" is a 64-byte tape in <b>BFF</b>, a Brainfuck variant where the program and its data are the same bytes. Ten byte values are instructions: move head 0 (<code>&lt;</code> <code>&gt;</code>), move head 1 (<code>{</code> <code>}</code>), change a byte (<code>+</code> <code>-</code>), copy between the heads (<code>.</code> <code>,</code>) and loop (<code>[</code> <code>]</code>). The other 246 values do nothing. Each epoch the soup is shuffled into random pairs; each pair is glued into one 128-byte tape, run for up to 8,192 steps, and split back. That is the entire world. There is no reward and no selection.</p>
+      <p>For thousands of epochs nothing seems to happen. Then, suddenly, the soup fills with copies of a few programs, and its <span class="term" tabindex="0" data-def="Shannon entropy of the byte frequencies minus an estimate of the Kolmogorov complexity (here, compressed size). Low for random noise, low for a constant, high when there is structure that repeats.">high-order entropy</span> jumps: the bytes are as varied as before, but the soup becomes highly compressible because the same code is everywhere. The authors saw replicators arise even with no background mutation at all, which is why Agüera y Arcas argues (MLST 2025-10 and 2026-02) that merging, or <b>symbiogenesis</b>, drives jumps in complexity more than mutation does. The ancestors are 1990s digital-life systems like Tom Ray's <b>Tierra</b> (1991) and <b>Avida</b>, where the first replicator was written by hand.</p>
+    </div>
+    <figure class="lab" id="lab-soup">
+      <div class="lab-head"><span class="tag">Sim</span><h3>A BFF primordial soup: 1,024 programs, one pixel per byte</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-soup" aria-label="The soup as a grid of 8 by 8 tiles, one tile per program, colour by byte, with an entropy chart underneath."></canvas>
+          <div class="keys" style="margin-top:.5rem" id="soup-keys"></div>
+        </div>
+        <div class="side">
+          <div class="btns"><button type="button" class="primary" id="soup-play">Pause</button><button type="button" id="soup-seed">Drop in replicators</button><button type="button" id="soup-new">New random soup</button></div>
+          <div class="ctrl"><div class="row"><label for="soup-mut">Background mutation</label><output for="soup-mut"></output></div>
+            <input type="range" id="soup-mut" min="0" max="5" step="1" value="1">
+            <span class="hint">Fraction of all bytes overwritten with random values each epoch.</span></div>
+          <dl class="readout">
+            <dt>epoch</dt><dd id="soup-ep">0</dd>
+            <dt>distinct programs</dt><dd id="soup-dist">–</dd>
+            <dt>byte entropy H₀</dt><dd id="soup-h0">–</dd>
+            <dt>compressed bits/byte</dt><dd id="soup-k">–</dd>
+            <dt>high-order entropy</dt><dd id="soup-hoe" class="hot">–</dd>
+          </dl>
+          <div class="ctrl"><span class="lbl">Most common program</span><div class="prog" id="soup-top">–</div><span class="hint" id="soup-topn"></span></div>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Let the random soup run: bytes churn, but compression stays near 8 bits per byte. The paper's soups are about 128 times larger than this one and still need thousands of epochs; at this size a spontaneous replicator can take hours, so do not wait for it.</li>
+        <li>Press <b>Drop in replicators</b>: 16 copies of one hand-written 64-byte program, <code>{[.&gt;{]</code>, filler, and the same six instructions mirrored. Head 1 steps back to byte 127, then the loop copies byte by byte forward with head 0 and backward with head 1, writing a mirror image of itself into its partner. Because it is a palindrome, the mirror image is itself. In our tests it took over in 11 runs of 12: within about 150 epochs, compression falls from 8 to about 1.5 bits per byte and the soup holds dozens to hundreds of exact copies. If the copies get wrecked by their first partners, press again.</li>
+        <li>Keep watching: exact copies then decline while compressibility stays high. Broken copies that still copy, and fusions with neighbours, keep spreading. Evolution starts the moment copying exists. Set mutation to 0 and it still happens, because copying errors and mixing already vary the code.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 5: judge ============ -->
+  <section class="beat" id="judge">
+    <header>
+      <span class="num">Beat 5</span>
+      <h2><span class="w">Why</span> ask a foundation model what looks alive?</h2>
+      <p class="short">Because "interesting" and "lifelike" were judged by human eyes, which do not scale to billions of rules. A vision foundation model has already learned a space where similar-looking things are close, so novelty, diversity and "looks like a cell dividing" become distances you can optimise.</p>
+    </header>
+    <div class="prose">
+      <p><a href="https://arxiv.org/abs/2412.17799">ASAL, Automating the Search for Artificial Life with Foundation Models</a> (Akarsh Kumar, Chris Lu, Louis Kirsch, Yujin Tang, Kenneth Stanley, Phillip Isola and David Ha; Sakana AI and MIT, Dec 2024; <i>Artificial Life</i> 2025 and Best Oral at ALIFE 2025) renders simulations to images, embeds them with <b>CLIP</b> (DINOv2 as an ablation), and searches the simulator's parameters in three modes. It ran on Boids, Particle Life, Life-like CAs, Lenia (through the Leniabreeder code) and NCA.</p>
+    </div>
+    <figure class="lab asal" id="fig-asal">
+      <div class="lab-head"><span class="tag">Walkthrough</span><h3>The ASAL loop, and the project's bridge idea</h3></div>
+      <div class="lab-body">
+        <div class="stage">
+          <svg viewBox="0 0 680 300" role="img" aria-label="ASAL loop: parameters to simulator to frames to foundation model embedding to a score that drives the search.">
+            <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--line-strong)"/></marker></defs>
+            <g><rect class="box" x="10" y="40" width="140" height="62" rx="10"/><text class="lbl" x="80" y="67" text-anchor="middle">parameters θ</text><text class="sub" x="80" y="85" text-anchor="middle">rule, kernel, seed</text></g>
+            <g><rect class="box" x="180" y="40" width="140" height="62" rx="10"/><text class="lbl" x="250" y="67" text-anchor="middle">simulator</text><text class="sub" x="250" y="85" text-anchor="middle">Lenia, Life, Boids</text></g>
+            <g><rect class="box" x="350" y="40" width="140" height="62" rx="10"/><text class="lbl" x="420" y="67" text-anchor="middle">frames</text><text class="sub" x="420" y="85" text-anchor="middle">rendered over time</text></g>
+            <g class="judge"><rect class="box" x="520" y="40" width="150" height="62" rx="10"/><text class="lbl" x="595" y="67" text-anchor="middle" id="asal-fm">CLIP encoder</text><text class="sub" x="595" y="85" text-anchor="middle" id="asal-fms">image ↔ text space</text></g>
+            <g><rect class="box" x="290" y="190" width="270" height="74" rx="12"/><text class="lbl" x="425" y="216" text-anchor="middle">score in embedding space</text><text class="sub" x="425" y="236" text-anchor="middle" id="asal-mode1">target · novelty · illumination</text><text class="sub" x="425" y="252" text-anchor="middle" id="asal-mode2"></text></g>
+            <g><rect class="box" x="40" y="190" width="170" height="74" rx="12"/><text class="lbl" x="125" y="216" text-anchor="middle">optimiser</text><text class="sub" x="125" y="236" text-anchor="middle">evolution strategy or</text><text class="sub" x="125" y="252" text-anchor="middle">genetic algorithm</text></g>
+            <path class="wire" d="M150 71 L180 71" marker-end="url(#ar2)"/><path class="wire" d="M320 71 L350 71" marker-end="url(#ar2)"/><path class="wire" d="M490 71 L520 71" marker-end="url(#ar2)"/>
+            <path class="wire" d="M595 102 C595 160 580 220 560 226" marker-end="url(#ar2)"/><path class="wire" d="M290 227 L210 227" marker-end="url(#ar2)"/><path class="wire" d="M90 190 C84 150 80 130 80 102" marker-end="url(#ar2)"/>
+            <text class="q" x="400" y="160" text-anchor="middle" id="asal-q">"Does this look like the words I was given?"</text>
+          </svg>
+        </div>
+        <div class="side">
+          <div class="ctrl"><span class="lbl">Search mode</span>
+            <div class="seg" role="group" aria-label="ASAL mode"><button type="button" data-m="target" aria-pressed="true">Target</button><button type="button" data-m="novel" aria-pressed="false">Open-ended</button><button type="button" data-m="illum" aria-pressed="false">Illuminate</button></div></div>
+          <div class="ctrl"><span class="lbl">Judge</span>
+            <div class="seg" role="group" aria-label="Judge"><button type="button" data-j="clip" aria-pressed="true">CLIP (ASAL)</button><button type="button" data-j="jepa" aria-pressed="false">JEPA (our bridge)</button></div></div>
+          <p class="narr small" id="asal-narr" aria-live="polite" style="font-family:var(--ui);line-height:1.45"></p>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>The temporal prompt "one cell" then "two cells", used as a target sequence on NCA, found <b>self-replication</b>. Open-ended search placed Conway's Life in the top 5% of Life-like rules. Illumination produced an atlas of Lenia and Boids behaviours.</li>
+        <li>The judge defines what counts as interesting. CLIP knows what things are <em>called</em>. A JEPA video encoder knows what is <em>predictable</em> next, which is the other half of the open-endedness definition in <a href="open.html">chapter 14</a>.</li>
+      </ul></div>
+    </figure>
+    <div class="split">
+      <div class="prose">
+        <p><b>The next step: the model proposes the targets.</b> <a href="https://arxiv.org/abs/2509.22447">ASAL++</a> (Baid et al., Sept 2025) gives a second foundation model (Gemma-3) the visual history of a Lenia run and asks it for the next target, again and again. The result is evolutionary trajectories that keep getting more complex. The foundation model is now the driver of open-endedness, not only its judge.</p>
+        <p>Kumar has since turned the same substrates toward other questions: a Red Queen arms race of LLM-written programs in Core War (<a href="https://arxiv.org/abs/2601.03335">Digital Red Queen</a>, 2026), and NCA trajectories as pretraining data for language models (beat 6).</p>
+      </div>
+      <aside class="aside ours"><span class="k">This project's bridge idea</span>Swap CLIP for a JEPA encoder as ASAL's judge, run it on Lenia or NCA, and compare which creatures each finds. A JEPA judges by <em>predictability in latent space</em>: high surprise means "this went somewhere my model of the world did not expect", and a falling surprise over time means "but I can learn it". Novel plus learnable is the Hughes and Rocktäschel definition of open-endedness. A small simulator, a frozen V-JEPA or LeJEPA encoder and an evolution strategy fit on a laptop. It is listed under bridge 2 in the fields map and in <a href="lab.html">chapter 17</a>.</aside>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 6: for AI ============ -->
+  <section class="beat" id="forai">
+    <header>
+      <span class="num">Beat 6</span>
+      <h2><span class="w">Why</span> should people who train big models care about cellular automata?</h2>
+      <p class="short">Because three bridges opened in 2025 and 2026: NCA dynamics turned out to be good pretraining data for language models, tiny NCAs solve some abstract reasoning puzzles, and artificial life is where open-endedness can be measured cheaply.</p>
+    </header>
+    <div class="tbl"><table>
+      <thead><tr><th>Bridge</th><th>Result</th><th>Why it matters</th></tr></thead>
+      <tbody>
+        <tr><td><a href="https://arxiv.org/abs/2603.10055">Training LMs via NCA</a><br><span class="muted small">Lee, Han, Kumar, Agrawal · 2026-03</span></td><td>"Pre-pre-training" on about 164M tokens of NCA trajectories improves later language modelling perplexity by up to 6% and speeds convergence up to 1.6×; it beats pre-pre-training on 1.6B tokens of C4. Attention layers carry most of the transfer.</td><td>Structure first, content later: a cheap, tunable source of structure. Code prefers simpler NCA dynamics, web text and math more complex ones.</td></tr>
+        <tr><td><a href="https://arxiv.org/abs/2506.15746">NCA for ARC-AGI</a><br><span class="muted small">Xu &amp; Miikkulainen · 2025-06</span></td><td>Per-task NCAs of about 10k parameters, trained in minutes, solve 23 of 172 feasible ARC-AGI-1 training tasks.</td><td>Developmental, local computation as a route to abstraction (see <a href="reasoning.html">chapter 09</a>).</td></tr>
+        <tr><td><a href="https://arxiv.org/abs/2506.04912">Differentiable logic CA</a><br><span class="muted small">Miotti, Niklasson, Randazzo, Mordvintsev · 2025</span></td><td>NCA update rules learned as discrete logic-gate circuits; they learn Life and pattern growth.</td><td>Fully discrete, hardware-friendly learned rules (see <a href="edge.html">chapter 12</a>).</td></tr>
+        <tr><td><a href="https://arxiv.org/abs/2609.19902">Self-replicating NCA</a><br><span class="muted small">Jain, Reimers, Nichele · 2026-09</span></td><td>Each pixel holds a tiny network; cells survive by cloning a living neighbour's network with mutation. The substrate persists in 20 of 24 long runs.</td><td>Diversity metrics for open-ended substrates: a trade-off between phenotypic and genotypic diversity.</td></tr>
+        <tr><td><a href="https://arxiv.org/abs/2506.08569">Flow-Lenia</a><br><span class="muted small">Plantec et al. · 2025-06</span></td><td>Mass conservation makes creatures common; species coexist and evolve inside one world.</td><td>The main continuous substrate for intrinsic, open-ended evolution.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="prose">
+      <p>The project's second bridge idea follows directly: a <b>predictive NCA</b>, trained with a JEPA-style latent prediction loss instead of pixel targets. Growing NCA are trained to match an image; a predictive NCA would be trained so that each cell's hidden state predicts its neighbourhood's next hidden state. Nobody has published that yet as far as the project's notes know.</p>
+      <p>The open question for the whole field: can any substrate produce <em>unbounded</em> novelty, and how would we measure it? There is no accepted metric. That is the subject of the next chapter.</p>
+    </div>
+  </section>
+
+  <section class="remember">
+    <h2>Three things to <span class="w">remember</span></h2>
+    <ol>
+      <li><b>A creature is a fixed point that moves.</b>Gliders and Orbium are shapes the rule keeps rebuilding one step over. Most of rule space freezes or boils; life sits at the edge.</li>
+      <li><b>The blueprint lives in every cell.</b>Cut a tissue governed by a local rule and the rule regrows it, because the stop condition for growth is gone.</li>
+      <li><b>Copying is its own reward.</b>In a soup of random programs, the first accidental copier takes over without any fitness function, and evolution starts right after.</li>
+    </ol>
+  </section>
+
+  <section id="quiz"></section>
+
+  <section class="sources">
+    <h2>Sources for this chapter</h2>
+    <ol>
+      <li>Conway's Game of Life: M. Gardner, "Mathematical Games", <i>Scientific American</i>, Oct 1970; Berlekamp, Conway &amp; Guy, <i>Winning Ways</i>, 1982 (background).</li>
+      <li>B. W.-C. Chan, <a href="https://arxiv.org/abs/1812.05433">Lenia: Biology of Artificial Life</a>, <i>Complex Systems</i> 2019. Orbium parameters from Chan's published notebooks.</li>
+      <li>Plantec, Hamon, Etcheverry, Chan, Oudeyer, Moulin-Frier, <a href="https://arxiv.org/abs/2506.08569">Flow-Lenia: Emergent evolutionary dynamics in mass conservative continuous cellular automata</a>, 2025 (ALIFE 2023 best paper version earlier).</li>
+      <li>Mordvintsev, Randazzo, Niklasson, Levin, <a href="https://distill.pub/2020/growing-ca/">Growing Neural Cellular Automata</a>, <i>Distill</i> 2020.</li>
+      <li>Agüera y Arcas et al., <a href="https://arxiv.org/abs/2406.19108">Computational Life: How Well-formed, Self-replicating Programs Emerge from Simple Interaction</a>, 2024.</li>
+      <li><a href="https://www.emergentmind.com/papers/2607.01483">BFF: Self-Replicator Emergence Analysis</a>, 2026 (aggregator page only, authors not verified) <span class="pill bad">check</span></li>
+      <li>M. Levin, <a href="https://arxiv.org/abs/2201.10346">Technological Approach to Mind Everywhere (TAME)</a>, 2022; Zhang, Goldstein, Levin, <a href="https://arxiv.org/abs/2401.05375">Classical Sorting Algorithms as a Model of Morphogenesis</a>, 2024; MLST, "Michael Levin – Why Intelligence Isn't Limited To Brains", 2024-10-24.</li>
+      <li>Kriegman, Blackiston, Levin, Bongard, "A scalable pipeline for designing reconfigurable organisms" (xenobots), <i>PNAS</i> 2020 (background).</li>
+      <li>Kumar et al., <a href="https://arxiv.org/abs/2412.17799">Automating the Search for Artificial Life with Foundation Models (ASAL)</a>, 2024; <a href="https://pub.sakana.ai/asal/">project page</a>.</li>
+      <li>Baid, Erlebach, Hellegouarch, Wieser, <a href="https://arxiv.org/abs/2509.22447">Guiding Evolution of Artificial Life Using Vision-Language Models (ASAL++)</a>, 2025.</li>
+      <li>Lee, Han, Kumar, Agrawal, <a href="https://arxiv.org/abs/2603.10055">Training Language Models via Neural Cellular Automata</a>, 2026.</li>
+      <li>Xu &amp; Miikkulainen, <a href="https://arxiv.org/abs/2506.15746">Neural Cellular Automata for ARC-AGI</a>, 2025; Guichard et al., <a href="https://arxiv.org/abs/2505.08778">ARC-NCA</a>, 2025 <span class="pill bad">check</span></li>
+      <li>Miotti, Niklasson, Randazzo, Mordvintsev, <a href="https://arxiv.org/abs/2506.04912">Differentiable Logic Cellular Automata</a>, 2025 <span class="pill bad">check</span></li>
+      <li>Jain, Reimers, Nichele, <a href="https://arxiv.org/abs/2609.19902">Self-Replicating Neural Cellular Automata</a>, 2026.</li>
+      <li>Hughes et al., <a href="https://arxiv.org/abs/2406.04268">Open-Endedness is Essential for Artificial Superhuman Intelligence</a>, ICML 2024.</li>
+      <li>Project notes: <code>fields/ai-alife-field-map.md</code> (Part B and bridges), <code>landscape/ai-landscape-why.md</code> (Q12), <code>landscape/sources/frontier-2025-2026.md</code> §7.</li>
+    </ol>
+  </section>
+
+  <nav id="pager"></nav>
+</main>
+<footer id="site-footer"></footer>
+
+<script src="assets/atlas.js"></script>
+<script>
+(function(){
+"use strict";
+const A = window.Atlas;
+/* colour helpers: theme tokens are hex; parse to rgb for pixel buffers */
+function rgb(c){
+  c = (c||"").trim();
+  if(c[0]==="#"){ let h=c.slice(1); if(h.length===3) h=h.split("").map(x=>x+x).join(""); const n=parseInt(h.slice(0,6),16); return [(n>>16)&255,(n>>8)&255,n&255]; }
+  const m = c.match(/[\d.]+/g); return m ? [+m[0],+m[1],+m[2]] : [128,128,128];
+}
+const mix = (a,b,t)=>[a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t];
+const css = c=>`rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;
+const narrow = w => w < 560;
+
+/* =================== LAB 1: Life-like CA =================== */
+(function(){
+  const cv = document.getElementById("cv-life");
+  let GW = 96, GH = 60;
+  let cells = new Uint8Array(GW*GH), nxt = new Uint8Array(GW*GH), age = new Uint8Array(GW*GH); // age: 0 alive-old/none
+  let born = new Uint8Array(GW*GH), died = new Uint8Array(GW*GH);
+  let B = new Set([3]), S = new Set([2,3]), gen = 0, acc = 0, speed = 20, pat = "gun";
+  const P = {
+    glider: [[1,0],[2,1],[0,2],[1,2],[2,2]],
+    lwss: [[1,0],[4,0],[0,1],[0,2],[4,2],[0,3],[1,3],[2,3],[3,3]],
+    rpent: [[1,0],[2,0],[0,1],[1,1],[1,2]],
+    acorn: [[1,0],[3,1],[0,2],[1,2],[4,2],[5,2],[6,2]],
+  };
+  const GUN = ["........................O...........","......................O.O...........","............OO......OO............OO","...........O...O....OO............OO","OO........O.....O...OO..............","OO........O...O.OO....O.O...........","..........O.....O.......O...........","...........O...O....................","............OO......................"];
+  function put(list, ox, oy, flipX){ for(const [x,y] of list){ const X = ox + (flipX ? -x : x), Y = oy + y; if(X>=0&&Y>=0&&X<GW&&Y<GH) cells[Y*GW+X] = 1; } }
+  function pulsar(ox, oy){ const q = []; const L = [2,3,4]; for(const a of L){ for(const s of [-1,1]) for(const t of [-1,1]){ q.push([ox+s*a, oy+t*1]); q.push([ox+s*a, oy+t*6]); q.push([ox+s*1, oy+t*a]); q.push([ox+s*6, oy+t*a]); } } for(const [x,y] of q) if(x>=0&&y>=0&&x<GW&&y<GH) cells[y*GW+x]=1; }
+  function load(){
+    cells.fill(0); born.fill(0); died.fill(0); gen = 0;
+    if(pat==="gun"){ GUN.forEach((row,y)=>[...row].forEach((ch,x)=>{ if(ch==="O") cells[(y+4)*GW + x+3] = 1; })); for(let k=0;k<150;k++) step(); }
+    else if(pat==="glider"){ const r = A.rng(5); for(let k=0;k<9;k++) put(P.glider, 6+((r()*(GW-14))|0), 4+((r()*(GH-10))|0)); }
+    else if(pat==="rpent"){ put(P.rpent, (GW/2|0)+6, (GH/2|0)-2); }
+    else if(pat==="acorn"){ put(P.acorn, (GW/2|0)-3, (GH/2|0)-1); }
+    else if(pat==="pulsar"){ pulsar(20, GH/2|0); pulsar(48, GH/2|0); for(const x of [70,78,86]) put([[0,0],[0,1],[0,2]], x, (GH/2|0)-1); }
+    else if(pat==="lwss"){ for(let k=0;k<4;k++) put(P.lwss, 4+k*3, 6+k*13); put(P.glider, 60, 10); put(P.glider, 70, 30); }
+    else { const r = A.rng(11); for(let i=0;i<GW*GH;i++){ const x=i%GW, y=(i/GW)|0; if(x>GW*.2&&x<GW*.8&&y>GH*.2&&y<GH*.8) cells[i] = r()<.35 ? 1 : 0; } }
+    view.redraw();
+  }
+  function setRule(str){
+    const m = str.match(/B(\d*)\/S(\d*)/); B = new Set([...m[1]].map(Number)); S = new Set([...m[2]].map(Number));
+    document.getElementById("life-rr").textContent = str;
+  }
+  function step(){
+    for(let y=0;y<GH;y++) for(let x=0;x<GW;x++){
+      let n = 0;
+      for(let dy=-1;dy<=1;dy++){ const yy=y+dy; if(yy<0||yy>=GH) continue; for(let dx=-1;dx<=1;dx++){ if(!dx&&!dy) continue; const xx=x+dx; if(xx<0||xx>=GW) continue; n += cells[yy*GW+xx]; } }
+      const i = y*GW+x, a = cells[i];
+      const v = a ? (S.has(n)?1:0) : (B.has(n)?1:0);
+      nxt[i] = v; born[i] = (!a && v) ? 1 : 0;
+      died[i] = (a && !v) ? 6 : (died[i] ? died[i]-1 : 0);
+    }
+    [cells, nxt] = [nxt, cells]; gen++;
+  }
+  const view = A.canvas(cv, w => narrow(w) ? .78 : .625, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const cs = Math.min(w/GW, h/GH), ox = (w-cs*GW)/2, oy = (h-cs*GH)/2;
+    ctx.fillStyle = C.panel; ctx.fillRect(ox,oy,cs*GW,cs*GH);
+    let pop = 0;
+    const lc = rgb(C.lineStrong);
+    for(let i=0;i<GW*GH;i++){
+      const x=i%GW, y=(i/GW)|0;
+      if(cells[i]){ pop++; ctx.fillStyle = born[i] ? C.why : C.p4; ctx.fillRect(ox+x*cs+.5, oy+y*cs+.5, cs-1, cs-1); }
+      else if(died[i]){ ctx.globalAlpha = died[i]/8; ctx.fillStyle = C.lineStrong; ctx.fillRect(ox+x*cs+.5, oy+y*cs+.5, cs-1, cs-1); ctx.globalAlpha = 1; }
+    }
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(ox,oy,cs*GW,cs*GH);
+    document.getElementById("life-gen").textContent = gen;
+    document.getElementById("life-pop").textContent = pop;
+  }
+  const anim = A.loop(cv, dt=>{ acc += dt*speed; let k=0; while(acc>=1 && k<4){ step(); acc -= 1; k++; } if(k) view.redraw(); });
+  const playBtn = document.getElementById("life-play");
+  const setPlay = on=>{ if(on){ anim.start(); playBtn.textContent="Pause"; } else { anim.stop(); playBtn.textContent="Play"; } };
+  playBtn.onclick = ()=>setPlay(!anim.running);
+  document.getElementById("life-step").onclick = ()=>{ setPlay(false); step(); view.redraw(); };
+  document.getElementById("life-reset").onclick = load;
+  document.getElementById("life-clear").onclick = ()=>{ cells.fill(0); died.fill(0); born.fill(0); gen=0; view.redraw(); };
+  document.getElementById("life-pat").onchange = e=>{ pat = e.target.value; load(); };
+  document.getElementById("life-rule").onchange = e=>{ setRule(e.target.value); };
+  A.slider("life-speed", v=>{ speed = v; }, v=>v);
+  // drawing
+  let painting = false, paintVal = 1;
+  function cellAt(e){ const r = cv.getBoundingClientRect(), {w,h} = view; const cs = Math.min(w/GW,h/GH), ox=(w-cs*GW)/2, oy=(h-cs*GH)/2;
+    const x = Math.floor((e.clientX-r.left-ox)/cs), y = Math.floor((e.clientY-r.top-oy)/cs); return (x>=0&&y>=0&&x<GW&&y<GH) ? y*GW+x : -1; }
+  cv.addEventListener("pointerdown", e=>{ const i = cellAt(e); if(i<0) return; painting = true; paintVal = cells[i] ? 0 : 1; cells[i] = paintVal; cv.setPointerCapture(e.pointerId); view.redraw(); });
+  cv.addEventListener("pointermove", e=>{ if(!painting) return; const i = cellAt(e); if(i>=0){ cells[i] = paintVal; view.redraw(); } });
+  cv.addEventListener("pointerup", ()=>{ painting = false; });
+  setRule("B3/S23"); load();
+  if(!A.reduced) setPlay(true); else setPlay(false);
+})();
+
+/* =================== LAB 2: Lenia (FFT on a 128x128 torus) =================== */
+(function(){
+  const N = 128, NN = N*N, cv = document.getElementById("cv-lenia"), cg = document.getElementById("cv-lenia-g");
+  const ORB = [[0,0,0,0,0,0,0.1,0.14,0.1,0,0,0.03,0.03,0,0,0.3,0,0,0,0],[0,0,0,0,0,0.08,0.24,0.3,0.3,0.18,0.14,0.15,0.16,0.15,0.09,0.2,0,0,0,0],[0,0,0,0,0,0.15,0.34,0.44,0.46,0.38,0.18,0.14,0.11,0.13,0.19,0.18,0.45,0,0,0],[0,0,0,0,0.06,0.13,0.39,0.5,0.5,0.37,0.06,0,0,0,0.02,0.16,0.68,0,0,0],[0,0,0,0.11,0.17,0.17,0.33,0.4,0.38,0.28,0.14,0,0,0,0,0,0.18,0.42,0,0],[0,0,0.09,0.18,0.13,0.06,0.08,0.26,0.32,0.32,0.27,0,0,0,0,0,0,0.82,0,0],[0.27,0,0.16,0.12,0,0,0,0.25,0.38,0.44,0.45,0.34,0,0,0,0,0,0.22,0.17,0],[0,0.07,0.2,0.02,0,0,0,0.31,0.48,0.57,0.6,0.57,0,0,0,0,0,0,0.49,0],[0,0.59,0.19,0,0,0,0,0.2,0.57,0.69,0.76,0.76,0.49,0,0,0,0,0,0.36,0],[0,0.58,0.19,0,0,0,0,0,0.67,0.83,0.9,0.92,0.87,0.12,0,0,0,0,0.22,0.07],[0,0,0.46,0,0,0,0,0,0.7,0.93,1,1,1,0.61,0,0,0,0,0.18,0.11],[0,0,0.82,0,0,0,0,0,0.47,1,1,0.98,1,0.96,0.27,0,0,0,0.19,0.1],[0,0,0.46,0,0,0,0,0,0.25,1,1,0.84,0.92,0.97,0.54,0.14,0.04,0.1,0.21,0.05],[0,0,0,0.4,0,0,0,0,0.09,0.8,1,0.82,0.8,0.85,0.63,0.31,0.18,0.19,0.2,0.01],[0,0,0,0.36,0.1,0,0,0,0.05,0.54,0.86,0.79,0.74,0.72,0.6,0.39,0.28,0.24,0.13,0],[0,0,0,0.01,0.3,0.07,0,0,0.08,0.36,0.64,0.7,0.64,0.6,0.51,0.39,0.29,0.19,0.04,0],[0,0,0,0,0.1,0.24,0.14,0.1,0.15,0.29,0.45,0.53,0.52,0.46,0.4,0.31,0.21,0.08,0,0],[0,0,0,0,0,0.08,0.21,0.21,0.22,0.29,0.36,0.39,0.37,0.33,0.26,0.18,0.09,0,0,0],[0,0,0,0,0,0,0.03,0.13,0.19,0.22,0.24,0.24,0.23,0.18,0.13,0.05,0,0,0,0],[0,0,0,0,0,0,0,0,0.02,0.06,0.08,0.09,0.07,0.05,0.01,0,0,0,0,0]];
+  let R = 13, mu = .15, sig = .015, dt = .1, t = 0;
+  const Acur = new Float32Array(NN), Kr = new Float32Array(NN), Ki = new Float32Array(NN), ur = new Float32Array(NN), ui = new Float32Array(NN);
+  const rr = new Float32Array(N), ri = new Float32Array(N);
+  // twiddles
+  const cosT = new Float32Array(N/2), sinT = new Float32Array(N/2); for(let k=0;k<N/2;k++){ cosT[k]=Math.cos(2*Math.PI*k/N); sinT[k]=Math.sin(2*Math.PI*k/N); }
+  const rev = new Uint16Array(N); for(let i=0;i<N;i++){ let r=0; for(let b=1,j=i;b<N;b<<=1,j>>=1) r=(r<<1)|(j&1); rev[i]=r; }
+  function fft1(re, im, inv){
+    for(let i=0;i<N;i++){ const j=rev[i]; if(i<j){ let t=re[i]; re[i]=re[j]; re[j]=t; t=im[i]; im[i]=im[j]; im[j]=t; } }
+    for(let len=2;len<=N;len<<=1){ const half=len>>1, stp=N/len;
+      for(let i=0;i<N;i+=len) for(let k=0;k<half;k++){ const wr=cosT[k*stp], wi=inv?sinT[k*stp]:-sinT[k*stp]; const a=i+k, b=a+half;
+        const xr=re[b]*wr-im[b]*wi, xi=re[b]*wi+im[b]*wr; re[b]=re[a]-xr; im[b]=im[a]-xi; re[a]+=xr; im[a]+=xi; } }
+  }
+  function fft2(re, im, inv){
+    for(let y=0;y<N;y++){ const o=y*N; for(let x=0;x<N;x++){ rr[x]=re[o+x]; ri[x]=im[o+x]; } fft1(rr,ri,inv); for(let x=0;x<N;x++){ re[o+x]=rr[x]; im[o+x]=ri[x]; } }
+    for(let x=0;x<N;x++){ for(let y=0;y<N;y++){ rr[y]=re[y*N+x]; ri[y]=im[y*N+x]; } fft1(rr,ri,inv); for(let y=0;y<N;y++){ re[y*N+x]=rr[y]; im[y*N+x]=ri[y]; } }
+    if(inv){ const s=1/NN; for(let i=0;i<NN;i++){ re[i]*=s; im[i]*=s; } }
+  }
+  const kb = r => (r>0 && r<1) ? Math.exp(4 - 1/(r*(1-r))) : 0;
+  function kernel(){
+    Kr.fill(0); Ki.fill(0); let s = 0;
+    for(let y=-R;y<=R;y++) for(let x=-R;x<=R;x++){ const v = kb(Math.hypot(x,y)/R); if(!v) continue; Kr[((y+N)%N)*N + ((x+N)%N)] = v; s += v; }
+    for(let i=0;i<NN;i++) Kr[i] /= s;
+    fft2(Kr, Ki, false);
+  }
+  function step(){
+    ur.set(Acur); ui.fill(0); fft2(ur, ui, false);
+    for(let i=0;i<NN;i++){ const a=ur[i], b=ui[i]; ur[i]=a*Kr[i]-b*Ki[i]; ui[i]=a*Ki[i]+b*Kr[i]; }
+    fft2(ur, ui, true);
+    const s2 = 2*sig*sig;
+    for(let i=0;i<NN;i++){ const d = ur[i]-mu; let v = Acur[i] + dt*(2*Math.exp(-d*d/s2)-1); Acur[i] = v<0?0:v>1?1:v; }
+    t += dt;
+  }
+  function orbium(){ Acur.fill(0); t = 0; for(let y=0;y<20;y++) for(let x=0;x<20;x++) Acur[(y+54)*N + x+40] = ORB[y][x]; trail = []; }
+  function soup(){ Acur.fill(0); t = 0; const r = A.rng(Date.now()&0xffff); for(let k=0;k<6;k++){ const cx=r()*N, cy=r()*N, rad=R*(1+r()); for(let y=-rad;y<=rad;y++) for(let x=-rad;x<=rad;x++){ if(x*x+y*y>rad*rad) continue; const i=(((cy+y)|0)+N)%N*N + (((cx+x)|0)+N)%N; Acur[i]=r(); } } trail = []; }
+  // render
+  const off = document.createElement("canvas"); off.width = off.height = N; const octx = off.getContext("2d"); const img = octx.createImageData(N,N);
+  let trail = [];
+  const view = A.canvas(cv, 1, draw);
+  function centroid(){ // circular mean on the torus
+    let m=0, sx=0, cx=0, sy=0, cy=0; for(let i=0;i<NN;i++){ const v=Acur[i]; if(!v) continue; const x=i%N, y=(i/N)|0; m+=v; const ax=2*Math.PI*x/N, ay=2*Math.PI*y/N; sx+=v*Math.sin(ax); cx+=v*Math.cos(ax); sy+=v*Math.sin(ay); cy+=v*Math.cos(ay); }
+    return {m, x:((Math.atan2(sx,cx)/(2*Math.PI))*N+N)%N, y:((Math.atan2(sy,cy)/(2*Math.PI))*N+N)%N};
+  }
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors();
+    const c0 = rgb(C.panel2), c1 = rgb(C.p4), c2 = rgb(C.why), d = img.data;
+    for(let i=0;i<NN;i++){ const v = Acur[i]; const c = v<.5 ? mix(c0,c1,v*2) : mix(c1,c2,(v-.5)*2); d[i*4]=c[0]; d[i*4+1]=c[1]; d[i*4+2]=c[2]; d[i*4+3]=255; }
+    octx.putImageData(img,0,0);
+    ctx.clearRect(0,0,w,h); ctx.imageSmoothingEnabled = true; ctx.drawImage(off, 0, 0, w, h);
+    const cm = centroid();
+    document.getElementById("ln-t").textContent = t.toFixed(1);
+    document.getElementById("ln-m").textContent = cm.m.toFixed(1);
+    if(cm.m > 1){ trail.push([cm.x, cm.y, t]); if(trail.length>400) trail.shift(); }
+    if(trail.length>2){ const a = trail[0], b = trail[trail.length-1]; let dx = b[0]-a[0], dy = b[1]-a[1]; dx -= N*Math.round(dx/N); dy -= N*Math.round(dy/N);
+      document.getElementById("ln-v").textContent = `${Math.hypot(dx,dy).toFixed(1)} cells in ${(b[2]-a[2]).toFixed(0)} t`; }
+    else document.getElementById("ln-v").textContent = "–";
+    ctx.fillStyle = C.muted; ctx.font = `600 11px ${C.ui}`; ctx.fillText(`128 × 128 torus · R = ${R}`, 8, h-8);
+    drawG();
+  }
+  const gview = A.canvas(cg, w => narrow(w) ? .36 : .24, drawG);
+  function drawG(){
+    if(!gview) return; const {ctx,w,h} = gview, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const pad = 8, half = (w-pad*3)/2, top = 18, ph = h-top-16;
+    ctx.font = `600 11px ${C.ui}`; ctx.fillStyle = C.muted;
+    ctx.fillText("kernel K(r): a ring", pad, 12); ctx.fillText("growth G(u)", pad*2+half, 12);
+    // kernel profile
+    ctx.strokeStyle = C.p4; ctx.lineWidth = 2; ctx.beginPath();
+    for(let k=0;k<=60;k++){ const r=k/60, v=kb(r), X=pad+r*half, Y=top+ph-v*ph; k?ctx.lineTo(X,Y):ctx.moveTo(X,Y); } ctx.stroke();
+    ctx.fillStyle = C.faint; ctx.font = `10px ${C.mono}`; ctx.fillText("0", pad, h-3); ctx.fillText("R", pad+half-8, h-3);
+    // growth
+    const gx = pad*2+half, um = .5;
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(gx, top+ph/2); ctx.lineTo(gx+half, top+ph/2); ctx.stroke();
+    ctx.strokeStyle = C.why; ctx.lineWidth = 2; ctx.beginPath();
+    for(let k=0;k<=120;k++){ const u=k/120*um, g=2*Math.exp(-((u-mu)**2)/(2*sig*sig))-1, X=gx+k/120*half, Y=top+ph/2-g*ph/2*.95; k?ctx.lineTo(X,Y):ctx.moveTo(X,Y); } ctx.stroke();
+    ctx.fillStyle = C.faint; ctx.fillText("0", gx, h-3); ctx.fillText("u=0.5", gx+half-34, h-3); ctx.fillText("+1", gx+2, top+8); ctx.fillText("−1", gx+2, top+ph-2);
+  }
+  const anim = A.loop(cv, ()=>{ step(); step(); view.redraw(); });
+  const playBtn = document.getElementById("ln-play");
+  const setPlay = on=>{ if(on){ anim.start(); playBtn.textContent="Pause"; } else { anim.stop(); playBtn.textContent="Play"; } };
+  playBtn.onclick = ()=>setPlay(!anim.running);
+  A.slider("ln-mu", v=>{ mu=v; view.redraw(); }, v=>v.toFixed(3));
+  A.slider("ln-sig", v=>{ sig=v; view.redraw(); }, v=>v.toFixed(3));
+  A.slider("ln-r", v=>{ R=v; kernel(); view.redraw(); }, v=>v);
+  A.slider("ln-dt", v=>{ dt=v; }, v=>v.toFixed(2));
+  document.getElementById("ln-reset").onclick = ()=>{
+    const set = (id,v)=>{ const el=document.getElementById(id); el.value=v; el.dispatchEvent(new Event("input")); };
+    set("ln-mu",.15); set("ln-sig",.015); set("ln-r",13); set("ln-dt",.1); orbium(); view.redraw(); };
+  document.getElementById("ln-soup").onclick = ()=>{ soup(); view.redraw(); };
+  document.getElementById("ln-clear").onclick = ()=>{ Acur.fill(0); trail=[]; view.redraw(); };
+  let painting = false;
+  function paint(e){ const r = cv.getBoundingClientRect(); const x = (e.clientX-r.left)/r.width*N, y = (e.clientY-r.top)/r.height*N; const rad = Math.max(3, R*.6);
+    for(let dy=-rad;dy<=rad;dy++) for(let dx=-rad;dx<=rad;dx++){ if(dx*dx+dy*dy>rad*rad) continue; const i = ((((y+dy)|0)%N+N)%N)*N + ((((x+dx)|0)%N+N)%N); Acur[i] = Math.min(1, Acur[i] + Math.random()*.6); }
+    trail = []; view.redraw(); }
+  cv.addEventListener("pointerdown", e=>{ painting = true; cv.setPointerCapture(e.pointerId); paint(e); });
+  cv.addEventListener("pointermove", e=>{ if(painting) paint(e); });
+  cv.addEventListener("pointerup", ()=>{ painting = false; });
+  kernel(); orbium();
+  for(let k=0;k<30;k++) step();   // open in motion: the creature is already formed
+  view.redraw();
+  if(!A.reduced) setPlay(true); else setPlay(false);
+})();
+
+/* =================== LAB 3: hand-designed regenerating tissue =================== */
+(function(){
+  const cv = document.getElementById("cv-repair");
+  const W = 120, H = 72, NC = W*H;
+  const alive = new Uint8Array(NC), org = new Uint8Array(NC), scar = new Uint8Array(NC);
+  let c = new Float32Array(NC), c2 = new Float32Array(NC);
+  const DX = .24, DY = .12, TG = .1, TD = .7;
+  let lam = 10, K = .01, tick = 0, brush = 3;
+  const rnd = A.rng(42);
+  const setRange = v=>{ lam = v; K = DX / (v*v); };
+  function reset(){ alive.fill(0); org.fill(0); c.fill(0); scar.fill(0); tick = 0; const i = (H>>1)*W + (W>>1); alive[i]=1; org[i]=1; c[i]=1; }
+  function step(){
+    for(let it=0; it<24; it++){
+      for(let y=0;y<H;y++) for(let x=0;x<W;x++){ const i=y*W+x;
+        if(!alive[i]){ c2[i]=0; continue; } if(org[i]){ c2[i]=1; continue; }
+        const ci=c[i]; let lap=0;
+        if(x>0&&alive[i-1]) lap+=DX*(c[i-1]-ci); if(x<W-1&&alive[i+1]) lap+=DX*(c[i+1]-ci);
+        if(y>0&&alive[i-W]) lap+=DY*(c[i-W]-ci); if(y<H-1&&alive[i+W]) lap+=DY*(c[i+W]-ci);
+        const v = (ci+lap)*(1-K); c2[i] = v>0 ? v : 0; }
+      const t = c; c = c2; c2 = t;
+    }
+    const born = [];
+    for(let y=1;y<H-1;y++) for(let x=1;x<W-1;x++){ const i=y*W+x; if(alive[i]) continue; let m=0;
+      for(const j of [i-1,i+1,i-W,i+W]) if(alive[j] && c[j]>m) m=c[j];
+      if(m>TG && rnd()<.35) born.push(i, m*.9); }
+    for(let k=0;k<born.length;k+=2){ alive[born[k]]=1; c[born[k]]=born[k+1]; scar[born[k]]=0; }
+    for(let i=0;i<NC;i++) if(alive[i] && !org[i] && c[i]<TG*TD && rnd()<.15){ alive[i]=0; c[i]=0; }
+    for(let y=1;y<H-1;y++) for(let x=1;x<W-1;x++){ const i=y*W+x; if(!alive[i]||org[i]||c[i]>=TG||c[i]<=1e-4) continue;
+      // peak test over a radius-3 disc: highest signal around, inside a solid piece of tissue, no organiser nearby
+      let ok=true, nb=0, tot=0;
+      for(let dy=-3;dy<=3 && ok;dy++) for(let dx=-3;dx<=3;dx++){ if(dx*dx+dy*dy>9) continue; const yy=y+dy, xx=x+dx; tot++; if(yy<0||xx<0||yy>=H||xx>=W) continue; const j=yy*W+xx; if(!alive[j]) continue; nb++; if(c[j]>c[i] || (org[j] && j!==i)){ ok=false; break; } }
+      if(ok && nb < tot*.42) ok = false;
+      for(let dy=-5;dy<=5 && ok;dy++) for(let dx=-5;dx<=5;dx++){ const yy=y+dy, xx=x+dx; if(yy<0||xx<0||yy>=H||xx>=W) continue; if(org[yy*W+xx] && alive[yy*W+xx]){ ok=false; break; } }
+      if(ok){ org[i]=1; c[i]=1; } }
+    for(let i=0;i<NC;i++) if(scar[i]) scar[i]--;
+    tick++;
+  }
+  const view = A.canvas(cv, w => narrow(w) ? .75 : .6, draw);
+  function geom(){ const {w,h} = view; const cs = Math.min(w/W, h/H); return {cs, ox:(w-cs*W)/2, oy:(h-cs*H)/2}; }
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const {cs,ox,oy} = geom();
+    ctx.fillStyle = C.panel; ctx.fillRect(ox,oy,cs*W,cs*H);
+    const lo = rgb(C.p1), hi = rgb(C.p4);
+    let n = 0, no = 0;
+    for(let i=0;i<NC;i++){
+      const x=i%W, y=(i/W)|0;
+      if(scar[i] && !alive[i]){ A.hatch(ctx, ox+x*cs, oy+y*cs, cs, cs, C.hatch, 3); continue; }
+      if(!alive[i]) continue; n++;
+      if(org[i]){ no++; continue; }
+      const v = Math.min(1, Math.log(c[i]/(TG*TD) + 1e-6) / Math.log(6/TD));
+      ctx.fillStyle = css(mix(lo, hi, Math.max(0,v))); ctx.fillRect(ox+x*cs, oy+y*cs, cs+.4, cs+.4);
+    }
+    for(let i=0;i<NC;i++) if(alive[i]&&org[i]){ const x=i%W, y=(i/W)|0; ctx.fillStyle = C.why; ctx.beginPath(); ctx.arc(ox+(x+.5)*cs, oy+(y+.5)*cs, Math.max(3, cs*1.6), 0, 7); ctx.fill(); }
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(ox,oy,cs*W,cs*H);
+    document.getElementById("rp-t").textContent = tick;
+    document.getElementById("rp-n").textContent = n;
+    document.getElementById("rp-o").textContent = no;
+  }
+  function cut(i0, rad){ const x0=i0%W, y0=(i0/W)|0; for(let dy=-rad;dy<=rad;dy++) for(let dx=-rad;dx<=rad;dx++){ if(dx*dx+dy*dy>rad*rad) continue; const x=x0+dx, y=y0+dy; if(x<0||y<0||x>=W||y>=H) continue; const i=y*W+x; if(alive[i]) scar[i]=40; alive[i]=0; org[i]=0; c[i]=0; } }
+  let dragging = false, last = null;
+  function at(e){ const r = cv.getBoundingClientRect(); const {cs,ox,oy} = geom(); const x=Math.floor((e.clientX-r.left-ox)/cs), y=Math.floor((e.clientY-r.top-oy)/cs); return (x>=0&&y>=0&&x<W&&y<H) ? [x,y] : null; }
+  function cutTo(p){ if(!p) return; if(last){ const n = Math.max(Math.abs(p[0]-last[0]), Math.abs(p[1]-last[1])); for(let k=0;k<=n;k++){ const x=Math.round(last[0]+(p[0]-last[0])*k/Math.max(1,n)), y=Math.round(last[1]+(p[1]-last[1])*k/Math.max(1,n)); cut(y*W+x, brush); } } else cut(p[1]*W+p[0], brush); last = p; view.redraw(); }
+  cv.addEventListener("pointerdown", e=>{ dragging = true; last = null; cv.setPointerCapture(e.pointerId); cutTo(at(e)); });
+  cv.addEventListener("pointermove", e=>{ if(dragging) cutTo(at(e)); });
+  cv.addEventListener("pointerup", ()=>{ dragging = false; last = null; });
+  document.getElementById("rp-half").onclick = ()=>{
+    let ox=-1; for(let i=0;i<NC;i++) if(alive[i]&&org[i]){ ox=i%W; break; } if(ox<0) ox = W>>1;
+    for(let y=0;y<H;y++) for(let x=ox-1;x<=ox+1;x++){ const i=y*W+x; if(alive[i]) scar[i]=40; alive[i]=0; org[i]=0; c[i]=0; }
+    // push the halves apart so each has room
+    const a2 = alive.slice(), c3 = c.slice(), o2 = org.slice(); alive.fill(0); c.fill(0); org.fill(0);
+    for(let y=0;y<H;y++) for(let x=0;x<W;x++){ const i=y*W+x; if(!a2[i]) continue; const nx = x<ox ? x-30 : x+30; if(nx<1||nx>=W-1) continue; const j=y*W+nx; alive[j]=1; c[j]=c3[i]; org[j]=o2[i]; }
+    view.redraw(); };
+  document.getElementById("rp-org").onclick = ()=>{ for(let i=0;i<NC;i++) if(org[i]&&alive[i]) cut(i, 2); view.redraw(); };
+  document.getElementById("rp-reset").onclick = ()=>{ reset(); view.redraw(); };
+  A.slider("rp-range", v=>{ setRange(v); }, v=>v+" cells");
+  A.slider("rp-brush", v=>{ brush = v; }, v=>v);
+  reset(); for(let k=0;k<160;k++) step(); view.redraw();
+  const anim = A.loop(cv, ()=>{ step(); view.redraw(); });
+  if(!A.reduced) anim.start();
+})();
+
+/* =================== LAB 4: BFF primordial soup =================== */
+(function(){
+  const cv = document.getElementById("cv-soup");
+  const P = 1024, L = 64, NB = P*L, MAXS = 8192, TILE = 8, COLS = 32;
+  const soup = new Uint8Array(NB), tape = new Uint8Array(128), perm = new Uint32Array(P);
+  const MUTS = [0, 0.00024, 0.001, 0.003, 0.01, 0.03];
+  let mut = MUTS[1], epoch = 0, rng = A.rng(7), hist = [], stats = null;
+  const INS = {60:"<",62:">",123:"{",125:"}",45:"-",43:"+",46:".",44:",",91:"[",93:"]"};
+  const GROUP = {60:0,62:0,123:1,125:1,45:2,43:2,46:3,44:3,91:4,93:4};
+  const GROUP_NAMES = ["< > head 0","{ } head 1","+ − edit",". , copy","[ ] loop"];
+  function run(){
+    let ip=0, h0=0, h1=0, n=0;
+    while(ip<128 && n<MAXS){ const c = tape[ip]; n++;
+      switch(c){
+        case 60: h0=(h0+127)&127; break; case 62: h0=(h0+1)&127; break;
+        case 123: h1=(h1+127)&127; break; case 125: h1=(h1+1)&127; break;
+        case 45: tape[h0]=(tape[h0]+255)&255; break; case 43: tape[h0]=(tape[h0]+1)&255; break;
+        case 46: tape[h1]=tape[h0]; break; case 44: tape[h0]=tape[h1]; break;
+        case 91: if(tape[h0]===0){ let d=1, j=ip+1; for(;j<128;j++){ if(tape[j]===91) d++; else if(tape[j]===93 && --d===0) break; } if(j>=128) return; ip=j; } break;
+        case 93: if(tape[h0]!==0){ let d=1, j=ip-1; for(;j>=0;j--){ if(tape[j]===93) d++; else if(tape[j]===91 && --d===0) break; } if(j<0) return; ip=j; } break;
+      }
+      ip++;
+    }
+  }
+  function doEpoch(){
+    for(let i=P-1;i>0;i--){ const j=(rng()*(i+1))|0; const t=perm[i]; perm[i]=perm[j]; perm[j]=t; }
+    for(let k=0;k<P;k+=2){ const a=perm[k]*L, b=perm[k+1]*L;
+      tape.set(soup.subarray(a,a+L),0); tape.set(soup.subarray(b,b+L),64); run();
+      soup.set(tape.subarray(0,64),a); soup.set(tape.subarray(64,128),b); }
+    const m = NB*mut; let nm = Math.floor(m) + (rng() < m-Math.floor(m) ? 1 : 0);
+    while(nm-- > 0) soup[(rng()*NB)|0] = (rng()*256)|0;
+    epoch++;
+  }
+  function fresh(seed){ rng = A.rng(seed); for(let i=0;i<NB;i++) soup[i]=(rng()*256)|0; for(let i=0;i<P;i++) perm[i]=i; epoch=0; hist=[]; measure(); }
+  const REP = (()=>{ const head = [..."{[.>{]"].map(c=>c.charCodeAt(0)); const r = new Array(64); for(let i=0;i<32;i++){ const v = i<6 ? head[i] : (i%2 ? 1 : 2); r[i]=v; r[63-i]=v; } return r; })();
+  // LZ77-style compressed size estimate (bits): literal 8.2 bits, match 20 bits
+  const headT = new Int32Array(1<<15);
+  function lzBits(buf){ headT.fill(-1); const n = buf.length; let i=0, bits=0;
+    while(i<n){ if(i+2<n){ const h=((buf[i]<<10)^(buf[i+1]<<5)^buf[i+2])&32767, j=headT[h]; headT[h]=i;
+        if(j>=0 && i-j<32768){ let l=0; while(i+l<n && buf[j+l]===buf[i+l] && l<258) l++;
+          if(l>=3){ bits+=20; for(let k=1;k<l && i+k+2<n;k++) headT[((buf[i+k]<<10)^(buf[i+k+1]<<5)^buf[i+k+2])&32767]=i+k; i+=l; continue; } } }
+      bits+=8.2; i++; }
+    return bits; }
+  function measure(){
+    const cnt = new Float64Array(256); for(let i=0;i<NB;i++) cnt[soup[i]]++;
+    let H=0; for(const x of cnt) if(x){ const p=x/NB; H-=p*Math.log2(p); }
+    const k = Math.min(8, lzBits(soup)/NB);
+    const map = new Map(); let topK = "", topN = 0;
+    for(let p=0;p<P;p++){ let key = ""; for(let i=0;i<L;i+=4) key += String.fromCharCode(soup[p*L+i]|(soup[p*L+i+1]<<8), soup[p*L+i+2]|(soup[p*L+i+3]<<8)); const v=(map.get(key)||0)+1; map.set(key,v); if(v>topN){ topN=v; topK=p; } }
+    stats = {H, k, hoe: Math.max(0, H-k), distinct: map.size, topP: topK, topN};
+    hist.push([epoch, H, k]); if(hist.length>600) hist.splice(0, hist.length-600);
+    document.getElementById("soup-ep").textContent = epoch;
+    document.getElementById("soup-dist").textContent = `${stats.distinct} / ${P}`;
+    document.getElementById("soup-h0").textContent = H.toFixed(2)+" bits";
+    document.getElementById("soup-k").textContent = k.toFixed(2);
+    document.getElementById("soup-hoe").textContent = stats.hoe.toFixed(2);
+    const pp = topK*L; let html = "";
+    for(let i=0;i<L;i++){ const b = soup[pp+i]; html += INS[b] ? `<b>${INS[b].replace("<","&lt;").replace(">","&gt;")}</b>` : (b===0 ? "<i>0</i>" : "<i>·</i>"); }
+    document.getElementById("soup-top").innerHTML = html;
+    document.getElementById("soup-topn").textContent = topN>1 ? `${topN} exact copies in the soup` : "every program is unique";
+  }
+  const keys = document.getElementById("soup-keys");
+  function keyColors(C){ return [C.p1, C.p2, C.p3, C.why, C.p5].map(rgb); }
+  function drawKeys(){ const C = A.colors(), K = keyColors(C); keys.innerHTML = GROUP_NAMES.map((n,i)=>`<span><i style="background:${css(K[i])}"></i>${n.replace("<","&lt;").replace(">","&gt;")}</span>`).join("") + `<span><i style="background:${css(mix(rgb(C.panel2),rgb(C.ink),.25))}"></i>no-op byte</span>`; }
+  const off = document.createElement("canvas"); off.width = off.height = COLS*TILE; const octx = off.getContext("2d"); const img = octx.createImageData(COLS*TILE, COLS*TILE);
+  const view = A.canvas(cv, w => narrow(w) ? 1.42 : 1.0, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const K = keyColors(C), bg = rgb(C.panel2), ink = rgb(C.ink), d = img.data, S = COLS*TILE;
+    const noop = []; for(let b=0;b<256;b++) noop[b] = mix(bg, ink, .06 + .22*(b/255));
+    for(let p=0;p<P;p++){ const tx=(p%COLS)*TILE, ty=((p/COLS)|0)*TILE;
+      for(let i=0;i<L;i++){ const b = soup[p*L+i], g = GROUP[b]; const col = g===undefined ? noop[b] : K[g]; const o = ((ty+(i>>3))*S + tx+(i&7))*4; d[o]=col[0]; d[o+1]=col[1]; d[o+2]=col[2]; d[o+3]=255; } }
+    octx.putImageData(img,0,0);
+    const side = Math.min(w, h*.74); const sx = (w-side)/2;
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(off, sx, 0, side, side);
+    // chart
+    const top = side + 26, ch = h - top - 18, cx0 = 34, cw = w - cx0 - 8;
+    ctx.font = `600 11px ${C.ui}`; ctx.fillStyle = C.muted; ctx.fillText("bits per byte over epochs", cx0, top-8);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(cx0, top, cw, ch);
+    ctx.fillStyle = C.faint; ctx.font = `10px ${C.mono}`; ctx.fillText("8", 18, top+8); ctx.fillText("0", 18, top+ch);
+    if(hist.length>1){
+      const e0 = hist[0][0], e1 = Math.max(e0+1, hist[hist.length-1][0]);
+      const X = e => cx0 + (e-e0)/(e1-e0)*cw, Y = v => top + ch - v/8*ch;
+      const line = (idx, col, wd)=>{ ctx.strokeStyle = col; ctx.lineWidth = wd; ctx.beginPath(); hist.forEach((r,i)=>{ i?ctx.lineTo(X(r[0]),Y(r[idx])):ctx.moveTo(X(r[0]),Y(r[idx])); }); ctx.stroke(); };
+      line(1, C.p1, 1.5); line(2, C.p4, 2);
+      ctx.strokeStyle = C.why; ctx.lineWidth = 2.2; ctx.beginPath(); hist.forEach((r,i)=>{ const v=Math.max(0,r[1]-r[2]); i?ctx.lineTo(X(r[0]),Y(v)):ctx.moveTo(X(r[0]),Y(v)); }); ctx.stroke();
+      ctx.fillStyle = C.faint; ctx.fillText(`epoch ${e0}`, cx0, top+ch+12); const lb = `${e1}`; ctx.fillText(lb, cx0+cw-ctx.measureText(lb).width, top+ch+12);
+    }
+    ctx.font = `600 10.5px ${C.ui}`;
+    const lg = [["byte entropy", C.p1], ["compressed", C.p4], ["high-order", C.why]]; let lx = cx0+6;
+    lg.forEach(([t,col])=>{ ctx.fillStyle = col; ctx.fillRect(lx, top+6, 10, 3); ctx.fillStyle = C.muted; ctx.fillText(t, lx+13, top+11); lx += ctx.measureText(t).width + 26; });
+  }
+  let budget = 14;
+  const anim = A.loop(cv, ()=>{ const t0 = performance.now(); let k = 0; while(performance.now()-t0 < budget && k < 20){ doEpoch(); k++; if(epoch%5===0) measure(); } view.redraw(); });
+  const playBtn = document.getElementById("soup-play");
+  const setPlay = on=>{ if(on){ anim.start(); playBtn.textContent="Pause"; } else { anim.stop(); playBtn.textContent="Play"; } };
+  playBtn.onclick = ()=>setPlay(!anim.running);
+  document.getElementById("soup-seed").onclick = ()=>{ for(let k=0;k<16;k++){ const p = (rng()*P)|0; soup.set(REP, p*L); } measure(); view.redraw(); if(!anim.running && !A.reduced) setPlay(true); };
+  document.getElementById("soup-new").onclick = ()=>{ fresh((Math.random()*1e6)|0); view.redraw(); };
+  A.slider("soup-mut", v=>{ mut = MUTS[v]; }, v=>(MUTS[v]*100).toFixed(MUTS[v]&&MUTS[v]<.001?3:1)+"%");
+  addEventListener("atlas:theme", drawKeys); new MutationObserver(()=>setTimeout(drawKeys,30)).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+  drawKeys(); fresh(7); for(let k=0;k<100;k++){ doEpoch(); if(k%10===9) measure(); } measure(); view.redraw();
+  if(!A.reduced) setPlay(true); else setPlay(false);
+})();
+
+/* =================== WALKTHROUGH: ASAL modes =================== */
+(function(){
+  let mode = "target", judge = "clip";
+  const T = {
+    target:{q:{clip:"\"Does this look like the words I was given?\"", jepa:"\"Does this unfold the way the target clip unfolds?\""}, m:"target: match a prompt", m2:"\"one cell\" → \"two cells\"",
+      n:{clip:"<b>Supervised target.</b> Embed the prompt with CLIP's text tower and each frame with its image tower, then maximise their similarity over time. A <i>sequence</i> of prompts asks for a story, which is how ASAL found self-replicating NCA.", jepa:"<b>Target, JEPA version.</b> A JEPA has no text tower, so the target becomes an example: embed a reference video and search for parameters whose rollouts land near it in latent space. You lose prompts and gain a judge that cares about dynamics, not names."}},
+    novel:{q:{clip:"\"Have I seen anything like this frame before?\"", jepa:"\"Did this surprise me, and can I learn it?\""}, m:"novelty: far from its own past", m2:"keeps producing new embeddings",
+      n:{clip:"<b>Open-endedness.</b> Score a simulation by how far each new frame's embedding lands from all earlier frames of the same run. A run that keeps moving into new regions of CLIP space is open-ended by this measure; Life scored in the top 5% of its rule family.", jepa:"<b>Open-endedness, JEPA version.</b> Use the predictor: novelty is latent prediction error on the next frames, learnability is how fast that error falls as the model sees more of the run. Noise is novel but never learnable; a still life is learnable but never novel. That matches the novelty-plus-learnability definition."}},
+    illum:{q:{clip:"\"How different is this from everything in the atlas?\"", jepa:"\"Is this a different kind of dynamics from the atlas?\""}, m:"illuminate: spread a population", m2:"nearest-neighbour distance",
+      n:{clip:"<b>Illumination.</b> Keep a population of simulations and push them apart in embedding space, like the quality-diversity search in the next chapter. The result is an atlas of the substrate: every distinct-looking behaviour, laid out by similarity.", jepa:"<b>Illumination, JEPA version.</b> Spread out in JEPA space instead of CLIP space. Because a JEPA is trained to drop unpredictable detail, two noisy textures that CLIP sees as different might collapse together, while two creatures with different motion would separate. Whether that gives a better atlas is the experiment."}},
+  };
+  function show(){
+    const t = T[mode];
+    document.getElementById("asal-q").textContent = t.q[judge];
+    document.getElementById("asal-mode1").textContent = t.m;
+    document.getElementById("asal-mode2").textContent = t.m2;
+    document.getElementById("asal-fm").textContent = judge==="clip" ? "CLIP encoder" : "JEPA encoder";
+    document.getElementById("asal-fms").textContent = judge==="clip" ? "image ↔ text space" : "predicts latent future";
+    document.getElementById("asal-narr").innerHTML = t.n[judge];
+  }
+  document.querySelectorAll("#fig-asal [data-m]").forEach(b=>b.addEventListener("click",()=>{ mode=b.dataset.m; document.querySelectorAll("#fig-asal [data-m]").forEach(o=>o.setAttribute("aria-pressed", o===b)); show(); }));
+  document.querySelectorAll("#fig-asal [data-j]").forEach(b=>b.addEventListener("click",()=>{ judge=b.dataset.j; document.querySelectorAll("#fig-asal [data-j]").forEach(o=>o.setAttribute("aria-pressed", o===b)); show(); }));
+  show();
+})();
+
+/* =================== QUIZ =================== */
+A.quiz("quiz", [
+  {q:"Why does a glider persist in the Game of Life, when the rule says nothing about gliders?",
+   options:["Conway added a special case for it","Gliders are random fluctuations that happen to look stable","Its shape is a fixed point of the rule applied four times followed by a one-cell shift, so the rule keeps rebuilding it","The grid wraps around"],
+   answer:2, why:"Nothing protects the glider. It persists because applying the rule to it produces the same shape, displaced. Anything that the dynamics keeps regenerating looks like an object."},
+  {q:"In Lenia, what plays the role of Life's 'count your eight neighbours'?",
+   options:["A random sample of neighbours","A convolution with a smooth ring-shaped kernel, giving the weighted mass around each cell","The cell's own value only","A neural network"],
+   answer:1, why:"Lenia keeps Life's structure and makes it continuous: K ∗ A is a smooth, ring-weighted neighbourhood count, and the growth curve G replaces the birth and survival table."},
+  {q:"In the regrowth lab, why does a cut notch grow back and then stop at the old outline?",
+   options:["Growth is allowed only where the diffusing signal is above a threshold; cutting lets growth resume there, and the signal falls below threshold at the old boundary again","Each cell stores a copy of the target image","A global controller compares the shape to a template","The scalpel only hides cells"],
+   answer:0, why:"The shape is a steady state of a local rule. Damage removes cells but not the rule, so the same steady state is reached again. Growing NCA learn rules with this property by training on damaged states."},
+  {q:"Why do self-replicators take over a BFF soup even though nothing rewards them?",
+   options:["The interpreter favours short programs","The soup is seeded with one by the authors","Mutation is biased toward replicators","A program that copies itself onto its partner turns the partner into another copier, so its count compounds while other code does not"],
+   answer:3, why:"Copying is self-amplifying: each successful interaction doubles the copier's presence. That is selection without a fitness function, and the paper found it even with zero background mutation."},
+  {q:"After replicators take over the soup, the byte entropy barely changes but compressed size collapses. What does that mean?",
+   options:["The soup became random","The soup now uses fewer distinct byte values","The same long sequences repeat everywhere, so the soup has structure that a compressor can exploit: high-order entropy goes up","The measurement is broken"],
+   answer:2, why:"Byte entropy only sees how often each value appears. A compressor sees repeated multi-byte patterns. The gap between the two, high-order entropy, is the signature of copied code."},
+  {q:"What would change if ASAL's judge were a JEPA encoder instead of CLIP?",
+   options:["It could no longer use text prompts, but it would score simulations by how predictable or surprising their dynamics are in latent space, matching the 'learnable to an observer' half of open-endedness","Nothing: all encoders are equivalent","It would need labelled data","It would only work on Game of Life"],
+   answer:0, why:"CLIP scores what things look like and are called. A JEPA scores what it can predict next. Novelty as prediction error plus learnability as falling error is close to the Hughes and Rocktäschel definition."},
+]);
+})();
+</script>
+</body>
+</html>

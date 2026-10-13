@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>JEPA Field Map</title>
+<link rel="stylesheet" href="assets/fonts.css">
+<style>body{margin:0}</style>
+</head>
+<body>
+<nav class="rs-strip" aria-label="Research pages">
+<style>.rs-strip{display:flex;flex-wrap:wrap;gap:.4rem 1.1rem;align-items:center;padding:.55rem 1rem;font:13px/1.3 "JetBrains Mono",ui-monospace,monospace;border-bottom:1px solid color-mix(in srgb,currentColor 18%,transparent)}.rs-strip a{color:inherit;opacity:.75;text-decoration:none}.rs-strip a:hover,.rs-strip a[aria-current]{opacity:1;text-decoration:underline}</style>
+<a href="../index.html">← ML course</a><a href="index.html">Hidden Patch</a><a href="why-atlas.html">Why Atlas</a><a href="jepa-field-map.html" aria-current="page">JEPA field map</a>
+</nav>
+<style>
+/* Layout: one reading column (~70ch) with a wider band for the paper map; theory first, map second, agenda last. */
+:root{
+  --bg:#F3F5F8; --surface:#FFFFFF; --fg:#172030; --muted:#566176; --rule:#D8DEE7;
+  --accent:#2747A6; --accent-soft:#E6ECFA; --warm:#9A5410; --warm-soft:#FBF0E3; --ok:#2C7451;
+  --display:"Newsreader", "Iowan Old Style", Georgia, serif;
+  --body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F141C; --surface:#161D29; --fg:#E3E8F0; --muted:#9AA5B8; --rule:#2B3445;
+  --accent:#93AAF2; --accent-soft:#1D2944; --warm:#E3A866; --warm-soft:#2E2318; --ok:#6FC79A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F141C; --surface:#161D29; --fg:#E3E8F0; --muted:#9AA5B8; --rule:#2B3445;
+  --accent:#93AAF2; --accent-soft:#1D2944; --warm:#E3A866; --warm-soft:#2E2318; --ok:#6FC79A; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:15px/1.6 var(--body);margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:20px;padding-block:40px 64px}
+.col{max-width:72ch}
+h1,h2,h3{font-family:var(--display);font-weight:600;text-wrap:balance;line-height:1.2;margin:0}
+h1{font-size:clamp(2rem,5vw,2.9rem);letter-spacing:-.01em}
+h2{font-size:1.65rem;margin-bottom:6px}
+h3{font-size:1.15rem}
+a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.eyebrow{font:500 11.5px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:1.06rem;color:var(--muted);margin:14px 0 0}
+header{display:grid;gap:10px;padding-bottom:28px;border-bottom:1px solid var(--rule)}
+nav{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:10px;font-size:14px}
+section{padding-block:40px 8px}
+.sub{color:var(--muted);margin:0 0 22px}
+
+.objective{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:20px 22px;display:grid;gap:12px}
+.eq{font:15px/1.7 var(--mono);overflow-x:auto;white-space:nowrap;padding:12px 14px;background:var(--accent-soft);border-radius:4px}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px 22px;font-size:13.5px;color:var(--muted)}
+.legend b{font-family:var(--mono);font-weight:500;color:var(--fg)}
+
+.timeline{display:grid;gap:0;border-left:2px solid var(--rule);margin-left:6px}
+.tl{display:grid;grid-template-columns:70px 1fr;gap:14px;padding:10px 0 10px 18px;position:relative}
+.tl::before{content:"";position:absolute;left:-6px;top:17px;width:10px;height:10px;border-radius:50%;background:var(--surface);border:2px solid var(--accent)}
+.tl .yr{font:500 14px var(--mono);color:var(--accent)}
+.tl p{margin:0;min-width:0}
+
+.insights{display:grid;gap:18px}
+.ins{display:grid;grid-template-columns:44px 1fr;gap:14px;padding:18px 0;border-top:1px solid var(--rule)}
+.ins:first-child{border-top:0}
+.ins .tag{font:500 12px/1 var(--mono);color:var(--accent);padding-top:5px}
+.ins h3{margin-bottom:6px}
+.ins p{margin:0 0 8px;min-width:0}
+.ins .why{color:var(--muted);font-size:14px}
+.cites{font:12.5px/1.5 var(--mono);color:var(--muted)}
+.cites a{white-space:nowrap}
+
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+.chip{font:500 13px/1 var(--body);padding:8px 12px;border-radius:999px;border:1px solid var(--rule);background:var(--surface);color:var(--fg);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.chip .n{font-family:var(--mono);opacity:.7;margin-left:4px}
+.group{margin-bottom:26px}
+.group h3{display:flex;gap:10px;align-items:baseline;padding-bottom:8px;border-bottom:1px solid var(--rule)}
+.group h3 .n{font:500 12px var(--mono);color:var(--muted)}
+.paper{display:grid;grid-template-columns:76px 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--rule)}
+.paper:target{background:var(--accent-soft)}
+.paper .d{font:13px/1.5 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums;padding-top:2px}
+.paper .t{font-weight:600;min-width:0}
+.paper .a{color:var(--muted);font-size:13.5px}
+.paper .nt{margin:4px 0 0;font-size:14px}
+.badge{display:inline-block;font:500 10.5px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;padding:3px 6px;border-radius:3px;margin-left:6px;vertical-align:2px}
+.b-abstract{background:var(--accent-soft);color:var(--accent)}
+.b-search{background:var(--warm-soft);color:var(--warm)}
+
+.qs{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.q{background:var(--warm-soft);border-radius:6px;padding:16px 18px;min-width:0}
+.q h3{font-size:1.05rem;margin-bottom:6px}
+.q p{margin:0;font-size:14px}
+
+.exp{border-top:1px solid var(--rule);padding:18px 0;display:grid;gap:6px}
+.exp .hd{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline}
+.exp .cost{font:500 11.5px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ok);border:1px solid currentColor;border-radius:3px;padding:3px 6px}
+.exp dl{display:grid;grid-template-columns:96px 1fr;gap:4px 14px;margin:4px 0 0;font-size:14px}
+.exp dt{font:500 12px/1.9 var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.exp dd{margin:0;min-width:0}
+
+footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--rule);color:var(--muted);font-size:13.5px}
+@media (max-width:560px){
+  .ins{grid-template-columns:1fr;gap:4px}
+  .paper{grid-template-columns:1fr;gap:2px}
+  .tl{grid-template-columns:1fr;gap:2px}
+  .exp dl{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">Reading map · as of 9 October 2026 · <span id="count"></span> papers</span>
+  <h1>JEPA Field Map</h1>
+  <p class="lede col">Joint-Embedding Predictive Architectures, from LeCun's 2022 position paper to the 2026 wave of theory. Theory comes first on this page: what is proven about collapse, about what JEPAs learn, and about when they recover the true state of a world. The paper map and an experiment agenda follow.</p>
+  <nav aria-label="Sections">
+    <a href="#objective">The objective</a><a href="#lineage">Lineage</a><a href="#insights">Theory insights</a><a href="#map">Paper map</a><a href="#open">Open questions</a><a href="#experiments">Experiment ideas</a>
+  </nav>
+</header>
+
+<section id="objective">
+  <span class="eyebrow">Starting point</span>
+  <h2>The objective in one line</h2>
+  <p class="sub col">Every paper below is a variation on this energy. The interesting part is always the second term, or whatever replaces it.</p>
+  <div class="objective">
+    <div class="eq">E(x, y, z) = ‖ g<sub>φ</sub>( f<sub>θ</sub>(x), z ) − sg[ f<sub>ξ</sub>(y) ] ‖² &nbsp;&nbsp;+&nbsp;&nbsp; λ · R( f<sub>θ</sub>(X) )</div>
+    <div class="legend">
+      <span><b>x, y</b> context and target (visible patches and masked patches, frame t and frame t+k, text and code)</span>
+      <span><b>f<sub>θ</sub>, f<sub>ξ</sub></b> context and target encoders; ξ is often an EMA of θ</span>
+      <span><b>g<sub>φ</sub></b> predictor; <b>z</b> is the mask position, the action, or a latent for uncertainty</span>
+      <span><b>sg</b> stop-gradient; <b>R</b> anti-collapse term (none in I-JEPA, VICReg in PLDM, SIGReg in LeJEPA)</span>
+    </div>
+  </div>
+</section>
+
+<section id="lineage">
+  <span class="eyebrow">How the field moved</span>
+  <h2>Lineage</h2>
+  <p class="sub col">Each year shifted the open problem.</p>
+  <div class="timeline col">
+    <div class="tl"><span class="yr">2021–22</span><p>Non-contrastive SSL (BYOL, SimSiam, VICReg) shows collapse can be avoided without negatives; Tian et al. explain why in the linear case. LeCun's position paper names the JEPA and frames it as an energy-based model with a latent.</p></div>
+    <div class="tl"><span class="yr">2023</span><p>I-JEPA makes masked latent prediction work on images without hand-crafted augmentations. MC-JEPA, A-JEPA and Graph-JEPA carry the idea to motion, audio and graphs.</p></div>
+    <div class="tl"><span class="yr">2024</span><p>V-JEPA scales to video. IWM shows the predictor decides invariance versus equivariance. Littwin et al. give the first clean implicit-bias result: JEPA prefers predictive features, MAE prefers high-variance ones. DINO-WM plans in a frozen latent space.</p></div>
+    <div class="tl"><span class="yr">2025</span><p>V-JEPA 2 plans robot actions zero-shot; intuitive-physics surprise emerges from V-JEPA. LLM-JEPA brings the objective to language models. LeJEPA replaces the heuristics with one provable regularizer, SIGReg.</p></div>
+    <div class="tl"><span class="yr">2026</span><p>A theory wave: identifiability (LeJEPA learns the world up to a linear map, and only for Gaussian latents), training-dynamics phase boundaries, generalization bounds for JEPA world models, variational and active-inference readings. On the applied side, end-to-end pixel world models (LeWorldModel) and debates about the right latent geometry for planning.</p></div>
+  </div>
+</section>
+
+<section id="insights">
+  <span class="eyebrow">Theory first</span>
+  <h2>Key theoretical insights</h2>
+  <p class="sub col">Nine results that, taken together, explain most of what JEPAs do. Each cites the papers it rests on; click a citation to jump to it in the map.</p>
+  <div class="insights col" id="insight-list">
+    <article class="ins"><span class="tag">I-1</span><div>
+      <h3>Predicting in latent space buys abstraction and costs you collapse</h3>
+      <p>Because the target is an embedding the model also learns, the encoder can drop unpredictable detail (exact textures, leaf motion) instead of spending capacity on it. The same freedom admits the trivial solution where every input maps to a constant. Every JEPA is therefore defined as much by how it prevents collapse as by what it predicts.</p>
+      <p class="why">Why it matters: the anti-collapse mechanism is the main design choice, and most theory papers are about it.</p>
+      <p class="cites">[lecun2022] [dawid2023] [recon]</p></div></article>
+    <article class="ins"><span class="tag">I-2</span><div>
+      <h3>Collapse escape is a per-mode instability, and the heuristics all move one ratio</h3>
+      <p>Linearized at the collapsed point, each representation mode has a driving force from cross-view prediction and a decay force from EMA and weight shrinkage. A mode escapes collapse when their ratio μ exceeds 1, and μ factors into a data term (set by masking) and a predictor term. The number of unstable modes bounds the effective rank. Masking ratio, predictor scale and EMA rate are three knobs on the same quantity. This extends Tian et al.'s 2021 linear account of BYOL and SimSiam to JEPAs.</p>
+      <p class="why">Why it matters: it turns hyperparameter folklore into a phase diagram you can predict and test.</p>
+      <p class="cites">[drivedecay] [tian2021] [cjepa_mo]</p></div></article>
+    <article class="ins"><span class="tag">I-3</span><div>
+      <h3>JEPA learns predictive features first; reconstruction learns high-variance features first</h3>
+      <p>In deep linear networks, MAE-style objectives pick up features in order of their covariance, while JEPA picks them up in order of their regression coefficient, meaning how well the context predicts them. Encoder depth strengthens this bias. Pixel reconstruction, by contrast, spends capacity on high-variance subspaces that matter little for perception.</p>
+      <p class="why">Why it matters: it is the cleanest formal reason JEPA features are more semantic and why they degrade more gracefully under pixel corruption.</p>
+      <p class="cites">[littwin2024] [recon] [latvid]</p></div></article>
+    <article class="ins"><span class="tag">I-4</span><div>
+      <h3>The predictor's parameterization chooses which optimum you get</h3>
+      <p>Many encoders achieve the same prediction loss. In time series, a near-identity linear predictor selects the invariant subspace of the Koopman operator (regime indicators), while unconstrained predictors give entangled equivalents. In images, conditioning and capacity of the predictor decide invariance versus equivariance. Identity-biased predictors also help escape collapse. The flip side is the slow-feature trap: JEPAs latch onto whatever varies slowly, including slow noise.</p>
+      <p class="why">Why it matters: the predictor is an inductive-bias dial, not just a head you throw away.</p>
+      <p class="cites">[koopman] [iwm] [drivedecay] [sobal2022]</p></div></article>
+    <article class="ins"><span class="tag">I-5</span><div>
+      <h3>JEPA is a spectral method on a co-occurrence matrix</h3>
+      <p>Joint-embedding objectives perform spectral embedding of a view-similarity graph. For world models, JEPA pretraining is equivalent to low-rank factorization of an action-conditioned co-occurrence matrix, which yields a finite-sample generalization bound linking pretraining error to planning regret. Latent dimension trades approximation error against sample error.</p>
+      <p class="why">Why it matters: it gives a principled way to choose latent dimension and to compare latent-level with input-level prediction.</p>
+      <p class="cites">[spectral] [duality] [gentheory]</p></div></article>
+    <article class="ins"><span class="tag">I-6</span><div>
+      <h3>Three independent routes point to the isotropic Gaussian</h3>
+      <p>LeJEPA proves an isotropic Gaussian embedding minimizes worst-case downstream risk and enforces it with SIGReg (random 1-D projections plus a characteristic-function test). Klindt, LeCun and Balestriero then show the Gaussian is the only latent law for which LeJEPA provably recovers the world's latents up to a linear map. An active-inference reading shows SIGReg closes the entropy gap that VICReg leaves open, making the objective a valid variational free energy.</p>
+      <p class="why">Why it matters: it is the closest the field has to a canonical answer for R, and it predicts measurable signatures such as an embedding condition number near 1.</p>
+      <p class="cites">[lejepa] [lejepawm] [sigregvfe]</p></div></article>
+    <article class="ins"><span class="tag">I-7</span><div>
+      <h3>Good prediction does not imply the right latents</h3>
+      <p>Identifiability needs more than low loss. With actions, causal states are recoverable (up to component-wise transforms and permutation) only if actions vary the transition mechanisms enough. Without action conditioning, LeJEPA's guarantee needs stationary additive-noise dynamics.</p>
+      <p class="why">Why it matters: it tells you what data a world model must see, and gives metrics beyond probing accuracy.</p>
+      <p class="cites">[iact] [lejepawm]</p></div></article>
+    <article class="ins"><span class="tag">I-8</span><div>
+      <h3>JEPA is a deterministic special case of a variational model</h3>
+      <p>The encoder and predictor match the variational posterior and learned conditional prior of a coupled latent-variable model. Training the full ELBO removes the need for an ad hoc anti-collapse term and gives calibrated latent uncertainty, which the original position paper's latent z was meant to supply but most implementations drop.</p>
+      <p class="why">Why it matters: it blurs the "non-generative" line and offers a route to multimodal futures.</p>
+      <p class="cites">[varjepa] [lecun2022] [inforeview] [vicreginfo]</p></div></article>
+    <article class="ins"><span class="tag">I-9</span><div>
+      <h3>For planning, geometry matters more than decodability</h3>
+      <p>Planners score candidates by Euclidean distance in latent space, so a direction's weight in the cost is proportional to its variance. Task state can be perfectly decodable yet barely affect planning if it lives in low-variance directions, and small moving objects get drowned by static background. This is in tension with I-6: isotropy treats all directions equally, which is optimal for unknown downstream tasks but not for a known control task.</p>
+      <p class="why">Why it matters: it is the sharpest current conflict between two theory threads, and an easy one to probe.</p>
+      <p class="cites">[scale] [plannable] [lewm] [dinowm]</p></div></article>
+  </div>
+</section>
+
+<section id="map">
+  <span class="eyebrow">Paper map</span>
+  <h2>Papers by theme</h2>
+  <p class="sub col">Sorted by date within each theme. Badges mark how each entry was checked for this map: <span class="badge b-abstract">abstract read</span> means the abstract was read for this page, <span class="badge b-search">search only</span> means the paper was found by search and only its title and listing were seen. Unmarked entries predate mid-2026 and are summarized from prior knowledge.</p>
+  <div class="filters" id="filters" role="group" aria-label="Filter by theme"></div>
+  <div id="groups"></div>
+</section>
+
+<section id="open">
+  <span class="eyebrow">Unsolved</span>
+  <h2>Open questions</h2>
+  <p class="sub col">Where the theory is thin or the threads disagree.</p>
+  <div class="qs">
+    <div class="q"><h3>Isotropy versus task geometry</h3><p>SIGReg's isotropy is optimal for unknown tasks; planning wants task-relevant directions to carry more variance. Is there a principled middle, such as isotropy within a task-weighted metric?</p></div>
+    <div class="q"><h3>Beyond linear and local</h3><p>Collapse dynamics and implicit-bias results are for linear networks near initialization. Do the phase boundary and feature ordering survive in ViTs with real masking and long training?</p></div>
+    <div class="q"><h3>Masks as the latent variable</h3><p>The mask distribution decides which invariances get learned, yet there is no theory of masking comparable to the theory of augmentations in contrastive learning.</p></div>
+    <div class="q"><h3>Uncertainty and multimodal futures</h3><p>A deterministic predictor regresses to the conditional mean in latent space. When does that mean stay meaningful, and is Var-JEPA's ELBO enough to represent branching futures?</p></div>
+    <div class="q"><h3>Is EMA ever necessary?</h3><p>LeJEPA drops EMA and stop-gradient, SALT uses a frozen teacher, and Drive vs. Decay treats EMA as one knob on μ. Which regimes, if any, require a co-adapting target?</p></div>
+    <div class="q"><h3>Hierarchy</h3><p>H-JEPA, the multi-timescale core of the position paper, has almost no theory and few working systems. Variable-stride prediction is a first step.</p></div>
+    <div class="q"><h3>Non-Gaussian worlds</h3><p>If the Gaussian is the only identifiable latent law for LeJEPA, what should a model do in worlds with heavy-tailed or discrete factors? Should the regularizer's target distribution be learned?</p></div>
+    <div class="q"><h3>Language</h3><p>When does a latent-prediction term help a next-token model, and what does it change in the representation? LLM-JEPA shows gains, but there is no theory yet.</p></div>
+  </div>
+</section>
+
+<section id="experiments">
+  <span class="eyebrow">For later</span>
+  <h2>Theory-driven experiment ideas</h2>
+  <p class="sub col">Each one tests a specific claim above at small scale. Costs assume one GPU or less.</p>
+  <div class="col">
+    <article class="exp"><div class="hd"><h3>Map the collapse phase boundary</h3><span class="cost">CPU to 1 GPU-day</span></div>
+      <dl><dt>Tests</dt><dd>I-2: escape happens when μ &gt; 1, and the number of unstable modes predicts effective rank.</dd>
+      <dt>Setup</dt><dd>Linear and small-ViT JEPAs on synthetic Gaussian data and CIFAR-10. Sweep masking ratio, EMA rate and predictor init scale; compute predicted μ per mode and compare with measured effective rank. Add a SIGReg arm to see whether the boundary disappears.</dd></dl></article>
+    <article class="exp"><div class="hd"><h3>Variance versus predictiveness race</h3><span class="cost">CPU to hours</span></div>
+      <dl><dt>Tests</dt><dd>I-3 beyond the deep linear setting.</dd>
+      <dt>Setup</dt><dd>Synthetic inputs whose features vary variance and cross-view predictability independently. Train JEPA, MAE and LeJEPA with nonlinear encoders of several depths; record the order in which each feature becomes linearly decodable.</dd></dl></article>
+    <article class="exp"><div class="hd"><h3>Break the Gaussian assumption</h3><span class="cost">Hours</span></div>
+      <dl><dt>Tests</dt><dd>I-6 and I-7: linear identifiability holds only for Gaussian latents.</dd>
+      <dt>Setup</dt><dd>Latent dynamics with Gaussian, Laplace, uniform and mixture innovations, rendered through a random nonlinear mixer. Measure linear R² and MCC between learned and true latents. Then swap SIGReg's target for the true latent law to see whether identifiability returns.</dd></dl></article>
+    <article class="exp"><div class="hd"><h3>Isotropy against plannability</h3><span class="cost">1–3 GPU-days</span></div>
+      <dl><dt>Tests</dt><dd>The I-6 versus I-9 tension.</dd>
+      <dt>Setup</dt><dd>LeWorldModel-style training on Two-Room and Push-T. Interpolate between pure SIGReg and a SCALE-style distance-alignment term. Track condition number, Kendall τ of candidate rankings, and planning success.</dd></dl></article>
+    <article class="exp"><div class="hd"><h3>The predictor as a selector</h3><span class="cost">CPU to hours</span></div>
+      <dl><dt>Tests</dt><dd>I-4: predictor parameterization picks the optimum; slow noise traps JEPAs.</dd>
+      <dt>Setup</dt><dd>Switching dynamical systems with a slowly drifting noise channel. Compare near-identity linear, low-rank and deep MLP predictors on disentanglement of regime indicators and on how much slow noise they encode.</dd></dl></article>
+    <article class="exp"><div class="hd"><h3>How much action diversity is enough?</h3><span class="cost">Hours</span></div>
+      <dl><dt>Tests</dt><dd>I-7: identifiability requires actions to vary the transition mechanisms.</dd>
+      <dt>Setup</dt><dd>Synthetic action-conditioned environments where the number of distinct mechanisms is a dial. Plot latent recovery against that dial to see whether there is a sharp threshold as the theory suggests.</dd></dl></article>
+    <article class="exp"><div class="hd"><h3>Latent dimension against data size</h3><span class="cost">Hours</span></div>
+      <dl><dt>Tests</dt><dd>I-5: the generalization bound's approximation versus sample trade-off.</dd>
+      <dt>Setup</dt><dd>Grid of latent dimension by dataset size in a small gridworld JEPA world model. Check whether the best latent dimension grows with data at the rate the bound implies.</dd></dl></article>
+    <article class="exp"><div class="hd"><h3>Branching futures</h3><span class="cost">CPU</span></div>
+      <dl><dt>Tests</dt><dd>I-8 and the uncertainty open question.</dd>
+      <dt>Setup</dt><dd>Toy worlds where the future is bimodal (a ball goes left or right). Compare a deterministic JEPA, a mixture-output predictor and a Var-JEPA-style ELBO on whether the latent prediction collapses to an implausible mean.</dd></dl></article>
+  </div>
+</section>
+
+<footer class="col">
+  <p>Compiled 9 October 2026. Papers from mid-2026 onward were checked against their arXiv abstracts or search listings only; claims marked "abstract read" restate the abstract, not the full proofs. The paper index behind this page is kept as <code>jepa/papers.json</code> in the project files.</p>
+</footer>
+</div>
+
+<script>
+const PAPERS = [{"key": "lecun2022", "title": "A Path Towards Autonomous Machine Intelligence", "authors": "LeCun", "date": "2022-06", "theme": "foundations", "url": "https://openreview.net/forum?id=BZ5a1r-kVsf", "note": "Position paper. Defines JEPA as a latent-variable energy-based model that predicts in representation space; H-JEPA for multi-timescale world models; argues against generative and contrastive objectives.", "check": "known"}, {"key": "dawid2023", "title": "Introduction to Latent Variable Energy-Based Models: A Path Towards Autonomous Machine Intelligence", "authors": "Dawid, LeCun", "date": "2023-06", "theme": "foundations", "url": "https://arxiv.org/abs/2306.02572", "note": "Tutorial on the EBM view behind JEPA: energies, latent variables, contrastive vs regularized training.", "check": "known"}, {"key": "tutorial", "title": "Tutorial on Joint Embedding Predictive Architectures (JEPA)", "authors": "(OpenReview)", "date": "2026", "theme": "foundations", "url": "https://openreview.net/pdf?id=Zr4PUe0ZNl", "note": "Recent tutorial-style overview. Found in search; not read in full.", "check": "search-only"}, {"key": "ebjepa", "title": "A Lightweight Library for Energy-Based Joint-Embedding Predictive Architectures", "authors": "(see paper)", "date": "2026-02", "theme": "foundations", "url": "https://arxiv.org/abs/2602.03604", "note": "Small reference library for EB-JEPA experiments. Useful starting point for toy theory experiments.", "check": "search-only"}, {"key": "prl2026", "title": "From Alignment to Prediction: A Study of Self-Supervised Learning and Predictive Representation Learning", "authors": "Dutta, Vyas, Roy", "date": "2026-04", "theme": "comparisons", "url": "https://arxiv.org/abs/2604.13518", "note": "Survey with a three-way taxonomy: alignment, reconstruction, predictive. Small BYOL/MAE/I-JEPA comparison.", "check": "abstract"}, {"key": "ijepa", "title": "Self-Supervised Learning from Images with a Joint-Embedding Predictive Architecture (I-JEPA)", "authors": "Assran et al. (Meta)", "date": "2023-01", "theme": "vision", "url": "https://arxiv.org/abs/2301.08243", "note": "Predict target-block embeddings from a context block. EMA target encoder, no hand-crafted augmentations. Multi-block masking with large semantic targets is key.", "check": "known"}, {"key": "iwm", "title": "Learning and Leveraging World Models in Visual Representation Learning (IWM)", "authors": "Garrido et al. (Meta)", "date": "2024-03", "theme": "vision", "url": "https://arxiv.org/abs/2403.00504", "note": "Image World Models: predictor conditioned on photometric transforms. Predictor capacity and conditioning control whether the encoder becomes invariant or equivariant.", "check": "known"}, {"key": "cjepa_mo", "title": "Connecting Joint-Embedding Predictive Architecture with Contrastive Self-supervised Learning (C-JEPA)", "authors": "Mo, Tong", "date": "2024-10", "theme": "vision", "url": "https://arxiv.org/abs/2410.19560", "note": "Argues I-JEPA's EMA does not fully prevent collapse; adds VICReg terms. NeurIPS 2024.", "check": "known"}, {"key": "lejepa", "title": "LeJEPA: Provable and Scalable Self-Supervised Learning Without the Heuristics", "authors": "Balestriero, LeCun", "date": "2025-11", "theme": "theory-geometry", "url": "https://arxiv.org/abs/2511.08544", "note": "Proves the isotropic Gaussian minimizes worst-case downstream risk; SIGReg enforces it via random 1-D projections and a characteristic-function test. Drops stop-gradient and EMA teacher; one trade-off hyperparameter.", "check": "known"}, {"key": "salt", "title": "Rethinking JEPA: Compute-Efficient Video SSL with Frozen Teachers (SALT)", "authors": "Apple", "date": "2025-09", "theme": "video", "url": "https://arxiv.org/search/?query=Rethinking+JEPA+frozen+teachers&searchtype=title", "note": "Shows a frozen pixel-reconstruction teacher can replace the EMA target; questions whether co-adapting targets are necessary.", "check": "known"}, {"key": "mcjepa", "title": "MC-JEPA: A Joint-Embedding Predictive Architecture for Self-Supervised Learning of Motion and Content Features", "authors": "Bardes, Ponce, LeCun", "date": "2023-07", "theme": "video", "url": "https://arxiv.org/abs/2307.12698", "note": "Joint optical-flow and content learning in one encoder.", "check": "known"}, {"key": "vjepa", "title": "Revisiting Feature Prediction for Learning Visual Representations from Video (V-JEPA)", "authors": "Bardes et al. (Meta)", "date": "2024-02", "theme": "video", "url": "https://arxiv.org/abs/2404.08471", "note": "Feature prediction alone (no pixels, no text, no negatives) gives strong frozen-probe video and image features.", "check": "known"}, {"key": "intphys", "title": "Intuitive Physics Understanding Emerges from Self-Supervised Pretraining on Natural Videos", "authors": "Garrido et al. (Meta)", "date": "2025-02", "theme": "video", "url": "https://arxiv.org/abs/2502.11831", "note": "V-JEPA shows violation-of-expectation signals (surprise as prediction error) on intuitive-physics tests; pixel-generative and MLLM baselines are near chance.", "check": "known"}, {"key": "vjepa2", "title": "V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning", "authors": "Assran et al. (Meta)", "date": "2025-06", "theme": "video", "url": "https://arxiv.org/abs/2506.09985", "note": "1M+ hours of video; action-conditioned V-JEPA 2-AC post-trained on ~62h of robot data enables zero-shot pick-and-place by planning toward image goals.", "check": "known"}, {"key": "vjepa21", "title": "V-JEPA 2.1: Unlocking Dense Features in Video Self-Supervised Learning", "authors": "Meta", "date": "2026-03", "theme": "video", "url": "https://arxiv.org/abs/2603.14482", "note": "Dense predictive losses improve local feature quality across image, video and robotics tasks.", "check": "search-only"}, {"key": "latvid", "title": "Latent Video Prediction for World Modeling: An Evaluation Uncovering Intriguing Favorable Evidence", "authors": "Alrasheed et al.", "date": "2026-05", "theme": "comparisons", "url": "https://arxiv.org/abs/2605.15618", "note": "Matched ViT-L comparison: V-JEPA 2/2.1 degrade more gracefully under corruption than VideoMAEv2 and VideoPrism, are more sensitive to the arrow of time, and keep planning under occlusion.", "check": "abstract"}, {"key": "causaljepa", "title": "Causal-JEPA: Learning World Models through Object-Level Latent Masking", "authors": "(ICML 2026)", "date": "2026-02", "theme": "video", "url": "https://arxiv.org/abs/2602.11389", "note": "Masks whole objects in latent space to push prediction toward object-level, causal structure.", "check": "search-only"}, {"key": "thinkjepa", "title": "ThinkJEPA", "authors": "(see paper)", "date": "2026", "theme": "multimodal", "url": "https://arxiv.org/search/?query=ThinkJEPA&searchtype=all", "note": "Pairs a JEPA world model with a VLM-derived semantic reasoning pathway for long-horizon planning. Known only from a secondary overview.", "check": "secondary"}, {"key": "dinowm", "title": "DINO-WM: World Models on Pre-trained Visual Features enable Zero-shot Planning", "authors": "Zhou, Pan, LeCun, Pinto", "date": "2024-11", "theme": "planning", "url": "https://arxiv.org/abs/2411.04983", "note": "Frozen DINOv2 patch features plus a learned latent predictor; plans with CEM/MPC on embedding distance.", "check": "known"}, {"key": "pldm", "title": "Learning from Reward-Free Offline Data: A Case for Planning with Latent Dynamics Models (PLDM)", "authors": "Sobal et al.", "date": "2025-02", "theme": "planning", "url": "https://arxiv.org/abs/2502.14819", "note": "JEPA-style latent dynamics with VICReg-type regularization generalize better than model-free RL from offline, suboptimal data.", "check": "known"}, {"key": "lewm", "title": "LeWorldModel: Stable End-to-End Joint-Embedding Predictive Architecture from Pixels", "authors": "Maes et al.", "date": "2026-03", "theme": "planning", "url": "https://arxiv.org/abs/2603.19312", "note": "End-to-end pixel JEPA world model trained with SIGReg; much cheaper planning than DINO-WM.", "check": "search-only"}, {"key": "invplan", "title": "Learning Invariant Visual Representations for Planning with Joint-Embedding Predictive World Models", "authors": "(see paper)", "date": "2026-02", "theme": "planning", "url": "https://arxiv.org/abs/2602.18639", "note": "Invariance to task-irrelevant visual change for planning.", "check": "search-only"}, {"key": "ffjepa", "title": "FF-JEPA: Long-Horizon Planning in World Models with Latent Planners", "authors": "(see paper)", "date": "2026-06", "theme": "planning", "url": "https://arxiv.org/abs/2606.09311", "note": "Learned latent planners for long horizons.", "check": "search-only"}, {"key": "varlen", "title": "Beyond the Next Step: Variable-Length Latent World Models for Long-Horizon Planning", "authors": "(see paper)", "date": "2026-06", "theme": "planning", "url": "https://arxiv.org/abs/2606.21775", "note": "Variable temporal stride in latent prediction; relevant to H-JEPA-style hierarchy.", "check": "search-only"}, {"key": "scale", "title": "SCALE: State-Calibrated Latent Embeddings for JEPA Planning in the Right Geometry", "authors": "Hu et al.", "date": "2026-08", "theme": "planning", "url": "https://arxiv.org/abs/2608.16287", "note": "Decodable is not plannable: under squared-Euclidean cost a direction's weight is twice its variance. Regularizer aligning latent and state distances beats LeWM on all 15 task-solver averages.", "check": "abstract"}, {"key": "jepattt", "title": "JEPA-TTT: Persistent Test-Time Training of Latent World Models for Planning under Dynamics Shifts", "authors": "(see paper)", "date": "2026-10", "theme": "planning", "url": "https://arxiv.org/abs/2610.00722", "note": "Test-time adaptation of the latent predictor when dynamics shift.", "check": "search-only"}, {"key": "plannable", "title": "Keeping JEPA World Models Plannable When Little of the Frame Moves", "authors": "(see paper)", "date": "2026-10", "theme": "planning", "url": "https://arxiv.org/abs/2610.03137", "note": "Small moving regions get drowned by static background in the embedding distance.", "check": "search-only"}, {"key": "adjepa", "title": "AD-E2E-JEPA: A Joint-Embedding Predictive Architecture for End-to-End Autonomous Driving", "authors": "(see paper)", "date": "2026-09", "theme": "planning", "url": "https://arxiv.org/abs/2609.34085", "note": "JEPA pretraining for driving stacks.", "check": "search-only"}, {"key": "llmjepa", "title": "LLM-JEPA: Large Language Models Meet Joint Embedding Predictive Architectures", "authors": "Huang, LeCun, Balestriero", "date": "2025-09", "theme": "multimodal", "url": "https://arxiv.org/abs/2509.14252", "note": "Adds a JEPA term between embeddings of two views (e.g. text and code) to next-token training; reports gains and more structured representations. ICLR 2026.", "check": "known"}, {"key": "vljepa", "title": "VL-JEPA: Joint Embedding Predictive Architecture for Vision-language", "authors": "Meta", "date": "2025-12", "theme": "multimodal", "url": "https://arxiv.org/abs/2512.10942", "note": "Predicts text embeddings instead of generating tokens; decodes only when needed.", "check": "search-only"}, {"key": "predrecon", "title": "Predict and Reconstruct: Joint Objectives for Self-Supervised Language Representation Learning", "authors": "(see paper)", "date": "2026-06", "theme": "multimodal", "url": "https://arxiv.org/abs/2606.05173", "note": "Combines latent prediction with reconstruction for text encoders.", "check": "search-only"}, {"key": "lean", "title": "Predicting the Next State Is Not Enough: JEPA Representations for Lean Theorem Proving", "authors": "(see paper)", "date": "2026-09", "theme": "multimodal", "url": "https://arxiv.org/abs/2609.32908", "note": "JEPA over proof states; argues pure next-state prediction misses what search needs.", "check": "search-only"}, {"key": "ajepa", "title": "A-JEPA: Joint-Embedding Predictive Architecture Can Listen", "authors": "Fei et al.", "date": "2023-11", "theme": "modalities", "url": "https://arxiv.org/abs/2311.15830", "note": "Audio spectrogram JEPA with curriculum masking.", "check": "known"}, {"key": "pointjepa", "title": "Point-JEPA: A Joint Embedding Predictive Architecture for Self-Supervised Learning on Point Cloud", "authors": "Saito et al.", "date": "2024-04", "theme": "modalities", "url": "https://arxiv.org/abs/2404.16432", "note": "Point clouds without raw-space reconstruction.", "check": "known"}, {"key": "graphjepa", "title": "Graph-level Representation Learning with Joint-Embedding Predictive Architectures", "authors": "Skenderi et al.", "date": "2023-09", "theme": "modalities", "url": "https://arxiv.org/abs/2309.16014", "note": "Predicts subgraph embeddings, with a hyperbolic target.", "check": "known"}, {"key": "graphwrong", "title": "When Graph-JEPA Learns the Wrong Thing: Diagnosing and ...", "authors": "(see paper)", "date": "2026-08", "theme": "modalities", "url": "https://arxiv.org/abs/2608.20516", "note": "Failure analysis of Graph-JEPA shortcuts.", "check": "search-only"}, {"key": "tjepa_tab", "title": "T-JEPA: Augmentation-Free Self-Supervised Learning for Tabular Data", "authors": "Thimonier et al.", "date": "2024-10", "theme": "modalities", "url": "https://arxiv.org/search/?query=T-JEPA+tabular&searchtype=title", "note": "Tabular JEPA over feature subsets (ICLR 2025).", "check": "known"}, {"key": "mtsjepa", "title": "MTS-JEPA: Multi-Resolution JEPA for Time-Series Anomaly Prediction", "authors": "(see paper)", "date": "2026-02", "theme": "modalities", "url": "https://arxiv.org/abs/2602.04643", "note": "Multi-resolution time-series JEPA.", "check": "search-only"}, {"key": "tsforecast", "title": "Does Joint-Embedding Predictive Architecture Pretraining Help Time Series Forecasting?", "authors": "(see paper)", "date": "2026-09", "theme": "modalities", "url": "https://arxiv.org/abs/2609.31680", "note": "Empirical check of JEPA pretraining for forecasting.", "check": "search-only"}, {"key": "laya", "title": "Laya: A LeJEPA Approach to EEG via Latent Prediction over Reconstruction", "authors": "(see paper)", "date": "2026-03", "theme": "modalities", "url": "https://arxiv.org/abs/2603.16281", "note": "LeJEPA/SIGReg recipe applied to EEG.", "check": "search-only"}, {"key": "rsjepa", "title": "T-JEPA: A Temporal JEPA for Learning Better Remote Sensing Representations", "authors": "(see paper)", "date": "2026-10", "theme": "modalities", "url": "https://arxiv.org/abs/2610.05731", "note": "Temporal prediction over satellite image series.", "check": "search-only"}, {"key": "atomjepa", "title": "Atom-JEPA: Joint-Embedding Predictive Architecture for 3D Atomistic Systems", "authors": "(see paper)", "date": "2026-10", "theme": "modalities", "url": "https://arxiv.org/abs/2610.08400", "note": "Molecules and materials.", "check": "search-only"}, {"key": "tian2021", "title": "Understanding Self-Supervised Learning Dynamics without Contrastive Pairs", "authors": "Tian, Chen, Ganguli", "date": "2021-02", "theme": "theory-collapse", "url": "https://arxiv.org/abs/2102.06810", "note": "Linear analysis of BYOL/SimSiam: predictor + stop-gradient + EMA avoid collapse; the predictor aligns with the eigenbasis of the input correlation (DirectPred). Direct ancestor of JEPA collapse theory.", "check": "known"}, {"key": "drivedecay", "title": "Drive vs. Decay: On the Training Dynamics of Joint-Embedding Predictive Architectures", "authors": "De Melo Costa et al.", "date": "2026-10", "theme": "theory-collapse", "url": "https://arxiv.org/abs/2610.02344", "note": "Linearizes JEPA gradient flow at the collapsed point. A mode escapes collapse when mu = drive/decay > 1; mu factorizes into a data/masking term and a predictor term. The count of unstable modes bounds effective rank. Masking ratio, predictor scale and EMA all shift mu. Validated on 800+ Tabular-JEPA configs; proposes ResidualPred (identity-biased predictor).", "check": "abstract"}, {"key": "sobal2022", "title": "Joint Embedding Predictive Architectures Focus on Slow Features", "authors": "Sobal et al.", "date": "2022-11", "theme": "theory-bias", "url": "https://arxiv.org/abs/2211.10831", "note": "VICReg-style JEPAs on moving-dot worlds latch onto slow-varying features, including slow noise distractors.", "check": "known"}, {"key": "littwin2024", "title": "How JEPA Avoids Noisy Features: The Implicit Bias of Deep Linear Self Distillation Networks", "authors": "Littwin et al. (Apple)", "date": "2024-07", "theme": "theory-bias", "url": "https://arxiv.org/abs/2407.03475", "note": "Deep linear analysis: MAE learns features in order of covariance; JEPA in order of regression coefficient (predictiveness), and this bias grows with encoder depth. Explains why JEPA skips noisy high-variance detail. NeurIPS 2024.", "check": "known"}, {"key": "koopman", "title": "Koopman Invariants as Drivers of Emergent Time-Series Clustering in JEPAs", "authors": "Ruiz-Morales et al.", "date": "2025-11", "theme": "theory-bias", "url": "https://arxiv.org/abs/2511.09783", "note": "Under an idealized loss, optimal encoders span regime indicator functions (Koopman eigenfunctions). A near-identity linear predictor selects this interpretable solution among entangled optima. AAAI 2026.", "check": "abstract"}, {"key": "recon", "title": "Learning by Reconstruction Produces Uninformative Features for Perception", "authors": "Balestriero, LeCun", "date": "2024-02", "theme": "comparisons", "url": "https://arxiv.org/abs/2402.11337", "note": "Reconstruction spends capacity on high-variance subspaces that matter little for perception; the motivating argument for latent prediction.", "check": "known"}, {"key": "spectral", "title": "Contrastive and Non-Contrastive Self-Supervised Learning Recover Global and Local Spectral Embedding Methods", "authors": "Balestriero, LeCun", "date": "2022-05", "theme": "theory-geometry", "url": "https://arxiv.org/abs/2205.11508", "note": "SSL objectives as spectral embedding of a view-similarity graph.", "check": "known"}, {"key": "duality", "title": "On the Duality Between Contrastive and Non-Contrastive Self-Supervised Learning", "authors": "Garrido et al.", "date": "2022-06", "theme": "theory-geometry", "url": "https://arxiv.org/abs/2206.02574", "note": "Sample-contrastive and dimension-contrastive criteria are near-equivalent; gaps come from design choices.", "check": "known"}, {"key": "gentheory", "title": "A Generalization Theory for JEPA-Based World Models", "authors": "Cui, Zhang, Wen, Cheng, Wang", "date": "2026-06", "theme": "theory-geometry", "url": "https://arxiv.org/abs/2606.27014", "note": "JEPA pretraining = low-rank factorization of an action-conditioned co-occurrence matrix. Links pretraining error to planning regret; finite-sample bound with an approximation/sample trade-off governed by latent dimension. Proposes Multi-Depth JEPA.", "check": "abstract"}, {"key": "lejepawm", "title": "When Does LeJEPA Learn a World Model?", "authors": "Klindt, LeCun, Balestriero", "date": "2026-05", "theme": "theory-identifiability", "url": "https://arxiv.org/abs/2605.26379", "note": "With stationary additive-noise latent dynamics, LeJEPA recovers latents up to a linear map even through a nonlinear mixing; the Gaussian is the only latent law for which this holds; graceful degradation off-assumption; enables optimal latent planning.", "check": "abstract"}, {"key": "iact", "title": "I Act Therefore I Am: When Is JEPA's Action-Conditioning Enough to Learn Causal Mechanisms?", "authors": "Liu, Huang, Shi", "date": "2026-09", "theme": "theory-identifiability", "url": "https://arxiv.org/abs/2609.31161", "note": "Prediction accuracy does not imply correct latents. Likelihood + entropy objective identifies causal states up to component-wise transforms and permutation iff actions induce enough variation across transition mechanisms. A-JEPA instantiation.", "check": "abstract"}, {"key": "inforeview", "title": "To Compress or Not to Compress: Self-Supervised Learning and Information Theory: A Review", "authors": "Shwartz-Ziv, LeCun", "date": "2023-04", "theme": "theory-prob", "url": "https://arxiv.org/abs/2304.09355", "note": "Information-bottleneck and multi-view framing of SSL objectives.", "check": "known"}, {"key": "vicreginfo", "title": "An Information-Theoretic Perspective on Variance-Invariance-Covariance Regularization", "authors": "Shwartz-Ziv et al.", "date": "2023-03", "theme": "theory-prob", "url": "https://arxiv.org/abs/2303.00633", "note": "VICReg as a mutual-information bound under Gaussian assumptions.", "check": "known"}, {"key": "varjepa", "title": "Var-JEPA: A Variational Formulation of the Joint-Embedding Predictive Architecture", "authors": "Gögl, Yau", "date": "2026-03", "theme": "theory-prob", "url": "https://arxiv.org/abs/2603.20111", "note": "Encoder/predictor structure matches variational posteriors and learned conditional priors in a coupled latent-variable model; standard JEPA is its deterministic special case. A single ELBO removes the need for ad hoc anti-collapse terms and gives latent uncertainty.", "check": "abstract"}, {"key": "sigregvfe", "title": "The SIGReg Objective as Variational Free Energy: A Theoretical Active-Inference Account of JEPA World Models", "authors": "Arnez, Gomez-Villa", "date": "2026-07", "theme": "theory-prob", "url": "https://arxiv.org/abs/2607.13612", "note": "Ranks anti-collapse regularizers by their latent-entropy bound: VICReg and LogDet give upper bounds (unsafe), PairDist a lower bound, SIGReg closes the gap. Predicts embedding condition number near 1 under SIGReg. Missing state-epistemic term in current JEPA world models. Lean 4-verified algebra, no experiments.", "check": "abstract"}];
+const THEMES = [
+  ["theory-collapse","Theory · collapse and training dynamics"],
+  ["theory-bias","Theory · implicit bias and what gets learned"],
+  ["theory-geometry","Theory · spectral view and embedding geometry"],
+  ["theory-identifiability","Theory · identifiability and world models"],
+  ["theory-prob","Theory · energy-based, variational, information-theoretic"],
+  ["foundations","Foundations and tutorials"],
+  ["comparisons","Comparisons with reconstruction and contrastive"],
+  ["vision","Images"],
+  ["video","Video and world models"],
+  ["planning","Planning and control"],
+  ["multimodal","Language and vision-language"],
+  ["modalities","Other modalities"]
+];
+const byKey = Object.fromEntries(PAPERS.map(p => [p.key, p]));
+document.getElementById("count").textContent = PAPERS.length;
+
+function fmtDate(d){ return d.length >= 7 ? d.slice(0,7).replace("-", ".") : d; }
+function badge(c){
+  if (c === "abstract") return '<span class="badge b-abstract">abstract read</span>';
+  if (c === "search-only" || c === "secondary") return '<span class="badge b-search">' + (c === "secondary" ? "secondary source" : "search only") + '</span>';
+  return "";
+}
+function esc(s){ return s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+const groupsEl = document.getElementById("groups");
+groupsEl.innerHTML = THEMES.map(([id, label]) => {
+  const ps = PAPERS.filter(p => p.theme === id).sort((a,b) => a.date.localeCompare(b.date));
+  if (!ps.length) return "";
+  return `<div class="group" data-theme="${id}"><h3>${label}<span class="n">${ps.length}</span></h3>` +
+    ps.map(p => `<div class="paper" id="p-${p.key}"><span class="d">${fmtDate(p.date)}</span><div style="min-width:0">
+      <div class="t"><a href="${p.url}" target="_blank" rel="noopener">${esc(p.title)}</a>${badge(p.check)}</div>
+      <div class="a">${esc(p.authors)}</div><p class="nt">${esc(p.note)}</p></div></div>`).join("") + `</div>`;
+}).join("");
+
+const filtersEl = document.getElementById("filters");
+const counts = {}; PAPERS.forEach(p => counts[p.theme] = (counts[p.theme]||0) + 1);
+const opts = [["all","All"],["theory","All theory"],...THEMES.map(([id,l]) => [id, l.replace("Theory · ","")])];
+filtersEl.innerHTML = opts.map(([id,l]) => {
+  const n = id === "all" ? PAPERS.length : id === "theory" ? PAPERS.filter(p=>p.theme.startsWith("theory")).length : counts[id]||0;
+  return `<button class="chip" type="button" id="f-${id}" data-f="${id}" aria-pressed="${id==="all"}">${l}<span class="n">${n}</span></button>`;
+}).join("");
+filtersEl.addEventListener("click", e => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  const f = b.dataset.f;
+  filtersEl.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", String(c === b)));
+  groupsEl.querySelectorAll(".group").forEach(g => {
+    const t = g.dataset.theme;
+    g.hidden = !(f === "all" || t === f || (f === "theory" && t.startsWith("theory")));
+  });
+});
+
+document.querySelectorAll(".cites").forEach(el => {
+  el.innerHTML = el.textContent.replace(/\[([a-z0-9_]+)\]/g, (m,k) => {
+    const p = byKey[k]; if (!p) return m;
+    const short = p.title.split(/[:(]/)[0].trim();
+    return `<a href="#p-${k}" title="${esc(p.title)}">${esc(short.length > 38 ? short.slice(0,36) + "…" : short)}</a>`;
+  }).replace(/\]\s*\[/g, " · ");
+});
+document.querySelectorAll(".cites").forEach(el => { el.innerHTML = el.innerHTML.replace(/<\/a>\s+<a/g, '</a> · <a'); });
+document.addEventListener("click", e => {
+  const a = e.target.closest('a[href^="#p-"]'); if (!a) return;
+  const g = document.querySelector(a.getAttribute("href"))?.closest(".group");
+  if (g && g.hidden) document.getElementById("f-all").click();
+});
+</script>
+</body>
+</html>

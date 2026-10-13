@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why can the same answer hide a broken inside? · Hidden Patch</title>
+<meta name="description" content="The Fractured Entangled Representation hypothesis from the question why: Picbreeder versus SGD on the same image, weight sweeps, LLM evidence and its limits, the Platonic Representation Hypothesis and its 2026 critiques, and why the path of learning shapes the inside.">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/atlas.css">
+<style>
+/* page-specific */
+.beat{grid-template-columns:minmax(0,1fr)}
+.beat>*,.prose>*{min-width:0}
+.eq{max-width:min(100%,var(--measure))}
+.people{display:flex;flex-wrap:wrap;gap:.4rem}
+.lab .stage canvas+canvas{margin-top:.7rem}
+.lab .stage canvas.pick{cursor:pointer}
+.side h4{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--part);margin:0}
+.side .sep{border-top:1px solid var(--line);padding-top:.7rem;display:grid;gap:.6rem}
+.prog{display:grid;gap:.5rem}
+.prog a{display:grid;grid-template-columns:3.2rem 1fr;gap:.6rem;text-decoration:none;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:.5rem .7rem;font-family:var(--ui);font-size:.88rem;line-height:1.35}
+.prog a:hover{border-color:var(--why)}
+.prog a .d{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+.prog a b{font-weight:650}
+</style>
+</head>
+<body data-chapter="fractured" data-part="2">
+<header id="topbar" class="topbar"></header>
+
+<main class="chapter">
+  <section class="opener">
+    <p class="eyebrow"><span class="sw"></span>Part 2 · Theory · Chapter 07</p>
+    <h1 class="big"><span class="w">Why</span> can the same answer hide a broken inside?</h1>
+    <p class="because">training only scores the output, and many different internal programs produce the same output. The path decides which program you get. Kumar, Clune, Lehman and Stanley (2025) show an image network found by open-ended human search that computes symmetry once and reuses it, and an SGD-trained network with the same architecture and the same image that is a patchwork inside. Any test that looks only at outputs, including the similarity scores behind the Platonic Representation Hypothesis, cannot tell the two apart.</p>
+    <p class="meta"><span>7 beats · 4 labs · 6 questions</span><span>Builds on: <a href="generalize.html">06 Double descent, grokking, simplicity</a></span><span>Leads to: <a href="interp.html">08 Superposition, SAEs, circuits</a></span></p>
+    <ul class="toc">
+      <li><a href="#imposter"><span class="q">?</span>Why outputs can lie</a></li>
+      <li><a href="#picbreeder"><span class="q">?</span>Why evolved nets reuse</a></li>
+      <li><a href="#knobs"><span class="q">?</span>Why nudge one weight</a></li>
+      <li><a href="#llms"><span class="q">?</span>Why suspect LLMs</a></li>
+      <li><a href="#platonic"><span class="q">?</span>Why models still converge</a></li>
+      <li><a href="#path"><span class="q">?</span>Why the path matters</a></li>
+      <li><a href="#next"><span class="q">?</span>What it changes</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ BEAT 1 ============ -->
+  <section class="beat" id="imposter">
+    <header>
+      <span class="num">Beat 1</span>
+      <h2><span class="w">Why</span> can two networks with identical outputs be different inside?</h2>
+      <p class="short">Because a loss function only sees what comes out. Two programs that print the same picture can be organised completely differently, and gradient descent has no reason to prefer the tidy one when the messy one is closer.</p>
+    </header>
+    <div class="prose">
+      <p>The paper is a position paper from May 2025: <em>Questioning Representational Optimism in Deep Learning: The Fractured Entangled Representation Hypothesis</em>, by Akarsh Kumar (MIT, Isola's lab), Jeff Clune, Joel Lehman and Kenneth Stanley. Its target is <b>representational optimism</b>, the unstated belief that good internal representations come for free as models scale and their scores improve. It names two ends of a spectrum:</p>
+    </div>
+    <div class="compare">
+      <div><span class="k">The bad case</span><h4>FER · fractured entangled representation</h4><p><b>Fractured:</b> information that should form one concept is split into disconnected, redundant pieces. <b>Entangled:</b> behaviours that should be independent influence each other "in idiosyncratic and inappropriate ways".</p></div>
+      <div><span class="k">The good case</span><h4>UFR · unified factored representation</h4><p><b>Unified:</b> "a single unbroken function for each key capability". <b>Factored:</b> "keeping independent capabilities separated so that they do not interfere with each other". The authors grant that perfect UFR may be out of reach.</p></div>
+    </div>
+    <div class="analogy"><span class="ico">≈</span><div><span class="k">Picture it</span><p>Two programs pass the same test suite. One defines <code>mirror()</code> once and calls it everywhere. The other copy-pastes a slightly different mirror into every function, and fixing a bug in one copy breaks two others. The tests are green for both. You only find out which one you have when you try to add a feature.</p></div></div>
+    <div class="prose">
+      <p>The paper calls a network with the right outputs and FER insides an <b>imposter</b>, and on MLST (2025-07) Kumar and Stanley extend the word to frontier LLMs. Stanley's one-line version: "it matters not just where you get, but how you got there."</p>
+    </div>
+    <div class="people"><span class="who" data-i="AK">Akarsh Kumar</span><span class="who" data-i="KS">Kenneth Stanley</span><span class="who" data-i="JC">Jeff Clune</span><span class="who" data-i="JL">Joel Lehman</span><span class="who" data-i="PI">Phillip Isola</span></div>
+  </section>
+
+  <!-- ============ BEAT 2: Picbreeder vs SGD ============ -->
+  <section class="beat" id="picbreeder">
+    <header>
+      <span class="num">Beat 2</span>
+      <h2><span class="w">Why</span> does a network found by open-ended search reuse its regularities?</h2>
+      <p class="short">Because each step of the search had to produce something a person liked, with no target in mind. Symmetry was liked early, long before any skull, so it was built once and every later feature was added on top of it. SGD aims at the finished image directly and never needs a reusable piece along the way.</p>
+    </header>
+    <div class="prose">
+      <p><b>Picbreeder</b> (around 2007) was a website where people bred images. Each image is drawn by a <span class="term" tabindex="0" data-def="Compositional pattern producing network: a small network that maps pixel coordinates to a colour. Each node applies a function such as sine, Gaussian or sigmoid, so composing nodes composes patterns: a Gaussian of x is symmetric, a sine of y repeats.">CPPN</span>: a small network that takes a pixel's coordinates (x, y, distance from centre d) and outputs its colour. NEAT mutates the network (nudges weights, adds nodes and connections). A user picks a favourite out of 15 children, which becomes the next parent. Nobody is optimising toward a target.</p>
+      <p>The FER experiment takes the famous <b>Skull</b>, reached in about 74 generations. Symmetry appeared around generations 20 to 36, long before anything looked like a skull. The authors convert the NEAT graph into an equivalent dense MLP ("layerization"), then train the same MLP from random weights with SGD to output the same skull, in about 10,000 steps. Both outputs match. Then they plot every neuron's activation over the image plane:</p>
+      <ul>
+        <li>The <b>Picbreeder</b> network encodes left-right symmetry early and reuses it; its layerized form has only 24 novel intermediate representations.</li>
+        <li>The <b>SGD</b> network becomes symmetric only at the last layer; inside it is a "highly entangled patchwork". Looking in a PCA basis or along random directions did not rescue it.</li>
+      </ul>
+      <p>The lab rebuilds this in miniature. The left network is a NEAT-style CPPN you can breed; it starts from a hand-built seed in the spirit of Picbreeder genomes (it is not the paper's skull). The right network is a dense 3 × 8 MLP over (x, y, d), trained live by backprop to reproduce whatever the left one draws.</p>
+    </div>
+    <figure class="lab" id="lab-cppn">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Same face, two insides: breed it, then fit it with SGD</h3></div>
+      <div class="lab-body">
+        <div class="stage">
+          <canvas id="cv-breed" class="pick" aria-label="Mode A: the current parent image and eight mutated children. Click a child to make it the new parent."></canvas>
+          <canvas id="cv-pair" aria-label="Mode B: left, the evolved network's output and the activation map of every hidden node; right, the SGD-trained network's output and its 24 hidden neuron maps. Maps with a green frame are left-right symmetric."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i style="background:var(--good)"></i>hidden map is left-right symmetric (mirror correlation &gt; 0.95)</span><span><i style="background:var(--bad)"></i>not symmetric</span></div>
+        </div>
+        <div class="side">
+          <div class="sep" style="border:0;padding:0"><h4>Mode A · Picbreeder</h4>
+            <p class="hint muted" style="font-size:.78rem;margin:0">Click a child to make it the parent. The SGD net then retrains on the new image.</p>
+            <div class="ctrl"><div class="row"><label for="cp-mut">Mutation strength</label><output for="cp-mut"></output></div>
+              <input type="range" id="cp-mut" min="0.2" max="2" step="0.1" value="0.8"></div>
+            <div class="btns"><button type="button" id="cp-back">← Back</button><button type="button" id="cp-new">New children</button><button type="button" id="cp-seed">Reset seed</button></div>
+          </div>
+          <div class="sep"><h4>Mode B · SGD</h4>
+            <div class="btns"><button type="button" class="primary" id="cp-train">Pause</button><button type="button" id="cp-init">New random init</button></div>
+          </div>
+          <dl class="readout">
+            <dt>generation</dt><dd id="cp-r-gen">–</dd>
+            <dt>evolved nodes · links</dt><dd id="cp-r-size">–</dd>
+            <dt>SGD step</dt><dd id="cp-r-step">–</dd>
+            <dt>SGD pixel MSE</dt><dd id="cp-r-mse">–</dd>
+            <dt>sym maps, evolved</dt><dd id="cp-r-se" class="hot">–</dd>
+            <dt>sym maps, SGD</dt><dd id="cp-r-ss" class="hot">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Let SGD run for a couple of thousand steps: its output converges on the same face. Now compare the grids. Every evolved node is a clean, symmetric pattern (one symmetry node, eye rows, a mouth band) that later nodes reuse. Most SGD neurons are lopsided blends; symmetry only appears when the last layer adds them up.</li>
+        <li>Breed a few generations. Children whose mutation adds a link straight from <code>x</code> break the symmetry in one place; children that only change downstream weights inherit it for free, because every later node reads <code>sym</code> instead of <code>x</code>. That is reuse.</li>
+        <li>Press <b>New random init</b>: SGD finds the same output through a different patchwork each time. Different insides, same loss. The evolved network's inside is the record of the path that built it.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 3: weight sweeps ============ -->
+  <section class="beat" id="knobs">
+    <header>
+      <span class="num">Beat 3</span>
+      <h2><span class="w">Why</span> does nudging a single weight reveal how a network is organised?</h2>
+      <p class="short">Because in a factored network one weight controls one meaningful thing, so changing it changes that thing and leaves the rest alone. In a fractured network every concept is spread over many weights and every weight touches many concepts, so a nudge smears the whole image.</p>
+    </header>
+    <div class="prose">
+      <p>The FER paper sweeps single weights and watches the output. In the Picbreeder skull, weights act as <b>semantic knobs</b>: one opens and closes the mouth, one makes an eye wink, one widens the jaw. In the SGD skull, the same sweeps give "meaningless distortions". The method goes back to Huizinga, Stanley and Clune's work on <span class="term" tabindex="0" data-def="In evolution, the tendency of a lineage to make some variations easy and others hard. In Picbreeder, canalized networks turn random mutations into meaningful changes (bigger, wider, mirrored) far more often than chance.">canalization</span> in Picbreeder: lineages shaped by open-ended selection make mutations land on meaningful dimensions.</p>
+      <p>Below, pick a network and a weight, then drag. The sweep strip shows the image at seven settings. The two statistics on the right are computed over <em>every</em> weight in each network: how often a nudge of ±1 keeps the face left-right symmetric, and how much of the image an average nudge touches.</p>
+    </div>
+    <figure class="lab" id="lab-nudge">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Turn one knob</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-nudge" aria-label="The original image, the image with one weight nudged, the pixels that changed, and a strip of seven images sweeping that weight."></canvas></div>
+        <div class="side">
+          <div class="ctrl"><span class="lbl">Network</span>
+            <div class="seg" role="group" aria-label="Network"><button type="button" id="nd-evo" aria-pressed="true">Evolved</button><button type="button" id="nd-sgd" aria-pressed="false">SGD</button></div></div>
+          <div class="ctrl"><div class="row"><label for="nd-w">Weight</label><output for="nd-w"></output></div>
+            <input type="range" id="nd-w" min="0" max="30" step="1" value="12"></div>
+          <div class="ctrl"><div class="row"><label for="nd-d">Nudge Δ</label><output for="nd-d"></output></div>
+            <input type="range" id="nd-d" min="-3" max="3" step="0.05" value="1.2"></div>
+          <div class="btns"><button type="button" id="nd-rand">Random weight</button></div>
+          <dl class="readout">
+            <dt>image changed</dt><dd id="nd-r-chg">–</dd>
+            <dt>still symmetric?</dt><dd id="nd-r-sym">–</dd>
+            <dt>sym-safe, evolved</dt><dd id="nd-r-se" class="hot">–</dd>
+            <dt>sym-safe, SGD</dt><dd id="nd-r-ss" class="hot">–</dd>
+            <dt>area hit, evolved</dt><dd id="nd-r-ae">–</dd>
+            <dt>area hit, SGD</dt><dd id="nd-r-as">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>On the evolved net, try the links into <code>eyeY</code> or <code>mouthY</code>: the eyes slide up and down or the mouth moves, together, and the face stays symmetric. Links out of <code>head</code> change the outline only. One knob, one part.</li>
+        <li>On the SGD net almost any weight tilts or warps the whole face and breaks the symmetry. The statistics make it a number: a large share of evolved weights are symmetry-safe, against a small share for SGD.</li>
+        <li>This toy seed was built by hand to be modular, so the gap here is larger than any fair comparison would give. The real test is the paper's: same architecture, a lineage evolved by people, and a skull nobody designed. The 2026 AI Picbreeder follow-up found a skull evolved with a vision-language model as the selector "somewhat more robust" to weight changes than the SGD one, without being able to say whether the network type or the selection loop deserves the credit.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 4: LLMs ============ -->
+  <section class="beat" id="llms">
+    <header>
+      <span class="num">Beat 4</span>
+      <h2><span class="w">Why</span> suspect the same thing inside language models, and why is the evidence weak?</h2>
+      <p class="short">Because LLMs show the behavioural signature of fracture: a skill works in one wording and fails in a near-identical one, as if it were stored in pieces. But behaviour is indirect evidence, the image experiment has tens to hundreds of connections, and SGD-trained sequence models have been shown to factor cleanly on synthetic data.</p>
+    </header>
+    <div class="tbl"><table>
+      <thead><tr><th>Observation cited by the FER paper</th><th>Why it looks fractured</th></tr></thead>
+      <tbody>
+        <tr><td>GPT-3 counts "pencils, pens, erasers" correctly but not "chickens, ducks, geese".</td><td>Counting should be one skill reused across nouns.</td></tr>
+        <tr><td>Claude computes 36 + 59 with fuzzy parallel paths ("~40 + ~50 ≈ 92" plus a last-digit path), in Anthropic's attribution-graph study.</td><td>Addition is assembled from overlapping heuristics instead of one algorithm.</td></tr>
+        <tr><td>Othello-GPT is described as a "bag of heuristics".</td><td>A world model stored as many special cases.</td></tr>
+        <tr><td>GPT-4o substitutes numbers in a sequence correctly but fails the same task with words.</td><td>The operation is tied to the data type.</td></tr>
+        <tr><td>GPT-4o can draw a man with an extra thumb but not an ape.</td><td>A compositional edit works for one class only.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="prose">
+      <p>The paper's claimed costs are where data is thin: generalization at the frontier, creativity (inventing means manipulating the true regularities of a thing, like the iPhone recombining phone and computer), and continual learning, because new learning "does not propagate to related cases" when the concept lives in many copies.</p>
+    </div>
+    <aside class="aside warn"><span class="k">Limits</span>Stanley himself (Jim Rutt Show, 2025-08) concedes the experiments are tiny, the LLM evidence is indirect, and there is no standard metric for representation quality. Shai et al. (2026-02) show transformers trained by next-token prediction put conditionally independent world factors into <b>orthogonal subspaces</b>, prefer factoring early even when it is lossy, and see the same in RNNs and LSTMs. They say outright that this "brings reason for representational optimism". No formal replication or rebuttal of the skull experiment was found, and the citation graph could not be pulled, so smaller follow-ups may be missing.</aside>
+  </section>
+
+  <!-- ============ BEAT 5: PRH ============ -->
+  <section class="beat" id="platonic">
+    <header>
+      <span class="num">Beat 5</span>
+      <h2><span class="w">Why</span> do different models still seem to converge on the same picture of the world?</h2>
+      <p class="short">Because they are all fit to the same world, and many tasks plus big capacity plus a simplicity bias squeeze them toward its structure. By 2026 the claim is narrower: models agree on <em>which</em> things are near each other, locally, much more than on exact distances, and that agreement says nothing about how the inside is organised.</p>
+    </header>
+    <div class="prose">
+      <p>The <b>Platonic Representation Hypothesis</b> (Huh, Cheung, Wang, Isola, ICML 2024) says representations across architectures, objectives and even modalities are converging toward a shared statistical model of reality. The measure is <b>mutual k-nearest-neighbour alignment</b>: embed the same N items with two models, find each item's k nearest neighbours in each space, and average the overlap.</p>
+      <div class="eq">mKNN(A, B) = (1/N) Σ<sub>i</sub> |kNN<sub>A</sub>(i) ∩ kNN<sub>B</sub>(i)| / k        chance ≈ k / (N − 1)<span class="c">It compares neighbourhoods, not coordinates, so it works across models with different dimensions. Stronger language models score higher against vision models.</span></div>
+      <p>Support in 2025: vec2vec translates between text-embedding spaces with no paired data; text-only LLMs align more with vision models when prompted to "imagine seeing"; DINOv3 and Web-SSL reach CLIP-level semantics without language. Then three 2026 papers narrowed it. The <b>Aristotelian view</b> (Gröger, Wen, Brbić, ICML 2026) calibrates the metrics against width and depth with permutation nulls: global convergence largely vanishes, local neighbourhood agreement survives. <b>Back into Plato's Cave</b> (Koepke, Zverev, Ginosar, Efros) finds mKNN alignment collapses as the gallery grows and is inflated by one-to-one image-caption data; modalities share coarse categories, "overlapping Umwelten". <b>Structure over Geometry</b> (You, Jang, Mo, Jung, 2026-09) finds which samples are related converges, metric distances much less.</p>
+    </div>
+    <figure class="lab" id="lab-prh">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Two models, one world: measure the alignment</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-prh" class="pick" aria-label="Two scatter plots, the embeddings of the same items by model A and model B projected to two dimensions, colored by category, with one query item's nearest neighbours ringed. Below, alignment as a function of gallery size."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span>click a point to query it</span><span><i style="background:var(--why)"></i>neighbour in both models</span><span><i style="background:var(--line-strong)"></i>neighbour in one model only</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="pr-a">Shared world</label><output for="pr-a"></output></div>
+            <input type="range" id="pr-a" min="0" max="1" step="0.05" value="0.85">
+            <span class="hint">How much of model B's input is the same latent world as A's. The rest is B's private nuisance.</span></div>
+          <div class="ctrl"><div class="row"><label for="pr-noise">Model noise</label><output for="pr-noise"></output></div>
+            <input type="range" id="pr-noise" min="0" max="1" step="0.05" value="0.3">
+            <span class="hint">Idiosyncratic detail each model adds. Lower ≈ a better model.</span></div>
+          <div class="ctrl"><div class="row"><label for="pr-n">Gallery size N</label><output for="pr-n"></output></div>
+            <input type="range" id="pr-n" min="50" max="800" step="50" value="200"></div>
+          <div class="ctrl"><div class="row"><label for="pr-k">Neighbours k</label><output for="pr-k"></output></div>
+            <input type="range" id="pr-k" min="3" max="30" step="1" value="10"></div>
+          <div class="btns"><button type="button" id="pr-new">New models</button></div>
+          <dl class="readout">
+            <dt>mKNN alignment</dt><dd id="pr-r-m" class="hot">–</dd>
+            <dt>chance level</dt><dd id="pr-r-c">–</dd>
+            <dt>linear CKA (global)</dt><dd id="pr-r-cka">–</dd>
+            <dt>query overlap</dt><dd id="pr-r-q">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Each model is a different random two-layer network applied to the same latent world (6 categories, 3 hidden factors), plus its own noise. The two scatter plots look nothing alike, yet alignment is far above chance: the neighbourhoods agree even when the coordinates do not.</li>
+        <li>Grow the gallery N with the noise fixed: alignment falls (bottom curve). With more items, each neighbourhood gets finer and the fine structure is where models disagree. This is the "Plato's Cave" effect in miniature.</li>
+        <li>Slide shared world to 0: alignment drops to near chance. Convergence needs a common world in the inputs; PRH is a claim about the data as much as about the models. And it is blind to FER by construction: the two face networks in lab 1 produce identical pixels, so any similarity measured on their outputs is perfect while their insides differ.</li>
+      </ul></div>
+    </figure>
+    <div class="prose">
+      <p><b>So are PRH and FER enemies?</b> They look opposed (FER cites PRH as an example of optimism) but measure different things. PRH reads the kernel: who is near whom in the final embedding. FER is about how the computation is organised: whether a concept is computed once and whether separate concepts can be changed separately. PRH's evidence comes from dense data; FER worries about the sparse frontier. The 2026 critiques, which find only local and relational agreement, leave exactly the room underneath that FER predicts. Kumar's November 2025 talk title, "Towards a Platonic Intelligence with Unified Factored Representations", reads them as complementary: PRH says where representations head, UFR says what quality a truly good one should have (that reading comes from the title only). Isola is Kumar's advisor; this is one lab's two questions, not two camps.</p>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 6: path ============ -->
+  <section class="beat" id="path">
+    <header>
+      <span class="num">Beat 6</span>
+      <h2><span class="w">Why</span> would the order of learning shape what is learned?</h2>
+      <p class="short">Because whatever is learned first becomes a building block, and later learning is cheapest when it reuses existing blocks. Learn symmetry first and every feature is built on it. Go straight for the finished target and nothing is ever forced to become a shared piece.</p>
+    </header>
+    <div class="prose">
+      <p>The FER paper puts it bluntly: "the order in which a concept is learned is fundamental to the representation eventually achieved". It is the <b>stepping stones</b> idea from Stanley and Lehman's <em>Why Greatness Cannot Be Planned</em> (2015) moved inside a network. The paper floats mitigations without testing them: grokking-style cleanup, modified SGD, mixture-of-experts or pruning, and open-ended search (novelty search, MAP-Elites, POET), for which nobody knows a way to pair with SGD at scale.</p>
+      <p>Outside FER, path dependence is now well documented for small systems and for fine-tuning, and suggestive for pretraining:</p>
+      <ul>
+        <li><b>Structure first.</b> Kumar and colleagues' 2026 NCA pre-pre-training: 164M tokens of neural-cellular-automaton dynamics before language beat 1.6B tokens of real C4 text, with the transferable benefit carried by attention layers. The best NCA complexity depended on the target domain.</li>
+        <li><b>Procedures first.</b> Laura Ruis (MLST 2025-01): LLM maths reasoning draws on documents that demonstrate procedures, spread across many sources, while facts come from specific documents.</li>
+        <li><b>Update rule matters.</b> Lampinen et al. (2025): from the same data, in-context learning generalizes more flexibly than fine-tuning (reversals, syllogisms). RL's Razor (MIT 2025): on-policy RL forgets less than supervised fine-tuning, because it finds solutions closest in KL to what the model already does.</li>
+        <li><b>Late cleanup.</b> Grokking (<a href="generalize.html#grok">chapter 06</a>): weight decay replaces memorization with a compact algorithm long after training accuracy saturates.</li>
+      </ul>
+    </div>
+    <div class="prose"><p class="small muted">Kumar's papers, read as one programme ("can we get the benefits of open-ended, evolution-like processes inside deep learning?"):</p></div>
+    <div class="prog">
+      <a href="https://arxiv.org/abs/2412.17799"><span class="d">2024-12</span><span><b>ASAL</b> · foundation models search artificial-life simulators; Conway's Life ranks in the top 5% of 2¹⁸ life-like rules.</span></a>
+      <a href="https://arxiv.org/abs/2505.11581"><span class="d">2025-05</span><span><b>FER</b> · does the path of learning decide the quality of the inside?</span></a>
+      <a href="https://arxiv.org/abs/2601.03335"><span class="d">2026-01</span><span><b>Digital Red Queen</b> · LLM-driven evolution in Core War; behaviour converges across 96 runs while code stays diverse.</span></a>
+      <a href="https://arxiv.org/abs/2603.10055"><span class="d">2026-03</span><span><b>NCA pre-pre-training</b> · structure, not human text, as the first thing a language model learns.</span></a>
+      <a href="https://arxiv.org/abs/2605.23908"><span class="d">2026-05</span><span><b>AI Picbreeder</b> · which ingredients of human open-ended search can a VLM replace? (GECCO best paper)</span></a>
+      <a href="https://arxiv.org/abs/2605.22817"><span class="d">2026-05</span><span><b>Vector Policy Optimization</b> · quality-diversity inside GRPO, against RL's diversity collapse.</span></a>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 7: implications ============ -->
+  <section class="beat" id="next">
+    <header>
+      <span class="num">Beat 7</span>
+      <h2>What does a fractured inside change for JEPA, interpretability and open-endedness?</h2>
+      <p class="short">It adds a question every field had skipped: not just "does it predict well" or "does it agree with other models", but "is each capability computed once, and can it be changed on its own?" Each field has a ready-made tool to ask it.</p>
+    </header>
+    <div class="compare">
+      <div><span class="k">JEPA</span><h4>Isotropic is not factored</h4><p>LeJEPA's SIGReg pushes embeddings toward an isotropic Gaussian, a global property of the output distribution (<a href="gaussian.html">chapter 05</a>). It says nothing about modular reuse inside the encoder. FER's weight sweeps could test whether JEPA encoders are more UFR-like than pixel-reconstruction or contrastive ones. No paper has done it.</p></div>
+      <div><span class="k">Interpretability</span><h4>Feature splitting looks like fracture</h4><p>Sparse autoencoders try to recover factored directions from entangled neurons. A concept split across many SAE latents (feature splitting, absorption) is FER-like fracture seen from the inside (<a href="interp.html">chapter 08</a>). Shai et al.'s orthogonal factor subspaces are interpretability evidence <em>against</em> universal FER.</p></div>
+      <div><span class="k">Open-endedness</span><h4>Why the path is worth searching</h4><p>FER is the argument that open-ended search matters for <em>representations</em>, not only for finding artifacts (<a href="open.html">chapter 14</a>). Neural Thickets (Gan &amp; Isola, ICML 2026) adds a twist: random perturbations of large pretrained models are often already task experts, so evolution-style search on top of SGD pretraining is viable.</p></div>
+    </div>
+    <aside class="aside ours"><span class="k">This project</span>Two laptop-sized experiments from the landscape notes. <b>(1)</b> Take the ViT-Tiny checkpoints already trained with SIGReg, VICReg and EMA and measure, with no new training, FER-style weight sweeps, Shai et al.'s orthogonal-subspace test, calibrated mKNN against DINO, and the quantization loss already being measured: does isotropy predict factorization, and does either predict quantization robustness? <b>(2)</b> Replicate the skull from <a href="https://github.com/akarshkumar0101/fer">akarshkumar0101/fer</a>, train the SGD version far longer under weight decay, and check whether symmetry moves into early layers. Minutes per run on CPU.</aside>
+  </section>
+
+  <section class="remember">
+    <h2>Three things to <span class="w">remember</span></h2>
+    <ol>
+      <li><b>Same output, different program.</b>A loss sees only what comes out. Two networks can draw the same skull, one with symmetry computed once and reused, one as a patchwork.</li>
+      <li><b>Nudge a weight to see the inside.</b>In a unified, factored network one knob moves one part. In a fractured one every nudge smears everything.</li>
+      <li><b>Agreeing on neighbours is not agreeing on how.</b>Models converge on which things are related, locally. That says nothing about whether their insides are organised well.</li>
+    </ol>
+  </section>
+
+  <section id="quiz"></section>
+
+  <section class="sources">
+    <h2>Sources for this chapter</h2>
+    <ol>
+      <li>Kumar, Clune, Lehman, Stanley, <a href="https://arxiv.org/abs/2505.11581">Questioning Representational Optimism in Deep Learning: The Fractured Entangled Representation Hypothesis</a>, 2025. Code: <a href="https://github.com/akarshkumar0101/fer">github.com/akarshkumar0101/fer</a>.</li>
+      <li>MLST, <a href="https://www.youtube.com/watch?v=KKUKikuV58o">The Fractured Entangled Representation Hypothesis (Kenneth Stanley, Akarsh Kumar)</a>, 2025-07-06; Jim Rutt Show <a href="https://jimrutt.substack.com/p/ep-316-ken-stanley-on-the-ai-representation-f41">EP 316</a>, 2025-08-08.</li>
+      <li>Shai et al., <a href="https://arxiv.org/abs/2602.02385">Transformers learn factored representations</a>, 2026.</li>
+      <li>Earle, …, Kumar et al., <a href="https://arxiv.org/abs/2605.23908">AI Picbreeder</a>, 2026 (GECCO best paper).</li>
+      <li>Huh, Cheung, Wang, Isola, <a href="https://arxiv.org/abs/2405.07987">The Platonic Representation Hypothesis</a>, ICML 2024.</li>
+      <li>Gröger, Wen, Brbić, <a href="https://arxiv.org/abs/2602.14486">Revisiting the Platonic Representation Hypothesis: An Aristotelian View</a>, ICML 2026.</li>
+      <li>Koepke, Zverev, Ginosar, Efros, <a href="https://arxiv.org/abs/2604.18572">Back into Plato's Cave</a>, 2026.</li>
+      <li>You, Jang, Mo, Jung, <a href="https://arxiv.org/abs/2609.27252">What Converges in the Platonic Representation Hypothesis? Structure over Geometry</a>, 2026.</li>
+      <li>Jha, Zhang, Shmatikov, Morris, <a href="https://arxiv.org/abs/2505.12540">Harnessing the Universal Geometry of Embeddings (vec2vec)</a>, 2025 <span class="pill bad">check</span>; Wang, Isola, Cheung, <a href="https://arxiv.org/abs/2510.02425">Words That Make Language Models Perceive</a>, 2025; <a href="https://arxiv.org/abs/2508.10104">DINOv3</a>, 2025 <span class="pill bad">check</span>; <a href="https://arxiv.org/abs/2504.01017">Web-SSL</a>, 2025 <span class="pill bad">check</span>.</li>
+      <li>Gan &amp; Isola, <a href="https://arxiv.org/abs/2603.12228">Neural Thickets</a>, ICML 2026.</li>
+      <li>Lee, Han, Kumar, Agrawal, <a href="https://arxiv.org/abs/2603.10055">Training Language Models via Neural Cellular Automata</a>, 2026; Lampinen et al., <a href="https://arxiv.org/abs/2505.00661">On the generalization of language models from in-context learning and finetuning</a>, 2025; <a href="https://arxiv.org/abs/2509.04259">RL's Razor</a>, 2025.</li>
+      <li>Stanley, Compositional pattern producing networks (2007); Secretan et al., Picbreeder (2008); Huizinga, Stanley, Clune, The emergence of canalization and evolvability in an open-ended, interactive evolutionary system, Artificial Life 2018; Stanley &amp; Lehman, <em>Why Greatness Cannot Be Planned</em>, 2015. Background, not re-checked in the project dossiers.</li>
+      <li>Kumar, "Towards a Platonic Intelligence with Unified Factored Representations", <a href="https://www.youtube.com/watch?v=1mXUFweWOug">talk at the Platonic Space Symposium</a>, 2025-11 (title only).</li>
+      <li>Project notes: <code>landscape/ai-landscape-why.md</code> (sections 2, 4, Q2, Q4, 9) and <code>landscape/sources/akarsh-kumar-and-open-endedness.md</code>. Interactive map: <a href="why-atlas.html">Why Atlas</a>. Backprop basics: <a href="../index.html">Build ML From Scratch</a>.</li>
+    </ol>
+  </section>
+
+  <nav id="pager"></nav>
+</main>
+<footer id="site-footer"></footer>
+
+<script src="assets/atlas.js"></script>
+<script>
+(function(){
+"use strict";
+const A = window.Atlas;
+
+/* =====================================================================
+   CPPN core: a NEAT-style genome (Mode A) and a dense MLP trained by SGD (Mode B)
+   ===================================================================== */
+const ACT = { sin:Math.sin, gauss:x=>Math.exp(-x*x), tanh:Math.tanh };
+const ACTS = ["sin","gauss","tanh"];
+const SYM_T = .95;
+
+function grid(S){ // inputs x, y, d for an S×S image, neuron-major
+  const N=S*S, X=new Float64Array(3*N);
+  for(let j=0;j<S;j++) for(let i=0;i<S;i++){ const x=(i+.5)/S*2-1, y=(j+.5)/S*2-1, k=j*S+i; X[k]=x; X[N+k]=y; X[2*N+k]=Math.sqrt(x*x+y*y)*1.4; }
+  return X;
+}
+const GRIDS = {}; const G = S => GRIDS[S] || (GRIDS[S] = grid(S));
+
+/* ---------- genome ---------- */
+function seedGenome(){
+  const nodes=[{id:0,kind:"in",name:"x"},{id:1,kind:"in",name:"y"},{id:2,kind:"in",name:"d"},{id:3,kind:"in",name:"bias"},{id:4,kind:"out",act:"tanh",name:"out"}];
+  const conns=[]; let nid=5;
+  const h=(act,name)=>{ nodes.push({id:nid,kind:"h",act,name}); return nid++; }, c=(a,b,w)=>conns.push({a,b,w});
+  const sym=h("gauss","sym");   c(0,sym,3.0);                         // left-right symmetry, built once
+  const head=h("gauss","head"); c(2,head,1.5); c(1,head,.35);
+  const ex=h("gauss","eyeX");   c(sym,ex,6.0); c(3,ex,-2.6);          // reads sym, never x
+  const ey=h("gauss","eyeY");   c(1,ey,5.0); c(3,ey,.9);
+  const eye=h("tanh","eye");    c(ex,eye,4); c(ey,eye,4); c(3,eye,-5.6);
+  const mx=h("gauss","mouthX"); c(sym,mx,-2.2); c(3,mx,2.2);
+  const my=h("gauss","mouthY"); c(1,my,7.0); c(3,my,-2.6);
+  const mouth=h("tanh","mouth"); c(mx,mouth,4); c(my,mouth,4); c(3,mouth,-6.0);
+  const tex=h("sin","texture"); c(sym,tex,5.0); c(1,tex,4.0);
+  c(head,4,5.0); c(eye,4,-2.6); c(mouth,4,-2.2); c(tex,4,.9); c(3,4,-6.4);
+  return {nodes, conns, next:nid};
+}
+const clone = g => ({nodes:g.nodes.map(n=>({...n})), conns:g.conns.map(c=>({...c})), next:g.next});
+function topo(g){
+  const indeg=new Map(), out=new Map(); g.nodes.forEach(n=>{ indeg.set(n.id,0); out.set(n.id,[]); });
+  g.conns.forEach(c=>{ indeg.set(c.b, indeg.get(c.b)+1); out.get(c.a).push(c.b); });
+  const q=g.nodes.filter(n=>indeg.get(n.id)===0).map(n=>n.id), ord=[];
+  while(q.length){ const i=q.shift(); ord.push(i); for(const j of out.get(i)){ indeg.set(j, indeg.get(j)-1); if(!indeg.get(j)) q.push(j); } }
+  return ord;
+}
+/* render: returns {out: S*S in [0,1], val: Map id→map} */
+function renderG(g, S){
+  const N=S*S, X=G(S), ord=topo(g), byId=new Map(g.nodes.map(n=>[n.id,n])), inc=new Map();
+  g.nodes.forEach(n=>inc.set(n.id,[])); g.conns.forEach(c=>inc.get(c.b).push(c));
+  const val=new Map();
+  val.set(0,X.subarray(0,N)); val.set(1,X.subarray(N,2*N)); val.set(2,X.subarray(2*N,3*N)); val.set(3,new Float64Array(N).fill(1));
+  for(const id of ord){ const n=byId.get(id); if(n.kind==="in") continue;
+    const v=new Float64Array(N), cs=inc.get(id), f=ACT[n.act];
+    for(const c of cs){ const s=val.get(c.a), w=c.w; for(let k=0;k<N;k++) v[k]+=w*s[k]; }
+    for(let k=0;k<N;k++) v[k]=f(v[k]); val.set(id,v); }
+  const o=val.get(4), out=new Float64Array(N); for(let k=0;k<N;k++) out[k]=(o[k]+1)/2;
+  return {out, val};
+}
+function mutate(g, r, str){
+  const c = clone(g), hid = c.nodes.filter(n=>n.kind==="h");
+  const nw = 1+Math.floor(r()*2);
+  for(let i=0;i<nw;i++){ const k=c.conns[Math.floor(r()*c.conns.length)]; k.w += r.normal()*str; }
+  if(r()<.22){ // add node: split a link
+    const k=c.conns[Math.floor(r()*c.conns.length)], id=c.next++, act=ACTS[Math.floor(r()*3)];
+    c.nodes.push({id,kind:"h",act,name:"n"+id}); c.conns.push({a:k.a,b:id,w:1.2},{a:id,b:k.b,w:k.w*.8}); k.w*=.2;
+  }
+  if(r()<.25){ // add link, no cycles
+    const ord=topo(c), pos=new Map(ord.map((id,i)=>[id,i]));
+    const src=c.nodes.filter(n=>n.kind!=="out"), dst=c.nodes.filter(n=>n.kind!=="in");
+    for(let t=0;t<12;t++){ const a=src[Math.floor(r()*src.length)].id, b=dst[Math.floor(r()*dst.length)].id;
+      if(pos.get(a)<pos.get(b) && !c.conns.some(k=>k.a===a&&k.b===b)){ c.conns.push({a,b,w:r.normal()*1.5}); break; } }
+  }
+  if(r()<.1 && hid.length){ const n=c.nodes.filter(n=>n.kind==="h")[Math.floor(r()*hid.length)]; n.act=ACTS[Math.floor(r()*3)]; }
+  return c;
+}
+
+/* ---------- symmetry of a map: correlation with its left-right mirror ---------- */
+function symScore(m, S){
+  let mean=0; const N=S*S; for(let k=0;k<N;k++) mean+=m[k]; mean/=N;
+  let num=0, den=0;
+  for(let j=0;j<S;j++) for(let i=0;i<S;i++){ const a=m[j*S+i]-mean, b=m[j*S+(S-1-i)]-mean; num+=a*b; den+=a*a; }
+  return den<1e-8 ? 1 : num/den;
+}
+
+/* ---------- SGD MLP over (x, y, d) ---------- */
+const LAY=[3,8,8,8,1];
+function makeNet(seed){
+  const r=A.rng(seed), W=[], B=[], act=[];
+  for(let l=1;l<LAY.length;l++){ const n=LAY[l], m=LAY[l-1];
+    W.push(Float64Array.from({length:n*m},()=>r.normal()*1.6/Math.sqrt(m))); B.push(Float64Array.from({length:n},()=>r.normal()*.3));
+    act.push(Array.from({length:n},(_,i)=> l===LAY.length-1 ? "tanh" : ACTS[(i+l)%3])); }
+  return {W,B,act,M:[...W,...B].map(p=>new Float64Array(p.length)),V:[...W,...B].map(p=>new Float64Array(p.length)),t:0,step:0,mse:NaN,seed};
+}
+function forwardNet(net, S, Wover){
+  const N=S*S, W=Wover||net.W; let a=G(S); const As=[a], Zs=[];
+  for(let l=0;l<W.length;l++){ const n=LAY[l+1], m=LAY[l], Z=new Float64Array(n*N), O=new Float64Array(n*N);
+    for(let i=0;i<n;i++){ const off=i*N, b=net.B[l][i];
+      for(let p=0;p<N;p++) Z[off+p]=b;
+      for(let k=0;k<m;k++){ const w=W[l][i*m+k], ko=k*N; if(!w) continue; for(let p=0;p<N;p++) Z[off+p]+=w*a[ko+p]; }
+      const f=ACT[net.act[l][i]]; for(let p=0;p<N;p++) O[off+p]=f(Z[off+p]); }
+    Zs.push(Z); As.push(O); a=O; }
+  return {As, Zs};
+}
+const TS = 40; // training resolution
+function trainStep(net, target){
+  const N=TS*TS, {As,Zs}=forwardNet(net,TS), L=net.W.length;
+  const out=As[L]; let d=new Float64Array(N), mse=0;
+  for(let p=0;p<N;p++){ const e=(out[p]+1)/2-target[p]; mse+=e*e; d[p]=e/N; }  // d/d(out_tanh) of mean sq err (×½·2)
+  net.mse=mse/N;
+  const gW=net.W.map(w=>new Float64Array(w.length)), gB=net.B.map(b=>new Float64Array(b.length));
+  for(let l=L-1;l>=0;l--){ const n=LAY[l+1], m=LAY[l], a=As[l], Z=Zs[l], O=As[l+1], dn = l>0 ? new Float64Array(m*N) : null;
+    for(let i=0;i<n;i++){ const off=i*N, ac=net.act[l][i];
+      const dz=new Float64Array(N);
+      if(ac==="sin") for(let p=0;p<N;p++) dz[p]=d[off+p]*Math.cos(Z[off+p]);
+      else if(ac==="gauss") for(let p=0;p<N;p++) dz[p]=d[off+p]*(-2*Z[off+p]*O[off+p]);
+      else for(let p=0;p<N;p++) dz[p]=d[off+p]*(1-O[off+p]*O[off+p]);
+      let sb=0; for(let p=0;p<N;p++) sb+=dz[p]; gB[l][i]=sb;
+      for(let k=0;k<m;k++){ const ko=k*N; let s=0; for(let p=0;p<N;p++) s+=dz[p]*a[ko+p]; gW[l][i*m+k]=s;
+        if(dn){ const w=net.W[l][i*m+k]; for(let p=0;p<N;p++) dn[ko+p]+=w*dz[p]; } } }
+    d=dn; }
+  net.t++; net.step++; const lr=.012, c1=1-Math.pow(.9,net.t), c2=1-Math.pow(.999,net.t), P=[...net.W,...net.B], Gr=[...gW,...gB];
+  for(let q=0;q<P.length;q++){ const p=P[q], g=Gr[q], M=net.M[q], V=net.V[q];
+    for(let i=0;i<p.length;i++){ M[i]=.9*M[i]+.1*g[i]; V[i]=.999*V[i]+.001*g[i]*g[i]; p[i]-=lr*(M[i]/c1)/(Math.sqrt(V[i]/c2)+1e-8); } }
+}
+
+/* ---------- shared state ---------- */
+const S = {
+  parent: seedGenome(), history: [], children: [], gen: 0, mut: .8, childSeed: 1,
+  net: makeNet(11), target: null, version: 0, running: !A.reduced, MAXSTEP: 3000,
+  listeners: [],
+};
+S.setParent = g => { S.parent = g; S.target = renderG(g, TS).out; S.net = makeNet(S.net.seed); S.version++; S.listeners.forEach(f=>f()); };
+S.target = renderG(S.parent, TS).out;
+S.trainFor = ms => { const t0=performance.now(); let did=0; while(S.net.step<S.MAXSTEP && performance.now()-t0<ms){ trainStep(S.net,S.target); did++; } return did; };
+
+/* ---------- drawing helpers ---------- */
+function mapToCanvas(m, S0, norm){
+  const c=document.createElement("canvas"); c.width=c.height=S0; const cx=c.getContext("2d"), im=cx.createImageData(S0,S0);
+  let lo=0, hi=1; if(norm){ lo=Infinity; hi=-Infinity; for(const v of m){ if(v<lo) lo=v; if(v>hi) hi=v; } if(hi-lo<1e-6){ hi=lo+1; } }
+  for(let k=0;k<S0*S0;k++){ const v=Math.max(0,Math.min(1,(m[k]-lo)/(hi-lo)))*255; im.data[4*k]=v; im.data[4*k+1]=v; im.data[4*k+2]=v; im.data[4*k+3]=255; }
+  cx.putImageData(im,0,0); return c;
+}
+function blit(ctx, src, x, y, s, smooth){ ctx.imageSmoothingEnabled = !!smooth; ctx.drawImage(src, x, y, s, s); }
+
+/* =================== LAB 1: breed + SGD side by side =================== */
+(function(){
+  const cvB = document.getElementById("cv-breed"), cvP = document.getElementById("cv-pair");
+  const RES = 56, MAPRES = 32;
+  let tiles = [];
+  function makeChildren(){
+    const r = A.rng(S.childSeed*7907+S.gen*31+3);
+    S.children = Array.from({length:8}, ()=>mutate(S.parent, r, S.mut));
+    tiles = [S.parent, ...S.children].map(g=>mapToCanvas(renderG(g,RES).out, RES, false));
+  }
+  const vB = A.canvas(cvB, w => w<560 ? 1.0 : .135, drawB);
+  let boxes = [];
+  function drawB(){
+    const {ctx,w,h} = vB, C = A.colors(); ctx.clearRect(0,0,w,h); boxes=[];
+    const narrow = w<560, cols = narrow ? 3 : 9, gap = 6, top = 16;
+    const s = Math.min((w-gap*(cols-1))/cols, narrow ? (h-top-2*gap)/3 : h-top-2);
+    tiles.forEach((t,i)=>{ const cx=i%cols, cy=Math.floor(i/cols), x=cx*(s+gap), y=top+cy*(s+gap);
+      blit(ctx, t, x, y, s, true); ctx.strokeStyle = i===0 ? C.why : C.line; ctx.lineWidth = i===0 ? 3 : 1; ctx.strokeRect(x+.5,y+.5,s-1,s-1);
+      boxes.push({x,y,s,i}); });
+    ctx.fillStyle=C.muted; ctx.font=`600 11.5px ${C.ui}`; ctx.fillText(`Parent (gen ${S.gen})  ·  8 mutated children: click one`, 0, 11);
+  }
+  cvB.addEventListener("click", e=>{
+    const r = cvB.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
+    const b = boxes.find(b=>mx>=b.x&&mx<=b.x+b.s&&my>=b.y&&my<=b.y+b.s); if(!b || b.i===0) return;
+    S.history.push(S.parent); S.gen++; S.setParent(S.children[b.i-1]); makeChildren(); vB.redraw(); vP.redraw(); start();
+  });
+
+  const vP = A.canvas(cvP, w => w<560 ? 1.72 : .5, drawP);
+  let evoCache = null, evoVer = -1;
+  function evoData(){
+    if(evoVer===S.version) return evoCache;
+    const {out,val} = renderG(S.parent, MAPRES);
+    const ord = topo(S.parent).filter(id=>S.parent.nodes.find(n=>n.id===id).kind==="h");
+    const maps = ord.map(id=>{ const n=S.parent.nodes.find(q=>q.id===id), m=val.get(id); return {name:n.name, act:n.act, img:mapToCanvas(m,MAPRES,true), sym:symScore(m,MAPRES)}; });
+    evoCache = {img:mapToCanvas(renderG(S.parent,RES*2).out,RES*2,false), maps, osym:symScore(out,MAPRES)}; evoVer=S.version; return evoCache;
+  }
+  function sgdData(){
+    const {As} = forwardNet(S.net, MAPRES), N=MAPRES*MAPRES, maps=[];
+    for(let l=1;l<=3;l++) for(let i=0;i<8;i++){ const m=As[l].subarray(i*N,(i+1)*N); maps.push({name:`L${l}·${i+1}`, act:S.net.act[l-1][i], img:mapToCanvas(m,MAPRES,true), sym:symScore(m,MAPRES)}); }
+    const big = forwardNet(S.net, RES*2).As[4], out = new Float64Array(big.length); for(let k=0;k<big.length;k++) out[k]=(big[k]+1)/2;
+    return {img:mapToCanvas(out,RES*2,false), maps};
+  }
+  function drawP(){
+    const {ctx,w,h} = vP, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const narrow = w<560, E = evoData(), Sg = sgdData();
+    const colW = narrow ? w : (w-24)/2;
+    const blocks = narrow ? [[0,0],[0,h/2+6]] : [[0,0],[colW+24,0]];
+    const blockH = narrow ? h/2-6 : h;
+    [[E,"Evolved (Picbreeder-style)",`${S.parent.nodes.filter(n=>n.kind==="h").length} hidden nodes, reached by selection`],
+     [Sg,"SGD (dense 3 × 8 MLP)",`step ${S.net.step.toLocaleString()} · same target image`]].forEach(([D,t,sub],bi)=>{
+      const [ox,oy] = blocks[bi];
+      ctx.fillStyle=C.ink; ctx.font=`700 13px ${C.ui}`; ctx.fillText(t, ox, oy+13);
+      ctx.fillStyle=C.muted; ctx.font=`11px ${C.ui}`; ctx.fillText(sub, ox, oy+28);
+      const big = Math.min(colW*.36, blockH*.42), by = oy+38;
+      blit(ctx, D.img, ox, by, big, true); ctx.strokeStyle=C.lineStrong; ctx.lineWidth=1; ctx.strokeRect(ox+.5,by+.5,big-1,big-1);
+      ctx.fillStyle=C.muted; ctx.font=`600 11px ${C.ui}`; ctx.fillText("output", ox+big+10, by+12);
+      ctx.font=`11px ${C.ui}`;
+      const nsym = D.maps.filter(m=>m.sym>SYM_T).length;
+      ctx.fillStyle=C.ink; ctx.font=`600 22px ${C.ui}`; ctx.fillText(`${nsym}/${D.maps.length}`, ox+big+10, by+44);
+      ctx.fillStyle=C.muted; ctx.font=`11px ${C.ui}`; ctx.fillText("hidden maps symmetric", ox+big+10, by+60);
+      // grid
+      const cols = 8, gy = by+big+22, gap=4, cell = Math.min((colW-gap*(cols-1))/cols, (oy+blockH-gy-4)/Math.max(1,Math.ceil(D.maps.length/cols)) - 12);
+      ctx.fillStyle=C.muted; ctx.font=`600 11px ${C.ui}`; ctx.fillText(bi===0 ? "hidden nodes, in build order" : "hidden neurons: layer 1, 2, 3", ox, gy-7);
+      D.maps.forEach((m,i)=>{ const x=ox+(i%cols)*(cell+gap), y=gy+Math.floor(i/cols)*(cell+12);
+        if(y+cell>oy+blockH+2) return;
+        blit(ctx, m.img, x, y, cell, true);
+        ctx.strokeStyle = m.sym>SYM_T ? C.good : C.bad; ctx.lineWidth=2; ctx.strokeRect(x+1,y+1,cell-2,cell-2);
+        if(cell>34){ ctx.fillStyle=C.muted; ctx.font=`9.5px ${C.mono}`; ctx.fillText(m.name.slice(0,8), x, y+cell+9); }
+      });
+    });
+    document.getElementById("cp-r-gen").textContent = S.gen;
+    document.getElementById("cp-r-size").textContent = `${S.parent.nodes.filter(n=>n.kind==="h").length} · ${S.parent.conns.length}`;
+    document.getElementById("cp-r-step").textContent = S.net.step.toLocaleString();
+    document.getElementById("cp-r-mse").textContent = isFinite(S.net.mse) ? S.net.mse.toFixed(4) : "–";
+    document.getElementById("cp-r-se").textContent = `${E.maps.filter(m=>m.sym>SYM_T).length} / ${E.maps.length}`;
+    document.getElementById("cp-r-ss").textContent = `${Sg.maps.filter(m=>m.sym>SYM_T).length} / ${Sg.maps.length}`;
+  }
+  let frame = 0;
+  const anim = A.loop(cvP, ()=>{
+    if(!S.running) return false;
+    S.trainFor(18); frame++;
+    if(frame%3===0 || S.net.step>=S.MAXSTEP) vP.redraw();
+    if(S.net.step>=S.MAXSTEP){ S.listeners.forEach(f=>f()); setBtn(); return false; }
+  });
+  const btn = document.getElementById("cp-train");
+  const setBtn = ()=>{ btn.textContent = S.net.step>=S.MAXSTEP ? "Done" : S.running ? "Pause" : "Train"; };
+  function start(){ if(S.running) anim.start(); setBtn(); }
+  btn.onclick = ()=>{ if(S.net.step>=S.MAXSTEP) return; S.running=!S.running; setBtn(); if(S.running) anim.start(); };
+  document.getElementById("cp-init").onclick = ()=>{ S.net = makeNet(S.net.seed+17); S.version++; S.running=true; vP.redraw(); start(); S.listeners.forEach(f=>f()); };
+  document.getElementById("cp-back").onclick = ()=>{ if(!S.history.length) return; S.gen--; S.setParent(S.history.pop()); makeChildren(); vB.redraw(); vP.redraw(); start(); };
+  document.getElementById("cp-new").onclick = ()=>{ S.childSeed++; makeChildren(); vB.redraw(); };
+  document.getElementById("cp-seed").onclick = ()=>{ S.history=[]; S.gen=0; S.setParent(seedGenome()); makeChildren(); vB.redraw(); vP.redraw(); start(); };
+  A.slider("cp-mut", v=>{ S.mut=v; if(tiles.length){ makeChildren(); vB.redraw(); } }, v=>v.toFixed(1));
+  S.redrawPair = ()=>vP.redraw();
+  makeChildren(); vB.redraw(); vP.redraw(); start();
+})();
+
+/* =================== LAB 2: perturb one weight =================== */
+(function(){
+  const cv = document.getElementById("cv-nudge"), R = 40;
+  let which = "evo", wi = 12, delta = 1.2, stats = null, statsKey = "";
+  // list weights of the current network
+  function evoWeights(){ const g=S.parent, name=id=>g.nodes.find(n=>n.id===id).name; return g.conns.map((c,i)=>({i, label:`${name(c.a)} → ${name(c.b)}`})); }
+  function sgdWeights(){ const out=[]; S.net.W.forEach((W,l)=>{ const m=LAY[l]; for(let i=0;i<W.length;i++) out.push({l,i,label:`L${l}: ${l===0?["x","y","d"][i%m]:"n"+(i%m+1)} → ${l===3?"out":"n"+(Math.floor(i/m)+1)}`}); }); return out; }
+  const list = () => which==="evo" ? evoWeights() : sgdWeights();
+  function imgWith(kind, idx, dv, res){
+    if(kind==="evo"){ const g=clone(S.parent); if(idx>=0) g.conns[idx].w+=dv; return renderG(g,res).out; }
+    const W = S.net.W.map(w=>Float64Array.from(w)); if(idx>=0){ const ws=sgdWeights()[idx]; W[ws.l][ws.i]+=dv; }
+    const o = forwardNet(S.net,res,W).As[4], out=new Float64Array(o.length); for(let k=0;k<o.length;k++) out[k]=(o[k]+1)/2; return out;
+  }
+  const changed = (a,b) => { let c=0; for(let k=0;k<a.length;k++) if(Math.abs(a[k]-b[k])>.08) c++; return c/a.length; };
+  function computeStats(){
+    const key = `${S.version}|${S.net.step>=S.MAXSTEP}`;
+    if(key===statsKey) return; statsKey = key;
+    const res = 28, one = kind => { const base=imgWith(kind,-1,0,res), n = kind==="evo" ? S.parent.conns.length : sgdWeights().length; let safe=0, area=0, cnt=0;
+      for(let i=0;i<n;i++) for(const dv of [-1,1]){ const im=imgWith(kind,i,dv,res); if(symScore(im,res)>.98) safe++; area+=changed(base,im); cnt++; }
+      return {safe:safe/cnt, area:area/cnt}; };
+    stats = {evo:one("evo"), sgd: S.net.step>=S.MAXSTEP*.5 ? one("sgd") : null};
+  }
+  const BIG = w => Math.min((w-24)/3, 190), CELL = w => Math.min((w-36)/7, 104);
+  const view = A.canvas(cv, w => (18+BIG(w)+30+CELL(w)+34)/w, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const L = list(); wi = Math.min(wi, L.length-1);
+    const inp = document.getElementById("nd-w"); inp.max = L.length-1; inp.value = wi;
+    document.querySelector('output[for="nd-w"]').textContent = L[wi].label;
+    const base = imgWith(which,-1,0,R), cur = imgWith(which,wi,delta,R);
+    const diff = new Float64Array(base.length); for(let k=0;k<diff.length;k++) diff[k]=Math.min(1,Math.abs(cur[k]-base[k])*2.5);
+    const big = BIG(w), titles = ["original","nudged","what changed"], ims=[base,cur,diff];
+    ims.forEach((m,i)=>{ const x=i*(big+12), y=18; ctx.fillStyle=C.muted; ctx.font=`600 11.5px ${C.ui}`; ctx.fillText(titles[i], x, 12);
+      blit(ctx, mapToCanvas(m,R,false), x, y, big, true); ctx.strokeStyle=C.lineStrong; ctx.lineWidth=1; ctx.strokeRect(x+.5,y+.5,big-1,big-1); });
+    // sweep strip
+    const n=7, cell = CELL(w), sx0 = 0, sy0 = 18+big+30;
+    ctx.fillStyle=C.muted; ctx.font=`600 11.5px ${C.ui}`; ctx.fillText("sweep this weight: Δ = −3 … +3", sx0, sy0-7);
+    for(let k=0;k<n;k++){ const dv=-3+k, x=sx0+k*(cell+6);
+      blit(ctx, mapToCanvas(imgWith(which,wi,dv,28),28,false), x, sy0, cell, true);
+      ctx.strokeStyle = Math.abs(dv-delta)<.5 ? C.why : C.line; ctx.lineWidth = Math.abs(dv-delta)<.5 ? 2.5 : 1; ctx.strokeRect(x+.5,sy0+.5,cell-1,cell-1);
+      ctx.fillStyle=C.muted; ctx.font=`10px ${C.mono}`; ctx.textAlign="center"; ctx.fillText((dv>0?"+":"")+dv, x+cell/2, sy0+cell+12); ctx.textAlign="start"; }
+    if(which==="sgd" && S.net.step<S.MAXSTEP){ ctx.fillStyle=C.why; ctx.font=`600 11.5px ${C.ui}`; ctx.fillText(`SGD net still training (step ${S.net.step})`, 0, h-4); }
+    // readouts
+    const sy = symScore(cur,R);
+    document.getElementById("nd-r-chg").textContent = Math.round(changed(base,cur)*100)+"% of pixels";
+    document.getElementById("nd-r-sym").textContent = sy>.98 ? "yes" : `no (${sy.toFixed(2)})`;
+    computeStats();
+    const pc = v=>Math.round(v*100)+"%";
+    document.getElementById("nd-r-se").textContent = pc(stats.evo.safe);
+    document.getElementById("nd-r-ae").textContent = pc(stats.evo.area);
+    document.getElementById("nd-r-ss").textContent = stats.sgd ? pc(stats.sgd.safe) : "training…";
+    document.getElementById("nd-r-as").textContent = stats.sgd ? pc(stats.sgd.area) : "training…";
+  }
+  // keep training the shared SGD net while this lab is on screen
+  const anim = A.loop(cv, ()=>{ if(S.net.step>=S.MAXSTEP) { view.redraw(); if(S.redrawPair) S.redrawPair(); return false; } S.trainFor(16); if(S.net.step%60<8) view.redraw(); });
+  S.listeners.push(()=>{ view.redraw(); if(S.net.step<S.MAXSTEP) anim.start(); });
+  const bE=document.getElementById("nd-evo"), bS=document.getElementById("nd-sgd");
+  const setW = k => { which=k; bE.setAttribute("aria-pressed",k==="evo"); bS.setAttribute("aria-pressed",k==="sgd"); wi = k==="evo" ? 12 : 30; view.redraw(); };
+  bE.onclick = ()=>setW("evo"); bS.onclick = ()=>setW("sgd");
+  A.slider("nd-w", v=>{ wi=v|0; if(stats) view.redraw(); }, v=>v);
+  A.slider("nd-d", v=>{ delta=v; if(stats) view.redraw(); }, v=>(v>0?"+":"")+v.toFixed(2));
+  document.getElementById("nd-rand").onclick = ()=>{ wi = Math.floor(Math.random()*list().length); view.redraw(); };
+  view.redraw(); anim.start();
+})();
+
+/* =================== LAB 3: mutual kNN alignment =================== */
+(function(){
+  const cv = document.getElementById("cv-prh"), NMAX = 800, D = 16, NC = 6;
+  let alpha=.85, noise=.3, N=200, k=10, seed=1, query=0;
+  let Z, U, cat, EA, EB, PA, PB;
+  function world(){
+    const r = A.rng(4242), cen = Array.from({length:NC},()=>[r.normal()*1.8,r.normal()*1.8,r.normal()*1.8]);
+    Z=[]; U=[]; cat=[];
+    for(let i=0;i<NMAX;i++){ const c=i%NC; cat.push(c); Z.push(cen[c].map(v=>v+r.normal()*.7)); U.push([r.normal()*1.5,r.normal()*1.5,r.normal()*1.5]); }
+  }
+  function randNet(r){ const W1=Array.from({length:24},()=>[r.normal(),r.normal(),r.normal()].map(v=>v*.8)), b1=Array.from({length:24},()=>r.normal()*.5),
+    W2=Array.from({length:D},()=>Array.from({length:24},()=>r.normal()/Math.sqrt(24)*1.6));
+    return x=>{ const h=W1.map((w,j)=>Math.tanh(w[0]*x[0]+w[1]*x[1]+w[2]*x[2]+b1[j])); return W2.map(w=>{ let s=0; for(let j=0;j<24;j++) s+=w[j]*h[j]; return Math.tanh(s); }); }; }
+  function models(){
+    const r = A.rng(seed*131+7), fA=randNet(r), fB=randNet(r), rn=A.rng(seed*17+3);
+    EA = Z.map(z=>fA(z).map(v=>v+noise*rn.normal()*.5));
+    EB = Z.map((z,i)=>fB(z.map((v,j)=>alpha*v+(1-alpha)*U[i][j])).map(v=>v+noise*rn.normal()*.5));
+  }
+  function knn(E, n, kk){
+    const out=[]; for(let i=0;i<n;i++){ const d=[]; for(let j=0;j<n;j++){ if(j===i) continue; let s=0; const a=E[i], b=E[j]; for(let q=0;q<D;q++){ const t=a[q]-b[q]; s+=t*t; } d.push([s,j]); }
+      d.sort((a,b)=>a[0]-b[0]); out.push(new Set(d.slice(0,kk).map(x=>x[1]))); } return out; }
+  function mknn(n, kk){ const a=knn(EA,n,kk), b=knn(EB,n,kk); let s=0; for(let i=0;i<n;i++){ let c=0; a[i].forEach(j=>{ if(b[i].has(j)) c++; }); s+=c/kk; } return {m:s/n, a, b}; }
+  function cka(n){
+    const center=E=>{ const mu=new Array(D).fill(0); for(let i=0;i<n;i++) for(let q=0;q<D;q++) mu[q]+=E[i][q]/n; return E.slice(0,n).map(v=>v.map((x,q)=>x-mu[q])); };
+    const X=center(EA), Y=center(EB), cross=(P,Q)=>{ const M=[]; for(let a=0;a<D;a++){ M.push(new Array(D).fill(0)); for(let i=0;i<n;i++) for(let b=0;b<D;b++) M[a][b]+=P[i][a]*Q[i][b]; } return M; };
+    const fro=M=>Math.sqrt(M.reduce((s,r)=>s+r.reduce((t,v)=>t+v*v,0),0));
+    return fro(cross(X,Y))**2/(fro(cross(X,X))*fro(cross(Y,Y)));
+  }
+  function pca2(E, n){
+    const mu=new Array(D).fill(0); for(let i=0;i<n;i++) for(let q=0;q<D;q++) mu[q]+=E[i][q]/n;
+    const X=E.slice(0,n).map(v=>v.map((x,q)=>x-mu[q])), C=[]; for(let a=0;a<D;a++){ C.push(new Array(D).fill(0)); for(let i=0;i<n;i++) for(let b=0;b<D;b++) C[a][b]+=X[i][a]*X[i][b]; }
+    const comps=[]; const r=A.rng(9);
+    for(let c=0;c<2;c++){ let v=Array.from({length:D},()=>r.normal());
+      for(let it=0;it<80;it++){ let u=C.map(row=>row.reduce((s,x,q)=>s+x*v[q],0)); comps.forEach(pc=>{ const d=u.reduce((s,x,q)=>s+x*pc[q],0); u=u.map((x,q)=>x-d*pc[q]); }); const nn=Math.hypot(...u)||1; v=u.map(x=>x/nn); }
+      comps.push(v); }
+    return X.map(x=>comps.map(pc=>x.reduce((s,v,q)=>s+v*pc[q],0)));
+  }
+  let res=null, curve=[];
+  function recompute(){
+    models(); res = mknn(N,k); PA=pca2(EA,N); PB=pca2(EB,N);
+    curve = [50,100,200,400,800].map(n=>({n, m:mknn(n,k).m, c:k/(n-1)}));
+    view.redraw();
+  }
+  const view = A.canvas(cv, w => w<560 ? 1.45 : .56, draw);
+  let panels=[];
+  function draw(){
+    if(!res) return;
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const narrow=w<560, cols=[C.p1,C.p2,C.p3,C.p4,C.p5,C.ink];
+    const ph = narrow ? (h*.72-30)/2 : h*.68-24, pw = narrow ? w : (w-16)/2;
+    panels = [{x:0,y:18,w:pw,h:ph,P:PA,nb:res.a,t:"Model A"},{x:narrow?0:pw+16,y:narrow?ph+44:18,w:pw,h:ph,P:PB,nb:res.b,t:"Model B"}];
+    const qa=res.a[query], qb=res.b[query];
+    panels.forEach((pn,pi)=>{
+      ctx.fillStyle=C.muted; ctx.font=`600 11.5px ${C.ui}`; ctx.fillText(`${pn.t} · its own 2-D projection`, pn.x, pn.y-6);
+      ctx.fillStyle=C.panel; ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.fillRect(pn.x,pn.y,pn.w,pn.h); ctx.strokeRect(pn.x,pn.y,pn.w,pn.h);
+      let xmin=Infinity,xmax=-Infinity,ymin=Infinity,ymax=-Infinity; pn.P.forEach(([x,y])=>{ xmin=Math.min(xmin,x); xmax=Math.max(xmax,x); ymin=Math.min(ymin,y); ymax=Math.max(ymax,y); });
+      pn.sx = x=>pn.x+8+(x-xmin)/(xmax-xmin||1)*(pn.w-16); pn.sy = y=>pn.y+8+(y-ymin)/(ymax-ymin||1)*(pn.h-16);
+      const r = N>400 ? 2 : 3;
+      pn.P.forEach(([x,y],i)=>{ ctx.globalAlpha=.75; ctx.fillStyle=cols[cat[i]]; ctx.beginPath(); ctx.arc(pn.sx(x),pn.sy(y),r,0,7); ctx.fill(); });
+      ctx.globalAlpha=1;
+      const mine = pi===0 ? qa : qb, other = pi===0 ? qb : qa;
+      mine.forEach(j=>{ const [x,y]=pn.P[j]; ctx.strokeStyle = other.has(j) ? C.why : C.lineStrong; ctx.lineWidth = other.has(j) ? 2.4 : 1.4; ctx.beginPath(); ctx.arc(pn.sx(x),pn.sy(y),r+4,0,7); ctx.stroke(); });
+      const [qx,qy]=pn.P[query]; ctx.fillStyle=C.ink; ctx.strokeStyle=C.panel; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(pn.sx(qx),pn.sy(qy),6,0,7); ctx.fill(); ctx.stroke();
+    });
+    // curve: alignment vs gallery size
+    const cy0 = narrow ? 2*ph+86 : h*.68+28, ch = h-cy0-22, cx0=34, cw=w-44;
+    ctx.fillStyle=C.muted; ctx.font=`600 11.5px ${C.ui}`; ctx.fillText(`mKNN alignment vs gallery size (k = ${k})`, 0, cy0-8);
+    ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.strokeRect(cx0,cy0,cw,ch);
+    const lx=n=>cx0+Math.log(n/50)/Math.log(16)*cw, ly=v=>cy0+ch-v*ch;
+    ctx.font=`10px ${C.mono}`; ctx.fillStyle=C.muted; [0,.5,1].forEach(v=>ctx.fillText(v.toFixed(1), 2, ly(v)+3));
+    curve.forEach(o=>{ ctx.textAlign = o.n===800 ? "right" : o.n===50 ? "left" : "center"; ctx.fillText(String(o.n), lx(o.n), cy0+ch+12); }); ctx.textAlign="start";
+    const ln=(key,col,lw,dash)=>{ ctx.setLineDash(dash||[]); ctx.strokeStyle=col; ctx.lineWidth=lw; ctx.beginPath(); curve.forEach((o,i)=>{ i?ctx.lineTo(lx(o.n),ly(o[key])):ctx.moveTo(lx(o.n),ly(o[key])); }); ctx.stroke(); ctx.setLineDash([]); };
+    ln("c", C.lineStrong, 1.4, [4,4]); ln("m", C.why, 2.4);
+    curve.forEach(o=>{ ctx.fillStyle = o.n===N ? C.why : C.panel; ctx.strokeStyle=C.why; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(lx(o.n),ly(o.m),4,0,7); ctx.fill(); ctx.stroke(); });
+    ctx.fillStyle=C.muted; ctx.font=`10.5px ${C.ui}`; ctx.fillText("dashed: chance", cx0+cw-80, ly(curve[curve.length-1].c)-6);
+    let ov=0; qa.forEach(j=>{ if(qb.has(j)) ov++; });
+    document.getElementById("pr-r-m").textContent = res.m.toFixed(3);
+    document.getElementById("pr-r-c").textContent = (k/(N-1)).toFixed(3);
+    document.getElementById("pr-r-cka").textContent = cka(N).toFixed(3);
+    document.getElementById("pr-r-q").textContent = `${ov} / ${k}`;
+  }
+  cv.addEventListener("click", e=>{ const r=cv.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
+    for(const pn of panels){ if(mx<pn.x||mx>pn.x+pn.w||my<pn.y||my>pn.y+pn.h) continue; let best=-1,bd=1e9; pn.P.forEach(([x,y],i)=>{ const d=(pn.sx(x)-mx)**2+(pn.sy(y)-my)**2; if(d<bd){bd=d;best=i;} }); if(best>=0){ query=best; view.redraw(); } } });
+  let ready=false; const re=()=>{ if(ready) recompute(); };
+  A.slider("pr-a", v=>{ alpha=v; re(); }, v=>v.toFixed(2));
+  A.slider("pr-noise", v=>{ noise=v; re(); }, v=>v.toFixed(2));
+  A.slider("pr-n", v=>{ N=v; query=Math.min(query,N-1); if(ready){ res=mknn(N,k); PA=pca2(EA,N); PB=pca2(EB,N); view.redraw(); } }, v=>v);
+  A.slider("pr-k", v=>{ k=v; re(); }, v=>v);
+  document.getElementById("pr-new").onclick = ()=>{ seed++; recompute(); };
+  world(); ready=true; recompute();
+})();
+
+/* =================== QUIZ =================== */
+A.quiz("quiz", [
+  {q:"The Picbreeder skull and the SGD skull produce the same image. Why does the FER paper still call the SGD one an \"imposter\"?",
+   options:["It uses more parameters","Its outputs are slightly blurrier","Its correct output is produced by a fractured, entangled inside: symmetry appears only at the last layer and weight sweeps give meaningless distortions","It was trained on a different image"],
+   answer:2, why:"The architecture and output match. What differs is the organisation: the evolved net computes symmetry once and reuses it, the SGD net stitches the output together from lopsided pieces."},
+  {q:"Why did the Picbreeder lineage end up with symmetry built in early?",
+   options:["Users were told to make symmetric images","Symmetric images were liked long before any skull existed, so symmetry became a stepping stone that later features were built on","NEAT forces symmetry","SGD was used at the end"],
+   answer:1, why:"With no fixed target, each step only had to please someone. Symmetry showed up around generations 20 to 36 and everything after reused it. That is the stepping-stone argument applied to the inside of a network."},
+  {q:"Why are single-weight sweeps a good probe of factored versus fractured organisation?",
+   options:["They are cheap to compute","In a factored net one weight maps to one meaningful change; in a fractured net every concept is spread over many weights, so a nudge distorts everything","They measure accuracy","They remove the need for a target image"],
+   answer:1, why:"A unified, factored network has knobs: mouth, eye, jaw. A fractured one has no single place where a concept lives, so perturbing any weight smears several things at once."},
+  {q:"Two models produce identical outputs on every input. What does the PRH-style mKNN score on their outputs say about FER?",
+   options:["It detects FER reliably","Nothing: identical outputs give identical neighbourhoods, so output-level alignment is blind to how the inside is organised","It is always near chance","It measures weight sweeps"],
+   answer:1, why:"PRH measures the kernel of the final representation. FER is about the computation that produces it. The two can disagree completely."},
+  {q:"\"Back into Plato's Cave\" found that mKNN alignment falls as the comparison gallery grows. Why would that happen?",
+   options:["Larger galleries have more categories","With more items each neighbourhood gets finer, and fine structure is where models disagree; coarse structure is shared","The metric has a bug","Models get worse with more data"],
+   answer:1, why:"At small N your neighbours are mostly same-category items, which both models agree on. At large N the k nearest neighbours are decided by fine detail, which is idiosyncratic. The lab shows the same drop."},
+  {q:"Which result is the strongest evidence <em>against</em> the idea that SGD always produces fractured representations?",
+   options:["GPT-3's counting failures","Othello-GPT's bag of heuristics","Shai et al. 2026: next-token-trained transformers put conditionally independent factors into orthogonal subspaces","The Platonic Representation Hypothesis"],
+   answer:2, why:"Shai et al. show SGD-trained sequence models factoring cleanly, even preferring factoring early, and say it gives reason for representational optimism. It is synthetic data, so the debate is open."},
+]);
+})();
+</script>
+</body>
+</html>

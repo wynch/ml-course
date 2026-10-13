@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why does guessing teach anything? · Hidden Patch</title>
+<meta name="description" content="Prediction as a teacher: why hiding part of the data turns it into its own answer key, why next-token prediction built LLMs, the three families of self-supervised learning, and why reconstruction learns variance instead of meaning.">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/atlas.css">
+<style>
+/* page-specific */
+.beat>*{min-width:0} /* .eq is nowrap; without this a beat grid column grows past the viewport */
+.toks{display:flex;flex-wrap:wrap;gap:.35rem;font-family:var(--mono);font-size:.9rem;padding:.4rem 0 .2rem}
+.toks span{padding:.28rem .5rem;border-radius:6px;border:1px solid var(--line-strong);background:var(--panel);transition:background .2s,border-color .2s}
+.toks span.ctx{background:color-mix(in srgb,var(--p1) 18%,var(--panel));border-color:var(--p1)}
+.toks span.tgt{border-color:var(--why);border-width:2px;color:transparent;position:relative;
+  background:repeating-linear-gradient(-45deg,var(--hatch) 0 1.5px,transparent 1.5px 6px),var(--panel-2)}
+.toks span.tgt.show{color:var(--why);font-weight:600}
+.toks span.off{opacity:.35}
+.pairs{font-family:var(--mono);font-size:.78rem;line-height:1.5;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:.5rem .65rem;max-height:13.5em;overflow:auto;margin-top:.6rem}
+.pairs div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pairs .a{color:var(--why);font-weight:600}
+.pairs .cur{background:var(--why-soft);border-radius:4px}
+.stage-cap{font-family:var(--ui);font-size:.8rem;color:var(--muted);margin-top:.4rem}
+textarea.corpus{width:100%;min-height:6.5em;font-family:var(--mono);font-size:.74rem;line-height:1.4;color:var(--ink);background:var(--panel);border:1px solid var(--line-strong);border-radius:8px;padding:.45rem .55rem;resize:vertical}
+.sample{font-family:var(--mono);font-size:.8rem;line-height:1.45;background:var(--panel);border:1px dashed var(--line-strong);border-radius:8px;padding:.5rem .65rem;min-height:4.6em;word-break:break-word;margin-top:.6rem}
+.sample b{color:var(--why);font-weight:600}
+.fams{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.8rem}
+.fams>div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.85rem .95rem;display:grid;gap:.4rem;align-content:start;font-size:.95rem}
+.fams h4{font-size:1.05rem}
+.fams .k{font-family:var(--mono);font-size:.68rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.fams .ex{font-family:var(--mono);font-size:.74rem;color:var(--muted)}
+.fams svg{width:100%;height:auto;display:block}
+.fams .bx{fill:var(--panel-2);stroke:var(--line-strong)}
+.fams .hb{fill:url(#ph-h);stroke:var(--why);stroke-width:1.6}
+.fams .ar{stroke:var(--ink);stroke-width:1.4;fill:none}
+.fams .lb{font-family:var(--mono);font-size:10px;fill:var(--muted)}
+.fams .risk{font-family:var(--ui);font-size:.84rem;border-top:1px dashed var(--line);padding-top:.35rem}
+.fams .risk b{color:var(--why)}
+</style>
+</head>
+<body data-chapter="predict" data-part="1">
+<header id="topbar" class="topbar"></header>
+
+<main class="chapter">
+  <section class="opener">
+    <p class="eyebrow"><span class="sw"></span>Part 1 · Predict · Chapter 01</p>
+    <h1 class="big"><span class="w">Why</span> does guessing teach anything?</h1>
+    <p class="because">to guess what is hidden, a model has to capture whatever produced it. Hide part of a sentence, an image or a video and the data becomes its own answer key, so prediction is a teacher that never runs out of labels. What the model learns depends on <em>what</em> you ask it to guess, and that choice is the subject of this whole site.</p>
+    <p class="meta"><span>5 beats · 4 labs · 6 questions</span><span>Next: <a href="jepa.html">02 Predict in latent space</a></span><span>Basics: <a href="../index.html">Build ML From Scratch</a></span></p>
+    <ul class="toc">
+      <li><a href="#free"><span class="q">?</span>Why prediction is free</a></li>
+      <li><a href="#tokens"><span class="q">?</span>Why next-token made LLMs</a></li>
+      <li><a href="#families"><span class="q">?</span>Why three families</a></li>
+      <li><a href="#variance"><span class="q">?</span>Why reconstruction learns noise</a></li>
+      <li><a href="#enough"><span class="q">?</span>Why it might not be enough</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ BEAT 1 ============ -->
+  <section class="beat" id="free">
+    <header>
+      <span class="num">Beat 1</span>
+      <h2><span class="w">Why</span> is prediction a free teacher?</h2>
+      <p class="short">Because the label is already inside the data. Cover a piece, ask the model to guess it, then uncover it and grade the guess. No human writes the answer, so every sentence and every frame yields many training examples at no cost.</p>
+    </header>
+    <div class="prose">
+      <p>Supervised learning needs someone to say "this photo is a dog". ImageNet needed about 1.3 million such judgments for its training set, and every new task needs new ones. <span class="term" tabindex="0" data-def="Learning where the training target is a part of the input itself (the next word, a masked patch, another view), so no human labels are needed.">Self-supervised learning</span> removes the human: it splits each example into a visible part and a hidden part and trains the model to get from one to the other. The hidden part is the label.</p>
+      <p>This is older than deep learning. In 1951 Claude Shannon played a guessing game with people: reveal a text one letter at a time, ask for the next letter, count the guesses. From that he estimated that English carries roughly one bit per letter, far below the 4.7 bits of 27 equally likely symbols. The gap between the two numbers is exactly the structure a good guesser has learned. A model's prediction loss, measured in bits, is the same quantity: every bit it stops losing is a regularity it now knows.</p>
+      <p>The lab shows how one sentence turns into several exercises. Three recipes, three famous models: hide the <b>next</b> token (GPT), hide <b>random</b> tokens (BERT, 2018), hide a <b>block</b> and predict a summary of it (the JEPA idea from <a href="jepa.html">chapter 02</a>).</p>
+    </div>
+    <figure class="lab" id="lab-labels">
+      <div class="lab-head"><span class="tag">Walkthrough</span><h3>The label factory</h3></div>
+      <div class="lab-body">
+        <div class="stage">
+          <div class="toks" id="toks" aria-live="polite"></div>
+          <p class="stage-cap" id="tok-cap"></p>
+          <div class="pairs" id="pairs"></div>
+          <div class="legend" style="margin-top:.5rem"><span><i style="background:color-mix(in srgb,var(--p1) 30%,transparent);border:1px solid var(--p1)"></i>what the model sees</span><span><i class="h"></i>hidden target</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><span class="lbl">What to hide</span>
+            <div class="seg" role="group" aria-label="Recipe">
+              <button type="button" data-rec="next" aria-pressed="true">Next token</button><button type="button" data-rec="mask" aria-pressed="false">Random 15%</button><button type="button" data-rec="block" aria-pressed="false">A block</button>
+            </div></div>
+          <div class="btns"><button type="button" class="primary" id="lf-step">Next exercise →</button><button type="button" id="lf-reveal">Reveal</button><button type="button" id="lf-sent">New sentence</button></div>
+          <dl class="readout">
+            <dt>exercises here</dt><dd id="lf-n">–</dd>
+            <dt>tokens graded / pass</dt><dd id="lf-g">–</dd>
+            <dt>human labels</dt><dd class="hot">0</dd>
+          </dl>
+          <p class="hint" style="font-size:.76rem;color:var(--muted);line-height:1.35">Next-token prediction grades <em>every</em> position in one pass (a causal mask lets each position see only its past). BERT grades only the hidden 15%.</p>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>"Next token" makes one exercise per position: a 10-word sentence gives 10 graded guesses, and a 15-trillion-token corpus (the scale of Llama 3's pretraining) gives 15 trillion.</li>
+        <li>"Random 15%" grades fewer positions per pass, but each guess can use context on <em>both</em> sides. That made BERT strong at understanding and weak at writing.</li>
+        <li>"A block" hides a contiguous span. Neighbour copying cannot fill its middle, so the guess has to come from what the sentence is about. In a JEPA the target is the block's <em>embedding</em>, not its words.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 2: n-gram ============ -->
+  <section class="beat" id="tokens">
+    <header>
+      <span class="num">Beat 2</span>
+      <h2><span class="w">Why</span> did next-token prediction make LLMs?</h2>
+      <p class="short">Because driving the loss down on the next token of the whole internet requires spelling, grammar, facts, arithmetic and a model of who is writing. Each of those removes some bits of surprise, so the objective keeps rewarding more knowledge as the model and the data grow.</p>
+    </header>
+    <div class="prose">
+      <p>The simplest next-character predictor is a counting table: for each context of the last <var>n</var>−1 characters, count which character came next. That is an <span class="term" tabindex="0" data-def="A model that predicts the next symbol from the previous n−1 symbols by counting how often each continuation followed that exact context.">n-gram model</span>, and the lab below trains one in your browser. It exposes the central trade-off. Longer contexts predict better, but each long context is seen only once or twice, so the table memorizes instead of generalizing. Counting cannot share what it learned about "the cat sat" with "the dog sat".</p>
+      <p>A neural language model replaces the table with a function. Tokens become vectors (see <a href="../explorables/04-attention.html">attention</a> in the course), similar contexts land near each other, and statistics transfer between them. That is why a transformer can use thousands of tokens of context without needing to have seen any of them before. The objective did not change from Shannon's game. The guesser did.</p>
+      <p>What a next-token model learns inside can be surprisingly tidy. Shai et al. (2026) found that transformers trained on next-token prediction place conditionally independent factors of their synthetic worlds in <b>orthogonal subspaces</b>. Prediction alone was enough to factor the world, at least there.</p>
+    </div>
+    <figure class="lab" id="lab-ngram">
+      <div class="lab-head"><span class="tag">Lab</span><h3>A language model you can train in a millisecond</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-ngram" aria-label="Bits per character on the training text and on held-out text, for context lengths 1 to 10, plus the predicted next-character distribution."></canvas>
+          <div class="sample" id="ng-sample" aria-live="polite"></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="s-n">Order n (context = n−1 chars)</label><output for="s-n"></output></div>
+            <input type="range" id="s-n" min="1" max="10" step="1" value="4"></div>
+          <div class="ctrl"><label for="ng-prompt">Prompt</label>
+            <input type="text" id="ng-prompt" value="the dog sa" style="font-family:var(--mono);font-size:.82rem;padding:.3rem .45rem;border-radius:6px;border:1px solid var(--line-strong);background:var(--panel);color:var(--ink);width:100%"></div>
+          <div class="btns"><button type="button" class="primary" id="ng-gen">Sample 120 chars</button></div>
+          <dl class="readout">
+            <dt>train loss</dt><dd id="ng-tr">–</dd>
+            <dt>held-out loss</dt><dd id="ng-te" class="hot">–</dd>
+            <dt>contexts stored</dt><dd id="ng-ctx">–</dd>
+          </dl>
+          <details><summary style="cursor:pointer;font-weight:600">Train on your own text</summary>
+            <textarea class="corpus" id="ng-corpus" aria-label="Training text"></textarea>
+            <div class="btns" style="margin-top:.35rem"><button type="button" id="ng-retrain">Retrain</button></div>
+          </details>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Train loss falls toward 0 as <var>n</var> grows: with long contexts every training position becomes a unique lookup. That is memorization, and the samples at <var>n</var> = 9 or 10 copy whole sentences.</li>
+        <li>Held-out loss bottoms out around <var>n</var> = 6 and then rises: longer contexts have never been seen on new text, so the table falls back to shorter ones. The gap between the curves is overfitting you can read in bits.</li>
+        <li>At <var>n</var> = 1 the model knows only letter frequencies (about 3.9 bits per character here). Each step up buys a new kind of structure: pairs of letters, then syllables, then words.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 3: families ============ -->
+  <section class="beat" id="families">
+    <header>
+      <span class="num">Beat 3</span>
+      <h2><span class="w">Why</span> are there three ways to learn by guessing?</h2>
+      <p class="short">Because there are three things you can ask the model to produce: the hidden <em>raw</em> data (reconstruction), an agreement between two views (alignment), or the hidden part's <em>embedding</em> (latent prediction). Each choice buys one strength and one failure mode.</p>
+    </header>
+    <div class="prose">
+      <p>Dutta, Vyas and Roy (2026) sort self-supervised learning into exactly these three families and compare BYOL, MAE and I-JEPA as one representative each. The table of risks is the useful part: reconstruction never collapses but pays for every detail; alignment and latent prediction choose what to keep but can cheat by mapping everything to one point.</p>
+    </div>
+    <div class="fams">
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><pattern id="ph-h" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><rect width="1.6" height="6" style="fill:var(--hatch)"/></pattern></defs></svg>
+      <div>
+        <span class="k">Family 1</span><h4>Reconstruction</h4>
+        <svg viewBox="0 0 220 64" aria-hidden="true"><rect class="bx" x="4" y="12" width="52" height="40" rx="5"/><rect class="hb" x="32" y="12" width="24" height="40" rx="3"/><path class="ar" d="M62 32 H100"/><text class="lb" x="66" y="26">model</text><rect class="bx" x="106" y="12" width="52" height="40" rx="5"/><text class="lb" x="168" y="30">pixels /</text><text class="lb" x="168" y="43">tokens</text></svg>
+        <p>Hide part of the input, regenerate it exactly. The target is raw data, fixed by the world.</p>
+        <p class="ex">GPT (next token) · BERT 2018 · MAE 2021 · diffusion</p>
+        <p class="risk"><b>Risk:</b> spends capacity on whatever varies most, meaningful or not (beat 4).</p>
+      </div>
+      <div>
+        <span class="k">Family 2</span><h4>Alignment / contrastive</h4>
+        <svg viewBox="0 0 220 64" aria-hidden="true"><rect class="bx" x="4" y="6" width="40" height="24" rx="4"/><rect class="bx" x="4" y="36" width="40" height="24" rx="4"/><path class="ar" d="M48 18 H84 M48 48 H84"/><circle cx="96" cy="18" r="6" style="fill:var(--p1)"/><circle cx="96" cy="48" r="6" style="fill:var(--p1)"/><path class="ar" d="M106 18 C130 18 130 48 106 48" style="stroke:var(--why)"/><text class="lb" x="136" y="30">pull same</text><text class="lb" x="136" y="43">push others</text></svg>
+        <p>Two augmented views of one image should embed close together; other images should embed far away (or the embedding must keep its variance).</p>
+        <p class="ex">SimCLR 2020 · BYOL 2020 · Barlow Twins · VICReg · DINO</p>
+        <p class="risk"><b>Risk:</b> collapse, and the invariances are only as good as the hand-made augmentations.</p>
+      </div>
+      <div>
+        <span class="k">Family 3</span><h4>Latent prediction</h4>
+        <svg viewBox="0 0 220 64" aria-hidden="true"><rect class="bx" x="4" y="12" width="52" height="40" rx="5"/><rect class="hb" x="32" y="12" width="24" height="40" rx="3"/><path class="ar" d="M62 32 H100"/><text class="lb" x="62" y="26">predict</text><rect x="106" y="20" width="10" height="24" rx="2" style="fill:var(--p1)"/><rect x="118" y="20" width="10" height="24" rx="2" style="fill:var(--p1);opacity:.6"/><rect x="130" y="20" width="10" height="24" rx="2" style="fill:var(--p1);opacity:.35"/><text class="lb" x="148" y="30">embedding</text><text class="lb" x="148" y="43">of hidden</text></svg>
+        <p>Hide part of the input and predict the hidden part's <em>representation</em>, computed by a learned encoder.</p>
+        <p class="ex">data2vec 2022 · I-JEPA 2023 · V-JEPA 2024 · LeJEPA 2025</p>
+        <p class="risk"><b>Risk:</b> collapse too, which is why <a href="collapse.html">chapter 03</a> exists.</p>
+      </div>
+    </div>
+    <div class="prose">
+      <p>Why does text get away with reconstruction? A token is already an abstraction: a person chose the word, and BPE (see the course's <a href="../index.html">BPE explorable</a>) chose the pieces. Pixels have no such filter. A camera records every speck of sensor noise and every leaf with the same weight as the dog. That asymmetry is the root of the JEPA argument, and the next lab and beat 4 make it concrete.</p>
+      <p>First, the alignment family in motion. Wang and Isola (2020) showed that the contrastive loss splits into two forces: <b>alignment</b> (pull the two views of each image together) and <b>uniformity</b> (spread all embeddings evenly over the sphere). The lab trains a small encoder with both forces on a circle.</p>
+    </div>
+    <figure class="lab" id="lab-circle">
+      <div class="lab-head"><span class="tag">Sim</span><h3>Pull and push on a circle</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-circle" aria-label="Embeddings of 14 images, two views each, on a unit circle, trained live with alignment and uniformity losses."></canvas>
+          <div class="legend" style="margin-top:.4rem"><span>dot = one view · line = its partner view · colour = which image</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="s-push">Push (uniformity weight)</label><output for="s-push"></output></div>
+            <input type="range" id="s-push" min="0" max="2" step="0.05" value="1"></div>
+          <div class="ctrl"><div class="row"><label for="s-temp">Push range t</label><output for="s-temp"></output></div>
+            <input type="range" id="s-temp" min="0.5" max="6" step="0.1" value="2">
+            <span class="hint">Uniformity = log mean exp(−t‖zᵢ−zⱼ‖²). Large t only repels close neighbours.</span></div>
+          <div class="ctrl"><div class="row"><label for="s-aug">Augmentation strength</label><output for="s-aug"></output></div>
+            <input type="range" id="s-aug" min="0" max="0.8" step="0.02" value="0.25"></div>
+          <div class="btns"><button type="button" class="primary" id="ci-play">Pause</button><button type="button" id="ci-reset">Reset</button></div>
+          <dl class="readout">
+            <dt>alignment loss</dt><dd id="ci-al">–</dd>
+            <dt>uniformity loss</dt><dd id="ci-un">–</dd>
+            <dt>spread 1−‖mean z‖</dt><dd id="ci-sp" class="hot">–</dd>
+            <dt>steps</dt><dd id="ci-st">0</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Set <b>Push</b> to 0 and watch: within a few hundred steps every dot slides to one spot. Alignment alone is perfectly satisfied by an encoder that ignores its input (here z = normalize(W u + b) with W → 0), and the usual small weight decay finishes the job. That is <b>collapse</b>, the central problem of <a href="collapse.html">chapter 03</a>. Once collapsed, the gradients vanish; press Reset.</li>
+        <li>With push on, the 14 images spread around the circle while each pair stays tight. The encoder must keep information about <em>which</em> image it saw in order to spread them.</li>
+        <li>Raise augmentation strength: pairs get harder to align and the equilibrium shifts. The augmentations define what the model is told to ignore, which is a hand-made choice.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 4: variance ============ -->
+  <section class="beat" id="variance">
+    <header>
+      <span class="num">Beat 4</span>
+      <h2><span class="w">Why</span> does reconstruction learn variance instead of meaning?</h2>
+      <p class="short">Because a reconstruction loss counts squared error, and the cheapest way to cut squared error is to capture the directions where the data varies most. When the loudest direction is noise, a reconstructing model learns noise first. A predictor across views only keeps what the other view can confirm.</p>
+    </header>
+    <div class="prose">
+      <p>Balestriero and LeCun (2024) made this precise for linear auto-encoders and argued it carries over to deep ones: reconstruction ranks features by <b>variance</b>, and in natural images the top-variance subspaces hold texture, lighting and fine detail, which are poorly aligned with perception tasks. To get good features out of an MAE you need a long training run and a fine-tuning step that re-ranks them. Littwin et al. (2024) showed the JEPA side of the story in deep linear networks: a JEPA ranks features by how <b>predictable</b> they are (<a href="bias.html">chapter 04</a>).</p>
+      <p>The lab is the smallest version of that argument. Each data point has a quiet <b>signal</b> direction that tells two classes apart, and a loud <b>noise</b> direction. Two views of each point share the signal and, by default, have independent noise, the way two crops of one photo share the object but not the speckle. PCA is the optimal linear reconstruction. The cross-view predictor keeps the direction where one view predicts the other (the top eigenvector of the cross-covariance).</p>
+    </div>
+    <figure class="lab" id="lab-var">
+      <div class="lab-head"><span class="tag">Lab</span><h3>The loudest direction wins</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-var" aria-label="Left: scatter of points with the PCA direction and the predictor direction. Right: downstream accuracy of each one-dimensional feature as noise grows."></canvas>
+          <div class="legend" style="margin-top:.4rem"><span><i style="background:var(--muted)"></i>PCA (reconstruction)</span><span><i style="background:var(--why)"></i>cross-view predictor</span><span><i style="background:var(--p1)"></i><i style="background:var(--p5)"></i>the two classes</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="s-noise">Noise std</label><output for="s-noise"></output></div>
+            <input type="range" id="s-noise" min="0.2" max="3" step="0.05" value="1.6">
+            <span class="hint">Signal std is about 1. The class gap sits on the signal axis.</span></div>
+          <div class="ctrl"><div class="row"><label for="s-share">Noise shared by both views</label><output for="s-share"></output></div>
+            <input type="range" id="s-share" min="0" max="1" step="0.05" value="0">
+            <span class="hint">Like a background that is the same in both crops.</span></div>
+          <div class="btns"><button type="button" id="v-new">New sample</button></div>
+          <dl class="readout">
+            <dt>PCA accuracy</dt><dd id="v-pca">–</dd>
+            <dt>predictor accuracy</dt><dd id="v-pred" class="hot">–</dd>
+            <dt>PCA angle to signal</dt><dd id="v-ang1">–</dd>
+            <dt>predictor angle</dt><dd id="v-ang2">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Push noise above the signal's std (about 1): PCA swings 90° onto the noise axis and its accuracy drops to a coin flip. The predictor does not move, because independent noise in two views has zero cross-covariance.</li>
+        <li>Now raise "noise shared by both views". Shared noise <em>is</em> predictable, and the predictor follows it as soon as it beats the signal. Prediction learns what is predictable, which is not always what matters (Sobal et al. 2022 saw JEPAs latch onto slow noise).</li>
+        <li>The right panel is the whole argument in one picture: two 1-D features from the same data, one ranked by loudness, one by agreement.</li>
+      </ul></div>
+    </figure>
+    <div class="analogy"><span class="ico">≈</span><div><span class="k">Picture it</span><p>Reconstruction is a stenographer who writes down everything said in a noisy café, including the espresso machine. Prediction across views is two witnesses comparing notes: the espresso machine was different in each recording, so neither can predict the other's, and it drops out. What they agree on is the conversation.</p></div></div>
+  </section>
+
+  <!-- ============ BEAT 5: enough ============ -->
+  <section class="beat" id="enough">
+    <header>
+      <span class="num">Beat 5</span>
+      <h2><span class="w">Why</span> might prediction be intelligence, and why might it not be enough?</h2>
+      <p class="short">Because any agent that reaches varied goals has to contain a model that predicts its world, so prediction looks necessary. Nobody has shown it is sufficient: control, goals, judgement about what is worth predicting, and structure may all have to be added.</p>
+    </header>
+    <div class="compare">
+      <div><span class="k">"It is prediction"</span><h4>The case for</h4>
+        <ul class="small">
+          <li><b>Free energy principle</b> (Friston): a persisting system minimizes surprise under a generative model; perception, action and learning are all inference.</li>
+          <li><b>Agüera y Arcas</b>: life and intelligence are predictive computation; LLMs are a real if partial form of it.</li>
+          <li><b>Brains align with models</b>: Raugel, d'Ascoli, Wyart and King (2025) found LLM layer depth tracks the timing of brain responses, for transformers and state-space models alike.</li>
+          <li><b>Richens et al.</b> (ICML 2025): an agent that generalizes to multi-step goals with bounded regret must contain a predictive world model, which can be extracted from its policy.</li>
+          <li><b>LeCun's JEPA</b>: predict, but in an abstract space.</li>
+        </ul></div>
+      <div><span class="k">"It is not enough"</span><h4>The case against</h4>
+        <ul class="small">
+          <li><b>Mattick</b> (MLST 2026): prediction is not control; scaled prediction alone does not make intelligence.</li>
+          <li><b>Hughes</b> (MLST 2026): creativity is not optimization; judgement about what is worth asking is missing.</li>
+          <li><b>Sutton</b>: imitating human text has no goals and no ground truth.</li>
+          <li><b>Bengio</b>: build the predictor <em>without</em> agency on purpose (Scientist AI), since agency is where the risk is.</li>
+          <li><b>Bach, Solms</b>: consciousness needs a self-model or felt needs, not prediction alone.</li>
+        </ul></div>
+    </div>
+    <div class="prose">
+      <p>The disagreement is about what to <em>add</em>. Sutton and Friston add action and control. Hughes adds goals and taste. Chollet and Marcus add structure. Bengio adds nothing, deliberately. The rest of this site follows that fork: chapters 02 to 05 sharpen the predictor, part 3 adds search, verifiers and planning on top of it, and part 4 asks what open-ended search finds that a fixed objective misses.</p>
+      <aside class="aside ours"><span class="k">This project</span>Running active inference and a JEPA side by side on one toy environment is on the project's idea list: the same predictive core, two different answers to what goes on top. See <a href="lab.html">chapter 17</a> and the <a href="why-atlas.html">Why Atlas</a>, question Q13.</aside>
+    </div>
+  </section>
+
+  <section class="remember">
+    <h2>Three things to <span class="w">remember</span></h2>
+    <ol>
+      <li><b>Hide it, and the data grades itself.</b>Self-supervision turns every sentence and frame into labelled exercises, so the teacher scales with the data.</li>
+      <li><b>The loudest direction wins.</b>Reconstruction ranks features by variance. When noise is loud, a reconstructing model learns the noise first.</li>
+      <li><b>Choose what to guess.</b>Raw data, view agreement or embeddings: the target decides what the model keeps, and the last two can collapse.</li>
+    </ol>
+  </section>
+
+  <section id="quiz"></section>
+
+  <section class="sources">
+    <h2>Sources for this chapter</h2>
+    <ol>
+      <li>Shannon, "Prediction and Entropy of Printed English", <i>Bell System Technical Journal</i>, 1951.</li>
+      <li>Devlin et al., <a href="https://arxiv.org/abs/1810.04805">BERT</a>, 2018. He et al., <a href="https://arxiv.org/abs/2111.06377">Masked Autoencoders Are Scalable Vision Learners</a>, 2021.</li>
+      <li>Wang &amp; Isola, <a href="https://arxiv.org/abs/2005.10242">Understanding Contrastive Representation Learning through Alignment and Uniformity on the Hypersphere</a>, ICML 2020.</li>
+      <li>Dutta, Vyas, Roy, <a href="https://arxiv.org/abs/2604.13518">From Alignment to Prediction</a>, 2026. Three-way taxonomy (abstract read).</li>
+      <li>Balestriero &amp; LeCun, <a href="https://arxiv.org/abs/2402.11337">Learning by Reconstruction Produces Uninformative Features for Perception</a>, 2024.</li>
+      <li>Littwin et al., <a href="https://arxiv.org/abs/2407.03475">How JEPA Avoids Noisy Features</a>, NeurIPS 2024. Sobal et al., <a href="https://arxiv.org/abs/2211.10831">JEPAs Focus on Slow Features</a>, 2022.</li>
+      <li>Shai et al., arXiv <a href="https://arxiv.org/abs/2602.02385">2602.02385</a>, 2026: next-token transformers put independent factors in orthogonal subspaces.</li>
+      <li>Richens, Abel, Bellot, Everitt, <a href="https://arxiv.org/abs/2506.01622">General agents need world models</a>, ICML 2025.</li>
+      <li>Raugel, d'Ascoli, Wyart, King, arXiv <a href="https://arxiv.org/abs/2512.01591">2512.01591</a>, 2025: LLM layer depth tracks brain-response timing. Bengio et al., <a href="https://arxiv.org/abs/2502.15657">Scientist AI</a>, 2025.</li>
+      <li>MLST positions (Friston, Agüera y Arcas, Mattick, Hughes, Sutton, Bach, Solms) as summarized in the project's <code>landscape/ai-landscape-why.md</code>, Q13 and Q3.</li>
+      <li>Llama 3 pretraining scale (about 15T tokens): Meta's Llama 3 release, 2024.</li>
+    </ol>
+  </section>
+
+  <nav id="pager"></nav>
+</main>
+<footer id="site-footer"></footer>
+
+<script src="assets/atlas.js"></script>
+<script>
+(function(){
+"use strict";
+const A = window.Atlas;
+
+/* =================== WALKTHROUGH: label factory =================== */
+(function(){
+  const SENTS = [
+    "the cat sat on the mat because it was warm",
+    "a ball rolls behind the screen and comes out the other side",
+    "to guess the next word you must know what the text is about",
+  ];
+  let si = 0, rec = "next", k = 0, reveal = false, maskSet = [], blk = [3,6];
+  const toksEl = document.getElementById("toks"), pairsEl = document.getElementById("pairs"), cap = document.getElementById("tok-cap");
+  const words = ()=>SENTS[si].split(" ");
+  function newMask(){
+    const w = words(), r = A.rng(si*31+7+k), n = Math.max(1, Math.round(w.length*.15));
+    const idx = [...w.keys()]; for(let i=idx.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; }
+    maskSet = idx.slice(0,n);
+    const L = Math.max(2, Math.round(w.length*.3)), s0 = 1+Math.floor(r()*(w.length-L-1)); blk = [s0, s0+L];
+  }
+  function exercises(){ const n = words().length; return rec==="next" ? n : rec==="mask" ? choose(n, maskSet.length).toLocaleString()+" masks" : (n-(blk[1]-blk[0])+1)+" placements"; }
+  function choose(n,r){ let c=1; for(let i=0;i<r;i++) c = c*(n-i)/(i+1); return Math.round(c); }
+  function render(){
+    const w = words(); toksEl.innerHTML = "";
+    w.forEach((t,i)=>{
+      const s = document.createElement("span"); s.textContent = t;
+      if(rec==="next"){ if(i<k) s.className="ctx"; else if(i===k) s.className = "tgt"+(reveal?" show":""); else s.className="off"; }
+      else if(rec==="mask"){ s.className = maskSet.includes(i) ? "tgt"+(reveal?" show":"") : "ctx"; }
+      else { s.className = (i>=blk[0]&&i<blk[1]) ? "tgt"+(reveal?" show":"") : "ctx"; }
+      toksEl.append(s);
+    });
+    pairsEl.innerHTML = "";
+    if(rec==="next"){
+      w.forEach((t,i)=>{ const d = document.createElement("div"); if(i===k) d.className="cur";
+        d.innerHTML = `${i?w.slice(0,i).join(" "):"⟨start⟩"} → <span class="a">${t}</span>`; pairsEl.append(d); });
+      cap.textContent = `Exercise ${k+1} of ${w.length}: given everything before, guess "${reveal ? w[k] : "?"}".`;
+      const cur = pairsEl.querySelector(".cur"); if(cur) pairsEl.scrollTop = Math.max(0, cur.offsetTop - pairsEl.offsetTop - 40);
+    } else if(rec==="mask"){
+      const d = document.createElement("div");
+      d.innerHTML = w.map((t,i)=>maskSet.includes(i)?"[MASK]":t).join(" ") + " → " + maskSet.slice().sort((a,b)=>a-b).map(i=>`<span class="a">${w[i]}</span>`).join(", ");
+      pairsEl.append(d);
+      const d2 = document.createElement("div"); d2.className="muted"; d2.textContent = "Each pass draws a new random mask: same sentence, new exercise."; pairsEl.append(d2);
+      cap.textContent = `Masked-language-model exercise: ${maskSet.length} of ${w.length} tokens hidden; context from both sides.`;
+    } else {
+      const d = document.createElement("div");
+      d.innerHTML = `${w.slice(0,blk[0]).join(" ")} [ ▒▒ ] ${w.slice(blk[1]).join(" ")} → <span class="a">embed("${w.slice(blk[0],blk[1]).join(" ")}")</span>`;
+      pairsEl.append(d);
+      const d2 = document.createElement("div"); d2.className="muted"; d2.textContent = "JEPA-style: the target is a vector summary of the span, made by a target encoder."; pairsEl.append(d2);
+      cap.textContent = `Hidden block of ${blk[1]-blk[0]} tokens. Its middle is far from every visible word.`;
+    }
+    document.getElementById("lf-n").textContent = exercises();
+    document.getElementById("lf-g").textContent = rec==="next" ? w.length : rec==="mask" ? maskSet.length : (blk[1]-blk[0])+" (as 1 vector)";
+  }
+  document.getElementById("lf-step").onclick = ()=>{ reveal = false; if(rec==="next") k = (k+1)%words().length; else { k++; newMask(); } render(); };
+  document.getElementById("lf-reveal").onclick = ()=>{ reveal = !reveal; render(); };
+  document.getElementById("lf-sent").onclick = ()=>{ si = (si+1)%SENTS.length; k = 0; reveal = false; newMask(); render(); };
+  document.querySelectorAll("[data-rec]").forEach(b=>b.addEventListener("click",()=>{
+    rec = b.dataset.rec; document.querySelectorAll("[data-rec]").forEach(o=>o.setAttribute("aria-pressed", o===b)); k = rec==="next"?3:0; reveal=false; newMask(); render();
+  }));
+  k = 3; newMask(); render();
+})();
+
+/* =================== LAB: n-gram =================== */
+(function(){
+  let TRAIN = "the cat sat on the mat. the dog sat on the log. the cat saw the dog and the dog saw the cat. a model that reads text one letter at a time and tries to guess the next letter learns which letters follow which. after a while it learns which words follow which. the cat ran to the mat and the dog ran to the log. to guess the next word well, the model has to know what the sentence is about. the cat is on the mat, so the cat is not on the log. the dog is on the log, so the dog is not on the mat. every sentence is its own answer key. hide the next letter, guess it, look, and learn from the miss. no teacher writes the labels; the text already holds them. the more text it reads, the better it guesses, and the better it guesses, the more it has to know.";
+  const TEST = "the dog ran to the mat and the cat sat on the log. a model that guesses the next word has to know what the text is about.";
+  const NMAX = 10, ALPHA = 1;
+  let n = 4, V = [], tabs = [], curve = [];
+  const cv = document.getElementById("cv-ngram");
+  function build(){
+    V = [...new Set(TRAIN+TEST)].sort(); tabs = [];
+    for(let k=0;k<NMAX;k++){ const t = new Map();
+      for(let i=k;i<TRAIN.length;i++){ const c = TRAIN.slice(i-k,i); let m = t.get(c); if(!m){ m = new Map(); m.tot = 0; t.set(c,m); } m.set(TRAIN[i],(m.get(TRAIN[i])||0)+1); m.tot++; }
+      tabs.push(t); }
+    curve = [];
+    for(let o=1;o<=NMAX;o++) curve.push([bits(TRAIN,o), bits(TEST,o)]);
+  }
+  // interpolated (Dirichlet) back-off: each order is smoothed toward the order below
+  function prob(ctx, ch, order){
+    let p = 1/V.length;
+    for(let k=0;k<order;k++){ if(ctx.length<k) break; const m = tabs[k].get(ctx.slice(ctx.length-k)); if(!m) break; p = ((m.get(ch)||0) + ALPHA*p)/(m.tot+ALPHA); }
+    return p;
+  }
+  function bits(text, order){ let s=0; for(let i=0;i<text.length;i++) s -= Math.log2(prob(text.slice(Math.max(0,i-order+1),i), text[i], order)); return s/text.length; }
+  function dist(ctx){ return V.map(c=>[c, prob(ctx.slice(Math.max(0,ctx.length-n+1)), c, n)]).sort((a,b)=>b[1]-a[1]); }
+  function sample(){
+    const r = A.rng((Date.now()%100000)+1); let s = document.getElementById("ng-prompt").value.toLowerCase();
+    const start = s.length;
+    for(let i=0;i<120;i++){ const d = dist(s); let u = r(), acc = 0, pick = d[0][0]; for(const [c,p] of d){ acc += p; if(u<=acc){ pick = c; break; } } s += pick; }
+    const esc = t=>t.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+    document.getElementById("ng-sample").innerHTML = `<b>${esc(s.slice(0,start))}</b>${esc(s.slice(start))}`;
+  }
+  const view = A.canvas(cv, w=> w<560 ? 1.1 : .5, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const narrow = w<560;
+    const P1 = narrow ? {x:36,y:22,w:w-48,h:h*.5-52} : {x:36,y:22,w:w*.52-44,h:h-56};
+    const P2 = narrow ? {x:8,y:h*.5+20,w:w-16,h:h*.5-26} : {x:w*.56,y:22,w:w*.44-8,h:h-30};
+    // curve panel
+    ctx.font = `600 12px ${C.ui}`; ctx.fillStyle = C.muted; ctx.fillText("bits per character vs order n", P1.x-28, 13);
+    const maxB = 4.2, X = o=>P1.x+(o-1)/(NMAX-1)*P1.w, Y = b=>P1.y+P1.h-(b/maxB)*P1.h;
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.font = `10.5px ${C.mono}`; ctx.fillStyle = C.faint;
+    for(let b=0;b<=4;b++){ ctx.beginPath(); ctx.moveTo(P1.x,Y(b)); ctx.lineTo(P1.x+P1.w,Y(b)); ctx.stroke(); ctx.fillText(b, P1.x-14, Y(b)+4); }
+    for(let o=1;o<=NMAX;o++) ctx.fillText(o, X(o)-3, P1.y+P1.h+14);
+    // marker
+    ctx.fillStyle = C.why; ctx.globalAlpha = .12; ctx.fillRect(X(n)-8, P1.y, 16, P1.h); ctx.globalAlpha = 1;
+    [[0,C.p1,"train"],[1,C.why,"held-out"]].forEach(([j,col,lab])=>{
+      ctx.strokeStyle = col; ctx.lineWidth = 2.2; ctx.beginPath();
+      curve.forEach((c,i)=>{ const x = X(i+1), y = Y(c[j]); i ? ctx.lineTo(x,y) : ctx.moveTo(x,y); }); ctx.stroke();
+      curve.forEach((c,i)=>{ ctx.fillStyle = col; ctx.beginPath(); ctx.arc(X(i+1), Y(c[j]), i+1===n?4.5:2.5, 0, 7); ctx.fill(); });
+      ctx.fillStyle = col; ctx.font = `600 11px ${C.ui}`; const last = curve[NMAX-1][j]; ctx.fillText(lab, X(NMAX)-40, Y(last)+(j?-8:14));
+    });
+    // distribution panel
+    const prompt = document.getElementById("ng-prompt").value.toLowerCase();
+    const d = dist(prompt).slice(0,8);
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`;
+    const ctxStr = prompt.slice(Math.max(0,prompt.length-n+1));
+    ctx.fillText(`next char after "${ctxStr.length>14?"…"+ctxStr.slice(-14):ctxStr}"`, P2.x, P2.y-6);
+    const bh = Math.min(20, (P2.h-6)/8 - 4);
+    d.forEach(([c,p],i)=>{
+      const y = P2.y+4+i*(bh+4);
+      ctx.fillStyle = C.ink; ctx.font = `600 12px ${C.mono}`; ctx.fillText(c===" " ? "␣" : c, P2.x+2, y+bh*.75);
+      ctx.fillStyle = C.panel2; ctx.fillRect(P2.x+20, y, P2.w-70, bh);
+      ctx.fillStyle = i===0 ? C.why : C.p1; ctx.fillRect(P2.x+20, y, (P2.w-70)*p, bh);
+      ctx.fillStyle = C.muted; ctx.font = `11px ${C.mono}`; ctx.fillText((p*100).toFixed(0)+"%", P2.x+P2.w-44, y+bh*.75);
+    });
+    const c = curve[n-1];
+    document.getElementById("ng-tr").textContent = c[0].toFixed(2)+" bits/char";
+    document.getElementById("ng-te").textContent = c[1].toFixed(2)+" bits/char";
+    let cnt = 0; for(let k=0;k<n;k++) cnt += tabs[k].size;
+    document.getElementById("ng-ctx").textContent = cnt.toLocaleString();
+  }
+  document.getElementById("ng-corpus").value = TRAIN;
+  build();
+  A.slider("s-n", v=>{ n = v; view.redraw(); sample(); }, v=>v);
+  document.getElementById("ng-prompt").addEventListener("input", ()=>view.redraw());
+  document.getElementById("ng-gen").onclick = sample;
+  document.getElementById("ng-retrain").onclick = ()=>{ const t = document.getElementById("ng-corpus").value.toLowerCase().replace(/\s+/g," ").trim(); if(t.length>20){ TRAIN = t; build(); view.redraw(); sample(); } };
+})();
+
+/* =================== SIM: pull and push on a circle =================== */
+(function(){
+  const NI = 14, cv = document.getElementById("cv-circle");
+  let push = 1, temp = 2, aug = .25, steps = 0, th, U, R, views, stat = {al:0,un:0,sp:0};
+  function reset(){
+    R = A.rng(11); U = [];
+    for(let i=0;i<NI;i++){ const a = i/NI*Math.PI*2 + R.normal()*.15, r = .7+R()*.6; U.push([r*Math.cos(a), r*Math.sin(a)]); }
+    th = [.5, .1, -.1, .5, .35, .2];  // W (2x2) and bias b: z = normalize(W u + b)
+    steps = 0; resample();
+  }
+  function resample(){ views = U.map(u=>[[u[0]+aug*R.normal(), u[1]+aug*R.normal()],[u[0]+aug*R.normal(), u[1]+aug*R.normal()]]); }
+  function enc(t,u){ const x = t[0]*u[0]+t[1]*u[1]+t[4], y = t[2]*u[0]+t[3]*u[1]+t[5], n = Math.hypot(x,y)||1e-9; return [x/n,y/n]; }
+  function loss(t, out){
+    const Z = []; let al = 0;
+    for(const [a,b] of views){ const z1 = enc(t,a), z2 = enc(t,b); Z.push(z1,z2); al += (z1[0]-z2[0])**2+(z1[1]-z2[1])**2; }
+    al /= views.length;
+    let s = 0, c = 0;
+    for(let i=0;i<Z.length;i++) for(let j=i+1;j<Z.length;j++){ s += Math.exp(-temp*((Z[i][0]-Z[j][0])**2+(Z[i][1]-Z[j][1])**2)); c++; }
+    const un = Math.log(s/c);
+    if(out){ out.al = al; out.un = un; let mx=0,my=0; Z.forEach(z=>{mx+=z[0];my+=z[1];}); out.sp = 1-Math.hypot(mx,my)/Z.length; out.Z = Z; }
+    return al + push*un;
+  }
+  function step(){
+    resample(); const h = 1e-5, g = th.map(()=>0);
+    for(let i=0;i<th.length;i++){ const o = th[i]; th[i]=o+h; const a = loss(th); th[i]=o-h; const b = loss(th); th[i]=o; g[i]=(a-b)/(2*h); }
+    const lr = .2; for(let i=0;i<th.length;i++) th[i] -= lr*Math.max(-5,Math.min(5,g[i])) + (i<4 ? lr*.02*th[i] : 0);  // small weight decay on W, as in real training
+    steps++;
+  }
+  const view = A.canvas(cv, w=> w<560 ? .9 : .62, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    loss(th, stat);
+    const cx = w/2, cy = h/2+4, rad = Math.min(w,h)*.38;
+    ctx.strokeStyle = C.lineStrong; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(cx,cy,rad,0,7); ctx.stroke();
+    ctx.setLineDash([3,4]); ctx.strokeStyle = C.line; ctx.beginPath(); ctx.moveTo(cx-rad-10,cy); ctx.lineTo(cx+rad+10,cy); ctx.moveTo(cx,cy-rad-10); ctx.lineTo(cx,cy+rad+10); ctx.stroke(); ctx.setLineDash([]);
+    const pal = [C.p1,C.p2,C.p3,C.p4,C.p5,C.why,C.ink];
+    for(let i=0;i<NI;i++){
+      const z1 = stat.Z[2*i], z2 = stat.Z[2*i+1], col = pal[i%pal.length];
+      const r1 = rad*(1+ (i%2? .05 : -.05)); // stagger so overlapping images stay visible
+      const p1 = [cx+z1[0]*r1, cy-z1[1]*r1], p2 = [cx+z2[0]*r1, cy-z2[1]*r1];
+      ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(p1[0],p1[1]); ctx.lineTo(p2[0],p2[1]); ctx.stroke();
+      ctx.fillStyle = col; [p1,p2].forEach(p=>{ ctx.beginPath(); ctx.arc(p[0],p[1],4.5,0,7); ctx.fill(); });
+    }
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText("embedding circle (2-D, unit norm)", 8, 14);
+    if(stat.sp < .05){ ctx.fillStyle = C.why; ctx.font = `700 13px ${C.ui}`; ctx.fillText("collapsed: every input → the same point", 8, h-8); }
+    document.getElementById("ci-al").textContent = stat.al.toFixed(3);
+    document.getElementById("ci-un").textContent = stat.un.toFixed(3);
+    document.getElementById("ci-sp").textContent = stat.sp.toFixed(3);
+    document.getElementById("ci-st").textContent = steps;
+  }
+  reset();
+  for(let i=0;i<30;i++) step();
+  A.slider("s-push", v=>{ push = v; view.redraw(); }, v=>v.toFixed(2));
+  A.slider("s-temp", v=>{ temp = v; view.redraw(); }, v=>v.toFixed(1));
+  A.slider("s-aug", v=>{ aug = v; view.redraw(); }, v=>v.toFixed(2));
+  const anim = A.loop(cv, ()=>{ for(let i=0;i<3;i++) step(); view.redraw(); });
+  const pb = document.getElementById("ci-play");
+  pb.onclick = ()=>{ if(anim.running){ anim.stop(); pb.textContent = "Play"; } else { anim.start(); pb.textContent = "Pause"; } };
+  document.getElementById("ci-reset").onclick = ()=>{ reset(); view.redraw(); if(!anim.running){ anim.start(); pb.textContent = "Pause"; } };
+  if(!A.reduced) anim.start(); else pb.textContent = "Play";
+})();
+
+/* =================== LAB: reconstruction vs prediction =================== */
+(function(){
+  const N = 320, TH = 28*Math.PI/180;           // signal axis is rotated by 28°
+  const es = [Math.cos(TH), Math.sin(TH)], en = [-Math.sin(TH), Math.cos(TH)];
+  let sig = 1.6, share = 0, seed = 3, cur = null, sweep = [];
+  const cv = document.getElementById("cv-var");
+  function gen(noise, sh, sd){
+    const r = A.rng(sd), X1 = [], X2 = [], Y = [];
+    for(let i=0;i<N;i++){
+      const y = i%2 ? 1 : -1, s = .85*y + .5*r.normal(), s2 = s + .2*r.normal();
+      const n1 = noise*r.normal(), n2 = sh*n1 + Math.sqrt(1-sh*sh)*noise*r.normal();
+      X1.push([s*es[0]+n1*en[0], s*es[1]+n1*en[1]]); X2.push([s2*es[0]+n2*en[0], s2*es[1]+n2*en[1]]); Y.push(y);
+    }
+    return {X1,X2,Y};
+  }
+  function topEig(a,b,c){ // symmetric [[a,b],[b,c]]
+    const t = Math.atan2(2*b, a-c)/2; return [Math.cos(t), Math.sin(t)];
+  }
+  function fit(d){
+    let a=0,b=0,c=0, xa=0,xb=0,xc=0;
+    for(let i=0;i<N;i++){ for(const x of [d.X1[i],d.X2[i]]){ a+=x[0]*x[0]; b+=x[0]*x[1]; c+=x[1]*x[1]; }
+      const u = d.X1[i], v = d.X2[i]; xa += u[0]*v[0]; xc += u[1]*v[1]; xb += (u[0]*v[1]+u[1]*v[0])/2; }
+    const pca = topEig(a,b,c), prd = topEig(xa,xb,xc);
+    const acc = dir=>{ let k=0; for(let i=0;i<N;i++){ const p = d.X1[i][0]*dir[0]+d.X1[i][1]*dir[1]; if(Math.sign(p)===d.Y[i]) k++; } return Math.max(k,N-k)/N; };
+    const ang = dir=>Math.acos(Math.min(1,Math.abs(dir[0]*es[0]+dir[1]*es[1])))*180/Math.PI;
+    return {pca, prd, accP:acc(pca), accR:acc(prd), angP:ang(pca), angR:ang(prd)};
+  }
+  function recompute(){
+    cur = Object.assign(gen(sig, share, seed), {});
+    Object.assign(cur, fit(cur));
+    sweep = [];
+    for(let k=0;k<=28;k++){ const s = .2 + k*.1; let aP=0, aR=0; for(let q=0;q<4;q++){ const f = fit(gen(s, share, seed*977+100+k*7+q)); aP+=f.accP/4; aR+=f.accR/4; } sweep.push([s, aP, aR]); }
+  }
+  const view = A.canvas(cv, w=> w<560 ? 1.35 : .5, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const narrow = w<560;
+    const S = narrow ? {x:8,y:20,w:w-16,h:h*.55-24} : {x:8,y:20,w:w*.5-16,h:h-28};
+    const Pn = narrow ? {x:40,y:h*.55+26,w:w-56,h:h*.45-50} : {x:w*.5+36,y:26,w:w*.5-48,h:h-60};
+    // scatter
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText("view 1 of each point", S.x, 13);
+    const cx = S.x+S.w/2, cy = S.y+S.h/2, sc = Math.min(S.w,S.h)/2/Math.max(3, 2.2*Math.max(1,sig));
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(S.x,S.y,S.w,S.h);
+    for(let i=0;i<N;i++){ const x = cur.X1[i]; ctx.fillStyle = cur.Y[i]>0 ? C.p1 : C.p5; ctx.globalAlpha = .55;
+      const px = cx+x[0]*sc, py = cy-x[1]*sc; if(px<S.x||px>S.x+S.w||py<S.y||py>S.y+S.h) continue; ctx.beginPath(); ctx.arc(px,py,2.4,0,7); ctx.fill(); }
+    ctx.globalAlpha = 1;
+    const L = Math.min(S.w,S.h)*.46;
+    const axis = (d,col,wd,dash,lab)=>{ ctx.setLineDash(dash); ctx.strokeStyle = col; ctx.lineWidth = wd; ctx.beginPath(); ctx.moveTo(cx-d[0]*L, cy+d[1]*L); ctx.lineTo(cx+d[0]*L, cy-d[1]*L); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = col; ctx.font = `700 11px ${C.ui}`; const tx = cx+d[0]*L*(d[0]>=0?1:-1), ty = cy-d[1]*L*(d[0]>=0?1:-1); ctx.fillText(lab, Math.min(S.x+S.w-50, Math.max(S.x+4, tx-20)), Math.min(S.y+S.h-4, Math.max(S.y+12, ty-6))); };
+    axis(es, C.faint, 1, [2,4], "");
+    axis(cur.pca, C.muted, 3, [], "PCA");
+    axis(cur.prd, C.why, 3, [6,4], "predictor");
+    // sweep
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText("downstream accuracy vs noise std", Pn.x-28, Pn.y-12);
+    const X = s=>Pn.x+(s-.2)/2.8*Pn.w, Y = a=>Pn.y+Pn.h-(a-.45)/.55*Pn.h;
+    ctx.strokeStyle = C.line; ctx.font = `10.5px ${C.mono}`; ctx.fillStyle = C.faint;
+    [.5,.75,1].forEach(a=>{ ctx.beginPath(); ctx.moveTo(Pn.x,Y(a)); ctx.lineTo(Pn.x+Pn.w,Y(a)); ctx.stroke(); ctx.fillText((a*100)+"%", Pn.x-34, Y(a)+4); });
+    [.5,1,1.5,2,2.5,3].forEach(s=>ctx.fillText(s, X(s)-6, Pn.y+Pn.h+14));
+    ctx.setLineDash([3,3]); ctx.strokeStyle = C.lineStrong; ctx.beginPath(); ctx.moveTo(X(.99),Pn.y); ctx.lineTo(X(.99),Pn.y+Pn.h); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = C.faint; ctx.fillText("noise = signal", X(.99)+4, Pn.y+10);
+    [[1,C.muted,[]],[2,C.why,[6,4]]].forEach(([j,col,dash])=>{ ctx.strokeStyle = col; ctx.lineWidth = 2.4; ctx.setLineDash(dash); ctx.beginPath();
+      sweep.forEach((r,i)=>{ i ? ctx.lineTo(X(r[0]),Y(r[j])) : ctx.moveTo(X(r[0]),Y(r[j])); }); ctx.stroke(); ctx.setLineDash([]); });
+    ctx.fillStyle = C.why; ctx.globalAlpha = .9; ctx.beginPath(); ctx.arc(X(sig),Y(cur.accR),5,0,7); ctx.fill();
+    ctx.fillStyle = C.muted; ctx.beginPath(); ctx.arc(X(sig),Y(cur.accP),5,0,7); ctx.fill(); ctx.globalAlpha = 1;
+    document.getElementById("v-pca").textContent = (cur.accP*100).toFixed(0)+"%";
+    document.getElementById("v-pred").textContent = (cur.accR*100).toFixed(0)+"%";
+    document.getElementById("v-ang1").textContent = cur.angP.toFixed(0)+"°";
+    document.getElementById("v-ang2").textContent = cur.angR.toFixed(0)+"°";
+  }
+  recompute();
+  A.slider("s-noise", v=>{ sig = v; cur = gen(sig, share, seed); Object.assign(cur, fit(cur)); view.redraw(); }, v=>v.toFixed(2));
+  A.slider("s-share", v=>{ share = v; recompute(); view.redraw(); }, v=>Math.round(v*100)+"%");
+  document.getElementById("v-new").onclick = ()=>{ seed++; recompute(); view.redraw(); };
+})();
+
+/* =================== QUIZ =================== */
+A.quiz("quiz", [
+  {q:"Why does self-supervised learning scale with data in a way supervised learning does not?",
+   options:["It uses bigger GPUs","The training target is a hidden part of the input, so every new example brings its own labels","It needs fewer parameters","It skips the loss function"],
+   answer:1, why:"Hiding part of the data and asking for it back creates labelled exercises for free. Supervised learning needs a human judgment per example, which does not grow with the internet."},
+  {q:"In the n-gram lab, train loss keeps falling as n grows but held-out loss rises after n ≈ 6. Why?",
+   options:["The model runs out of memory","Long contexts are almost all unique, so the table memorizes training text and has no counts for new contexts","Held-out text uses different letters","Smoothing is turned off at high n"],
+   answer:1, why:"A counting model cannot share statistics between different contexts. Neural language models fix this by mapping similar contexts to similar vectors, which is why they can use long contexts and still generalize."},
+  {q:"What makes alignment-only training (pull two views together, nothing else) fail?",
+   options:["Augmentations are too strong","An encoder that outputs the same vector for every input has zero alignment loss","The circle is too small","The learning rate is too low"],
+   answer:1, why:"Alignment rewards agreement and nothing rewards information. The constant map agrees perfectly. Uniformity (or negatives, or a variance term) is what forces the encoder to keep inputs apart."},
+  {q:"In the variance lab, why does PCA flip onto the noise axis when noise std passes about 1?",
+   options:["PCA is buggy for rotated data","PCA ranks directions by variance, and the noise axis has become the loudest","The classes swap places","PCA uses both views"],
+   answer:1, why:"Optimal linear reconstruction keeps the top-variance directions. Once noise variance exceeds signal variance, the noise axis is ranked first, and a 1-D feature on it carries no class information."},
+  {q:"Why does the cross-view predictor ignore the noise when it is independent between views, but follow it when it is shared?",
+   options:["It is trained with labels","It keeps the direction where one view predicts the other; independent noise cannot be predicted across views, shared noise can","Shared noise is quieter","It switches to PCA when noise is shared"],
+   answer:1, why:"Cross-covariance only contains what both views have in common. This is the strength of prediction and also its trap: anything predictable, such as a static background, can be learned instead of what matters."},
+  {q:"Which statement matches where the 'is intelligence prediction?' debate lands in the project's notes?",
+   options:["Prediction is proven sufficient","Prediction is close to necessary (agents must contain predictors), but no one has shown it is sufficient","Prediction is irrelevant to agents","Only pixel prediction counts"],
+   answer:1, why:"Richens et al. show agents that generalize must contain a world model. The open disagreement is about what must be added: control, goals and judgement, structure, or deliberately nothing."},
+]);
+})();
+</script>
+</body>
+</html>

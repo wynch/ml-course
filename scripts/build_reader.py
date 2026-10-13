@@ -502,6 +502,9 @@ def main() -> None:
     copy_filtered(ROOT / "offline", READER / "content" / "offline")
     copy_filtered(ROOT / "explorables", READER / "explorables")
     copy_filtered(ROOT / "quizzes", READER / "quizzes")
+    # The research companion links back with ../index.html, which lands on the
+    # reader home here and on the course home on the site.
+    copy_filtered(ROOT / "research", READER / "research")
     routed = route_module_links(READER / "explorables") + route_module_links(READER / "quizzes")
     for filename in ("README.md", "SETUP.md", "OFFLINE.md", "RESOURCES.md", "CLOUD.md"):
         shutil.copy2(ROOT / filename, READER / "content" / filename)

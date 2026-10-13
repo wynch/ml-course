@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why do agents need a world model? · Hidden Patch</title>
+<meta name="description" content="World models from the question why: why a policy is not enough, how planning in imagination works (CEM and MPC), why imagined futures drift, why there are three camps, and why a decodable latent can still be unplannable.">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/atlas.css">
+<style>
+/* page-specific */
+.vmc{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.6rem}
+.vmc>div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.7rem .8rem;font-family:var(--ui);font-size:.88rem;line-height:1.35}
+.vmc>div b{display:block;font-family:var(--display);font-size:1.02rem;margin-bottom:.1rem}
+.vmc>div .n{font-family:var(--mono);font-size:.68rem;color:var(--why);letter-spacing:.08em;text-transform:uppercase}
+.camp{border-top:4px solid var(--c,var(--part))}
+.camp ul{padding-left:1.1em;font-size:.9rem}
+.stance{font-family:var(--display);font-size:1.02rem;font-weight:600;line-height:1.3}
+</style>
+</head>
+<body data-chapter="worlds" data-part="3">
+<header id="topbar" class="topbar"></header>
+
+<main class="chapter">
+  <section class="opener">
+    <p class="eyebrow"><span class="sw"></span>Part 3 · Machines · Chapter 11</p>
+    <h1 class="big"><span class="w">Why</span> do agents need a world model?</h1>
+    <p class="because">to pick an action that pays off later, you have to know what it will do before you do it, and trying everything for real is slow, expensive or fatal. A world model lets an agent try actions in imagination and keep the best. A 2025 theorem says any agent that generalises across multi-step goals already contains one. The live question is which kind: one that paints pixels, one that builds 3D, or one that predicts in a compact latent space.</p>
+    <p class="meta"><span>6 beats · 3 labs · 6 questions</span><span>Builds on: <a href="jepa.html">02 Why predict in latent space</a> · <a href="reasoning.html">09 Search plus a verifier</a></span></p>
+    <ul class="toc">
+      <li><a href="#need"><span class="q">?</span>Why a policy is not enough</a></li>
+      <li><a href="#plan"><span class="q">?</span>How planning in imagination works</a></li>
+      <li><a href="#drift"><span class="q">?</span>Why imagined futures drift</a></li>
+      <li><a href="#camps"><span class="q">?</span>Why three camps</a></li>
+      <li><a href="#geometry"><span class="q">?</span>Why decodable is not plannable</a></li>
+      <li><a href="#voices"><span class="q">?</span>Why they disagree</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ BEAT 1 ============ -->
+  <section class="beat" id="need">
+    <header>
+      <span class="num">Beat 1</span>
+      <h2><span class="w">Why</span> isn't a good policy enough?</h2>
+      <p class="short">Because a policy is a lookup from situations to actions for the goals it was trained on. Give it a new goal and it has nothing to say. A model of how the world responds can be reused for any goal: search it for the actions that reach the new one.</p>
+    </header>
+    <div class="prose">
+      <p>Richens, Abel, Bellot and Everitt (DeepMind, ICML 2025) turned the intuition into a theorem: <b>any agent that generalises to multi-step goal-directed tasks with bounded regret must contain a predictive model of its environment</b>, and that model can be extracted from its policy. Model-free agents that generalise are not model-free; their model is just implicit. So the question moved from "whether" to "which kind, and made explicit how".</p>
+      <p>The idea is old. Schmidhuber trained recurrent world models for controllers in 1990. Ha and Schmidhuber's <i>World Models</i> (2018) made it vivid with three parts, and trained the controller entirely inside the model's own dream before running it in the real game.</p>
+    </div>
+    <div class="vmc">
+      <div><span class="n">V · vision</span><b>Compress</b>A VAE squeezes each frame into a small latent z.</div>
+      <div><span class="n">M · memory</span><b>Predict</b>An MDN-RNN predicts a distribution over the next z, given z and the action.</div>
+      <div><span class="n">C · controller</span><b>Act</b>A tiny linear policy reads z and the RNN state, trained by evolution (CMA-ES) inside the dream.</div>
+    </div>
+    <ul class="timeline">
+      <li><span class="d">2018</span><br><b>World Models</b> (Ha &amp; Schmidhuber). Car racing and VizDoom; the VizDoom policy learned in the dream transferred to the real game.</li>
+      <li><span class="d">2019 · 2020</span><br><b>MuZero</b> (DeepMind). A model that never predicts observations, only reward, value and policy, used inside tree search. Matched AlphaZero at Go, chess and shogi without being told the rules.</li>
+      <li><span class="d">2019 → 2023</span><br><b>Dreamer, DreamerV2, DreamerV3</b> (Hafner). A recurrent latent model plus an actor-critic trained on imagined rollouts. V3 runs one fixed set of hyperparameters across 150+ tasks and was the first to collect Minecraft diamonds from scratch (<i>Nature</i>, 2025).</li>
+      <li><span class="d">2025-04</span><br><b>Era of Experience</b> (Silver &amp; Sutton). Agents will learn mostly from their own streams of experience, with grounded rewards and planning, beyond the limits of human data.</li>
+      <li><span class="d">2025-06</span><br><b>V-JEPA 2-AC</b> (Meta). Plans robot actions in the embedding space of a video JEPA. Beat 2.</li>
+      <li><span class="d">2025-08</span><br><b>Genie 3</b> (DeepMind). Real-time playable worlds at 720p, 24 fps, with about a minute of visual memory.</li>
+      <li><span class="d">2025-09</span><br><b>Dreamer 4.</b> A transformer world model running at about 21 fps on one H100; the first agent to get Minecraft diamonds purely from offline data (0.7% of episodes), with about 100 × less data than VPT.</li>
+      <li><span class="d">2026-03</span><br><b>LeWorldModel</b> and <b>AMI Labs</b>. A 15M-parameter JEPA world model from pixels; LeCun's new company raises a $1.03B seed to build non-generative world models.</li>
+    </ul>
+  </section>
+
+  <!-- ============ BEAT 2: CEM ============ -->
+  <section class="beat" id="plan">
+    <header>
+      <span class="num">Beat 2</span>
+      <h2><span class="w">How</span> does an agent plan inside its model?</h2>
+      <p class="short">By guessing many action sequences, imagining where each one leads, keeping the best few, and guessing again near them. After a few rounds it executes only the first action, looks at the world again, and replans. That is CEM inside MPC, and it is how V-JEPA 2-AC, DINO-WM and LeWorldModel control robots.</p>
+    </header>
+    <div class="prose">
+      <p>The <span class="term" tabindex="0" data-def="Cross-Entropy Method: a sampling optimiser. Sample candidates from a Gaussian, keep the top fraction (the elites), refit the Gaussian to the elites, repeat.">cross-entropy method</span> needs no gradients through the model, only the ability to roll it forward and score the end state. <span class="term" tabindex="0" data-def="Model Predictive Control: plan a whole sequence, execute only its first action, observe, replan from the new state. Errors in the model get corrected by fresh observations every step.">Model predictive control</span> wraps it: plan H steps ahead, act once, observe, repeat. In a JEPA world model the score is the distance between the predicted embedding and the embedding of a goal image, so the agent never renders a pixel.</p>
+      <p><b>V-JEPA 2-AC</b> pretrained on more than 1M hours of video, then post-trained on under 62 hours of DROID robot data, and did zero-shot pick-and-place on Franka arms by planning toward image goals. It reported about 16 s per action against about 4 minutes for the pixel-generative Cosmos baseline <span class="pill bad">check</span>. <b>DINO-WM</b> (2024) plans the same way on frozen DINOv2 patch features. <b>PLDM</b> (2025) showed that latent dynamics with VICReg-style regularisation, learned from reward-free, suboptimal offline data, generalise better than model-free RL. <b>LeWorldModel</b> (2026) encodes each frame as one 192-d vector instead of a grid of patches and plans in 0.98 s against 47 s for DINO-WM.</p>
+    </div>
+    <div class="eq">planning cost per action ≈ samples K × iterations I × horizon H × cost of one predictor call
+      <span class="c">The edge-efficiency notes' rule of thumb. LeWM's speedup comes mostly from the last factor: one vector per frame instead of a patch grid makes each predictor call cheap.</span></div>
+    <figure class="lab" id="lab-cem">
+      <div class="lab-head"><span class="tag">Sim</span><h3>CEM + MPC: plan around a wall</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-cem" aria-label="A 2-D room with a wall. The agent samples many imagined trajectories each step, keeps the elites, and moves along the best plan toward the goal. Click or tap to move the goal."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i style="background:var(--faint)"></i>sampled futures</span><span><i style="background:var(--p1)"></i>elites</span><span><i style="background:var(--why)"></i>current plan</span><span><i style="background:var(--p4)"></i>path so far</span><span>tap the room to move the goal</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="s-K">Samples K</label><output for="s-K"></output></div>
+            <input type="range" id="s-K" min="8" max="512" step="8" value="128"></div>
+          <div class="ctrl"><div class="row"><label for="s-I">CEM iterations I</label><output for="s-I"></output></div>
+            <input type="range" id="s-I" min="1" max="10" step="1" value="4"></div>
+          <div class="ctrl"><div class="row"><label for="s-H">Horizon H</label><output for="s-H"></output></div>
+            <input type="range" id="s-H" min="3" max="50" step="1" value="30">
+            <span class="hint">How many steps ahead each imagined future runs.</span></div>
+          <div class="ctrl"><span class="lbl">Room</span>
+            <div class="seg" role="group" aria-label="Room"><button type="button" data-room="wall" aria-pressed="true">Wall</button><button type="button" data-room="trap" aria-pressed="false">U-trap</button><button type="button" data-room="open" aria-pressed="false">Open</button></div></div>
+          <div class="btns"><button type="button" class="primary" id="c-play">Run</button><button type="button" id="c-step">1 action</button><button type="button" id="c-reset">Reset</button></div>
+          <dl class="readout">
+            <dt>model calls / action</dt><dd id="c-calls" class="hot">–</dd>
+            <dt>model calls so far</dt><dd id="c-total">–</dd>
+            <dt>actions taken</dt><dd id="c-steps">0</dd>
+            <dt>distance to goal</dt><dd id="c-dist">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Drop the horizon below about 20: every imagined future ends against the wall, the one that ends nearest the goal wins, and the agent presses its nose into the wall. A short-sighted planner falls into the local minimum of "distance to goal".</li>
+        <li>With H = 30 the first iteration's samples spray everywhere (the noise is correlated in time, so each sample is a smooth sweep), but the elites already lean toward a gap. Each CEM iteration narrows the cloud around them. Set I = 1 and the plan stays noisy.</li>
+        <li>The cost readout is K × I × H. Doubling K roughly doubles the bill. That product, times the cost of one predictor call, is why planning time is the number world-model papers report (16 s vs 4 min, 0.98 s vs 47 s).</li>
+        <li>Try the U-trap at H = 20: distance-to-goal pulls the agent into the cup, and it stays there. At H = 30 it imagines far enough to go around. A learned value function, as in Dreamer and MuZero, is the other cure: it scores states by their long-term prospects, so the horizon can be short.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 3: compounding ============ -->
+  <section class="beat" id="drift">
+    <header>
+      <span class="num">Beat 3</span>
+      <h2><span class="w">Why</span> do imagined futures drift?</h2>
+      <p class="short">Because the model's output becomes its next input. A small one-step error is fed back and grows, slowly in a calm world, exponentially in a world where small differences get amplified. Looking at the real world again resets the error, which is why MPC replans every step.</p>
+    </header>
+    <div class="prose">
+      <p>This is LeCun's compounding-error argument against autoregressive generation, applied to dynamics. It is also why video world models drift: the project's notes put Genie-class generators at "drifts after about a minute", and Genie 3's visual memory is about one minute. Dreamer trains its policy on imagined rollouts only about 15 steps long. MuZero sidesteps the problem by never predicting observations at all, only the quantities planning needs.</p>
+      <p>The lab runs a real billiard simulation twice: the true one, and a "learned model" whose only flaw is that it turns the ball's velocity by a tiny angle ε each step. Round pegs make the system chaotic: a slightly different angle of approach to a peg leaves at a very different angle.</p>
+    </div>
+    <figure class="lab" id="lab-drift">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Small errors, long horizons</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-drift" aria-label="Left: one ball rolled out by the true physics (solid) and by the slightly wrong model (dashed). Right: median error against horizon, log scale, over 40 rollouts."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i style="background:var(--p1)"></i>true world</span><span><i style="background:var(--why)"></i>model's imagination</span><span><i style="background:var(--p4)"></i>re-observed</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="s-eps">One-step model error ε</label><output for="s-eps"></output></div>
+            <input type="range" id="s-eps" min="-4" max="-1" step="0.1" value="-3">
+            <span class="hint">Radians of velocity rotation per step, log scale.</span></div>
+          <div class="ctrl"><div class="row"><label for="s-peg">Round pegs (chaos)</label><output for="s-peg"></output></div>
+            <input type="range" id="s-peg" min="0" max="7" step="1" value="5"></div>
+          <div class="ctrl"><div class="row"><label for="s-obs">Re-observe every k steps</label><output for="s-obs"></output></div>
+            <input type="range" id="s-obs" min="0" max="60" step="5" value="0">
+            <span class="hint">0 = never (pure imagination). Otherwise the model is reset to the true state every k steps, as in MPC.</span></div>
+          <div class="btns"><button type="button" id="d-new">New example ball</button></div>
+          <dl class="readout">
+            <dt>error at step 50</dt><dd id="d-e50">–</dd>
+            <dt>error at step 300</dt><dd id="d-e300">–</dd>
+            <dt>trust horizon</dt><dd id="d-th" class="hot">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Set pegs to 0: the error grows only polynomially (the heading error grows linearly with time, the position error roughly with its square), because flat walls reflect the ball without amplifying the difference. Add pegs and the curve turns into a ramp: each collision multiplies the error, which is exponential growth.</li>
+        <li>Cut ε by 10 ×: with pegs, the trust horizon (median error above 5% of the room) moves out by a few dozen steps, not 10 ×. Under exponential growth, each 10 × better model buys roughly a constant amount of extra foresight. Without pegs the same 10 × buys about √10 ≈ 3 × more.</li>
+        <li>Turn on re-observation: the error saws up and resets, and never escapes. Feedback from the real world beats a better model, which is the case for MPC and for short imagination horizons.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 4: camps ============ -->
+  <section class="beat" id="camps">
+    <header>
+      <span class="num">Beat 4</span>
+      <h2><span class="w">Why</span> are there three camps?</h2>
+      <p class="short">Because "predict the world" can mean predicting what you would see, what is there, or only what matters for acting. Each choice buys something different: pixels are checkable and playable, 3D is persistent and editable, latents are fast and small. Each pays for it somewhere else.</p>
+    </header>
+    <div class="compare">
+      <div class="camp" style="--c:var(--p5)"><span class="k">Camp 1 · generate pixels</span><h4>Paint the next frame</h4>
+        <ul><li><b>Genie 3</b> (DeepMind, 2025-08): real-time 720p at 24 fps, about a minute of visual memory, text-promptable world events.</li><li><b>Project Genie</b> (2026-01): the first productised world model, 60-second sessions.</li><li>Veo 3, NVIDIA Cosmos, Odyssey-2 (720p at 22 fps), Wayve GAIA-3 (15B parameters, used to validate driving policies).</li></ul>
+        <p class="small"><b>Buys:</b> you can watch it, play it, check it. <b>Pays:</b> compute per frame, and drift after about a minute.</p></div>
+      <div class="camp" style="--c:var(--p3)"><span class="k">Camp 2 · explicit 3D</span><h4>Build the scene</h4>
+        <ul><li><b>Marble</b> (World Labs, Fei-Fei Li, 2025-11): persistent, editable, exportable 3D worlds as Gaussian splats and meshes, from text, images or video.</li><li>DeepMind's D4RT: a query-able 4D scene representation from video.</li></ul>
+        <p class="small"><b>Buys:</b> persistence and editing. <b>Pays:</b> no dynamics or physics yet.</p></div>
+      <div class="camp" style="--c:var(--p1)"><span class="k">Camp 3 · latent prediction</span><h4>Predict only what matters</h4>
+        <ul><li><b>V-JEPA 2-AC</b>, <b>DINO-WM</b>, <b>PLDM</b>, <b>LeWorldModel</b>.</li><li><b>AMI Labs</b> (LeCun, Paris): $1.03B seed at $3.5B on 2026-03-10, aiming at non-generative world models with open publication.</li><li>Dreamer sits in between: latent dynamics, plus a pixel decoder for training.</li></ul>
+        <p class="small"><b>Buys:</b> fast planning, small models, robustness. <b>Pays:</b> hard to inspect, and fragile on some tasks.</p></div>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>System</th><th>Camp</th><th>Number</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td>LeWorldModel</td><td>latent</td><td class="n best">0.98 s</td><td>per plan, vs 47 s for DINO-WM (≈ 48 ×). 15M params (≈ 5M encoder + 10M predictor), hours on one GPU, 96% on Push-T vs 92%. Loses on Two-Room and OGBench-Cube.</td></tr>
+        <tr><td>V-JEPA 2-AC</td><td>latent</td><td class="n">≈ 16 s</td><td>per action, vs ≈ 4 min for Cosmos <span class="pill bad">check</span>. Under 62 h of robot data.</td></tr>
+        <tr><td>Dreamer 4</td><td>latent + decoder</td><td class="n">≈ 21 fps</td><td>on one H100. Minecraft diamonds offline in 0.7% of episodes.</td></tr>
+        <tr><td>Genie 3</td><td>pixels</td><td class="n">24 fps</td><td>720p, real time, about one minute of visual memory.</td></tr>
+        <tr><td>GAIA-3</td><td>pixels</td><td class="n">15B</td><td>params; Wayve reports 5 × fewer rejected synthetic tests.</td></tr>
+      </tbody></table></div>
+    <div class="prose">
+      <p>A fourth, smaller camp writes the world model as <b>code</b>: WorldCoder (Kevin Ellis), Meta's Code World Model, and the ARC-AGI-3 Milestone #1 winner, where a local Qwen 27B writes a Python simulator of each unfamiliar game in a REPL and searches it. Exact and searchable, but only for symbolic or simple worlds. DeepMind's SIMA 2 (2025-11) shows how the camps can feed each other: Genie 3 generates worlds, Gemini proposes tasks and rewards, and the agent learns from its own play.</p>
+    </div>
+    <div class="analogy"><span class="ico">≈</span><div><span class="k">Picture it</span><p>A pixel world model is a film director who must shoot every frame before deciding whether the plot works. A 3D world model is a set builder whose sets never move. A latent world model is a chess player who imagines "knight there, then pressure on the king" without picturing the wood grain of the pieces.</p></div></div>
+    <aside class="aside"><span class="k">What would settle it</span>Head-to-head planning success and cost on shared robot tasks (the project's fault-line table). As of October 2026 nobody has run that comparison at scale, and Gemini Robotics 2 (2026-07) is still a vision-language-action model, not a world-model controller.</aside>
+  </section>
+
+  <!-- ============ BEAT 5: SCALE ============ -->
+  <section class="beat" id="geometry">
+    <header>
+      <span class="num">Beat 5</span>
+      <h2><span class="w">Why</span> can a latent be decodable but not plannable?</h2>
+      <p class="short">Because a planner uses distances, not information. A latent can contain every bit of the state, so a probe decodes it perfectly, and still measure distance so badly that "closer in latent space" points the wrong way. SCALE (2026) calls this: decodable is not plannable.</p>
+    </header>
+    <div class="prose">
+      <p>Latent planners minimise ‖z(s<sub>T</sub>) − z(goal)‖². Under that squared-Euclidean cost, each latent direction counts in proportion to its variance (SCALE: its weight is twice its variance). If the encoder spreads some irrelevant feature (texture, lighting, a periodic pattern) over a high-variance direction, the planner chases it. If it squashes a relevant direction, the planner ignores it. Hu et al. add a regulariser that aligns latent distances with state distances, and report beating LeWM on all 15 task-solver averages.</p>
+      <p>The lab builds a latent that is <em>perfectly decodable</em>: it contains x and y exactly, plus a wavy "texture" feature. A linear probe recovers the position with R² = 1. Then it plans greedily by latent distance.</p>
+    </div>
+    <figure class="lab" id="lab-scale">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Plan by latent distance, with and without calibration</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-scale" aria-label="A square state space shaded by latent distance to the goal. The greedy planner's path from start toward the goal is drawn. Tap to move the goal."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i style="background:var(--p2)"></i>stronger tint = closer to goal in latent space</span><span><i style="background:var(--why)"></i>planned path</span><span>tap to move the goal</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><span class="lbl">Latent metric</span>
+            <div class="seg" role="group" aria-label="Latent metric"><button type="button" id="k-raw" aria-pressed="true">Raw encoder</button><button type="button" id="k-cal" aria-pressed="false">Calibrated</button></div>
+            <span class="hint">Calibrated: re-weight latent directions so latent distance matches state distance (least squares on 400 random pairs), a stand-in for SCALE's regulariser.</span></div>
+          <div class="ctrl"><div class="row"><label for="s-tex">Texture variance</label><output for="s-tex"></output></div>
+            <input type="range" id="s-tex" min="0" max="0.6" step="0.01" value="0.3"></div>
+          <div class="ctrl"><div class="row"><label for="s-sq">Scale of the y direction</label><output for="s-sq"></output></div>
+            <input type="range" id="s-sq" min="0.1" max="1" step="0.01" value="0.4">
+            <span class="hint">1 = x and y encoded with equal variance.</span></div>
+          <dl class="readout">
+            <dt>decode R² (x, y)</dt><dd id="k-r2">–</dd>
+            <dt>distance agreement r</dt><dd id="k-corr">–</dd>
+            <dt>final distance to goal</dt><dd id="k-fin" class="hot">–</dd>
+            <dt>outcome</dt><dd id="k-out">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>With the raw encoder, the planner walks downhill in latent distance and stops in a tinted pocket that is not the goal. The decode R² still reads 1.000: the information is all there, the geometry is wrong.</li>
+        <li>Set texture variance to 0: the trap disappears, but with y squashed the path bends, fixing x first because x carries more variance. Raise the y scale to 1 and the path straightens.</li>
+        <li>Press <b>Calibrated</b>: same latent, re-weighted. The distance correlation jumps toward 1 and the path goes straight to the goal. Nothing was added to the representation; only its metric changed.</li>
+      </ul></div>
+    </figure>
+    <aside class="aside ours"><span class="k">For this project</span>The project's edge notes draw the same line: shrinking the state to one vector (LeWM) cuts planning cost, but "a compact state with the wrong metric plans badly". A related 2026 preprint finds that when little of the frame moves, the static background drowns the moving part in the embedding distance <span class="pill bad">check</span>. Build idea #3 (a pocket world model with a latent-size sweep) can test the Cui et al. (2026) bound, where latent dimension trades approximation against sample complexity.</aside>
+  </section>
+
+  <!-- ============ BEAT 6: voices ============ -->
+  <section class="beat" id="voices">
+    <header>
+      <span class="num">Beat 6</span>
+      <h2><span class="w">Why</span> do Sutton, LeCun and Chollet disagree?</h2>
+      <p class="short">Because they agree a world model is needed and disagree on where it comes from: from an agent's own stream of experience (Sutton), from self-supervised prediction in latent space (LeCun), or from efficient program-like abstraction tested on brand-new worlds (Chollet).</p>
+    </header>
+    <div class="compare">
+      <div><span class="k"><span class="who" data-i="RS">Richard Sutton</span></span>
+        <p class="stance">"Learn from your own experience."</p>
+        <p>The Bitter Lesson (2019): general methods that use computation, search and learning, win. LLMs imitate text without goals or ground truth, so they are a dead end for intelligence. The Oak architecture (2025 keynote) builds features, subproblems, options and models at runtime from experience alone. With Silver: the Era of Experience.</p></div>
+      <div><span class="k"><span class="who" data-i="YL">Yann LeCun</span></span>
+        <p class="stance">"Predict in representation space, then plan."</p>
+        <p>Autoregressive LLMs lack persistent memory, planning and grounded world models, and token-level generation compounds errors. World models should be trained by self-supervision in an abstract space (JEPA), energy-based and non-generative, and used for model-predictive planning under objectives and guardrails. Left Meta in November 2025 to found AMI Labs.</p></div>
+      <div><span class="k"><span class="who" data-i="FC">François Chollet</span></span>
+        <p class="stance">"Measure how fast you learn a new world."</p>
+        <p>ARC-AGI-3 (2026-03): 135 interactive games, no instructions, scored on action efficiency. Agents must explore, infer the goal, build a world model and plan. Frontier models scored under 1% at launch; humans 100%. The early winners write code world models. See <a href="reasoning.html#skill">chapter 09</a>.</p></div>
+      <div><span class="k"><span class="who" data-i="G3">Genie 3 team</span></span>
+        <p class="stance">"Make the world playable."</p>
+        <p>Jack Parker-Holder and Shlomi Fruchter (MLST, 2025-08): generate pixels in real time, so agents and people can step inside. DeepMind uses the result as an unlimited environment generator for agents such as SIMA 2.</p></div>
+    </div>
+    <aside class="aside ours"><span class="k">For this project</span>ARC-AGI-3 is effectively a world-model-learning benchmark. A small action-conditioned latent world model (LeWM-style) on ARC-AGI-3 games is a laptop-sized JEPA experiment nobody seems to have tried; the 2026 winners used code world models. The map of who stands where: <a href="why-atlas.html">Why Atlas</a> and <a href="landscape.html">chapter 15</a>. Why the latent should be small enough for a robot: <a href="edge.html">chapter 12</a>.</aside>
+  </section>
+
+  <section class="remember">
+    <h2>Three things to <span class="w">remember</span></h2>
+    <ol>
+      <li><b>Imagine many, act once.</b>Sample futures in the model, keep the best, take one step, look again. A theorem says generalising agents carry such a model anyway.</li>
+      <li><b>Small errors compound; looking resets them.</b>Imagined rollouts drift, exponentially in chaotic worlds. Short horizons and frequent re-observation beat a slightly better model.</li>
+      <li><b>Decodable is not plannable.</b>A latent can hold every bit of the state and still point the planner the wrong way. Planning needs the right geometry, not just the right information.</li>
+    </ol>
+  </section>
+
+  <section id="quiz"></section>
+
+  <section class="sources">
+    <h2>Sources for this chapter</h2>
+    <ol>
+      <li>Richens, Abel, Bellot, Everitt, <a href="https://arxiv.org/abs/2506.01622">General agents need world models</a>, ICML 2025.</li>
+      <li>Ha &amp; Schmidhuber, <a href="https://arxiv.org/abs/1803.10122">World Models</a>, 2018.</li>
+      <li>Schrittwieser et al., <a href="https://arxiv.org/abs/1911.08265">MuZero</a>, 2019 (Nature 2020).</li>
+      <li>Hafner et al., <a href="https://www.nature.com/articles/s41586-025-08744-2">DreamerV3, Nature 2025</a>; Hafner, Yan, Lillicrap, <a href="https://arxiv.org/abs/2509.24527">Training Agents Inside of Scalable World Models</a> (Dreamer 4), 2025.</li>
+      <li>Silver &amp; Sutton, <a href="https://storage.googleapis.com/deepmind-media/Era-of-Experience%20/The%20Era%20of%20Experience%20Paper.pdf">Welcome to the Era of Experience</a>, 2025. Sutton, <a href="http://www.incompleteideas.net/IncIdeas/BitterLesson.html">The Bitter Lesson</a>, 2019.</li>
+      <li>Assran et al., <a href="https://arxiv.org/abs/2506.09985">V-JEPA 2</a>, 2025. The 16 s vs 4 min figure is from project notes tagged <i>known</i> <span class="pill bad">check</span>.</li>
+      <li>Zhou, Pan, LeCun, Pinto, <a href="https://arxiv.org/abs/2411.04983">DINO-WM</a>, 2024. Sobal et al., <a href="https://arxiv.org/abs/2502.14819">PLDM</a>, 2025.</li>
+      <li>Maes, Le Lidec, Scieur, LeCun, Balestriero, <a href="https://arxiv.org/abs/2603.19312">LeWorldModel</a>, 2026.</li>
+      <li>Hu et al., <a href="https://arxiv.org/abs/2608.16287">SCALE: State-Calibrated Latent Embeddings for JEPA Planning</a>, 2026 (abstract read). <a href="https://arxiv.org/abs/2610.03137">Keeping JEPA World Models Plannable When Little of the Frame Moves</a>, 2026 <span class="pill bad">check</span>. Cui et al., <a href="https://arxiv.org/abs/2606.27014">A Generalization Theory for JEPA-Based World Models</a>, 2026.</li>
+      <li><a href="https://deepmind.google/blog/genie-3-a-new-frontier-for-world-models/">Genie 3</a>, 2025 <span class="pill bad">check</span>; <a href="https://blog.google/innovation-and-ai/models-and-research/google-deepmind/project-genie">Project Genie</a>, 2026; <a href="https://deepmind.google/blog/sima-2-an-agent-that-plays-reasons-and-learns-with-you-in-virtual-3d-worlds/">SIMA 2</a>, 2025.</li>
+      <li><a href="https://www.worldlabs.ai/blog/marble-world-model">World Labs Marble</a> <span class="pill bad">check</span>; <a href="https://arxiv.org/abs/2511.00062">NVIDIA Cosmos-Predict2.5</a> <span class="pill bad">check</span>; <a href="https://odyssey.systems/the-gpt-2-moment-for-world-models">Odyssey-2</a> (company claims); <a href="https://www.autonomousvehicleinternational.com/news/ai-sensor-fusion/wayves-gaia-3-generative-world-model-now-available-for-autonomous-driving-validation.html">Wayve GAIA-3</a>.</li>
+      <li><a href="https://siliconangle.com/2026/03/10/yann-lecuns-new-startup-ami-labs-raises-1-03b-train-world-models/">AMI Labs raises $1.03B</a>, 2026. LeCun, <a href="https://openreview.net/forum?id=BZ5a1r-kVsf">A Path Towards Autonomous Machine Intelligence</a>, 2022.</li>
+      <li><a href="https://arxiv.org/abs/2603.24621">ARC-AGI-3</a>, 2026; <a href="https://arcprize.org/blog/arc-prize-2026-milestone-1">ARC Prize 2026 Milestone #1</a>.</li>
+      <li>Project notes: <code>landscape/ai-landscape-why.md</code> (Q8, fault lines), <code>landscape/sources/*</code>, <code>jepa/papers.md</code> (planning), <code>jepa/applications-edge-efficiency.md</code>, <code>fields/ai-alife-field-map.md</code> (A1, A14).</li>
+    </ol>
+  </section>
+
+  <nav id="pager"></nav>
+</main>
+<footer id="site-footer"></footer>
+
+<script src="assets/atlas.js"></script>
+<script>
+(function(){
+"use strict";
+const A = window.Atlas;
+const $ = id => document.getElementById(id);
+const fmtN = v => v>=1e6 ? (v/1e6).toFixed(2)+"M" : v>=1e3 ? (v/1e3).toFixed(1)+"K" : String(v);
+
+/* =================== LAB: CEM + MPC =================== */
+(function(){
+  const ROOMS = {
+    wall: {walls:[[.47,.2,.06,.6]], start:[.12,.5], goal:[.88,.5]},
+    trap: {walls:[[.55,.28,.05,.44],[.4,.28,.2,.05],[.4,.67,.2,.05]], start:[.1,.5], goal:[.9,.5]},
+    open: {walls:[], start:[.12,.2], goal:[.85,.8]},
+  };
+  const VMAX = .035;
+  let room = "wall", K = 128, I = 4, H = 30;
+  let pos, goal, path, mu, sig, firstS, elites, plan, steps, total, done;
+  const R = A.rng(2024);
+  const inWall = (x,y)=> x<0||y<0||x>1||y>1 || ROOMS[room].walls.some(([wx,wy,ww,wh])=> x>wx && x<wx+ww && y>wy && y<wy+wh);
+  function step(p, a){ let ax=a[0], ay=a[1]; const n=Math.hypot(ax,ay); if(n>VMAX){ ax*=VMAX/n; ay*=VMAX/n; } const x=p[0]+ax, y=p[1]+ay; return inWall(x,y) ? p : [x,y]; }
+  // cost: best (distance to goal + small time penalty) reached anywhere along the imagined future
+  function rollout(p, seq){ const tr=[p]; let c=1e9, q=p; for(let t=0;t<seq.length;t++){ q=step(q,seq[t]); tr.push(q); c = Math.min(c, Math.hypot(q[0]-goal[0], q[1]-goal[1]) + .004*(t+1)); } return {tr, c}; }
+  function reset(keepGoal){
+    const r = ROOMS[room]; pos = r.start.slice(); if(!keepGoal) goal = r.goal.slice();
+    path=[pos]; mu=null; firstS=[]; elites=[]; plan=null; steps=0; total=0; done=false;
+  }
+  function cem(){
+    if(!mu || mu.length!==H){ mu = Array.from({length:H},()=>[0,0]); }
+    sig = Array.from({length:H},()=>[VMAX*1.5, VMAX*1.5]);
+    const BETA = .9, sb = Math.sqrt(1-BETA*BETA);   // temporally correlated noise, as in iCEM
+    let samples;
+    for(let it=0; it<I; it++){
+      samples = [];
+      for(let k=0;k<K;k++){
+        let e=[R.normal(),R.normal()]; const seq = mu.map((m,t)=>{ if(t) e=[BETA*e[0]+sb*R.normal(), BETA*e[1]+sb*R.normal()]; return [m[0]+sig[t][0]*e[0], m[1]+sig[t][1]*e[1]]; });
+        const ro = rollout(pos, seq); samples.push({seq, ...ro});
+      }
+      total += K*H;
+      samples.sort((a,b)=>a.c-b.c);
+      const ne = Math.max(2, Math.round(K*.1)), el = samples.slice(0,ne);
+      for(let t=0;t<H;t++) for(let d=0;d<2;d++){
+        let m=0; el.forEach(e=>m+=e.seq[t][d]); m/=ne; let v=0; el.forEach(e=>v+=(e.seq[t][d]-m)**2); v/=ne;
+        mu[t][d]=m; sig[t][d]=Math.max(.002, Math.sqrt(v));
+      }
+      if(it===0) firstS = samples.filter((_,i)=>i%Math.max(1,Math.floor(K/64))===0).map(s=>s.tr);
+      elites = el.map(e=>e.tr);
+    }
+    plan = rollout(pos, mu).tr;
+  }
+  function act(){
+    if(done) return;
+    cem();
+    pos = step(pos, mu[0]); path.push(pos); steps++;
+    mu = mu.slice(1).concat([[0,0]]);   // warm start: shift the plan
+    if(Math.hypot(pos[0]-goal[0],pos[1]-goal[1]) < .03 || steps>=160) done = true;
+  }
+  const cv = $("cv-cem"), view = A.canvas(cv, w=> w<560 ? 1 : .62, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const S = Math.min(w, h)-4, ox = (w-S)/2, oy = 2;
+    const P = p => [ox+p[0]*S, oy+p[1]*S];
+    ctx.fillStyle = C.panel; ctx.fillRect(ox,oy,S,S); ctx.strokeStyle=C.lineStrong; ctx.lineWidth=1.5; ctx.strokeRect(ox,oy,S,S);
+    ROOMS[room].walls.forEach(([x,y,ww,hh])=>{ ctx.fillStyle=C.panel2; ctx.fillRect(ox+x*S,oy+y*S,ww*S,hh*S); A.hatch(ctx,ox+x*S,oy+y*S,ww*S,hh*S,C.hatch,5); ctx.strokeStyle=C.lineStrong; ctx.strokeRect(ox+x*S,oy+y*S,ww*S,hh*S); });
+    const poly = (tr,col,lw,alpha)=>{ ctx.globalAlpha=alpha; ctx.strokeStyle=col; ctx.lineWidth=lw; ctx.beginPath(); tr.forEach((p,i)=>{ const [x,y]=P(p); i?ctx.lineTo(x,y):ctx.moveTo(x,y); }); ctx.stroke(); ctx.globalAlpha=1; };
+    firstS.forEach(tr=>poly(tr,C.faint,1,.45));
+    elites.forEach(tr=>poly(tr,C.p1,1.4,.7));
+    if(plan) poly(plan,C.why,2.6,1);
+    poly(path,C.p4,3,1);
+    // goal + agent
+    const [gx,gy]=P(goal); ctx.strokeStyle=C.why; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(gx,gy,9,0,7); ctx.stroke(); ctx.beginPath(); ctx.arc(gx,gy,3,0,7); ctx.fillStyle=C.why; ctx.fill();
+    const [ax,ay]=P(pos); ctx.fillStyle=C.ink; ctx.beginPath(); ctx.arc(ax,ay,6,0,7); ctx.fill();
+    ctx.fillStyle=C.muted; ctx.font=`600 11px ${C.ui}`; ctx.fillText(done ? (Math.hypot(pos[0]-goal[0],pos[1]-goal[1])<.03 ? "goal reached" : "gave up after 160 actions") : `iteration 1 samples (faint) → elites after ${I}`, ox+6, oy+S-8);
+    $("c-calls").textContent = fmtN(K*I*H); $("c-total").textContent = fmtN(total); $("c-steps").textContent = steps;
+    $("c-dist").textContent = Math.hypot(pos[0]-goal[0],pos[1]-goal[1]).toFixed(3);
+  }
+  let acc=0; const playBtn=$("c-play");
+  const anim = A.loop(cv, dt=>{ acc+=dt; if(acc<.09) return; acc=0; act(); view.redraw(); if(done){ playBtn.textContent="Run"; return false; } });
+  const stop = ()=>{ anim.stop(); playBtn.textContent="Run"; };
+  playBtn.onclick = ()=>{ if(anim.running){ stop(); } else { if(done) reset(true); anim.start(); playBtn.textContent="Pause"; } };
+  $("c-step").onclick = ()=>{ act(); view.redraw(); };
+  $("c-reset").onclick = ()=>{ stop(); reset(false); cem(); view.redraw(); };
+  A.slider("s-K", v=>{ K=v; if(pos) view.redraw(); }, v=>v);
+  A.slider("s-I", v=>{ I=v; if(pos) view.redraw(); }, v=>v);
+  A.slider("s-H", v=>{ H=v; mu=null; if(pos) view.redraw(); }, v=>v);
+  cv.closest(".lab").querySelectorAll("[data-room]").forEach(b=>b.addEventListener("click",()=>{
+    room=b.dataset.room; cv.closest(".lab").querySelectorAll("[data-room]").forEach(o=>o.setAttribute("aria-pressed",o===b)); stop(); reset(false); cem(); view.redraw();
+  }));
+  cv.addEventListener("click", e=>{
+    const r = cv.getBoundingClientRect(), S = Math.min(view.w, view.h)-4, ox=(view.w-S)/2;
+    const x=(e.clientX-r.left-ox)/S, y=(e.clientY-r.top-2)/S; if(x<0||y<0||x>1||y>1||inWall(x,y)) return;
+    goal=[x,y]; done=false; mu=null; cem(); view.redraw(); if(!anim.running && !A.reduced){ anim.start(); playBtn.textContent="Pause"; }
+  });
+  reset(false); for(let i=0;i<4;i++) act(); view.redraw();
+  if(!A.reduced){ const io=new IntersectionObserver(es=>{ if(es[0].isIntersecting){ io.disconnect(); if(!done){ anim.start(); playBtn.textContent="Pause"; } } }); io.observe(cv); }
+})();
+
+/* =================== LAB: compounding error =================== */
+(function(){
+  const PEGS = [[.3,.3,.08],[.7,.3,.08],[.5,.55,.09],[.25,.75,.07],[.75,.75,.07],[.5,.18,.05],[.12,.5,.05]];
+  const BR = .015, SPD = .012, T = 300, NR = 40;
+  let eps = 1e-3, nPeg = 5, obsK = 0, exSeed = 3;
+  function physStep(s, rot){
+    let [x,y,vx,vy] = s;
+    if(rot){ const c=Math.cos(rot), sn=Math.sin(rot); [vx,vy] = [vx*c-vy*sn, vx*sn+vy*c]; }
+    x+=vx; y+=vy;
+    if(x<BR){ x=2*BR-x; vx=-vx; } if(x>1-BR){ x=2*(1-BR)-x; vx=-vx; }
+    if(y<BR){ y=2*BR-y; vy=-vy; } if(y>1-BR){ y=2*(1-BR)-y; vy=-vy; }
+    for(let i=0;i<nPeg;i++){ const [cx,cy,r]=PEGS[i], dx=x-cx, dy=y-cy, d=Math.hypot(dx,dy);
+      if(d < r+BR){ const nx=dx/d, ny=dy/d, dot=vx*nx+vy*ny; if(dot<0){ vx-=2*dot*nx; vy-=2*dot*ny; } x=cx+nx*(r+BR); y=cy+ny*(r+BR); } }
+    return [x,y,vx,vy];
+  }
+  function start(r){ for(;;){ const x=.05+r()*.9, y=.05+r()*.9; if(PEGS.slice(0,nPeg).every(([cx,cy,rr])=>Math.hypot(x-cx,y-cy)>rr+BR+.01)){ const a=r()*Math.PI*2; return [x,y,SPD*Math.cos(a),SPD*Math.sin(a)]; } } }
+  function run(s0){
+    let a=s0.slice(), b=s0.slice(); const ta=[a], tb=[b], err=[], reo=[];
+    for(let t=1;t<=T;t++){
+      a = physStep(a,0); b = physStep(b,eps);
+      if(obsK && t%obsK===0){ b = a.slice(); reo.push(t); }
+      ta.push(a); tb.push(b); err.push(Math.hypot(a[0]-b[0],a[1]-b[1]));
+    }
+    return {ta,tb,err,reo};
+  }
+  let med = null, ex = null;
+  function compute(){
+    const r = A.rng(777), all=[];
+    for(let k=0;k<NR;k++) all.push(run(start(r)).err);
+    med = []; for(let t=0;t<T;t++){ const col = all.map(e=>e[t]).sort((x,y)=>x-y); med.push(col[NR>>1]); }
+    ex = run(start(A.rng(exSeed*131+7)));
+  }
+  const cv = $("cv-drift"), view = A.canvas(cv, w=> w<560 ? 1.55 : .5, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    if(!med) compute();
+    const narrow = w<560;
+    const S = narrow ? Math.min(w, h*.5)-4 : Math.min(w*.42, h-4), ox = narrow ? (w-S)/2 : 0, oy = 2;
+    ctx.fillStyle=C.panel; ctx.fillRect(ox,oy,S,S); ctx.strokeStyle=C.lineStrong; ctx.lineWidth=1.5; ctx.strokeRect(ox,oy,S,S);
+    for(let i=0;i<nPeg;i++){ const [cx,cy,r]=PEGS[i]; ctx.fillStyle=C.panel2; ctx.beginPath(); ctx.arc(ox+cx*S,oy+cy*S,r*S,0,7); ctx.fill(); ctx.strokeStyle=C.lineStrong; ctx.stroke(); }
+    const L = 160;
+    const tr = (arr,col,dash)=>{ ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.setLineDash(dash); ctx.beginPath(); for(let t=0;t<=L;t++){ const s=arr[t]; const X=ox+s[0]*S, Y=oy+s[1]*S; t?ctx.lineTo(X,Y):ctx.moveTo(X,Y);} ctx.stroke(); ctx.setLineDash([]); };
+    tr(ex.ta, C.p1, []); tr(ex.tb, C.why, [5,4]);
+    ctx.fillStyle=C.ink; ctx.beginPath(); ctx.arc(ox+ex.ta[0][0]*S, oy+ex.ta[0][1]*S, 5, 0, 7); ctx.fill();
+    ctx.fillStyle=C.muted; ctx.font=`600 11px ${C.ui}`; ctx.fillText(`first ${L} steps of one ball`, ox+6, oy+S-7);
+    // chart
+    const cb = narrow ? {x:44,y:S+34,w:w-62,h:h-S-70} : {x:S+52,y:28,w:w-S-70,h:h-62};
+    ctx.fillStyle=C.muted; ctx.font=`600 12px ${C.ui}`; ctx.fillText("Median error vs horizon (40 balls)", cb.x-40, cb.y-8);
+    ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.strokeRect(cb.x,cb.y,cb.w,cb.h);
+    const lmin=-6, lmax=0;
+    const X = t => cb.x + t/T*cb.w, Y = v => cb.y + (1-(Math.log10(Math.max(v,1e-6))-lmin)/(lmax-lmin))*cb.h;
+    ctx.font=`10px ${C.mono}`; ctx.textAlign="right";
+    for(let e=lmin;e<=lmax;e+=2){ const y=Y(Math.pow(10,e)); ctx.fillStyle=C.muted; ctx.fillText("1e"+e, cb.x-4, y+3); ctx.strokeStyle=C.line; ctx.beginPath(); ctx.moveTo(cb.x,y); ctx.lineTo(cb.x+cb.w,y); ctx.stroke(); }
+    ctx.textAlign="center"; [0,100,200,300].forEach(t=>{ ctx.fillStyle=C.muted; ctx.fillText(t, X(t), cb.y+cb.h+13); });
+    ctx.fillText("steps imagined ahead", cb.x+cb.w/2, cb.y+cb.h+26); ctx.textAlign="start";
+    // tolerance
+    const tol=.05; ctx.setLineDash([4,4]); ctx.strokeStyle=C.bad; ctx.beginPath(); ctx.moveTo(cb.x,Y(tol)); ctx.lineTo(cb.x+cb.w,Y(tol)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle=C.bad; ctx.font=`10.5px ${C.ui}`; ctx.fillText("5% of the room", cb.x+4, Y(tol)-4);
+    ctx.strokeStyle = obsK ? C.p4 : C.why; ctx.lineWidth=2.4; ctx.beginPath();
+    med.forEach((v,t)=>{ const x=X(t+1), y=Y(v); t?ctx.lineTo(x,y):ctx.moveTo(x,y); }); ctx.stroke();
+    let th = med.findIndex(v=>v>tol);
+    if(th>=0){ ctx.fillStyle=C.why; ctx.beginPath(); ctx.arc(X(th+1),Y(med[th]),4,0,7); ctx.fill(); }
+    $("d-e50").textContent = med[49].toExponential(1); $("d-e300").textContent = med[T-1].toExponential(1);
+    $("d-th").textContent = th<0 ? `> ${T} steps` : `${th+1} steps`;
+  }
+  const re = ()=>{ med=null; view.redraw(); };
+  A.slider("s-eps", v=>{ eps=Math.pow(10,v); re(); }, v=>Math.pow(10,v).toExponential(1)+" rad");
+  A.slider("s-peg", v=>{ nPeg=v; re(); }, v=>v);
+  A.slider("s-obs", v=>{ obsK=v; re(); }, v=> v ? "every "+v : "never");
+  $("d-new").onclick = ()=>{ exSeed++; ex = run(start(A.rng(exSeed*131+7))); view.redraw(); };
+})();
+
+/* =================== LAB: SCALE geometry =================== */
+(function(){
+  let tex = .3, sq = .4, calib = false, goal = [.78,.72];
+  const start = [.14,.2], F = 2.5;
+  const enc = (x,y)=>[x, sq*y, tex*Math.sin(2*Math.PI*F*x)*Math.cos(2*Math.PI*F*y)];
+  let W = null;   // 3 weights for calibrated metric (diagonal re-weighting + fitted)
+  function fitCal(){
+    // least squares: find M (2x3) with M (z_i - z_j) ≈ (s_i - s_j)
+    const r = A.rng(55), Z=[], S=[];
+    for(let k=0;k<400;k++){ const a=[r(),r()], b=[r(),r()], za=enc(...a), zb=enc(...b); Z.push([za[0]-zb[0],za[1]-zb[1],za[2]-zb[2]]); S.push([a[0]-b[0],a[1]-b[1]]); }
+    const ZtZ=[[0,0,0],[0,0,0],[0,0,0]], ZtS=[[0,0],[0,0],[0,0]];
+    Z.forEach((z,k)=>{ for(let i=0;i<3;i++){ for(let j=0;j<3;j++) ZtZ[i][j]+=z[i]*z[j]; ZtS[i][0]+=z[i]*S[k][0]; ZtS[i][1]+=z[i]*S[k][1]; } });
+    for(let i=0;i<3;i++) ZtZ[i][i]+=1e-6;
+    const inv = m=>{ const [a,b,c]=m[0],[d,e,f]=m[1],[g,h,i]=m[2]; const A_=e*i-f*h, B=-(d*i-f*g), C_=d*h-e*g, det=a*A_+b*B+c*C_;
+      return [[A_/det,-(b*i-c*h)/det,(b*f-c*e)/det],[B/det,(a*i-c*g)/det,-(a*f-c*d)/det],[C_/det,-(a*h-b*g)/det,(a*e-b*d)/det]]; };
+    const Iv = inv(ZtZ), Mt=[[0,0],[0,0],[0,0]];
+    for(let i=0;i<3;i++) for(let j=0;j<3;j++){ Mt[i][0]+=Iv[i][j]*ZtS[j][0]; Mt[i][1]+=Iv[i][j]*ZtS[j][1]; }
+    W = Mt; // z (3) -> s-space (2): s = Mt^T z
+  }
+  const lat = (x,y)=>{ const z = enc(x,y); if(!calib) return z; return [z[0]*W[0][0]+z[1]*W[1][0]+z[2]*W[2][0], z[0]*W[0][1]+z[1]*W[1][1]+z[2]*W[2][1]]; };
+  const ld = (a,b)=>{ const za=lat(...a), zb=lat(...b); let s=0; for(let i=0;i<za.length;i++) s+=(za[i]-zb[i])**2; return s; };
+  function planPath(){
+    const path=[start.slice()]; let p=start.slice(), c=ld(p,goal);
+    for(let it=0; it<220; it++){
+      let best=null, bc=c;
+      for(let k=0;k<32;k++){ const a=k/32*2*Math.PI, q=[p[0]+.012*Math.cos(a), p[1]+.012*Math.sin(a)]; if(q[0]<0||q[1]<0||q[0]>1||q[1]>1) continue; const cq=ld(q,goal); if(cq<bc-1e-12){ bc=cq; best=q; } }
+      if(!best) break; p=best; c=bc; path.push(p);
+      if(Math.hypot(p[0]-goal[0],p[1]-goal[1])<.012) break;
+    }
+    return path;
+  }
+  function stats(){
+    const r=A.rng(9), L=[], T=[];
+    for(let k=0;k<300;k++){ const a=[r(),r()], b=[r(),r()]; L.push(Math.sqrt(ld(a,b))); T.push(Math.hypot(a[0]-b[0],a[1]-b[1])); }
+    const m = v=>v.reduce((x,y)=>x+y,0)/v.length, ml=m(L), mt=m(T);
+    let sxy=0,sxx=0,syy=0; for(let i=0;i<L.length;i++){ sxy+=(L[i]-ml)*(T[i]-mt); sxx+=(L[i]-ml)**2; syy+=(T[i]-mt)**2; }
+    return sxy/Math.sqrt(sxx*syy);
+  }
+  const cv = $("cv-scale"), view = A.canvas(cv, w=> w<560 ? 1 : .62, draw);
+  let grid = null, gridKey = "";
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const S = Math.min(w,h)-4, ox=(w-S)/2, oy=2, G=64;
+    const key = [tex,sq,calib,goal].join();
+    if(key!==gridKey){ grid=[]; let mx=0; for(let j=0;j<G;j++) for(let i=0;i<G;i++){ const v=Math.sqrt(ld([(i+.5)/G,(j+.5)/G],goal)); grid.push(v); mx=Math.max(mx,v); } grid = grid.map(v=>v/mx); gridKey=key; }
+    ctx.fillStyle=C.panel; ctx.fillRect(ox,oy,S,S);
+    const oc = document.createElement("canvas"); oc.width=G; oc.height=G; const octx = oc.getContext("2d");
+    octx.fillStyle = C.p2;
+    for(let j=0;j<G;j++) for(let i=0;i<G;i++){ octx.globalAlpha = .85*Math.pow(1-grid[j*G+i],2.2); octx.fillRect(i, j, 1, 1); }
+    ctx.imageSmoothingEnabled = true; ctx.drawImage(oc, ox, oy, S, S); ctx.strokeStyle=C.lineStrong; ctx.lineWidth=1.5; ctx.strokeRect(ox,oy,S,S);
+    const path = planPath(), P = p=>[ox+p[0]*S, oy+p[1]*S];
+    ctx.strokeStyle=C.why; ctx.lineWidth=3; ctx.beginPath(); path.forEach((p,i)=>{ const [x,y]=P(p); i?ctx.lineTo(x,y):ctx.moveTo(x,y); }); ctx.stroke();
+    const [sx,sy]=P(start); ctx.fillStyle=C.ink; ctx.beginPath(); ctx.arc(sx,sy,6,0,7); ctx.fill();
+    const [gx,gy]=P(goal); ctx.strokeStyle=C.ink; ctx.lineWidth=2.4; ctx.beginPath(); ctx.arc(gx,gy,10,0,7); ctx.stroke(); ctx.fillStyle=C.why; ctx.beginPath(); ctx.arc(gx,gy,4,0,7); ctx.fill();
+    const end = path[path.length-1]; const [ex,ey]=P(end);
+    const fin = Math.hypot(end[0]-goal[0], end[1]-goal[1]), ok = fin<.03;
+    if(!ok){ ctx.strokeStyle=C.bad; ctx.lineWidth=2.4; ctx.beginPath(); ctx.moveTo(ex-6,ey-6); ctx.lineTo(ex+6,ey+6); ctx.moveTo(ex+6,ey-6); ctx.lineTo(ex-6,ey+6); ctx.stroke(); }
+    ctx.font=`600 11px ${C.ui}`; ctx.fillStyle=C.ink; ctx.fillText("start", sx+9, sy+4); ctx.fillText("goal", gx+13, gy+4);
+    $("k-r2").textContent = "1.000"; $("k-corr").textContent = stats().toFixed(3);
+    $("k-fin").textContent = fin.toFixed(3);
+    const out = $("k-out"); out.textContent = ok ? "reached goal" : "stuck"; out.style.color = ok ? "var(--good)" : "var(--bad)";
+  }
+  fitCal();
+  A.slider("s-tex", v=>{ tex=v; fitCal(); view.redraw(); }, v=>v.toFixed(2));
+  A.slider("s-sq", v=>{ sq=v; fitCal(); view.redraw(); }, v=>v.toFixed(2));
+  const bR=$("k-raw"), bC=$("k-cal");
+  const setC = c=>{ calib=c; bR.setAttribute("aria-pressed",!c); bC.setAttribute("aria-pressed",c); view.redraw(); };
+  bR.onclick=()=>setC(false); bC.onclick=()=>setC(true);
+  cv.addEventListener("click", e=>{ const r=cv.getBoundingClientRect(), S=Math.min(view.w,view.h)-4, ox=(view.w-S)/2;
+    const x=(e.clientX-r.left-ox)/S, y=(e.clientY-r.top-2)/S; if(x<0||y<0||x>1||y>1) return; goal=[x,y]; view.redraw(); });
+})();
+
+/* =================== QUIZ =================== */
+A.quiz("quiz", [
+  {q:"What does Richens et al.'s 2025 theorem say about agents that generalise to multi-step goals with bounded regret?",
+   options:["They must use tree search","They must contain a predictive model of the environment, which can be extracted from the policy","They must be trained with RL","They cannot exist"],
+   answer:1, why:"Generalising across goals forces the policy to encode how actions change the world. 'Model-free' agents that generalise carry an implicit model; the open question is which kind to build explicitly."},
+  {q:"In the CEM lab, why does a short horizon leave the agent pressed against the wall?",
+   options:["CEM runs out of samples","Every imagined future ends at the wall, and the one ending nearest the goal wins, so the plan never includes the detour","The wall blocks the model's vision","MPC executes the whole plan at once"],
+   answer:1, why:"The planner only sees as far as its horizon. If no imagined future gets around the wall, 'closest to the goal right now' is a local minimum. Longer horizons or a learned value function fix it."},
+  {q:"Why does MPC execute only the first action of each plan?",
+   options:["To save memory","So that a fresh observation corrects the model's drift before it compounds","Because later actions are random","Because CEM only optimises the first step"],
+   answer:1, why:"Model errors grow with every imagined step. Replanning from the real state after each action resets that error, as the re-observe slider in the drift lab shows."},
+  {q:"In a chaotic world, you make your one-step model 10 × more accurate. What happens to how far ahead you can trust it?",
+   options:["10 × further","It grows by roughly a fixed number of steps","It doesn't change","It gets shorter"],
+   answer:1, why:"With exponential error growth e·λ^t, reaching a tolerance takes t ≈ log(tol/e)/log λ. Dividing e by 10 adds log(10)/log λ steps, a constant."},
+  {q:"A latent space lets a linear probe decode the agent's position perfectly, yet latent-distance planning fails. Why?",
+   options:["The probe is overfitting","Planning uses the latent metric; high-variance irrelevant directions or squashed relevant ones make 'closer in latent' disagree with 'closer in the world'","The latent is too small","The planner needs pixels"],
+   answer:1, why:"Information and geometry are different properties. SCALE: under squared-Euclidean cost a direction's weight scales with its variance, so the metric must be calibrated to state distance."},
+  {q:"Why is LeWorldModel's planning about 48 × faster than DINO-WM's?",
+   options:["It uses a bigger GPU","It encodes each frame as one 192-d vector instead of a patch grid, so each of the K × I × H predictor calls is much cheaper","It skips CEM","It plans only one step ahead"],
+   answer:1, why:"Planning cost ≈ K × I × H × predictor cost. LeWM cut the last factor by shrinking the state, from about 200 × more tokens in DINO-WM to a single vector."},
+]);
+})();
+</script>
+</body>
+</html>

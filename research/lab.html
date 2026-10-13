@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>What can we test on a laptop tonight? · Hidden Patch</title>
+<meta name="description" content="This project's own research program: the ranked build ideas, what the three notebooks found, the ViT-Tiny quantization run on an M5 laptop, and how its main hypothesis could be proven wrong.">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/atlas.css">
+<style>
+/* page-specific */
+.beat>*,.prose>*{min-width:0}
+/* field strip */
+.fstrip{display:flex;flex-wrap:wrap;gap:.35rem}
+.fstrip span{font-family:var(--ui);font-size:.8rem;padding:.2rem .55rem;border-radius:999px;border:1px solid var(--line-strong);background:var(--panel)}
+.fstrip span b{font-family:var(--mono);font-size:.68rem;margin-right:.3rem;color:var(--muted)}
+.fstrip .ok{border-color:var(--good)} .fstrip .ok b{color:var(--good)}
+.fstrip .toy{border-style:dashed}
+.fstrip .no{opacity:.6;text-decoration:line-through}
+/* idea ranker */
+.rk{list-style:none;padding:0;margin:0;display:grid;gap:.45rem}
+.rk li{margin:0;position:relative;display:grid;grid-template-columns:2rem minmax(0,1fr) 3.2rem;gap:.15rem .6rem;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:.5rem .6rem;cursor:pointer}
+.rk li.hide{display:none}
+.rk li:hover{border-color:var(--line-strong)}
+.rk li.open{border-color:var(--why)}
+.rk .rn{font-family:var(--mono);font-size:1.05rem;font-weight:600;color:var(--why);text-align:center}
+.rk .tt{font-family:var(--ui);font-size:.92rem;font-weight:650;line-height:1.25}
+.rk .src{font-family:var(--mono);font-size:.66rem;color:var(--muted);font-weight:400;margin-left:.3rem;white-space:nowrap}
+.rk .st{font-family:var(--mono);font-size:.64rem;padding:.04rem .4rem;border-radius:999px;margin-left:.3rem;white-space:nowrap}
+.rk .st.run{background:var(--why);color:var(--on-why)} .rk .st.done{border:1px solid var(--good);color:var(--good)}
+.rk .sv{font-family:var(--mono);font-size:.95rem;text-align:right;font-variant-numeric:tabular-nums}
+.rk .bar{grid-column:2/4;display:flex;height:.5rem;border-radius:3px;overflow:hidden;background:var(--panel-2)}
+.rk .bar i{display:block;height:100%;transition:width .35s}
+.rk .scs{grid-column:2/4;display:flex;flex-wrap:wrap;gap:.3rem}
+.rk .sc{font-family:var(--mono);font-size:.7rem;padding:.06rem .42rem;border-radius:5px;border:1px solid var(--line-strong);cursor:help;background:var(--panel)}
+.rk .sc:hover::after,.rk .sc:focus::after{content:attr(data-def);position:absolute;left:.5rem;right:.5rem;top:calc(100% + 4px);z-index:30;background:var(--ink);color:var(--bg);font-family:var(--ui);font-size:.8rem;line-height:1.4;padding:.5rem .65rem;border-radius:8px;box-shadow:var(--shadow);white-space:normal}
+.rk .more{grid-column:2/4;font-size:.9rem;line-height:1.45;display:none;padding-top:.3rem;border-top:1px dashed var(--line)}
+.rk li.open .more{display:block}
+.crit-legend i{border-radius:2px}
+/* notebook cards */
+.nb{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.8rem}
+.nb>div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.85rem .95rem;display:grid;gap:.45rem;align-content:start;font-size:.94rem}
+.nb .k{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--why)}
+.nb h4{font-size:1.05rem}
+.nb ul{padding-left:1.1em}
+.nb code{font-size:.8em}
+/* falsification */
+.fx{width:100%;border-collapse:collapse;font-family:var(--ui);font-size:.8rem}
+.fx th,.fx td{padding:.2rem .25rem;text-align:right;border-bottom:1px solid var(--line)}
+.fx th{font-size:.66rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.fx td:first-child,.fx th:first-child{text-align:left;font-weight:650}
+.fx input{width:3.6rem;font-family:var(--mono);font-size:.76rem;padding:.12rem .2rem;border:1px solid var(--line-strong);border-radius:5px;background:var(--panel);color:var(--ink);text-align:right}
+.fxwrap{overflow-x:auto;max-width:100%}
+.verdict{display:grid;gap:.45rem;font-family:var(--ui);font-size:.88rem}
+.verdict .big{font-family:var(--display);font-size:1.25rem;font-weight:750;line-height:1.2}
+.verdict .row{display:grid;grid-template-columns:auto minmax(0,1fr);gap:.5rem;align-items:start}
+.pill.wait{color:var(--muted)}
+.card-h{border:2px solid var(--why);border-radius:12px;padding:.8rem 1rem;background:var(--panel);max-width:var(--measure)}
+.card-h .k{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--why)}
+.card-h p{font-family:var(--display);font-size:1.15rem;font-weight:600;line-height:1.35}
+.flags{display:grid;gap:.35rem;font-family:var(--ui);font-size:.84rem}
+.flags div{padding:.35rem .55rem;border-radius:8px;border:1px solid var(--line)}
+.flags .bad{border-color:var(--bad);color:var(--bad)}
+.flags .warn{border-color:var(--p3);color:var(--p3)}
+.flags .ok{border-color:var(--good);color:var(--good)}
+input[type=time]{font-family:var(--mono);font-size:.82rem;color:var(--ink);background:var(--panel);border:1px solid var(--line-strong);border-radius:8px;padding:.2rem .4rem}
+</style>
+</head>
+<body data-chapter="lab" data-part="5">
+<header id="topbar" class="topbar"></header>
+
+<main class="chapter">
+  <section class="opener">
+    <p class="eyebrow"><span class="sw"></span>Part 5 · Map · Chapter 17</p>
+    <h1 class="big"><span class="w">What</span> can we test on a laptop tonight?</h1>
+    <p class="because plain"><b style="color:var(--why)">Quite a lot,</b> because most of the 2025-26 "small beats big" results are laptop-sized, and the gaps this project found are cheap to probe. The plan: one falsifiable question (does SIGReg make a JEPA easier to quantize?), three notebooks that already ran, one ViT-Tiny run training overnight on an M5, and a queue of ideas ranked by what each would teach.</p>
+    <p class="meta"><span>6 beats · 3 labs · 6 questions</span><span>Builds on: <a href="edge.html">12 Small and fast</a> · <a href="gaussian.html">05 LeJEPA and SIGReg</a> · <a href="fields.html">16 The field map</a></span></p>
+    <ul class="toc">
+      <li><a href="#laptop"><span class="q">?</span>Why a laptop is enough</a></li>
+      <li><a href="#ideas"><span class="q">?</span>Which idea first</a></li>
+      <li><a href="#notebooks"><span class="q">?</span>What the notebooks showed</a></li>
+      <li><a href="#running"><span class="q">?</span>What is running now</a></li>
+      <li><a href="#falsify"><span class="q">?</span>How we could be wrong</a></li>
+      <li><a href="#next"><span class="q">?</span>What comes after</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ BEAT 1 ============ -->
+  <section class="beat" id="laptop">
+    <header>
+      <span class="num">Beat 1</span>
+      <h2><span class="w">Why</span> is a 16 GB laptop enough to say something new?</h2>
+      <p class="short">Because compute spent on the problem at hand keeps beating compute spent memorising everything in advance, and because the open questions here are about small models: how a 5.5M-parameter encoder's geometry survives 4 bits is a question you can only answer at small scale.</p>
+    </header>
+    <div class="prose">
+      <p>The evidence for "small and efficient keeps catching up" is broad. On abstraction: TRM (7M parameters), CompressARC (76K), neural cellular automata for ARC (about 10K per task). On world models: LeWM (15M) plans 48× faster than DINO-WM. On the edge: Gemma 3n and Gemma 4 E2B/E4B run offline on phones, EmbeddingGemma 2 in 191 MB of RAM, BitNet b1.58 with ternary weights. The convergent explanation, in Sara Hooker's terms: FLOPs are a poor proxy for capability. The Bitter Lesson is about <em>general methods using compute</em>, and test-time search is one of them.</p>
+      <p>Vinz's machine is an Apple M5 laptop with 16 GB of unified memory and no discrete GPU. PyTorch reaches its GPU through <span class="term" tabindex="0" data-def="Metal Performance Shaders: Apple's GPU backend. PyTorch selects it with device 'mps'. Memory is unified, so the GPU shares the same 16 GB as macOS and every open app.">MPS</span>. The field map rates each of its 23 fields for this exact machine:</p>
+    </div>
+    <div class="fstrip" id="fstrip" aria-label="23 fields and whether they run on an M5 with 16 GB"></div>
+    <div class="legend"><span><i style="background:var(--good)"></i>✅ meaningful experiments on the laptop</span><span><i class="h"></i>🟡 toy versions only</span><span>❌ needs a cluster or a wet lab</span></div>
+  </section>
+
+  <!-- ============ BEAT 2: ranker ============ -->
+  <section class="beat" id="ideas">
+    <header>
+      <span class="num">Beat 2</span>
+      <h2><span class="w">Why</span> start with quantization, of all things?</h2>
+      <p class="short">Because it scores high on every axis at once: it tests a specific theory prediction, it is about the edge, nobody has published it, and it fits on the laptop. Change what you value and the order changes; that is the point of the ranker below.</p>
+    </header>
+    <div class="prose">
+      <p>The project's <code>build-ideas.md</code> ranked seven ideas on three equally weighted criteria: does it test a theory claim (Vinz leans theory first), does it touch edge or efficiency, and does it fill a gap nobody has filled. Its recommendation: warm up with the theory notebooks (#7), then do quantization (#1) plus the edge benchmark (#2) as one project. The landscape survey (section 9) and the field map then added eleven more. Below, all eighteen are scored 1 to 5 on four criteria, with laptop feasibility added because the budget turned out to be one M5. Hover or focus a score to see why it got that number; click a row for the first milestone.</p>
+    </div>
+    <figure class="lab" id="lab-rank">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Idea ranker: weight what you care about</h3></div>
+      <div class="lab-body">
+        <div class="stage">
+          <div class="legend crit-legend" style="margin-bottom:.5rem"><span><i style="background:var(--p2)"></i>T theory value</span><span><i style="background:var(--p3)"></i>E edge relevance</span><span><i style="background:var(--p5)"></i>N novelty</span><span><i style="background:var(--p4)"></i>F laptop feasibility</span></div>
+          <ol class="rk" id="rk"></ol>
+        </div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="w-t">Theory value</label><output for="w-t"></output></div><input type="range" id="w-t" min="0" max="3" step="0.5" value="1"></div>
+          <div class="ctrl"><div class="row"><label for="w-e">Edge relevance</label><output for="w-e"></output></div><input type="range" id="w-e" min="0" max="3" step="0.5" value="1"></div>
+          <div class="ctrl"><div class="row"><label for="w-n">Novelty</label><output for="w-n"></output></div><input type="range" id="w-n" min="0" max="3" step="0.5" value="1"></div>
+          <div class="ctrl"><div class="row"><label for="w-f">Laptop feasibility</label><output for="w-f"></output></div><input type="range" id="w-f" min="0" max="3" step="0.5" value="1"></div>
+          <div class="ctrl"><span class="lbl">Presets</span>
+            <div class="btns"><button type="button" id="pr-eq">Equal</button><button type="button" id="pr-doc">build-ideas.md</button><button type="button" id="pr-tonight">Tonight</button><button type="button" id="pr-paper">A paper</button></div>
+            <span class="hint">build-ideas.md weighs theory, edge and gap equally and ignores feasibility. "Tonight" triples feasibility.</span></div>
+          <div class="ctrl"><span class="lbl">Show</span>
+            <label class="check"><input type="checkbox" id="c-b" checked> 7 build ideas</label>
+            <label class="check"><input type="checkbox" id="c-l" checked> 6 landscape §9 experiments</label>
+            <label class="check"><input type="checkbox" id="c-f" checked> 5 field-map bridges</label></div>
+          <dl class="readout"><dt>top idea</dt><dd id="rk-top" class="hot">–</dd><dt>shown</dt><dd id="rk-n">–</dd></dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Quantization (#1) stays first under every preset; only a weighting that ignores theory and novelty dethrones it. The usual runner-up is the "are SIGReg encoders more factored?" probe, which reuses #1's checkpoints, so it costs no new training once #1 is done.</li>
+        <li>Turn feasibility up ("Tonight") and the CPU-minute ideas rise behind it: the closed-form curriculum, predictive NCA, the surprise detector. With "build-ideas.md" weights, the scaling-down study (#6) and the ARC-AGI-3 world model move up instead.</li>
+        <li>The scores are this chapter's reading of the sources, not measurements. The field-map bridges were written from model knowledge with no fresh literature search, so their novelty scores deserve the least trust.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 3: notebooks ============ -->
+  <section class="beat" id="notebooks">
+    <header>
+      <span class="num">Beat 3</span>
+      <h2><span class="w">Why</span> run three tiny notebooks before the real experiment?</h2>
+      <p class="short">Because each one turns a theory claim into a number you can check in a minute, and the second one produced the reason for the third: a plain deep JEPA is anisotropic by design, which is exactly what quantization punishes.</p>
+    </header>
+    <div class="nb">
+      <div><span class="k">Notebook 1 · done 2026-10-09 · ~1 min CPU</span><h4>Drive vs. decay: which directions escape collapse</h4>
+        <p>Linear JEPA, fixed predictor <code>W_p = αI</code>, EMA target, context keep probability p and target keep probability p_tgt, minibatch SGD on a 32-d stationary signal.</p>
+        <div class="eq" style="font-size:.82rem">μ<sub>k</sub> = (p<sub>tgt</sub>/α) · λ<sub>k</sub> / (p·λ<sub>k</sub> + (1−p)·d)<span class="c">Own closed form for constant-diagonal covariance d. Mode k escapes collapse iff μ<sub>k</sub> &gt; 1.</span></div>
+        <ul><li>Predicted vs measured early growth rates agree within <b>0.008</b> across all 32 modes; the escaping-mode count matches at <b>14 of 16</b> settings (the misses sit within 2% of μ = 1).</li>
+          <li>Context masking is a <b>spectral filter</b>: it favours modes with more than average variance. Without it, collapse is all or nothing.</li>
+          <li>The EMA rate changes speed, not outcome: 3 orders of magnitude never flipped a mode.</li></ul></div>
+      <div><span class="k">Notebook 2 · done 2026-10-10 · ~1 min CPU</span><h4>Implicit bias: why depth makes JEPA picky</h4>
+        <p>Littwin et al.'s deep linear ODE, then minibatch SGD on finite networks.</p>
+        <ul><li>MAE learns the louder feature first at every depth. JEPA's preference for <em>predictable</em> features grows with depth: a quiet feature (ρ 0.9) overtook one with twice the covariance but ρ 0.4 only at depth 5 to 7.</li>
+          <li>SGD reaches the paper's fixed points: ρ<sup>L</sup> for JEPA, ρ<sup>L/(L+1)</sup> for MAE.</li>
+          <li><b>Own consequence:</b> a JEPA embedding's scale spread grows like (ρ<sub>max</sub>/ρ<sub>min</sub>)<sup>L</sup>, while MAE's stays bounded. A plain deep JEPA is anisotropic by design. That is the motivation for testing SIGReg under quantization.</li></ul></div>
+      <div><span class="k">Notebook 3 · CPU pilot done 2026-10-10 · ~4 min</span><h4>Does SIGReg quantize better?</h4>
+        <p>8 × 8 digits, MLP encoder, 16-d embedding, 3 seeds per method. Points lost after quantization:</p>
+        <div class="tbl"><table><thead><tr><th></th><th>W4</th><th>W3</th><th>E4</th><th>E3</th><th>kurt.</th></tr></thead><tbody>
+          <tr><td>SIGReg</td><td class="n best">5.0</td><td class="n best">11.8</td><td class="n best">1.2</td><td class="n best">5.3</td><td class="n">0.42</td></tr>
+          <tr><td>VICReg</td><td class="n">5.6</td><td class="n">37.1</td><td class="n">2.1</td><td class="n">7.0</td><td class="n">1.20</td></tr>
+          <tr><td>EMA</td><td class="n">19.0</td><td class="n">27.0</td><td class="n">24.5</td><td class="n">47.6</td><td class="n">5.04</td></tr></tbody></table></div>
+        <ul><li>SIGReg lost the least in every setting; INT8 was free for all.</li>
+          <li>Kurtosis tracked embedding loss better than condition number (VICReg: 4,275 yet mild loss). The mechanism is the lab in <a href="edge.html#bits">chapter 12</a>.</li></ul></div>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 4: running + planner ============ -->
+  <section class="beat" id="running">
+    <header>
+      <span class="num">Beat 4</span>
+      <h2><span class="w">Why</span> did the first real run stop after 30 minutes?</h2>
+      <p class="short">Because the battery was dying. A ViT-Tiny JEPA keeps the M5's GPU busy for hours, and on battery that drains the laptop. The fix was a lighter run (about 5 GB) that saves a checkpoint every epoch, with the Mac plugged in overnight.</p>
+    </header>
+    <div class="split">
+      <div class="prose">
+        <p>The real test of build idea #1 is <code>experiments/quant-vit/jepa_quant.py</code>: a ViT-Tiny (5.5M parameters, 4 × 4 patches on 32 × 32 images, an 8 × 8 token grid) trained I-JEPA-style on CIFAR-100 with SIGReg, VICReg or an EMA teacher, 100 epochs each, 2 seeds. After training, a linear probe is fitted on full-precision embeddings, then the weights (W8/W4/W3, per output channel) or the output embedding (E8/E4/E3, per tensor) are quantized. It also records condition number, effective rank, kurtosis, channel ratio and residual-stream outlier ratios.</p>
+        <p>Each run saves <code>runs/&lt;method&gt;_s&lt;seed&gt;.ckpt</code> after every epoch, written atomically so a kill mid-save cannot corrupt it. Rerunning the same command resumes, so an interruption costs at most one epoch.</p>
+        <aside class="aside warn"><span class="k">Gotcha in the script</span>A checkpoint remembers its batch size and epoch count. Resuming with a different <code>--batch</code> or <code>--epochs</code> is refused ("delete it or match those"), because the learning-rate schedule and step count would no longer line up. Switching to the lighter batch means starting that run over.</aside>
+      </div>
+      <ol class="timeline" aria-label="Status of the quantization experiment">
+        <li><span class="d">2026-10-09</span><br><b>Ideas ranked, notebook 1 done.</b> Quantization chosen as the first real experiment.</li>
+        <li><span class="d">2026-10-10</span><br><b>Notebooks 2 and 3 done.</b> CPU pilot: SIGReg loses least everywhere.</li>
+        <li><span class="d">2026-10-10 · timing</span><br><b>Measured on the M5 at batch 256.</b> SIGReg 3.0 h per 100 epochs (9.5 GB), VICReg 2.9 h (8.7 GB), EMA 1.5 h (4.5 GB). All 6 runs ≈ 15 h.</li>
+        <li><span class="d">17:10 UTC</span><br><b>Seed-0 run starts.</b></li>
+        <li><span class="d">≈ 17:40 UTC</span><br><b>Stopped: battery dying.</b></li>
+        <li><span class="d">overnight</span><br><b>Lighter, resumable run, plugged in.</b> About 5 GB peak, checkpoint every epoch. <span class="pill wait">results pending</span></li>
+      </ol>
+    </div>
+    <figure class="lab" id="lab-plan">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Run planner for a 16 GB M5</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-run" aria-label="Top: the runs as a sequence of bars over the night. Bottom: peak memory of each run against the 16 GB limit."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i style="background:var(--p1)"></i>SIGReg</span><span><i style="background:var(--p2)"></i>VICReg</span><span><i style="background:var(--p4)"></i>EMA</span><span><i class="h"></i>memory other apps need</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><span class="lbl">Methods</span>
+            <div class="btns" role="group" aria-label="Methods"><button type="button" class="mth" data-m="sigreg" aria-pressed="true">SIGReg</button><button type="button" class="mth" data-m="vicreg" aria-pressed="true">VICReg</button><button type="button" class="mth" data-m="ema" aria-pressed="true">EMA</button></div></div>
+          <div class="ctrl"><div class="row"><label for="rp-s">Seeds</label><output for="rp-s"></output></div><input type="range" id="rp-s" min="1" max="3" step="1" value="1"></div>
+          <div class="ctrl"><div class="row"><label for="rp-e">Epochs per run</label><output for="rp-e"></output></div><input type="range" id="rp-e" min="10" max="200" step="10" value="100"></div>
+          <div class="ctrl"><span class="lbl">Batch</span>
+            <div class="seg" role="group" aria-label="Batch size"><button type="button" class="bt" data-b="64" aria-pressed="false">64</button><button type="button" class="bt" data-b="128" aria-pressed="true">128</button><button type="button" class="bt" data-b="256" aria-pressed="false">256</button><button type="button" class="bt" data-b="512" aria-pressed="false">512</button></div></div>
+          <div class="ctrl"><div class="row"><label for="rp-o">Other apps (macOS, browser)</label><output for="rp-o"></output></div><input type="range" id="rp-o" min="2" max="8" step="0.5" value="4">
+            <span class="hint">Your guess; unified memory is shared with everything else.</span></div>
+          <div class="ctrl"><div class="row"><label for="rp-t">Start</label><input type="time" id="rp-t" value="21:00"></div></div>
+          <div class="btns"><button type="button" id="rp-full">Full plan</button><button type="button" id="rp-night" class="primary">Overnight light</button><button type="button" id="rp-quick">Quick check</button></div>
+          <dl class="readout">
+            <dt>runs</dt><dd id="rp-n">–</dd>
+            <dt>total time</dt><dd id="rp-h" class="hot">–</dd>
+            <dt>finishes</dt><dd id="rp-end">–</dd>
+            <dt>peak memory</dt><dd id="rp-m">–</dd>
+            <dt>lost if killed</dt><dd id="rp-k">–</dd>
+          </dl>
+          <div class="flags" id="rp-flags"></div>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>The numbers are the measured M5 timings at batch 256 (min/epoch: SIGReg 1.8, VICReg 1.75, EMA 0.9). Memory scales with batch from those peaks, which reproduces "batch 128 uses about half" (SIGReg ≈ 4.9 GB). Time per epoch is assumed constant across batch sizes; on MPS small batches usually run somewhat slower per image, so read it as a lower bound.</li>
+        <li>SIGReg and VICReg cost twice EMA in time and memory, because they backpropagate through a second full-image pass of the encoder while EMA's teacher runs without gradients (<a href="edge.html#training">chapter 12</a>).</li>
+        <li>Batch 512 shows the wall: SIGReg would need about 18.7 GB, more than the whole machine. Runs go one after another, as <code>run_all.sh</code> does; the final probe and quantization sweep add a little time not counted here.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 5: falsification ============ -->
+  <section class="beat" id="falsify">
+    <header>
+      <span class="num">Beat 5</span>
+      <h2><span class="w">Why</span> write down the losing result before the numbers arrive?</h2>
+      <p class="short">Because once the table exists, every outcome can be told as a story. Fixing in advance which numbers would count as "SIGReg quantizes better", which would count against it, and how big a difference must be to beat seed noise, is what makes the run a test instead of a demo.</p>
+    </header>
+    <div class="card-h"><span class="k">The hypothesis</span>
+      <p>Encoders trained with SIGReg lose less accuracy under low-bit post-training quantization than VICReg- or EMA-trained encoders, <em>because</em> their embeddings are closer to an isotropic Gaussian: lighter tails and a lower condition number.</p></div>
+    <div class="prose">
+      <p>The hypothesis has two halves, and the card tests them separately. The <b>effect</b>: SIGReg loses fewer points at 4 and 3 bits. The <b>mechanism</b>: SIGReg's embedding geometry is the reason, so the method ordering by geometry should match the ordering by loss. Getting the effect without the mechanism is a different finding ("SIGReg wins for another reason"), and the pilot already flagged which geometry to trust: kurtosis, not condition number.</p>
+    </div>
+    <figure class="lab" id="lab-fx">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Falsification card: enter results, get a verdict</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-fx" aria-label="Points lost per method and setting, with SIGReg's noise band."></canvas>
+          <div class="fxwrap" style="margin-top:.6rem"><table class="fx" id="fx-tbl">
+            <thead><tr><th>method</th><th>fp32 %</th><th>W4</th><th>W3</th><th>E4</th><th>E3</th><th>cond</th><th>kurt</th></tr></thead><tbody></tbody></table></div>
+          <p class="small muted" style="margin-top:.35rem;font-family:var(--ui)">W/E columns are accuracy points lost after quantizing weights or the embedding.</p>
+        </div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="fx-m">Noise margin</label><output for="fx-m"></output></div><input type="range" id="fx-m" min="0" max="10" step="0.5" value="2">
+            <span class="hint">A difference smaller than this counts as a tie. Set it to the seed-to-seed spread once two seeds exist.</span></div>
+          <div class="ctrl"><span class="lbl">Load</span>
+            <div class="btns"><button type="button" class="primary" id="fx-pilot">Pilot (notebook 3)</button><button type="button" id="fx-ref">Made-up: refuted</button><button type="button" id="fx-alt">Made-up: other reason</button><button type="button" id="fx-vit" disabled title="The ViT-Tiny runs are still training">ViT-Tiny: pending</button></div></div>
+          <div class="verdict" id="fx-v" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>The pilot reads "mostly supported" at a 2-point margin: SIGReg beats EMA everywhere and VICReg at 3-bit weights (25 points), but its other gaps to VICReg (0.6 at W4, 0.9 at E4, 1.7 at E3) count as ties. Drop the margin to 0.5 and it becomes "supported". At toy scale SIGReg and VICReg are close on embeddings and far apart on 3-bit weights.</li>
+        <li>The relative check divides each drop by its fp32 accuracy, because EMA starts lower (0.834 vs 0.900), which by itself inflates its drop. A result that survives this is harder to explain away.</li>
+        <li>The "made-up" presets are invented numbers, labelled as such, to show what a refutation and a mechanism failure would look like. Nothing on this card is a ViT result yet.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 6: next ============ -->
+  <section class="beat" id="next">
+    <header>
+      <span class="num">Beat 6</span>
+      <h2><span class="w">Why</span> does every next experiment start from the same checkpoints?</h2>
+      <p class="short">Because the six trained encoders are the expensive part, and several open questions only need to <em>measure</em> them: whether isotropy predicts internal factoring, how fast they run on real hardware, and whether an evolved regularizer could beat SIGReg.</p>
+    </header>
+    <div class="compare">
+      <div><span class="k">reuses the checkpoints · no training</span><h4>Isotropic, or also factored?</h4><p>Landscape idea 1: FER-style weight sweeps, Shai et al.'s orthogonal-factor test, mutual-kNN alignment with DINO, next to the quantization loss. Does a <em>global</em> property (isotropy) predict an <em>internal</em> one (factoring)? <a href="fractured.html">Chapter 07</a>.</p></div>
+      <div><span class="k">reuses the checkpoints · export only</span><h4>Edge benchmark</h4><p>Build idea #2: export the quantized encoders to ONNX and Core ML, measure latency, peak memory and energy on the laptop and a phone. Theory predicts which survive compression; hardware says what that buys.</p></div>
+      <div><span class="k">reuses notebook 3 · CPU</span><h4>Evolve the regularizer</h4><p>Landscape idea 6: OpenEvolve or ShinkaEvolve with a small local model mutates the anti-collapse term, scored by linear probe plus INT4 robustness on the CPU pilot. A verifier-driven search over the exact thing under study (<a href="reasoning.html">chapter 09</a>).</p></div>
+      <div><span class="k">new direction · hours on MPS</span><h4>A JEPA world model for ARC-AGI-3</h4><p>Landscape idea 4: a LeWM-style JEPA learns one or two ARC-AGI-3 games from random play and plans in latent space. The 2026 winners used code world models; nobody seems to have tried a JEPA there.</p></div>
+    </div>
+    <div class="prose">
+      <h3>The five bridges out of JEPA</h3>
+      <p>The field map ends with five places where JEPA meets a neighbouring field. All five are marked laptop-sized, and all five are in the ranker above:</p>
+      <ol>
+        <li><b>Sparse autoencoders on I-JEPA features</b> (interpretability): what dictionary does a non-generative encoder learn? See <a href="interp.html">chapter 08</a>.</li>
+        <li><b>JEPA as the interestingness judge</b> in open-ended search: swap CLIP for a JEPA encoder in ASAL and compare which Lenia or NCA creatures it finds (<a href="open.html">chapter 14</a>).</li>
+        <li><b>Predictive NCA</b>: train a neural cellular automaton with a latent-prediction objective instead of pixel targets (<a href="alife.html">chapter 13</a>).</li>
+        <li><b>SSM or liquid predictor for V-JEPA</b>: a linear-time predictor aimed at edge video.</li>
+        <li><b>Active inference vs JEPA</b>, side by side on one toy environment. The SIGReg free-energy paper already connects them.</li>
+      </ol>
+      <aside class="aside"><span class="k">Theory crossed with practice</span>The landscape survey's table pairs each theory result with what it unlocks. Three rows point straight at this chapter: isotropic Gaussian embeddings are optimal (LeJEPA) → possibly quantization-friendly encoders, <em>our experiment</em>; JEPA pretraining error bounds planning regret (Cui et al., 2026) → choose an edge world model's latent size on principle; over-squashing and softmax dispersion → awareness that quantization worsens attention collapse.</aside>
+    </div>
+  </section>
+
+  <section class="remember">
+    <h2>Three things to <span class="w">remember</span></h2>
+    <ol>
+      <li><b>Small questions need small machines.</b>How a 5.5M-parameter encoder survives 4 bits can only be answered at small scale. A 16 GB laptop is the right instrument, not a compromise.</li>
+      <li><b>Write the losing result first.</b>A pre-registered margin and a refutation criterion turn the ViT run into a test. Effect and mechanism are checked separately.</li>
+      <li><b>Plug it in and checkpoint every epoch.</b>The first run died with the battery after 30 minutes. Atomic per-epoch checkpoints mean the next interruption costs one epoch, not one night.</li>
+    </ol>
+  </section>
+
+  <section id="quiz"></section>
+
+  <section class="sources">
+    <h2>Sources for this chapter</h2>
+    <ol>
+      <li>Project files: <code>jepa/build-ideas.md</code> (7 ranked ideas), <code>jepa/notebooks/README.md</code> and notebooks 01 to 03, <code>jepa/experiments/quant-vit/</code> (README, <code>jepa_quant.py</code>, <code>run_all.sh</code>; M5 timings measured 2026-10-10).</li>
+      <li>Project survey: <code>landscape/ai-landscape-why.md</code>, Q14 and sections 8 to 9.</li>
+      <li>Project field map: <code>fields/ai-alife-field-map.md</code>, written from model knowledge without a fresh literature search <span class="pill bad">check</span></li>
+      <li>Balestriero &amp; LeCun, <a href="https://arxiv.org/abs/2511.08544">LeJEPA</a>, 2025.</li>
+      <li>Arnez, Gomez-Villa, <a href="https://arxiv.org/abs/2607.13612">The SIGReg Objective as Variational Free Energy</a>, 2026 (abstract only seen) <span class="pill bad">check</span></li>
+      <li>De Melo Costa et al., <a href="https://arxiv.org/abs/2610.02344">Drive vs. Decay</a>, 2026 (abstract only seen; notebook 1's closed form is the project's own) <span class="pill bad">check</span></li>
+      <li>Littwin et al., <a href="https://arxiv.org/abs/2407.03475">How JEPA Avoids Noisy Features: The Implicit Bias of Deep Linear Self Distillation Networks</a>, 2024.</li>
+      <li>Cui et al., <a href="https://arxiv.org/abs/2606.27014">A Generalization Theory for JEPA-Based World Models</a>, 2026 (abstract only seen) <span class="pill bad">check</span></li>
+      <li>Kumar et al., FER code: <a href="https://github.com/akarshkumar0101/fer">github.com/akarshkumar0101/fer</a>.</li>
+      <li>Maes et al., <a href="https://arxiv.org/abs/2603.19312">LeWorldModel</a>, 2026.</li>
+      <li>Hassan et al., <a href="https://arxiv.org/abs/2607.09798">JEPA for AI-Native 6G</a>, 2026. Lists quantization and latency profiling as future work.</li>
+    </ol>
+  </section>
+
+  <nav id="pager"></nav>
+</main>
+<footer id="site-footer"></footer>
+
+<script src="assets/atlas.js"></script>
+<script>
+(function(){
+"use strict";
+const A = window.Atlas;
+
+/* =================== field strip =================== */
+(function(){
+  const F = [["A1","World models","ok"],["A2","Mech. interpretability","ok"],["A3","Reasoning, test-time compute","toy"],["A4","SSMs and recurrent models","ok"],["A5","Test-time training","ok"],["A6","Diffusion, flows, EBMs","ok"],["A7","Theory of deep learning","ok"],["A8","Active inference","ok"],["A9","Neuro-symbolic, program synthesis","toy"],["A10","Geometric deep learning","ok"],["A11","Neuromorphic, spiking","toy"],["A12","Hyperdimensional computing","ok"],["A13","Liquid networks","ok"],["A14","Embodied, robot foundation models","toy"],
+    ["B1","Neural cellular automata","ok"],["B2","Lenia family","ok"],["B3","Open-endedness, QD","ok"],["B4","Foundation models for ALife","ok"],["B5","Artificial chemistry","ok"],["B6","Basal cognition","no"],["B7","Neuroevolution","ok"],["B8","Swarm intelligence","ok"],["B9","Morphology co-evolution","toy"]];
+  const el = document.getElementById("fstrip");
+  F.forEach(([k,n,c])=>el.insertAdjacentHTML("beforeend",`<span class="${c}"><b>${k}</b>${n} ${c==="ok"?"✅":c==="toy"?"🟡":"❌"}</span>`));
+})();
+
+/* =================== LAB: idea ranker =================== */
+(function(){
+  // scores [theory, edge, novelty, feasibility], each with a reason
+  const I = [
+    {id:"b1", g:"b", n:"Quantization-robust JEPA: does SIGReg quantize better?", src:"build #1", st:"run",
+     s:[5,5,5,4], r:["Turns a theory prediction (LeJEPA isotropy, free-energy condition number ≈ 1) into a falsifiable test.","Directly about INT8/INT4 deployment of an encoder.","No JEPA-specific quantization paper was found; the 6G tutorial lists it as future work.","ViT-Tiny on CIFAR-100 runs on the M5: 1.5 to 3 h per 100-epoch run, 6 runs ≈ 15 h. Not 5 because SIGReg peaks at 9.5 GB at batch 256."],
+     m:"Two ViT-Tiny runs on CIFAR-100 (SIGReg vs VICReg), one table: linear probe at FP32, INT8, INT4 next to each model's condition number."},
+    {id:"b2", g:"b", n:"JEPA edge benchmark: real latency, memory, energy", src:"build #2",
+     s:[1,5,4,4], r:["Engineering measurement; tests no theory claim by itself.","The measurement the edge literature cites as missing.","Almost no on-device JEPA numbers exist; the 6G tutorial leaves latency profiling to future work.","Little training: export to ONNX / Core ML and profile on the laptop and a phone. Pi or Jetson optional (≈100 to 250 EUR)."],
+     m:"LeWM's planning loop (encoder + predictor + CEM) running from ONNX on the laptop CPU, ms per planning step vs the paper's GPU figure."},
+    {id:"b3", g:"b", n:"Pocket world model: latent-size sweep, plan on a phone", src:"build #3",
+     s:[4,4,3,2], r:["Checks Cui et al.'s latent-dimension bound and SCALE's geometry point empirically.","Smallest model that still plans, run on a phone.","LeWM exists; the sweep and phone run are new.","Several hours per run on a 4090; 6 sizes × 2 seeds is days of GPU. Slower on an M5."],
+     m:"Reproduce one LeWM task within a few points of the paper's success rate."},
+    {id:"b4", g:"b", n:"Surprise detector for sensors", src:"build #4",
+     s:[3,4,3,5], r:["Littwin et al.: JEPA ignores unpredictable noise, which is what an anomaly detector needs.","Per-sample FLOPs and on-device cost vs an autoencoder; phone accelerometer demo.","MTS-JEPA exists; nobody compares on-device cost against an autoencoder.","Models under 1M parameters train in minutes, often on CPU."],
+     m:"AUROC and FLOPs for JEPA vs autoencoder on one benchmark (SMD or SMAP/MSL), same parameter count."},
+    {id:"b5", g:"b", n:"Event-triggered camera: decode only on change", src:"build #5",
+     s:[1,5,3,4], r:["A systems demo of VL-JEPA's idea; no theory claim.","Always-on camera, wake the expensive model on events.","VL-JEPA reported 2.85× fewer calls; the battery side is unmeasured.","No pretraining with a public checkpoint; you record your own labelled clips."],
+     m:"Laptop webcam demo logging the change score, with a precision count on 10 minutes of footage."},
+    {id:"b6", g:"b", n:"How small can a JEPA be? JEPA vs MAE scaled down", src:"build #6",
+     s:[5,3,4,3], r:["Direct test of the core claim: reconstruction spends capacity on variance, JEPA on predictiveness.","Small models are edge models, but nothing is deployed.","Untested at the tiny end (1M to 20M parameters).","About 24 runs of 1 to 2 h on a GPU; slower on MPS. The deep-linear start runs on a laptop."],
+     m:"Reproduce the deep-linear result in a notebook, then one nonlinear CIFAR point."},
+    {id:"b7", g:"b", n:"Theory lab: interactive notebooks", src:"build #7", st:"done",
+     s:[4,1,2,5], r:["Reproduces theory results, plus one own closed form (μ_k).","No edge component.","Mostly reproductions; the closed form and the anisotropy consequence are new.","Done: three notebooks, 1 to 4 minutes each on CPU."],
+     m:"Done: drive vs decay, implicit bias, quantization pilot."},
+    {id:"l1", g:"l", n:"Are SIGReg encoders more unified and factored, not just isotropic?", src:"landscape §9.1",
+     s:[5,2,5,4], r:["Does a global property (isotropy) predict an internal one (factoring, FER), and either predict quantization?","Only through the quantization link.","Tests whether LeJEPA's theory says anything about fractured representations; nobody has.","No new training, but needs the ViT checkpoints from the running experiment first."],
+     m:"Weight sweeps and orthogonal-factor test on the six ViT-Tiny checkpoints, next to their quantization loss."},
+    {id:"l2", g:"l", n:"Does weight decay turn FER into UFR?", src:"landscape §9.2",
+     s:[4,1,4,5], r:["Connects FER to grokking and to notebook 1's drive/decay threshold.","No edge link.","FER names grokking as a possible cleanup route; nobody has tested it.","The FER code is tiny: minutes per run on CPU."],
+     m:"Replicate FER's skull experiment, then train long with weight decay and track symmetry in early layers."},
+    {id:"l3", g:"l", n:"Curriculum for a linear JEPA, in closed form", src:"landscape §9.3",
+     s:[5,1,4,5], r:["Turns 'the path matters' into a theorem for the simplest case.","No edge link.","An analytic curriculum result for JEPA does not appear in the sources.","Pen and paper plus an extension of notebook 1."],
+     m:"Show analytically how the order of data directions changes the solution in an underparameterized linear JEPA."},
+    {id:"l4", g:"l", n:"A tiny latent world model on ARC-AGI-3 games", src:"landscape §9.4",
+     s:[3,3,5,3], r:["Touches abstraction (Q7) and world models (Q8), but no closed-form claim.","A 15M-parameter planner is edge-sized.","2026 winners used code world models; nobody seems to have tried a JEPA.","Hours on MPS, plus game-environment plumbing."],
+     m:"Learn one game's dynamics from random play and plan by latent search."},
+    {id:"l5", g:"l", n:"NCA pre-pre-training for a small JEPA", src:"landscape §9.5",
+     s:[3,2,4,3], r:["Tests whether the path (synthetic dynamics first) shapes what is learned.","Indirect.","Kumar's 2026 result used language models; JEPA is untried.","Hours per run."],
+     m:"Short latent-prediction phase on NCA dynamics, then CIFAR JEPA; compare probe accuracy and speed."},
+    {id:"l6", g:"l", n:"Evolve the anti-collapse regularizer", src:"landscape §9.6",
+     s:[3,3,4,3], r:["Searches the space the theory describes, but proves nothing by itself.","Scored partly by INT4 robustness.","A verifier-driven search over regularizers is new.","Each evaluation is the 4-minute CPU pilot; a search needs many of them, plus a small local model."],
+     m:"An OpenEvolve loop that mutates the regularizer and scores probe + INT4 drop on notebook 3."},
+    {id:"f1", g:"f", n:"Sparse autoencoders on I-JEPA features", src:"field bridge 1",
+     s:[3,1,4,5], r:["Interpretability more than theory.","No edge link.","No clean feature dictionary of a JEPA encoder known (model knowledge, unverified).","Laptop-sized: small ViTs, ✅ on the map."],
+     m:"Train an SAE on ViT-Tiny JEPA features and label the top features."},
+    {id:"f2", g:"f", n:"JEPA as the interestingness judge in ASAL", src:"field bridge 2",
+     s:[2,1,4,4], r:["Comparative, not a theory test.","No edge link.","Swapping CLIP for a JEPA in ASAL is untried (model knowledge, unverified).","Small simulators run on a laptop."],
+     m:"Run ASAL-style search on Lenia with CLIP and with a JEPA encoder; compare the creatures found."},
+    {id:"f3", g:"f", n:"Predictive NCA", src:"field bridge 3",
+     s:[3,3,4,5], r:["Latent prediction as a local rule: a new objective for a known model.","NCAs are tiny by construction.","NCAs are trained on pixel targets; a latent target is new (unverified).","NCA is the ideal laptop field."],
+     m:"An NCA trained to predict its own future embedding, compared with a pixel-target NCA."},
+    {id:"f4", g:"f", n:"SSM or liquid predictor for V-JEPA", src:"field bridge 4",
+     s:[2,5,3,3], r:["Architecture swap, little theory.","Linear-time predictor cuts video memory.","Hybrids exist in other settings; a JEPA predictor is less explored (unverified).","Small SSMs train fine on MPS; video data is heavy."],
+     m:"Replace a small V-JEPA-style predictor with an SSM; compare memory per frame and probe accuracy."},
+    {id:"f5", g:"f", n:"Active inference vs JEPA, side by side", src:"field bridge 5",
+     s:[5,1,3,5], r:["Theory-first: compares two predictive objectives on one toy; the SIGReg free-energy paper links them.","No edge link.","The free-energy paper makes the link on paper, with no experiments.","pymdp runs on CPU."],
+     m:"One toy environment, a pymdp agent and a JEPA world model, same data, compare what each learns."},
+  ];
+  const COL = ["var(--p2)","var(--p3)","var(--p5)","var(--p4)"], LET = ["T","E","N","F"], CNAME = ["Theory","Edge","Novelty","Feasibility"];
+  const W = [1,1,1,1], show = {b:true,l:true,f:true};
+  const rk = document.getElementById("rk");
+  I.forEach(it=>{
+    const li = A.el("li",{"data-id":it.id, tabindex:"0", "aria-expanded":"false"});
+    li.innerHTML = `<span class="rn">–</span><span class="tt">${it.n}<span class="src">${it.src}</span>${it.st==="run"?'<span class="st run">running</span>':it.st==="done"?'<span class="st done">done</span>':""}</span><span class="sv">–</span>
+      <span class="bar">${it.s.map((_,k)=>`<i style="background:${COL[k]}"></i>`).join("")}</span>
+      <span class="scs">${it.s.map((v,k)=>`<span class="sc" tabindex="0" data-def="${CNAME[k]} ${v}/5: ${it.r[k].replace(/"/g,"&quot;")}" style="border-color:${COL[k]}">${LET[k]} ${v}</span>`).join("")}</span>
+      <span class="more"><b>First milestone.</b> ${it.m}</span>`;
+    const tog = ()=>{ li.classList.toggle("open"); li.setAttribute("aria-expanded", li.classList.contains("open")); };
+    li.addEventListener("click", e=>{ if(!e.target.classList.contains("sc")) tog(); });
+    li.addEventListener("keydown", e=>{ if((e.key==="Enter"||e.key===" ") && e.target===li){ e.preventDefault(); tog(); } });
+    it.li = li; rk.append(li);
+  });
+  function rank(){
+    const sw = W.reduce((a,b)=>a+b,0) || 1;
+    const before = new Map(I.map(it=>[it, it.li.getBoundingClientRect().top]));
+    I.forEach(it=>{ it.score = it.s.reduce((t,v,k)=>t+W[k]*v,0)/sw; });
+    const vis = I.filter(it=>show[it.g]).sort((a,b)=>b.score-a.score || a.id.localeCompare(b.id));
+    I.forEach(it=>it.li.classList.toggle("hide", !show[it.g]));
+    vis.forEach((it,k)=>{
+      rk.append(it.li);
+      it.li.querySelector(".rn").textContent = k+1;
+      it.li.querySelector(".sv").textContent = it.score.toFixed(2);
+      it.li.querySelectorAll(".bar i").forEach((b,j)=>{ b.style.width = (W[j]*it.s[j]/sw/5*100)+"%"; });
+    });
+    I.filter(it=>!show[it.g]).forEach(it=>rk.append(it.li));
+    if(!A.reduced) vis.forEach(it=>{ const d = before.get(it) - it.li.getBoundingClientRect().top; if(d){ it.li.style.transition="none"; it.li.style.transform=`translateY(${d}px)`; requestAnimationFrame(()=>{ it.li.style.transition="transform .45s cubic-bezier(.2,.7,.2,1)"; it.li.style.transform=""; }); } });
+    document.getElementById("rk-top").textContent = vis.length ? vis[0].src : "–";
+    document.getElementById("rk-n").textContent = vis.length+" ideas";
+  }
+  const ids = ["w-t","w-e","w-n","w-f"];
+  ids.forEach((id,k)=>A.slider(id, v=>{ W[k]=v; rank(); }, v=>"×"+v));
+  const setW = arr=>{ ids.forEach((id,k)=>{ const inp=document.getElementById(id); inp.value=arr[k]; inp.dispatchEvent(new Event("input")); }); };
+  document.getElementById("pr-eq").onclick = ()=>setW([1,1,1,1]);
+  document.getElementById("pr-doc").onclick = ()=>setW([1,1,1,0]);
+  document.getElementById("pr-tonight").onclick = ()=>setW([1,1,1,3]);
+  document.getElementById("pr-paper").onclick = ()=>setW([2,1,3,1]);
+  [["c-b","b"],["c-l","l"],["c-f","f"]].forEach(([id,g])=>document.getElementById(id).addEventListener("change", e=>{ show[g]=e.target.checked; rank(); }));
+  rank();
+})();
+
+/* =================== LAB: run planner =================== */
+(function(){
+  const M = {sigreg:{n:"SIGReg", mpe:1.8, gb:9.5, c:"p1"}, vicreg:{n:"VICReg", mpe:1.75, gb:8.7, c:"p2"}, ema:{n:"EMA", mpe:0.9, gb:4.5, c:"p4"}};
+  const BASE = .35;     // GB that does not scale with batch: data on device, weights, optimizer state (rough)
+  const S = {m:new Set(["sigreg","vicreg","ema"]), seeds:1, ep:100, b:128, other:4, start:"21:00"};
+  const mem = (k,b)=> BASE + (M[k].gb-BASE)*b/256;
+  const cv = document.getElementById("cv-run");
+  const view = A.canvas(cv, w=>w<560 ? .95 : .44, draw);
+  function plan(){
+    const runs = []; let t = 0;
+    for(let s=0;s<S.seeds;s++) for(const k of ["sigreg","vicreg","ema"]) if(S.m.has(k)){ const h = M[k].mpe*S.ep/60; runs.push({k, s, t0:t, h, gb:mem(k,S.b)}); t += h; }
+    return {runs, total:t};
+  }
+  const clock = (startStr, h)=>{ const [hh,mm] = (startStr||"21:00").split(":").map(Number); const m = Math.round(hh*60+mm+h*60); const d = Math.floor(m/1440); const r = ((m%1440)+1440)%1440; return `${String(Math.floor(r/60)).padStart(2,"0")}:${String(r%60).padStart(2,"0")}${d>0?` (+${d} day${d>1?"s":""})`:""}`; };
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const {runs, total} = plan();
+    const pad = 8, lx = 0, top = 18, ganttH = h*.42;
+    const span = Math.max(9, Math.ceil(total*1.06+.5));
+    const X = t=> pad + t/span*(w-2*pad);
+    ctx.font = `600 11.5px ${C.ui}`; ctx.fillStyle = C.muted; ctx.textBaseline="alphabetic";
+    ctx.fillText(`Runs one after another (hours from ${S.start})`, pad, 12);
+    // hour grid
+    const step = span>24 ? 4 : span>12 ? 2 : 1;
+    ctx.strokeStyle = C.line; ctx.fillStyle = C.faint; ctx.font = `10px ${C.mono}`; ctx.textAlign="center";
+    for(let t=0;t<=span;t+=step){ ctx.beginPath(); ctx.moveTo(X(t), top); ctx.lineTo(X(t), h-18); ctx.stroke(); ctx.fillText(t+"h", X(t), h-5); }
+    ctx.textAlign="start";
+    // night window: 8 hours
+    ctx.strokeStyle = C.why; ctx.lineWidth = 1.5; ctx.setLineDash([5,4]); ctx.beginPath(); ctx.moveTo(X(Math.min(8,span)), top); ctx.lineTo(X(Math.min(8,span)), h-18); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = C.why; ctx.font = `600 10.5px ${C.ui}`; ctx.textAlign="right"; ctx.fillText("8 h of sleep", X(8)-4, top+10); ctx.textAlign="start";
+    // gantt bars
+    const rows = Math.max(1, S.seeds), rh = Math.min(30, (ganttH-top-6)/rows - 4);
+    runs.forEach(r=>{
+      const y = top+16 + r.s*(rh+4);
+      ctx.fillStyle = C[M[r.k].c]; ctx.fillRect(X(r.t0)+1, y, Math.max(2, X(r.t0+r.h)-X(r.t0)-2), rh);
+      const lab = `${M[r.k].n} s${r.s}`; ctx.font = `600 10.5px ${C.ui}`;
+      if(X(r.t0+r.h)-X(r.t0) > ctx.measureText(lab).width+8){ ctx.fillStyle = C.bg; ctx.fillText(lab, X(r.t0)+5, y+rh/2+4); }
+    });
+    // memory chart
+    const my = ganttH+22, mh = h-my-22, maxG = 20;
+    const Y = g=> my + mh - g/maxG*mh;
+    ctx.fillStyle = C.muted; ctx.font = `600 11.5px ${C.ui}`; ctx.fillText("Peak memory during each run (GB of 16)", pad, my-6);
+    // other apps band (hatched) from 16-other to 16
+    ctx.fillStyle = C.panel2; ctx.fillRect(pad, Y(16), w-2*pad, Y(16-S.other)-Y(16)); A.hatch(ctx, pad, Y(16), w-2*pad, Y(16-S.other)-Y(16), C.hatch, 6);
+    ctx.strokeStyle = C.bad; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(pad, Y(16)); ctx.lineTo(w-pad, Y(16)); ctx.stroke();
+    ctx.fillStyle = C.bad; ctx.font = `600 10.5px ${C.mono}`; ctx.textAlign="right"; ctx.fillText("16 GB", w-pad-2, Y(16)-4); ctx.textAlign="start";
+    runs.forEach(r=>{ ctx.globalAlpha = .85; ctx.fillStyle = r.gb>16 ? C.bad : C[M[r.k].c]; ctx.fillRect(X(r.t0)+1, Y(Math.min(maxG,r.gb)), Math.max(2,X(r.t0+r.h)-X(r.t0)-2), Y(0)-Y(Math.min(maxG,r.gb))); ctx.globalAlpha = 1; });
+    ctx.fillStyle = C.faint; ctx.font = `10px ${C.mono}`; [0,8,16].forEach(g=>ctx.fillText(g, pad+2, Y(g)-2));
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(pad, my, w-2*pad, mh);
+    // readouts + flags
+    const peak = runs.length ? Math.max(...runs.map(r=>r.gb)) : 0;
+    document.getElementById("rp-n").textContent = runs.length;
+    document.getElementById("rp-h").textContent = total.toFixed(1)+" h";
+    document.getElementById("rp-end").textContent = runs.length ? clock(S.start, total) : "–";
+    document.getElementById("rp-m").textContent = peak.toFixed(1)+" GB";
+    document.getElementById("rp-k").textContent = runs.length ? "≤ "+Math.max(...runs.map(r=>M[r.k].mpe)).toFixed(1)+" min" : "–";
+    const fl = [];
+    if(!runs.length) fl.push(["warn","Pick at least one method."]);
+    if(peak>16) fl.push(["bad",`A run needs ${peak.toFixed(1)} GB: more than the whole machine. Lower the batch.`]);
+    else if(peak > 16-S.other) fl.push(["warn",`${peak.toFixed(1)} GB plus ${S.other} GB for other apps exceeds 16 GB: expect swapping. Close apps or lower the batch.`]);
+    else if(runs.length) fl.push(["ok",`Fits: ${peak.toFixed(1)} GB peak leaves ${(16-S.other-peak).toFixed(1)} GB spare.`]);
+    if(total>0.5) fl.push(["warn","Keep it plugged in. On battery the first run drained the laptop in about 30 minutes."]);
+    if(total>8) fl.push(["warn",`Longer than one night (${total.toFixed(1)} h). Resumable, so it can span several.`]);
+    document.getElementById("rp-flags").innerHTML = fl.map(([c,t])=>`<div class="${c}">${t}</div>`).join("");
+  }
+  const redraw = ()=>view.redraw();
+  document.querySelectorAll("#lab-plan .mth").forEach(b=>b.addEventListener("click",()=>{ const k=b.dataset.m; S.m.has(k)?S.m.delete(k):S.m.add(k); b.setAttribute("aria-pressed", S.m.has(k)); redraw(); }));
+  const setB = v=>{ S.b=v; document.querySelectorAll("#lab-plan .bt").forEach(x=>x.setAttribute("aria-pressed", +x.dataset.b===v)); redraw(); };
+  document.querySelectorAll("#lab-plan .bt").forEach(b=>b.addEventListener("click",()=>setB(+b.dataset.b)));
+  A.slider("rp-s", v=>{ S.seeds=v; redraw(); }, v=>v);
+  A.slider("rp-e", v=>{ S.ep=v; redraw(); }, v=>v);
+  A.slider("rp-o", v=>{ S.other=v; redraw(); }, v=>v+" GB");
+  document.getElementById("rp-t").addEventListener("input", e=>{ S.start=e.target.value||"21:00"; redraw(); });
+  const preset = (ms, seeds, ep, b)=>{
+    S.m = new Set(ms); document.querySelectorAll("#lab-plan .mth").forEach(x=>x.setAttribute("aria-pressed", S.m.has(x.dataset.m)));
+    const s=document.getElementById("rp-s"); s.value=seeds; s.dispatchEvent(new Event("input"));
+    const e=document.getElementById("rp-e"); e.value=ep; e.dispatchEvent(new Event("input"));
+    setB(b);
+  };
+  document.getElementById("rp-full").onclick = ()=>preset(["sigreg","vicreg","ema"],2,100,256);
+  document.getElementById("rp-night").onclick = ()=>preset(["sigreg","vicreg","ema"],1,100,128);
+  document.getElementById("rp-quick").onclick = ()=>preset(["sigreg"],1,30,128);
+})();
+
+/* =================== LAB: falsification card =================== */
+(function(){
+  const KEYS = ["fp","W4","W3","E4","E3","cond","kurt"], METH = ["SIGReg","VICReg","EMA"];
+  const PRE = {
+    pilot:[[90.0,5.0,11.8,1.2,5.3,2.7,0.42],[86.5,5.6,37.1,2.1,7.0,4275,1.20],[83.4,19.0,27.0,24.5,47.6,21,5.04]],
+    ref:  [[61.0,9.5,24.0,7.8,19.0,3.1,0.6],[59.0,4.1,15.0,2.3,8.5,180,1.4],[58.0,6.0,19.0,3.0,11.0,40,2.2]],
+    alt:  [[61.0,2.0,6.0,1.5,4.0,35,3.8],[59.0,6.5,18.0,7.0,16.0,9,0.7],[58.0,7.0,20.0,8.0,18.0,15,1.6]],
+  };
+  let D = PRE.pilot.map(r=>r.slice()), margin = 2;
+  const tb = document.querySelector("#fx-tbl tbody");
+  METH.forEach((m,i)=>{
+    const tr = A.el("tr",null, A.el("td",null,m));
+    KEYS.forEach((k,j)=>{ const inp = A.el("input",{type:"number", step:"any", id:`fx-${i}-${k}`, "aria-label":`${m} ${k}`}); inp.addEventListener("input",()=>{ const v=parseFloat(inp.value); D[i][j]=isNaN(v)?NaN:v; update(); }); tr.append(A.el("td",null,inp)); });
+    tb.append(tr);
+  });
+  function fillInputs(){ METH.forEach((m,i)=>KEYS.forEach((k,j)=>{ document.getElementById(`fx-${i}-${k}`).value = D[i][j]; })); }
+  const cv = document.getElementById("cv-fx");
+  const view = A.canvas(cv, w=>w<560 ? .7 : .42, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const sets = ["W4","W3","E4","E3"], cols = [C.p1, C.p2, C.p4];
+    const top = 18, bot = h-22, left = 30, gw = (w-left-6)/4;
+    const vals = D.flatMap(r=>r.slice(1,5)).filter(v=>isFinite(v));
+    const maxV = Math.max(10, ...vals)*1.1;
+    const Y = v=> bot - Math.max(0,v)/maxV*(bot-top);
+    ctx.font = `600 11.5px ${C.ui}`; ctx.fillStyle = C.muted; ctx.fillText("Points lost (lower is better); band = SIGReg ± margin", 0, 11);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.fillStyle = C.faint; ctx.font = `10px ${C.mono}`; ctx.textAlign="right";
+    const tick = maxV>40?20:maxV>20?10:5;
+    for(let v=0; v<=maxV; v+=tick){ ctx.beginPath(); ctx.moveTo(left, Y(v)); ctx.lineTo(w-4, Y(v)); ctx.stroke(); ctx.fillText(v, left-4, Y(v)+3); }
+    ctx.textAlign="center";
+    sets.forEach((s,si)=>{
+      const gx = left + si*gw, bw = gw*.22;
+      const sg = D[0][si+1];
+      if(isFinite(sg)){ ctx.fillStyle = C.why; ctx.globalAlpha=.13; ctx.fillRect(gx+4, Y(sg+margin), gw-8, Y(Math.max(0,sg-margin))-Y(sg+margin)); ctx.globalAlpha=1; }
+      for(let m=0;m<3;m++){ const v = D[m][si+1]; if(!isFinite(v)) continue; const x = gx + gw*.14 + m*(bw+gw*.04);
+        ctx.fillStyle = cols[m]; ctx.fillRect(x, Y(v), bw, bot-Y(v)); }
+      ctx.fillStyle = C.ink; ctx.font = `600 11px ${C.ui}`; ctx.fillText(s, gx+gw/2, bot+14);
+    });
+    ctx.textAlign="start";
+    // legend
+    ctx.font = `600 10.5px ${C.ui}`; let lx = w-6;
+    for(let m=2;m>=0;m--){ const t = METH[m]; const tw = ctx.measureText(t).width; lx -= tw+16; ctx.fillStyle = cols[m]; ctx.fillRect(lx, top+2, 9, 9); ctx.fillStyle = C.muted; ctx.fillText(t, lx+12, top+10); }
+  }
+  function verdict(){
+    const ok = D.every(r=>r.every(v=>isFinite(v)));
+    const out = document.getElementById("fx-v");
+    if(!ok){ out.innerHTML = `<p class="big" style="color:var(--muted)">Waiting for numbers</p>`; return; }
+    const pill = (c,t)=>`<span class="pill ${c}">${t}</span>`;
+    // P2 effect: per setting and rival, SIGReg wins (rival - sig > m), ties, or loses (sig - rival > m)
+    let wins=0, ties=0, losses=0; const lossList=[];
+    ["W4","W3","E4","E3"].forEach((s,si)=>[1,2].forEach(r=>{ const d = D[r][si+1]-D[0][si+1]; if(d>margin) wins++; else if(-d>margin){ losses++; lossList.push(`${s} vs ${METH[r]}`); } else ties++; }));
+    // relative check at 4 bits
+    let relOK = true; [2,4].forEach(j=>[1,2].forEach(r=>{ if(D[0][j]/D[0][0] - D[r][j]/D[r][0] > margin/100) relOK=false; }));
+    // P1 geometry
+    const kurtLow = D[0][6] <= Math.min(D[1][6], D[2][6]), condLow = D[0][5] <= Math.min(D[1][5], D[2][5]);
+    // P3 mechanism: kurtosis order matches E3 drop order
+    const ord = j=>[0,1,2].sort((a,b)=>D[a][j]-D[b][j]).join("");
+    const kurtMatch = ord(6)===ord(4), condMatch = ord(5)===ord(4);
+    let big, col;
+    if(losses>0){ big = "Refuted"; col = "var(--bad)"; }
+    else if(wins>=6 && kurtLow){ big = "Supported"; col = "var(--good)"; }
+    else if(wins>=4 && !kurtLow && !condLow){ big = "Effect, but not the mechanism"; col = "var(--p3)"; }
+    else if(wins>=4){ big = "Mostly supported"; col = "var(--good)"; }
+    else { big = "Inconclusive: within noise"; col = "var(--muted)"; }
+    out.innerHTML = `<p class="big" style="color:${col}">${big}</p>
+      <div class="row">${pill(losses? "bad": wins>=6?"good":"wait", `${wins}W ${ties}T ${losses}L`)}<span><b>Effect.</b> SIGReg vs each rival in 4 settings: wins by more than ${margin} pts, ties, losses.${losses?` Loses at ${lossList.join(", ")}.`:""}</span></div>
+      <div class="row">${pill(relOK?"good":"bad", relOK?"pass":"fail")}<span><b>Relative drop.</b> At W4 and E4, SIGReg's drop as a share of its fp32 accuracy is no worse than each rival's (controls for EMA starting lower).</span></div>
+      <div class="row">${pill(kurtLow?"good":"bad", kurtLow?"pass":"fail")}<span><b>Geometry.</b> SIGReg has the lowest kurtosis${condLow?" and condition number":" (condition number: "+(condLow?"lowest":"not lowest")+")"}.</span></div>
+      <div class="row">${pill(kurtMatch?"good":"wait", kurtMatch?"match":"no match")}<span><b>Mechanism.</b> Ordering by kurtosis ${kurtMatch?"matches":"does not match"} ordering by E3 loss; by condition number it ${condMatch?"matches":"does not"}.</span></div>`;
+  }
+  function update(){ view.redraw(); verdict(); }
+  A.slider("fx-m", v=>{ margin=v; update(); }, v=>v.toFixed(1)+" pts");
+  const load = k=>{ D = PRE[k].map(r=>r.slice()); fillInputs(); update(); };
+  document.getElementById("fx-pilot").onclick = ()=>load("pilot");
+  document.getElementById("fx-ref").onclick = ()=>load("ref");
+  document.getElementById("fx-alt").onclick = ()=>load("alt");
+  fillInputs(); update();
+})();
+
+/* =================== QUIZ =================== */
+A.quiz("quiz", [
+  {q:"Why did notebook 2 make the quantization experiment more urgent?",
+   options:["It showed MAE quantizes badly","It showed a plain deep JEPA's embedding scales spread like (ρmax/ρmin)^L, so JEPA is anisotropic by design","It measured INT4 accuracy","It proved SIGReg is optimal"],
+   answer:1, why:"Depth amplifies JEPA's preference for predictable features, so the embedding's scales spread out exponentially in depth. Uneven scales are what low-bit quantization punishes, which is the gap SIGReg might close."},
+  {q:"Why does SIGReg take about twice as long per epoch as EMA on the M5 in this script?",
+   options:["SIGReg's projections are expensive","SIGReg backpropagates through a full-image encoder pass, while EMA's teacher pass runs without gradients","EMA uses a smaller batch","MPS does not support SIGReg"],
+   answer:1, why:"The regularizer needs gradients through the full-view embedding, so that pass's activations are stored and differentiated. EMA's target pass is under no_grad: forward only, nothing kept."},
+  {q:"Why can't you resume a batch-256 checkpoint with --batch 128?",
+   options:["The weights change shape","The step count and learning-rate schedule depend on batch size, so the script refuses mismatched checkpoints","MPS forbids it","Checkpoints are not saved at batch 256"],
+   answer:1, why:"Steps per epoch and the warm-up/cosine schedule are computed from the batch size. A mismatched resume would land at the wrong point in the schedule, so the script stops and asks to delete or match."},
+  {q:"In the falsification card, why is a 'noise margin' needed at all?",
+   options:["To make SIGReg look better","Because differences smaller than the seed-to-seed spread could flip with another seed, so they must count as ties","To convert points to percent","Because INT8 is free"],
+   answer:1, why:"With 2 or 3 seeds, a 1-point gap may be luck. Fixing the margin in advance stops you from reading noise as a win (or a loss)."},
+  {q:"SIGReg wins every setting but has neither the lowest kurtosis nor the lowest condition number. What does the card conclude?",
+   options:["Hypothesis fully supported","Effect, but not the mechanism: SIGReg helps for some reason other than isotropy","Refuted","The data must be wrong"],
+   answer:1, why:"The hypothesis claims a cause (isotropic geometry). If the effect appears without the geometry, the effect is real but the explanation is not, and that is a different, also publishable, finding."},
+  {q:"Why does the 'Tonight' preset push closed-form and CPU ideas up the ranking?",
+   options:["They are more novel","It triples the weight on laptop feasibility, where those ideas score 5","They have better theory","They are already running"],
+   answer:1, why:"The score is a weighted average. Raising one weight moves the ideas that score highest on that criterion, here the ones that run in minutes on a CPU."},
+]);
+})();
+</script>
+</body>
+</html>

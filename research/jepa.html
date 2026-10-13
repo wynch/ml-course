@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why predict in latent space? · Hidden Patch</title>
+<meta name="description" content="JEPA from the question why: why not pixels, why three networks, why averages blur, why surprise is a signal.">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/atlas.css">
+<style>
+/* page-specific */
+.pipe svg{width:100%;height:auto;display:block;min-width:560px}
+.pipe .stage{overflow-x:auto}
+.pipe .box{fill:var(--panel);stroke:var(--line-strong);stroke-width:1.5}
+.pipe .lbl{font-family:var(--ui);font-size:13px;fill:var(--ink);font-weight:600}
+.pipe .sub{font-family:var(--mono);font-size:10.5px;fill:var(--muted)}
+.pipe .wire{stroke:var(--line-strong);stroke-width:1.6;fill:none}
+.pipe .on .box{stroke:var(--why);stroke-width:2.4}
+.pipe .on.wire,.pipe .wire.on{stroke:var(--why);stroke-width:2.4}
+.pipe .grad{stroke:var(--p2);stroke-dasharray:5 4;stroke-width:2;fill:none;opacity:.15}
+.pipe .grad.on{opacity:1}
+.pipe .ema{stroke:var(--p4);stroke-width:2;fill:none;opacity:.15;stroke-dasharray:2 3}
+.pipe .ema.on{opacity:1}
+.pipe .stop{opacity:.18}
+.pipe .stop.on{opacity:1}
+.pipe .tok{stroke:var(--line-strong);stroke-width:1}
+.narr{font-family:var(--ui);font-size:.92rem;line-height:1.45;min-height:7.5em}
+.narr b.stepn{display:block;font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--why);margin-bottom:.25rem}
+.fam{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.6rem}
+.fam a{display:grid;gap:.1rem;text-decoration:none;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:.6rem .7rem;font-family:var(--ui);font-size:.85rem;line-height:1.3}
+.fam a:hover{border-color:var(--why)}
+.fam a .d{font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+.fam a b{font-size:.98rem}
+.chips{display:flex;flex-wrap:wrap;gap:.35rem}
+.chips span{font-family:var(--ui);font-size:.8rem;padding:.18rem .6rem;border-radius:999px;border:1px solid var(--line-strong)}
+</style>
+</head>
+<body data-chapter="jepa" data-part="1">
+<header id="topbar" class="topbar"></header>
+
+<main class="chapter">
+  <section class="opener">
+    <p class="eyebrow"><span class="sw"></span>Part 1 · Predict · Chapter 02</p>
+    <h1 class="big"><span class="w">Why</span> predict in latent space?</h1>
+    <p class="because">the world is full of detail you cannot predict, and a model that has to paint every pixel wastes itself on that detail. A JEPA predicts a <em>summary</em> of the hidden part instead, and the summary is allowed to leave the noise out.</p>
+    <p class="meta"><span>5 beats · 4 labs · 6 questions</span><span>Builds on: <a href="predict.html">01 Prediction as a teacher</a></span></p>
+    <ul class="toc">
+      <li><a href="#pixels"><span class="q">?</span>Why not pixels</a></li>
+      <li><a href="#masks"><span class="q">?</span>Why big masks</a></li>
+      <li><a href="#three"><span class="q">?</span>Why three networks</a></li>
+      <li><a href="#blur"><span class="q">?</span>Why averages blur</a></li>
+      <li><a href="#surprise"><span class="q">?</span>Why surprise is a signal</a></li>
+      <li><a href="#family"><span class="q">?</span>Why so many JEPAs</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ BEAT 1 ============ -->
+  <section class="beat" id="pixels">
+    <header>
+      <span class="num">Beat 1</span>
+      <h2><span class="w">Why</span> not just predict the pixels?</h2>
+      <p class="short">Because pixel loss counts every leaf and every speck of sensor noise as much as the object that matters, so the model spends its capacity where the variance is, not where the meaning is.</p>
+    </header>
+    <div class="prose">
+      <p>Imagine covering half of a photo of a dog in a park and asking someone to fill it in. A person says "the rest of the dog, some grass, a tree". A model trained with a pixel loss has to say <em>which</em> blades of grass, at <em>which</em> brightness. Nobody can know that from the visible half, so the best a pixel model can do is average over all plausible grass, and its error budget is eaten by texture.</p>
+      <p>Balestriero and LeCun made this precise in 2024: learning by reconstruction pushes features toward the <span class="term" tabindex="0" data-def="Directions in input space where the data varies most. PCA finds them first.">high-variance subspaces</span> of the input, and for natural images those are mostly low-level texture and lighting, which carry little of what perception needs. The fix in a <span class="term" tabindex="0" data-def="Joint-Embedding Predictive Architecture: encode the visible part and the hidden part separately, then predict the hidden part's embedding from the visible part's embedding.">JEPA</span> is to move the target: encode the hidden part with a network, and predict <em>that encoding</em>. The encoder decides what is worth predicting.</p>
+      <div class="analogy"><span class="ico">≈</span><div><span class="k">Picture it</span><p>A pixel model is a court sketch artist asked to draw the suspect's face from a witness who saw only the shoes. A JEPA is a detective asked to say "tall, left-handed, in a hurry". Both are predictions. Only one is possible.</p></div></div>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 2: masking lab ============ -->
+  <section class="beat" id="masks">
+    <header>
+      <span class="num">Beat 2</span>
+      <h2><span class="w">Why</span> does I-JEPA hide big blocks instead of scattered patches?</h2>
+      <p class="short">Because a scattered patch can be guessed by copying its neighbours, which teaches nothing. A big block is far from anything visible, so the only way to predict it is to understand the scene.</p>
+    </header>
+    <div class="prose">
+      <p>I-JEPA (Assran et al., 2023) cuts the image into 14 × 14 patches, shows the <b>context encoder</b> one large block, and asks the <b>predictor</b> for the embeddings of four separate target blocks. The paper found that this multi-block recipe, with targets large enough to be "semantic", mattered more than almost any other choice. The lab below shows why with the dumbest possible model: one that fills each hidden patch with the colour of the closest visible patch. When that cheat works well, the task is too easy to teach anything.</p>
+    </div>
+    <figure class="lab" id="lab-mask">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Can you cheat by copying neighbours?</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-mask" aria-label="Left: the image with hidden patches hatched. Right: the hidden patches filled by copying the nearest visible patch."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i class="h"></i>hidden target patch</span><span><i style="background:var(--why)"></i>target outline</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><span class="lbl">Masking strategy</span>
+            <div class="seg" role="group" aria-label="Masking strategy">
+              <button type="button" id="m-rand" aria-pressed="false">Scattered</button><button type="button" id="m-block" aria-pressed="true">Blocks</button>
+            </div>
+          </div>
+          <div class="ctrl"><div class="row"><label for="s-scale">Block size</label><output for="s-scale"></output></div>
+            <input type="range" id="s-scale" min="0.01" max="0.25" step="0.01" value="0.16">
+            <span class="hint">Fraction of the image per target block. I-JEPA samples 0.15 to 0.2.</span></div>
+          <div class="ctrl"><div class="row"><label for="s-nb">Target blocks</label><output for="s-nb"></output></div>
+            <input type="range" id="s-nb" min="1" max="6" step="1" value="4"></div>
+          <div class="btns"><button type="button" class="primary" id="b-resample">New mask</button><button type="button" id="b-scene">New scene</button></div>
+          <dl class="readout">
+            <dt>hidden</dt><dd id="r-hid">–</dd>
+            <dt>distance to clue</dt><dd id="r-dist">–</dd>
+            <dt>copy error</dt><dd id="r-err" class="hot">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Switch to <b>Scattered</b> at the same number of hidden patches: the copy error collapses, because almost every hidden patch touches a visible one. That is the shortcut a model learns first.</li>
+        <li>Grow the block size and the error rises steeply: the centre of a big block is several patches away from any clue.</li>
+        <li>Error alone is not the goal. Hide <em>everything</em> and nothing can be predicted. I-JEPA's choice (about 4 blocks of 15 to 20 percent, plus a big context) sits where the task is hard but still solvable.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 3: pipeline ============ -->
+  <section class="beat" id="three">
+    <header>
+      <span class="num">Beat 3</span>
+      <h2><span class="w">Why</span> does a JEPA need three networks?</h2>
+      <p class="short">Because the thing you predict (the target embedding) is itself learned. If the same network both made the target and chased it with full gradients, the easiest solution would be to make every embedding identical. The third network, a slow copy, keeps the target honest.</p>
+    </header>
+    <figure class="lab pipe" id="lab-pipe">
+      <div class="lab-head"><span class="tag">Walkthrough</span><h3>One I-JEPA training step</h3></div>
+      <div class="lab-body">
+        <div class="stage">
+          <svg viewBox="0 0 640 330" role="img" aria-label="I-JEPA diagram: image, context encoder, predictor, target encoder, loss, EMA.">
+            <defs>
+              <pattern id="hp" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><rect width="1.6" height="6" style="fill:var(--hatch)"/></pattern>
+              <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--line-strong)"/></marker>
+            </defs>
+            <!-- image -->
+            <g id="g-img">
+              <rect class="box" x="16" y="110" width="110" height="110" rx="8"/>
+              <g id="patches"></g>
+              <text class="lbl" x="71" y="240" text-anchor="middle">image x</text>
+              <text class="sub" x="71" y="255" text-anchor="middle">14×14 patches</text>
+            </g>
+            <!-- context encoder -->
+            <g id="g-ctx"><rect class="box" x="176" y="40" width="130" height="64" rx="10"/>
+              <text class="lbl" x="241" y="68" text-anchor="middle">context encoder</text><text class="sub" x="241" y="86" text-anchor="middle">ViT, sees visible only</text></g>
+            <!-- predictor -->
+            <g id="g-pred"><rect class="box" x="352" y="40" width="120" height="64" rx="10"/>
+              <text class="lbl" x="412" y="68" text-anchor="middle">predictor</text><text class="sub" x="412" y="86" text-anchor="middle">narrow ViT + positions</text></g>
+            <!-- target encoder -->
+            <g id="g-tgt"><rect class="box" x="176" y="226" width="130" height="64" rx="10"/>
+              <text class="lbl" x="241" y="254" text-anchor="middle">target encoder</text><text class="sub" x="241" y="272" text-anchor="middle">same shape, slow copy</text></g>
+            <!-- loss -->
+            <g id="g-loss"><rect class="box" x="520" y="130" width="104" height="70" rx="35"/>
+              <text class="lbl" x="572" y="160" text-anchor="middle">L2 loss</text><text class="sub" x="572" y="177" text-anchor="middle">in embedding space</text></g>
+            <!-- wires -->
+            <path id="w1" class="wire" d="M126 140 C150 120 150 72 176 72" marker-end="url(#ar)"/>
+            <path id="w2" class="wire" d="M306 72 L352 72" marker-end="url(#ar)"/>
+            <path id="w3" class="wire" d="M472 72 C500 72 520 110 548 132" marker-end="url(#ar)"/>
+            <path id="w4" class="wire" d="M126 190 C150 210 150 258 176 258" marker-end="url(#ar)"/>
+            <path id="w5" class="wire" d="M306 258 C430 258 500 230 548 198" marker-end="url(#ar)"/>
+            <!-- stop grad -->
+            <g id="g-stop" class="stop"><rect x="400" y="235" width="74" height="22" rx="11" style="fill:var(--panel);stroke:var(--bad)"/><text class="sub" x="437" y="250" text-anchor="middle" style="fill:var(--bad)">stop-grad</text></g>
+            <!-- gradient path -->
+            <path id="gr" class="grad" d="M560 128 C540 20 300 10 240 38"/>
+            <text id="gr-t" class="sub" x="400" y="22" text-anchor="middle" style="fill:var(--p2);opacity:.2">gradients flow here</text>
+            <!-- ema path -->
+            <path id="ema" class="ema" d="M220 106 C200 160 200 180 220 224"/>
+            <text id="ema-t" class="sub" x="150" y="168" style="fill:var(--p4);opacity:.2">EMA: θ̄ ← τθ̄ + (1−τ)θ</text>
+          </svg>
+        </div>
+        <div class="side">
+          <p class="narr" id="narr" aria-live="polite"></p>
+          <div class="btns"><button type="button" id="p-prev">← Back</button><button type="button" class="primary" id="p-next">Next step →</button><button type="button" id="p-play">Play</button></div>
+          <dl class="readout"><dt>step</dt><dd id="p-step">1 / 7</dd></dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Only two networks ever get gradients. The target encoder is never trained directly; it trails the context encoder as a running average, so its targets change slowly and cannot "run to meet" the prediction.</li>
+        <li>At the end of pretraining the predictor and the slow copy are thrown away. What ships is one encoder. That is why a JEPA costs nothing extra at inference (see <a href="edge.html">chapter 12</a>).</li>
+        <li>LeJEPA (2025) later showed you can delete the slow copy and the stop-grad entirely, if you force embeddings toward an isotropic Gaussian instead. That story is <a href="collapse.html">chapter 03</a> and <a href="gaussian.html">chapter 05</a>.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 4: blur ============ -->
+  <section class="beat" id="blur">
+    <header>
+      <span class="num">Beat 4</span>
+      <h2><span class="w">Why</span> does a pixel predictor see ghosts when the future forks?</h2>
+      <p class="short">Because the squared-error-optimal prediction is the <em>average</em> of all possible futures, and the average of "ball goes left" and "ball goes right" is two half-transparent balls. A JEPA can drop the unknowable bit from its embedding, or carry it in a latent variable z.</p>
+    </header>
+    <figure class="lab" id="lab-blur">
+      <div class="lab-head"><span class="tag">Lab</span><h3>The fork: what each model is forced to predict</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-blur" aria-label="Three panels: possible futures, the pixel-loss optimal prediction, the latent prediction."></canvas></div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="s-p">P(ball goes left)</label><output for="s-p"></output></div>
+            <input type="range" id="s-p" min="0" max="1" step="0.01" value="0.5"></div>
+          <div class="ctrl"><div class="row"><label for="s-keep">Encoder keeps "which side"</label><output for="s-keep"></output></div>
+            <input type="range" id="s-keep" min="0" max="1" step="0.01" value="0.2">
+            <span class="hint">How strongly the learned embedding encodes the side. A JEPA is free to turn it down.</span></div>
+          <label class="check"><input type="checkbox" id="c-z"> Give the predictor a latent z (it may guess a side)</label>
+          <dl class="readout">
+            <dt>pixel loss floor</dt><dd id="r-px">–</dd>
+            <dt>latent loss floor</dt><dd id="r-lat" class="hot">–</dd>
+            <dt>features still predicted</dt><dd id="r-feat">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>At P = 0.5 the pixel floor is at its worst and no amount of training removes it: the error is in the world, not in the model.</li>
+        <li>Slide "keeps which side" toward 0: the latent floor drops to zero while "there is a ball", "it moved down" and "its speed" are still predicted. The embedding kept what is predictable.</li>
+        <li>Turn on z: the predictor commits to one side per sample, which is sharp, and the floor comes from z's guesses instead. This is LeCun's latent-variable energy-based view of JEPA (2022).</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 5: surprise ============ -->
+  <section class="beat" id="surprise">
+    <header>
+      <span class="num">Beat 5</span>
+      <h2><span class="w">Why</span> is a prediction error useful even after training?</h2>
+      <p class="short">Because a model that predicts well is calm when the world behaves and spikes when it doesn't. That spike is "surprise", and it detects impossible physics, anomalies and moments worth waking a bigger model for, with no labels.</p>
+    </header>
+    <div class="split">
+      <div class="prose">
+        <p>Developmental psychologists test babies with <b>violation of expectation</b>: show a ball rolling behind a screen, then make it reappear somewhere it could not be. Babies stare longer. Garrido et al. (2025) ran the same test on V-JEPA: its latent prediction error jumps on impossible videos, and it beat pixel-generative models and multimodal LLMs, which sat near chance.</p>
+        <p>The same signal is an edge feature. An anomaly detector built on JEPA surprise needs no decoder (see MTS-JEPA), and VL-JEPA uses embedding change to decide when to call its text decoder, about 2.85 times less often at equal quality.</p>
+        <aside class="aside"><span class="k">Careful</span>Surprise shows the model has an expectation. It does not show the model "understands physics" the way we do. A model can be surprised for the wrong reasons, for instance by a lighting change it never saw.</aside>
+      </div>
+      <figure class="lab" id="lab-surp" style="margin:0">
+        <div class="lab-head"><span class="tag">Lab</span><h3>Behind the screen</h3></div>
+        <div class="lab-body stack">
+          <div class="stage"><canvas id="cv-surp" aria-label="A ball rolls behind a screen; below, a trace of the model's surprise over time."></canvas></div>
+          <div class="side" style="border-left:0;border-top:1px solid var(--line)">
+            <div class="ctrl"><span class="lbl">What happens behind the screen</span>
+              <div class="seg" role="group" aria-label="Event">
+                <button type="button" data-ev="normal" aria-pressed="true">Nothing</button><button type="button" data-ev="teleport" aria-pressed="false">Teleport</button><button type="button" data-ev="vanish" aria-pressed="false">Vanish</button><button type="button" data-ev="speed" aria-pressed="false">Speed up</button>
+              </div></div>
+            <div class="btns"><button type="button" class="primary" id="b-roll">Roll again</button></div>
+          </div>
+        </div>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 6: family ============ -->
+  <section class="beat" id="family">
+    <header>
+      <span class="num">Beat 6</span>
+      <h2><span class="w">Why</span> are there so many JEPAs?</h2>
+      <p class="short">Because the recipe only needs two things: a way to hide part of the input, and an encoder for that kind of input. Anything you can cut into pieces (frames, notes, atoms, proof steps) gets its own JEPA.</p>
+    </header>
+    <div class="fam">
+      <a href="https://openreview.net/forum?id=BZ5a1r-kVsf"><span class="d">2022-06</span><b>A Path Towards AMI</b><span class="muted">LeCun's blueprint: JEPA as the core of a world model</span></a>
+      <a href="https://arxiv.org/abs/2301.08243"><span class="d">2023-01</span><b>I-JEPA</b><span class="muted">Images, multi-block masks, no augmentations</span></a>
+      <a href="https://arxiv.org/abs/2404.08471"><span class="d">2024-02</span><b>V-JEPA</b><span class="muted">Video features from feature prediction alone</span></a>
+      <a href="https://arxiv.org/abs/2407.03475"><span class="d">2024-07</span><b>Implicit bias</b><span class="muted">Why JEPA prefers predictable features (ch. 04)</span></a>
+      <a href="https://arxiv.org/abs/2502.11831"><span class="d">2025-02</span><b>Intuitive physics</b><span class="muted">Surprise on impossible videos</span></a>
+      <a href="https://arxiv.org/abs/2506.09985"><span class="d">2025-06</span><b>V-JEPA 2 / 2-AC</b><span class="muted">1M hours of video, then robot planning from 62 h</span></a>
+      <a href="https://arxiv.org/abs/2509.14252"><span class="d">2025-09</span><b>LLM-JEPA</b><span class="muted">A JEPA term added to next-token training</span></a>
+      <a href="https://arxiv.org/abs/2511.08544"><span class="d">2025-11</span><b>LeJEPA</b><span class="muted">SIGReg replaces EMA and stop-grad (ch. 05)</span></a>
+      <a href="https://arxiv.org/abs/2512.10942"><span class="d">2025-12</span><b>VL-JEPA</b><span class="muted">Predict text embeddings, decode only when needed</span></a>
+      <a href="https://arxiv.org/abs/2603.19312"><span class="d">2026-03</span><b>LeWorldModel</b><span class="muted">15M-parameter pixel world model, 48× faster planning</span></a>
+      <a href="https://arxiv.org/abs/2603.14482"><span class="d">2026-03</span><b>V-JEPA 2.1</b><span class="muted">Dense features for video</span></a>
+      <a href="https://arxiv.org/abs/2610.02344"><span class="d">2026-10</span><b>Drive vs. Decay</b><span class="muted">Which directions escape collapse (ch. 03)</span></a>
+    </div>
+    <div class="prose"><p class="small muted">Modalities with a JEPA by October 2026:</p></div>
+    <div class="chips"><span>images</span><span>video</span><span>audio</span><span>raw waveforms</span><span>music stems</span><span>point clouds</span><span>LiDAR</span><span>graphs</span><span>tables</span><span>time series</span><span>EEG · ECG · fMRI</span><span>ultrasound · X-ray</span><span>satellite series</span><span>6G radio channels</span><span>molecules · materials</span><span>DNA</span><span>particle jets</span><span>text and code</span><span>Lean proofs</span><span>driving scenes</span></div>
+  </section>
+
+  <section class="remember">
+    <h2>Three things to <span class="w">remember</span></h2>
+    <ol>
+      <li><b>Predict the summary, not the picture.</b>A pixel loss pays for every unpredictable speck. An embedding target lets the encoder decide what is worth predicting.</li>
+      <li><b>Hide what you can't copy.</b>Big target blocks far from the context remove the neighbour-copy shortcut, so the only path to low loss is understanding.</li>
+      <li><b>Averages of futures are ghosts.</b>When the future forks, pixel MSE predicts a blur. A JEPA drops the unknowable bit, or carries it in z.</li>
+    </ol>
+  </section>
+
+  <section id="quiz"></section>
+
+  <section class="sources">
+    <h2>Sources for this chapter</h2>
+    <ol>
+      <li>LeCun, <a href="https://openreview.net/forum?id=BZ5a1r-kVsf">A Path Towards Autonomous Machine Intelligence</a>, 2022.</li>
+      <li>Assran et al., <a href="https://arxiv.org/abs/2301.08243">I-JEPA</a>, CVPR 2023. Multi-block masking, ~10× fewer GPU-hours than MAE ViT-H/14.</li>
+      <li>Balestriero &amp; LeCun, <a href="https://arxiv.org/abs/2402.11337">Learning by Reconstruction Produces Uninformative Features for Perception</a>, 2024.</li>
+      <li>Bardes et al., <a href="https://arxiv.org/abs/2404.08471">V-JEPA</a>, 2024.</li>
+      <li>Garrido et al., <a href="https://arxiv.org/abs/2502.11831">Intuitive Physics Understanding Emerges from Self-Supervised Pretraining on Natural Videos</a>, 2025.</li>
+      <li>Assran et al., <a href="https://arxiv.org/abs/2506.09985">V-JEPA 2</a>, 2025.</li>
+      <li><a href="https://arxiv.org/abs/2512.10942">VL-JEPA</a>, 2025. 2.85× fewer decoder calls on EgoExo4D.</li>
+      <li>Project notes: <code>jepa/papers.md</code> (57 papers) and <code>jepa/applications-edge-efficiency.md</code>.</li>
+    </ol>
+  </section>
+
+  <nav id="pager"></nav>
+</main>
+<footer id="site-footer"></footer>
+
+<script src="assets/atlas.js"></script>
+<script>
+(function(){
+"use strict";
+const A = window.Atlas;
+
+/* =================== LAB: masking =================== */
+(function(){
+  const G = 14, cv = document.getElementById("cv-mask");
+  let mode = "block", scale = .16, nb = 4, seed = 7, sceneSeed = 3;
+  let scene = null, mask = null;           // scene: G*G rgb, mask: 0 visible,1 target,2 dropped
+  function makeScene(){
+    const r = A.rng(sceneSeed*7919+1), px = [];
+    const sunX = 2+r()*9, sunY = 1.5+r()*2.5, hx = 2+Math.floor(r()*6), hw = 4+Math.floor(r()*2), tx = (hx+hw+1+Math.floor(r()*3))%G;
+    for(let y=0;y<G;y++) for(let x=0;x<G;x++){
+      let c;
+      if(y<8){ const t=y/8; c=[110+70*t,170+50*t,230-10*t]; }       // sky
+      else { const n=r()*30; c=[70+n,140+n*.8,60+n*.3]; }            // grass
+      if(Math.hypot(x-sunX,y-sunY)<1.4) c=[250,205,90];               // sun
+      if(x>=hx && x<hx+hw && y>=7 && y<11) c=[200,95,70];             // house
+      if(y>=5 && y<7 && x>=hx-(y-5)+1 && x<hx+hw+(y-5)-1 && x>=hx-1 && x<=hx+hw) c=[120,60,55]; // roof
+      if(x>=hx+1 && x<hx+2 && y>=9 && y<11) c=[90,60,40];             // door
+      if(x===tx && y>=8 && y<12) c=[100,70,45];                       // trunk
+      if(Math.hypot(x-tx,y-6.5)<1.9 && y<8) c=[45,110+r()*20,55];     // crown
+      px.push(c.map(v=>Math.max(0,Math.min(255,v+(r()-.5)*14))));
+    }
+    scene = px;
+  }
+  function makeMask(){
+    const r = A.rng(seed*104729+13); mask = new Array(G*G).fill(0);
+    if(mode==="block"){
+      for(let b=0;b<nb;b++){
+        const area = scale*G*G, ar = .75+r()*.75;
+        let h = Math.max(1,Math.round(Math.sqrt(area*ar))), w = Math.max(1,Math.round(Math.sqrt(area/ar)));
+        h=Math.min(h,G); w=Math.min(w,G);
+        const y0 = Math.floor(r()*(G-h+1)), x0 = Math.floor(r()*(G-w+1));
+        for(let y=y0;y<y0+h;y++) for(let x=x0;x<x0+w;x++) mask[y*G+x]=1;
+      }
+    } else {
+      // same expected hidden count as the block setting
+      const want = Math.min(G*G-6, Math.round(Math.min(.9, 1-Math.pow(1-scale,nb))*G*G));
+      const idx = [...Array(G*G).keys()];
+      for(let i=idx.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; }
+      for(let k=0;k<want;k++) mask[idx[k]]=1;
+    }
+  }
+  function nearestVisible(){
+    // multi-source BFS from visible patches
+    const dist = new Array(G*G).fill(Infinity), src = new Array(G*G).fill(-1), q=[];
+    for(let i=0;i<G*G;i++) if(!mask[i]){ dist[i]=0; src[i]=i; q.push(i); }
+    for(let h=0; h<q.length; h++){ const i=q[h], x=i%G, y=(i/G)|0;
+      for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const nx=x+dx, ny=y+dy; if(nx<0||ny<0||nx>=G||ny>=G) continue;
+        const j=ny*G+nx; if(dist[j]>dist[i]+1){ dist[j]=dist[i]+1; src[j]=src[i]; q.push(j);} } }
+    return {dist, src};
+  }
+  const view = A.canvas(cv, .52, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors();
+    ctx.clearRect(0,0,w,h);
+    const gap = w*.05, side = Math.min((w-gap)/2, h-28), cell = side/G;
+    const ox1 = (w-gap-2*side)/2, ox2 = ox1+side+gap, oy = 22;
+    ctx.font = `600 12px ${C.ui}`; ctx.fillStyle = C.muted; ctx.textBaseline="alphabetic";
+    ctx.fillText("What the context encoder sees", ox1, 14);
+    ctx.fillText("Best guess by copying neighbours", ox2, 14);
+    const {dist, src} = nearestVisible();
+    let hid=0, dsum=0, err=0;
+    for(let i=0;i<G*G;i++){
+      const x=i%G, y=(i/G)|0, c=scene[i];
+      // left
+      if(mask[i]){ ctx.fillStyle = C.panel2; ctx.fillRect(ox1+x*cell, oy+y*cell, cell, cell); A.hatch(ctx, ox1+x*cell, oy+y*cell, cell, cell, C.hatch, 5); }
+      else { ctx.fillStyle = `rgb(${c[0]|0},${c[1]|0},${c[2]|0})`; ctx.fillRect(ox1+x*cell, oy+y*cell, cell+.5, cell+.5); }
+      // right
+      const g = mask[i] && src[i]>=0 ? scene[src[i]] : c;
+      ctx.fillStyle = `rgb(${g[0]|0},${g[1]|0},${g[2]|0})`; ctx.fillRect(ox2+x*cell, oy+y*cell, cell+.5, cell+.5);
+      if(mask[i]){ hid++; dsum += dist[i]; if(src[i]>=0) err += (Math.abs(g[0]-c[0])+Math.abs(g[1]-c[1])+Math.abs(g[2]-c[2]))/3; }
+    }
+    // target outlines
+    ctx.strokeStyle = C.why; ctx.lineWidth = 1.6;
+    for(let i=0;i<G*G;i++) if(mask[i]){ const x=i%G, y=(i/G)|0;
+      for(const [dx,dy,x1,y1,x2,y2] of [[0,-1,0,0,1,0],[0,1,0,1,1,1],[-1,0,0,0,0,1],[1,0,1,0,1,1]]){
+        const nx=x+dx, ny=y+dy; const out = nx<0||ny<0||nx>=G||ny>=G||!mask[ny*G+nx];
+        if(out) for(const ox of [ox1,ox2]){ ctx.beginPath(); ctx.moveTo(ox+(x+x1)*cell, oy+(y+y1)*cell); ctx.lineTo(ox+(x+x2)*cell, oy+(y+y2)*cell); ctx.stroke(); }
+      } }
+    ctx.strokeStyle = C.lineStrong; ctx.lineWidth=1; ctx.strokeRect(ox1,oy,side,side); ctx.strokeRect(ox2,oy,side,side);
+    document.getElementById("r-hid").textContent = `${Math.round(hid/G/G*100)}% (${hid})`;
+    document.getElementById("r-dist").textContent = hid ? (dsum/hid).toFixed(2) : "–";
+    document.getElementById("r-err").textContent = hid ? (err/hid).toFixed(1)+" / 255" : "–";
+  }
+  function refresh(){ makeMask(); view.redraw(); }
+  makeScene(); makeMask();
+  A.slider("s-scale", v=>{ scale=v; refresh(); }, v=>Math.round(v*100)+"%");
+  A.slider("s-nb", v=>{ nb=v; refresh(); }, v=>v);
+  const bR = document.getElementById("m-rand"), bB = document.getElementById("m-block");
+  const setMode = m=>{ mode=m; bR.setAttribute("aria-pressed", m==="rand"); bB.setAttribute("aria-pressed", m==="block"); refresh(); };
+  bR.onclick = ()=>setMode("rand"); bB.onclick = ()=>setMode("block");
+  document.getElementById("b-resample").onclick = ()=>{ seed++; refresh(); };
+  document.getElementById("b-scene").onclick = ()=>{ sceneSeed++; makeScene(); refresh(); };
+})();
+
+/* =================== WALKTHROUGH: pipeline =================== */
+(function(){
+  const NS = "http://www.w3.org/2000/svg", pg = document.getElementById("patches");
+  const vis = new Set(), tgt = new Set();
+  for(let y=0;y<7;y++) for(let x=0;x<7;x++){
+    const inT = (x>=4&&x<=5&&y>=1&&y<=2)||(x>=1&&x<=2&&y>=4&&y<=5);
+    const inC = !inT && !(x===6) ;
+    if(inT) tgt.add(y*7+x); else if(inC) vis.add(y*7+x);
+    const r = document.createElementNS(NS,"rect");
+    r.setAttribute("x", 22+x*14.2); r.setAttribute("y", 116+y*14.2); r.setAttribute("width", 13); r.setAttribute("height", 13); r.setAttribute("rx", 2);
+    r.setAttribute("class","tok"); r.dataset.k = inT ? "t" : (inC ? "c" : "d");
+    r.style.fill = "var(--panel-2)"; pg.append(r);
+  }
+  const steps = [
+    ["Start with one image", "No labels, no augmentations. I-JEPA cuts the image into a grid of patches (14 × 14 for a 224 px image; 7 × 7 drawn here).", {}],
+    ["Sample the masks", "Pick a few target blocks (orange hatch) and one large context block (blue). Target patches are removed from the context, so the answer is never visible.", {mask:1}],
+    ["Encode the context", "The context encoder, a ViT, runs only on the visible patches. Running on about a quarter of the patches is a big part of why I-JEPA is cheap.", {mask:1, on:["g-ctx","w1"]}],
+    ["Predict the targets", "The predictor gets the context embeddings plus position tokens that say <i>where</i> each target is, and outputs one embedding per target patch.", {mask:1, on:["g-ctx","w1","g-pred","w2"]}],
+    ["Encode the full image with the slow copy", "The target encoder sees the whole image and produces the embeddings the predictor should have produced. Its output is wrapped in stop-gradient: no learning signal goes into it.", {mask:1, on:["g-tgt","w4","g-stop"]}],
+    ["Compare in embedding space", "L2 distance between predicted and target embeddings, averaged over target patches. Gradients update the predictor and the context encoder only.", {mask:1, on:["g-loss","w3","w5","g-pred","g-ctx"], grad:1}],
+    ["Let the slow copy trail behind", "After the step, the target encoder's weights move a little toward the context encoder's: θ̄ ← τθ̄ + (1−τ)θ with τ ≈ 0.996 to 1.0. Then the next image arrives.", {mask:1, on:["g-tgt","g-ctx"], ema:1}],
+  ];
+  let k = 0, timer = 0;
+  const narr = document.getElementById("narr"), stepEl = document.getElementById("p-step");
+  function show(){
+    const [t, body, st] = steps[k];
+    narr.innerHTML = `<b class="stepn">Step ${k+1}</b><b>${t}.</b> ${body}`;
+    stepEl.textContent = `${k+1} / ${steps.length}`;
+    document.querySelectorAll("#lab-pipe .on").forEach(n=>n.classList.remove("on"));
+    (st.on||[]).forEach(id=>document.getElementById(id).classList.add("on"));
+    document.getElementById("gr").classList.toggle("on", !!st.grad); document.getElementById("gr-t").style.opacity = st.grad ? 1 : .2;
+    document.getElementById("ema").classList.toggle("on", !!st.ema); document.getElementById("ema-t").style.opacity = st.ema ? 1 : .2;
+    pg.querySelectorAll("rect").forEach(r=>{
+      const kk = r.dataset.k;
+      if(!st.mask){ r.style.fill = "var(--p1)"; r.style.opacity = .55; return; }
+      r.style.opacity = 1;
+      r.style.fill = kk==="t" ? "url(#hp)" : kk==="c" ? "var(--p1)" : "var(--panel-2)";
+      r.style.stroke = kk==="t" ? "var(--why)" : "var(--line-strong)";
+    });
+  }
+  document.getElementById("p-next").onclick = ()=>{ k = (k+1)%steps.length; show(); };
+  document.getElementById("p-prev").onclick = ()=>{ k = (k-1+steps.length)%steps.length; show(); };
+  const playBtn = document.getElementById("p-play");
+  playBtn.onclick = ()=>{
+    if(timer){ clearInterval(timer); timer=0; playBtn.textContent="Play"; return; }
+    playBtn.textContent = "Pause"; timer = setInterval(()=>{ k=(k+1)%steps.length; show(); }, 2600);
+  };
+  show();
+})();
+
+/* =================== LAB: fork / blur =================== */
+(function(){
+  const cv = document.getElementById("cv-blur");
+  let p = .5, keep = .2, useZ = false, zSide = 0;
+  const view = A.canvas(cv, w=> w<560 ? .78 : .46, draw);
+  function track(ctx, x, y, w, h, C){
+    ctx.strokeStyle = C.lineStrong; ctx.lineWidth = 2; ctx.beginPath();
+    ctx.moveTo(x+w*.5, y+h*.08); ctx.lineTo(x+w*.5, y+h*.42);
+    ctx.lineTo(x+w*.2, y+h*.88); ctx.moveTo(x+w*.5, y+h*.42); ctx.lineTo(x+w*.8, y+h*.88); ctx.stroke();
+  }
+  function ball(ctx, x, y, r, col, a){ ctx.globalAlpha = a; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x,y,r,0,7); ctx.fill(); ctx.globalAlpha = 1; }
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const pw = (w-24)/3, ph = h-26, oy = 20, r = Math.max(6, pw*.07);
+    const narrow = w<560, fs = narrow ? 10 : 11.5;
+    const titles = narrow ? ["Futures","Pixel loss",useZ?"Latent + z":"Latent"] : ["Possible futures", "Pixel-loss optimum", useZ ? "Latent + z (one sample)" : "Latent prediction"];
+    for(let i=0;i<3;i++){
+      const ox = i*(pw+12);
+      ctx.fillStyle = C.panel; ctx.strokeStyle = C.line; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(ox,oy,pw,ph,8) : ctx.rect(ox,oy,pw,ph); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = C.muted; ctx.font = `600 ${fs}px ${C.ui}`; ctx.fillText(titles[i], ox+2, 13);
+      if(i<2) track(ctx, ox, oy, pw, ph, C);
+      const L = [ox+pw*.24, oy+ph*.8], R = [ox+pw*.76, oy+ph*.8];
+      if(i===0){
+        ball(ctx, ox+pw*.5, oy+ph*.14, r, C.ink, .35);
+        ball(ctx, L[0], L[1], r, C.p1, Math.max(.12,p)); ball(ctx, R[0], R[1], r, C.p1, Math.max(.12,1-p));
+        ctx.fillStyle = C.ink; ctx.font = `600 12px ${C.mono}`; ctx.textAlign="center";
+        ctx.fillText(`p=${p.toFixed(2)}`, L[0], L[1]-r-6); ctx.fillText(`${(1-p).toFixed(2)}`, R[0], R[1]-r-6); ctx.textAlign="start";
+      } else if(i===1){
+        ball(ctx, L[0], L[1], r, C.ink, p*.9); ball(ctx, R[0], R[1], r, C.ink, (1-p)*.9);
+        ctx.fillStyle = C.muted; ctx.font = `11px ${C.ui}`; ctx.fillText(narrow ? "two ghosts" : "two ghosts, both wrong", ox+6, oy+ph-8);
+      } else {
+        // feature bars
+        const feats = [["ball exists",1],["moved down",1],["speed",.8],["which side", useZ ? (zSide?1:0)*keep : (p*1 + (1-p)*0)*keep]];
+        const bx = ox+12, bw = pw-24, bh = Math.min(18, ph/7);
+        feats.forEach(([n,v],k)=>{
+          const y = oy+ph*.16 + k*(bh*2.1);
+          ctx.fillStyle = C.muted; ctx.font = `${fs-0.5}px ${C.ui}`; ctx.fillText(n, bx, y-3);
+          ctx.fillStyle = C.panel2; ctx.fillRect(bx, y, bw, bh*.8);
+          ctx.fillStyle = k===3 ? C.why : C.p1; ctx.fillRect(bx, y, bw*Math.max(0,Math.min(1,v)), bh*.8);
+          if(k===3){ ctx.globalAlpha = .9; A.hatch(ctx, bx+bw*keep, y, bw*(1-keep), bh*.8, C.hatch, 5); ctx.globalAlpha = 1; }
+        });
+        ctx.fillStyle = C.muted; ctx.font = `11px ${C.ui}`;
+        ctx.fillText(useZ ? (zSide ? "z: left" : "z: right") : (narrow ? "hatch = dropped" : "hatched = dropped by encoder"), bx, oy+ph-8);
+      }
+    }
+    // floors: pixel MSE ~ 2*p*(1-p) (two balls, normalised); latent ~ keep^2 * p(1-p) unless z
+    const pix = 2*p*(1-p), lat = useZ ? 0 : keep*keep*p*(1-p);
+    document.getElementById("r-px").textContent = pix.toFixed(3);
+    document.getElementById("r-lat").textContent = lat.toFixed(3);
+    document.getElementById("r-feat").textContent = keep < .05 ? "3 of 4 (side dropped)" : "4 of 4";
+  }
+  A.slider("s-p", v=>{ p=v; view.redraw(); }, v=>v.toFixed(2));
+  A.slider("s-keep", v=>{ keep=v; view.redraw(); }, v=>v.toFixed(2));
+  document.getElementById("c-z").addEventListener("change", e=>{ useZ = e.target.checked; zSide = Math.random()<p ? 1:0; view.redraw(); });
+})();
+
+/* =================== LAB: surprise =================== */
+(function(){
+  const cv = document.getElementById("cv-surp");
+  let ev = "normal", t = 0, trace = [], x = 0, vx = 0, hidden = false, gone = false, done = false;
+  const scr = [.42,.62];      // screen covers this x-range (fraction)
+  function reset(){ t=0; trace=[]; x=.04; vx=.22; gone=false; done=false; mdl.reset(); anim.start(); }
+  const mdl = { px:.04, pv:.22, reset(){ this.px=.04; this.pv=.22; } };
+  const view = A.canvas(cv, w=> w<520 ? .95 : .62, draw);
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const top = Math.max(22, h*.08), sh = h*.4, base = top+sh*.78, r = Math.max(7, w*.022);
+    // floor
+    ctx.strokeStyle = C.lineStrong; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(8, base+r); ctx.lineTo(w-8, base+r); ctx.stroke();
+    // model's imagined ball (dashed)
+    ctx.setLineDash([4,4]); ctx.strokeStyle = C.p2; ctx.lineWidth=1.6; ctx.beginPath(); ctx.arc(8+mdl.px*(w-16), base, r, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+    // real ball
+    if(!gone){ ctx.fillStyle = C.p1; ctx.beginPath(); ctx.arc(8+x*(w-16), base, r, 0, 7); ctx.fill(); }
+    // screen
+    const sx = 8+scr[0]*(w-16), sw = (scr[1]-scr[0])*(w-16);
+    ctx.fillStyle = C.panel2; ctx.fillRect(sx, top, sw, sh); A.hatch(ctx, sx, top, sw, sh, C.hatch, 7);
+    ctx.strokeStyle = C.lineStrong; ctx.strokeRect(sx, top, sw, sh);
+    ctx.fillStyle = C.muted; ctx.font = `600 11px ${C.ui}`; ctx.fillText("screen", sx+6, top+14);
+    ctx.fillStyle = C.p2; ctx.fillText("dashed ring = model's guess", 10, top-2 > 10 ? top-2 : 10);
+    // trace
+    const ty = top+sh+46, th = h-ty-12;
+    ctx.fillStyle = C.muted; ctx.font = `600 11px ${C.ui}`; ctx.fillText("surprise = latent prediction error", 10, ty-26);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(8, ty, w-16, th);
+    ctx.strokeStyle = C.why; ctx.lineWidth = 2; ctx.beginPath();
+    trace.forEach((s,i)=>{ const X = 8 + (i/300)*(w-16), Y = ty+th - Math.min(1,s)*th*.92; i? ctx.lineTo(X,Y) : ctx.moveTo(X,Y); }); ctx.stroke();
+    const peak = trace.length ? Math.max(...trace) : 0;
+    ctx.fillStyle = peak>.3 ? C.why : C.muted; ctx.font = `600 12px ${C.mono}`;
+    ctx.fillText(peak>.3 ? `peak ${peak.toFixed(2)} · surprised` : `peak ${peak.toFixed(2)} · calm`, 10, ty-8);
+  }
+  const anim = A.loop(cv, dt=>{
+    t += dt;
+    const was = x;
+    x += vx*dt;
+    const behind = x>scr[0]-.02 && x<scr[1]+.02;
+    if(behind && was<= (scr[0]+scr[1])/2 && x>(scr[0]+scr[1])/2 && !done){
+      done = true;
+      if(ev==="teleport") x = scr[1]+.17;
+      if(ev==="vanish") gone = true;
+      if(ev==="speed") vx = .5;
+    }
+    // model: constant velocity; when the ball is visible it re-anchors (filtering)
+    mdl.px += mdl.pv*dt;
+    let s = 0;
+    const visible = !behind;
+    if(visible){
+      const obs = gone ? null : x;
+      s = obs==null ? (mdl.px < 1 ? .9 : 0) : Math.min(1, Math.abs(obs-mdl.px)*4.5);
+      if(obs!=null){ mdl.px += (obs-mdl.px)*.25; const vobs = vx; mdl.pv += (vobs-mdl.pv)*.05; }
+    }
+    trace.push(s);
+    view.redraw();
+    if(trace.length>=300 || x>1.05 && mdl.px>1.05){ return false; }
+  });
+  cv.closest(".lab").querySelectorAll("[data-ev]").forEach(b=>b.addEventListener("click",()=>{
+    ev = b.dataset.ev; cv.closest(".lab").querySelectorAll("[data-ev]").forEach(o=>o.setAttribute("aria-pressed", o===b)); reset();
+  }));
+  document.getElementById("b-roll").onclick = reset;
+  x=.04; vx=.22; view.redraw();
+  if(!A.reduced) setTimeout(reset, 400);
+})();
+
+/* =================== QUIZ =================== */
+A.quiz("quiz", [
+  {q:"A JEPA and an MAE both hide part of an image. What is the one difference in what they predict?",
+   options:["The JEPA predicts pixels at lower resolution","The JEPA predicts the <em>embedding</em> of the hidden part, computed by a learned encoder","The JEPA predicts a class label","The JEPA predicts the noise added to the image"],
+   answer:1, why:"MAE regresses pixels. A JEPA regresses the output of a target encoder, so what counts as 'the answer' is itself learned and can drop unpredictable detail."},
+  {q:"In the masking lab, why does the copy-neighbour error drop when you switch to scattered patches?",
+   options:["Scattered masks hide fewer patches","Almost every hidden patch is next to a visible one, so local copying already guesses it","The scene becomes simpler","Blocks are harder to draw"],
+   answer:1, why:"With the same count of hidden patches, scattered masks leave a visible neighbour almost everywhere. A model can then score well with local interpolation, a shortcut that teaches texture, not objects."},
+  {q:"Why is the target encoder wrapped in stop-gradient and updated by EMA?",
+   options:["To save memory","So the target cannot move toward the prediction; otherwise mapping everything to one constant gives zero loss","Because it is pretrained on ImageNet labels","To add data augmentation"],
+   answer:1, why:"If both sides were trained freely, the trivial solution 'all embeddings equal' has zero loss. Freezing the target within a step and letting it trail slowly breaks that shortcut, at least in practice."},
+  {q:"The future forks 50/50. What does a pixel-MSE predictor output?",
+   options:["One sharp ball, chosen at random","Nothing","The average: two half-transparent balls","A ball in the middle of the fork"],
+   answer:2, why:"The minimiser of expected squared error is the conditional mean. The mean of two images is their 50/50 blend: a ghost on each branch."},
+  {q:"Which part of a trained I-JEPA usually ships to a device?",
+   options:["The predictor","The target encoder plus the predictor","One encoder (plus a small task head)","All three networks"],
+   answer:2, why:"The predictor and the EMA copy exist for training. At inference you keep one encoder, so it costs exactly what any ViT of that size costs."},
+  {q:"Why did V-JEPA pass violation-of-expectation tests where pixel-generative models sat near chance?",
+   options:["It was trained on physics simulators","Its prediction error is computed on embeddings that keep object-level structure, so impossible events change the error a lot while texture noise does not","It has more parameters","It was fine-tuned on the test videos"],
+   answer:1, why:"Surprise in a latent space reacts to what the encoder keeps, which is mostly predictable structure. In pixel space, irrelevant variation can swamp the signal."},
+]);
+})();
+</script>
+</body>
+</html>

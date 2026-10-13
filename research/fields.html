@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why do 23 fields belong on one map? · Hidden Patch</title>
+<meta name="description" content="Fourteen AI fields and nine artificial-life fields on one map: core idea, landmark work, link to JEPA, laptop feasibility, the mechanisms they share, and five bridge experiments.">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/atlas.css">
+<style>
+/* page-specific */
+.ftiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.45rem}
+.ftile{display:grid;gap:.15rem;text-align:left;border-radius:10px;padding:.5rem .6rem;background:var(--panel);border:1px solid var(--line);font-family:var(--ui);font-weight:500;line-height:1.25;cursor:pointer;color:var(--ink)}
+.ftile .c{font-family:var(--mono);font-size:.7rem;color:var(--muted);display:flex;justify-content:space-between}
+.ftile b{font-size:.86rem;font-weight:650}
+.ftile.ai{border-left:4px solid var(--p1)} .ftile.al{border-left:4px solid var(--p4)}
+.ftile[aria-pressed="true"]{background:var(--why-soft);border-color:var(--why);color:var(--ink)}
+.ftile.off{opacity:.22}
+.fcardd{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.8rem .95rem;display:grid;gap:.45rem;margin-top:.7rem}
+.fcardd h4{font-size:1.12rem;display:flex;gap:.5rem;align-items:baseline;flex-wrap:wrap}
+.fcardd dl{display:grid;grid-template-columns:7.5rem 1fr;gap:.3rem .8rem;margin:0;font-size:.93rem}
+.fcardd dt{font-family:var(--mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding-top:.2rem}
+.fcardd dd{margin:0}
+@media (max-width:520px){.fcardd dl{grid-template-columns:1fr}.fcardd dt{padding-top:.4rem}}
+.mech{display:inline-block;font-family:var(--mono);font-size:.68rem;padding:.08rem .45rem;border-radius:999px;color:var(--bg);margin:0 .2rem .2rem 0}
+.mtags{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.6rem}
+.mtags>div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.7rem .85rem;font-size:.93rem;display:grid;gap:.3rem;align-content:start}
+.mtags h4{font-size:1rem;display:flex;align-items:center;gap:.45rem}
+.mtags h4 i{width:.8rem;height:.8rem;border-radius:3px;display:inline-block}
+.bridges{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:.8rem}
+.xcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.85rem .95rem;display:grid;gap:.45rem;align-content:start;position:relative;font-size:.94rem}
+.xcard .no{position:absolute;right:.8rem;top:.5rem;font-family:var(--display);font-weight:800;font-size:1.9rem;color:var(--why);opacity:.35}
+.xcard h4{font-size:1.05rem;padding-right:2rem}
+.xcard .pair{display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;font-family:var(--ui);font-size:.8rem}
+.xcard .pair span{border:1px solid var(--line-strong);border-radius:999px;padding:.08rem .5rem}
+.xcard .pair i{color:var(--why);font-style:normal;font-weight:800}
+.xcard .k{font-family:var(--mono);font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.xcard .go{font-family:var(--ui);font-size:.82rem;display:flex;gap:.6rem;flex-wrap:wrap}
+.bres{font-family:var(--ui);font-size:.88rem;line-height:1.45;background:var(--panel-2);border-radius:10px;padding:.6rem .75rem}
+.bres b.t{font-family:var(--display);font-size:1.02rem;display:block;margin-bottom:.2rem}
+.chipset{display:flex;flex-wrap:wrap;gap:.3rem}
+.chipset button{font-size:.76rem;padding:.22rem .6rem}
+.chipset button[aria-pressed="false"]{opacity:.5}
+#lab-br select,#lab-ex select{width:100%;max-width:100%}
+.mx-info{font-family:var(--ui);font-size:.86rem;line-height:1.4;background:var(--panel-2);border-radius:10px;padding:.55rem .7rem;min-height:5.5em}
+</style>
+</head>
+<body data-chapter="fields" data-part="5">
+<header id="topbar" class="topbar"></header>
+
+<main class="chapter">
+  <section class="opener">
+    <p class="eyebrow"><span class="sw"></span>Part 5 · Map · Chapter 16</p>
+    <h1 class="big"><span class="w">Why</span> do 23 fields belong on one map?</h1>
+    <p class="because">fourteen AI fields and nine artificial-life fields are built from the same five mechanisms: prediction, search, emergence, compression and energy. A cellular automaton and a world model differ in substrate, not in kind. Once you see the shared mechanism, a result in one field becomes an experiment in the other, and most of those experiments fit on a laptop.</p>
+    <p class="meta"><span>5 beats · 3 labs · 6 questions</span><span>Builds on: <a href="landscape.html">15 People, lineages, fault lines</a></span></p>
+    <ul class="toc">
+      <li><a href="#one-map"><span class="q">?</span>Why one map</a></li>
+      <li><a href="#explorer"><span class="q">?</span>The 23 fields</a></li>
+      <li><a href="#laptop"><span class="q">?</span>Why the laptop test</a></li>
+      <li><a href="#matrix"><span class="q">?</span>Which fields share a mechanism</a></li>
+      <li><a href="#bridges"><span class="q">?</span>Why bridges are where new work is</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ BEAT 1 ============ -->
+  <section class="beat" id="one-map">
+    <header>
+      <span class="num">Beat 1</span>
+      <h2><span class="w">Why</span> put AI and artificial life on the same map?</h2>
+      <p class="short">Because both ask how structure appears without anyone writing it down. AI gets it from a loss and gradient descent; artificial life gets it from local rules and selection. The questions (what is learned, in what order, how to find the interesting parts) are the same questions.</p>
+    </header>
+    <div class="prose">
+      <p>The map below comes from the project's field survey. <b>Part A</b> is fourteen frontier AI fields, from world models (A1) to robot foundation models (A14). <b>Part B</b> is nine artificial-life fields, from neural cellular automata (B1) to body-brain co-evolution (B9). For each field: the core idea, a landmark, how it touches JEPA, and whether an Apple M5 laptop with 16 GB can run a meaningful experiment.</p>
+      <p>Three things happened in 2024 to 2026 that made the two halves impossible to keep apart. Foundation models became the judges of "interesting" in artificial-life search (ASAL, 2024). Cellular-automaton dynamics became pretraining data for language models: 164M tokens of NCA beat 1.6B tokens of real text as a warm-up (Kumar et al., 2026). And the FER hypothesis argued that an evolved network and an SGD network with identical outputs can have opposite insides, which made the <em>process</em> that builds a network a first-class question for ML. See <a href="alife.html">chapter 13</a> and <a href="open.html">chapter 14</a> for the mechanics.</p>
+      <div class="analogy"><span class="ico">≈</span><div><span class="k">Picture it</span><p>Think of the 23 fields as 23 kitchens and the five mechanisms as five cooking techniques: roasting, braising, fermenting, reducing, curing. Recipes look nothing alike from kitchen to kitchen, but a cook who knows fermentation can walk into any of them. Learn the technique once and you can read the whole map.</p></div></div>
+    </div>
+    <aside class="aside warn"><span class="k">Provenance</span>The field survey (<code>fields/ai-alife-field-map.md</code>) was written from model knowledge current to about mid-2026, with no fresh literature search. Landmark dates are well established; the "Link to JEPA" column and the five bridges are proposals, not results. The landscape dossiers (chapter 15) add 2025-26 evidence where it exists.</aside>
+  </section>
+
+  <!-- ============ BEAT 2: explorer ============ -->
+  <section class="beat" id="explorer">
+    <header>
+      <span class="num">Beat 2</span>
+      <h2>What are the 23 fields, and <span class="w">why</span> does each one matter here?</h2>
+      <p class="short">Because each field is a different answer to "where does useful structure come from?", and each has a concrete hook into the JEPA project: a feature dictionary to read, a predictor to swap, a judge to replace.</p>
+    </header>
+    <figure class="lab" id="lab-ex">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Field explorer</h3></div>
+      <div class="lab-body">
+        <div class="stage">
+          <div class="ftiles" id="ex-tiles" role="group" aria-label="Fields"></div>
+          <div class="fcardd" id="ex-card" aria-live="polite"></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><span class="lbl">Part</span>
+            <div class="seg" role="group" aria-label="Part"><button type="button" data-p="all" aria-pressed="true">All</button><button type="button" data-p="A" aria-pressed="false">AI</button><button type="button" data-p="B" aria-pressed="false">ALife</button></div></div>
+          <div class="ctrl"><span class="lbl">Runs on an M5?</span>
+            <div class="chipset" id="ex-feas"><button type="button" data-f="y" aria-pressed="true">✅ meaningful</button><button type="button" data-f="t" aria-pressed="true">🟡 toy only</button><button type="button" data-f="n" aria-pressed="true">❌ cluster / lab</button></div></div>
+          <dl class="readout">
+            <dt>fields shown</dt><dd id="ex-n">–</dd>
+            <dt>✅ laptop-meaningful</dt><dd id="ex-y" class="hot">–</dd>
+            <dt>🟡 toy only</dt><dd id="ex-t">–</dd>
+            <dt>❌ needs more</dt><dd id="ex-x">–</dd>
+            <dt>median landmark year</dt><dd id="ex-yr">–</dd>
+          </dl>
+          <div class="btns"><button type="button" id="ex-rand">Random field</button></div>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Filter to <b>ALife</b>: 7 of 9 fields are laptop-meaningful. Artificial life is the cheapest corner of the map, because its substrates are tiny by design.</li>
+        <li>Filter to 🟡: what is left needs either many robots (A14, B9), a neuromorphic chip (A11) or large-model RL (A3, A9). Toy versions still teach the mechanism.</li>
+        <li>The median landmark year for ALife is older than for AI. Old fields with cheap substrates and new tools (foundation-model judges) are where small experiments say new things.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 3: laptop ============ -->
+  <section class="beat" id="laptop">
+    <header>
+      <span class="num">Beat 3</span>
+      <h2><span class="w">Why</span> does "runs on a laptop" belong on a research map?</h2>
+      <p class="short">Because in 2025-26 a large share of the results that changed minds were laptop-sized: a 7M-parameter TRM on ARC, a 76K-parameter CompressARC, a 15M-parameter LeWorldModel planning 48× faster than DINO-WM. Feasibility decides which questions one person can actually answer.</p>
+    </header>
+    <div class="prose">
+      <p>The survey's legend: ✅ meaningful experiments on an M5 with 16 GB, 🟡 small-scale toy versions only, ❌ needs a cluster (or, for basal cognition, a wet lab). Seventeen fields get ✅, five get 🟡, one gets ❌. The landscape synthesis gives the reason this is not a consolation prize: compute spent on the problem at hand (iteration, search, test-time training) is now often worth more than compute spent memorizing in advance. Sara Hooker's <a href="https://arxiv.org/abs/2009.06489">hardware lottery</a> adds the other half: ideas that do not fit big GPUs got less attention, so non-transformer designs (SSMs, liquid nets, spiking nets, hyperdimensional computing) are under-explored, and edge hardware is where they get a second chance.</p>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>Why the 🟡 and ❌ fields are hard</th><th>Bottleneck</th><th>The laptop version</th></tr></thead>
+      <tbody>
+        <tr><td>A3 Reasoning and test-time compute</td><td>RL on large models</td><td>GRPO on tiny models and toy maths</td></tr>
+        <tr><td>A9 Neuro-symbolic and program synthesis</td><td>Search over large program spaces</td><td>ARC solvers with small models (TRM trains on one GPU)</td></tr>
+        <tr><td>A11 Neuromorphic and spiking</td><td>No neuromorphic chip</td><td>Simulated spiking with surrogate gradients</td></tr>
+        <tr><td>A14 Embodied AI</td><td>Robots and cross-robot data</td><td>Simulation only</td></tr>
+        <tr><td>B6 Basal cognition</td><td>Wet lab (xenobots, anthrobots)</td><td>Bioelectric simulations 🟡</td></tr>
+        <tr><td>B9 Body and brain co-evolution</td><td>Physics simulation of many bodies</td><td>Evolution Gym-scale soft robots</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- ============ BEAT 4: matrix ============ -->
+  <section class="beat" id="matrix">
+    <header>
+      <span class="num">Beat 4</span>
+      <h2><span class="w">Why</span> do fields that never cite each other share machinery?</h2>
+      <p class="short">Because there are only a few ways to get structure for free: predict what comes next, search a space and keep what scores, let local rules interact, compress, or roll downhill on an energy. Tag each field with the mechanisms it relies on and the hidden neighbours appear.</p>
+    </header>
+    <div class="prose">
+      <p>The tags below are this chapter's own reading of the survey, one line of justification per tag. They are binary and debatable on purpose: change which mechanisms count and watch the matrix rewire. Two fields are connected when they share at least one active mechanism; the cell's darkness is how many they share.</p>
+    </div>
+    <div class="mtags" id="mech-defs"></div>
+    <figure class="lab" id="lab-mx">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Connection matrix: 23 × 23 fields, five mechanisms</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-mx" aria-label="A 23 by 23 matrix; each cell shows how many mechanisms two fields share. Rows are ordered by dominant mechanism."></canvas></div>
+        <div class="side">
+          <div class="ctrl"><span class="lbl">Mechanisms that count</span><div class="chipset" id="mx-mech"></div></div>
+          <label class="check"><input type="checkbox" id="mx-sort" checked> Order rows by dominant mechanism (otherwise A1 to B9)</label>
+          <div class="mx-info" id="mx-info" aria-live="polite"></div>
+          <dl class="readout">
+            <dt>connected pairs</dt><dd id="mx-pairs">–</dd>
+            <dt>density</dt><dd id="mx-dens">–</dd>
+            <dt>most connected</dt><dd id="mx-hub" class="hot">–</dd>
+            <dt>AI ↔ ALife pairs</dt><dd id="mx-cross">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>With all five on, the dense block in the top-left is <b>compression</b>, the one mechanism almost every AI field leans on. It is what Yi Ma means by "intelligence is parsimony" and why CompressARC can solve puzzles with 76K parameters.</li>
+        <li>Switch off <b>compression</b> and <b>prediction</b>: half the AI fields go dark. What still links AI to artificial life runs only through <b>search</b> (A1, A3, A9, A14: planning and program search) and <b>emergence</b> (A2, A7, A11: circuits, grokking, spikes). That is the landscape's "path matters" and "search + verifier" threads in matrix form.</li>
+        <li>Switch on only <b>energy</b>: a small clique of diffusion and energy-based models, deep-learning theory and active inference. That is the JEPA-as-energy-model story of <a href="gaussian.html">chapter 05</a>.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 5: bridges ============ -->
+  <section class="beat" id="bridges">
+    <header>
+      <span class="num">Beat 5</span>
+      <h2><span class="w">Why</span> is the new work on the bridges?</h2>
+      <p class="short">Because inside a field the easy experiments are done, while between two fields a well-known tool meets a question nobody has pointed it at. The five bridges below each move one tool across one gap, and each one fits on a laptop.</p>
+    </header>
+    <div class="bridges" id="xcards"></div>
+    <figure class="lab" id="lab-br">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Bridge builder: pick two fields, get an experiment shape</h3></div>
+      <div class="lab-body">
+        <div class="stage">
+          <div class="bres" id="br-out" aria-live="polite"></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><label for="br-a">First field</label><select id="br-a"></select></div>
+          <div class="ctrl"><label for="br-b">Second field</label><select id="br-b"></select></div>
+          <div class="btns"><button type="button" id="br-rand" class="primary">Random cross-pair</button><button type="button" id="br-best">Best ALife partner</button></div>
+          <dl class="readout">
+            <dt>shared mechanisms</dt><dd id="br-sh" class="hot">–</dd>
+            <dt>laptop verdict</dt><dd id="br-f">–</dd>
+            <dt>known bridge?</dt><dd id="br-k">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>The experiment shape is computed from the shared mechanism: shared <b>search</b> means "one field supplies the space, the other the scorer"; shared <b>prediction</b> means "swap the objective and probe what changes". The words fill themselves in from the two fields' own data.</li>
+        <li>The laptop verdict is the weaker of the two fields: a bridge is only as cheap as its most expensive end.</li>
+        <li>"Best ALife partner" picks, for the first field, the artificial-life field with the most shared mechanisms and the cheapest verdict. Try it from A2 or A8.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <section class="remember">
+    <h2>Three things to <span class="w">remember</span></h2>
+    <ol>
+      <li><b>Five techniques, 23 kitchens.</b>Prediction, search, emergence, compression and energy cover the whole map. Learn the mechanism once and every field becomes readable.</li>
+      <li><b>Artificial life is the cheap corner.</b>Seven of nine ALife fields run meaningfully on a laptop, and foundation models just gave them new judges and new uses as pretraining data.</li>
+      <li><b>New work lives on bridges.</b>Move one tool across one gap: SAEs onto a JEPA, a JEPA into ASAL, a latent loss into an NCA. A bridge is as cheap as its most expensive end.</li>
+    </ol>
+  </section>
+
+  <section id="quiz"></section>
+
+  <section class="sources">
+    <h2>Sources for this chapter</h2>
+    <ol>
+      <li>Project survey: <code>fields/ai-alife-field-map.md</code> (23 fields, M5 feasibility, five bridges). Written from model knowledge, no fresh literature search <span class="pill bad">check</span>.</li>
+      <li>Project synthesis: <code>landscape/ai-landscape-why.md</code>, Q12 and Q14 and section 9 (experiments).</li>
+      <li>Mordvintsev et al., <a href="https://distill.pub/2020/growing-ca/">Growing Neural Cellular Automata</a>, Distill 2020.</li>
+      <li>Chan, <a href="https://arxiv.org/abs/1812.05433">Lenia: Biology of Artificial Life</a>, 2019; <a href="https://arxiv.org/abs/2506.08569">Flow-Lenia</a>, 2025.</li>
+      <li>Kumar et al., <a href="https://arxiv.org/abs/2412.17799">Automating the Search for Artificial Life with Foundation Models (ASAL)</a>, 2024.</li>
+      <li>Agüera y Arcas et al., <a href="https://arxiv.org/abs/2406.19108">Computational Life</a>, 2024.</li>
+      <li>Kumar et al., <a href="https://arxiv.org/abs/2603.10055">Training Language Models via Neural Cellular Automata</a>, 2026.</li>
+      <li>Elhage et al., <a href="https://transformer-circuits.pub/2022/toy_model/index.html">Toy Models of Superposition</a>, 2022.</li>
+      <li>Gu &amp; Dao, <a href="https://arxiv.org/abs/2312.00752">Mamba</a>, 2023.</li>
+      <li>Parr, Pezzulo &amp; Friston, <i>Active Inference</i>, MIT Press 2022; Stanley &amp; Lehman, <i>Why Greatness Cannot Be Planned</i>, 2015.</li>
+      <li>Hooker, <a href="https://arxiv.org/abs/2009.06489">The Hardware Lottery</a>, 2020.</li>
+      <li>JEPA links: <a href="https://arxiv.org/abs/2506.09985">V-JEPA 2</a>, <a href="https://arxiv.org/abs/2603.19312">LeWorldModel</a> <span class="pill bad">check</span> (paper index: search-only), from <code>jepa/papers.md</code>.</li>
+    </ol>
+  </section>
+
+  <nav id="pager"></nav>
+</main>
+<footer id="site-footer"></footer>
+
+<script src="assets/atlas.js"></script>
+<script>
+(function(){
+"use strict";
+const A = window.Atlas;
+const $ = id => document.getElementById(id);
+
+/* =================== data =================== */
+const MECH = [
+  {id:"P", l:"Prediction", c:"p1", d:"Learn by guessing what is hidden or next; the error is the teacher."},
+  {id:"S", l:"Search", c:"why", d:"Generate many candidates, score them, keep the best or the novel."},
+  {id:"Em", l:"Emergence", c:"p4", d:"Global structure appears from local interactions nobody specified."},
+  {id:"C", l:"Compression", c:"p2", d:"Find a shorter description: fewer dimensions, fewer bits, a smaller program."},
+  {id:"E", l:"Energy", c:"p5", d:"Descend a scalar landscape: an energy, a free energy, a score."},
+];
+// code, name, core idea, landmark (year), JEPA link, feasibility y/t/n, feasibility note, mechanisms, tag justification, chapter
+const F = [
+ ["A1","World models and model-based RL","Learn a predictive model of the environment, then plan or train policies inside it.","Ha & Schmidhuber World Models (2018), DreamerV3 (2023), MuZero (2020), Genie 1 to 3 (2024-25), V-JEPA 2 planning (2025)",2018,"JEPA is LeCun's proposed world-model backbone; the next step after representation learning.","y","Dreamer-style on small grid or MuJoCo tasks","P S C","P: the model predicts the next state. S: MuZero and V-JEPA 2-AC plan by searching action sequences. C: planning happens in a compressed latent.","worlds"],
+ ["A2","Mechanistic interpretability","Reverse-engineer the circuits and features inside trained networks.","Circuits thread (Olah et al.), Toy Models of Superposition (2022), sparse autoencoders (2023-24), attribution graphs (2025)",2022,"Run sparse autoencoders on I-JEPA latents: what does a non-generative SSL model learn?","y","on small ViTs and GPT-2-size models","Em C","C: SAEs find a sparse dictionary for superposed features. Em: circuits and grokked algorithms appear without being designed.","interp"],
+ ["A3","Reasoning and test-time compute","Spend compute at inference (search, chains of thought) and train it with RL on verifiable rewards.","AlphaGo/AlphaZero, o1-style reasoning (2024), DeepSeek-R1 / GRPO (2025)",2024,"Planning in JEPA latent space is the same idea without tokens.","t","GRPO on tiny models and toy maths","S P","S: sample many chains, keep what the verifier accepts. P: the base model is a next-token predictor.","reasoning"],
+ ["A4","State-space and recurrent models","Linear-time sequence models with constant memory per step.","S4 (2021), Mamba / Mamba-2 (2023-24), RWKV, xLSTM (2024), Jamba hybrids",2023,"Strong edge story; an SSM predictor for V-JEPA would cut video memory.","y","small models train fine on MPS/MLX","P C","P: trained to predict the next element. C: the whole history is squeezed into a fixed-size state.","architectures"],
+ ["A5","Test-time training and continual learning","Models that keep learning during deployment without forgetting.","TTT layers (2024), Titans (2025), plasticity-loss literature",2024,"A JEPA that adapts on-device is an edge research gap.","y","","P C","P: a self-supervised loss keeps running at test time; Titans writes to memory on surprise. C: TTT-E2E treats the context as data to compress into weights.","architectures"],
+ ["A6","Diffusion, flow matching, energy-based models","Generate or score data via learned vector fields or energies.","DDPM (2020), score SDEs (2021), flow matching (2022-23), discrete diffusion LMs (2024-25)",2020,"LeCun frames JEPA as an energy-based model; the theory overlaps heavily.","y","MNIST/CIFAR scale","E P","E: a score is the gradient of a log-density, an energy landscape. P: the network predicts the noise or velocity at each step.","gaussian"],
+ ["A7","Theory of deep learning","Why and when networks generalize.","NTK, μP (2021-22), grokking (2022), scaling laws (2020-22), singular learning theory, deep linear dynamics (Saxe et al.)",2021,"Notebooks 01 and 02 already sit here; grokking and SLT are natural extensions.","y","mostly closed form or tiny models","C Em E","C: simplicity bias and PAC-Bayes are compression arguments. Em: grokking and double descent are phase transitions. E: SLT studies the loss landscape as a free energy.","generalize"],
+ ["A8","Active inference and the free-energy principle","Perception and action as minimizing prediction error, or variational free energy.","Friston (2006-19), Parr, Pezzulo & Friston textbook (2022), pymdp",2006,"A theory-first cousin of JEPA: predictive, with an explicit generative model and action.","y","pymdp runs on CPU","P E C","P: perception is prediction-error minimization. E: the objective is literally a free energy. C: free energy = accuracy minus a complexity (compression) term.","gaussian"],
+ ["A9","Neuro-symbolic AI and program synthesis","Combine learned models with search over programs or proofs.","DreamCoder (2021), AlphaProof / AlphaGeometry (2024), FunSearch (2023), AlphaEvolve (2025), ARC-AGI",2021,"Abstraction is what JEPA claims to learn; ARC tests it.","t","ARC solvers with small models","S C","S: enumerate or evolve programs against a checker. C: the shortest program that explains the examples wins (DreamCoder's library, CompressARC).","reasoning"],
+ ["A10","Geometric deep learning","Build symmetries (rotation, permutation, gauge) into architectures.","Bronstein et al. GDL (2021), E(n)-equivariant nets, AlphaFold 2",2021,"Equivariant JEPAs exist; symmetry cuts data and parameters.","y","","C","C: tying weights across a symmetry group is compression of the hypothesis space; fewer parameters describe the same function.","architectures"],
+ ["A11","Neuromorphic and spiking networks","Event-driven, sparse computation that mimics neurons.","Loihi 2, SpikingJelly, surrogate-gradient training (2019+), event cameras",2019,"Extreme edge efficiency; a spiking JEPA is almost unexplored.","t","simulated only, no neuromorphic chip","Em C","Em: computation lives in collective spike timing. C: only changes are transmitted, a sparse code.","edge"],
+ ["A12","Hyperdimensional computing","Compute with very high-dimensional random vectors: bind, bundle, permute.","Kanerva (2009), Plate HRR, Torchhd",2009,"Ultra-cheap on-device learning; pairs with frozen SSL encoders.","y","trivially","C","C: bundling superposes many items into one fixed-width vector, recoverable by similarity.","edge"],
+ ["A13","Liquid and continuous-time networks","Small ODE-based networks with input-dependent time constants.","Liquid Time-Constant nets (2021), CfC (2022), Liquid AI LFMs (2024-25)",2021,"Edge-first by design.","y","","P C","P: trained as sequence predictors and controllers. C: very small networks do the work of larger ones.","edge"],
+ ["A14","Embodied AI and robot foundation models","Vision-language-action models trained across robots.","RT-2 (2023), Open X-Embodiment (2023), π0 (2024), V-JEPA 2-AC (2025)",2023,"The main real-world consumer of world models.","t","simulation only","P S","P: predict the next action, or the next latent state for 2-AC. S: V-JEPA 2-AC plans by sampling action sequences (CEM).","worlds"],
+ ["B1","Neural cellular automata","Every cell runs the same tiny network; global patterns grow and self-repair.","Growing NCA (Distill 2020), self-classifying MNIST NCA (2020), NCA for textures and ARC (2023-25)",2020,"Local rules, global structure: the opposite design pole to a big ViT; tiny models.","y","ideal laptop field","Em C","Em: a lizard grows from one seed cell. C: a few thousand parameters encode a whole image and its repair.","alife"],
+ ["B2","Continuous cellular automata: Lenia","Smooth-space, smooth-time Game of Life with lifelike creatures.","Lenia (Chan 2019), Flow-Lenia (2023), Particle Lenia (2023)",2019,"A playground for learned search over rule space.","y","","Em S","Em: gliders and creatures from a convolution and a growth curve. S: creatures are found by searching parameter space.","alife"],
+ ["B3","Open-endedness and quality-diversity","Algorithms that keep producing novel artifacts instead of converging.","Novelty search (2011), MAP-Elites (2015), POET (2019), OMNI (2023), Why Greatness Cannot Be Planned",2011,"JEPA embeddings can serve as the novelty descriptor space.","y","","S Em","S: archives of diverse elites. Em: stepping stones accumulate into things no objective asked for.","open"],
+ ["B4","Foundation models for ALife search","Use vision-language models to find and score lifelike behaviour in simulators.","ASAL (Sakana / MIT, 2024)",2024,"Swap CLIP for a JEPA encoder as the judge of interestingness.","y","with small simulators","S Em","S: optimize simulator parameters against a foundation-model score. Em: what is found is emergent behaviour.","open"],
+ ["B5","Artificial chemistry and self-replication","Random programs interact until self-replicators appear on their own.","Tierra (1991), Avida, Computational Life / BFF (2024)",1991,"Pure theory of emergence, cheap to run.","y","","Em C","Em: replicators appear with no fitness function. C: the transition is detected as a jump in compressibility of the soup.","alife"],
+ ["B6","Basal cognition and morphogenesis","Cells and tissues as problem-solving agents; bioelectric control of shape.","Levin lab, xenobots (2020), anthrobots (2023)",2020,"Inspiration for NCA and distributed predictive models.","n","wet lab; simulations are 🟡","Em S","Em: shape from many cells' local signals. S: Levin describes morphogenesis as navigating a space of shapes toward a goal.","alife"],
+ ["B7","Evolutionary computation and neuroevolution","Evolve weights, architectures or whole models.","NEAT (2002), evolution strategies at scale (2017), evolutionary model merging (Sakana 2024), evosax",2002,"Gradient-free search for edge-friendly architectures.","y","","S","S: mutation plus selection, the original search.","open"],
+ ["B8","Collective and swarm intelligence","Many simple agents produce intelligent group behaviour.","Boids, ant colony optimization, emergent communication (2017+), Kilobots",1987,"Edge fleets of tiny models.","y","","Em S","Em: flocking from three local rules. S: ant colony optimization is a search algorithm.","alife"],
+ ["B9","Morphology and body co-evolution","Evolve bodies and brains together.","Karl Sims (1994), Evolution Gym (2021), soft-robot evolution (Kriegman, Bongard)",1994,"Morphological computation offloads work from the network.","t","","S Em","S: bodies are evolved. Em: gaits arise from body and controller together.","open"],
+].map(r=>({code:r[0], name:r[1], core:r[2], land:r[3], yr:r[4], jepa:r[5], f:r[6], fnote:r[7], m:r[8].split(" "), why:r[9], ch:r[10], part:r[0][0]}));
+const JEPA = {code:"J", name:"JEPA (this project's home)", core:"Predict the embedding of a hidden part from the embedding of a visible part.", land:"I-JEPA (2023), V-JEPA 2 (2025), LeJEPA (2025)", yr:2023, jepa:"Home.", f:"y", fnote:"ViT-Tiny and toy JEPAs", m:["P","C","E"], why:"P: latent prediction. C: the encoder decides what to drop. E: LeCun frames it as an energy-based model.", ch:"jepa", part:"J"};
+const FE = {y:"✅", t:"🟡", n:"❌"};
+const FEN = {y:"meaningful on a laptop", t:"toy versions only", n:"needs a cluster or a wet lab"};
+const mechById = Object.fromEntries(MECH.map(m=>[m.id,m]));
+const chTitle = slug => { const c = A.CHAPTERS.find(c=>c.slug===slug); return c ? `${String(A.chapterIndex(slug)+1).padStart(2,"0")} ${c.short}` : slug; };
+const mpill = id => `<span class="mech" style="background:var(--${mechById[id].c})">${mechById[id].l}</span>`;
+
+/* mechanism definitions */
+$("mech-defs").innerHTML = MECH.map(m=>{ const fs = F.filter(f=>f.m.includes(m.id)).map(f=>f.code);
+  return `<div><h4><i style="background:var(--${m.c})"></i>${m.l}</h4><p>${m.d}</p><p class="small muted mono">${fs.length} fields: ${fs.join(" ")}</p></div>`; }).join("");
+
+/* =================== LAB: explorer =================== */
+(function(){
+  let part = "all", sel = F[14];
+  const feas = new Set(["y","t","n"]);
+  const tiles = $("ex-tiles");
+  const btns = F.map(f=>{ const b = A.el("button",{type:"button",class:"ftile "+(f.part==="A"?"ai":"al"),"aria-pressed":"false"});
+    b.innerHTML = `<span class="c"><span>${f.code}</span><span>${FE[f.f]}</span></span><b>${f.name}</b>`;
+    b.onclick = ()=>{ sel = f; render(); }; tiles.append(b); return b; });
+  function shown(f){ return (part==="all" || f.part===part) && feas.has(f.f); }
+  function render(){
+    const vis = F.filter(shown);
+    btns.forEach((b,i)=>{ b.classList.toggle("off", !shown(F[i])); b.setAttribute("aria-pressed", F[i]===sel); });
+    const f = sel;
+    $("ex-card").innerHTML = `<h4><span class="mono muted">${f.code}</span>${f.name} <span class="pill ${f.f==="y"?"good":f.f==="n"?"bad":"part"}">${FE[f.f]} ${FEN[f.f]}</span></h4>
+      <dl><dt>Core idea</dt><dd>${f.core}</dd><dt>Landmarks</dt><dd>${f.land}</dd><dt>Link to JEPA</dt><dd>${f.jepa}</dd>
+      <dt>On an M5</dt><dd>${FE[f.f]} ${f.fnote || FEN[f.f]}</dd><dt>Mechanisms</dt><dd>${f.m.map(mpill).join("")}<br><span class="small muted">${f.why}</span></dd>
+      <dt>Taught in</dt><dd><a href="${f.ch}.html">Chapter ${chTitle(f.ch)} →</a></dd></dl>`;
+    $("ex-n").textContent = `${vis.length} of ${F.length}`;
+    $("ex-y").textContent = vis.filter(f=>f.f==="y").length; $("ex-t").textContent = vis.filter(f=>f.f==="t").length; $("ex-x").textContent = vis.filter(f=>f.f==="n").length;
+    const ys = vis.map(f=>f.yr).sort((a,b)=>a-b); $("ex-yr").textContent = ys.length ? (ys.length%2 ? ys[(ys.length-1)/2] : Math.round((ys[ys.length/2-1]+ys[ys.length/2])/2)) : "–";
+  }
+  document.querySelectorAll("#lab-ex [data-p]").forEach(b=>b.onclick = ()=>{ part = b.dataset.p; document.querySelectorAll("#lab-ex [data-p]").forEach(o=>o.setAttribute("aria-pressed", o===b)); render(); });
+  document.querySelectorAll("#ex-feas [data-f]").forEach(b=>b.onclick = ()=>{ const k = b.dataset.f; feas.has(k) ? feas.delete(k) : feas.add(k); b.setAttribute("aria-pressed", feas.has(k)); render(); });
+  $("ex-rand").onclick = ()=>{ const pool = F.filter(shown); if(pool.length){ let n; do{ n = pool[Math.floor(Math.random()*pool.length)]; }while(pool.length>1 && n===sel); sel = n; render(); } };
+  render();
+})();
+
+/* =================== LAB: matrix =================== */
+const mxApi = (function(){
+  const on = new Set(MECH.map(m=>m.id));
+  let sortOn = true, hover = null, pin = [F[1], F[14]];
+  const cv = $("cv-mx");
+  const view = A.canvas(cv, w => w<560 ? 1.08 : .9, draw);
+  const chips = $("mx-mech");
+  MECH.forEach(m=>{ const b = A.el("button",{type:"button","aria-pressed":"true"}, m.l); b.style.borderColor = `var(--${m.c})`;
+    b.onclick = ()=>{ on.has(m.id) ? on.delete(m.id) : on.add(m.id); b.setAttribute("aria-pressed", on.has(m.id)); view.redraw(); }; chips.append(b); });
+  $("mx-sort").addEventListener("change", e=>{ sortOn = e.target.checked; view.redraw(); });
+  const shared = (a,b) => a.m.filter(x=>on.has(x) && b.m.includes(x));
+  function order(){
+    if(!sortOn) return F.slice();
+    // dominant = first active mechanism in the field's tag list by global frequency
+    const freq = {}; MECH.forEach(m=>freq[m.id] = F.filter(f=>f.m.includes(m.id)).length);
+    const rank = MECH.filter(m=>on.has(m.id)).sort((a,b)=>freq[b.id]-freq[a.id]).map(m=>m.id);
+    const key = f => { const act = rank.filter(r=>f.m.includes(r)); return act.length ? rank.indexOf(act[0]) : 99; };
+    return F.slice().sort((a,b)=> key(a)-key(b) || b.m.filter(x=>on.has(x)).length - a.m.filter(x=>on.has(x)).length || a.code.localeCompare(b.code));
+  }
+  let G = null;
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const ord = order(), n = ord.length;
+    const lab = w<560 ? 30 : 40, side = Math.min(w-lab-6, h-lab-6), cell = side/n, x0 = lab, y0 = lab;
+    G = {ord, x0, y0, cell, n};
+    // dominant colour strip
+    ctx.font = `600 ${Math.max(8, Math.min(11, cell*.62))}px ${C.mono}`; ctx.textBaseline = "middle";
+    ord.forEach((f,i)=>{
+      const dom = MECH.find(m=>on.has(m.id) && f.m.includes(m.id) && (!sortOn || true));
+      ctx.fillStyle = (hover && (hover[0]===f || hover[1]===f)) || pin.includes(f) ? C.why : (f.part==="A" ? C.p1 : C.p4);
+      ctx.textAlign = "right"; ctx.fillText(f.code, x0-4, y0+(i+.5)*cell);
+      ctx.save(); ctx.translate(x0+(i+.5)*cell, y0-4); ctx.rotate(-Math.PI/2); ctx.textAlign = "left"; ctx.fillText(f.code, 0, 0); ctx.restore();
+    });
+    ctx.textBaseline = "alphabetic"; ctx.textAlign = "start";
+    let pairs = 0, cross = 0; const deg = new Map(F.map(f=>[f,0]));
+    for(let i=0;i<n;i++) for(let j=0;j<n;j++){
+      const a = ord[i], b = ord[j], x = x0+j*cell, y = y0+i*cell;
+      if(i===j){ ctx.fillStyle = C.panel2; ctx.fillRect(x, y, cell, cell); A.hatch(ctx, x, y, cell, cell, C.hatch, 4); continue; }
+      const s = shared(a,b);
+      if(s.length){ if(i<j){ pairs++; deg.set(a, deg.get(a)+1); deg.set(b, deg.get(b)+1); if(a.part!==b.part) cross++; }
+        const m = mechById[s[0]];
+        ctx.fillStyle = C[m.c]; ctx.globalAlpha = s.length===1 ? .42 : 1;
+        ctx.fillRect(x+.5, y+.5, cell-1, cell-1); ctx.globalAlpha = 1;
+        if(cell>13 && s.length>1){ ctx.fillStyle = C.panel; ctx.font = `600 ${Math.min(11,cell*.55)}px ${C.mono}`; ctx.textAlign="center"; ctx.fillText(s.length, x+cell/2, y+cell*.68); ctx.textAlign="start"; }
+      } else { ctx.strokeStyle = C.line; ctx.lineWidth = .6; ctx.strokeRect(x+.5, y+.5, cell-1, cell-1); }
+    }
+    // AI / ALife divider in unsorted mode
+    if(!sortOn){ const k = F.filter(f=>f.part==="A").length; ctx.strokeStyle = C.lineStrong; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(x0, y0+k*cell); ctx.lineTo(x0+n*cell, y0+k*cell); ctx.moveTo(x0+k*cell, y0); ctx.lineTo(x0+k*cell, y0+n*cell); ctx.stroke(); }
+    // highlight
+    const hl = hover || pin;
+    if(hl){ const i = ord.indexOf(hl[0]), j = ord.indexOf(hl[1]);
+      ctx.strokeStyle = C.why; ctx.lineWidth = 2; ctx.strokeRect(x0+j*cell, y0+i*cell, cell, cell);
+      ctx.globalAlpha = .12; ctx.fillStyle = C.why; ctx.fillRect(x0, y0+i*cell, n*cell, cell); ctx.fillRect(x0+j*cell, y0, cell, n*cell); ctx.globalAlpha = 1; }
+    const tot = n*(n-1)/2;
+    $("mx-pairs").textContent = `${pairs} of ${tot}`;
+    $("mx-dens").textContent = Math.round(pairs/tot*100)+"%";
+    let hub = null, hd = -1; deg.forEach((d,f)=>{ if(d>hd){ hd=d; hub=f; } });
+    $("mx-hub").textContent = hd>0 ? `${hub.code} (${hd})` : "–";
+    $("mx-cross").textContent = cross;
+    if(hl){ const [a,b] = hl, s = shared(a,b);
+      $("mx-info").innerHTML = `<b>${a.code} ${a.name}</b> × <b>${b.code} ${b.name}</b><br>${s.length ? "Share: "+s.map(mpill).join("") : "No active mechanism in common."}`; }
+  }
+  function cellAt(ev){ if(!G) return null; const r = cv.getBoundingClientRect(), x = ev.clientX-r.left, y = ev.clientY-r.top;
+    const j = Math.floor((x-G.x0)/G.cell), i = Math.floor((y-G.y0)/G.cell); if(i<0||j<0||i>=G.n||j>=G.n||i===j) return null; return [G.ord[i], G.ord[j]]; }
+  cv.addEventListener("pointermove", ev=>{ if(ev.pointerType!=="mouse") return; const c = cellAt(ev); if(String(c)!==String(hover)){ hover = c; view.redraw(); } });
+  cv.addEventListener("pointerleave", ()=>{ hover = null; view.redraw(); });
+  cv.addEventListener("click", ev=>{ const c = cellAt(ev); if(c){ pin = c; hover = null; view.redraw(); } });
+  view.redraw();
+  return { pin(a,b){ pin = [a,b]; view.redraw(); } };
+})();
+
+/* =================== bridge cards =================== */
+const BR = [
+  {t:"Sparse autoencoders on I-JEPA features", a:"A2", b:"J", why:"Nobody has a clean feature dictionary of a JEPA encoder yet. A non-generative model might store features very differently from an LLM.", exp:"Train an SAE on ViT-Tiny I-JEPA patch embeddings; pair it with linear probes from the start, since 2025 negative results showed SAEs can lose to probes. Add FER-style weight sweeps.", result:"Monosemantic features that probes cannot find, or a clean negative.", chs:["interp","jepa"]},
+  {t:"JEPA as the interestingness judge in open-ended search", a:"B4", b:"J", also:"B3", why:"ASAL judges with CLIP, which scores text-image similarity. A JEPA judges by predictability, matching the 'learnable to an observer' half of the open-endedness definition.", exp:"Replace CLIP in ASAL with a JEPA encoder; run the same Lenia or NCA search; compare which creatures each judge finds.", result:"A different, more dynamic set of creatures than CLIP's.", chs:["open","alife"]},
+  {t:"Predictive NCA", a:"B1", b:"J", why:"NCAs are trained to grow pixel targets. Latent prediction might let them grow structure without fixing every pixel, the JEPA argument moved into a cellular automaton.", exp:"Train an NCA whose cells predict the embedding of a masked neighbourhood instead of its pixels.", result:"Self-repair and growth with a latent target, or collapse (and then: which anti-collapse term saves it?).", chs:["alife","collapse"]},
+  {t:"SSM or liquid predictor for V-JEPA", a:"A4", b:"J", also:"A13", why:"The V-JEPA predictor is a transformer whose memory grows with clip length. A state-space or liquid predictor keeps constant memory per frame.", exp:"Swap the predictor of a small video JEPA for a Mamba-style or CfC block; measure probe accuracy, memory and latency on an M5.", result:"Equal probe accuracy at constant memory: an edge video world model.", chs:["architectures","edge"]},
+  {t:"Active inference vs JEPA, side by side", a:"A8", b:"J", why:"Same predictive core, different answer to what is added on top: active inference adds an explicit generative model and action; JEPA adds an energy in latent space.", exp:"One toy environment, both objectives, theory first: write both as free energies and compare what each minimizer keeps.", result:"A precise statement of when SIGReg is a variational free energy (see the 2026 SIGReg-as-free-energy paper).", chs:["gaussian","worlds"]},
+];
+const byCode = c => c==="J" ? JEPA : F.find(f=>f.code===c);
+$("xcards").innerHTML = BR.map((b,i)=>{ const A1 = byCode(b.a), B1 = byCode(b.b), al = b.also ? byCode(b.also) : null;
+  const sh = A1.m.filter(x=>B1.m.includes(x));
+  return `<div class="xcard"><span class="no">${i+1}</span><h4>${b.t}</h4>
+  <div class="pair"><span>${A1.code} ${A1.name}</span>${al?`<span>${al.code} ${al.name}</span>`:""}<i>×</i><span>JEPA</span></div>
+  <span class="k">Why it might work</span><p>${b.why}</p>
+  <span class="k">Experiment</span><p>${b.exp}</p>
+  <span class="k">A result would look like</span><p>${b.result}</p>
+  <p>${sh.length?sh.map(mpill).join(""):""} <span class="small muted">· ${FE[A1.f]} on an M5</span></p>
+  <div class="go">${b.chs.map(c=>`<a href="${c}.html">Ch. ${chTitle(c)} →</a>`).join("")}</div></div>`; }).join("");
+
+/* =================== LAB: bridge builder =================== */
+(function(){
+  const ALL = F.concat([JEPA]);
+  const sa = $("br-a"), sb = $("br-b");
+  ALL.forEach(f=>{ sa.append(A.el("option",{value:f.code},`${f.code} · ${f.name}`)); sb.append(A.el("option",{value:f.code},`${f.code} · ${f.name}`)); });
+  sa.value = "B1"; sb.value = "J";
+  const SHAPE = {
+    P:(a,b)=>`<b>Swap the objective.</b> Train ${a.name} with the predictive loss used in ${b.name} (or the reverse), then probe what the representation keeps and what it drops.`,
+    S:(a,b)=>`<b>Space and scorer.</b> Let one field supply the search space and the other the score: search over ${a.name} candidates, judged by a ${b.name} criterion. Keep an archive, not just the best.`,
+    Em:(a,b)=>`<b>Count what was not asked for.</b> Run ${a.name} and measure whether structure from ${b.name} appears unprompted. Decide the metric (compressibility, a probe, a judge) before you look.`,
+    C:(a,b)=>`<b>Measure description length.</b> Compare effective rank, bits or parameter count needed by ${a.name} and ${b.name} for the same task; the cheaper description is the one to steal.`,
+    E:(a,b)=>`<b>Write both as one energy.</b> Express ${a.name} and ${b.name} as minimizing an energy or free energy, then compare the minimizers. Where they differ is the experiment.`,
+  };
+  function run(){
+    const a = byCode(sa.value), b = byCode(sb.value);
+    const sh = a.m.filter(x=>b.m.includes(x));
+    const rankF = {y:0,t:1,n:2}, worst = rankF[a.f] >= rankF[b.f] ? a.f : b.f;
+    const known = BR.findIndex(x=>{ const s = new Set([x.a,x.b,x.also].filter(Boolean)); return a!==b && s.has(a.code) && s.has(b.code); });
+    $("br-sh").textContent = sh.length ? sh.map(x=>mechById[x].l).join(", ") : "none";
+    $("br-f").textContent = `${FE[worst]} ${worst==="y"?"laptop":worst==="t"?"toy":"no"}`;
+    $("br-k").textContent = known>=0 ? `yes, #${known+1}` : "new";
+    let html = `<b class="t">${a.code} × ${b.code}: ${a.name} meets ${b.name}</b>`;
+    if(a===b) html += `<p>Pick two different fields.</p>`;
+    else if(!sh.length) html += `<p>No shared mechanism, so no obvious experiment shape. That is a signal, not a dead end: the bridge would have to go through a third field. Mechanisms: ${a.m.map(mpill).join("")} vs ${b.m.map(mpill).join("")}.</p>`;
+    else {
+      html += `<p>${sh.map(mpill).join("")}</p>` + sh.map(x=>`<p>${SHAPE[x](a,b)}</p>`).join("");
+      if(known>=0) html += `<p class="small"><b>Known bridge #${known+1}:</b> ${BR[known].t}. ${BR[known].exp}</p>`;
+    }
+    html += `<p class="small muted">Cost: ${FE[worst]} ${FEN[worst]}. Read: <a href="${a.ch}.html">${chTitle(a.ch)}</a> · <a href="${b.ch}.html">${chTitle(b.ch)}</a></p>`;
+    $("br-out").innerHTML = html;
+    if(a.code!=="J" && b.code!=="J" && a!==b) mxApi.pin(a,b);
+  }
+  sa.onchange = run; sb.onchange = run;
+  $("br-rand").onclick = ()=>{ const ai = F.filter(f=>f.part==="A"), al = F.filter(f=>f.part==="B");
+    sa.value = ai[Math.floor(Math.random()*ai.length)].code; sb.value = al[Math.floor(Math.random()*al.length)].code; run(); };
+  $("br-best").onclick = ()=>{ const a = byCode(sa.value), rankF = {y:0,t:1,n:2};
+    const best = F.filter(f=>f.part==="B" && f!==a).map(f=>[f, f.m.filter(x=>a.m.includes(x)).length, rankF[f.f]]).sort((x,y)=>y[1]-x[1] || x[2]-y[2])[0];
+    sb.value = best[0].code; run(); };
+  run();
+})();
+
+/* =================== QUIZ =================== */
+A.quiz("quiz", [
+  {q:"Why does the chapter claim AI and artificial life belong on one map?",
+   options:["Because they use the same hardware","Because both ask how structure appears without being written down, using the same few mechanisms (prediction, search, emergence, compression, energy)","Because artificial life is a subfield of deep learning","Because both started in 2020"],
+   answer:1, why:"The substrates differ (weights vs cells and rules), but the mechanisms that produce structure are shared, so a tool from one side becomes an experiment on the other."},
+  {q:"Why is artificial life the cheap corner of the map?",
+   options:["Its results are less important","Its substrates (cellular automata, small programs, swarms) are tiny by design, so 7 of 9 fields run meaningfully on a laptop","It has no theory","It only runs on GPUs"],
+   answer:1, why:"Growing NCAs, Lenia, BFF soups and QD archives need little compute. The expensive exceptions are wet-lab basal cognition and physics-heavy body evolution."},
+  {q:"In the bridge builder, why is the laptop verdict the weaker of the two fields?",
+   options:["Because the matrix says so","Because an experiment that needs both fields needs both ends to run; it is as cheap as its most expensive end","Because ALife is always cheaper","Because JEPA needs a cluster"],
+   answer:1, why:"A bridge from A2 to A14 still needs robot simulation. Cost is a max, not an average."},
+  {q:"Why does replacing CLIP with a JEPA as ASAL's judge make conceptual sense?",
+   options:["JEPA is larger than CLIP","CLIP scores similarity to text; a JEPA scores predictability, which matches the 'learnable to an observer' half of the open-endedness definition","JEPA can generate creatures","CLIP cannot see video"],
+   answer:1, why:"Hughes, Rocktäschel et al. define open-endedness as novelty plus learnability relative to an observer. A predictive encoder is an observer whose surprise and learnability can be measured directly."},
+  {q:"Switch off compression and prediction in the matrix and half the AI fields lose every link to artificial life. Why?",
+   options:["ALife fields never compress anything","Most AI fields are tagged through prediction or compression, while ALife fields lean on search and emergence; only AI fields that search (A1, A3, A9, A14) or show emergence (A2, A7, A11) still bridge","The matrix has a bug","Because energy is the only shared mechanism"],
+   answer:1, why:"The remaining cross-links run through search (program synthesis, robot planning) and emergence (grokking, circuits). Those are the 'path matters' and 'search + verifier' threads of chapter 15."},
+  {q:"Why should an SAE on I-JEPA features be paired with linear probes from the start?",
+   options:["Probes are required by SAEs","2025 results showed SAEs can underperform simple probes on real tasks, so without a probe baseline an SAE result cannot be judged","Probes make SAEs train faster","JEPA features are not linear"],
+   answer:1, why:"DeepMind's 2025 negative results and 'Are SAEs useful?' set the bar: a dictionary is only interesting if it finds what probes miss or beats them on a downstream task."},
+]);
+})();
+</script>
+</body>
+</html>

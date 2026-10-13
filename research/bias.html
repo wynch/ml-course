@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why does JEPA ignore the noise? · Hidden Patch</title>
+<meta name="description" content="The implicit bias of JEPA from the question why: covariance versus predictability, why depth sharpens the bias, the slow-feature trap, Koopman regimes, and why the same bias makes embeddings hard to quantize.">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/atlas.css">
+<style>
+/* page-specific */
+.beat{grid-template-columns:minmax(0,1fr)}
+.beat>*,.prose>*{min-width:0}
+.eq{max-width:min(100%,var(--measure))}
+.featcard{display:grid;grid-template-columns:auto 1fr;gap:.1rem .5rem;align-items:center;padding:.45rem .55rem;border:1px solid var(--line);border-radius:10px}
+.featcard .dot{width:.8rem;height:.8rem;border-radius:50%}
+.featcard b{font-family:var(--ui);font-size:.86rem}
+.featcard .ctrl{grid-column:1/-1}
+.two-canvas canvas+canvas{margin-top:.6rem}
+.fp-tbl td.n.hi{color:var(--why);font-weight:700}
+</style>
+</head>
+<body data-chapter="bias" data-part="2">
+<header id="topbar" class="topbar"></header>
+
+<main class="chapter">
+  <section class="opener">
+    <p class="eyebrow"><span class="sw"></span>Part 2 · Theory · Chapter 04</p>
+    <h1 class="big"><span class="w">Why</span> does JEPA ignore the noise?</h1>
+    <p class="because">gradient descent does not learn every feature at once, and the two objectives rank features differently. A masked autoencoder learns the loudest feature first (largest covariance). A JEPA learns the most <em>predictable</em> feature first (largest regression coefficient), and the deeper its encoder, the stronger that preference. Noise is loud but unpredictable, so a deep JEPA reaches it last and keeps it small.</p>
+    <p class="meta"><span>6 beats · 3 labs · 6 questions</span><span>Builds on: <a href="collapse.html">03 Collapse and its cures</a></span></p>
+    <ul class="toc">
+      <li><a href="#order"><span class="q">?</span>Why an order at all</a></li>
+      <li><a href="#race"><span class="q">?</span>Why depth sharpens it</a></li>
+      <li><a href="#fixed"><span class="q">?</span>Where training ends</a></li>
+      <li><a href="#trap"><span class="q">?</span>Why predictable can be a trap</a></li>
+      <li><a href="#koopman"><span class="q">?</span>Why regimes emerge</a></li>
+      <li><a href="#spread"><span class="q">?</span>Why it hurts quantization</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ BEAT 1 ============ -->
+  <section class="beat" id="order">
+    <header>
+      <span class="num">Beat 1</span>
+      <h2><span class="w">Why</span> would a network learn one feature before another?</h2>
+      <p class="short">Because from a small initialization, each feature grows at a speed set by the data's statistics along that feature. Whatever grows fastest is learned first and shapes the rest. The objective decides which statistic sets the speed.</p>
+    </header>
+    <div class="prose">
+      <p>Train a deep linear network from tiny weights and it does not fit the data all at once. It picks up one direction, plateaus, picks up the next. Saxe and colleagues described these stage-like dynamics for supervised deep linear nets in 2014. The order is the network's <span class="term" tabindex="0" data-def="A preference that comes from the training dynamics (initialization, depth, optimizer), not from any explicit term in the loss.">implicit bias</span>: two solutions with the same loss can be reached in different orders, and in a finite training run the order decides what you end up with.</p>
+      <p>Littwin and colleagues at Apple (NeurIPS 2024) worked out that order for two self-supervised objectives on the same deep linear encoder <var>W̄ = W<sub>L</sub>⋯W<sub>1</sub></var>, with a view <var>x</var> and a target view <var>y</var>. Give each feature two numbers:</p>
+      <ul>
+        <li><b>λ, the covariance</b> between the feature in the two views: how <em>loud</em> it is.</li>
+        <li><b>ρ = λ / σ², the regression coefficient</b>: how much of the feature in one view is predicted by the other. ρ = 1 means no noise, ρ near 0 means mostly noise. This is how <em>predictable</em> it is.</li>
+      </ul>
+      <div class="eq">MAE:  ½ E‖ V W̄ x − y ‖²            JEPA:  ½ E‖ V W̄ x − sg(W̄) y ‖²<span class="c">The only difference: MAE regresses the raw target view; JEPA regresses the target <em>through the same encoder</em>, with a stop-gradient (sg). That self-reference is where the extra preference for ρ comes from.</span></div>
+      <p>With diagonal covariances and the paper's balanced initialization (orthogonal layers of scale ε<sup>1/L</sup>), the size <var>w</var> of each feature inside <var>W̄</var> obeys its own scalar equation:</p>
+      <div class="eq">JEPA:  dw/dt = λ · w<sup>3 − 1/L</sup> − (λ/ρ) · w³<br>MAE:   dw/dt = λ · w<sup>2 − 1/L</sup> − (λ/ρ) · w³<span class="c">The first term drives growth, the second stops it at the fixed point. Early on w is tiny and the first term dominates. In MAE the start-up speed is set by λ alone. In JEPA the exponent is one higher, so a feature crawls until it has some size, and the ρ in the brake term matters sooner. The paper shows the resulting preference for high ρ grows with depth L.</span></div>
+      <div class="analogy"><span class="ico">≈</span><div><span class="k">Picture it</span><p>Two students copy notes from a lecture in a noisy hall. The MAE student writes down whatever is loudest, including the person coughing. The JEPA student checks each sentence against their own earlier notes and only keeps what they can predict twice. The more cross-checking layers they add, the less the coughing survives.</p></div></div>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 2: race ============ -->
+  <section class="beat" id="race">
+    <header>
+      <span class="num">Beat 2</span>
+      <h2><span class="w">Why</span> does a deeper JEPA get pickier?</h2>
+      <p class="short">Because each extra layer raises the power of <var>w</var> in the growth term, which slows every feature's start and gives predictability more time to matter. In this project's run of the paper's ODE, a quiet clean feature overtook a feature with twice the covariance only at depth 5 to 7.</p>
+    </header>
+    <figure class="lab" id="lab-race">
+      <div class="lab-head"><span class="tag">Sim</span><h3>The feature race: MAE vs JEPA, integrated live</h3></div>
+      <div class="lab-body">
+        <div class="stage two-canvas">
+          <canvas id="cv-race" aria-label="Learning curves of two features for MAE (top) and JEPA (bottom), with a moving cursor showing which reaches half its final size first."></canvas>
+          <canvas id="cv-ratio" aria-label="Ratio of learning times of feature A over feature B as a function of encoder depth, for MAE and JEPA. Above 1 means B is learned first."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i style="background:var(--p5)"></i>feature A (loud)</span><span><i style="background:var(--p1)"></i>feature B (quiet)</span><span><i style="background:var(--why)"></i>JEPA</span><span><i style="background:var(--muted)"></i>MAE</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="r-L">Encoder depth L</label><output for="r-L"></output></div>
+            <input type="range" id="r-L" min="1" max="10" step="1" value="5"></div>
+          <div class="featcard"><span class="dot" style="background:var(--p5)"></span><b>Feature A</b>
+            <div class="ctrl"><div class="row"><label for="r-lA">covariance λ</label><output for="r-lA"></output></div><input type="range" id="r-lA" min="0.2" max="4" step="0.1" value="2"></div>
+            <div class="ctrl"><div class="row"><label for="r-pA">regression ρ</label><output for="r-pA"></output></div><input type="range" id="r-pA" min="0.1" max="0.99" step="0.01" value="0.4"></div>
+          </div>
+          <div class="featcard"><span class="dot" style="background:var(--p1)"></span><b>Feature B</b>
+            <div class="ctrl"><div class="row"><label for="r-lB">covariance λ</label><output for="r-lB"></output></div><input type="range" id="r-lB" min="0.2" max="4" step="0.1" value="1"></div>
+            <div class="ctrl"><div class="row"><label for="r-pB">regression ρ</label><output for="r-pB"></output></div><input type="range" id="r-pB" min="0.1" max="0.99" step="0.01" value="0.9"></div>
+          </div>
+          <div class="ctrl"><div class="row"><label for="r-eps">Initial scale ε</label><output for="r-eps"></output></div>
+            <input type="range" id="r-eps" min="-4" max="-2" step="0.5" value="-3"></div>
+          <div class="btns"><button type="button" class="primary" id="r-go">Race again</button><button type="button" id="r-reset">Notebook setting</button></div>
+          <dl class="readout">
+            <dt>MAE learns first</dt><dd id="o-mae">–</dd>
+            <dt>JEPA learns first</dt><dd id="o-jepa" class="hot">–</dd>
+            <dt>JEPA crossover depth</dt><dd id="o-cross">–</dd>
+            <dt>JEPA t*(A)/t*(B)</dt><dd id="o-ratio">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>With the notebook setting (A: λ 2, ρ 0.4; B: λ 1, ρ 0.9; ε = 10⁻³) the MAE ratio sits near 0.5 at every depth: it always learns the louder feature first, about twice as fast. The JEPA ratio climbs with depth and crosses 1 at depth 5.</li>
+        <li>Set ε to 10⁻⁴: the crossover moves to depth 7, as in the notebook. Smaller initializations need more depth, matching the paper's ε<sup>1/L</sup>·Δρ correction.</li>
+        <li>At large depth the loud feature's JEPA fixed point ρ<sup>L</sup> falls below the initial scale ε: it is never learned at all, it only shrinks. The ratio line stops there. Just before that point the loud feature starts close to its tiny endpoint, so its "race" is short and the ratio can dip: an artefact of the half-size criterion.</li>
+        <li>"Learned" here means reaching half its own final size, the notebook's criterion t*. Time is in the ODE's units; each panel is scaled to its own race.</li>
+      </ul></div>
+    </figure>
+    <aside class="aside ours"><span class="k">This project</span>Notebook 2 (<code>jepa/notebooks/02-implicit-bias.ipynb</code>) integrates exactly these ODEs. Its conclusion: "The ordering effect is real but gradual. It only overturns a 2x covariance gap with a fairly deep encoder." The lab above recomputes the same curves in your browser with an adaptive step.</aside>
+  </section>
+
+  <!-- ============ BEAT 3: fixed points ============ -->
+  <section class="beat" id="fixed">
+    <header>
+      <span class="num">Beat 3</span>
+      <h2><span class="w">Where</span> does training end up, and does real SGD agree?</h2>
+      <p class="short">Because the brake term stops growth where the two terms balance: at w = ρ<sup>L</sup> for JEPA and w = ρ<sup>L/(L+1)</sup> for MAE. The JEPA endpoint shrinks noisy features exponentially in depth. Minibatch SGD on finite networks lands on both formulas within a few percent.</p>
+    </header>
+    <div class="prose">
+      <p>Set dw/dt = 0. For JEPA, λw<sup>3−1/L</sup> = (λ/ρ)w³ gives w<sup>1/L</sup> = ρ, so w<sub>∞</sub> = ρ<sup>L</sup>. For MAE, w<sup>1+1/L</sup> = ρ gives ρ<sup>L/(L+1)</sup>. Notice that λ cancels in both: in the end, only predictability decides how big a feature is. Loudness only decided <em>when</em> it got there.</p>
+      <p>Take ρ = 0.4 and depth 3. MAE keeps the feature at 0.4<sup>3/4</sup> ≈ 0.50. JEPA keeps it at 0.4³ = 0.064. A clean feature with ρ = 0.95 stays at 0.86 in both. So the JEPA does not delete noise, it turns it down by a factor that compounds per layer.</p>
+    </div>
+    <div class="tbl fp-tbl">
+      <table>
+        <thead><tr><th>Run (notebook 2, part B)</th><th>ρ = 0.95</th><th>0.84</th><th>0.73</th><th>0.62</th><th>0.51</th><th>0.40</th></tr></thead>
+        <tbody>
+          <tr><td>MAE, L = 1</td><td class="n">1.003</td><td class="n">1.004</td><td class="n">1.003</td><td class="n">1.002</td><td class="n">0.995</td><td class="n">0.992</td></tr>
+          <tr><td>MAE, L = 3</td><td class="n">1.024</td><td class="n">1.024</td><td class="n">1.021</td><td class="n">1.017</td><td class="n">1.005</td><td class="n">0.997</td></tr>
+          <tr><td>JEPA, L = 1</td><td class="n">1.005</td><td class="n">1.006</td><td class="n">1.001</td><td class="n">1.002</td><td class="n">0.993</td><td class="n">0.993</td></tr>
+          <tr><td>JEPA, L = 2</td><td class="n">1.052</td><td class="n">1.029</td><td class="n">1.007</td><td class="n">0.996</td><td class="n">0.992</td><td class="n">0.989</td></tr>
+          <tr><td>JEPA, L = 3</td><td class="n hi">1.265</td><td class="n">1.061</td><td class="n">0.995</td><td class="n">0.982</td><td class="n">0.980</td><td class="n">0.977</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small muted" style="max-width:var(--measure)">Ratio of the feature size reached by minibatch SGD (width 6, batch 1,000, the paper's initialization) to the predicted fixed point. 1.000 = exact. Six features, covariance rising from 0.5 to 1.5 while ρ falls from 0.95 to 0.4. The one outlier (1.265) is the slowest deep-JEPA feature, still settling when the 50,000-step run ended.</p>
+  </section>
+
+  <!-- ============ BEAT 4: slow-feature trap ============ -->
+  <section class="beat" id="trap">
+    <header>
+      <span class="num">Beat 4</span>
+      <h2><span class="w">Why</span> can "predictable" be a trap?</h2>
+      <p class="short">Because predictable is not the same as meaningful. Noise that changes slowly is extremely predictable from one frame to the next. A JEPA rewarded for predictability will happily encode a slow distractor and ignore the moving object you cared about.</p>
+    </header>
+    <div class="prose">
+      <p>Sobal and colleagues (2022) trained VICReg-style JEPAs on simple worlds of moving dots and found they latch onto slow-varying features, including slow noise distractors. The implicit bias of Beat 2 is the same mechanism seen from the other side: if what the objective ranks by is "how well can the next view be regressed from this one", then a background pattern that barely changes wins, whatever it means.</p>
+      <p>The lab is a toy model of that setting. A dot wanders in a box. Behind it, a noise texture drifts at a speed you set, and a fast pixel flicker sits on top. Each candidate feature is scored the way a JEPA with a linear predictor and a variance constraint scores it: prediction error from the previous frame, divided by the feature's variance (the variance term forbids cheating by shrinking).</p>
+    </div>
+    <figure class="lab" id="lab-trap">
+      <div class="lab-head"><span class="tag">Lab</span><h3>What does a slowness-seeking objective keep?</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-trap" aria-label="Left: a dot moving over a slowly drifting noise texture, with traces of the dot position and the noise feature. Right: normalized prediction error per candidate feature; the lowest one is what the objective keeps."></canvas></div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="t-noise">Noise drift per frame</label><output for="t-noise"></output></div>
+            <input type="range" id="t-noise" min="-4" max="-0.5" step="0.1" value="-3.3">
+            <span class="hint">1 − a for an AR(1) texture: a = 1 means frozen noise, smaller a means faster drift.</span></div>
+          <div class="ctrl"><div class="row"><label for="t-speed">Dot speed</label><output for="t-speed"></output></div>
+            <input type="range" id="t-speed" min="0.005" max="0.08" step="0.005" value="0.03">
+            <span class="hint">Box widths per frame.</span></div>
+          <div class="btns"><button type="button" class="primary" id="t-play">Pause</button><button type="button" id="t-fix">Make noise fast</button></div>
+          <dl class="readout">
+            <dt>kept feature</dt><dd id="t-win" class="hot">–</dd>
+            <dt>error, dot x</dt><dd id="t-ex">–</dd>
+            <dt>error, noise</dt><dd id="t-en">–</dd>
+            <dt>dot readable?</dt><dd id="t-probe">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>It opens in the trap: the texture drifts about 0.05% per frame and its normalized error is lower than the dot's, so a one-feature JEPA keeps the noise. A linear probe for the dot's position on that embedding gets nothing.</li>
+        <li>Press <b>Make noise fast</b> (or slide the drift right): once the texture changes faster than the dot moves, the dot coordinates win.</li>
+        <li>Speed up the dot: it loses even against moderately slow noise, because a single frame says where the dot is, not where it is going.</li>
+        <li>Pixel flicker never wins. That is the half of the bias that works for you: fast noise is unpredictable and gets ignored, which is the chapter's title question.</li>
+      </ul></div>
+    </figure>
+    <aside class="aside warn"><span class="k">Careful</span>This is a scoring toy: features are scored one at a time with the exact statistic a linear JEPA ranks by. Sobal et al. trained real networks; their paper, not this lab, is the evidence that real JEPAs fall in. What the lab shows is <em>why</em> they would.</aside>
+  </section>
+
+  <!-- ============ BEAT 5: Koopman ============ -->
+  <section class="beat" id="koopman">
+    <header>
+      <span class="num">Beat 5</span>
+      <h2><span class="w">Why</span> do JEPAs on time series sort data into regimes nobody labeled?</h2>
+      <p class="short">Because the most predictable functions of a dynamical system are the ones that barely change under its dynamics, and for a system that switches between regimes those are the regime indicators. A predictability-loving objective finds them.</p>
+    </header>
+    <div class="split">
+      <div class="prose">
+        <p>The <span class="term" tabindex="0" data-def="A linear operator that advances functions of a system's state by one time step. Its eigenfunctions are observables that evolve by simple multiplication, no matter how nonlinear the system is.">Koopman operator</span> of a dynamical system acts on functions of the state, f ↦ f∘step. Its eigenfunctions with eigenvalue near 1 are almost invariant: they keep their value step after step. For a system with metastable regimes (a weather pattern, a machine's operating mode), the function "which regime am I in" is such an eigenfunction.</p>
+        <p>Ruiz-Morales and colleagues (AAAI 2026) show that, under an idealized JEPA loss, optimal encoders span exactly these regime indicator functions. Many entangled optima exist, and a near-identity linear predictor is what selects the interpretable one. That explains the emergent clustering seen in time-series JEPAs. <span class="pill part">abstract only</span></p>
+        <p>It also reframes Beat 4. A slow noise texture is a near-invariant function too. The objective cannot tell a meaningful invariant from a meaningless one; what you feed it decides which kind exists.</p>
+      </div>
+      <div class="compare" style="grid-template-columns:1fr">
+        <div><span class="k">Ranked by MAE</span><h4>Covariance λ</h4><p>Loud first. Pixels with big variance (texture, lighting) dominate early training. Balestriero and LeCun (2024): reconstruction spends capacity on high-variance subspaces that matter little for perception.</p></div>
+        <div><span class="k">Ranked by JEPA</span><h4>Regression coefficient ρ</h4><p>Predictable first, more so with depth. Noise is turned down by ρ<sup>L</sup>. Slow invariants (regimes, but also slow distractors) win.</p></div>
+        <div><span class="k">Both ignore</span><h4>What the data does not vary</h4><p>Neither objective can find a feature the views never disagree or agree on. Masking and view choice set which ρ each feature has: the curriculum lives in the data pipeline.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 6: scale spread ============ -->
+  <section class="beat" id="spread">
+    <header>
+      <span class="num">Beat 6</span>
+      <h2><span class="w">Why</span> does the same bias make a JEPA hard to compress?</h2>
+      <p class="short">Because turning noise down by ρ<sup>L</sup> makes the embedding's channel scales spread like (ρ<sub>max</sub>/ρ<sub>min</sub>)<sup>L</sup>. Low-bit quantization uses one step size for the whole tensor, so the tiny channels round to zero.</p>
+    </header>
+    <div class="prose">
+      <p>This consequence is the project's own, not a claim in Littwin et al. At the fixed points, the largest-to-smallest feature ratio is (ρ<sub>max</sub>/ρ<sub>min</sub>)<sup>L</sup> for JEPA, which grows exponentially with depth, and (ρ<sub>max</sub>/ρ<sub>min</sub>)<sup>L/(L+1)</sup> for MAE, which never exceeds ρ<sub>max</sub>/ρ<sub>min</sub>. A plain deep JEPA is anisotropic by design. That matters for <a href="edge.html">running a JEPA on a device</a>, and it is why the next chapter's isotropic regularizer should help.</p>
+    </div>
+    <figure class="lab" id="lab-spread">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Fixed-point scales meet INT-b quantization</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-spread" aria-label="Bar chart of 16 embedding channel scales on a log axis for MAE, JEPA and an isotropic embedding, with the quantization step drawn as a band. Channels below the band are erased."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i style="background:var(--muted)"></i>MAE ρ<sup>L/(L+1)</sup></span><span><i style="background:var(--why)"></i>JEPA ρ<sup>L</sup></span><span><i style="background:var(--p4)"></i>isotropic (SIGReg target)</span><span><i class="h"></i>below half a quantization step (red line)</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><div class="row"><label for="q-L">Encoder depth L</label><output for="q-L"></output></div>
+            <input type="range" id="q-L" min="1" max="12" step="1" value="4"></div>
+          <div class="ctrl"><div class="row"><label for="q-rmin">Least predictable ρ</label><output for="q-rmin"></output></div>
+            <input type="range" id="q-rmin" min="0.2" max="0.9" step="0.01" value="0.4">
+            <span class="hint">16 channels with ρ evenly spaced from this up to 0.95.</span></div>
+          <div class="ctrl"><div class="row"><label for="q-b">Bits per value</label><output for="q-b"></output></div>
+            <input type="range" id="q-b" min="2" max="8" step="1" value="4"></div>
+          <dl class="readout">
+            <dt>spread JEPA</dt><dd id="q-sj" class="hot">–</dd>
+            <dt>spread MAE</dt><dd id="q-sm">–</dd>
+            <dt>channels lost JEPA</dt><dd id="q-lj" class="hot">–</dd>
+            <dt>channels lost MAE</dt><dd id="q-lm">–</dd>
+            <dt>channels lost iso</dt><dd id="q-li">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Each channel is sampled as a Gaussian with the fixed-point scale (2,048 seeded samples), quantized per tensor with symmetric round-to-nearest, and counted as "lost" when its error is at least half its own variance.</li>
+        <li>At INT4 and depth 4, MAE keeps every channel while JEPA already loses its least predictable ones. Push depth to 8 and the JEPA loses most of its embedding at INT4; INT8 rescues most of it, though at depth 8 a few channels still vanish.</li>
+        <li>The lost channels are the noisy ones, which the JEPA wanted small. That is fine until a downstream task needs them, or until the spread is caused by something other than noise. The isotropic column never loses anything: that is the case for <a href="gaussian.html">SIGReg</a>.</li>
+      </ul></div>
+    </figure>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Notebook 3 pilot (8×8 digits, 16-d, 3 seeds)</th><th>W INT4</th><th>W INT3</th><th>Emb INT4</th><th>Emb INT3</th><th>cond. no.</th><th>kurtosis</th></tr></thead>
+        <tbody>
+          <tr><td>SIGReg</td><td class="n best">5.0</td><td class="n best">11.8</td><td class="n best">1.2</td><td class="n best">5.3</td><td class="n">2.7</td><td class="n">0.42</td></tr>
+          <tr><td>VICReg</td><td class="n">5.6</td><td class="n">37.1</td><td class="n">2.1</td><td class="n">7.0</td><td class="n">4,275</td><td class="n">1.20</td></tr>
+          <tr><td>EMA (I-JEPA style)</td><td class="n">19.0</td><td class="n">27.0</td><td class="n">24.5</td><td class="n">47.6</td><td class="n">21</td><td class="n">5.04</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <aside class="aside ours"><span class="k">This project</span>Accuracy points lost after quantization in the CPU pilot (fp32: SIGReg 0.900, VICReg 0.865, EMA 0.834). SIGReg lost least everywhere; INT8 was free for all. A twist the lab cannot show: tail heaviness (kurtosis) tracked embedding-quantization loss better than condition number did. Toy scale and untuned hyperparameters; the GPU follow-up is ViT-Tiny on CIFAR-100.</aside>
+  </section>
+
+  <section class="remember">
+    <h2>Three things to <span class="w">remember</span></h2>
+    <ol>
+      <li><b>MAE ranks by loudness, JEPA by predictability.</b>Covariance λ sets MAE's learning order; the regression coefficient ρ increasingly sets JEPA's as the encoder gets deeper.</li>
+      <li><b>Noise is turned down by ρ to the L.</b>The JEPA fixed point is ρ<sup>L</sup>, so unpredictable features shrink exponentially with depth, and real SGD lands there.</li>
+      <li><b>Predictable is not meaningful.</b>Slow distractors and regime indicators are both near-invariant. The same bias that skips noise also squeezes channel scales apart, which low-bit quantization punishes.</li>
+    </ol>
+  </section>
+
+  <section id="quiz"></section>
+
+  <section class="sources">
+    <h2>Sources for this chapter</h2>
+    <ol>
+      <li>Littwin et al. (Apple), <a href="https://arxiv.org/abs/2407.03475">How JEPA Avoids Noisy Features: The Implicit Bias of Deep Linear Self Distillation Networks</a>, NeurIPS 2024.</li>
+      <li>Sobal et al., <a href="https://arxiv.org/abs/2211.10831">Joint Embedding Predictive Architectures Focus on Slow Features</a>, 2022.</li>
+      <li>Ruiz-Morales et al., <a href="https://arxiv.org/abs/2511.09783">Koopman Invariants as Drivers of Emergent Time-Series Clustering in JEPAs</a>, AAAI 2026. <span class="pill part">abstract only</span></li>
+      <li>Balestriero &amp; LeCun, <a href="https://arxiv.org/abs/2402.11337">Learning by Reconstruction Produces Uninformative Features for Perception</a>, 2024.</li>
+      <li>Saxe, McClelland, Ganguli, <a href="https://arxiv.org/abs/1312.6120">Exact solutions to the nonlinear dynamics of learning in deep linear neural networks</a>, ICLR 2014 (background on stage-like learning).</li>
+      <li>Balestriero &amp; LeCun, <a href="https://arxiv.org/abs/2511.08544">LeJEPA</a>, 2025 (the isotropic fix, chapter 05).</li>
+      <li>Project notebooks: <code>jepa/notebooks/02-implicit-bias.ipynb</code> (ODE race, fixed points, scale spread) and <code>03-sigreg-quantization-pilot.ipynb</code> (quantization table); <code>landscape/ai-landscape-why.md</code> Q4, order of learning.</li>
+    </ol>
+  </section>
+
+  <nav id="pager"></nav>
+</main>
+<footer id="site-footer"></footer>
+
+<script src="assets/atlas.js"></script>
+<script>
+(function(){
+"use strict";
+const A = window.Atlas;
+const $ = id => document.getElementById(id);
+
+/* =================== SIM: feature race (Littwin et al. ODEs) =================== */
+(function(){
+  const P = {L:5, lA:2, pA:.4, lB:1, pB:.9, eps:1e-3};
+  const winf = (rho,L,k) => k==="jepa" ? Math.pow(rho,L) : Math.pow(rho, L/(L+1));
+  // integrate dw/dt with the notebook's adaptive step dt = h*w/f until w reaches frac*w_inf
+  function integrate(lam, rho, L, k, eps, frac, keep){
+    const e = k==="jepa" ? 3-1/L : 2-1/L, wi = winf(rho,L,k), target = frac*wi;
+    if(eps >= target) return null;
+    let w = eps, t = 0, n = 0; const T = keep ? [0] : null, W = keep ? [w/wi] : null;
+    const h = 2e-3;
+    while(w < target && n < 2e5){
+      const f = lam*Math.pow(w,e) - lam/rho*w*w*w; if(f<=0) break;
+      const dt = h*w/f; w += f*dt; t += dt; n++;
+      if(keep && n%8===0){ T.push(t); W.push(w/wi); }
+    }
+    if(keep){ T.push(t); W.push(w/wi); }
+    return keep ? {T, W, t} : t;
+  }
+  const tHalf = (lam,rho,L,k,eps) => integrate(lam,rho,L,k,eps,.5,false);
+  let curves = null, ratios = null, prog = 1;
+  function compute(){
+    curves = {};
+    for(const k of ["mae","jepa"]){
+      curves[k] = {
+        A: integrate(P.lA,P.pA,P.L,k,P.eps,.99,true), B: integrate(P.lB,P.pB,P.L,k,P.eps,.99,true),
+        hA: tHalf(P.lA,P.pA,P.L,k,P.eps), hB: tHalf(P.lB,P.pB,P.L,k,P.eps)
+      };
+    }
+    ratios = {mae:[], jepa:[]};
+    for(let L=1; L<=10; L++) for(const k of ["mae","jepa"]){
+      const a = tHalf(P.lA,P.pA,L,k,P.eps), b = tHalf(P.lB,P.pB,L,k,P.eps);
+      ratios[k].push(a!=null && b!=null ? a/b : null);
+    }
+    // readouts
+    const first = k => { const c = curves[k]; if(c.hA==null && c.hB==null) return "neither"; if(c.hA==null) return "B (A never grows)"; if(c.hB==null) return "A (B never grows)"; return c.hA < c.hB ? "A (loud)" : "B (quiet)"; };
+    $("o-mae").textContent = first("mae");
+    $("o-jepa").textContent = first("jepa");
+    let cross = "none ≤ 10";
+    for(let i=0;i<10;i++){ const r = ratios.jepa[i]; if(r!=null && r>1){ cross = i===0 ? "already at L = 1" : "L = "+(i+1); break; } }
+    $("o-cross").textContent = cross;
+    const rj = ratios.jepa[P.L-1]; $("o-ratio").textContent = rj==null ? "n/a (A never grows)" : rj.toFixed(3);
+  }
+  const cvR = $("cv-race"), cvQ = $("cv-ratio");
+  const vR = A.canvas(cvR, w => w<560 ? .95 : .52, drawRace);
+  const vQ = A.canvas(cvQ, w => w<560 ? .62 : .36, drawRatio);
+  function drawRace(){
+    if(!curves) return;
+    const {ctx,w,h} = vR, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const padL = 34, padR = 10, gap = 30, ph = (h-gap-40)/2;
+    [["mae","MAE: learns by covariance"],["jepa",`JEPA, depth ${P.L}: learns by predictability`]].forEach(([k,title],i)=>{
+      const oy = 16 + i*(ph+gap), ox = padL, pw = w-padL-padR;
+      ctx.fillStyle = k==="jepa" ? C.why : C.muted; ctx.font = `600 12px ${C.ui}`; ctx.textAlign="start"; ctx.fillText(title, 0, oy-4);
+      ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(ox, oy, pw, ph);
+      ctx.fillStyle = C.faint; ctx.font = `10px ${C.mono}`; ctx.textAlign="end";
+      ctx.fillText("1", ox-4, oy+8); ctx.fillText(".5", ox-4, oy+ph/2+3); ctx.fillText("0", ox-4, oy+ph);
+      ctx.setLineDash([3,4]); ctx.strokeStyle = C.lineStrong; ctx.beginPath(); ctx.moveTo(ox, oy+ph/2); ctx.lineTo(ox+pw, oy+ph/2); ctx.stroke(); ctx.setLineDash([]);
+      const c = curves[k];
+      const tmax = Math.max(c.A ? c.A.t : 0, c.B ? c.B.t : 0) || 1;
+      const tc = prog*tmax;
+      for(const [key,col] of [["A",C.p5],["B",C.p1]]){
+        const cu = c[key];
+        if(!cu){ ctx.fillStyle = col; ctx.font = `11px ${C.ui}`; ctx.textAlign="start"; ctx.fillText(`${key}: ε above its fixed point, never learned`, ox+8, oy+ph-8-(key==="A"?14:0)); continue; }
+        ctx.strokeStyle = col; ctx.lineWidth = 2.2; ctx.beginPath();
+        let lastX = ox, lastY = oy+ph;
+        for(let j=0;j<cu.T.length;j++){
+          if(cu.T[j] > tc) break;
+          const X = ox + cu.T[j]/tmax*pw, Y = oy+ph - Math.min(1,cu.W[j])*ph;
+          j ? ctx.lineTo(X,Y) : ctx.moveTo(X,Y); lastX = X; lastY = Y;
+        }
+        ctx.stroke();
+        if(tc >= cu.t){ lastX = ox + cu.t/tmax*pw; }
+        ctx.fillStyle = col; ctx.beginPath(); ctx.arc(lastX, lastY, 4.5, 0, 7); ctx.fill();
+        // flag at t*
+        const hk = key==="A" ? c.hA : c.hB;
+        if(hk!=null && tc >= hk){ const X = ox + hk/tmax*pw; ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X, oy+ph/2); ctx.lineTo(X, oy+ph); ctx.stroke();
+          ctx.fillStyle = col; ctx.font = `600 10px ${C.mono}`; ctx.textAlign = "center"; ctx.fillText(key, X, oy+ph+12); }
+      }
+      // winner tag
+      if(prog>=1 && (c.hA!=null || c.hB!=null)){
+        const win = c.hA==null ? "B" : c.hB==null ? "A" : (c.hA<c.hB ? "A" : "B");
+        ctx.fillStyle = win==="A" ? C.p5 : C.p1; ctx.font = `700 11.5px ${C.ui}`; ctx.textAlign="start";
+        ctx.fillText(`${win} learned first`, ox+52, oy+13);
+      }
+      ctx.fillStyle = C.faint; ctx.font = `10px ${C.ui}`; ctx.textAlign="start"; ctx.fillText("w / w∞", ox+4, oy+12);
+    });
+    ctx.fillStyle = C.faint; ctx.font = `10px ${C.ui}`; ctx.textAlign="end"; ctx.fillText("time (each panel scaled to its own race) →", w-padR, h-2); ctx.textAlign="start";
+  }
+  function drawRatio(){
+    if(!ratios) return;
+    const {ctx,w,h} = vQ, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const ox = 40, oy = 20, pw = w-ox-12, ph = h-oy-30;
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText("t*(A) / t*(B) by depth  ·  above 1: quiet B learned first", 0, 12);
+    const vals = [...ratios.mae, ...ratios.jepa].filter(v=>v!=null);
+    let lo = Math.log10(Math.min(.25, ...vals)), hi = Math.log10(Math.max(4, ...vals));
+    const Y = v => oy + ph - (Math.log10(v)-lo)/(hi-lo)*ph, X = L => ox + (L-1)/9*pw;
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(ox, oy, pw, ph);
+    // shade above 1
+    ctx.fillStyle = C.p1; ctx.globalAlpha = .07; ctx.fillRect(ox, oy, pw, Y(1)-oy); ctx.globalAlpha = 1;
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ox, Y(1)); ctx.lineTo(ox+pw, Y(1)); ctx.stroke();
+    ctx.fillStyle = C.faint; ctx.font = `10px ${C.mono}`; ctx.textAlign = "end";
+    for(const v of [.25,.5,1,2,4]) if(Math.log10(v)>=lo-1e-9 && Math.log10(v)<=hi+1e-9) ctx.fillText(String(v), ox-4, Y(v)+3);
+    ctx.textAlign = "center";
+    for(let L=1;L<=10;L++) ctx.fillText(L, X(L), oy+ph+12);
+    ctx.fillText("encoder depth L", ox+pw/2, oy+ph+25);
+    // current depth
+    ctx.strokeStyle = C.lineStrong; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(X(P.L), oy); ctx.lineTo(X(P.L), oy+ph); ctx.stroke(); ctx.setLineDash([]);
+    for(const [k,col] of [["mae",C.muted],["jepa",C.why]]){
+      ctx.strokeStyle = col; ctx.lineWidth = 2.2; ctx.beginPath(); let pen = false;
+      ratios[k].forEach((v,i)=>{ if(v==null){ pen=false; return; } const x = X(i+1), y = Y(v); pen ? ctx.lineTo(x,y) : ctx.moveTo(x,y); pen = true; });
+      ctx.stroke();
+      ratios[k].forEach((v,i)=>{ if(v==null) return; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(X(i+1), Y(v), i+1===P.L ? 5 : 3, 0, 7); ctx.fill(); });
+    }
+    ctx.textAlign = "start"; ctx.font = `600 11px ${C.ui}`;
+    const lm = ratios.mae.findLast ? ratios.mae.findLast(v=>v!=null) : ratios.mae[9];
+    if(lm!=null){ ctx.fillStyle = C.muted; ctx.fillText("MAE", X(10)-28, Y(lm)+16); }
+  }
+  let anim = A.loop(cvR, dt => { prog = Math.min(1, prog + dt/3.2); vR.redraw(); if(prog>=1) return false; });
+  function rerun(animate){
+    compute(); vQ.redraw();
+    if(animate && !A.reduced){ prog = 0; anim.start(); } else { prog = 1; vR.redraw(); }
+  }
+  let pend = 0; const soon = () => { cancelAnimationFrame(pend); pend = requestAnimationFrame(()=>rerun(false)); };
+  A.slider("r-L", v=>{ P.L=v; if(curves) soon(); }, v=>v);
+  A.slider("r-lA", v=>{ P.lA=v; if(curves) soon(); }, v=>v.toFixed(1));
+  A.slider("r-pA", v=>{ P.pA=v; if(curves) soon(); }, v=>v.toFixed(2));
+  A.slider("r-lB", v=>{ P.lB=v; if(curves) soon(); }, v=>v.toFixed(1));
+  A.slider("r-pB", v=>{ P.pB=v; if(curves) soon(); }, v=>v.toFixed(2));
+  A.slider("r-eps", v=>{ P.eps=Math.pow(10,v); if(curves) soon(); }, v=>"10^"+v);
+  $("r-go").onclick = ()=>rerun(true);
+  $("r-reset").onclick = ()=>{
+    for(const [id,v] of [["r-L",5],["r-lA",2],["r-pA",.4],["r-lB",1],["r-pB",.9],["r-eps",-3]]){ const el = $(id); el.value = v; el.dispatchEvent(new Event("input")); }
+    rerun(true);
+  };
+  rerun(false);
+  if(!A.reduced) setTimeout(()=>rerun(true), 500);
+})();
+
+/* =================== LAB: slow-feature trap =================== */
+(function(){
+  const G = 20, cv = $("cv-trap");
+  let drift = Math.pow(10,-3.3), speed = .03, playing = !A.reduced;
+  // live world state
+  const r = A.rng(11);
+  const pat = new Float32Array(G*G), proj = new Float32Array(G*G);
+  for(let i=0;i<G*G;i++){ pat[i] = r.normal(); proj[i] = r.normal()/G; }
+  let dot = {x:.5, y:.5, th: 1}, histX = [], histN = [], stats = null;
+  function stepDot(d, sp, rr){
+    d.th += .35*rr.normal();
+    d.x += sp*Math.cos(d.th); d.y += sp*Math.sin(d.th);
+    if(d.x<.06){ d.x=.12-d.x; d.th=Math.PI-d.th; } if(d.x>.94){ d.x=1.88-d.x; d.th=Math.PI-d.th; }
+    if(d.y<.06){ d.y=.12-d.y; d.th=-d.th; } if(d.y>.94){ d.y=1.88-d.y; d.th=-d.th; }
+  }
+  // normalized one-step prediction error with the best linear predictor: 1 - rho1^2
+  function nerr(s){
+    const n = s.length; let m=0; for(const v of s) m+=v; m/=n;
+    let v0=0, c1=0; for(let i=0;i<n;i++){ const d=s[i]-m; v0+=d*d; if(i<n-1) c1+=d*(s[i+1]-m); }
+    const rho = (c1/(n-1))/(v0/n); return Math.max(1e-6, 1 - rho*rho);
+  }
+  function computeStats(){
+    const rr = A.rng(2024), T = 20000, a = 1-drift, b = Math.sqrt(1-a*a);
+    const xs = new Float64Array(T), ys = new Float64Array(T), ns = new Float64Array(T), fs = new Float64Array(T);
+    const d = {x:.5,y:.5,th:.3}; let nz = rr.normal();
+    for(let t=0;t<T;t++){ stepDot(d, speed, rr); nz = a*nz + b*rr.normal(); xs[t]=d.x; ys[t]=d.y; ns[t]=nz; fs[t]=rr.normal(); }
+    stats = [["dot x", nerr(xs), "dot"],["dot y", nerr(ys), "dot"],["noise texture", nerr(ns), "noise"],["pixel flicker", nerr(fs), "flick"]];
+    let best = 0; stats.forEach((s,i)=>{ if(s[1]<stats[best][1]) best=i; });
+    stats.best = best;
+    $("t-win").textContent = stats[best][0];
+    $("t-ex").textContent = stats[0][1].toExponential(1);
+    $("t-en").textContent = stats[2][1].toExponential(1);
+    $("t-probe").textContent = stats[best][2]==="dot" ? "yes" : "no (R² ≈ 0)";
+  }
+  const view = A.canvas(cv, w => w<560 ? 1.2 : .5, draw);
+  function draw(){
+    if(!stats) return;
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const narrow = w < 560;
+    const ws = narrow ? Math.min(w*.5, h*.42) : Math.min(h-24, w*.4);
+    const cell = ws/G, ox = 0, oy = 18;
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.textAlign = "start"; ctx.fillText("The world (one frame)", ox, 12);
+    // texture: shades of the ink colour via alpha
+    for(let y=0;y<G;y++) for(let x=0;x<G;x++){
+      const v = pat[y*G+x]*.55 + (Math.random()-.5)*.5;
+      ctx.fillStyle = C.ink; ctx.globalAlpha = Math.max(0, Math.min(1, .28 + .16*v));
+      ctx.fillRect(ox+x*cell, oy+y*cell, cell+.4, cell+.4);
+    }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = C.why; ctx.beginPath(); ctx.arc(ox+dot.x*ws, oy+dot.y*ws, Math.max(4, cell*1.1), 0, 7); ctx.fill();
+    ctx.strokeStyle = C.lineStrong; ctx.lineWidth = 1; ctx.strokeRect(ox, oy, ws, ws);
+    // traces
+    const tx = narrow ? ws + 14 : ws + 28, ty = narrow ? oy : oy + ws*.56, tw = narrow ? w - tx : w - tx, th = narrow ? ws : ws*.44;
+    const half = (th-14)/2;
+    const trace = (arr, y0, col, label, mu, sd) => {
+      ctx.fillStyle = C.muted; ctx.font = `10.5px ${C.ui}`; ctx.fillText(label, tx, y0+9);
+      const H = half-14, mid = y0+12+H/2;
+      ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(tx, mid); ctx.lineTo(tx+tw, mid); ctx.stroke();
+      ctx.strokeStyle = col; ctx.lineWidth = 1.6; ctx.beginPath();
+      arr.forEach((v,i)=>{ const z = Math.max(-2.2, Math.min(2.2, (v-mu)/sd)); const X = tx + i/199*tw, Y = mid - z/2.2*H/2; i ? ctx.lineTo(X,Y) : ctx.moveTo(X,Y); });
+      ctx.stroke();
+    };
+    trace(histX, ty, C.why, "dot x, last 200 frames", .5, .27);
+    trace(histN, ty+half+4, C.p2, "noise feature, same scale", 0, 1);
+    // bars
+    const bx = narrow ? 0 : ws + 28, by = narrow ? oy + ws + 26 : oy + 4, bw = narrow ? w : w - bx, bh = narrow ? h - by - 4 : ws*.5;
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.fillText("Prediction error / variance (shorter = kept)", bx, by-6);
+    const lo = -5, hi = 0, lab = narrow ? 92 : 104, rowH = Math.min(34, (bh-24)/4);
+    stats.forEach((s,i)=>{
+      const y = by + 8 + i*rowH, val = Math.log10(s[1]), len = (val-lo)/(hi-lo)*(bw-lab-60);
+      ctx.fillStyle = i===stats.best ? C.why : C.ink; ctx.font = `${i===stats.best?700:500} 11.5px ${C.ui}`; ctx.fillText(s[0], bx, y+rowH*.45);
+      ctx.fillStyle = C.panel2; ctx.fillRect(bx+lab, y+2, bw-lab-60, rowH*.55);
+      ctx.fillStyle = i===stats.best ? C.why : (s[2]==="noise" ? C.p2 : s[2]==="dot" ? C.p1 : C.faint);
+      ctx.fillRect(bx+lab, y+2, Math.max(2,len), rowH*.55);
+      ctx.fillStyle = C.ink; ctx.font = `10.5px ${C.mono}`; ctx.fillText(s[1]<1e-5 ? "<1e-5" : s[1].toExponential(1), bx+lab+Math.max(2,len)+4, y+rowH*.45);
+    });
+    const ya = by + 8 + 4*rowH + 4;
+    ctx.fillStyle = C.faint; ctx.font = `10px ${C.mono}`;
+    ctx.fillText("1e-5", bx+lab, ya+8); ctx.textAlign = "end"; ctx.fillText("1", bx+bw-60, ya+8); ctx.textAlign = "start";
+    ctx.fillStyle = C.why; ctx.font = `700 11.5px ${C.ui}`;
+    ctx.fillText(stats[stats.best][2]==="dot" ? "Kept: the dot. The object is in the embedding." : "Kept: the noise. Trapped by a slow distractor.", bx, ya+26);
+  }
+  const lr = A.rng(77);
+  const anim = A.loop(cv, ()=>{
+    stepDot(dot, speed, lr);
+    const a = 1-drift, b = Math.sqrt(1-a*a);
+    let f = 0; for(let i=0;i<G*G;i++){ pat[i] = a*pat[i] + b*lr.normal(); f += pat[i]*proj[i]; }
+    histX.push(dot.x); histN.push(f); if(histX.length>200){ histX.shift(); histN.shift(); }
+    view.redraw();
+  });
+  // prefill traces
+  (function(){ for(let k=0;k<200;k++){ stepDot(dot, speed, lr); const a=1-drift, b=Math.sqrt(1-a*a); let f=0; for(let i=0;i<G*G;i++){ pat[i]=a*pat[i]+b*lr.normal(); f+=pat[i]*proj[i]; } histX.push(dot.x); histN.push(f); } })();
+  let pend = 0; const upd = ()=>{ cancelAnimationFrame(pend); pend = requestAnimationFrame(()=>{ computeStats(); view.redraw(); }); };
+  A.slider("t-noise", v=>{ drift = Math.pow(10,v); if(stats) upd(); }, v=>(Math.pow(10,v)*100).toPrecision(2)+"%");
+  A.slider("t-speed", v=>{ speed = v; if(stats) upd(); }, v=>v.toFixed(3));
+  computeStats(); view.redraw();
+  const pb = $("t-play");
+  const setPlay = on => { playing = on; pb.textContent = on ? "Pause" : "Play"; on ? anim.start() : anim.stop(); };
+  pb.onclick = ()=>setPlay(!playing);
+  $("t-fix").onclick = ()=>{ const el = $("t-noise"); el.value = -1; el.dispatchEvent(new Event("input")); };
+  setPlay(playing);
+})();
+
+/* =================== LAB: scale spread and quantization =================== */
+(function(){
+  const D = 16, N = 2048, cv = $("cv-spread");
+  let L = 4, rmin = .4, bits = 4;
+  const r = A.rng(5), G = new Float32Array(N*D); for(let i=0;i<N*D;i++) G[i] = r.normal();
+  function analyse(sc){
+    // per-tensor symmetric round-to-nearest
+    let mx = 0; for(let n=0;n<N;n++) for(let d=0;d<D;d++){ const v = Math.abs(G[n*D+d]*sc[d]); if(v>mx) mx=v; }
+    const qm = Math.pow(2,bits-1)-1, s = mx/qm;
+    const rel = sc.map((sd,d)=>{ let e=0; for(let n=0;n<N;n++){ const v = G[n*D+d]*sd, q = Math.max(-qm,Math.min(qm,Math.round(v/s)))*s; e += (v-q)*(v-q); } return e/N/(sd*sd); });
+    return {step:s, rel, lost: rel.filter(x=>x>=.5).length};
+  }
+  const view = A.canvas(cv, w => w<560 ? .95 : .5, draw);
+  let res = null;
+  function compute(){
+    const rho = [...Array(D)].map((_,i)=> .95 - (.95-rmin)*i/(D-1));
+    const sets = [
+      ["MAE", rho.map(p=>Math.pow(p, L/(L+1))), "muted"],
+      ["JEPA", rho.map(p=>Math.pow(p, L)), "why"],
+      ["isotropic", rho.map(()=>1), "p4"],
+    ];
+    res = sets.map(([n,sc,col])=>({n, sc, col, ...analyse(sc)}));
+    const sp = s => (Math.max(...s)/Math.min(...s));
+    $("q-sj").textContent = sp(res[1].sc).toFixed(1)+"×";
+    $("q-sm").textContent = sp(res[0].sc).toFixed(2)+"×";
+    $("q-lj").textContent = `${res[1].lost} / ${D}`;
+    $("q-lm").textContent = `${res[0].lost} / ${D}`;
+    $("q-li").textContent = `${res[2].lost} / ${D}`;
+  }
+  function draw(){
+    if(!res) return;
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const ox = 42, oy = 26, pw = w-ox-6, ph = h-oy-36;
+    // log axis from min to 2
+    let mn = Infinity; res.forEach(s=>s.sc.forEach(v=>mn=Math.min(mn,v))); res.forEach(s=>mn=Math.min(mn, s.step/2));
+    const lo = Math.floor(Math.log10(mn))-.2, hi = Math.log10(1.5);
+    const Y = v => oy + ph - (Math.log10(v)-lo)/(hi-lo)*ph;
+    ctx.fillStyle = C.muted; ctx.font = `600 12px ${C.ui}`; ctx.textAlign="start";
+    ctx.fillText(`Channel scale at the fixed point (log), INT${bits} per tensor`, 0, 13);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.font = `10px ${C.mono}`; ctx.textAlign = "end";
+    for(let e=Math.ceil(lo); e<=0; e++){ const y = Y(Math.pow(10,e)); ctx.beginPath(); ctx.moveTo(ox,y); ctx.lineTo(ox+pw,y); ctx.stroke(); ctx.fillStyle = C.faint; ctx.fillText(e===0?"1":"1e"+e, ox-4, y+3); }
+    const gw = pw/3, bw = (gw-18)/D;
+    res.forEach((s,g)=>{
+      const gx = ox + g*gw + 9, col = C[s.col], half = s.step/2;
+      // quantization dead band
+      const yb = Y(half);
+      ctx.fillStyle = C.panel2; ctx.fillRect(gx-4, yb, gw-10, oy+ph-yb); A.hatch(ctx, gx-4, yb, gw-10, oy+ph-yb, C.hatch, 5);
+      ctx.strokeStyle = C.bad; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(gx-4, yb); ctx.lineTo(gx+gw-14, yb); ctx.stroke();
+      s.sc.forEach((v,d)=>{
+        const x = gx + d*bw, y = Y(v);
+        ctx.fillStyle = col; ctx.globalAlpha = s.rel[d] >= .5 ? .35 : 1;
+        ctx.fillRect(x+1, y, Math.max(1,bw-2), oy+ph-y); ctx.globalAlpha = 1;
+      });
+      ctx.fillStyle = col; ctx.font = `700 12px ${C.ui}`; ctx.textAlign = "center";
+      ctx.fillText(s.n, gx+gw/2-9, oy+ph+15);
+      ctx.fillStyle = s.lost ? C.bad : C.muted; ctx.font = `10.5px ${C.mono}`;
+      ctx.fillText(`${s.lost} lost`, gx+gw/2-9, oy+ph+29);
+    });
+    ctx.textAlign = "start";
+  }
+  let pend = 0; const upd = ()=>{ cancelAnimationFrame(pend); pend = requestAnimationFrame(()=>{ compute(); view.redraw(); }); };
+  A.slider("q-L", v=>{ L=v; upd(); }, v=>v);
+  A.slider("q-rmin", v=>{ rmin=v; upd(); }, v=>v.toFixed(2));
+  A.slider("q-b", v=>{ bits=v; upd(); }, v=>"INT"+v);
+  compute(); view.redraw();
+})();
+
+/* =================== QUIZ =================== */
+A.quiz("quiz", [
+  {q:"Two features: A has twice the covariance of B, but B is far less noisy. Which one does a masked autoencoder learn first, at any depth?",
+   options:["B, because it is cleaner","A, because MAE's growth speed is set by covariance λ","Both at once","It depends only on the learning rate"],
+   answer:1, why:"In the MAE equation the start-up term is λ·w^(2−1/L), so the louder feature grows faster at every depth. In the notebook, the MAE time ratio stays near 0.5 for depths 1 to 8."},
+  {q:"Why does adding depth make a JEPA prefer predictable features more strongly?",
+   options:["Deeper networks have more parameters to memorize noise","The growth term's power of w rises with depth, so features start slower and the ρ-dependent brake shapes the race for longer","Depth adds an explicit noise penalty to the loss","Depth changes the data's covariance"],
+   answer:1, why:"The JEPA growth term is λ·w^(3−1/L). Self-distillation through the same encoder adds an extra factor of w, and the paper shows the ρ-preference grows with L. The effect is gradual: in the notebook it overturned a 2× covariance gap only at depth 5 to 7."},
+  {q:"At the JEPA fixed point, a feature with regression coefficient ρ = 0.5 in a depth-4 encoder has size about…",
+   options:["0.5","0.84 (0.5 to the 4/5)","0.0625 (0.5 to the 4th)","0, it is removed"],
+   answer:2, why:"w∞ = ρ^L = 0.5^4 = 0.0625 for JEPA. MAE would keep it at 0.5^(4/5) ≈ 0.57. Noise is turned down exponentially with depth, not deleted."},
+  {q:"In the moving-dots lab, why does the objective keep the slowly drifting noise texture instead of the dot?",
+   options:["The texture has more pixels","Its one-step prediction error relative to its variance is smaller than the dot's, and that is exactly what a JEPA with a variance constraint ranks by","The dot is invisible to the encoder","The predictor is too small to represent the dot"],
+   answer:1, why:"A slowly changing pattern is almost perfectly predictable from the previous frame. Predictability, not meaning, is what the bias rewards. That is the slow-feature trap Sobal et al. found."},
+  {q:"Why do time-series JEPAs end up clustering data into regimes, per the Koopman analysis?",
+   options:["They are trained with regime labels","Regime indicators are near-invariant (Koopman eigenfunctions near 1), so they are the most predictable functions, and a near-identity predictor selects them","Clustering is added as a post-processing step","Because the encoder is a k-means layer"],
+   answer:1, why:"Under an idealized loss, optimal encoders span regime indicator functions, and a near-identity linear predictor picks that interpretable solution among entangled optima (abstract-level claim)."},
+  {q:"Why does the implicit bias make a deep JEPA's embedding harder to quantize to 4 bits?",
+   options:["JEPA embeddings are larger in dimension","Channel scales spread like (ρmax/ρmin)^L, and a single per-tensor step size rounds the small channels to zero","Quantization only works for MAE","Stop-gradient prevents quantization"],
+   answer:1, why:"The fixed points ρ^L differ exponentially across channels. Per-tensor quantization sets one step from the largest values, so the small channels fall below half a step. An isotropic embedding (SIGReg's target) has no such spread."},
+]);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>The Why Atlas</title>
+<link rel="stylesheet" href="assets/fonts.css">
+<style>body{margin:0}</style>
+</head>
+<body>
+<nav class="rs-strip" aria-label="Research pages">
+<style>.rs-strip{display:flex;flex-wrap:wrap;gap:.4rem 1.1rem;align-items:center;padding:.55rem 1rem;font:13px/1.3 "JetBrains Mono",ui-monospace,monospace;border-bottom:1px solid color-mix(in srgb,currentColor 18%,transparent)}.rs-strip a{color:inherit;opacity:.75;text-decoration:none}.rs-strip a:hover,.rs-strip a[aria-current]{opacity:1;text-decoration:underline}</style>
+<a href="../index.html">← ML course</a><a href="index.html">Hidden Patch</a><a href="why-atlas.html" aria-current="page">Why Atlas</a><a href="jepa-field-map.html">JEPA field map</a>
+</nav>
+<style>
+/* Layout: a research atlas. Question ring + connection graph on top, then readable sections (questions, threads, fault lines, experiments). */
+:root{
+  --bg:#f3f5f4; --surface:#ffffff; --fg:#16201c; --muted:#5a6863; --line:#d5dcd9;
+  --accent:#0d6a5a; --accent-soft:#d8ece7; --q:#a8661a; --q-soft:#f6e7d2; --dim:0.14;
+  --person:#0d6a5a; --work:#3a4f8c; --work-soft:#e1e6f4;
+  --display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1513; --surface:#161e1b; --fg:#e4ebe8; --muted:#97a6a0; --line:#2a3632;
+    --accent:#4cc9ad; --accent-soft:#183a33; --q:#e3a552; --q-soft:#3a2b17; --dim:0.18;
+    --person:#4cc9ad; --work:#93a8ea; --work-soft:#212b45; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1513; --surface:#161e1b; --fg:#e4ebe8; --muted:#97a6a0; --line:#2a3632;
+  --accent:#4cc9ad; --accent-soft:#183a33; --q:#e3a552; --q-soft:#3a2b17; --dim:0.18;
+  --person:#4cc9ad; --work:#93a8ea; --work-soft:#212b45; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55;padding-inline:16px;padding-block:28px 64px}
+.wrap{max-width:1320px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(30px,5vw,48px);font-weight:700;letter-spacing:-0.01em}
+h2{font-size:clamp(22px,3vw,28px);font-weight:700}
+h3{font-size:18px;font-weight:700}
+p{margin:0}
+a{color:var(--accent);text-underline-offset:2px}
+a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted)}
+.lede{max-width:68ch;color:var(--fg);font-size:17px}
+.muted{color:var(--muted)}
+header{display:flex;flex-direction:column;gap:14px}
+.sources{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);font-size:12.5px}
+/* atlas */
+.atlas{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start}
+@media (max-width:900px){.atlas{grid-template-columns:minmax(0,1fr)}}
+.graphbox{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;min-width:0}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.toolbar .lbl{font-family:var(--mono);font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-right:4px}
+.chip{font-family:var(--mono);font-size:12px;border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:999px;padding:4px 10px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.chip:hover{border-color:var(--accent)}
+#search{font-family:var(--mono);font-size:12.5px;padding:5px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);min-width:0;width:180px}
+.svgscroll{overflow-x:auto}
+svg#g{display:block;width:100%;min-width:720px;height:auto}
+.edge{stroke:var(--line);stroke-width:0.9}
+.edge.hot{stroke:var(--accent);stroke-width:1.6}
+.node{cursor:pointer}
+.node text{font-family:var(--mono);font-size:12px;fill:var(--fg)}
+.node.q rect{fill:var(--q-soft);stroke:var(--q);stroke-width:1.4}
+.node.q text{font-family:var(--display);font-size:14px;font-weight:700;fill:var(--fg)}
+.node.p circle{fill:var(--person)}
+.node.w rect{fill:var(--work)}
+.dimmed{opacity:var(--dim)}
+.node.sel text{font-weight:600}
+.node.sel.p circle,.node.sel.w rect{stroke:var(--fg);stroke-width:2}
+.node.sel.q rect{stroke-width:2.6}
+.legend{display:flex;flex-wrap:wrap;gap:14px;padding:10px 14px;border-top:1px solid var(--line);font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:10px;height:10px;display:inline-block}
+.sw.p{border-radius:50%;background:var(--person)}.sw.w{background:var(--work)}.sw.q{background:var(--q-soft);border:1.4px solid var(--q);border-radius:3px;width:14px}
+/* panel */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:12px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);min-width:0}
+@media (max-width:900px){.panel{position:static}}
+.panel .kind{font-family:var(--mono);font-size:11.5px;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted)}
+.panel h3{font-size:21px}
+.panel .meta{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.panel .qchips{display:flex;flex-wrap:wrap;gap:6px}
+.qchip{font-family:var(--mono);font-size:11.5px;background:var(--q-soft);color:var(--fg);border:1px solid var(--q);border-radius:4px;padding:2px 7px;cursor:pointer}
+.panel dl{margin:0;display:grid;gap:8px}
+.panel dt{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted)}
+.panel dd{margin:0;font-size:15px}
+.mlst{font-family:var(--mono);font-size:12px;background:var(--accent-soft);border-radius:4px;padding:4px 8px;align-self:flex-start}
+/* sections */
+section{display:flex;flex-direction:column;gap:16px}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:12px}
+details.qcard{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;min-width:0}
+details.qcard[open]{border-color:var(--q)}
+details.qcard summary{cursor:pointer;list-style:none;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline}
+details.qcard summary::-webkit-details-marker{display:none}
+.qnum{font-family:var(--mono);font-size:12px;color:var(--q);font-weight:600}
+.qtitle{font-family:var(--display);font-weight:700;font-size:17px;line-height:1.25}
+.qshort{grid-column:2;color:var(--muted);font-size:14.5px}
+.qbody{display:grid;gap:10px;margin-top:12px;font-size:15px}
+.qbody b{font-family:var(--mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);display:block;margin-bottom:2px}
+.qbody ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.showbtn{justify-self:start;font-family:var(--mono);font-size:12px;background:transparent;border:1px solid var(--q);color:var(--fg);border-radius:4px;padding:4px 10px;cursor:pointer}
+.threads{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));gap:12px}
+.thread{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.thread .tq{font-family:var(--mono);font-size:11.5px;color:var(--q)}
+.thread p{font-size:15px}
+.thread .ask{font-style:italic;color:var(--muted)}
+.tablebox{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{font-family:var(--mono);font-size:11.5px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600}
+tr:last-child td{border-bottom:none}
+ol.exps{margin:0;padding-left:22px;display:grid;gap:12px;max-width:80ch}
+ol.exps li::marker{font-family:var(--mono);color:var(--accent);font-weight:600}
+ol.exps .tag{font-family:var(--mono);font-size:11.5px;color:var(--q)}
+.oneline{font-family:var(--display);font-size:clamp(18px,2.4vw,22px);font-weight:500;line-height:1.35;max-width:62ch;border-left:3px solid var(--q);padding-left:16px}
+footer{font-size:14px;color:var(--muted);max-width:80ch;display:grid;gap:6px}
+@media (prefers-reduced-motion:no-preference){.node circle,.node rect,.edge{transition:opacity .2s}}
+</style>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">JEPA explorations · AI research as of 10 October 2026</span>
+  <h1>The Why Atlas</h1>
+  <p class="lede">What is going on in AI research, organized around the questions it is trying to answer. Start from Akarsh Kumar's Fractured Entangled Representation hypothesis, follow the threads through Machine Learning Street Talk guests, DeepMind and the wider 2025–26 frontier. Click any question, person or work to see how it connects.</p>
+  <div class="sources">
+    <span class="muted">Full write-up and sources in the project folder:</span>
+    <span>landscape/ai-landscape-why.md</span>
+    <span>landscape/sources/ (5 dossiers, about 330 works)</span>
+  </div>
+</header>
+
+<p class="oneline">The common current: what a system learns depends on how it learned it, and matching outputs says little about the quality of the inside.</p>
+
+<section aria-labelledby="atlas-h">
+  <h2 id="atlas-h">Connection map</h2>
+  <div class="atlas">
+    <div class="graphbox">
+      <div class="toolbar" role="group" aria-label="Highlight a thread">
+        <span class="lbl">Thread</span>
+        <span id="threadchips" style="display:contents"></span>
+        <input id="search" type="search" placeholder="Find a name or paper" aria-label="Find a name or paper">
+      </div>
+      <div class="svgscroll"><svg id="g" viewBox="0 0 1180 980" role="img" aria-label="Graph linking 14 why-questions to the people and works that answer them"></svg></div>
+      <div class="legend">
+        <span><i class="sw q"></i>why-question</span>
+        <span><i class="sw p"></i>person or team</span>
+        <span><i class="sw w"></i>paper, system or result</span>
+        <span>Lines link each node to the questions it helps answer.</span>
+      </div>
+    </div>
+    <aside class="panel" id="panel" aria-live="polite"></aside>
+  </div>
+</section>
+
+<section aria-labelledby="q-h">
+  <h2 id="q-h">Fourteen why-questions</h2>
+  <p class="muted" style="max-width:70ch">Each card gives where the evidence stands, what is still open, what it makes possible in practice, and how it touches this project.</p>
+  <div class="qgrid" id="qgrid"></div>
+</section>
+
+<section aria-labelledby="t-h">
+  <h2 id="t-h">Seven threads that tie it together</h2>
+  <div class="threads" id="threads"></div>
+</section>
+
+<section aria-labelledby="f-h">
+  <h2 id="f-h">Fault lines</h2>
+  <div class="tablebox">
+    <table>
+      <thead><tr><th>Debate</th><th>One side</th><th>Other side</th><th>What would settle it</th></tr></thead>
+      <tbody id="faults"></tbody>
+    </table>
+  </div>
+</section>
+
+<section aria-labelledby="e-h">
+  <h2 id="e-h">Experiments this suggests for the project</h2>
+  <p class="muted" style="max-width:70ch">All sized for an M5 laptop with 16 GB. Ranked by how directly they test a "why".</p>
+  <ol class="exps" id="exps"></ol>
+</section>
+
+<footer>
+  <p>Built 2026-10-10 from five research dossiers. Most facts were read from the paper, abstract or official post that day; items seen only in search results are marked as such in the dossiers. MLST dates are podcast-feed dates.</p>
+  <p>Not found as MLST guests in searches: Hinton, Chris Olah, David Ha, Ramin Hasani, Albert Gu, Daniel Murfet, Thomas Parr, Richard Sutton.</p>
+</footer>
+</div>
+
+<script>
+const Q = [
+ {id:"Q1",s:"Why generalize?",t:"Why do neural networks generalize at all?",short:"More parameters than examples, yet they don't just memorize.",
+  ev:"Soft inductive bias plus classical bounds explains in-distribution generalization well (Wilson). Splines (Balestriero), compression (Yi Ma) and grokking give partial mechanisms. No theory predicts practice well enough to guide it.",
+  open:"Does a simplicity bias favour unified insides (UFR) or just small ones? FER suggests these differ.",
+  prac:"Generalization bounds that tighten with scale; spline local-complexity as a cheap grokking diagnostic.",
+  proj:"Notebooks 01 (drive vs decay) and 02 (implicit bias) sit here. Weight decay removes weak directions; does it also defragment?"},
+ {id:"Q2",s:"Why converge?",t:"Why do different models end up with similar representations, and is the inside any good?",short:"Agreement outside, possible disagreement inside.",
+  ev:"Models agree on the topology of the world (which things are related) much more than on its geometry. 2026 critiques narrow the Platonic hypothesis to local, relational convergence. FER says identical outputs can hide fractured insides; Shai et al. show SGD can factor on synthetic data.",
+  open:"Is convergence about the world, the shared data, or the metric? There is no scalable measure of internal organization.",
+  prac:"Embedding translation without pairs (vec2vec), unpaired multimodal transfer, evolution-style search around pretrained weights.",
+  proj:"Compare SIGReg, VICReg and EMA encoders with calibrated mutual-kNN (outside) and FER weight sweeps (inside)."},
+ {id:"Q3",s:"Why latent prediction?",t:"Why predict in a latent space instead of pixels or tokens?",short:"JEPA's central bet, against generative world models.",
+  ev:"Latent prediction leads on planning speed (LeWM plans 48x faster than DINO-WM), robustness and data efficiency. Pixel generation leads on interactivity and products (Genie 3, Veo). DeepMind's representation bet is pixel MAE (4DS); Meta's and AMI's is JEPA.",
+  open:"Which wins for control? Are latent-predictive insides better organized or only smaller? How do you check a model nobody can look at?",
+  prac:"Millisecond planning on small devices, latent-surprise anomaly detection, event-triggered decoding.",
+  proj:"The project's home question. The quantization experiment tests whether SIGReg's isotropy also buys edge robustness."},
+ {id:"Q4",s:"Why does order matter?",t:"Why does the order of learning shape what is learned?",short:"Same final skill, different path, different inside.",
+  ev:"Stepping stones (Picbreeder), NCA pre-pre-training beating 10x more real text, procedural knowledge driving LLM reasoning, in-context vs fine-tuning generalizing differently, RL forgetting less than SFT.",
+  open:"No principled way yet to choose what a network should learn first at scale.",
+  prac:"Cheap synthetic pre-pre-training data; capability-preserving fine-tuning.",
+  proj:"JEPA masking is a curriculum. Notebook 01 already gives the order directions are learned in for linear JEPA."},
+ {id:"Q5",s:"Why do objectives deceive?",t:"Why do objectives deceive, and why does open-ended search find what optimization misses?",short:"Stepping stones rarely look like progress.",
+  ev:"Open-ended methods win on deceptive problems and on diversity; objective training wins with dense signals. AI-driven open-endedness still trails humans and suffers mode collapse (AI Picbreeder).",
+  open:"No accepted metric of open-endedness; no known way to combine open-ended search with SGD at scale.",
+  prac:"Diverse solution sets for test-time search (VPO), automatic curricula and environments, quality-diversity red-teaming.",
+  proj:"A JEPA as ASAL's judge measures predictability, matching the 'learnable to an observer' half of open-endedness."},
+ {id:"Q6",s:"Why search + verifier?",t:"Why does search plus learning plus a verifier keep winning?",short:"The verifier turns compute into reliable progress.",
+  ev:"AlphaEvolve, Aletheia, DiscoRL, Darwin and Huxley Gödel Machines, AI Scientist in Nature, RLVR for reasoning. Lanyon pushes the verifier into the generator: code and proof compiled from one spec. Disputed: does RL create reasoning or surface what pretraining put there?",
+  open:"What plays the verifier where no checker exists: synthesis, taste, which question to ask?",
+  prac:"Anything with a cheap trustworthy score is searchable on a laptop with OpenEvolve or ShinkaEvolve.",
+  proj:"Evolve the anti-collapse regularizer, scored by linear probe plus INT4 robustness."},
+ {id:"Q7",s:"Why skill ≠ intelligence?",t:"Why is skill not the same as intelligence?",short:"Chollet: intelligence is skill-acquisition efficiency.",
+  ev:"On ARC, abstraction came from per-task adaptation: test-time training, program search, refinement loops. Tiny recursive models (TRM, 7M; CompressARC, 76K) compete. ARC-AGI-3 (interactive) had frontier models under 1% at launch.",
+  open:"Will harnesses around open models keep climbing ARC-AGI-3, or does in-world learning need new architectures? Final results 2026-12-04.",
+  prac:"Small adaptive models instead of giant frozen ones.",
+  proj:"A small action-conditioned JEPA world model on ARC-AGI-3 games; winners so far used code world models."},
+ {id:"Q8",s:"Why world models?",t:"Why do agents need world models, and which kind?",short:"Richens et al.: general agents must contain one.",
+  ev:"Six kinds compete: latent predictive (JEPA), latent with decoder (Dreamer), video generators (Genie), explicit 3D (Marble), code world models, active inference. SIMA 2 learns inside Genie 3 worlds.",
+  open:"Gemini Robotics 2 is still a VLA, not a world-model controller. Latent planning is fragile on some tasks.",
+  prac:"Robot training with little real data, driving validation, on-device planning.",
+  proj:"The JEPA generalization theory links pretraining error to planning regret; build idea #3 tests it."},
+ {id:"Q9",s:"Why can't models keep learning?",t:"Why can't models keep learning after training?",short:"Plasticity loss and catastrophic forgetting.",
+  ev:"Memory as architecture (Titans, Nested Learning/HOPE), long context as learning (TTT-E2E), sparse memory finetuning, RL's Razor, test-time curricula. DeepMind names continual learning the next frontier.",
+  open:"No deployed frontier model learns persistently without forgetting or safety regressions. FER predicts fractured insides make it worse.",
+  prac:"Personal on-device adaptation; agents that improve over a career.",
+  proj:"An on-device JEPA that keeps adapting is an open edge gap."},
+ {id:"Q10",s:"Why transformers fail?",t:"Why do transformers fail at counting and copying, and is architecture still a lever?",short:"Over-squashing, softmax dispersion, the hardware lottery.",
+  ev:"Structural limits are proven (Barbero, Veličković). Hybrids of linear and full attention went mainstream; recurrence (xLSTM, CTM) and diffusion LMs returned; MiniMax stays with full attention.",
+  open:"Do hybrids hold up on long agentic tasks? Do diffusion LMs reach the frontier?",
+  prac:"Constant-memory and parallel decoding for the edge.",
+  proj:"Low precision worsens representational collapse, which matters for the quantization experiment."},
+ {id:"Q11",s:"Why readable inside?",t:"Why can we read anything inside a network at all?",short:"Superposition, then mechanisms.",
+  ev:"SAEs lost their default status (DeepMind 2025 negative results). Attribution graphs, feature manifolds, introspection tests, emotion vectors and weight-sparse circuits took over.",
+  open:"Do Anthropic-model findings replicate elsewhere? Does interpretability-guided training work under independent tests?",
+  prac:"Steering, training-data screening, biomarker discovery claims.",
+  proj:"SAEs on I-JEPA features, paired with linear probes and FER weight sweeps."},
+ {id:"Q12",s:"Why life from rules?",t:"Why does life-like complexity emerge from simple rules?",short:"Replication, creatures and repair from local rules.",
+  ev:"Self-replicators emerge from random interacting programs (BFF). Flow-Lenia lets species coexist and evolve. NCAs grow, repair, replicate and solve some ARC tasks. Levin: cognition is a continuum.",
+  open:"Can any substrate produce unbounded novelty? No accepted measure.",
+  prac:"NCA dynamics as pretraining data, tiny robust controllers, hardware-friendly logic CAs.",
+  proj:"JEPA judge for ASAL; predictive NCA with a latent objective."},
+ {id:"Q13",s:"Why prediction (enough?)",t:"Why might intelligence be prediction, and why might prediction not be enough?",short:"Necessary, probably not sufficient.",
+  ev:"Free energy principle, brain-model alignment in time (Raugel et al.), Agüera y Arcas. Against: prediction is not control (Mattick), creativity is not optimization (Hughes), agency is the risk (Bengio).",
+  open:"What must be added: action, goals, judgement, structure, or deliberately nothing?",
+  prac:"Non-agentic 'Scientist AI' as a guardrail; brain encoding with scaling laws.",
+  proj:"Active inference vs JEPA on one toy environment, theory first."},
+ {id:"Q14",s:"Why small catches up?",t:"Why does small and efficient keep catching up?",short:"Compute on the problem beats compute on memorizing.",
+  ev:"TRM, CompressARC, LeWM (15M), ThetaEvolve (8B), a local 27B model winning an ARC-AGI-3 milestone, Gemma 4 edge models, BitNet, M5 neural accelerators.",
+  open:"Does it hold beyond puzzles and toy control?",
+  prac:"Serious research and deployment on laptops and phones.",
+  proj:"Most 2025–26 'small beats big' results are M5-sized."}
+];
+
+// type: p person/team, w work. q: question ids. m: MLST line.
+const N = [
+ {id:"kumar",l:"Akarsh Kumar",k:"p",y:"MIT / Sakana",q:["Q2","Q4","Q5","Q12"],m:"MLST 2025-07-06 (FER, with Stanley) and 2026-10-10 (evolution)",n:"The path of learning decides the quality of the inside. Papers: GESMR, synthetic MDPs, ASAL, FER, Digital Red Queen, NCA pre-pre-training, AI Picbreeder, VPO, SMT.",u:"https://akarshkumar.com"},
+ {id:"fer",l:"FER hypothesis",k:"w",y:"2025",q:["Q2","Q4","Q9","Q11"],n:"A human-evolved Picbreeder skull and an SGD-trained net give the same image. Inside, Picbreeder reuses symmetry learned early; SGD is an entangled patchwork. Claimed costs: generalization, creativity, continual learning.",u:"https://arxiv.org/abs/2505.11581"},
+ {id:"stanley",l:"Kenneth Stanley",k:"p",y:"Lila Sciences",q:["Q5","Q4"],m:"MLST 2025-07-06",n:"Objectives deceive; greatness comes from collecting stepping stones. NEAT, CPPNs, Picbreeder, novelty search, POET.",u:"https://www.lila.ai/team/kenneth-stanley"},
+ {id:"clune",l:"Jeff Clune",k:"p",y:"UBC / DeepMind",q:["Q5","Q6"],m:"MLST 2025-01-04",n:"AI-generating algorithms. OMNI, OMNI-EPIC, ADAS, Darwin Gödel Machine, Hyperagents, AI Scientist.",u:"https://jeffclune.com"},
+ {id:"isola",l:"Phillip Isola",k:"p",y:"MIT",q:["Q2","Q4"],n:"Platonic Representation Hypothesis; learning from noise; Neural Thickets; SMT with Kumar.",u:"https://arxiv.org/abs/2405.07987"},
+ {id:"prh",l:"Platonic Representation Hyp.",k:"w",y:"2024",q:["Q2"],n:"Representations across models and modalities converge toward a shared statistical model of reality.",u:"https://arxiv.org/abs/2405.07987"},
+ {id:"prhc",l:"PRH critiques 2026",k:"w",y:"2026",q:["Q2"],n:"Aristotelian view (EPFL), Back into Plato's Cave (Efros group), Structure over Geometry: convergence is local and relational, not metric.",u:"https://arxiv.org/abs/2609.27252"},
+ {id:"shai",l:"Factored representations",k:"w",y:"2026",q:["Q2","Q11"],n:"Shai et al.: transformers put independent world factors in orthogonal subspaces. Explicitly a reason for representational optimism.",u:"https://arxiv.org/abs/2602.02385"},
+ {id:"thickets",l:"Neural Thickets",k:"w",y:"2026",q:["Q2","Q5"],n:"Random perturbations of large pretrained models are often task experts; sample-and-vote competes with GRPO.",u:"https://arxiv.org/abs/2603.12228"},
+ {id:"asal",l:"ASAL",k:"w",y:"2024",q:["Q5","Q12"],n:"Foundation models (CLIP) search artificial-life simulators for target, novel and diverse behaviour. Best Oral, ALIFE 2025.",u:"https://arxiv.org/abs/2412.17799"},
+ {id:"drq",l:"Digital Red Queen",k:"w",y:"2026",q:["Q5","Q6"],n:"LLM-driven arms races in Core War. Behaviour converges across 96 runs while code stays diverse.",u:"https://arxiv.org/abs/2601.03335"},
+ {id:"ncap",l:"NCA pre-pre-training",k:"w",y:"2026",q:["Q4","Q12"],n:"164M tokens of cellular-automaton dynamics before language beat 1.6B tokens of real text as a warm-up.",u:"https://arxiv.org/abs/2603.10055"},
+ {id:"vpo",l:"Vector Policy Opt.",k:"w",y:"2026",q:["Q5","Q6"],n:"Quality-diversity inside GRPO: better best-of-k, small pass@1 cost.",u:"https://arxiv.org/abs/2605.22817"},
+ {id:"smt",l:"SMT (RNNs w/o BPTT)",k:"w",y:"2026",q:["Q9","Q10"],n:"Learn what to remember in parallel, how to update recurrently. Length-generalizes where its transformer teacher does not.",u:"https://arxiv.org/abs/2606.06479"},
+ {id:"aipb",l:"AI Picbreeder",k:"w",y:"2026",q:["Q5","Q2"],n:"VLMs replace human Picbreeder users. Humans still win; mode collapse; the VLM skull is somewhat more weight-robust than SGD's.",u:"https://arxiv.org/abs/2605.23908"},
+ {id:"knight",l:"Knightian Blindspot",k:"w",y:"2025",q:["Q5"],n:"ML formalisms exclude unknown unknowns; evolution survives them through persistence and diversification.",u:"https://arxiv.org/abs/2501.13075"},
+ {id:"chollet",l:"François Chollet",k:"p",y:"Ndea / ARC Prize",q:["Q7"],m:"MLST 2024-10-12, 2024-11-06, 2025-01-09, 2025-03-24",n:"Intelligence is skill-acquisition efficiency. ARC-AGI 1, 2 and 3.",u:"https://arxiv.org/abs/1911.01547"},
+ {id:"arc25",l:"ARC Prize 2025",k:"w",y:"2025",q:["Q7","Q6"],n:"Theme: refinement loops. NVARC 24% on ARC-AGI-2 Kaggle; Poetiq harness 54%; best bare model 37.6%.",u:"https://arxiv.org/abs/2601.10904"},
+ {id:"arc3",l:"ARC-AGI-3",k:"w",y:"2026",q:["Q7","Q8","Q9"],n:"Interactive games with no instructions. Frontier models under 1% at launch; humans 100%. Milestone 1: local 27B model writing Python world models.",u:"https://arxiv.org/abs/2603.24621"},
+ {id:"trm",l:"TRM (7M params)",k:"w",y:"2025",q:["Q7","Q14"],n:"Tiny recursive network refines a latent and an answer; beats HRM. ARC Prize 2025 paper award, 1st.",u:"https://arxiv.org/abs/2510.04871"},
+ {id:"carc",l:"CompressARC",k:"w",y:"2025",q:["Q7","Q14","Q1"],n:"76K parameters trained per puzzle at test time with a compression objective, no pretraining.",u:"https://arxiv.org/abs/2512.06104"},
+ {id:"bonnet",l:"Bonnet & Macfarlane (LPN)",k:"p",y:"",q:["Q7","Q3"],m:"MLST 2025-02-19 (Bonnet)",n:"Search a learned continuous latent space of programs by gradient at test time. JEPA-adjacent.",u:"https://arxiv.org/abs/2411.08706"},
+ {id:"ellis",l:"Kevin Ellis",k:"p",y:"Cornell",q:["Q7","Q8"],m:"MLST 2025-04-08",n:"Induction and transduction are complementary; DreamCoder; WorldCoder builds world models as code.",u:"https://arxiv.org/abs/2411.02272"},
+ {id:"mindsai",l:"Cole & Osman (MindsAI)",k:"p",y:"",q:["Q7","Q9"],m:"MLST 2024-06-18, 2025-03-22",n:"Pioneered test-time fine-tuning for ARC.",u:"https://arxiv.org/abs/2506.14276"},
+ {id:"hubotter",l:"Jonas Hübotter",k:"p",y:"ETH Zürich",q:["Q9","Q14"],m:"MLST 2024-12-01",n:"Learn locally at test time on the data that most reduces uncertainty (SIFT, test-time curricula).",u:"https://arxiv.org/abs/2410.08020"},
+ {id:"mitchell",l:"Melanie Mitchell",k:"p",y:"Santa Fe Inst.",q:["Q7"],m:"MLST 2023-09-10",n:"Abstraction and analogy are core; accuracy overstates abstraction.",u:"https://arxiv.org/abs/2510.02125"},
+ {id:"kamb",l:"Subbarao Kambhampati",k:"p",y:"Arizona State",q:["Q6","Q7"],m:"MLST 2025-01-23",n:"LLMs can't plan or self-verify; pair them with sound verifiers (LLM-Modulo).",u:"https://arxiv.org/abs/2402.01817"},
+ {id:"ruis",l:"Laura Ruis",k:"p",y:"",q:["Q4","Q7"],m:"MLST 2025-01-20",n:"Reasoning draws on procedural knowledge spread across pretraining documents.",u:"https://arxiv.org/abs/2411.12580"},
+ {id:"lampinen",l:"Andrew Lampinen",k:"p",y:"DeepMind",q:["Q4"],m:"MLST 2022-04-14",n:"In-context learning generalizes more flexibly than fine-tuning.",u:"https://arxiv.org/abs/2505.00661"},
+ {id:"summer",l:"Christopher Summerfield",k:"p",y:"Oxford / UK AISI",q:["Q7","Q13"],m:"MLST 2025-06-17",n:"LLMs learning the world from text alone is a real scientific surprise.",u:""},
+ {id:"lecun",l:"Yann LeCun",k:"p",y:"AMI Labs / NYU",q:["Q3","Q8"],m:"MLST 2022-01-04",n:"Predict in representation space; LLMs alone won't reach human-level intelligence. AMI Labs raised a $1.03B seed (2026-03).",u:"https://openreview.net/forum?id=BZ5a1r-kVsf"},
+ {id:"bal",l:"Randall Balestriero",k:"p",y:"Brown",q:["Q1","Q3"],m:"MLST 2022-01-04, 2025-02-08, 2025-04-23",n:"Networks are splines ('elastic origami'); reconstruction is uninformative; JEPA can be provable.",u:"https://arxiv.org/abs/2511.08544"},
+ {id:"recon",l:"Reconstruction is uninformative",k:"w",y:"2024",q:["Q3"],n:"Reconstruction objectives favour high-variance subspaces that are poor for perception.",u:"https://arxiv.org/abs/2402.11337"},
+ {id:"lejepa",l:"LeJEPA / SIGReg",k:"w",y:"2025",q:["Q3","Q1","Q14"],n:"Isotropic Gaussian embeddings are optimal; SIGReg enforces them with no stop-grad or EMA.",u:"https://arxiv.org/abs/2511.08544"},
+ {id:"lewm",l:"LeWorldModel",k:"w",y:"2026",q:["Q3","Q8","Q14"],n:"15M-parameter JEPA world model trained end-to-end from pixels; plans 48x faster than DINO-WM.",u:"https://arxiv.org/abs/2603.19312"},
+ {id:"vjepa2",l:"V-JEPA 2",k:"w",y:"2025",q:["Q3","Q8"],n:"Video JEPA on 1M+ hours; zero-shot robot planning after 62 hours of robot data.",u:"https://arxiv.org/abs/2506.09985"},
+ {id:"jtheory",l:"JEPA world-model theory",k:"w",y:"2026",q:["Q8","Q3"],n:"Cui et al. (Yisen Wang's group): JEPA pretraining error bounds planning regret; latent dimension trades approximation for samples.",u:"https://arxiv.org/abs/2606.27014"},
+ {id:"wyart",l:"Matthieu Wyart",k:"p",y:"JHU / EPFL",q:["Q3"],m:"MLST 2026-08-10",n:"AI learns at the wrong level of abstraction; predict latents, not tokens.",u:""},
+ {id:"beck",l:"Jeff Beck",k:"p",y:"",q:["Q3","Q13"],m:"MLST 2025-12-31, 2026-01-25",n:"VAEs are energy-based models; JEPA needs principled anti-collapse.",u:""},
+ {id:"yima",l:"Yi Ma",k:"p",y:"HKU / Berkeley",q:["Q1","Q3","Q11"],m:"MLST 2025-12-13",n:"Intelligence is parsimony plus self-consistency; transformer blocks are compression steps (CRATE).",u:"https://arxiv.org/abs/2306.01129"},
+ {id:"genie",l:"Genie 3",k:"w",y:"2025",q:["Q3","Q8"],n:"Real-time interactive world model, 720p at 24 fps, about a minute of memory. Project Genie product in 2026.",u:"https://deepmind.google/blog/genie-3-a-new-frontier-for-world-models/"},
+ {id:"veo",l:"Veo as zero-shot reasoner",k:"w",y:"2025",q:["Q3"],n:"Video models solve vision tasks zero-shot by 'chain of frames'.",u:"https://arxiv.org/abs/2509.20328"},
+ {id:"fourds",l:"4DS (MAE to 22B)",k:"w",y:"2024",q:["Q3"],n:"DeepMind's pixel-reconstruction video model keeps improving to 22B on 4D tasks; the opposite bet to JEPA.",u:"https://arxiv.org/abs/2412.15212"},
+ {id:"dreamer",l:"Dreamer 4",k:"w",y:"2025",q:["Q8","Q3"],n:"Agent trained inside a world model gets Minecraft diamonds from offline video alone.",u:"https://arxiv.org/abs/2509.24527"},
+ {id:"sima2",l:"SIMA 2",k:"w",y:"2025",q:["Q8","Q5"],n:"Genie 3 makes worlds, Gemini proposes tasks and rewards, the agent learns from its own play.",u:"https://deepmind.google/blog/sima-2-an-agent-that-plays-reasons-and-learns-with-you-in-virtual-3d-worlds/"},
+ {id:"richens",l:"Agents need world models",k:"w",y:"2025",q:["Q8"],n:"Any agent generalizing to multi-step goals with bounded regret contains an extractable world model.",u:"https://arxiv.org/abs/2506.01622"},
+ {id:"era",l:"Era of Experience",k:"w",y:"2025",q:["Q8","Q9"],n:"Silver and Sutton: agents will learn mainly from their own streams of experience.",u:"https://storage.googleapis.com/deepmind-media/Era-of-Experience%20/The%20Era%20of%20Experience%20Paper.pdf"},
+ {id:"sutton",l:"Richard Sutton",k:"p",y:"Alberta / Keen",q:["Q8","Q9"],n:"The Bitter Lesson; continual learning from experience; the Oak architecture. Not found on MLST.",u:"http://www.incompleteideas.net/IncIdeas/BitterLesson.html"},
+ {id:"schmid",l:"Jürgen Schmidhuber",k:"p",y:"KAUST / IDSIA",q:["Q6","Q8"],m:"MLST 2025-01-16",n:"RNN world models (1990), curiosity as compression progress, Gödel machines; Huxley-Gödel Machine (2025).",u:"https://arxiv.org/abs/2510.21614"},
+ {id:"friston",l:"Karl Friston",k:"p",y:"UCL / VERSES",q:["Q13","Q8"],m:"MLST 2023 to 2025-09-10 (five episodes)",n:"Anything that persists minimizes free energy; curiosity falls out of expected free energy.",u:"https://arxiv.org/abs/2407.20292"},
+ {id:"bennett",l:"Max Bennett",k:"p",y:"author",q:["Q8"],m:"MLST 2025-12-30",n:"Brains evolved simulation (a world model) long before language.",u:""},
+ {id:"rock",l:"Tim Rocktäschel",k:"p",y:"DeepMind / UCL",q:["Q5","Q8"],m:"MLST 2024-10-04",n:"Open-endedness is necessary for superhuman AI; Genie; Promptbreeder.",u:"https://arxiv.org/abs/2406.04268"},
+ {id:"oeasi",l:"Open-endedness for ASI",k:"w",y:"2024",q:["Q5"],n:"Open-endedness = novelty plus learnability, relative to an observer.",u:"https://arxiv.org/abs/2406.04268"},
+ {id:"aevolve",l:"AlphaEvolve",k:"w",y:"2025",q:["Q6"],n:"Gemini-driven evolutionary code search: new matmul, 0.7% fleet compute, TPU design, Ramsey bounds.",u:"https://arxiv.org/abs/2506.13131"},
+ {id:"aletheia",l:"Aletheia",k:"w",y:"2026",q:["Q6"],n:"Deep Think research agent solved 4 open Erdős problems; self-graded autonomy level 2 of 4.",u:"https://arxiv.org/abs/2602.10177"},
+ {id:"discorl",l:"DiscoRL",k:"w",y:"2025",q:["Q6"],n:"A meta-learned RL update rule beats hand-designed ones (Nature).",u:"https://www.nature.com/articles/s41586-025-09761-x"},
+ {id:"dgm",l:"Darwin / Huxley Gödel Machines",k:"w",y:"2025",q:["Q6","Q5"],n:"Coding agents rewrite themselves with open-ended archives. SWE-bench 20% to 50% (DGM); 61.4% verified (HGM).",u:"https://arxiv.org/abs/2505.22954"},
+ {id:"aisci",l:"AI Scientist (Nature)",k:"w",y:"2026",q:["Q6"],n:"End-to-end automated ML research in Nature; hallucinated citations and weak synthesis remain.",u:"https://arxiv.org/abs/2606.15497"},
+ {id:"sakana",l:"Lu, Lange & Lu (Sakana)",k:"p",y:"Sakana AI",q:["Q6","Q5"],m:"MLST 2025-03-01; Lange 2026-03-13",n:"LLMs as mutation operators: DiscoPOP, EvoLLM, AI Scientist, ShinkaEvolve.",u:"https://arxiv.org/abs/2509.19349"},
+ {id:"balog",l:"Balog & Novikov",k:"p",y:"DeepMind",q:["Q6"],m:"MLST 2025-05-14",n:"The AlphaEvolve team: evolution plus LLMs plus evaluators.",u:"https://arxiv.org/abs/2506.13131"},
+ {id:"rlvr",l:"RLVR debate",k:"w",y:"2025",q:["Q6","Q7"],n:"DeepSeek-R1 in Nature; Yue et al. (RL only sharpens) vs ProRL (long RL expands); spurious rewards help Qwen only.",u:"https://arxiv.org/abs/2504.13837"},
+ {id:"lanyon",l:"Lanyon AI",k:"w",y:"2026 · Gorard, Hakim, Juno",q:["Q6","Q8","Q14"],n:"Verification by construction: an LLM writes a short formal spec; a deterministic compiler emits a C solver and its Lean proofs together, so code and proof can't disagree. Own benchmark: frontier models mostly fail a verified Euler solver at up to about 70x the tokens. Limit: proofs match the spec, not the engineer's intent.",u:"https://www.lanyon.ai/"},
+ {id:"jiang",l:"Zhengyao Jiang",k:"p",y:"Weco AI",q:["Q6"],m:"MLST 2026-09-26",n:"Self-improvement still runs inside human-designed search spaces.",u:"https://arxiv.org/abs/2502.13138"},
+ {id:"hughes",l:"Edward Hughes",k:"p",y:"Inherent",q:["Q5","Q13"],m:"MLST 2026-09-11",n:"Creativity is not optimization; judgement about what to ask is missing.",u:""},
+ {id:"titans",l:"Titans / Nested Learning",k:"w",y:"2025",q:["Q9"],n:"Google Research: memory updated at inference by surprise; models and optimizers as nested memories (HOPE).",u:"https://arxiv.org/abs/2501.00663"},
+ {id:"ttt",l:"TTT-E2E",k:"w",y:"2025",q:["Q9","Q10"],n:"Long context as test-time training: scales like full attention with constant latency.",u:"https://arxiv.org/abs/2512.23675"},
+ {id:"razor",l:"RL's Razor",k:"w",y:"2025",q:["Q4","Q9"],n:"On-policy RL forgets less than SFT by staying KL-close to the base model.",u:"https://arxiv.org/abs/2509.04259"},
+ {id:"grok",l:"Grokking circuits",k:"w",y:"2023",q:["Q1","Q4","Q11"],n:"Weight decay slowly replaces memorization with a compact Fourier algorithm.",u:"https://arxiv.org/abs/2301.05217"},
+ {id:"wilson",l:"Andrew Gordon Wilson",k:"p",y:"NYU",q:["Q1"],m:"MLST 2025-09-19",n:"Deep learning is not mysterious: soft inductive bias plus classical bounds.",u:"https://arxiv.org/abs/2503.02113"},
+ {id:"mattick",l:"Alexander Mattick",k:"p",y:"Fraunhofer / UTN",q:["Q13","Q1"],m:"MLST 2026-09-21",n:"Scaling prediction cannot create intelligence; prediction is not control.",u:""},
+ {id:"vb",l:"Veličković & Barbero",k:"p",y:"DeepMind / Oxford",q:["Q10"],m:"MLST 2022-12-08; Barbero 2025-03-08",n:"Transformers over-squash and softmax disperses; low precision makes collapse worse.",u:"https://arxiv.org/abs/2406.04267"},
+ {id:"hooker",l:"Sara Hooker",k:"p",y:"",q:["Q10","Q14"],m:"MLST 2022-12-23, 2024-07-18",n:"The hardware lottery; FLOPs are a poor proxy for capability.",u:"https://arxiv.org/abs/2009.06489"},
+ {id:"hoch",l:"Sepp Hochreiter",k:"p",y:"JKU / NXAI",q:["Q10","Q14"],m:"MLST 2025-02-12",n:"xLSTM: recurrence with matrix memory, constant memory, edge-friendly.",u:"https://arxiv.org/abs/2405.04517"},
+ {id:"ctm",l:"Jones & Darlow (CTM)",k:"p",y:"Sakana AI",q:["Q10","Q14"],m:"MLST 2025-11-23",n:"Continuous Thought Machines: neuron timing and synchronization as representation; adaptive thinking steps.",u:"https://arxiv.org/abs/2505.05522"},
+ {id:"hybrid",l:"Hybrid attention",k:"w",y:"2025-26",q:["Q10"],n:"Qwen3.5, Kimi Linear, Nemotron 3, DeepSeek sparse attention; MiniMax stays full-attention.",u:"https://arxiv.org/abs/2510.26692"},
+ {id:"dlm",l:"Diffusion LMs",k:"w",y:"2025-26",q:["Q10","Q14"],n:"Gemini Diffusion, Mercury, LLaDA2.0 at 100B, open DiffusionGemma.",u:"https://arxiv.org/abs/2512.15745"},
+ {id:"nanda",l:"Neel Nanda",k:"p",y:"DeepMind",q:["Q11","Q1"],m:"MLST 2023-06-18, 2024-12-07",n:"Reverse-engineer networks; moved to pragmatic interpretability after SAE negative results.",u:"https://arxiv.org/abs/2408.05147"},
+ {id:"saeneg",l:"SAE negative results",k:"w",y:"2025",q:["Q11"],n:"SAEs lose to linear probes on OOD harmful-intent detection; DeepMind deprioritized SAEs.",u:"https://arxiv.org/abs/2502.16681"},
+ {id:"attr",l:"Attribution graphs & beyond",k:"w",y:"2025-26",q:["Q11","Q13"],n:"Anthropic: circuit tracing, feature manifolds, introspection, emotion concepts, a 'global workspace'.",u:"https://transformer-circuits.pub/"},
+ {id:"levin",l:"Michael Levin",k:"p",y:"Tufts",q:["Q12"],m:"MLST 2024-10-24",n:"Cognition is a continuum across scales; TAME; sorting algorithms show competencies.",u:"https://arxiv.org/abs/2201.10346"},
+ {id:"aguera",l:"Blaise Agüera y Arcas",k:"p",y:"Google",q:["Q12","Q13"],m:"MLST 2025-10-21, 2026-02-16",n:"Self-replicators emerge from random code; symbiogenesis drives complexity; intelligence is prediction.",u:"https://arxiv.org/abs/2406.19108"},
+ {id:"bff",l:"Computational Life (BFF)",k:"w",y:"2024",q:["Q12"],n:"Self-replicating programs emerge from random interaction with no fitness function.",u:"https://arxiv.org/abs/2406.19108"},
+ {id:"flenia",l:"Flow-Lenia",k:"w",y:"2025",q:["Q12","Q5"],n:"Mass-conserving continuous CA where many species coexist and evolve.",u:"https://arxiv.org/abs/2506.08569"},
+ {id:"bengio",l:"Yoshua Bengio",k:"p",y:"Mila / LawZero",q:["Q13"],m:"MLST 2022-02-22, 2025-01-15",n:"Separate intelligence from agency: a non-agentic Scientist AI.",u:"https://arxiv.org/abs/2502.15657"},
+ {id:"brain",l:"Brain–model alignment",k:"w",y:"2025-26",q:["Q13"],n:"LLM depth tracks brain response timing (Raugel et al.); TRIBE brain encoders scale with data.",u:"https://arxiv.org/abs/2512.01591"},
+ {id:"jordan",l:"Michael I. Jordan",k:"p",y:"Berkeley / Inria",q:["Q13"],m:"MLST 2026-05-21",n:"Intelligence is collective, not artificial.",u:""},
+ {id:"edge",l:"Gemma 4 edge & M5 stack",k:"w",y:"2026",q:["Q14"],n:"Gemma 4 E2B/E4B offline on phones, EmbeddingGemma 2 in 191 MB, BitNet ternary, M5 accelerators with MLX.",u:"https://blog.google/innovation-and-ai/technology/developers-tools/gemma-4/"}
+];
+
+const T = [
+ {id:"T1",l:"Path matters",qs:"Q1 Q2 Q4 Q5 Q9",ids:["fer","stanley","kumar","ncap","grok","razor","lampinen","ruis","aipb"],d:"FER, stepping stones, NCA pre-pre-training, grokking, RL's Razor and in-context vs fine-tuning all say the route shapes the result.",ask:"Which training paths produce reusable structure, and can we measure it?"},
+ {id:"T2",l:"Outside vs inside",qs:"Q2 Q11",ids:["prh","prhc","fer","shai","thickets","saeneg","attr","isola","aipb"],d:"Outputs converge (PRH, vec2vec), but only relationally (2026 critiques); insides may be fractured (FER) or factored (Shai).",ask:"What measures internal quality on real models?"},
+ {id:"T3",l:"Right space to predict",qs:"Q3 Q8 Q13",ids:["lecun","bal","lejepa","lewm","vjepa2","recon","bonnet","dreamer","yima","friston","wyart","beck","jtheory","genie","veo","fourds"],d:"JEPA, LeJEPA and LeWM against Genie, Veo and 4DS, with LPN, Dreamer, Yi Ma and Friston in between.",ask:"What is the right space to predict in, and who decides what to throw away?"},
+ {id:"T4",l:"Search + verifier",qs:"Q5 Q6 Q7",ids:["aevolve","aletheia","discorl","dgm","aisci","rlvr","arc25","kamb","drq","schmid","sakana","clune","balog","jiang","trm","lanyon"],d:"AlphaGo's recipe on LLMs: propose, search, verify, learn. ARC's refinement loops are the same idea per task.",ask:"What plays the verifier when there is no checker?"},
+ {id:"T5",l:"Diversity vs convergence",qs:"Q5 Q6",ids:["vpo","aipb","drq","asal","oeasi","knight","hughes","flenia","thickets"],d:"RL collapses diversity; archives and novelty keep it. In DRQ, behaviour converges while code stays diverse.",ask:"How much inner diversity does future search need?"},
+ {id:"T6",l:"Learning never stops",qs:"Q4 Q7 Q9",ids:["titans","ttt","razor","smt","hubotter","sutton","era","arc3","mindsai","fer"],d:"Test-time training, memory architectures and persistent worlds make continual learning the next frontier.",ask:"Can a deployed model learn without forgetting, and do fractured insides block it?"},
+ {id:"T7",l:"Small, local, cheap",qs:"Q10 Q14",ids:["trm","carc","lewm","edge","hooker","hoch","ctm","dlm","hybrid","hubotter"],d:"Compute on the problem beats compute on memorizing; the hardware lottery explains why alternatives lag.",ask:"Where does structure beat scale outside puzzles?"}
+];
+
+const F = [
+ ["Does scale give good representations?","PRH; Shai et al.; Summerfield","FER; 2026 PRH critiques","A scalable metric of internal organization, applied across sizes"],
+ ["Latent prediction or pixel generation?","LeCun, Balestriero, Wyart, AMI Labs","DeepMind (Genie, Veo, 4DS), Odyssey, Cosmos","Head-to-head planning success and cost on shared robot tasks"],
+ ["Does RL create reasoning or surface it?","ProRL","Yue et al.; Spurious Rewards","Pass@k at large k on weak-prior model families after long RL"],
+ ["Do LLMs reason?","Ruis, Summerfield, Agüera y Arcas","Kambhampati, Mitchell, Marcus, Chollet (partly)","Counterfactual and interactive tests such as ARC-AGI-3"],
+ ["Derive architectures or search for them?","Yi Ma, Bronstein, Veličković, Balestriero","Clune, Sakana, AlphaEvolve, ASI-Evolve","A searched architecture that beats derived ones and stays interpretable"],
+ ["Is deep learning mysterious?","Prince, Balestriero (partly)","Wilson","A theory that predicts training outcomes before the run"],
+ ["SAEs or something else?","Anthropic transcoders and graphs","DeepMind pragmatic probes","Cross-lab replication on downstream tasks"],
+ ["Build agents or avoid agency?","Clune, Rocktäschel, Silver and Sutton","Bengio","Largely values; AI control is the middle path"],
+ ["Hybrid or full attention?","Qwen, Moonshot, NVIDIA, DeepSeek","MiniMax","Long-horizon agentic benchmarks at matched cost"],
+ ["Learned or proved simulators?","Learned emulators (WeatherNext 3, neural PDE solvers)","Correct-by-construction solvers (Lanyon)","Accuracy and cost on the same engineering problems, and whether specs match intent"],
+ ["Individual or collective intelligence?","Most of the field","Michael I. Jordan, Friston, Foerster","Multi-agent systems beating single scaled models on open problems"]
+];
+
+const E = [
+ ["Are SIGReg encoders more unified and factored, not just more isotropic?","Q2 Q3 Q11","Reuse the ViT-Tiny checkpoints from the quantization run. Measure FER weight sweeps, Shai-style factor subspaces, calibrated mutual-kNN with DINO, next to the INT4 loss. No new training."],
+ ["Does weight decay turn FER into UFR?","Q1 Q4","Replicate FER's skull from the authors' code, then train in a grokking regime and watch whether symmetry moves to early layers. Links to notebook 01's drive-vs-decay threshold. Minutes on CPU."],
+ ["Curriculum for a linear JEPA, in closed form","Q4","Extend notebook 01: how the order data directions are presented changes the learned solution when the model is underparameterized."],
+ ["A tiny latent world model on ARC-AGI-3 games","Q7 Q8","LeWM-style JEPA learns one or two games from random play and plans in latent space. Winners so far used code world models."],
+ ["NCA pre-pre-training for a small JEPA","Q4 Q12","Does a short phase of predicting cellular-automaton dynamics in latent space help an image JEPA on CIFAR?"],
+ ["Evolve the anti-collapse regularizer","Q6","ShinkaEvolve or OpenEvolve with a small local model, scored by linear probe plus INT4 robustness from the notebook 03 pilot."]
+];
+
+/* ---------- graph ---------- */
+const NS="http://www.w3.org/2000/svg";
+const svg=document.getElementById("g");
+const W=1180,H=980,CX=590,CY=490;
+const byId={};
+const nodes=[];
+Q.forEach((q,i)=>{const a=-Math.PI/2+i*2*Math.PI/Q.length;const n={id:q.id,l:q.id+" · "+q.s,k:"q",x:CX+(CX-150)*Math.cos(a),y:CY+(CY-24)*Math.sin(a),fixed:true,ref:q};nodes.push(n);byId[q.id]=n;});
+let seed=7;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};
+N.forEach(e=>{let sx=0,sy=0;e.q.forEach(qid=>{sx+=byId[qid].x;sy+=byId[qid].y});sx/=e.q.length;sy/=e.q.length;
+  const n={id:e.id,l:e.l,k:e.k,x:CX+(sx-CX)*0.72+(rnd()-0.5)*40,y:CY+(sy-CY)*0.72+(rnd()-0.5)*40,ref:e};nodes.push(n);byId[e.id]=n;});
+const links=[];N.forEach(e=>e.q.forEach(qid=>links.push({a:e.id,b:qid})));
+const lw=n=>n.k==="q"?(n.l.length*8.1+20):(n.l.length*7.25+16);
+// simple deterministic force layout
+const ents=nodes.filter(n=>!n.fixed);
+for(let it=0;it<700;it++){
+  const cool=1-it/700;
+  ents.forEach(n=>{n.vx=0;n.vy=0;});
+  links.forEach(L=>{const a=byId[L.a],b=byId[L.b];const dx=b.x-a.x,dy=b.y-a.y;const d=Math.hypot(dx,dy)||1;const target=150;const f=(d-target)*0.012;a.vx+=dx/d*f;a.vy+=dy/d*f;});
+  for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
+    const a=nodes[i],b=nodes[j];if(a.fixed&&b.fixed)continue;
+    const dx=b.x-a.x,dy=b.y-a.y;const anyq=a.fixed||b.fixed;const wx=(lw(a)+lw(b))/2+(anyq?16:10),wy=anyq?38:26;
+    if(Math.abs(dx)<wx&&Math.abs(dy)<wy){const ox=wx-Math.abs(dx),oy=wy-Math.abs(dy);
+      if(oy<ox){const s=(dy>=0?1:-1)*oy*0.5;if(!a.fixed)a.vy-=s;if(!b.fixed)b.vy+=s;}
+      else{const s=(dx>=0?1:-1)*ox*0.5;if(!a.fixed)a.vx-=s;if(!b.fixed)b.vx+=s;}}
+    const d2=dx*dx+dy*dy+1;if(d2<26000){const f=180/d2;if(!a.fixed){a.vx-=dx*f;a.vy-=dy*f;}if(!b.fixed){b.vx+=dx*f;b.vy+=dy*f;}}
+  }
+  ents.forEach(n=>{n.x+=Math.max(-12,Math.min(12,n.vx))*(0.4+cool);n.y+=Math.max(-12,Math.min(12,n.vy))*(0.4+cool);
+    const hw=lw(n)/2;n.x=Math.max(hw+6,Math.min(W-hw-6,n.x));n.y=Math.max(20,Math.min(H-20,n.y));});
+}
+const gE=document.createElementNS(NS,"g"),gN=document.createElementNS(NS,"g");svg.append(gE,gN);
+links.forEach(L=>{const a=byId[L.a],b=byId[L.b];const ln=document.createElementNS(NS,"line");ln.setAttribute("x1",a.x);ln.setAttribute("y1",a.y);ln.setAttribute("x2",b.x);ln.setAttribute("y2",b.y);ln.setAttribute("class","edge");L.el=ln;gE.append(ln);});
+nodes.forEach(n=>{const g=document.createElementNS(NS,"g");g.setAttribute("class","node "+n.k);g.setAttribute("tabindex","0");g.setAttribute("role","button");g.setAttribute("aria-label",n.l);
+  const t=document.createElementNS(NS,"text");t.textContent=n.l;
+  if(n.k==="q"){const w=lw(n);const r=document.createElementNS(NS,"rect");r.setAttribute("x",n.x-w/2);r.setAttribute("y",n.y-15);r.setAttribute("width",w);r.setAttribute("height",30);r.setAttribute("rx",6);g.append(r);t.setAttribute("x",n.x);t.setAttribute("y",n.y+5);t.setAttribute("text-anchor","middle");}
+  else{const w=lw(n);const sx=n.x-w/2+5;
+    if(n.k==="p"){const c=document.createElementNS(NS,"circle");c.setAttribute("cx",sx);c.setAttribute("cy",n.y);c.setAttribute("r",5);g.append(c);}
+    else{const r=document.createElementNS(NS,"rect");r.setAttribute("x",sx-4.5);r.setAttribute("y",n.y-4.5);r.setAttribute("width",9);r.setAttribute("height",9);g.append(r);}
+    t.setAttribute("x",sx+10);t.setAttribute("y",n.y+3.8);}
+  g.append(t);n.el=g;gN.append(g);
+  g.addEventListener("click",()=>select(n.id));
+  g.addEventListener("keydown",ev=>{if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();select(n.id);}});
+});
+
+/* ---------- highlight + panel ---------- */
+const panel=document.getElementById("panel");
+let activeThread=null;
+function neighbors(id){const s=new Set([id]);links.forEach(L=>{if(L.a===id)s.add(L.b);if(L.b===id)s.add(L.a);});return s;}
+function applyHi(set){nodes.forEach(n=>{n.el.classList.toggle("dimmed",!!set&&!set.has(n.id));});
+  links.forEach(L=>{const on=set&&set.has(L.a)&&set.has(L.b);L.el.classList.toggle("hot",!!on);L.el.classList.toggle("dimmed",!!set&&!on);});}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function qchips(ids){return '<div class="qchips">'+ids.map(q=>'<button class="qchip" data-q="'+q+'">'+q+' · '+esc(byId[q].ref.s)+'</button>').join("")+'</div>';}
+function select(id){
+  setThread(null);
+  nodes.forEach(n=>n.el.classList.toggle("sel",n.id===id));
+  const n=byId[id];applyHi(neighbors(id));
+  if(n.k==="q"){const q=n.ref;const who=N.filter(e=>e.q.includes(q.id));
+    panel.innerHTML='<span class="kind">Why-question '+q.id+'</span><h3>'+esc(q.t)+'</h3>'+
+    '<dl><div><dt>Where the evidence stands</dt><dd>'+esc(q.ev)+'</dd></div><div><dt>Still open</dt><dd>'+esc(q.open)+'</dd></div><div><dt>Makes possible</dt><dd>'+esc(q.prac)+'</dd></div><div><dt>For this project</dt><dd>'+esc(q.proj)+'</dd></div>'+
+    '<div><dt>'+who.length+' connected people and works</dt><dd>'+who.map(e=>'<a href="#" data-n="'+e.id+'">'+esc(e.l)+'</a>').join(", ")+'</dd></div></dl>';}
+  else{const e=n.ref;
+    panel.innerHTML='<span class="kind">'+(e.k==="p"?"Person or team":"Paper, system or result")+'</span><h3>'+esc(e.l)+'</h3>'+
+    (e.y?'<span class="meta">'+esc(e.y)+'</span>':'')+(e.m?'<span class="mlst">'+esc(e.m)+'</span>':'')+
+    '<p>'+esc(e.n)+'</p><div><span class="kind">Helps answer</span>'+qchips(e.q)+'</div>'+
+    (e.u?'<a href="'+esc(e.u)+'" target="_blank" rel="noopener">Open source ↗</a>':'');}
+  wirePanel();
+}
+function wirePanel(){panel.querySelectorAll("[data-q]").forEach(b=>b.addEventListener("click",()=>select(b.dataset.q)));
+  panel.querySelectorAll("[data-n]").forEach(a=>a.addEventListener("click",ev=>{ev.preventDefault();select(a.dataset.n);}));}
+function intro(){panel.innerHTML='<span class="kind">Start here</span><h3>Akarsh Kumar and "how you got there"</h3><p>Two networks draw the same skull. One was evolved by people picking favourites with no goal; one was trained by gradient descent. The evolved one learned symmetry first and reuses it. The trained one is a tangle. Kumar and colleagues call that a fractured entangled representation, and ask whether today\'s large models are built the same way.</p><p class="muted">Click FER hypothesis in the map, or any question on the ring.</p><button class="showbtn" id="startfer">Show FER\'s connections</button>';
+  document.getElementById("startfer").addEventListener("click",()=>select("fer"));}
+intro();
+
+/* threads */
+const tc=document.getElementById("threadchips");
+T.forEach(t=>{const b=document.createElement("button");b.className="chip";b.textContent=t.l;b.setAttribute("aria-pressed","false");b.dataset.t=t.id;b.addEventListener("click",()=>setThread(activeThread===t.id?null:t.id,true));tc.append(b);});
+function setThread(id,fromChip){activeThread=id;tc.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",String(c.dataset.t===id)));
+  if(!fromChip)return;nodes.forEach(n=>n.el.classList.remove("sel"));
+  if(!id){applyHi(null);intro();return;}
+  const t=T.find(x=>x.id===id);const s=new Set(t.ids);t.qs.split(" ").forEach(q=>s.add(q));applyHi(s);
+  panel.innerHTML='<span class="kind">Thread · '+esc(t.qs)+'</span><h3>'+esc(t.l)+'</h3><p>'+esc(t.d)+'</p><p class="muted"><em>'+esc(t.ask)+'</em></p><dl><div><dt>On this thread</dt><dd>'+t.ids.map(i=>'<a href="#" data-n="'+i+'">'+esc(byId[i].l)+'</a>').join(", ")+'</dd></div></dl>';wirePanel();}
+
+/* search */
+const search=document.getElementById("search");
+search.addEventListener("input",()=>{const v=search.value.trim().toLowerCase();setThread(null);nodes.forEach(n=>n.el.classList.remove("sel"));
+  if(!v){applyHi(null);return;}const s=new Set(nodes.filter(n=>n.l.toLowerCase().includes(v)||(n.ref.n||"").toLowerCase().includes(v)).map(n=>n.id));applyHi(s);});
+
+/* question cards */
+const qg=document.getElementById("qgrid");
+Q.forEach(q=>{const who=N.filter(e=>e.q.includes(q.id));const d=document.createElement("details");d.className="qcard";d.id="card-"+q.id;
+  d.innerHTML='<summary><span class="qnum">'+q.id+'</span><span class="qtitle">'+esc(q.t)+'</span><span class="qshort">'+esc(q.short)+'</span></summary>'+
+  '<div class="qbody"><div><b>Where the evidence stands</b>'+esc(q.ev)+'</div><div><b>Still open</b>'+esc(q.open)+'</div><div><b>Makes possible</b>'+esc(q.prac)+'</div><div><b>For this project</b>'+esc(q.proj)+'</div>'+
+  '<div><b>Who and what</b>'+who.map(e=>esc(e.l)).join(" · ")+'</div><button class="showbtn" data-show="'+q.id+'">Show in map</button></div>';
+  qg.append(d);});
+qg.querySelectorAll("[data-show]").forEach(b=>b.addEventListener("click",()=>{select(b.dataset.show);document.getElementById("atlas-h").scrollIntoView({behavior:"smooth"});}));
+document.getElementById("card-Q2").open=true;
+
+/* thread cards */
+const th=document.getElementById("threads");
+T.forEach(t=>{const c=document.createElement("div");c.className="thread";c.innerHTML='<span class="tq">'+esc(t.qs)+'</span><h3>'+esc(t.l)+'</h3><p>'+esc(t.d)+'</p><p class="ask">'+esc(t.ask)+'</p><button class="showbtn" data-th="'+t.id+'">Highlight in map</button>';th.append(c);});
+th.querySelectorAll("[data-th]").forEach(b=>b.addEventListener("click",()=>{setThread(b.dataset.th,true);document.getElementById("atlas-h").scrollIntoView({behavior:"smooth"});}));
+
+/* faults + experiments */
+document.getElementById("faults").innerHTML=F.map(r=>'<tr>'+r.map((c,i)=>i===0?'<td><strong>'+esc(c)+'</strong></td>':'<td>'+esc(c)+'</td>').join("")+'</tr>').join("");
+document.getElementById("exps").innerHTML=E.map(e=>'<li><strong>'+esc(e[0])+'</strong> <span class="tag">'+esc(e[1])+'</span><br>'+esc(e[2])+'</li>').join("");
+</script>
+</body>
+</html>

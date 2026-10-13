@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Glossary · Hidden Patch</title>
+<meta name="description" content="Every term used across Hidden Patch, from JEPA and SIGReg to Lenia and MAP-Elites, with a plain one-to-two-sentence definition and a link to the chapter that teaches it.">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/atlas.css">
+<style>
+/* page-specific */
+.gtools{position:sticky;top:3.1rem;z-index:5;display:grid;gap:.55rem;padding:.75rem .9rem;margin-top:.4rem;background:color-mix(in srgb,var(--panel) 94%,transparent);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);font-family:var(--ui)}
+.gtools .row{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.gtools input[type=search]{flex:1 1 14rem;min-width:0;font-family:var(--ui);font-size:1rem;color:var(--ink);background:var(--bg);border:1.5px solid var(--line-strong);border-radius:999px;padding:.45rem .95rem}
+.gtools input[type=search]:focus{outline:none;border-color:var(--why)}
+.gtools .count{font-family:var(--mono);font-size:.78rem;color:var(--muted);white-space:nowrap}
+.az{display:flex;flex-wrap:wrap;gap:.15rem}
+.az a,.az span{font-family:var(--mono);font-size:.78rem;width:1.65rem;height:1.65rem;display:inline-grid;place-items:center;border-radius:6px;text-decoration:none;color:var(--ink);border:1px solid var(--line)}
+.az a:hover{border-color:var(--why);color:var(--why)}
+.az span{color:var(--faint);border-style:dashed;opacity:.6}
+.parts{display:flex;flex-wrap:wrap;gap:.3rem}
+.parts button{font-size:.74rem;padding:.2rem .6rem}
+.parts button[aria-pressed="false"]{opacity:.45}
+.parts button[aria-pressed="true"]{background:var(--panel-2);color:var(--ink);border-color:var(--line-strong)}
+.parts i{display:inline-block;width:.6rem;height:.6rem;border-radius:2px;margin-right:.3rem}
+@media (max-width:640px){.gtools{position:static}.letter,.gterm{scroll-margin-top:6rem!important}}
+.letter{scroll-margin-top:12rem;padding-top:1.6rem}
+.letter>h2{font-family:var(--display);font-size:2.2rem;font-weight:800;color:var(--why);border-bottom:1px dashed var(--line-strong);padding-bottom:.2rem;margin-bottom:.6rem;display:flex;align-items:baseline;gap:.6rem}
+.letter>h2 small{font-family:var(--mono);font-size:.75rem;color:var(--muted);font-weight:400}
+.terms{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:.6rem}
+.gterm{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--pc,var(--part));border-radius:10px;padding:.65rem .8rem;display:grid;gap:.3rem;align-content:start;scroll-margin-top:12rem;transition:box-shadow .3s,border-color .3s}
+.gterm h3{font-size:1.06rem;font-weight:700;display:flex;justify-content:space-between;gap:.6rem;align-items:baseline;flex-wrap:wrap}
+.gterm h3 .aka{font-family:var(--mono);font-size:.72rem;color:var(--muted);font-weight:400}
+.gterm p{font-size:.96rem;line-height:1.5}
+.gterm .go{font-family:var(--ui);font-size:.8rem}
+.gterm mark{background:var(--why-soft);color:inherit;border-radius:3px;padding:0 .1em}
+.gterm.flash{border-color:var(--why);box-shadow:0 0 0 3px var(--why-soft),var(--shadow)}
+.empty{font-family:var(--ui);color:var(--muted);padding:1.2rem 0}
+</style>
+</head>
+<body data-chapter="glossary" data-part="5">
+<header id="topbar" class="topbar"></header>
+
+<main class="chapter">
+  <section class="opener">
+    <p class="eyebrow"><span class="sw"></span>Part 5 · Map · Chapter 18</p>
+    <h1 class="big">Glossary: every term, and <span class="w">why</span> it exists</h1>
+    <p class="because">every term in this field was coined to name a problem or a fix. Collapse names a failure, stop-gradient names its cure, SIGReg names a better cure. Read each definition as an answer to "what went wrong that someone needed a word for this?".</p>
+    <p class="meta"><span id="g-total">–</span><span>Each term links to the chapter that teaches it</span><span>Press <kbd>/</kbd> to search</span></p>
+  </section>
+
+  <div class="gtools" role="search">
+    <div class="row">
+      <label for="g-q" class="mono small muted" style="position:absolute;left:-9999px">Search the glossary</label>
+      <input type="search" id="g-q" placeholder="Search terms and definitions: collapse, Lenia, KV cache…" autocomplete="off">
+      <button type="button" class="primary" id="g-rand">Random term</button>
+      <span class="count" id="g-count" aria-live="polite"></span>
+    </div>
+    <nav class="az" id="g-az" aria-label="Jump to letter"></nav>
+    <div class="parts" id="g-parts" role="group" aria-label="Filter by part"></div>
+  </div>
+
+  <div id="g-list"></div>
+
+  <nav id="pager"></nav>
+</main>
+<footer id="site-footer"></footer>
+
+<script src="assets/atlas.js"></script>
+<script>
+(function(){
+"use strict";
+const A = window.Atlas;
+const $ = id => document.getElementById(id);
+
+// [term, also-known-as, definition, chapter slug]
+const G = [
+ ["Action-conditioned world model","","A world model that predicts the next state given the current state and an action, so an agent can try actions in imagination before taking them. V-JEPA 2-AC is one.","worlds"],
+ ["Active inference","","Friston's theory that perception, action and learning all minimize the same quantity, variational free energy. Acting is a way of making your predictions come true.","gaussian"],
+ ["AlphaEvolve","","DeepMind's 2025 system in which Gemini proposes code changes, automatic evaluators score them and an evolutionary loop keeps the best. Found a 48-multiplication 4×4 complex matrix product.","reasoning"],
+ ["ARC-AGI","Abstraction and Reasoning Corpus","Chollet's benchmark of small grid puzzles that need only core-knowledge priors, built to measure how efficiently a system acquires a new skill. ARC-AGI-3 (2026) makes it interactive.","reasoning"],
+ ["Attention","","The transformer operation in which each token computes a weighted average of other tokens' values, with weights from query-key similarity passed through softmax.","architectures"],
+ ["Attribution graph","","A map of which internal features caused which others for one specific output, traced through a replacement model of the network. Anthropic's 2025 tool for reading circuits.","interp"],
+ ["Autoregressive model","","A model that generates one token at a time, each conditioned on everything generated so far. Errors can compound because each guess becomes input to the next.","predict"],
+ ["Basal cognition","","Michael Levin's term for goal-directed problem solving in cells and tissues, such as regrowing the right shape after injury. Cognition as a continuum, not a brain-only feature.","alife"],
+ ["BFF","Computational Life","A soup of random Brainfuck-like programs that interact and rewrite each other. Self-replicators appear spontaneously with no fitness function (Agüera y Arcas et al., 2024).","alife"],
+ ["Bitter Lesson","","Sutton's 2019 essay: general methods that scale with computation (search and learning) beat methods that build in human knowledge, over the long run.","landscape"],
+ ["BYOL","Bootstrap Your Own Latent","A 2020 self-supervised method with no negatives: an online network predicts a slow EMA target network's embedding of another view. The ancestor of JEPA's EMA trick.","collapse"],
+ ["CEM","Cross-Entropy Method","A planning-by-sampling method: sample many action sequences, keep the best few, refit the sampling distribution to them, repeat. Used by DINO-WM and V-JEPA 2-AC.","worlds"],
+ ["Chain of thought","CoT","Intermediate reasoning text a language model writes before its answer. More tokens of thought are one way to spend test-time compute.","reasoning"],
+ ["Circuit","","A small subgraph of neurons or features that implements one identifiable computation, like detecting a curve or copying a previous token.","interp"],
+ ["CLIP","","A 2021 contrastive model that embeds images and their captions into one space. ASAL used it as the judge of what an artificial-life simulation looks like.","open"],
+ ["Collapse","representation collapse","The failure where an encoder maps every input to the same (or a very low-dimensional) embedding. Prediction loss is zero and the features are useless.","collapse"],
+ ["Compression","","Finding a shorter description of data. A recurring answer to why networks generalize: a model that compresses must have found regularities.","generalize"],
+ ["CompressARC","","A 76K-parameter network trained from scratch on each ARC puzzle at test time with a compression objective, no pretraining. ARC Prize 2025 paper award.","reasoning"],
+ ["Condition number","","The ratio of the largest to the smallest singular value of a matrix. For embeddings, near 1 means every direction is used about equally (isotropic).","gaussian"],
+ ["Context encoder","","In a JEPA, the network that sees only the visible part of the input. It is trained by gradients and is what you keep after pretraining.","jepa"],
+ ["Continual learning","","Learning from a stream of new data after deployment without forgetting old skills. Still unsolved for frontier models in 2026.","architectures"],
+ ["Contrastive learning","","Self-supervised learning that pulls embeddings of two views of the same input together and pushes different inputs apart. The negatives prevent collapse.","collapse"],
+ ["CPPN","Compositional Pattern-Producing Network","A small network that maps coordinates to colours using functions like sine and Gaussian. Picbreeder evolves CPPNs; FER's skull is one.","fractured"],
+ ["Curriculum","","The order in which training examples or tasks are presented. FER and NCA pre-pre-training argue order shapes what is learned inside.","fractured"],
+ ["Deception (in search)","","When the stepping stones to a goal do not look like progress toward it, so an objective-driven search moves away from them. Stanley and Lehman's case for novelty.","open"],
+ ["Diffusion model","","A generator trained to reverse gradual noising: it learns to predict the noise at each step, then denoises from pure noise to a sample.","fields"],
+ ["DINO","","A self-distillation method (2021) in which a student matches an EMA teacher's outputs on different crops. DINOv2 features power DINO-WM's planning.","collapse"],
+ ["Double descent","","Test error that falls, rises near the point where the model can just fit the data, then falls again as the model grows. Classical U-shaped intuition breaks.","generalize"],
+ ["Drive vs decay","","A 2026 analysis of JEPA training at the collapsed point: a direction escapes collapse when its drive from the data exceeds its decay, μ = drive/decay > 1.","collapse"],
+ ["Effective rank","","How many dimensions an embedding really uses, computed from the entropy of its normalized singular values. Low effective rank is partial collapse.","collapse"],
+ ["EMA","Exponential Moving Average","A slow copy of weights updated as θ̄ ← τθ̄ + (1−τ)θ with τ close to 1. JEPA's target encoder is the EMA of the context encoder, so targets move slowly.","jepa"],
+ ["Emergence","","Global structure that appears from local interactions without being specified anywhere, like gliders in Life or circuits after grokking.","alife"],
+ ["Energy-based model","EBM","A model that assigns low energy (a scalar score) to compatible inputs and high energy to incompatible ones. LeCun frames JEPA as one.","gaussian"],
+ ["Equivariance","","A function is equivariant if transforming the input transforms the output in a matching way (rotate the image, the feature map rotates). Built in by geometric deep learning.","architectures"],
+ ["Era of Experience","","Silver and Sutton's 2025 essay: agents will learn mostly from their own streams of interaction with grounded rewards, beyond the limits of human data.","worlds"],
+ ["Evolution strategies","ES","Gradient-free optimization that perturbs parameters with noise, scores each perturbation and moves toward the better ones.","open"],
+ ["Expected free energy","","The quantity active-inference agents minimize when choosing actions; it splits into seeking preferred outcomes and seeking information, so curiosity falls out.","gaussian"],
+ ["FER","Fractured Entangled Representation","Kumar et al.'s 2025 hypothesis: SGD can reach the right output with an inside where one concept is split into redundant pieces and unrelated behaviours are tangled together.","fractured"],
+ ["Flow matching","","Training a network to predict the velocity field that transports noise into data along simple paths. A cleaner cousin of diffusion.","fields"],
+ ["Flow-Lenia","","A mass-conserving version of Lenia (2023, 2025) in which creatures are common and several species can coexist and evolve in one world.","alife"],
+ ["Free energy","variational free energy","An upper bound on surprise: prediction error plus a complexity penalty. Minimizing it trades accuracy against simplicity of beliefs.","gaussian"],
+ ["FunSearch","","DeepMind's 2023 loop in which an LLM proposes programs and an evaluator scores them; it found new cap-set constructions. Precursor of AlphaEvolve.","reasoning"],
+ ["Generalization","","Performing well on data not seen in training. The puzzle is why huge networks that could memorize mostly do not.","generalize"],
+ ["Genie","","DeepMind's world-model line: Genie 1 (2D, latent actions from video), Genie 2 (3D), Genie 3 (real-time 720p at 24 fps, about a minute of memory).","worlds"],
+ ["Geometric deep learning","GDL","Deriving architectures from the symmetries of the data domain: CNNs from translation, GNNs from permutation, transformers as fully connected graph nets.","architectures"],
+ ["Grokking","","A network first memorizes its training set, then much later, with weight decay, suddenly generalizes as a compact algorithm replaces the memorized one.","generalize"],
+ ["GRPO","Group Relative Policy Optimization","An RL method for language models that scores each sampled answer against the mean of its group, removing the learned value network. Used for DeepSeek-R1.","reasoning"],
+ ["H-JEPA","Hierarchical JEPA","LeCun's proposal to stack JEPAs at several time scales, so higher levels predict further ahead in more abstract latents.","worlds"],
+ ["Hardware lottery","","Sara Hooker's argument that research ideas win by fitting the available hardware, not purely on merit. Explains why non-transformer designs are under-explored.","architectures"],
+ ["Hyperdimensional computing","vector symbolic architectures","Computing with very high-dimensional random vectors using bind, bundle and permute operations. Cheap, robust, and friendly to tiny devices.","fields"],
+ ["I-JEPA","","The 2023 image JEPA: predict the embeddings of several large target blocks from one context block, with no hand-crafted augmentations.","jepa"],
+ ["Implicit bias","","The preference of an optimizer for some solutions among many with equal loss. Littwin et al. show JEPA prefers predictive features while MAE prefers high-variance ones.","bias"],
+ ["In-context learning","","Learning a new task from examples in the prompt, with no weight update. Generalizes differently from fine-tuning (Lampinen et al. 2025).","reasoning"],
+ ["Isotropic Gaussian","","A Gaussian with the same variance in every direction and no correlations. LeJEPA proves it minimizes worst-case downstream risk for embeddings.","gaussian"],
+ ["JEPA","Joint-Embedding Predictive Architecture","Encode the visible part and the hidden part separately, then predict the hidden part's embedding from the visible part's embedding. Prediction happens in latent space.","jepa"],
+ ["KV cache","key-value cache","During generation, a transformer stores the keys and values of past tokens so each new token attends to them without recomputing. Its memory grows with context length.","edge"],
+ ["Kurtosis","","A measure of how heavy a distribution's tails are. High-kurtosis activations have rare huge outliers, which make low-bit quantization lose precision.","edge"],
+ ["Latent space","","The space of a model's internal representations, as opposed to raw pixels or tokens. JEPA predicts there so it can drop unpredictable detail.","jepa"],
+ ["LeJEPA","","Balestriero and LeCun's 2025 JEPA that replaces EMA and stop-gradient with SIGReg, a regularizer pushing embeddings toward an isotropic Gaussian. One trade-off hyperparameter.","gaussian"],
+ ["Lenia","","Bert Chan's continuous Game of Life (2019): smooth space, time and states, with a ring-shaped kernel and a growth function. Produces lifelike moving creatures.","alife"],
+ ["LeWorldModel","LeWM","A 15M-parameter JEPA world model trained end to end from pixels with SIGReg (2026). Plans about 48× faster than DINO-WM.","worlds"],
+ ["Linear probe","","A single linear layer trained on frozen features to test what information they contain. The standard way to evaluate self-supervised encoders.","collapse"],
+ ["LoRA","Low-Rank Adaptation","Fine-tuning that freezes the original weights and learns a small low-rank update ΔW = BA. Cheap enough for laptops.","edge"],
+ ["MAE","Masked Autoencoder","Hide most image patches and train the network to reconstruct their pixels. The pixel-space counterpart of I-JEPA.","jepa"],
+ ["MAP-Elites","","A quality-diversity algorithm that divides behaviour space into cells and keeps the best solution found in each cell, building a map of diverse elites.","open"],
+ ["Mamba","","A selective state-space model (2023) whose state update depends on the input, giving linear-time sequence modelling with constant memory per step.","architectures"],
+ ["Masking","","Hiding part of the input so a model must predict it. Where and how much you hide decides how hard and how semantic the task is.","jepa"],
+ ["Mechanistic interpretability","","Reverse-engineering the algorithms a trained network implements, at the level of features and circuits.","interp"],
+ ["MoE","Mixture of Experts","A layer with many expert sub-networks and a router that sends each token to a few of them. More parameters at the same compute per token.","architectures"],
+ ["MPC","Model Predictive Control","Plan a sequence of actions with a model, execute only the first, observe, and replan. Robust because errors are corrected at every step.","worlds"],
+ ["Mutual nearest neighbours","mutual-kNN","An alignment metric: the fraction of each input's k nearest neighbours that two models agree on. The PRH's main evidence.","fractured"],
+ ["NCA","Neural Cellular Automaton","A grid where every cell runs the same tiny neural network on its neighbours. Trained to grow, repair and replicate patterns (Mordvintsev et al., 2020).","alife"],
+ ["NCA pre-pre-training","","Kumar et al. 2026: training a language model first on cellular-automaton dynamics. 164M NCA tokens beat 1.6B tokens of real text as a warm-up.","fractured"],
+ ["NEAT","NeuroEvolution of Augmenting Topologies","Stanley and Miikkulainen's 2002 method that evolves network weights and structure together, starting small and adding nodes over time.","open"],
+ ["Novelty search","","Lehman and Stanley's search that rewards being different from what was found before, ignoring the objective. Beats objectives on deceptive problems.","open"],
+ ["Open-endedness","","A process that keeps producing novel and learnable artifacts forever. Defined in 2024 as novelty plus learnability, relative to an observer.","open"],
+ ["Over-squashing","","When information from many distant inputs must pass through a small bottleneck, so it gets compressed beyond recovery. Explains some transformer failures at counting and copying.","architectures"],
+ ["Picbreeder","","A website (2008) where people evolve images by picking favourites with no target. Its skull image is FER's showcase of a well-organized evolved network.","fractured"],
+ ["Plasticity loss","","The gradual loss of a network's ability to learn new things after long training. One reason continual learning is hard.","architectures"],
+ ["Platonic Representation Hypothesis","PRH","Huh, Cheung, Wang and Isola (2024): representations from different models and modalities converge toward a shared statistical model of reality. Narrowed by 2026 critiques.","fractured"],
+ ["POET","","Paired Open-Ended Trailblazer (2019): co-evolves environments and agents, so the curriculum invents itself.","open"],
+ ["Predictor","","In a JEPA, the network that takes the context embedding plus target positions and outputs predicted target embeddings. Thrown away after pretraining.","jepa"],
+ ["Quality-diversity","QD","Search that seeks many solutions that are each good and different from each other, instead of one optimum. MAP-Elites is the classic.","open"],
+ ["Quantization","","Storing weights and activations in fewer bits (INT8, INT4, ternary). Cuts memory and energy; outliers and anisotropy make it lose accuracy.","edge"],
+ ["Refinement loop","","Iteratively improving an answer by checking and revising it. ARC Prize 2025's theme: outer loops, not architecture, drove the gains.","reasoning"],
+ ["RLVR","RL with verifiable rewards","Reinforcement learning on tasks whose answers can be checked automatically, such as maths and code. The recipe behind 2025's reasoning models.","reasoning"],
+ ["SAE","Sparse autoencoder","An autoencoder with a wide, sparse hidden layer trained on a model's activations, to unpack superposed features into separate, readable directions.","interp"],
+ ["Scaling laws","","Empirical power laws relating loss to parameters, data and compute. They tell you how big to make a model for a given budget.","generalize"],
+ ["Self-supervised learning","SSL","Learning from unlabelled data by inventing a task from the data itself: predict the hidden part, match two views.","predict"],
+ ["SIGReg","Sketched Isotropic Gaussian Regularization","LeJEPA's regularizer: project embeddings onto random 1-D directions and test each projection against a standard Gaussian. Prevents collapse without EMA or stop-gradient.","gaussian"],
+ ["Simplicity bias","","The tendency of networks trained by gradient descent to find simple functions first. One explanation for generalization.","generalize"],
+ ["Softmax dispersion","","As inputs grow, softmax attention spreads its weights more thinly, so sharp retrieval of one item fails at scale (Veličković, Barbero et al. 2024).","architectures"],
+ ["Spiking neural network","SNN","A network whose neurons communicate with discrete spikes in time, computing only when events happen. Very energy-efficient on neuromorphic chips.","edge"],
+ ["SSM","State-space model","A sequence model that carries a fixed-size hidden state updated linearly at each step. Linear time and constant memory, unlike attention's growing KV cache.","architectures"],
+ ["Stepping stone","","An intermediate discovery that does not look like progress toward a goal but makes the goal reachable later, such as symmetry before the skull in Picbreeder.","open"],
+ ["Stop-gradient","","An operation that passes values forward but blocks gradients backward. On the target branch it stops the target from moving to meet the prediction.","collapse"],
+ ["Superposition","","A network representing more features than it has neurons by storing them as nearly orthogonal directions, at the cost of some interference.","interp"],
+ ["Surprise","","Prediction error, used as a signal. A trained JEPA's latent error spikes on physically impossible videos, the violation-of-expectation test.","jepa"],
+ ["Target encoder","","In a JEPA, the network that encodes the hidden part to make the prediction target. Usually an EMA copy of the context encoder, wrapped in stop-gradient.","jepa"],
+ ["Test-time compute","","Spending computation at inference (sampling many answers, searching, thinking longer) instead of only at training. A main lever of 2024-26 reasoning models.","reasoning"],
+ ["Test-time training","TTT","Updating model weights on the test input itself, often with a self-supervised loss, before answering. Drove ARC Prize 2024's jump.","reasoning"],
+ ["Titans","","Google Research's 2025 architecture with a neural long-term memory written at inference time in proportion to surprise.","architectures"],
+ ["TRM","Tiny Recursive Model","A 7M-parameter network that repeatedly refines a latent and an answer. Competitive on ARC; ARC Prize 2025 paper award.","reasoning"],
+ ["UFR","Unified Factored Representation","FER's good case: each capability computed once and reused, and independent capabilities kept separate inside the network.","fractured"],
+ ["V-JEPA","","Video JEPA (2024): predict masked spatio-temporal regions in feature space. V-JEPA 2 (2025) trained on 1M+ hours and planned robot actions after 62 hours of robot data.","worlds"],
+ ["VICReg","Variance-Invariance-Covariance Regularization","A 2021 anti-collapse loss: keep each embedding dimension's variance above a threshold, match two views, and decorrelate dimensions.","collapse"],
+ ["Violation of expectation","","A developmental-psychology test: infants look longer at impossible events. Applied to V-JEPA, whose surprise jumps on impossible physics.","jepa"],
+ ["ViT","Vision Transformer","A transformer applied to an image cut into patches, each patch a token. The standard JEPA encoder.","jepa"],
+ ["Weight decay","","A penalty that shrinks weights toward zero each step. Removes weak directions and, in grokking, slowly replaces memorization with a compact solution.","generalize"],
+ ["World model","","A learned model that predicts how an environment changes, especially in response to actions. Richens et al. (2025) prove general agents must contain one.","worlds"],
+ ["Xenobots","","Living robots assembled from frog cells (Kriegman et al., 2020) that move and can self-replicate by kinematic means. Basal cognition made visible.","alife"],
+ ["xLSTM","","Hochreiter's 2024 revival of the LSTM with exponential gating and matrix memory, competitive with transformers at constant memory per step.","architectures"],
+ ["Zero-shot","","Performing a task with no task-specific training examples. V-JEPA 2-AC plans pick-and-place zero-shot in new labs.","worlds"],
+ ["Kolmogorov complexity","","The length of the shortest program that outputs a given string. Uncomputable, but approximated by compressors to measure structure, as in the BFF replicator experiments.","alife"],
+ ["Knightian uncertainty","","Uncertainty about what the possibilities even are (unknown unknowns), as opposed to risk over known outcomes. Lehman and Stanley's 2025 blindspot argument.","open"],
+ ["Pass@k","","The probability that at least one of k sampled answers is correct. At large k it reveals what a model can do at all, which fuels the RL-creates-or-surfaces debate.","reasoning"],
+ ["Representation","","The vector a network computes for an input at some layer. Most of this site asks what makes a representation good.","predict"],
+ ["Regularizer","","An extra loss term that steers training away from bad solutions, such as collapse (VICReg, SIGReg) or overfitting (weight decay).","collapse"],
+].map(r=>({t:r[0], aka:r[1], d:r[2], ch:r[3]}));
+
+const chap = slug => A.CHAPTERS.find(c=>c.slug===slug);
+const partOf = slug => (chap(slug)||{part:5}).part;
+G.forEach(g=>{ g.p = partOf(g.ch); g.key = g.t.replace(/^[^A-Za-z]+/,"").toUpperCase(); g.L = g.key[0]; g.id = "t-"+g.t.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); });
+G.sort((a,b)=>a.key.localeCompare(b.key));
+$("g-total").textContent = `${G.length} terms`;
+
+const partsOn = new Set([1,2,3,4,5]);
+const pbox = $("g-parts");
+A.PARTS.forEach(p=>{ const b = A.el("button",{type:"button","aria-pressed":"true"}, A.el("i",{style:`background:var(--p${p.n})`}), `${p.n} · ${p.name}`);
+  b.onclick = ()=>{ partsOn.has(p.n) ? partsOn.delete(p.n) : partsOn.add(p.n); b.setAttribute("aria-pressed", partsOn.has(p.n)); render(); }; pbox.append(b); });
+
+const esc = s => s.replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const hl = (s, q) => { if(!q) return esc(s); const i = s.toLowerCase().indexOf(q); if(i<0) return esc(s); return esc(s.slice(0,i)) + "<mark>" + esc(s.slice(i,i+q.length)) + "</mark>" + esc(s.slice(i+q.length)); };
+
+const input = $("g-q");
+function matches(){
+  const q = input.value.trim().toLowerCase();
+  return G.filter(g=>partsOn.has(g.p) && (!q || g.t.toLowerCase().includes(q) || g.aka.toLowerCase().includes(q) || g.d.toLowerCase().includes(q)))
+          .sort((a,b)=>{ if(!q) return 0; const ra = a.t.toLowerCase().startsWith(q)||a.aka.toLowerCase().startsWith(q) ? 0 : a.t.toLowerCase().includes(q) ? 1 : 2;
+            const rb = b.t.toLowerCase().startsWith(q)||b.aka.toLowerCase().startsWith(q) ? 0 : b.t.toLowerCase().includes(q) ? 1 : 2; return ra-rb || a.key.localeCompare(b.key); });
+}
+function render(){
+  const q = input.value.trim().toLowerCase(), list = matches(), box = $("g-list");
+  box.innerHTML = "";
+  $("g-count").textContent = `${list.length} of ${G.length}`;
+  const letters = new Set(list.map(g=>g.L));
+  const az = $("g-az"); az.innerHTML = "";
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(L=>{ az.append(letters.has(L) && !q ? A.el("a",{href:"#L-"+L},L) : A.el("span",{"aria-hidden":"true"},L)); });
+  if(!list.length){ box.append(A.el("p",{class:"empty"},`No term matches “${input.value}”. Try a shorter word, or clear the part filters.`)); return; }
+  const groups = q ? [["Best matches", list]] : [...letters].sort().map(L=>[L, list.filter(g=>g.L===L)]);
+  groups.forEach(([L, items])=>{
+    const sec = A.el("section",{class:"letter",id: q ? "L-search" : "L-"+L});
+    sec.append(A.el("h2",{html:`${L}<small>${items.length} term${items.length>1?"s":""}</small>`}));
+    const grid = A.el("div",{class:"terms"});
+    items.forEach(g=>{ const c = chap(g.ch), n = A.chapterIndex(g.ch)+1;
+      const art = A.el("article",{class:"gterm",id:g.id,style:`--pc:var(--p${g.p})`});
+      art.innerHTML = `<h3><span>${hl(g.t,q)}</span>${g.aka?`<span class="aka">${hl(g.aka,q)}</span>`:""}</h3><p>${hl(g.d,q)}</p>
+        <a class="go" href="${g.ch}.html">Taught in ${String(n).padStart(2,"0")} · ${c ? c.short : g.ch} →</a>`;
+      grid.append(art); });
+    sec.append(grid); box.append(sec);
+  });
+}
+let tmr = 0;
+input.addEventListener("input", ()=>{ clearTimeout(tmr); tmr = setTimeout(render, 60); });
+addEventListener("keydown", e=>{ if(e.key==="/" && document.activeElement!==input){ e.preventDefault(); input.focus(); } if(e.key==="Escape" && document.activeElement===input){ input.value=""; render(); } });
+$("g-rand").onclick = ()=>{
+  let pool = matches(); if(!pool.length){ input.value = ""; pool = matches(); render(); }
+  const g = pool[Math.floor(Math.random()*pool.length)];
+  const el = document.getElementById(g.id); if(!el) return;
+  document.querySelectorAll(".gterm.flash").forEach(n=>n.classList.remove("flash"));
+  el.classList.add("flash"); el.scrollIntoView({behavior: A.reduced ? "auto" : "smooth", block:"center"});
+  setTimeout(()=>el.classList.remove("flash"), 2600);
+};
+// deep link: glossary.html#t-jepa or ?q=
+try{ const u = new URLSearchParams(location.search).get("q"); if(u) input.value = u; }catch(e){}
+render();
+if(location.hash.startsWith("#t-")){ const el = document.getElementById(location.hash.slice(1)); if(el){ el.classList.add("flash"); setTimeout(()=>el.scrollIntoView({block:"center"}), 50); } }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,846 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Who is building what, and why do they disagree? · Hidden Patch</title>
+<meta name="description" content="The 2023 to 2026 AI research landscape from the question why: seven moves, the people and their lineages, the live fault lines and what would settle them, DeepMind's arc, MLST as a lens.">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/atlas.css">
+<style>
+/* page-specific */
+.atlas-cta{display:grid;grid-template-columns:auto 1fr auto;gap:.4rem 1rem;align-items:center;max-width:62rem;padding:.9rem 1.1rem;border-radius:14px;
+  border:1.5px solid var(--why);background:var(--why-soft);font-family:var(--ui);text-decoration:none;color:var(--ink)}
+.atlas-cta:hover{color:var(--ink);box-shadow:var(--shadow)}
+.atlas-cta .ico{font-size:1.9rem;font-weight:800;color:var(--why);font-family:var(--display);line-height:1}
+.atlas-cta b{font-family:var(--display);font-size:1.12rem;display:block}
+.atlas-cta span.s{font-size:.88rem;color:var(--muted)}
+.atlas-cta .go{font-family:var(--mono);font-size:.78rem;color:var(--why);white-space:nowrap}
+@media (max-width:560px){.atlas-cta{grid-template-columns:auto 1fr}.atlas-cta .go{grid-column:2}}
+.moves{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:.7rem;counter-reset:mv}
+.moves>div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.8rem .9rem;display:grid;gap:.3rem;align-content:start;font-size:.95rem;counter-increment:mv;position:relative}
+.moves>div::before{content:counter(mv);position:absolute;right:.7rem;top:.4rem;font-family:var(--display);font-weight:800;font-size:1.7rem;color:var(--why);opacity:.35}
+.moves h4{font-size:1.02rem;padding-right:1.6rem}
+.moves .k{font-family:var(--mono);font-size:.68rem;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
+.chipset{display:flex;flex-wrap:wrap;gap:.3rem}
+.chipset button{font-size:.74rem;padding:.2rem .55rem;display:inline-flex;align-items:center;gap:.3rem}
+.chipset button i{width:.62rem;height:.62rem;border-radius:50%;display:inline-block}
+.chipset button[aria-pressed="false"]{opacity:.5}
+.chipset button[aria-pressed="true"]{background:var(--panel-2);color:var(--ink);border-color:var(--line-strong)}
+.npanel{font-family:var(--ui);font-size:.86rem;line-height:1.4;background:var(--panel-2);border-radius:10px;padding:.6rem .7rem;min-height:8.5em}
+.npanel b.t{font-family:var(--display);font-size:1.02rem;display:block;margin-bottom:.15rem}
+.npanel .k{font-family:var(--mono);font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.3rem}
+.npanel p+p{margin-top:.35rem}
+.faults{display:grid;gap:.8rem}
+.fcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.85rem .95rem;display:grid;gap:.6rem}
+.fcard h4{font-size:1.06rem}
+.fsides{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+@media (max-width:620px){.fsides{grid-template-columns:1fr}}
+.fside{border:1px solid var(--line);border-radius:10px;padding:.5rem .65rem;font-size:.9rem;display:grid;gap:.3rem;align-content:start}
+.fside .k{font-family:var(--mono);font-size:.66rem;letter-spacing:.06em;text-transform:uppercase}
+.fside.a{border-left:4px solid var(--p1)} .fside.a .k{color:var(--p1)}
+.fside.b{border-left:4px solid var(--p5)} .fside.b .k{color:var(--p5)}
+.fside.pick{background:var(--why-soft);border-color:var(--why)}
+.fside .ppl{font-family:var(--ui);font-size:.8rem;color:var(--muted)}
+.fbar{height:8px;border-radius:4px;overflow:hidden;display:flex;background:var(--panel-2)}
+.fbar i{display:block;height:100%}
+.frow{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;justify-content:space-between}
+.frow .seg button{font-size:.76rem}
+.settle{border-left:3px solid var(--why);padding:.35rem .7rem;font-size:.93rem;background:var(--why-soft);border-radius:0 8px 8px 0}
+.settle::before{content:"What would settle it: ";font-weight:700;color:var(--why);font-family:var(--ui)}
+.profile{font-family:var(--ui);font-size:.86rem}
+.profile ol{padding-left:1.2em}
+.lineage{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:.8rem}
+.lineage>div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.8rem .9rem;display:grid;gap:.45rem;align-content:start}
+.lineage h4{font-size:1.02rem}
+.chain{display:flex;flex-wrap:wrap;gap:.25rem .2rem;align-items:center;font-family:var(--ui);font-size:.8rem}
+.chain span{border:1px solid var(--line-strong);border-radius:6px;padding:.1rem .4rem;background:var(--panel)}
+.chain span.y{font-family:var(--mono);font-size:.68rem;color:var(--muted);border:0;padding:0}
+.chain i{color:var(--why);font-style:normal;font-weight:700}
+.dm{display:grid;gap:.6rem}
+.dm>div{display:grid;grid-template-columns:2.4rem 1fr;gap:.2rem .8rem;align-items:start;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.75rem .9rem}
+.dm .n{font-family:var(--display);font-weight:800;font-size:1.8rem;line-height:1;color:var(--part)}
+.dm h4{font-size:1.02rem;margin-bottom:.2rem}
+.tlinfo{font-family:var(--ui);font-size:.86rem;line-height:1.4;background:var(--panel-2);border-radius:10px;padding:.55rem .7rem;min-height:6.5em}
+.tlinfo .d{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.tlinfo b{display:block;font-family:var(--display);font-size:1rem}
+.whos{display:flex;flex-wrap:wrap;gap:.35rem}
+</style>
+</head>
+<body data-chapter="landscape" data-part="5">
+<header id="topbar" class="topbar"></header>
+
+<main class="chapter">
+  <section class="opener">
+    <p class="eyebrow"><span class="sw"></span>Part 5 · Map · Chapter 15</p>
+    <h1 class="big">Who is building what, and <span class="w">why</span> do they disagree?</h1>
+    <p class="because">every serious programme agrees that prediction, search and compute matter, and each one bets on a different place to put the structure: in the objective, in the path of learning, in the search, in the architecture or in the data. Those bets make different predictions, so the disagreements are not noise. Most of them could be settled by experiments that have not been run yet.</p>
+    <p class="meta"><span>6 beats · 3 labs · 6 questions</span><span>Builds on: <a href="open.html">14 Why greatness can't be planned</a></span><span>Snapshot: 10 October 2026</span></p>
+    <ul class="toc">
+      <li><a href="#story"><span class="q">?</span>Why the story split</a></li>
+      <li><a href="#network"><span class="q">?</span>Who asks which why</a></li>
+      <li><a href="#lineages"><span class="q">?</span>Why lineages matter</a></li>
+      <li><a href="#faults"><span class="q">?</span>Why they can't just agree</a></li>
+      <li><a href="#deepmind"><span class="q">?</span>What DeepMind is betting on</a></li>
+      <li><a href="#mlst"><span class="q">?</span>Why listen to a podcast</a></li>
+    </ul>
+  </section>
+
+  <a class="atlas-cta" href="why-atlas.html">
+    <span class="ico">⌖</span>
+    <span><b>The Why Atlas: the deeper map</b><span class="s">About 85 people and papers placed under 14 why-questions, seven threads, ten fault lines and six laptop experiments. This chapter is the guided tour; the Atlas is the territory.</span></span>
+    <span class="go">open the Atlas →</span>
+  </a>
+
+  <!-- ============ BEAT 1: story + timeline ============ -->
+  <section class="beat" id="story">
+    <header>
+      <span class="num">Beat 1</span>
+      <h2><span class="w">Why</span> did one story split into seven?</h2>
+      <p class="short">Because "scale a transformer on human data, then fine-tune it" ran into three walls at once: human data is finite, outputs that look right can hide bad insides, and frozen models cannot learn after training. Each wall spawned its own line of attack.</p>
+    </header>
+    <div class="prose">
+      <p>In 2023 the field had one dominant recipe. By October 2026 it had split into several stories that disagree with each other in productive ways. Here they are in seven moves, each tagged with the thread from the <a href="why-atlas.html">Why Atlas</a> that it belongs to.</p>
+    </div>
+    <div class="moves">
+      <div><span class="k">Thread 4 · search + verifier</span><h4>Reasoning came from RL on checkable answers</h4><p>DeepSeek-R1 (peer-reviewed in <i>Nature</i>, 2025-09), IMO gold for OpenAI and Gemini Deep Think (2025-07), Aletheia on 4 open Erdős problems (2026-02). Whether RL <em>creates</em> reasoning or only <em>surfaces</em> it is disputed.</p></div>
+      <div><span class="k">Thread 4 · search + verifier</span><h4>Search plus a verifier became a discovery engine</h4><p>FunSearch (2023), AlphaEvolve (2025-05) and its 2026 impact report, open clones (OpenEvolve, ShinkaEvolve, ThetaEvolve), self-rewriting agents (Darwin Gödel Machine, Huxley-Gödel Machine, Hyperagents).</p></div>
+      <div><span class="k">Thread 3 · right space to predict</span><h4>World models became an industry</h4><p>Genie 3, Dreamer 4, V-JEPA 2, LeWorldModel, AMI Labs' $1.03B seed (2026-03), World Labs Marble, NVIDIA Cosmos, Wayve GAIA-3. Three camps: generate pixels, build explicit 3D, or predict in a latent space.</p></div>
+      <div><span class="k">Thread 7 · small, local, cheap</span><h4>Small recursive models embarrassed big ones</h4><p>TRM (7M parameters) and CompressARC (76K) on ARC, "refinement loops" as ARC Prize 2025's theme, ARC-AGI-3 (2026-03) where frontier models scored under 1% at launch.</p></div>
+      <div><span class="k">Thread 2 · outside vs inside</span><h4>Representations converge, less than claimed</h4><p>The Platonic Representation Hypothesis (2024) was narrowed by 2026 critiques to relational, local convergence. Kumar's FER hypothesis (2025): identical outputs can hide fractured insides.</p></div>
+      <div><span class="k">Thread 2 · outside vs inside</span><h4>Interpretability moved to mechanisms</h4><p>DeepMind deprioritised sparse autoencoders (2025-03). Anthropic found attribution graphs, feature manifolds, introspection, emotion vectors (2025-26).</p></div>
+      <div><span class="k">Thread 6 · learning never stops</span><h4>Continual learning is the declared next frontier</h4><p>Titans, Nested Learning/HOPE, TTT-E2E, sparse memory finetuning, DeepMind's EVE Online partnership (2026-08), ARC-AGI-3's in-environment learning.</p></div>
+    </div>
+    <div class="prose">
+      <p>The deepest current runs under all seven: <b>what a system learns depends on how it learned it</b> (the path, the objective, the verifier, the curriculum), and matching outputs says little about the quality of the inside. The timeline below puts 58 dated results on the seven threads, so you can see when each thread woke up.</p>
+    </div>
+    <figure class="lab" id="lab-tl">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Seven threads, 2022 to 2026</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-tl" aria-label="Timeline from 2022 to October 2026 with one lane per research thread; each dot is a dated result. Below, a histogram of results per half-year."></canvas></div>
+        <div class="side">
+          <div class="ctrl"><span class="lbl">Threads shown</span>
+            <div class="chipset" id="tl-chips"></div>
+            <div class="btns" style="margin-top:.35rem"><button type="button" id="tl-all">All</button><button type="button" id="tl-none">None</button></div>
+          </div>
+          <div class="tlinfo" id="tl-info" aria-live="polite"></div>
+          <dl class="readout">
+            <dt>results shown</dt><dd id="tl-n">–</dd>
+            <dt>busiest half-year</dt><dd id="tl-peak" class="hot">–</dd>
+            <dt>since 2025-07</dt><dd id="tl-recent">–</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>Hover or tap a dot. A result that belongs to two threads appears in both lanes, joined by a thin line: FER sits on "path matters" and on "outside vs inside".</li>
+        <li>Turn on only <b>Search + verifier</b>: a steady line from ELM (2022) and FunSearch (2023) to Aletheia (2026). It is the oldest continuous thread, the AlphaGo recipe moved onto language models.</li>
+        <li>Turn on <b>Learning never stops</b>: almost everything is after 2025. The busiest half-year readout shows how late the field started treating deployment as a time to learn.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 2: network ============ -->
+  <section class="beat" id="network">
+    <header>
+      <span class="num">Beat 2</span>
+      <h2><span class="w">Why</span> do the same names keep showing up under different questions?</h2>
+      <p class="short">Because the 14 why-questions are not independent. A person who studies how networks generalize (Q1) ends up studying what is inside them (Q2) and what to predict (Q3). The people who connect the most questions are the ones who move the field.</p>
+    </header>
+    <div class="prose">
+      <p>The network below has three kinds of nodes: the 14 questions (orange pills), people and teams (circles) and key works (squares). An edge means "this person or work is an answer to this question", or "this person wrote this work". Colour is the camp: a rough grouping by which bet the person makes. The layout is a force simulation computed in your browser: edges pull like springs, every pair of nodes repels like charges, and the picture settles where the forces balance. Clusters you see are real structure in the data, not hand placement.</p>
+    </div>
+    <figure class="lab" id="lab-net">
+      <div class="lab-head"><span class="tag">Lab</span><h3>People ↔ questions ↔ works, as a force-directed graph</h3></div>
+      <div class="lab-body">
+        <div class="stage"><canvas id="cv-net" aria-label="Force-directed network of people, key works and the 14 why-questions. Hover or tap a node to highlight its neighbours; drag to move it."></canvas>
+          <div class="legend" style="margin-top:.5rem"><span><i style="background:var(--why);border-radius:3px"></i>question</span><span><i style="background:var(--muted);border-radius:50%"></i>person or team</span><span><i style="background:var(--muted)"></i>work</span><span>drag a node · tap to pin</span></div>
+        </div>
+        <div class="side">
+          <div class="ctrl"><label for="net-q">Question</label>
+            <select id="net-q"></select></div>
+          <div class="ctrl"><span class="lbl">Camps</span><div class="chipset" id="net-camps"></div></div>
+          <div class="npanel" id="net-panel" aria-live="polite"></div>
+          <dl class="readout">
+            <dt>nodes lit</dt><dd id="net-n">–</dd>
+            <dt>top bridge</dt><dd id="net-top" class="hot">–</dd>
+          </dl>
+          <div class="btns"><button type="button" id="net-shake">Re-run layout</button><button type="button" id="net-clear">Clear</button></div>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>The "top bridge" readout is the lit person who touches the most distinct questions. With everything on it is Akarsh Kumar (Q2, Q4, Q5, Q12): the reason the Atlas starts from his FER paper.</li>
+        <li>Pick <b>Q3 · Why latent?</b> in the menu: LeCun's JEPA camp and DeepMind's generative camp hang off the same pill from opposite sides. That single node is the hottest fault line in beat 4.</li>
+        <li>Switch off every camp except <b>Open-endedness</b>: the Stanley, Lehman, Clune, Kumar cluster connects Q4 and Q5 to Q12, which is how artificial life got back into mainstream ML.</li>
+      </ul></div>
+    </figure>
+    <div class="prose">
+      <p>A few people the graph shows as connectors, in one line each:</p>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>Person</th><th>Where</th><th>The why they answer</th></tr></thead>
+      <tbody>
+        <tr><td>Yann LeCun</td><td>AMI Labs / NYU</td><td>Predict in representation space; LLMs alone are not enough (Q3, Q8). Left Meta in November 2025.</td></tr>
+        <tr><td>Randall Balestriero</td><td>Brown</td><td>Networks are splines ("elastic origami"); reconstruction is uninformative; JEPA can be provable (LeJEPA).</td></tr>
+        <tr><td>François Chollet</td><td>Ndea / ARC Prize</td><td>Intelligence is skill-acquisition efficiency, not stored skill (Q7).</td></tr>
+        <tr><td>Richard Sutton</td><td>Alberta / Keen</td><td>The Bitter Lesson; agents should learn continually from experience (Q8, Q9).</td></tr>
+        <tr><td>Karl Friston</td><td>UCL / VERSES</td><td>Anything that persists minimises free energy; curiosity falls out of expected free energy (Q13).</td></tr>
+        <tr><td>Michael Levin</td><td>Tufts</td><td>Cognition is a continuum across scales, from cells to sorting algorithms (Q12).</td></tr>
+        <tr><td>Blaise Agüera y Arcas</td><td>Google</td><td>Self-replicators emerge from random code; life and intelligence are predictive computation (Q12, Q13).</td></tr>
+        <tr><td>Kenneth Stanley, Joel Lehman</td><td>Lila Sciences; ⚠ Lehman's current affiliation unverified</td><td>Objectives deceive; collect stepping stones; ML is blind to unknown unknowns (Q5).</td></tr>
+        <tr><td>Jeff Clune</td><td>UBC / DeepMind</td><td>AI-generating algorithms; open-ended self-improvement (Q5, Q6).</td></tr>
+        <tr><td>Phillip Isola, Akarsh Kumar</td><td>MIT (Kumar also Sakana)</td><td>Representations converge (PRH); the path of learning decides the quality of the inside (FER).</td></tr>
+        <tr><td>Neel Nanda</td><td>DeepMind</td><td>Reverse-engineer networks, then be pragmatic about tools after the SAE negative results (Q11).</td></tr>
+        <tr><td>Sara Hooker</td><td>⚠ Adaption Labs</td><td>The hardware lottery: ideas win by fitting hardware; FLOPs are a poor proxy (Q10, Q14).</td></tr>
+        <tr><td>Sepp Hochreiter</td><td>JKU / NXAI</td><td>Recurrence with matrix memory (xLSTM) is back (Q10).</td></tr>
+        <tr><td>Petar Veličković, Michael Bronstein</td><td>DeepMind; Oxford</td><td>Symmetry is the blueprint for architecture; transformers over-squash (Q10).</td></tr>
+        <tr><td>Melanie Mitchell, Subbarao Kambhampati, Gary Marcus</td><td>SFI; ASU; NYU emeritus</td><td>Benchmarks overstate abstraction; LLMs cannot self-verify; structure is required (Q6, Q7).</td></tr>
+        <tr><td>Yoshua Bengio</td><td>Mila / LawZero</td><td>Build the predictor deliberately without agency ("Scientist AI") (Q13).</td></tr>
+        <tr><td>Tim Rocktäschel</td><td>DeepMind / UCL</td><td>Open-endedness is necessary for superhuman AI; defined as novelty plus learnability (Q5).</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- ============ BEAT 3: lineages ============ -->
+  <section class="beat" id="lineages">
+    <header>
+      <span class="num">Beat 3</span>
+      <h2><span class="w">Why</span> does it matter who learned from whom?</h2>
+      <p class="short">Because a research lineage carries a default answer to "where should the structure go?". Students inherit the question their advisor thought was central, so you can often predict a paper's bet from its family tree.</p>
+    </header>
+    <div class="prose">
+      <p>Akarsh Kumar is the clean example. His undergraduate mentor at UT Austin was Risto Miikkulainen, who was also Kenneth Stanley's PhD advisor; his PhD advisor is Phillip Isola. So he sits where the NEAT lineage (structure comes from the <em>path</em> of search) meets the representation lineage (structure shows up in <em>what the embedding agrees on</em>). FER is what you get when you ask the second lineage's question with the first lineage's tools.</p>
+      <div class="analogy"><span class="ico">≈</span><div><span class="k">Picture it</span><p>Lineages are river systems. Each one cut its own valley (search, geometry, prediction), and the interesting places are the confluences: Kumar where NEAT meets PRH, LeWorldModel where Schmidhuber's world models meet LeCun's JEPA, ASAL where artificial life meets foundation models.</p></div></div>
+    </div>
+    <div class="lineage">
+      <div><h4>NEAT and open-endedness</h4><div class="chain"><span>Miikkulainen</span><i>→</i><span>Stanley</span><span class="y">NEAT 2002 · CPPN 2007 · Picbreeder 2008 · novelty search 2011</span><i>→</i><span>Uber AI: Clune, Lehman</span><span class="y">POET · Go-Explore</span><i>→</i><span>Clune: OMNI, DGM</span><i>→</i><span>Kumar: ASAL, FER, DRQ</span></div><p class="small muted">Bet: structure comes from the path. Stanley is now SVP of Open-Endedness at Lila Sciences.</p></div>
+      <div><h4>World models</h4><div class="chain"><span>Schmidhuber</span><span class="y">RNN world models 1990</span><i>→</i><span>Ha &amp; Schmidhuber</span><span class="y">2018</span><i>→</i><span>Dreamer 1 to 4</span><i>→</i><span>Genie 1 to 3</span><i>·</i><span>LeCun 2022</span><i>→</i><span>I-JEPA</span><i>→</i><span>V-JEPA 2</span><i>→</i><span>LeJEPA</span><i>→</i><span>LeWM</span><i>→</i><span>AMI Labs</span></div><p class="small muted">Bet: an agent should imagine before it acts. Split on what to imagine: pixels or latents.</p></div>
+      <div><h4>Representation</h4><div class="chain"><span>Wang &amp; Isola</span><span class="y">alignment + uniformity 2020</span><i>→</i><span>VICReg</span><i>→</i><span>SIGReg</span><span class="y">2025</span><i>·</i><span>Isola: CMC</span><i>→</i><span>learning from noise</span><i>→</i><span>PRH</span><span class="y">2024</span><i>→</i><span>Neural Thickets, SMT</span></div><p class="small muted">Bet: structure lives in the geometry of the embedding. See <a href="collapse.html">ch. 03</a> and <a href="gaussian.html">ch. 05</a>.</p></div>
+      <div><h4>Search and verifier</h4><div class="chain"><span>AlphaGo</span><span class="y">2016</span><i>→</i><span>AlphaZero</span><i>→</i><span>AlphaDev, AlphaTensor</span><i>→</i><span>FunSearch</span><i>→</i><span>AlphaEvolve</span><i>→</i><span>Aletheia</span><i>·</i><span>Gödel machine</span><span class="y">2003</span><i>→</i><span>DGM</span><i>→</i><span>HGM</span></div><p class="small muted">Bet: structure comes from a checker. See <a href="reasoning.html">ch. 09</a>.</p></div>
+      <div><h4>Geometry</h4><div class="chain"><span>G-CNNs</span><span class="y">Cohen &amp; Welling 2016</span><i>→</i><span>GDL blueprint</span><span class="y">2021</span><i>→</i><span>over-squashing</span><i>→</i><span>Transformers need glasses</span><i>→</i><span>Softmax is not enough</span></div><p class="small muted">Bet: structure comes from the symmetries of the domain. See <a href="architectures.html">ch. 10</a>.</p></div>
+      <div><h4>Artificial life</h4><div class="chain"><span>Tierra, Avida</span><i>→</i><span>Lenia</span><span class="y">2019</span><i>→</i><span>Growing NCA</span><span class="y">2020</span><i>→</i><span>Flow-Lenia</span><i>→</i><span>Computational Life</span><span class="y">2024</span><i>→</i><span>ASAL</span><i>→</i><span>NCA pre-pre-training</span><span class="y">2026</span></div><p class="small muted">Bet: structure emerges from local rules. See <a href="alife.html">ch. 13</a>.</p></div>
+    </div>
+  </section>
+
+  <!-- ============ BEAT 4: fault lines ============ -->
+  <section class="beat" id="faults">
+    <header>
+      <span class="num">Beat 4</span>
+      <h2><span class="w">Why</span> can't they just agree?</h2>
+      <p class="short">Because most debates are about things nobody can measure yet: the quality of an inside, whether RL adds abilities or reveals them, what counts as reasoning. Each fault line has a specific missing experiment, and naming it turns an argument into a research plan.</p>
+    </header>
+    <div class="prose">
+      <p>Ten live debates, each with the people on both sides as the sources list them. Pick a side on any card you have an opinion on; the panel at the end computes whose positions you match most often. Then open "what would settle it" to see why the debate is still open.</p>
+    </div>
+    <figure class="lab" id="lab-faults">
+      <div class="lab-head"><span class="tag">Lab</span><h3>Fault lines, and the experiment that would close each one</h3></div>
+      <div class="lab-body stack">
+        <div class="stage" style="padding:.8rem">
+          <div class="faults" id="faults-list"></div>
+        </div>
+        <div class="side" style="border-left:0;border-top:1px solid var(--line)">
+          <div class="btns"><button type="button" id="f-open">Open all "settle it"</button><button type="button" id="f-reset">Clear my picks</button><button type="button" class="primary" id="f-lean">Pick the JEPA-project leanings</button></div>
+          <div class="profile" id="f-profile" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="notice"><ul>
+        <li>The coloured bar on each card counts named people on each side. A lopsided bar is not a verdict: "Is deep learning mysterious?" has one named voice on the Wilson side and he is the best supported in-distribution.</li>
+        <li>Read the "settle it" lines together: four of ten ask for a <b>measurement that does not exist yet</b> (internal organization, a predictive theory, a cross-lab interpretability benchmark, an open-endedness metric in disguise). Building measuring tools is the highest-leverage work on this map.</li>
+        <li>"Pick the JEPA-project leanings" fills in the bets this site's own experiments make. Your match list then reads as this project's intellectual neighbours.</li>
+      </ul></div>
+    </figure>
+  </section>
+
+  <!-- ============ BEAT 5: DeepMind ============ -->
+  <section class="beat" id="deepmind">
+    <header>
+      <span class="num">Beat 5</span>
+      <h2>What is DeepMind betting on, and <span class="w">why</span> no JEPA?</h2>
+      <p class="short">Because DeepMind's winning recipe since AlphaGo is a learned prior plus search plus a verifier, and pixels are the one representation a verifier (or a human) can check. Its world-model stack is latent in practice, but its public representation bet is pixel MAE.</p>
+    </header>
+    <div class="dm">
+      <div><span class="n">1</span><div><h4>Search plus learning, generalised</h4><p>AlphaGo's recipe moved onto LLMs: FunSearch (2023-12) → AlphaEvolve (2025-05: a 48-multiplication 4×4 complex matmul, 0.7% of Google's fleet compute recovered) → cross-industry optimiser (2026-05 impact report: TPU design, quantum circuits with 10× lower error, Ramsey bounds). Maths: AlphaProof (formal, IMO silver 2024) → Deep Think IMO gold (informal, 35/42, 2025-07) → Aletheia on open Erdős problems (2026). DiscoRL (<i>Nature</i> 2025) applies it to RL update rules.</p></div></div>
+      <div><span class="n">2</span><div><h4>From human data to experience</h4><p>Silver and Sutton's "Era of Experience" (2025) is the manifesto. SIMA 2 (2025-11) learns in Genie 3 worlds from tasks Gemini proposes; Dreamer 4 got Minecraft diamonds offline; the EVE Online partnership (2026-08) targets continual learning in a persistent world.</p></div></div>
+      <div><span class="n">3</span><div><h4>World models as the training substrate</h4><p>Genie 1 (2024-02: 2D, about 1 fps, latent actions) → Genie 2 (2024-12: 10 to 20 s of 3D) → Genie 3 (2025-08: real-time 720p, 24 fps, about a minute of memory) → Project Genie product (2026-01) and Street View grounding (2026-05). No Genie 4 as of 2026-10-10.</p></div></div>
+      <div><span class="n">4</span><div><h4>AI improving AI</h4><p>AlphaEvolve tunes Gemini kernels and TPU design; Gemini 4 Argon teams migrated an 800K-line kernel to Rust; Decoupled DiLoCo trains across distant data centres. Safety moves in parallel to "AI control" (2026-06 roadmap).</p></div></div>
+      <div><span class="n">5</span><div><h4>Science as flagship</h4><p>AlphaFold 3 → AlphaGenome → AlphaGenome Atlas (about 9 billion variants, 2026-09); GraphCast → WeatherNext 3 (2026-09), which learns from raw observations with no physics model in the loop.</p></div></div>
+    </div>
+    <aside class="aside"><span class="k">The JEPA angle</span>DeepMind has no JEPA-named work. Its video representation bet, 4DS, is a pixel-reconstruction MAE that keeps improving up to 22B parameters. Yet Genie's latent actions, Dreamer's latent dynamics, MooG and D4RT are all latent in practice. An independent 2026 study (<a href="https://arxiv.org/abs/2605.15618">2605.15618</a>) found V-JEPA 2 degrades more gracefully than VideoMAEv2 and VideoPrism under corruption and occlusion. The latent-vs-pixel fault line runs through DeepMind's own stack.</aside>
+  </section>
+
+  <!-- ============ BEAT 6: MLST ============ -->
+  <section class="beat" id="mlst">
+    <header>
+      <span class="num">Beat 6</span>
+      <h2><span class="w">Why</span> use a podcast as a lens on research?</h2>
+      <p class="short">Because Machine Learning Street Talk interviews the people on both sides of almost every fault line, at length, often years before their ideas are mainstream. Long-form conversation exposes the bet behind a paper, which an abstract hides.</p>
+    </header>
+    <div class="prose">
+      <p>MLST hosted LeCun and Balestriero together in January 2022, Chollet four times between 2024 and 2025, Friston five times, and Kumar with Stanley on FER three months after the paper. Not found as guests in the project's search: Hinton, Chris Olah, David Ha, Albert Gu, Richard Sutton. Here is the source dossier's suggested listening order, as a course in fourteen sittings (dates are podcast-feed dates):</p>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>#</th><th>Episode</th><th>Date</th><th>Question</th></tr></thead>
+      <tbody>
+        <tr><td class="n">1</td><td>Stanley &amp; Kumar, FER; then Kumar, "What Most People Get Wrong About Evolution"</td><td class="n">2025-07-06 · 2026-10-10</td><td>Q2 Q4</td></tr>
+        <tr><td class="n">2</td><td>Balestriero, "Elastic Origami" and "LLMs without pretraining and SSL"</td><td class="n">2025-02-08 · 2025-04-23</td><td>Q1 Q3</td></tr>
+        <tr><td class="n">3</td><td>Wilson, "Deep Learning is Not So Mysterious"</td><td class="n">2025-09-19</td><td>Q1</td></tr>
+        <tr><td class="n">4</td><td>Yi Ma, "The Mathematical Foundations of Intelligence"</td><td class="n">2025-12-13</td><td>Q1 Q3</td></tr>
+        <tr><td class="n">5</td><td>Chollet, "It's Not About Scale, It's About Abstraction"</td><td class="n">2024-10-12</td><td>Q7</td></tr>
+        <tr><td class="n">6</td><td>Bonnet, Latent Program Networks</td><td class="n">2025-02-19</td><td>Q7</td></tr>
+        <tr><td class="n">7</td><td>Rocktäschel, open-endedness; then Clune, "Agent AI Needs Darwin"</td><td class="n">2024-10-04 · 2025-01-04</td><td>Q5</td></tr>
+        <tr><td class="n">8</td><td>AlphaEvolve with Balog and Novikov</td><td class="n">2025-05-14</td><td>Q6</td></tr>
+        <tr><td class="n">9</td><td>Genie 3 team</td><td class="n">2025-08-05</td><td>Q3 Q8</td></tr>
+        <tr><td class="n">10</td><td>Friston, "Goldilocks principle"</td><td class="n">2025-09-10</td><td>Q13</td></tr>
+        <tr><td class="n">11</td><td>Levin; then Agüera y Arcas</td><td class="n">2024-10-24 · 2025-10-21</td><td>Q12</td></tr>
+        <tr><td class="n">12</td><td>Barbero, "Transformers Need Glasses"</td><td class="n">2025-03-08</td><td>Q10</td></tr>
+        <tr><td class="n">13</td><td>Nanda on SAEs</td><td class="n">2024-12-07</td><td>Q11</td></tr>
+        <tr><td class="n">14</td><td>Mattick, "Why Scaling Prediction Cannot Create Intelligence"; Hughes on replication</td><td class="n">2026-09-21 · 2026-09-11</td><td>Q1 Q13</td></tr>
+      </tbody>
+    </table></div>
+    <div class="prose">
+      <p><b>If you read instead of listen</b>, the ten-paper path from the source synthesis: <a href="https://arxiv.org/abs/2505.11581">FER</a> → <a href="https://arxiv.org/abs/2405.07987">PRH</a> then <a href="https://arxiv.org/abs/2609.27252">Structure over Geometry</a> → <a href="https://arxiv.org/abs/2402.11337">Reconstruction is uninformative</a> then <a href="https://arxiv.org/abs/2511.08544">LeJEPA</a> → <a href="https://arxiv.org/abs/2406.04268">Open-Endedness is Essential for ASI</a> → <a href="https://arxiv.org/abs/2506.01622">General agents need world models</a> → <a href="https://arxiv.org/abs/1911.01547">On the Measure of Intelligence</a> then the <a href="https://arxiv.org/abs/2601.10904">ARC Prize 2025 report</a> → <a href="https://arxiv.org/abs/2503.02113">Deep Learning is Not So Mysterious</a> → <a href="https://arxiv.org/abs/2506.13131">AlphaEvolve</a> → <a href="https://storage.googleapis.com/deepmind-media/Era-of-Experience%20/The%20Era%20of%20Experience%20Paper.pdf">Era of Experience</a> → <a href="https://arxiv.org/abs/2406.19108">Computational Life</a>.</p>
+      <aside class="aside ours"><span class="k">Where this project sits</span>The project's work so far lives in Q1 (notebooks 01 and 02), Q3 (the JEPA index) and Q14 (the quantization test). The map says the thin, laptop-sized neighbours are Q2 (insides), Q4 (path) and Q7 (abstraction). <a href="lab.html">Chapter 17</a> turns that into experiments for tonight.</aside>
+    </div>
+  </section>
+
+  <section class="remember">
+    <h2>Three things to <span class="w">remember</span></h2>
+    <ol>
+      <li><b>Every camp is a bet on where structure goes.</b>Objective (JEPA), path (open-endedness), search (verifiers), architecture (symmetry, recurrence) or data (synthetic, experience). Name the bet and you can predict the paper.</li>
+      <li><b>Same outputs, different insides.</b>The deepest current of 2025-26: how a system learned shapes what it learned, and output metrics cannot see the difference.</li>
+      <li><b>A debate is a missing experiment.</b>Each fault line names its settling test. Most need a measuring tool nobody has built, which makes tools the best place to contribute.</li>
+    </ol>
+  </section>
+
+  <section id="quiz"></section>
+
+  <section class="sources">
+    <h2>Sources for this chapter</h2>
+    <ol>
+      <li>Project synthesis: <code>landscape/ai-landscape-why.md</code> (sections 1, 4 to 7, 10, 11) and its interactive companion, <a href="why-atlas.html">The Why Atlas</a>.</li>
+      <li>Five dossiers in <code>landscape/sources/</code>: Kumar and open-endedness; MLST guests (two clusters); DeepMind 2023 to 2026; the frontier outside DeepMind. About 330 works with links and per-item check levels.</li>
+      <li>Kumar, Clune, Lehman, Stanley, <a href="https://arxiv.org/abs/2505.11581">The Fractured Entangled Representation Hypothesis</a>, 2025.</li>
+      <li>Huh, Cheung, Wang, Isola, <a href="https://arxiv.org/abs/2405.07987">The Platonic Representation Hypothesis</a>, 2024; <a href="https://arxiv.org/abs/2609.27252">Structure over Geometry</a>, 2026.</li>
+      <li>Hughes, Rocktäschel et al., <a href="https://arxiv.org/abs/2406.04268">Open-Endedness is Essential for Artificial Superhuman Intelligence</a>, 2024.</li>
+      <li>Richens, Abel, Bellot, Everitt, <a href="https://arxiv.org/abs/2506.01622">General agents need world models</a>, ICML 2025.</li>
+      <li>Novikov, Balog et al., <a href="https://arxiv.org/abs/2506.13131">AlphaEvolve</a>, 2025; <a href="https://deepmind.google/blog/alphaevolve-impact">AlphaEvolve impact report</a>, 2026.</li>
+      <li>Yue et al., <a href="https://arxiv.org/abs/2504.13837">Does RL really incentivize reasoning beyond the base model?</a>; <a href="https://arxiv.org/abs/2505.24864">ProRL</a>; <a href="https://arxiv.org/abs/2506.10947">Spurious Rewards</a>, 2025.</li>
+      <li>ARC Prize, <a href="https://arxiv.org/abs/2601.10904">ARC Prize 2025 technical report</a>; <a href="https://arxiv.org/abs/2603.24621">ARC-AGI-3</a>, 2026.</li>
+      <li>DeepMind, <a href="https://deepmind.google/blog/genie-3-a-new-frontier-for-world-models/">Genie 3</a>, 2025 <span class="pill bad">check</span> (dossier: search-only); <a href="https://deepmind.google/blog/sima-2-an-agent-that-plays-reasons-and-learns-with-you-in-virtual-3d-worlds/">SIMA 2</a>, 2025; <a href="https://arxiv.org/abs/2412.15212">4DS</a>.</li>
+      <li>Alrasheed et al., <a href="https://arxiv.org/abs/2605.15618">Latent video prediction for world modeling</a>, 2026.</li>
+      <li>Silver &amp; Sutton, <a href="https://storage.googleapis.com/deepmind-media/Era-of-Experience%20/The%20Era%20of%20Experience%20Paper.pdf">Welcome to the Era of Experience</a>, 2025.</li>
+      <li>Affiliations of Joel Lehman and Sara Hooker, the Waymo World Model and the "global workspace" finding are flagged ⚠ in the sources <span class="pill bad">check</span>.</li>
+    </ol>
+  </section>
+
+  <nav id="pager"></nav>
+</main>
+<footer id="site-footer"></footer>
+
+<script src="assets/atlas.js"></script>
+<script>
+(function(){
+"use strict";
+const A = window.Atlas;
+const $ = id => document.getElementById(id);
+
+/* =================== shared data: threads =================== */
+const THREADS = [
+  {id:"T1", l:"Path matters", c:"p4"},
+  {id:"T2", l:"Outside vs inside", c:"p5"},
+  {id:"T3", l:"Right space to predict", c:"p1"},
+  {id:"T4", l:"Search + verifier", c:"why"},
+  {id:"T5", l:"Diversity vs convergence", c:"p3"},
+  {id:"T6", l:"Learning never stops", c:"p2"},
+  {id:"T7", l:"Small, local, cheap", c:"ink"},
+];
+
+/* =================== LAB: timeline =================== */
+(function(){
+  // [yyyy-mm, title, threads, note, url]
+  const EV = [
+    ["2022-06","A Path Towards AMI",["T3"],"LeCun's position paper: JEPA as a latent-variable energy model at the core of a world model.","https://openreview.net/forum?id=BZ5a1r-kVsf"],
+    ["2022-06","ELM",["T4","T5"],"Evolution through Large Models: an LLM as the mutation operator in evolutionary search.","https://arxiv.org/abs/2206.08896"],
+    ["2022-09","Toy Models of Superposition",["T2"],"Features as directions, packed more densely than the number of neurons.","https://transformer-circuits.pub/2022/toy_model/index.html"],
+    ["2023-01","I-JEPA",["T3"],"Predict target-block embeddings from a context block; no augmentations.","https://arxiv.org/abs/2301.08243"],
+    ["2023-01","Grokking progress measures",["T1"],"Weight decay slowly replaces memorization with a compact Fourier algorithm.","https://arxiv.org/abs/2301.05217"],
+    ["2023-06","AlphaDev",["T4"],"AlphaZero-style search over assembly; sorting routines merged into libc++.","https://deepmind.google/blog/alphadev-discovers-faster-sorting-algorithms"],
+    ["2023-06","OMNI",["T5"],"A foundation model as the judge of what is interesting to learn next.","https://arxiv.org/abs/2306.01711"],
+    ["2023-12","FunSearch",["T4"],"LLM proposes programs, an evaluator scores them: new cap-set constructions.","https://deepmind.google/blog/funsearch-making-new-discoveries-in-mathematical-sciences-using-large-language-models"],
+    ["2024-02","Genie",["T3"],"11B model infers latent actions from platformer videos; playable 2D worlds at about 1 fps.","https://arxiv.org/abs/2402.15391"],
+    ["2024-02","Reconstruction is uninformative",["T3"],"Balestriero & LeCun: reconstruction favours high-variance subspaces that are poor for perception.","https://arxiv.org/abs/2402.11337"],
+    ["2024-05","Platonic Representation Hyp.",["T2"],"Representations across models and modalities converge toward a shared model of reality.","https://arxiv.org/abs/2405.07987"],
+    ["2024-05","xLSTM",["T7"],"Hochreiter: recurrence with matrix memory, constant memory per step.","https://arxiv.org/abs/2405.04517"],
+    ["2024-06","Open-endedness for ASI",["T5"],"Hughes, Rocktäschel et al.: open-endedness = novelty plus learnability, relative to an observer.","https://arxiv.org/abs/2406.04268"],
+    ["2024-06","Computational Life (BFF)",["T5"],"Self-replicating programs emerge from random interaction with no fitness function.","https://arxiv.org/abs/2406.19108"],
+    ["2024-07","AlphaProof: IMO silver",["T4"],"RL in Lean with a formal verifier as reward; 28/42.","https://deepmind.google/blog/ai-solves-imo-problems-at-silver-medal-level/"],
+    ["2024-08","Gemma Scope",["T2"],"Open sparse autoencoders across Gemma 2 layers.","https://arxiv.org/abs/2408.05147"],
+    ["2024-12","ASAL",["T5"],"Foundation models search artificial-life simulators; Conway's Life ranks in the top 5% of 2^18 rules.","https://arxiv.org/abs/2412.17799"],
+    ["2024-12","Genie 2",["T3"],"A single image becomes a playable 3D world for 10 to 20 seconds.","https://deepmind.google/blog/genie-2-a-large-scale-foundation-world-model/"],
+    ["2024-12","ARC Prize 2024",["T4","T6"],"Test-time training and program synthesis push ARC from 33% to 55.5%.","https://arxiv.org/abs/2412.04604"],
+    ["2025-01","Titans",["T6"],"A neural memory updated at inference by surprise (Google Research).","https://arxiv.org/abs/2501.00663"],
+    ["2025-01","Knightian Blindspot",["T5"],"Lehman, Stanley et al.: ML assumes known unknowns; evolution survives unknown ones.","https://arxiv.org/abs/2501.13075"],
+    ["2025-03","Not so mysterious",["T1"],"Wilson: soft inductive bias plus classical bounds explain benign overfitting and double descent.","https://arxiv.org/abs/2503.02113"],
+    ["2025-03","SAEs deprioritised",["T2"],"DeepMind's negative results: SAEs lose to linear probes on OOD detection.","https://arxiv.org/abs/2502.16681"],
+    ["2025-04","Yue et al.: RL only sharpens?",["T4"],"At large k, base models match their RLVR-trained versions.","https://arxiv.org/abs/2504.13837"],
+    ["2025-05","AlphaEvolve",["T4"],"Gemini-driven code evolution: 48-multiplication 4×4 complex matmul, 0.7% fleet compute recovered.","https://arxiv.org/abs/2506.13131"],
+    ["2025-05","FER hypothesis",["T1","T2"],"Same skull, opposite insides: Picbreeder reuses symmetry; SGD is an entangled patchwork.","https://arxiv.org/abs/2505.11581"],
+    ["2025-05","Darwin Gödel Machine",["T4","T5"],"A coding agent rewrites itself with an open-ended archive; SWE-bench 20% to 50%.","https://arxiv.org/abs/2505.22954"],
+    ["2025-05","ProRL",["T4"],"Long, stabilised RL reaches solutions the base model cannot.","https://arxiv.org/abs/2505.24864"],
+    ["2025-06","V-JEPA 2",["T3"],"1M+ hours of video; zero-shot robot planning after 62 hours of robot data.","https://arxiv.org/abs/2506.09985"],
+    ["2025-06","Agents need world models",["T3"],"Richens et al.: bounded-regret general agents contain an extractable world model.","https://arxiv.org/abs/2506.01622"],
+    ["2025-07","IMO gold, informal",["T4"],"Gemini Deep Think and an OpenAI model each score 35/42 in natural language.","https://deepmind.google/blog/advanced-version-of-gemini-with-deep-think-officially-achieves-gold-medal-standard-at-the-international-mathematical-olympiad"],
+    ["2025-08","Genie 3",["T3"],"Real-time 720p at 24 fps, about a minute of visual memory.","https://deepmind.google/blog/genie-3-a-new-frontier-for-world-models/"],
+    ["2025-09","DeepSeek-R1 in Nature",["T4"],"Pure-RL (GRPO) reasoning, the first major LLM through peer review.","https://www.scientificamerican.com/article/secrets-of-chinese-ai-model-deepseek-revealed-in-landmark-paper"],
+    ["2025-09","RL's Razor",["T1","T6"],"On-policy RL forgets less than SFT by staying KL-close to the base model.","https://arxiv.org/abs/2509.04259"],
+    ["2025-09","Dreamer 4",["T3"],"Agent trained inside a world model gets Minecraft diamonds from offline video alone.","https://arxiv.org/abs/2509.24527"],
+    ["2025-09","ShinkaEvolve",["T4","T7"],"Open evolutionary search: state-of-the-art circle packing in about 150 evaluations.","https://arxiv.org/abs/2509.19349"],
+    ["2025-10","TRM",["T7"],"A 7M-parameter recursive network competes on ARC.","https://arxiv.org/abs/2510.04871"],
+    ["2025-10","DiscoRL",["T4"],"A meta-learned RL update rule beats hand-designed ones (Nature).","https://www.nature.com/articles/s41586-025-09761-x"],
+    ["2025-11","LeJEPA",["T3"],"SIGReg makes embeddings isotropic Gaussian; no stop-grad, no EMA, one hyperparameter.","https://arxiv.org/abs/2511.08544"],
+    ["2025-11","SIMA 2",["T3","T6"],"Genie 3 worlds, Gemini-proposed tasks, self-improving play.","https://deepmind.google/blog/sima-2-an-agent-that-plays-reasons-and-learns-with-you-in-virtual-3d-worlds/"],
+    ["2025-12","TTT-E2E",["T6"],"Long context as test-time training: scales like full attention at constant latency.","https://arxiv.org/abs/2512.23675"],
+    ["2026-01","Digital Red Queen",["T5"],"LLM arms races in Core War: behaviour converges across 96 runs, code stays diverse.","https://arxiv.org/abs/2601.03335"],
+    ["2026-01","ARC Prize 2025 report",["T4","T7"],"Year of refinement loops: Poetiq harness 54% on ARC-AGI-2 vs 37.6% for the best bare model.","https://arxiv.org/abs/2601.10904"],
+    ["2026-02","Aletheia",["T4"],"Deep Think research agent solves 4 open Erdős problems.","https://arxiv.org/abs/2602.10177"],
+    ["2026-02","Factored representations",["T2"],"Shai et al.: transformers put independent factors in orthogonal subspaces.","https://arxiv.org/abs/2602.02385"],
+    ["2026-03","LeWorldModel",["T3","T7"],"15M-parameter JEPA world model from pixels; plans 48× faster than DINO-WM.","https://arxiv.org/abs/2603.19312"],
+    ["2026-03","NCA pre-pre-training",["T1"],"164M tokens of cellular-automaton dynamics beat 1.6B tokens of real text as a warm-up.","https://arxiv.org/abs/2603.10055"],
+    ["2026-03","Neural Thickets",["T2","T5"],"Random perturbations of big pretrained models are often task experts.","https://arxiv.org/abs/2603.12228"],
+    ["2026-03","ARC-AGI-3",["T6"],"Interactive games, no instructions; frontier models under 1% at launch.","https://arxiv.org/abs/2603.24621"],
+    ["2026-03","AI Scientist in Nature",["T4"],"End-to-end automated research passes peer review, with hallucinated citations.","https://arxiv.org/abs/2606.15497"],
+    ["2026-04","Back into Plato's Cave",["T2"],"Alignment collapses as the comparison set grows; only coarse structure is shared.","https://arxiv.org/abs/2604.18572"],
+    ["2026-05","AI Picbreeder",["T5","T1"],"VLMs replace human Picbreeder users; humans still win; mode collapse.","https://arxiv.org/abs/2605.23908"],
+    ["2026-05","Vector Policy Optimization",["T5"],"Quality-diversity inside GRPO: better best-of-k, small pass@1 cost.","https://arxiv.org/abs/2605.22817"],
+    ["2026-05","AlphaEvolve impact report",["T4"],"TPU design, 10× lower-error quantum circuits, new Ramsey bounds.","https://deepmind.google/blog/alphaevolve-impact"],
+    ["2026-06","SMT",["T6","T7"],"Kumar & Isola: RNNs learn what to remember without backprop through time.","https://arxiv.org/abs/2606.06479"],
+    ["2026-07","ARC-AGI-3 milestone 1",["T7","T6"],"Won by a local 27B model writing Python world models in a REPL.","https://arxiv.org/abs/2603.24621"],
+    ["2026-08","EVE Online partnership",["T6"],"Persistent MMO worlds as a testbed for continual learning.","https://deepmind.google/blog/from-atari-to-eve-online-building-on-15-years-of-ai-research-in-games/"],
+    ["2026-09","Structure over Geometry",["T2"],"Which samples are related converges; exact distances do not.","https://arxiv.org/abs/2609.27252"],
+  ].map(e=>{ const [y,m] = e[0].split("-").map(Number); return {d:e[0], t:y + (m-.5)/12, l:e[1], th:e[2], n:e[3], u:e[4]}; });
+  const T0 = 2022, T1 = 2026+10/12;
+  const on = new Set(THREADS.map(t=>t.id));
+  let hover = null, pinned = EV.find(e=>e.l==="FER hypothesis"), pts = [];
+  const cv = $("cv-tl");
+  const view = A.canvas(cv, w => w<640 ? 1.05 : .56, draw);
+  const chips = $("tl-chips");
+  THREADS.forEach(t=>{
+    const b = A.el("button",{type:"button","aria-pressed":"true","data-t":t.id},A.el("i",{style:`background:var(--${t.c})`}), t.l);
+    b.addEventListener("click",()=>{ on.has(t.id) ? on.delete(t.id) : on.add(t.id); b.setAttribute("aria-pressed", on.has(t.id)); view.redraw(); });
+    chips.append(b);
+  });
+  $("tl-all").onclick = ()=>{ THREADS.forEach(t=>on.add(t.id)); chips.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed","true")); view.redraw(); };
+  $("tl-none").onclick = ()=>{ on.clear(); chips.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed","false")); view.redraw(); };
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    const lanes = THREADS.filter(t=>on.has(t.id));
+    const labW = w<640 ? 0 : 150, x0 = labW+10, x1 = w-12;
+    const histH = h*.22, top = 8, bot = h - histH - 26;
+    const X = t => x0 + (t-T0)/(T1-T0)*(x1-x0);
+    // year grid
+    ctx.font = `11px ${C.mono}`; ctx.textAlign = "center";
+    for(let y=2022;y<=2026;y++){ const x = X(y); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, h-4); ctx.stroke();
+      ctx.fillStyle = C.muted; ctx.fillText(String(y), Math.min(x+ (X(y+1)-x)/2, x1-14), bot+16); }
+    ctx.textAlign = "start";
+    pts = [];
+    const laneH = lanes.length ? (bot-top)/lanes.length : 0, laneY = {};
+    lanes.forEach((t,i)=>{ const y = top + laneH*(i+.5); laneY[t.id] = y;
+      ctx.strokeStyle = C.line; ctx.setLineDash([2,4]); ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = C[t.c]; ctx.font = `600 ${w<640?10.5:12}px ${C.ui}`;
+      if(labW) ctx.fillText(t.l, 4, y+4); else { ctx.globalAlpha=.85; ctx.fillText(t.l, x0+2, y - Math.min(10, laneH*.32)); ctx.globalAlpha=1; }
+    });
+    const shown = EV.filter(e=>e.th.some(id=>on.has(id)));
+    // links between lanes for multi-thread events
+    shown.forEach(e=>{ const ys = e.th.filter(id=>on.has(id)).map(id=>laneY[id]); if(ys.length>1){ ctx.strokeStyle = C.lineStrong; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X(e.t), Math.min(...ys)); ctx.lineTo(X(e.t), Math.max(...ys)); ctx.stroke(); } });
+    // jitter same-month dots
+    const seen = {};
+    shown.forEach(e=>{ e.th.forEach(id=>{ if(!on.has(id)) return; const key = id+e.d; const k = seen[key] = (seen[key]||0)+1;
+      const x = X(e.t), y = laneY[id] + (k-1)*Math.min(7,laneH*.25)*(k%2?1:-1);
+      const t = THREADS.find(q=>q.id===id); const act = e===hover || e===pinned;
+      ctx.fillStyle = C[t.c]; ctx.beginPath(); ctx.arc(x, y, act?6.5:4.2, 0, 7); ctx.fill();
+      if(act){ ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.stroke(); }
+      pts.push({x,y,e});
+    }); });
+    // label pinned
+    const lab = hover || pinned;
+    if(lab && shown.includes(lab)){ const p = pts.find(q=>q.e===lab); ctx.font = `600 11.5px ${C.ui}`; const tw = ctx.measureText(lab.l).width;
+      let lx = Math.min(Math.max(p.x - tw/2, 2), w - tw - 4), ly = p.y - 11; if(ly < 12) ly = p.y + 20;
+      ctx.fillStyle = C.panel; ctx.fillRect(lx-3, ly-11, tw+6, 15); ctx.fillStyle = C.ink; ctx.fillText(lab.l, lx, ly); }
+    // histogram per half-year
+    const bins = []; for(let t=T0; t<T1; t+=.5) bins.push({t, n:0});
+    shown.forEach(e=>{ const b = bins[Math.min(bins.length-1, Math.floor((e.t-T0)/.5))]; b.n++; });
+    const mx = Math.max(1, ...bins.map(b=>b.n)), hb = h - histH + 4;
+    ctx.fillStyle = C.muted; ctx.font = `600 10.5px ${C.ui}`; ctx.fillText("results per half-year", x0, hb - 2);
+    bins.forEach(b=>{ const bx = X(b.t)+1, bw = X(b.t+.5)-X(b.t)-2, bh = (b.n/mx)*(histH-26);
+      ctx.fillStyle = C.part; ctx.globalAlpha = .75; ctx.fillRect(bx, h-8-bh, bw, bh); ctx.globalAlpha = 1;
+      if(b.n){ ctx.fillStyle = C.ink; ctx.font = `10px ${C.mono}`; ctx.textAlign="center"; ctx.fillText(b.n, bx+bw/2, h-11-bh); ctx.textAlign="start"; } });
+    // readouts
+    $("tl-n").textContent = `${shown.length} of ${EV.length}`;
+    const pk = bins.reduce((a,b)=>b.n>a.n?b:a, bins[0]);
+    $("tl-peak").textContent = pk.n ? `${Math.floor(pk.t)} H${pk.t%1?2:1} (${pk.n})` : "–";
+    $("tl-recent").textContent = shown.length ? Math.round(shown.filter(e=>e.t>=2025.5).length/shown.length*100)+"%" : "–";
+    const show = hover || pinned;
+    $("tl-info").innerHTML = show ? `<span class="d">${show.d} · ${show.th.map(id=>THREADS.find(t=>t.id===id).l).join(" + ")}</span><b>${show.l}</b>${show.n} <a href="${show.u}">source</a>` : "Hover or tap a dot.";
+  }
+  function pick(ev){ const r = cv.getBoundingClientRect(), mx = ev.clientX-r.left, my = ev.clientY-r.top; let best=null, bd=18*18;
+    pts.forEach(p=>{ const d=(p.x-mx)**2+(p.y-my)**2; if(d<bd){ bd=d; best=p.e; } }); return best; }
+  cv.addEventListener("pointermove", ev=>{ if(ev.pointerType!=="mouse") return; const e = pick(ev); if(e!==hover){ hover = e; view.redraw(); } });
+  cv.addEventListener("pointerleave", ()=>{ hover = null; view.redraw(); });
+  cv.addEventListener("click", ev=>{ const e = pick(ev); if(e){ pinned = e; view.redraw(); } });
+  view.redraw();
+})();
+
+/* =================== LAB: network =================== */
+(function(){
+  const QS = [
+    ["Q1","Why generalize?","Why do neural networks generalize at all?","No single theory predicts practice well enough to guide it.","generalize"],
+    ["Q2","Why converge?","Why do different models end up with similar representations, and is the inside any good?","Models agree on topology, much less on geometry; nobody measures internal organization at scale.","fractured"],
+    ["Q3","Why latent?","Why predict in a latent space instead of pixels or tokens?","Latent leads on planning speed and robustness; pixels lead on interactivity and products.","jepa"],
+    ["Q4","Why order?","Why does the order of learning shape what is learned?","Well documented for small systems and fine-tuning; suggestive for pretraining.","fractured"],
+    ["Q5","Why deceive?","Why do objectives deceive, and why does open-ended search find what optimization misses?","Open-ended methods win on deceptive problems and diversity; no accepted metric yet.","open"],
+    ["Q6","Why verifiers?","Why does search plus learning plus a verifier keep winning?","The verifier turns compute into reliable progress; disputed whether RL creates or surfaces reasoning.","reasoning"],
+    ["Q7","Why skill ≠ IQ?","Why is skill not the same as intelligence?","On ARC, abstraction came from per-task adaptation, not bigger frozen models.","reasoning"],
+    ["Q8","Why world models?","Why do agents need world models, and which kind?","General agents must contain one (Richens et al.); the open question is which kind.","worlds"],
+    ["Q9","Why no learning?","Why can't models keep learning after training?","No deployed frontier model learns persistently without forgetting.","architectures"],
+    ["Q10","Why fail at counting?","Why do transformers fail at counting and copying, and is architecture still a lever?","Over-squashing and softmax dispersion are proven limits; hybrids went mainstream.","architectures"],
+    ["Q11","Why readable?","Why can we read anything inside a network at all?","SAEs lost default status; mechanisms and functional states took over.","interp"],
+    ["Q12","Why life?","Why does life-like complexity emerge from simple rules?","Replicators, creatures and repair from local rules; no measure of unbounded novelty.","alife"],
+    ["Q13","Why prediction?","Why might intelligence be prediction, and why might prediction not be enough?","Prediction is close to necessary; nobody shows it is sufficient.","gaussian"],
+    ["Q14","Why small wins?","Why does small and efficient keep catching up?","Compute spent on the problem beats compute spent memorizing.","edge"],
+  ];
+  const CAMPS = [
+    {id:"lat", l:"Latent prediction", c:"p1"},
+    {id:"gen", l:"Generate the world", c:"p3"},
+    {id:"oe",  l:"Open-endedness", c:"p4"},
+    {id:"sv",  l:"Search + verifier", c:"why"},
+    {id:"abs", l:"Abstraction & skeptics", c:"bad"},
+    {id:"thy", l:"Theory & architecture", c:"p2"},
+    {id:"rep", l:"Representations & interp", c:"p5"},
+    {id:"life",l:"Life, prediction, agency", c:"muted"},
+  ];
+  // id, label, kind p/w, camp, questions, affiliation/year, one line, url
+  const N = [
+    ["kumar","Akarsh Kumar","p","oe","Q2 Q4 Q5 Q12","MIT / Sakana","The path of learning decides the quality of the inside. MLST 2025-07-06 and 2026-10-10.","https://akarshkumar.com"],
+    ["fer","FER hypothesis","w","oe","Q2 Q4 Q9 Q11","2025","Same skull, opposite insides: Picbreeder reuses symmetry; SGD is an entangled patchwork.","https://arxiv.org/abs/2505.11581"],
+    ["stanley","Kenneth Stanley","p","oe","Q5 Q4","Lila Sciences","Objectives deceive; collect stepping stones. NEAT, CPPNs, Picbreeder, novelty search.","https://www.lila.ai/team/kenneth-stanley"],
+    ["lehman","Joel Lehman","p","oe","Q5","⚠ affiliation unverified","Novelty search; the Knightian blindspot of ML.","https://arxiv.org/abs/2501.13075"],
+    ["clune","Jeff Clune","p","oe","Q5 Q6","UBC / DeepMind","AI-generating algorithms: OMNI, ADAS, Darwin Gödel Machine, Hyperagents. MLST 2025-01-04.","https://jeffclune.com"],
+    ["isola","Phillip Isola","p","rep","Q2 Q4","MIT","Platonic Representation Hypothesis; learning from noise; Neural Thickets; SMT with Kumar.","https://arxiv.org/abs/2405.07987"],
+    ["prh","Platonic Rep. Hypothesis","w","rep","Q2","2024","Representations across models and modalities converge toward a shared model of reality.","https://arxiv.org/abs/2405.07987"],
+    ["prhc","PRH critiques","w","rep","Q2","2026","Aristotelian view, Back into Plato's Cave, Structure over Geometry: convergence is local and relational.","https://arxiv.org/abs/2609.27252"],
+    ["shai","Factored representations","w","rep","Q2 Q11","2026","Shai et al.: independent world factors land in orthogonal subspaces. A reason for optimism.","https://arxiv.org/abs/2602.02385"],
+    ["thickets","Neural Thickets","w","rep","Q2 Q5","2026","Random perturbations of big pretrained models are often task experts.","https://arxiv.org/abs/2603.12228"],
+    ["asal","ASAL","w","oe","Q5 Q12","2024","Foundation models (CLIP) search artificial-life simulators for novel behaviour.","https://arxiv.org/abs/2412.17799"],
+    ["drq","Digital Red Queen","w","oe","Q5 Q6","2026","LLM arms races in Core War: behaviour converges, code stays diverse.","https://arxiv.org/abs/2601.03335"],
+    ["ncap","NCA pre-pre-training","w","oe","Q4 Q12","2026","164M NCA tokens beat 1.6B tokens of real text as a warm-up for language models.","https://arxiv.org/abs/2603.10055"],
+    ["vpo","Vector Policy Opt.","w","oe","Q5 Q6","2026","Quality-diversity inside GRPO.","https://arxiv.org/abs/2605.22817"],
+    ["smt","SMT","w","thy","Q9 Q10","2026","RNNs learn what to remember without backprop through time.","https://arxiv.org/abs/2606.06479"],
+    ["aipb","AI Picbreeder","w","oe","Q5 Q2","2026","VLMs replace human Picbreeder users; humans still win; GECCO best paper.","https://arxiv.org/abs/2605.23908"],
+    ["knight","Knightian Blindspot","w","oe","Q5","2025","ML excludes unknown unknowns; evolution survives them.","https://arxiv.org/abs/2501.13075"],
+    ["chollet","François Chollet","p","abs","Q7","Ndea / ARC Prize","Intelligence is skill-acquisition efficiency. Four MLST episodes 2024-25.","https://arxiv.org/abs/1911.01547"],
+    ["arc25","ARC Prize 2025","w","abs","Q7 Q6","2025","Year of refinement loops: Poetiq harness 54% on ARC-AGI-2; best bare model 37.6%.","https://arxiv.org/abs/2601.10904"],
+    ["arc3","ARC-AGI-3","w","abs","Q7 Q8 Q9","2026","Interactive games; frontier models under 1% at launch, humans 100%.","https://arxiv.org/abs/2603.24621"],
+    ["trm","TRM (7M)","w","abs","Q7 Q14","2025","Tiny recursive network refines a latent and an answer.","https://arxiv.org/abs/2510.04871"],
+    ["carc","CompressARC","w","abs","Q7 Q14 Q1","2025","76K parameters trained per puzzle at test time, no pretraining.","https://arxiv.org/abs/2512.06104"],
+    ["bonnet","Bonnet & Macfarlane","p","lat","Q7 Q3","Amsterdam","Search a learned latent space of programs by gradient at test time (LPN). JEPA-adjacent.","https://arxiv.org/abs/2411.08706"],
+    ["ellis","Kevin Ellis","p","abs","Q7 Q8","Cornell","Induction and transduction are complementary; world models as code.","https://arxiv.org/abs/2411.02272"],
+    ["mindsai","Cole & Osman","p","abs","Q7 Q9","MindsAI / Tufa Labs","Pioneered test-time fine-tuning for ARC.","https://arxiv.org/abs/2506.14276"],
+    ["hubotter","Jonas Hübotter","p","abs","Q9 Q14","ETH Zürich","Learn locally at test time on the most informative data (SIFT).","https://arxiv.org/abs/2410.08020"],
+    ["mitchell","Melanie Mitchell","p","abs","Q7","Santa Fe Institute","Accuracy overstates abstraction (ConceptARC).","https://arxiv.org/abs/2510.02125"],
+    ["kamb","Subbarao Kambhampati","p","abs","Q6 Q7","Arizona State","LLMs can't self-verify; pair them with sound verifiers (LLM-Modulo).","https://arxiv.org/abs/2402.01817"],
+    ["marcus","Gary Marcus","p","abs","Q7","NYU emeritus","No compositional semantics without symbolic structure.",""],
+    ["ruis","Laura Ruis","p","abs","Q4 Q7","⚠ MIT","Reasoning draws on procedural knowledge spread across pretraining documents.","https://arxiv.org/abs/2411.12580"],
+    ["lampinen","Andrew Lampinen","p","thy","Q4","DeepMind","In-context learning generalizes more flexibly than fine-tuning.","https://arxiv.org/abs/2505.00661"],
+    ["summer","Christopher Summerfield","p","abs","Q7 Q13","Oxford / UK AISI","LLMs learning the world from text alone is a real scientific surprise.",""],
+    ["lecun","Yann LeCun","p","lat","Q3 Q8","AMI Labs / NYU","Predict in representation space; LLMs alone are not enough. AMI Labs raised $1.03B (2026-03).","https://openreview.net/forum?id=BZ5a1r-kVsf"],
+    ["bal","Randall Balestriero","p","lat","Q1 Q3","Brown","Networks are splines; reconstruction is uninformative; JEPA can be provable.","https://arxiv.org/abs/2511.08544"],
+    ["recon","Reconstruction is uninformative","w","lat","Q3","2024","Reconstruction favours high-variance subspaces poor for perception.","https://arxiv.org/abs/2402.11337"],
+    ["lejepa","LeJEPA / SIGReg","w","lat","Q3 Q1 Q14","2025","Isotropic Gaussian embeddings are optimal; SIGReg enforces them with no stop-grad or EMA.","https://arxiv.org/abs/2511.08544"],
+    ["lewm","LeWorldModel","w","lat","Q3 Q8 Q14","2026","15M-parameter JEPA world model from pixels; plans 48× faster than DINO-WM.","https://arxiv.org/abs/2603.19312"],
+    ["vjepa2","V-JEPA 2","w","lat","Q3 Q8","2025","Video JEPA on 1M+ hours; zero-shot robot planning after 62 hours of robot data.","https://arxiv.org/abs/2506.09985"],
+    ["jtheory","JEPA world-model theory","w","lat","Q8 Q3","2026","Cui et al.: JEPA pretraining error bounds planning regret.","https://arxiv.org/abs/2606.27014"],
+    ["wyart","Matthieu Wyart","p","lat","Q3","JHU / EPFL","Models learn at the wrong level of abstraction; predict latents. MLST 2026-08.",""],
+    ["beck","Jeff Beck","p","lat","Q3 Q13","","VAEs are energy-based models; JEPA needs principled anti-collapse.",""],
+    ["yima","Yi Ma","p","thy","Q1 Q3 Q11","HKU / Berkeley","Intelligence is parsimony plus self-consistency; transformer blocks are compression steps (CRATE).","https://arxiv.org/abs/2306.01129"],
+    ["genie","Genie 3","w","gen","Q3 Q8","2025","Real-time interactive world model, 720p at 24 fps, about a minute of memory.","https://deepmind.google/blog/genie-3-a-new-frontier-for-world-models/"],
+    ["genieteam","Genie team","p","gen","Q3 Q8","DeepMind","Jack Parker-Holder, Shlomi Fruchter and others. MLST 2025-08-05.","https://deepmind.google/blog/genie-3-a-new-frontier-for-world-models/"],
+    ["veo","Veo as zero-shot reasoner","w","gen","Q3","2025","Video models solve vision tasks zero-shot by 'chain of frames'.","https://arxiv.org/abs/2509.20328"],
+    ["fourds","4DS (MAE to 22B)","w","gen","Q3","2024","DeepMind's pixel-reconstruction video model; the opposite bet to JEPA.","https://arxiv.org/abs/2412.15212"],
+    ["dreamer","Dreamer 4","w","gen","Q8 Q3","2025","Minecraft diamonds from offline video alone, trained inside a world model.","https://arxiv.org/abs/2509.24527"],
+    ["sima2","SIMA 2","w","gen","Q8 Q5","2025","Genie 3 makes worlds, Gemini proposes tasks, the agent learns from its own play.","https://deepmind.google/blog/sima-2-an-agent-that-plays-reasons-and-learns-with-you-in-virtual-3d-worlds/"],
+    ["richens","Agents need world models","w","life","Q8","2025","Bounded-regret general agents contain an extractable world model.","https://arxiv.org/abs/2506.01622"],
+    ["era","Era of Experience","w","life","Q8 Q9","2025","Silver and Sutton: agents will learn mainly from their own experience.","https://storage.googleapis.com/deepmind-media/Era-of-Experience%20/The%20Era%20of%20Experience%20Paper.pdf"],
+    ["sutton","Richard Sutton","p","life","Q8 Q9","Alberta / Keen","The Bitter Lesson; continual learning from experience. Not found on MLST.","http://www.incompleteideas.net/IncIdeas/BitterLesson.html"],
+    ["schmid","Jürgen Schmidhuber","p","sv","Q6 Q8","KAUST / IDSIA","RNN world models (1990), curiosity as compression progress, Gödel machines.","https://arxiv.org/abs/2510.21614"],
+    ["friston","Karl Friston","p","life","Q13 Q8","UCL / VERSES","Anything that persists minimizes free energy. Five MLST episodes 2023-25.","https://arxiv.org/abs/2407.20292"],
+    ["bennett","Max Bennett","p","life","Q8","author","Brains evolved simulation long before language.",""],
+    ["rock","Tim Rocktäschel","p","oe","Q5 Q8","DeepMind / UCL","Open-endedness is necessary for superhuman AI; Genie; Promptbreeder.","https://arxiv.org/abs/2406.04268"],
+    ["oeasi","Open-endedness for ASI","w","oe","Q5","2024","Open-endedness = novelty plus learnability, relative to an observer.","https://arxiv.org/abs/2406.04268"],
+    ["aevolve","AlphaEvolve","w","sv","Q6","2025","Gemini-driven evolutionary code search: new matmul, TPU design, Ramsey bounds.","https://arxiv.org/abs/2506.13131"],
+    ["aletheia","Aletheia","w","sv","Q6","2026","Deep Think research agent solved 4 open Erdős problems.","https://arxiv.org/abs/2602.10177"],
+    ["discorl","DiscoRL","w","sv","Q6","2025","A meta-learned RL update rule beats hand-designed ones.","https://www.nature.com/articles/s41586-025-09761-x"],
+    ["dgm","Darwin / Huxley Gödel","w","sv","Q6 Q5","2025","Coding agents rewrite themselves with open-ended archives.","https://arxiv.org/abs/2505.22954"],
+    ["aisci","AI Scientist (Nature)","w","sv","Q6","2026","Automated ML research in Nature; weak synthesis remains.","https://arxiv.org/abs/2606.15497"],
+    ["sakana","Lu, Lange & Lu","p","sv","Q6 Q5","Sakana AI","LLMs as mutation operators: DiscoPOP, AI Scientist, ShinkaEvolve.","https://arxiv.org/abs/2509.19349"],
+    ["balog","Balog & Novikov","p","sv","Q6","DeepMind","The AlphaEvolve team. MLST 2025-05-14.","https://arxiv.org/abs/2506.13131"],
+    ["rlvr","RLVR debate","w","sv","Q6 Q7","2025","R1 in Nature; Yue et al. vs ProRL; spurious rewards help Qwen only.","https://arxiv.org/abs/2504.13837"],
+    ["jiang","Zhengyao Jiang","p","sv","Q6","Weco AI","Self-improvement still runs inside human-designed search spaces.","https://arxiv.org/abs/2502.13138"],
+    ["hughes","Edward Hughes","p","oe","Q5 Q13","Inherent","Creativity is not optimization; judgement about what to ask is missing.",""],
+    ["titans","Titans / Nested Learning","w","thy","Q9","2025","Memory updated at inference by surprise; nested memories (HOPE).","https://arxiv.org/abs/2501.00663"],
+    ["ttt","TTT-E2E","w","thy","Q9 Q10","2025","Long context as test-time training at constant latency.","https://arxiv.org/abs/2512.23675"],
+    ["razor","RL's Razor","w","thy","Q4 Q9","2025","On-policy RL forgets less than SFT.","https://arxiv.org/abs/2509.04259"],
+    ["grok","Grokking circuits","w","thy","Q1 Q4 Q11","2023","Weight decay slowly replaces memorization with a compact algorithm.","https://arxiv.org/abs/2301.05217"],
+    ["wilson","Andrew Gordon Wilson","p","thy","Q1","NYU","Deep learning is not mysterious: soft inductive bias plus classical bounds.","https://arxiv.org/abs/2503.02113"],
+    ["mattick","Alexander Mattick","p","thy","Q13 Q1","Fraunhofer / UTN","Prediction is not control; theory must predict practice.",""],
+    ["vb","Veličković & Barbero","p","thy","Q10","DeepMind / Oxford","Transformers over-squash; softmax disperses; low precision worsens collapse.","https://arxiv.org/abs/2406.04267"],
+    ["bronstein","Michael Bronstein","p","thy","Q10","Oxford","Geometric deep learning: symmetry is the blueprint for architecture.","https://arxiv.org/abs/2104.13478"],
+    ["hooker","Sara Hooker","p","thy","Q10 Q14","⚠ Adaption Labs","The hardware lottery; FLOPs are a poor proxy.","https://arxiv.org/abs/2009.06489"],
+    ["hoch","Sepp Hochreiter","p","thy","Q10 Q14","JKU / NXAI","xLSTM: recurrence with matrix memory, edge-friendly.","https://arxiv.org/abs/2405.04517"],
+    ["ctm","Jones & Darlow","p","thy","Q10 Q14","Sakana AI","Continuous Thought Machines: neuron timing as representation.","https://arxiv.org/abs/2505.05522"],
+    ["hybrid","Hybrid attention","w","thy","Q10","2025-26","Qwen3.5, Kimi Linear, Nemotron 3; MiniMax stays full-attention.","https://arxiv.org/abs/2510.26692"],
+    ["dlm","Diffusion LMs","w","thy","Q10 Q14","2025-26","Gemini Diffusion, Mercury, LLaDA2.0 at 100B, DiffusionGemma.","https://arxiv.org/abs/2512.15745"],
+    ["nanda","Neel Nanda","p","rep","Q11 Q1","DeepMind","Reverse-engineer networks; pragmatic interpretability after SAE negatives.","https://arxiv.org/abs/2408.05147"],
+    ["saeneg","SAE negative results","w","rep","Q11","2025","SAEs lose to linear probes on OOD detection.","https://arxiv.org/abs/2502.16681"],
+    ["attr","Attribution graphs","w","rep","Q11 Q13","2025-26","Circuit tracing, feature manifolds, introspection, emotion concepts.","https://transformer-circuits.pub/"],
+    ["levin","Michael Levin","p","life","Q12","Tufts","Cognition is a continuum across scales (TAME).","https://arxiv.org/abs/2201.10346"],
+    ["aguera","Blaise Agüera y Arcas","p","life","Q12 Q13","Google","Self-replicators emerge from random code; intelligence is prediction.","https://arxiv.org/abs/2406.19108"],
+    ["bff","Computational Life","w","life","Q12","2024","Self-replicating programs emerge with no fitness function.","https://arxiv.org/abs/2406.19108"],
+    ["flenia","Flow-Lenia","w","life","Q12 Q5","2025","Mass-conserving continuous CA where species coexist and evolve.","https://arxiv.org/abs/2506.08569"],
+    ["bengio","Yoshua Bengio","p","life","Q13","Mila / LawZero","Separate intelligence from agency: a non-agentic Scientist AI.","https://arxiv.org/abs/2502.15657"],
+    ["brain","Brain-model alignment","w","life","Q13","2025-26","LLM depth tracks brain response timing (Raugel et al.).","https://arxiv.org/abs/2512.01591"],
+    ["jordan","Michael I. Jordan","p","life","Q13","Berkeley / Inria","Intelligence is collective.",""],
+    ["edgew","Gemma 4 edge & M5","w","thy","Q14","2026","Offline phone models, EmbeddingGemma 2 in 191 MB, BitNet, M5 + MLX.","https://blog.google/innovation-and-ai/technology/developers-tools/gemma-4/"],
+  ].map(r=>({id:r[0], l:r[1], k:r[2], camp:r[3], q:r[4].split(" "), af:r[5], n:r[6], u:r[7]}));
+  const PW = {kumar:["fer","asal","drq","ncap","vpo","smt","aipb"], isola:["prh","thickets","smt"], stanley:["fer"], lehman:["knight"],
+    lecun:["recon","lejepa"], bal:["recon","lejepa"], chollet:["arc25","arc3"], clune:["dgm","aisci"], rock:["oeasi"], hughes:["oeasi"],
+    sutton:["era"], balog:["aevolve"], aguera:["bff"], nanda:["saeneg"], schmid:["dgm"], sakana:["aisci"], genieteam:["genie"]};
+  // build graph
+  const nodes = [], byId = {}, links = [];
+  QS.forEach((q,i)=>{ const n = {id:q[0], l:q[0], s:q[1], t:q[2], ev:q[3], ch:q[4], k:"q", camp:null, q:[]}; nodes.push(n); byId[n.id]=n; });
+  N.forEach(e=>{ nodes.push(e); byId[e.id]=e; e.q.forEach(qid=>links.push({a:e, b:byId[qid], kind:"q"})); });
+  for(const p in PW) PW[p].forEach(w=>links.push({a:byId[p], b:byId[w], kind:"pw"}));
+  const nb = {}; nodes.forEach(n=>nb[n.id]=new Set([n.id]));
+  links.forEach(L=>{ nb[L.a.id].add(L.b.id); nb[L.b.id].add(L.a.id); });
+
+  const cv = $("cv-net");
+  const ASP = cv.getBoundingClientRect().width < 640 ? 1.4 : .7;
+  const WW = 1000, HH = 1000*ASP;   // world units
+  const view = A.canvas(cv, w => w<640 ? 1.4 : .7, draw);
+  let T = {s:1,ox:0,oy:0}, alpha = 1, hover = null, sel = null, drag = null, qFilter = "all";
+  const campOn = new Set(CAMPS.map(c=>c.id));
+
+  function seed(s){
+    const r = A.rng(s);
+    QS.forEach((q,i)=>{ const a = -Math.PI/2 + i*2*Math.PI/QS.length, n = byId[q[0]]; n.x = WW/2 + WW*.36*Math.cos(a); n.y = HH/2 + HH*.38*Math.sin(a); n.vx=n.vy=0; });
+    N.forEach(n=>{ let sx=0, sy=0; n.q.forEach(q=>{ sx+=byId[q].x; sy+=byId[q].y; }); sx/=n.q.length; sy/=n.q.length;
+      n.x = WW/2 + (sx-WW/2)*.7 + (r()-.5)*60; n.y = HH/2 + (sy-HH/2)*.7 + (r()-.5)*60; n.vx=n.vy=0; });
+    alpha = 1;
+  }
+  function tick(){
+    const k = alpha;
+    // repulsion
+    for(let i=0;i<nodes.length;i++){ const a = nodes[i];
+      for(let j=i+1;j<nodes.length;j++){ const b = nodes[j];
+        let dx = b.x-a.x, dy = b.y-a.y, d2 = dx*dx+dy*dy;
+        if(d2 > 160000) continue; if(d2 < 1){ dx = Math.random()-.5; dy = Math.random()-.5; d2 = 1; }
+        const qa = a.k==="q", qb = b.k==="q";
+        const f = (qa&&qb ? 9000 : qa||qb ? 4200 : 2600) / d2 * k;
+        const d = Math.sqrt(d2), fx = dx/d*f, fy = dy/d*f;
+        a.vx -= fx; a.vy -= fy; b.vx += fx; b.vy += fy;
+      } }
+    // springs
+    links.forEach(L=>{ const a=L.a, b=L.b; const dx=b.x-a.x, dy=b.y-a.y, d=Math.hypot(dx,dy)||1;
+      const rest = L.kind==="q" ? 140 : 60, s = (L.kind==="q" ? .035 : .06) * k;
+      const f = (d-rest)*s, fx = dx/d*f, fy = dy/d*f;
+      const wa = a.k==="q" ? .25 : 1, wb = b.k==="q" ? .25 : 1;
+      a.vx += fx*wa; a.vy += fy*wa; b.vx -= fx*wb; b.vy -= fy*wb; });
+    // gravity + integrate
+    nodes.forEach(n=>{
+      n.vx += (WW/2 - n.x)*.0025*k; n.vy += (HH/2 - n.y)*.0025*k;
+      if(n===drag){ n.vx = n.vy = 0; return; }
+      n.vx *= .82; n.vy *= .82;
+      const sp = Math.hypot(n.vx,n.vy); if(sp>40){ n.vx*=40/sp; n.vy*=40/sp; }
+      n.x += n.vx; n.y += n.vy;
+      n.x = Math.max(30, Math.min(WW-30, n.x)); n.y = Math.max(20, Math.min(HH-20, n.y));
+    });
+    alpha = Math.max(.02, alpha*.985);
+  }
+  function settle(steps){ for(let i=0;i<steps;i++) tick(); }
+
+  const visible = n => n.k==="q" || campOn.has(n.camp);
+  function litSet(){
+    const focus = hover || sel;
+    if(focus) return nb[focus.id];
+    if(qFilter!=="all") return nb[qFilter];
+    return null;
+  }
+  function draw(){
+    const {ctx,w,h} = view, C = A.colors(); ctx.clearRect(0,0,w,h);
+    if(!drag){ let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9; nodes.forEach(n=>{ if(!visible(n)) return; x0=Math.min(x0,n.x); y0=Math.min(y0,n.y); x1=Math.max(x1,n.x); y1=Math.max(y1,n.y); });
+      const px = w>620 ? 70 : 24, py = 18, bw = Math.max(50,x1-x0), bh = Math.max(50,y1-y0);
+      const sc = Math.min((w-2*px)/bw, (h-2*py)/bh);
+      T = {s:sc, ox:(w-bw*sc)/2 - x0*sc, oy:(h-bh*sc)/2 - y0*sc}; }
+    const s = T.s, lit = litSet();
+    ctx.save(); ctx.translate(T.ox, T.oy);
+    const isLit = n => visible(n) && (!lit || lit.has(n.id));
+    // edges
+    links.forEach(L=>{ if(!visible(L.a)||!visible(L.b)) return;
+      const on = lit && lit.has(L.a.id) && lit.has(L.b.id) && (L.a===(hover||sel)||L.b===(hover||sel)||L.a.id===qFilter||L.b.id===qFilter);
+      ctx.strokeStyle = on ? C.why : C.line; ctx.globalAlpha = on ? .9 : (lit ? .35 : .8); ctx.lineWidth = on ? 1.6 : 1;
+      if(L.kind==="pw") ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(L.a.x*s, L.a.y*s); ctx.lineTo(L.b.x*s, L.b.y*s); ctx.stroke(); ctx.setLineDash([]); });
+    ctx.globalAlpha = 1;
+    const showAllNames = w > 760;
+    // non-question nodes
+    nodes.forEach(n=>{ if(n.k==="q" || !visible(n)) return;
+      const camp = CAMPS.find(c=>c.id===n.camp), col = C[camp.c], x = n.x*s, y = n.y*s, on = isLit(n);
+      ctx.globalAlpha = on ? 1 : .18; ctx.fillStyle = col;
+      const r = n.k==="p" ? 5.5 : 4.6;
+      if(n.k==="p"){ ctx.beginPath(); ctx.arc(x,y,r,0,7); ctx.fill(); } else ctx.fillRect(x-r,y-r,2*r,2*r);
+      if(n===sel || n===hover){ ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x,y,r+4,0,7); ctx.stroke(); }
+      const label = (lit && lit.has(n.id)) || (showAllNames && n.k==="p" && !lit);
+      if(label){ ctx.font = `${n.k==="p"?600:400} ${lit?11:10}px ${C.ui}`; ctx.fillStyle = lit ? C.ink : C.muted; const tw = ctx.measureText(n.l).width;
+        if(x + T.ox + r + 3 + tw > w - 2){ ctx.textAlign = "right"; ctx.fillText(n.l, x-r-3, y+3.5); ctx.textAlign = "start"; } else ctx.fillText(n.l, x+r+3, y+3.5); }
+      ctx.globalAlpha = 1;
+    });
+    // question pills on top
+    nodes.forEach(n=>{ if(n.k!=="q") return;
+      const x = n.x*s, y = n.y*s, on = !lit || lit.has(n.id);
+      const txt = w>620 ? `${n.id} · ${n.s}` : n.id;
+      ctx.font = `700 ${w>620?11.5:11}px ${C.ui}`; const tw = ctx.measureText(txt).width + 14;
+      ctx.globalAlpha = on ? 1 : .3;
+      ctx.fillStyle = (n===sel||n===hover||n.id===qFilter) ? C.why : C.panel; ctx.strokeStyle = C.why; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x-tw/2, y-10, tw, 20, 10) : ctx.rect(x-tw/2,y-10,tw,20); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = (n===sel||n===hover||n.id===qFilter) ? C.panel : C.why; ctx.textAlign = "center"; ctx.fillText(txt, x, y+4); ctx.textAlign = "start";
+      ctx.globalAlpha = 1;
+    });
+    ctx.restore();
+    // readouts
+    const litNodes = nodes.filter(isLit);
+    $("net-n").textContent = `${litNodes.length} of ${nodes.length}`;
+    let best = null, bq = -1; litNodes.forEach(n=>{ if(n.k!=="p") return; if(n.q.length>bq){ bq = n.q.length; best = n; } });
+    $("net-top").textContent = best ? `${best.l} (${bq} Qs)` : "–";
+  }
+  function panel(){
+    const n = hover || sel, P = $("net-panel");
+    if(!n){ P.innerHTML = `<span class="k">Nothing selected</span>Hover or tap a node to light its neighbours and read its one-line answer; tap empty space to clear. Drag a node to pull the layout. Try Akarsh Kumar, the top bridge.`; return; }
+    if(n.k==="q"){
+      const people = [...nb[n.id]].map(id=>byId[id]).filter(m=>m.k==="p").map(m=>m.l);
+      P.innerHTML = `<span class="k">Question · ${people.length} people</span><b class="t">${n.t}</b><p>${n.ev}</p><p><a href="${n.ch}.html">The chapter that teaches it →</a></p>`;
+    } else {
+      const camp = CAMPS.find(c=>c.id===n.camp);
+      const works = n.k==="p" && PW[n.id] ? `<p class="small">Works: ${PW[n.id].map(id=>byId[id].l).join(", ")}</p>` : "";
+      P.innerHTML = `<span class="k">${n.k==="p"?"Person or team":"Work"} · ${n.af||"–"} · ${camp.l}</span><b class="t">${n.l}</b><p>${n.n}</p>${works}<p class="small muted">Answers ${n.q.join(", ")}</p>${n.u?`<p><a href="${n.u}">Open source →</a></p>`:""}`;
+    }
+  }
+  function hit(ev){
+    const r = cv.getBoundingClientRect(), s = T.s, mx = (ev.clientX-r.left-T.ox)/s, my = (ev.clientY-r.top-T.oy)/s;
+    let best = null, bd = (ev.pointerType==="mouse" ? 14 : 22)/s; bd *= bd;
+    nodes.forEach(n=>{ if(!visible(n)) return; const d = (n.x-mx)**2 + (n.y-my)**2 * (n.k==="q"?2.5:1); if(d<bd){ bd=d; best=n; } });
+    return {n:best, mx, my};
+  }
+  const anim = A.loop(cv, ()=>{ tick(); view.redraw(); if(alpha<=.03 && !drag) return false; });
+  let downAt = null;
+  cv.addEventListener("pointerdown", ev=>{ const {n} = hit(ev); downAt = {x:ev.clientX, y:ev.clientY, n};
+    if(n){ drag = n; cv.setPointerCapture(ev.pointerId); } });
+  cv.addEventListener("pointermove", ev=>{
+    if(drag && downAt && Math.hypot(ev.clientX-downAt.x, ev.clientY-downAt.y) > 4){ const {mx,my} = hit(ev); drag.x = mx; drag.y = my; alpha = Math.max(alpha,.35); anim.start(); return; }
+    if(ev.pointerType!=="mouse" || drag) return;
+    const {n} = hit(ev); if(n!==hover){ hover = n; panel(); view.redraw(); } });
+  cv.addEventListener("pointerup", ev=>{
+    const moved = downAt && Math.hypot(ev.clientX-downAt.x, ev.clientY-downAt.y) > 4;
+    if(!moved && downAt){ sel = downAt.n || null; hover = null; panel(); view.redraw(); }
+    drag = null; downAt = null; });
+  cv.addEventListener("pointerleave", ()=>{ if(!drag){ hover = null; panel(); view.redraw(); } });
+
+  // controls
+  const qs = $("net-q");
+  qs.append(A.el("option",{value:"all"},"All questions"));
+  QS.forEach(q=>qs.append(A.el("option",{value:q[0]},`${q[0]} · ${q[1]}`)));
+  qs.addEventListener("change", ()=>{ qFilter = qs.value; sel = qFilter==="all" ? null : byId[qFilter]; hover = null; panel(); view.redraw(); });
+  const cc = $("net-camps");
+  CAMPS.forEach(c=>{ const b = A.el("button",{type:"button","aria-pressed":"true"}, A.el("i",{style:`background:var(--${c.c==="why"?"why":c.c})`}), c.l);
+    b.addEventListener("click",()=>{ campOn.has(c.id) ? campOn.delete(c.id) : campOn.add(c.id); b.setAttribute("aria-pressed", campOn.has(c.id)); if(sel && !visible(sel)) sel = null; panel(); view.redraw(); });
+    cc.append(b); });
+  $("net-shake").onclick = ()=>{ seed(Math.floor(Math.random()*1e6)); if(A.reduced){ settle(320); view.redraw(); } else { settle(40); anim.start(); } };
+  $("net-clear").onclick = ()=>{ sel = null; hover = null; qFilter = "all"; qs.value = "all"; campOn.clear(); CAMPS.forEach(c=>campOn.add(c.id)); cc.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed","true")); panel(); view.redraw(); };
+
+  seed(11); settle(360); panel(); view.redraw();
+})();
+
+/* =================== LAB: fault lines =================== */
+(function(){
+  const F = [
+    {q:"Does scale give good representations?", a:"Yes: models converge on a shared model of reality, and SGD can factor it.", ap:["PRH (Isola)","Shai et al.","Summerfield"], b:"No: convergence is only local, and same outputs can hide fractured insides.", bp:["FER (Kumar, Stanley)","2026 PRH critiques"], s:"A scalable metric of internal organization (unified, factored), applied across model sizes.", j:"b"},
+    {q:"Latent prediction or pixel generation for world models?", a:"Predict in a latent space: faster planning, robust, small.", ap:["LeCun","Balestriero","Wyart","AMI Labs"], b:"Generate pixels: playable, checkable, product-ready.", bp:["DeepMind (Genie, Veo, 4DS)","Odyssey","Cosmos"], s:"Head-to-head planning success and cost on shared robot tasks.", j:"a"},
+    {q:"Does RL create reasoning or only surface it?", a:"Long, stabilised RL expands what the model can solve.", ap:["ProRL"], b:"RL reweights what pretraining already put there.", bp:["Yue et al.","Spurious Rewards"], s:"Pass@k at large k on model families with weak priors, after long RL.", j:null},
+    {q:"Do LLMs reason?", a:"Yes, with generalizable procedures learned from pretraining.", ap:["Ruis","Summerfield","Agüera y Arcas","Greenblatt"], b:"No, or not reliably: they pattern-match and cannot self-verify.", bp:["Kambhampati","Mitchell","Marcus","Saba","Chollet (partly)"], s:"Counterfactual and interactive tests: ARC-AGI-3, GSM-Symbolic-style variants.", j:null},
+    {q:"Derive architectures from principles, or search for them?", a:"Derive them from symmetry, compression and geometry.", ap:["Yi Ma","Bronstein","Veličković","Balestriero"], b:"Search for them with evolution and LLMs.", bp:["Clune","Sakana","AlphaEvolve","ASI-Evolve"], s:"Whether a searched architecture beats derived ones and stays interpretable.", j:"a"},
+    {q:"Is deep learning mysterious?", a:"Partly: several explanations, none complete.", ap:["Prince (partly)","Balestriero (partly)"], b:"No: soft inductive bias plus classical bounds explain it.", bp:["Wilson"], s:"A theory that predicts training outcomes before running them (Mattick's demand).", j:null},
+    {q:"SAEs or something else for interpretability?", a:"Dictionaries, transcoders and attribution graphs.", ap:["Anthropic"], b:"Pragmatic probes chosen per task.", bp:["DeepMind (Nanda)"], s:"Downstream tasks where each wins, replicated across labs.", j:"b"},
+    {q:"Build agents or avoid agency?", a:"Build open-ended, self-improving agents.", ap:["Clune","Rocktäschel","Sakana","Silver and Sutton"], b:"Build a non-agentic predictor: agency is where the risk is.", bp:["Bengio"], s:"Mostly a values question; AI control work is the middle path.", j:null},
+    {q:"Hybrid or full attention?", a:"Hybrid linear + full attention is the efficient future.", ap:["Qwen","Moonshot","NVIDIA","DeepSeek"], b:"Full attention for agentic reliability.", bp:["MiniMax"], s:"Long-horizon agentic benchmarks at matched cost.", j:"a"},
+    {q:"Is intelligence individual or collective?", a:"Individual: scale one model.", ap:["Most of the field"], b:"Collective: ecosystems and many agents.", bp:["Michael I. Jordan","Friston","Foerster"], s:"Whether multi-agent systems beat single scaled models on open problems.", j:null},
+  ];
+  const picks = A.store.get("faults", {});
+  const list = $("faults-list");
+  const cards = F.map((f,i)=>{
+    const card = A.el("div",{class:"fcard"});
+    const na = f.ap.length, nb = f.bp.length;
+    card.innerHTML = `<div class="frow"><h4>${f.q}</h4></div>
+      <div class="fbar" aria-label="${na} named on side A, ${nb} on side B"><i style="width:${na/(na+nb)*100}%;background:var(--p1)"></i><i style="width:${nb/(na+nb)*100}%;background:var(--p5)"></i></div>
+      <div class="fsides"><div class="fside a"><span class="k">Side A · ${na} named</span><p>${f.a}</p><span class="ppl">${f.ap.join(" · ")}</span></div>
+      <div class="fside b"><span class="k">Side B · ${nb} named</span><p>${f.b}</p><span class="ppl">${f.bp.join(" · ")}</span></div></div>
+      <div class="frow"><div class="seg" role="group" aria-label="Your position"><button type="button" data-v="a">I lean A</button><button type="button" data-v="u">Unsure</button><button type="button" data-v="b">I lean B</button></div>
+      <button type="button" class="tog" aria-expanded="false">What would settle it?</button></div>
+      <p class="settle" hidden>${f.s}</p>`;
+    const tog = card.querySelector(".tog"), st = card.querySelector(".settle");
+    tog.onclick = ()=>{ st.hidden = !st.hidden; tog.setAttribute("aria-expanded", !st.hidden); };
+    card.querySelectorAll("[data-v]").forEach(b=>b.onclick = ()=>{ picks[i] = b.dataset.v; A.store.set("faults", picks); render(); });
+    list.append(card); return card;
+  });
+  cards[0].querySelector(".settle").hidden = false; cards[0].querySelector(".tog").setAttribute("aria-expanded","true");
+  function render(){
+    const score = {};
+    F.forEach((f,i)=>{ const p = picks[i] || "u";
+      cards[i].querySelectorAll("[data-v]").forEach(b=>b.setAttribute("aria-pressed", b.dataset.v===p));
+      cards[i].querySelector(".fside.a").classList.toggle("pick", p==="a"); cards[i].querySelector(".fside.b").classList.toggle("pick", p==="b");
+      if(p==="a"||p==="b"){ const mine = p==="a"?f.ap:f.bp, theirs = p==="a"?f.bp:f.ap;
+        mine.forEach(n=>{ score[n] = score[n]||{w:0,l:0}; score[n].w++; }); theirs.forEach(n=>{ score[n] = score[n]||{w:0,l:0}; score[n].l++; }); } });
+    const n = Object.values(picks).filter(v=>v==="a"||v==="b").length;
+    const P = $("f-profile");
+    if(!n){ P.innerHTML = `<b>No picks yet.</b> Choose a side on any card and this panel lists the named voices you agree with most, counting +1 for each shared side and −1 for each opposed one. Across all ten cards, ${F.reduce((s,f)=>s+f.ap.length+f.bp.length,0)} named positions are in play.`; return; }
+    const rank = Object.entries(score).map(([k,v])=>[k, v.w - v.l, v]).sort((a,b)=>b[1]-a[1] || b[2].w-a[2].w);
+    const top = rank.filter(r=>r[1]>0).slice(0,5), bot = rank.filter(r=>r[1]<0).slice(-3).reverse();
+    P.innerHTML = `<b>${n} of ${F.length} debates picked.</b><div class="split" style="margin-top:.4rem;gap:1rem"><div><span class="small muted">Closest voices</span><ol>${top.map(r=>`<li>${r[0]} <span class="mono small">+${r[1]}</span></li>`).join("")||"<li>none yet</li>"}</ol></div><div><span class="small muted">Furthest voices</span><ol>${bot.map(r=>`<li>${r[0]} <span class="mono small">${r[1]}</span></li>`).join("")||"<li>none yet</li>"}</ol></div></div>`;
+  }
+  $("f-open").onclick = ()=>cards.forEach(c=>{ c.querySelector(".settle").hidden = false; c.querySelector(".tog").setAttribute("aria-expanded","true"); });
+  $("f-reset").onclick = ()=>{ for(const k in picks) delete picks[k]; A.store.set("faults", picks); render(); };
+  $("f-lean").onclick = ()=>{ F.forEach((f,i)=>{ picks[i] = f.j || "u"; }); A.store.set("faults", picks); render(); };
+  render();
+})();
+
+/* =================== QUIZ =================== */
+A.quiz("quiz", [
+  {q:"Why can't the Platonic Representation Hypothesis's metrics detect a fractured entangled representation?",
+   options:["Because PRH only studies language models","Because PRH compares kernels over final embeddings, and two nets with identical outputs have identical kernels however their insides are organized","Because FER only applies to evolutionary algorithms","Because PRH metrics are too noisy"],
+   answer:1, why:"PRH measures who is near whom in the final representation. FER is about how the computation is organized inside. Identical outputs give identical PRH scores by construction, which is why the two claims can both be true."},
+  {q:"Why is \"search plus learning plus a verifier\" so reliable where a verifier exists?",
+   options:["Because verifiers make models larger","Because every accepted step is checked, so errors do not compound and extra compute turns into real progress","Because verifiers replace the need for a model","Because search is cheaper than training"],
+   answer:1, why:"The verifier filters proposals, so the archive only ever contains correct steps. That is why the recipe stalls exactly where no cheap checker exists: synthesis, taste, which question to ask."},
+  {q:"Why does the RL-creates-or-surfaces debate need model families with weak priors to settle it?",
+   options:["Because strong models are too expensive","Because on Qwen even random rewards raise maths scores, so gains there may be pretraining resurfacing rather than new ability","Because weak models cannot be trained with RL","Because pass@k is undefined for strong models"],
+   answer:1, why:"Spurious Rewards showed random or wrong rewards help Qwen2.5-Math but not Llama or OLMo. If the base already contains the skill, any nudge reveals it; only a weak-prior base can show whether RL adds something new."},
+  {q:"Why does DeepMind publish pixel-generating world models (Genie, Veo) while Meta and AMI Labs bet on JEPA?",
+   options:["DeepMind has not heard of JEPA","Pixels are playable and checkable, which suits products and agent training loops; latents are faster and more robust for planning but hard to inspect","JEPA cannot be trained on video","Pixel models are always smaller"],
+   answer:1, why:"The trade-off is inspectability and interactivity against planning speed and robustness. DeepMind's internal stack (Genie's latent actions, Dreamer) is latent in practice, but its public bet is on outputs a human or verifier can look at."},
+  {q:"Why did small recursive models (TRM at 7M, CompressARC at 76K) compete on ARC with frontier models?",
+   options:["ARC tasks are tiny images","Abstraction on ARC came from per-task adaptation (refinement loops, test-time training), which tiny models can do as well as large frozen ones","They were trained on the test set","They use more parameters at test time"],
+   answer:1, why:"Compute spent on the problem at hand beats compute spent memorizing in advance. The ARC team's own HRM ablation found the outer refinement loop, not the architecture, drove the score."},
+  {q:"Why is Akarsh Kumar a good starting node for the whole map?",
+   options:["He has the most citations","He sits where the NEAT/open-endedness lineage meets Isola's representation lineage, and his work touches four of the fourteen questions","He works at DeepMind","He invented JEPA"],
+   answer:1, why:"Miikkulainen links him to Stanley; Isola is his advisor. FER asks the representation lineage's question with open-endedness tools, which is why it connects Q2, Q4, Q5 and Q12."},
+]);
+})();
+</script>
+</body>
+</html>
