@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz · How training finds a solution · ML course</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d; --track:var(--t5); --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67; --grid:rgba(28,36,34,.10);
+  --warn:#c1121f; --soft:rgba(31,145,141,.10);
+  --wrong:#c0504d; --wrong-soft:rgba(192,80,77,.10);
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --grid:rgba(232,238,236,.12); --warn:#ff8f85;
+    --soft:rgba(31,145,141,.16); --t4:#e0679a; --t5:#5aa1e6;
+    --wrong:#f0938f; --wrong-soft:rgba(240,147,143,.13);
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;padding-bottom:5.6rem}
+a{color:var(--accent)}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;background:var(--track);color:var(--track-ink);
+  padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.topbar .spacer{flex:1 1 auto}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:920px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 2rem}
+.intro{max-width:70ch;color:var(--ink)}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .7rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.8rem,2vw,1.2rem);margin:1.4rem 0}
+button{font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:.34rem .82rem;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button:disabled{opacity:1}
+button.primary:hover{color:#fff;filter:brightness(1.06)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:.78rem;color:var(--muted);margin:.35rem 0 0}
+.mono,code{font-family:var(--mono);font-size:.92em}
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ───────── quiz-specific ───────── */
+.qhead{display:flex;flex-wrap:wrap;gap:.5rem;align-items:baseline;margin:0 0 .55rem}
+.qnum{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted)}
+.tag{font-family:var(--display);font-size:.68rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;border:1px solid var(--line);border-radius:999px;
+  padding:.1rem .5rem;color:var(--muted)}
+.tag.conceptual{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.tag.numbers{color:var(--t1);border-color:var(--t1)}
+.tag.predict{color:var(--t3);border-color:var(--t3)}
+.tag.code{color:var(--muted);border-color:var(--line);background:var(--grid)}
+.qhead .spacer{flex:1 1 auto}
+.qstate{font-family:var(--display);font-size:.7rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted)}
+.qtext{margin:0 0 .7rem;max-width:74ch}
+.qtext b{font-weight:600}
+pre.snippet{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--grid);
+  border:1px solid var(--line);border-radius:10px;padding:.65rem .8rem;margin:.2rem 0 .75rem;
+  overflow-x:auto}
+.srcfile{font-family:var(--mono);font-size:.76rem;color:var(--muted);margin:-.5rem 0 .75rem}
+.opts{display:flex;flex-direction:column;gap:.4rem;margin:0 0 .3rem}
+.opt{display:flex;gap:.6rem;align-items:flex-start;text-align:left;width:100%;
+  font-family:var(--body);font-size:.92rem;font-weight:400;line-height:1.45;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:10px;
+  padding:.55rem .7rem;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent);color:var(--ink);background:var(--soft)}
+.opt:disabled{cursor:default}
+.opt .key{font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--muted);
+  min-width:1.2em;padding-top:.08rem}
+.opt.picked{border-color:var(--accent)}
+.opt.right{border-color:var(--accent);background:var(--soft)}
+.opt.right .key{color:var(--accent)}
+.opt.wrongpick{border-color:var(--wrong);background:var(--wrong-soft)}
+.opt.wrongpick .key{color:var(--wrong)}
+.opt .mark{margin-left:auto;font-family:var(--display);font-size:.76rem;font-weight:600;
+  white-space:nowrap;padding-left:.5rem}
+.opt.right .mark{color:var(--accent)}
+.opt.wrongpick .mark{color:var(--wrong)}
+.numrow{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:0 0 .3rem}
+.numrow input{font-family:var(--mono);font-size:.9rem;color:var(--ink);background:var(--paper);
+  border:1px solid var(--line);border-radius:10px;padding:.45rem .6rem;width:15rem;max-width:100%}
+.acts{display:flex;flex-wrap:wrap;gap:.45rem;margin:.55rem 0 0}
+.verdictline{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.03em;
+  text-transform:uppercase;border-radius:999px;padding:.2rem .62rem;display:inline-block;
+  border:1px solid var(--line);margin:.7rem 0 .45rem}
+.verdictline.ok{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.verdictline.no{color:var(--wrong);border-color:var(--wrong);background:var(--wrong-soft)}
+.explain{font-size:.88rem;line-height:1.5;border-left:3px solid var(--line);
+  padding:.1rem 0 .1rem .75rem;margin:.2rem 0 0;max-width:74ch;color:var(--ink)}
+.explain .src{display:block;font-family:var(--mono);font-size:.76rem;color:var(--muted);margin-top:.4rem}
+.explain a.tryit{font-family:var(--display);font-size:.78rem;font-weight:600;text-decoration:none;
+  border:1px solid var(--accent);border-radius:999px;padding:.16rem .6rem;display:inline-block;
+  margin-top:.5rem}
+.explain a.tryit:hover{background:var(--soft)}
+.scorebar{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--panel);
+  border-top:1px solid var(--line);padding:.55rem clamp(.9rem,3vw,2rem)}
+.scorebar .inner{max-width:920px;margin:0 auto;display:flex;flex-wrap:wrap;gap:.5rem .9rem;
+  align-items:center}
+.scorebar .score{font-family:var(--mono);font-size:1rem;font-weight:600;color:var(--accent)}
+.scorebar .of{color:var(--muted);font-weight:400}
+.scorebar .msg{font-size:.84rem;color:var(--muted);flex:1 1 260px;min-width:0}
+.scorebar .msg b{color:var(--ink)}
+.scorebar .msg .review{display:block;font-size:.78rem;margin-top:.1rem}
+@media (max-width:700px){
+  .topbar h1{font-size:.98rem}
+  .scorebar .msg{flex-basis:100%}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Quiz · How training finds a solution</h1>
+  <span class="pill">Module 14 · How learning works</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">← All quizzes</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">Ten questions on module 14. Every number is the module's own measured output,
+      from <span class="mono">results/*.json</span>: three optimisers on two toy losses and on module 02's MLP,
+      two loss slices with their sharpness, and two grokking runs.</p>
+    <p>Answer in any order; answering locks a question and shows the explanation.
+      Your answers stay in this browser. Three questions ask you to <b>predict</b> a result
+      before you look it up; commit to an answer first.</p>
+  </section>
+
+  <div id="quiz"></div>
+</main>
+
+<footer>
+  <p class="paths">module → <a href="../modules/14-how-training-finds-a-solution/README.md">../modules/14-how-training-finds-a-solution/README.md</a>
+    · explorable → <a href="../explorables/14-how-training-finds-a-solution.html">../explorables/14-how-training-finds-a-solution.html</a></p>
+  <p>Matching reading: <a href="https://arxiv.org/abs/1712.09913">Visualizing the Loss Landscape of Neural Nets</a>,
+    <a href="https://arxiv.org/abs/2201.02177">Grokking</a>, and
+    <a href="https://arxiv.org/abs/1703.04933">Sharp Minima Can Generalize For Deep Nets</a>.</p>
+</footer>
+
+<div class="scorebar">
+  <div class="inner">
+    <span class="score"><span id="sc-score">0</span><span class="of"> / 10</span></span>
+    <span class="msg" id="sc-msg">Nothing answered yet.</span>
+    <button id="sc-reset">Reset quiz</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ═════════════════════════ PURE LOGIC START ═════════════════════════
+   Question bank + grading. Dependency-free and DOM-free: the verification
+   harness loads this file's exports under node and asserts the grading rules,
+   the score accumulation, and the answer-key balance.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const QUIZ_ID = "14";
+const STORE_KEY = "mlcourse-quiz-" + QUIZ_ID;
+const SUMMARY_KEY = "mlcourse-quiz-scores";
+
+const QUESTIONS = [
+  /* ── 1 ────────────────────────────────────────────────────── predict ── */
+  {
+    id: "q1", kind: "single", tag: "predict", topic: "Momentum on the Rosenbrock valley",
+    text: "<b>Predict</b> before you open the figure. From (−1.2, 1), plain gradient descent needs 3,660 steps at " +
+          "its best rate to bring the Rosenbrock loss under 10<sup>−3</sup>. Momentum 0.9, at <i>its</i> best rate " +
+          "on the same grid of 37 rates, needs about how many?",
+    options: [
+      "About 3,600: momentum only smooths noise, and this loss has none.",
+      "About 160, roughly 20 times fewer.",
+      "About 36, roughly 100 times fewer.",
+      "It never gets under 10<sup>−3</sup>: momentum overshoots the curved valley at every rate."
+    ],
+    answer: 1,
+    explain: "164 steps at rate 0.0032; Adam needs 182 at rate 1.33. Momentum adds up gradient steps that agree, " +
+             "which here means along the valley floor. There is no noise on this loss, so the gain is not about " +
+             "smoothing noise. Momentum reaches the target at only 13 of the 37 rates; from 0.0042 up it diverges.",
+    source: "modules/14-how-training-finds-a-solution/results/optim_toy.json → losses.rosenbrock.optimisers",
+    tryIt: { href: "../explorables/14-how-training-finds-a-solution.html", label: "try it — pick Rosenbrock in panel 1" }
+  },
+  /* ── 2 ───────────────────────────────────────────────── real numbers ── */
+  {
+    id: "q2", kind: "numeric", tag: "numbers", topic: "Adam's range of rates",
+    text: "The sweep tries 37 learning rates from 10<sup>−4</sup> to 10<sup>0.5</sup>. <b>Type at how many of them " +
+          "Adam brings the Rosenbrock loss under 10<sup>−3</sup></b> within 10,000 steps.",
+    answer: 29, tol: 0, tolLabel: "exact",
+    placeholder: "e.g. 12",
+    explain: "29 of 37, against 13 for momentum and 4 for gradient descent. The 8 rates where Adam misses are the " +
+             "smallest ones, where 10,000 steps are not enough; it diverges at none. Dividing each step by the " +
+             "gradient's recent size keeps the step near the rate, whatever the gradient.",
+    source: "modules/14-how-training-finds-a-solution/results/optim_toy.json → losses.rosenbrock.optimisers.adam.lrs_that_reach"
+  },
+  /* ── 3 ─────────────────────────────────────────────────── read-code ── */
+  {
+    id: "q3", kind: "single", tag: "code", topic: "What momentum does to the step",
+    text: "This is the momentum step of <code>src/optim_toy.py</code> (torch's convention). If the gradient " +
+          "<code>g</code> stays the same for many steps, how long does each step become?",
+    code: "v = 0.9 * state.get(\"v\", np.zeros_like(p)) + g\n" +
+          "state[\"v\"] = v\n" +
+          "return p - lr * v",
+    file: "modules/14-how-training-finds-a-solution/python/src/optim_toy.py",
+    options: [
+      "lr · g, the same as SGD: momentum only changes the direction.",
+      "0.9 · lr · g: momentum damps the step.",
+      "It keeps growing without limit.",
+      "About 10 · lr · g, since v settles where v = 0.9 v + g."
+    ],
+    answer: 3,
+    explain: "v settles at g / (1 − 0.9) = 10 g. So at the same rate, momentum moves about 10 times further than SGD " +
+             "along a steady slope. On the MLP the best rate was 0.3 for SGD and 0.03 for momentum, a factor of 10, " +
+             "which fits this.",
+    source: "modules/14-how-training-finds-a-solution/README.md §1, §2 · results/optim_mlp.json → best"
+  },
+  /* ── 4 ─────────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q4", kind: "single", tag: "conceptual", topic: "Reading a learning-rate grid",
+    text: "On module 02's MLP, Adam at rate 0.3 ends at 19.3% test accuracy (constant rate), while SGD at the same " +
+          "rate gives its best result, 83.5%. What does that say?",
+    options: [
+      "Adam is a worse optimiser than SGD for this net.",
+      "The run must have diverged to NaN.",
+      "A learning rate means something different for each optimiser, so each needs its own sweep.",
+      "Rate 0.3 is too high for any optimiser on this net."
+    ],
+    answer: 2,
+    explain: "Adam's best cell, rate 3 × 10<sup>−3</sup> with warmup + cosine, gives 87.2%, the best of the grid. " +
+             "Adam's step is about the rate per coordinate, whatever the gradient; SGD's is rate × gradient. No run " +
+             "returned NaN: Adam at 0.3 just bounces around.",
+    source: "modules/14-how-training-finds-a-solution/results/optim_mlp.json → runs"
+  },
+  /* ── 5 ─────────────────────────────────────────── real numbers, multi ── */
+  {
+    id: "q5", kind: "multi", tag: "numbers", topic: "Schedule against seed noise",
+    text: "Each optimiser's best cell was re-run with seeds 1 and 2. Test accuracy, three seeds each. <b>Select all " +
+          "that are true.</b>",
+    options: [
+      "For SGD at rate 0.3, warmup + cosine (85.7–86.0%) beat the constant rate (81.2–84.4%) on every seed.",
+      "For momentum at rate 0.03, warmup + cosine beat the constant rate on every seed.",
+      "Warmup + cosine shrank the seed spread for all three optimisers.",
+      "For Adam at 3 × 10<sup>−3</sup>, the gap between the two schedules is smaller than the seed spread."
+    ],
+    answer: [0, 2],
+    explain: "SGD: true. Momentum: false, the ranges overlap (85.6–86.3% constant, 85.8–85.9% scheduled). Spread: " +
+             "3.1, 0.7, 0.7 points with a constant rate; 0.3, 0.1, 0.1 with the schedule. Adam: false, 87.2–87.3% " +
+             "against 86.1–86.8%, no overlap. Three seeds and one net: a demo, not a measurement.",
+    source: "modules/14-how-training-finds-a-solution/results/optim_mlp.json → best"
+  },
+  /* ── 6 ─────────────────────────────────────────────────── read-code ── */
+  {
+    id: "q6", kind: "single", tag: "code", topic: "The first step of warmup",
+    text: "With <code>warmup = 157</code> and <code>total = 1570</code>, what does the very first optimiser step " +
+          "(step 0) do to the weights?",
+    code: "def warmup_cosine(step, warmup, total):\n" +
+          "    if step < warmup:\n" +
+          "        return step / warmup\n" +
+          "    progress = (step - warmup) / (total - warmup)\n" +
+          "    return 0.5 * (1 + math.cos(math.pi * progress))",
+    file: "modules/14-how-training-finds-a-solution/python/src/optim_mlp.py",
+    options: [
+      "Nothing for SGD: the rate is 0. (Adam's and momentum's running averages still take in that gradient.)",
+      "A full step at the base rate.",
+      "A step at 1/157 of the base rate.",
+      "A step at half the base rate, the cosine's midpoint."
+    ],
+    answer: 0,
+    explain: "0 / 157 = 0. transformers' <code>get_cosine_schedule_with_warmup</code> does the same: the test checks " +
+             "both at all 1,570 steps, and they agree exactly. The rate is 1/157 of the base at step 1 and the full " +
+             "base at step 157.",
+    source: "modules/14-how-training-finds-a-solution/results/hf_way.json → schedule_check · tests/test_solutions.py"
+  },
+  /* ── 7 ────────────────────────────────────────────────────── predict ── */
+  {
+    id: "q7", kind: "single", tag: "predict", topic: "Sharpness and test accuracy",
+    text: "<b>Predict.</b> Two copies of the MLP train to the same training loss (≤ 0.25), one with batch 32 and one " +
+          "with batch 2,048. The batch-2,048 net's top Hessian eigenvalue is 35.2; the batch-32 net's is 2.2. " +
+          "Which has the better test accuracy?",
+    options: [
+      "Batch 32, by a wide margin: flat minima generalise.",
+      "Batch 32, by a little.",
+      "Batch 2,048: 86.2% against 84.8%.",
+      "The same to within 0.1 point."
+    ],
+    answer: 2,
+    explain: "The sharper net did better here, against the usual flat-is-better picture. One pair of runs cannot " +
+             "settle the general question; it shows that sharpness alone did not predict test accuracy in this case. " +
+             "The batch-32 net also has weights twice as large (norm 49.7 against 25.9), which changes the Hessian too.",
+    source: "modules/14-how-training-finds-a-solution/results/landscape.json → nets",
+    tryIt: { href: "../explorables/14-how-training-finds-a-solution.html", label: "try it — hover panel 3" }
+  },
+  /* ── 8 ─────────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q8", kind: "single", tag: "conceptual", topic: "Why filter-normalised directions",
+    text: "The 1-D slice walks from the trained weights θ along a random direction d whose rows are rescaled to the " +
+          "norms of θ's rows. Why rescale?",
+    options: [
+      "So that the slice passes through the global minimum.",
+      "To make the slice cheaper to compute.",
+      "So that the Hessian eigenvalue and the slice measure the same thing.",
+      "Without it, a net with larger weights looks flatter for that reason alone, since the same step changes it less."
+    ],
+    answer: 3,
+    explain: "A ReLU net computes the same function if one layer's weights are scaled up and the next one's scaled " +
+             "down, so raw distances in weight space mean little. Rescaling d to each row's size makes the step " +
+             "relative. The top Hessian eigenvalue gets no such rescaling, which is why the module flags it.",
+    source: "modules/14-how-training-finds-a-solution/README.md §3 · python/src/landscape.py (filter_normalised_direction)"
+  },
+  /* ── 9 ────────────────────────────────────────────────────── predict ── */
+  {
+    id: "q9", kind: "single", tag: "predict", topic: "Grokking without weight decay",
+    text: "<b>Predict.</b> With weight decay 1.0, the mod-97 transformer fits its training pairs by step 130 and " +
+          "crosses 95% test accuracy at step 5,900. The same run with weight decay 0, same split, same initial " +
+          "weights, 20,000 steps. What happens?",
+    options: [
+      "It crosses 95% later, around step 15,000.",
+      "It never crosses 95% within 20,000 steps: test accuracy ends at 4.5%.",
+      "It crosses 95% sooner, since nothing holds the weights back.",
+      "It never fits the training set."
+    ],
+    answer: 1,
+    explain: "It fits the training set by step 120, then test accuracy stays near the floor: 4.5% at step 20,000, " +
+             "with chance at 1.03%. Its weight norm rises to 80.6, while with weight decay 1.0 it peaks at 57.2 and " +
+             "falls to 32.2. The rule was written before the runs; the result is “not within 20k”.",
+    source: "modules/14-how-training-finds-a-solution/results/grok_wd0.json → test_crosses_95, final",
+    tryIt: { href: "../explorables/14-how-training-finds-a-solution.html", label: "try it — replay panel 4" }
+  },
+  /* ── 10 ──────────────────────────────────────────────── real numbers ── */
+  {
+    id: "q10", kind: "numeric", tag: "numbers", topic: "When the model groks",
+    text: "Weight decay 1.0. <b>Type the first evaluated step at which test accuracy is at least 95%.</b>",
+    answer: 5900, tol: 100, tolLabel: "± 100",
+    placeholder: "e.g. 1500",
+    explain: "Step 5,900, against step 130 for 100% train accuracy: about 45 times later. Test accuracy was 7.5% at " +
+             "step 2,000, 30% at 5,000 and crossed 50% at 5,400. The GPU's arithmetic is not bit-identical from run " +
+             "to run, so treat the step as approximate.",
+    source: "modules/14-how-training-finds-a-solution/results/grok_wd1.json → test_crosses_95"
+  }
+];
+
+/* ---------------------------------------------------------------- grading */
+function sameSet(a, b) {
+  const x = a.slice().sort(function (p, q) { return p - q; });
+  const y = b.slice().sort(function (p, q) { return p - q; });
+  return x.length === y.length && x.every(function (v, i) { return v === y[i]; });
+}
+function gradeSingle(q, ans) { return typeof ans === "number" && ans === q.answer; }
+function gradeMulti(q, ans) { return Array.isArray(ans) && sameSet(ans, q.answer); }
+function gradeNumeric(q, ans) {
+  const v = typeof ans === "number" ? ans : parseFloat(String(ans).replace(/[\s,_]/g, ""));
+  return isFinite(v) && Math.abs(v - q.answer) <= q.tol;
+}
+function gradeQuestion(q, ans) {
+  if (ans === undefined || ans === null) return false;
+  if (q.kind === "multi") return gradeMulti(q, ans);
+  if (q.kind === "numeric") return gradeNumeric(q, ans);
+  return gradeSingle(q, ans);
+}
+function scoreAll(questions, answers) {
+  let score = 0, answered = 0;
+  const wrong = [];
+  questions.forEach(function (q) {
+    const a = answers[q.id];
+    if (a === undefined || a === null) return;
+    answered += 1;
+    if (gradeQuestion(q, a)) score += 1; else wrong.push(q.topic);
+  });
+  return { score: score, answered: answered, total: questions.length, wrong: wrong };
+}
+function verdictFor(score, total) {
+  if (score >= 9) return { cls: "ok", text: "solid — move on" };
+  if (score >= 6) return { cls: "no", text: "review the flagged topics" };
+  return { cls: "no", text: "re-run the module notebook first" };
+}
+/* answer-key balance: how often each option position is the correct single-choice answer */
+function keyBalance(questions) {
+  const counts = [0, 0, 0, 0];
+  questions.forEach(function (q) {
+    if (q.kind === "single") counts[q.answer] += 1;
+  });
+  return counts;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { QUIZ_ID, STORE_KEY, SUMMARY_KEY, QUESTIONS, sameSet, gradeSingle,
+                     gradeMulti, gradeNumeric, gradeQuestion, scoreAll, verdictFor, keyBalance };
+}
+/* ══════════════════════════ PURE LOGIC END ══════════════════════════ */
+
+/* ═════════════════════════ DOM / rendering ═════════════════════════ */
+(function () {
+  if (typeof document === "undefined") return;   // running under node
+  const LETTERS = ["A", "B", "C", "D", "E", "F"];
+  const root = document.getElementById("quiz");
+  let answers = {};
+
+  /* ---- persistence ---- */
+  function load() {
+    try {
+      const raw = window.localStorage.getItem(STORE_KEY);
+      if (!raw) return {};
+      const obj = JSON.parse(raw);
+      return (obj && typeof obj.answers === "object" && obj.answers) ? obj.answers : {};
+    } catch (e) { return {}; }
+  }
+  function save() {
+    const s = scoreAll(QUESTIONS, answers);
+    const payload = { quiz: QUIZ_ID, answers: answers, score: s.score,
+                      total: s.total, answered: s.answered, ts: Date.now() };
+    try {
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(payload));
+      let all = {};
+      try { all = JSON.parse(window.localStorage.getItem(SUMMARY_KEY) || "{}") || {}; }
+      catch (e) { all = {}; }
+      all[QUIZ_ID] = { score: s.score, total: s.total, ts: payload.ts };
+      window.localStorage.setItem(SUMMARY_KEY, JSON.stringify(all));
+    } catch (e) { /* private mode: quiz still works, just not remembered */ }
+  }
+
+  /* ---- one question ---- */
+  function buildQuestion(q, i) {
+    const sec = document.createElement("section");
+    sec.className = "panel";
+    sec.id = "sec-" + q.id;
+
+    const head = document.createElement("div");
+    head.className = "qhead";
+    const num = document.createElement("span");
+    num.className = "qnum";
+    num.textContent = "Question " + (i + 1);
+    const tag = document.createElement("span");
+    tag.className = "tag " + q.tag;
+    tag.textContent = { conceptual: "concept", numbers: "real numbers",
+                        predict: "predict", code: "read the code" }[q.tag] || q.tag;
+    const sp = document.createElement("span");
+    sp.className = "spacer";
+    const state = document.createElement("span");
+    state.className = "qstate";
+    state.textContent = "unanswered";
+    head.appendChild(num); head.appendChild(tag); head.appendChild(sp); head.appendChild(state);
+    sec.appendChild(head);
+
+    const txt = document.createElement("p");
+    txt.className = "qtext";
+    txt.innerHTML = q.text;
+    sec.appendChild(txt);
+
+    if (q.code) {
+      const pre = document.createElement("pre");
+      pre.className = "snippet";
+      pre.textContent = q.code;
+      sec.appendChild(pre);
+      const src = document.createElement("p");
+      src.className = "srcfile";
+      src.textContent = q.file;
+      sec.appendChild(src);
+    }
+
+    const holder = { sec: sec, state: state, opts: [], input: null, checkBtn: null,
+                     result: null, q: q };
+
+    if (q.kind === "numeric") {
+      const row = document.createElement("div");
+      row.className = "numrow";
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.inputMode = "numeric";
+      inp.setAttribute("aria-label", "your answer");
+      inp.placeholder = q.placeholder || "your answer";
+      const btn = document.createElement("button");
+      btn.className = "primary";
+      btn.textContent = "Answer";
+      btn.addEventListener("click", function () {
+        const v = parseFloat(inp.value.replace(/[\s,_]/g, ""));
+        if (!isFinite(v)) { inp.focus(); return; }
+        answers[q.id] = v;
+        save(); renderQuestion(holder); renderBar();
+      });
+      inp.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); btn.click(); }
+      });
+      row.appendChild(inp); row.appendChild(btn);
+      sec.appendChild(row);
+      holder.input = inp; holder.checkBtn = btn;
+    } else {
+      const list = document.createElement("div");
+      list.className = "opts";
+      q.options.forEach(function (opt, oi) {
+        const b = document.createElement("button");
+        b.className = "opt";
+        b.type = "button";
+        const key = document.createElement("span");
+        key.className = "key";
+        key.textContent = LETTERS[oi];
+        const body = document.createElement("span");
+        body.innerHTML = opt;
+        const mark = document.createElement("span");
+        mark.className = "mark";
+        b.appendChild(key); b.appendChild(body); b.appendChild(mark);
+        b.addEventListener("click", function () {
+          if (answers[q.id] !== undefined) return;
+          if (q.kind === "multi") {
+            const cur = holder.picked;
+            const at = cur.indexOf(oi);
+            if (at >= 0) cur.splice(at, 1); else cur.push(oi);
+            b.classList.toggle("picked", at < 0);
+            holder.checkBtn.disabled = cur.length === 0;
+          } else {
+            answers[q.id] = oi;
+            save(); renderQuestion(holder); renderBar();
+          }
+        });
+        list.appendChild(b);
+        holder.opts.push({ btn: b, mark: mark });
+      });
+      sec.appendChild(list);
+
+      if (q.kind === "multi") {
+        holder.picked = [];
+        const acts = document.createElement("div");
+        acts.className = "acts";
+        const btn = document.createElement("button");
+        btn.className = "primary";
+        btn.textContent = "Answer";
+        btn.disabled = true;
+        btn.addEventListener("click", function () {
+          if (answers[q.id] !== undefined || holder.picked.length === 0) return;
+          answers[q.id] = holder.picked.slice();
+          save(); renderQuestion(holder); renderBar();
+        });
+        acts.appendChild(btn);
+        const note = document.createElement("span");
+        note.className = "hint";
+        note.style.margin = "0";
+        note.style.alignSelf = "center";
+        note.textContent = "pick every option you believe is true, then Answer";
+        acts.appendChild(note);
+        sec.appendChild(acts);
+        holder.checkBtn = btn;
+      }
+    }
+
+    const res = document.createElement("div");
+    res.style.display = "none";
+    sec.appendChild(res);
+    holder.result = res;
+
+    return holder;
+  }
+
+  /* ---- render one question's locked / unlocked state ---- */
+  function renderQuestion(h) {
+    const q = h.q, ans = answers[q.id], locked = ans !== undefined;
+    const ok = locked && gradeQuestion(q, ans);
+
+    h.state.textContent = locked ? (ok ? "correct" : "incorrect") : "unanswered";
+    h.state.style.color = locked ? (ok ? "var(--accent)" : "var(--wrong)") : "var(--muted)";
+
+    if (h.input) {
+      h.input.disabled = locked;
+      if (locked) h.input.value = String(ans);
+      h.checkBtn.disabled = locked;
+      h.checkBtn.textContent = locked ? "answered" : "Answer";
+    }
+    const correctSet = q.kind === "multi" ? q.answer : (q.kind === "single" ? [q.answer] : []);
+    const pickedSet = !locked ? (h.picked || [])
+      : (q.kind === "multi" ? ans : (q.kind === "single" ? [ans] : []));
+
+    h.opts.forEach(function (o, oi) {
+      o.btn.disabled = locked;
+      o.btn.classList.toggle("picked", !locked && pickedSet.indexOf(oi) >= 0);
+      const isRight = correctSet.indexOf(oi) >= 0;
+      const isPicked = locked && pickedSet.indexOf(oi) >= 0;
+      o.btn.classList.toggle("right", locked && isRight);
+      o.btn.classList.toggle("wrongpick", locked && isPicked && !isRight);
+      o.mark.textContent = !locked ? ""
+        : (isRight ? (isPicked ? "✓ correct · you picked it" : "✓ correct")
+                   : (isPicked ? "✗ your pick" : ""));
+    });
+    if (h.checkBtn && q.kind === "multi") {
+      h.checkBtn.disabled = locked || (h.picked || []).length === 0;
+      h.checkBtn.textContent = locked ? "answered" : "Answer";
+    }
+
+    if (!locked) { h.result.style.display = "none"; h.result.innerHTML = ""; return; }
+
+    h.result.innerHTML = "";
+    h.result.style.display = "block";
+    const v = document.createElement("span");
+    v.className = "verdictline " + (ok ? "ok" : "no");
+    v.textContent = ok ? "Correct" : "Not quite";
+    h.result.appendChild(v);
+
+    if (q.kind === "numeric") {
+      const line = document.createElement("p");
+      line.className = "hint";
+      line.style.marginTop = "0";
+      const nf = function (v) {
+        return Number(v).toLocaleString("en-US", { maximumFractionDigits: 6 });
+      };
+      line.innerHTML = "answer <span class=\"mono\">" + nf(q.answer) +
+        "</span> · accepted " + q.tolLabel + " · you typed <span class=\"mono\">" +
+        nf(ans) + "</span>";
+      h.result.appendChild(line);
+    }
+
+    const ex = document.createElement("div");
+    ex.className = "explain";
+    ex.innerHTML = q.explain;
+    const src = document.createElement("span");
+    src.className = "src";
+    src.textContent = "source · " + q.source;
+    ex.appendChild(src);
+    if (q.tryIt) {
+      const a = document.createElement("a");
+      a.className = "tryit";
+      a.href = q.tryIt.href;
+      a.textContent = q.tryIt.label;
+      ex.appendChild(a);
+    }
+    h.result.appendChild(ex);
+  }
+
+  /* ---- score bar ---- */
+  function renderBar() {
+    const s = scoreAll(QUESTIONS, answers);
+    document.getElementById("sc-score").textContent = String(s.score);
+    const msg = document.getElementById("sc-msg");
+    msg.innerHTML = "";
+    if (s.answered === 0) {
+      msg.textContent = "Nothing answered yet.";
+    } else if (s.answered < s.total) {
+      msg.textContent = s.answered + " of " + s.total + " answered — " +
+        (s.total - s.answered) + " to go.";
+    } else {
+      const vd = verdictFor(s.score, s.total);
+      const b = document.createElement("b");
+      b.textContent = s.score + " / " + s.total + " — " + vd.text + ".";
+      msg.appendChild(b);
+      const rev = document.createElement("span");
+      rev.className = "review";
+      rev.textContent = s.wrong.length
+        ? "Review: " + s.wrong.join(" · ")
+        : "Every topic clean.";
+      msg.appendChild(rev);
+    }
+  }
+
+  /* ---- boot ---- */
+  answers = load();
+  const holders = QUESTIONS.map(function (q, i) {
+    const h = buildQuestion(q, i);
+    root.appendChild(h.sec);
+    return h;
+  });
+  holders.forEach(renderQuestion);
+  renderBar();
+
+  document.getElementById("sc-reset").addEventListener("click", function () {
+    if (!window.confirm("Clear your answers for this quiz and start over?")) return;
+    answers = {};
+    holders.forEach(function (h) { h.picked = []; });
+    try {
+      window.localStorage.removeItem(STORE_KEY);
+      let all = {};
+      try { all = JSON.parse(window.localStorage.getItem(SUMMARY_KEY) || "{}") || {}; }
+      catch (e) { all = {}; }
+      delete all[QUIZ_ID];
+      window.localStorage.setItem(SUMMARY_KEY, JSON.stringify(all));
+    } catch (e) { /* ignore */ }
+    holders.forEach(renderQuestion);
+    renderBar();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+})();
+</script>
+<!-- built for ml-course quizzes v1 -->
+</html>

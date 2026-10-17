@@ -8,7 +8,7 @@
 *,*::before,*::after{box-sizing:border-box}
 :root{
   --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d;
-  --t0:#a86b0e; --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --track-ink:#ffffff;
+  --t0:#a86b0e; --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8; --t6:#b7410e; --track-ink:#ffffff;
   --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67;
   --soft:rgba(31,145,141,.10); --sketch:rgba(28,36,34,.42);
   --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
@@ -19,7 +19,7 @@
 @media (prefers-color-scheme:dark){
   :root{
     --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
-    --muted:#9daba7; --t0:#d9962e; --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --accent:#37b3ae;
+    --muted:#9daba7; --t0:#d9962e; --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --t5:#5aa1e6; --t6:#e7764a; --accent:#37b3ae;
     --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --sketch:rgba(232,238,236,.40);
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
   }
@@ -59,6 +59,8 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
 .track.t2 > h2{color:var(--t2)} .track.t2 > h2 .dot{background:var(--t2)}
 .track.t3 > h2{color:var(--t3)} .track.t3 > h2 .dot{background:var(--t3)}
 .track.t4 > h2{color:var(--t4)} .track.t4 > h2 .dot{background:var(--t4)}
+.track.t5 > h2{color:var(--t5)} .track.t5 > h2 .dot{background:var(--t5)}
+.track.t6 > h2{color:var(--t6)} .track.t6 > h2 .dot{background:var(--t6)}
 
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:1rem}
 
@@ -85,7 +87,7 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
   text-transform:uppercase;color:var(--track-ink);padding:.24rem .6rem;border-radius:999px;
   white-space:nowrap}
 .pill.t0{background:var(--t0)}
-.pill.t1{background:var(--t1)} .pill.t2{background:var(--t2)} .pill.t3{background:var(--t3)} .pill.t4{background:var(--t4)}
+.pill.t1{background:var(--t1)} .pill.t2{background:var(--t2)} .pill.t3{background:var(--t3)} .pill.t4{background:var(--t4)} .pill.t5{background:var(--t5)} .pill.t6{background:var(--t6)}
 .card .file{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
 
 /* --- thumbnail sketch primitives --- */
@@ -94,8 +96,8 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
 .thumb .af{fill:var(--accent);stroke:none}
 .thumb .sf{fill:var(--sketch);stroke:none}
 .thumb .a0{fill:none;stroke:var(--t0);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.thumb .k0{stroke:var(--t0)} .thumb .k1{stroke:var(--t1)} .thumb .k2{stroke:var(--t2)} .thumb .k3{stroke:var(--t3)} .thumb .k4{stroke:var(--t4)}
-.thumb .f0{fill:var(--t0)} .thumb .f1{fill:var(--t1)} .thumb .f2{fill:var(--t2)} .thumb .f3{fill:var(--t3)} .thumb .f4{fill:var(--t4)}
+.thumb .k0{stroke:var(--t0)} .thumb .k1{stroke:var(--t1)} .thumb .k2{stroke:var(--t2)} .thumb .k3{stroke:var(--t3)} .thumb .k4{stroke:var(--t4)} .thumb .k5{stroke:var(--t5)} .thumb .k6{stroke:var(--t6)}
+.thumb .f0{fill:var(--t0)} .thumb .f1{fill:var(--t1)} .thumb .f2{fill:var(--t2)} .thumb .f3{fill:var(--t3)} .thumb .f4{fill:var(--t4)} .thumb .f5{fill:var(--t5)} .thumb .f6{fill:var(--t6)}
 .thumb .dash{stroke-dasharray:3 3}
 .evaluation-thumb{--err:#d36b3f;aspect-ratio:260/130;padding:6.5%;display:grid!important;
   grid-template-columns:repeat(2,1fr);gap:2.6%;overflow:hidden}
@@ -121,7 +123,7 @@ footer p{margin:.3rem 0;max-width:74ch}
 <body>
 <header class="topbar">
   <h1>ML course explorables</h1>
-  <span class="count">16 interactive pages</span>
+  <span class="count">22 interactive pages</span>
   <span class="spacer"></span>
   <a class="back" href="../quizzes/index.html">Quizzes</a>
   <a class="back" href="../index.html">← Course home</a>
@@ -129,7 +131,7 @@ footer p{margin:.3rem 0;max-width:74ch}
 
 <main>
   <section class="intro">
-    <p class="lede">Sixteen single-file, in-browser explainers — one per module, including the optional Origins
+    <p class="lede">Twenty-two single-file, in-browser explainers — one per module, including the optional Origins
       prologue and the evaluation bridge. Nothing to install,
       no network calls: every animation, model and number runs locally in the page.</p>
     <p>Where a module produced real artifacts — trained weights, merge lists, attention matrices,
@@ -468,8 +470,8 @@ footer p{margin:.3rem 0;max-width:74ch}
   </section>
 
   <section class="track t4">
-    <h2><span class="dot"></span>Looking inside<span class="rng">modules 11–12</span></h2>
-    <p class="sub">Open a trained model while it runs: read one neuron, probe each layer, patch one cell, then read features through a sparse dictionary.</p>
+    <h2><span class="dot"></span>Looking inside<span class="rng">modules 11–13</span></h2>
+    <p class="sub">Open a trained model while it runs: read one neuron, probe each layer, patch one cell, read features through a sparse dictionary, then do the same to vision and JEPA models.</p>
     <div class="grid">
 
       <div class="card">
@@ -513,6 +515,113 @@ footer p{margin:.3rem 0;max-width:74ch}
         <p class="hook">Move the toy model's sparsity and watch features start to share directions, then
           browse SAE latents, raw neurons and GPT-2's layer-8 features by their top contexts.</p>
         <div class="cardfoot"><a class="quiz" href="../quizzes/12.html">Quiz →</a></div>
+      </div>
+
+      <div class="card">
+        <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: six strips of dots, one per image set, with the drawn-V strip bunched left and the cats strip far right">
+          <path class="s" d="M40 18 h200 M40 36 h200 M40 54 h200 M40 72 h200 M40 90 h200 M40 108 h200"/>
+          <path class="k4" d="M18 12 L24 24 L30 12" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <g class="f4"><circle cx="51" cy="18" r="3" opacity="1"/><circle cx="62" cy="18" r="3" opacity="1"/><circle cx="55" cy="18" r="3" opacity="1"/><circle cx="64" cy="18" r="3" opacity="1"/><circle cx="65" cy="18" r="3" opacity="1"/><circle cx="44" cy="18" r="3" opacity="1"/><circle cx="42" cy="18" r="3" opacity="1"/><circle cx="88" cy="36" r="3" opacity="0.55"/><circle cx="60" cy="36" r="3" opacity="0.55"/><circle cx="59" cy="36" r="3" opacity="0.55"/><circle cx="96" cy="36" r="3" opacity="0.55"/><circle cx="71" cy="36" r="3" opacity="0.55"/><circle cx="88" cy="36" r="3" opacity="0.55"/><circle cx="71" cy="36" r="3" opacity="0.55"/><circle cx="98" cy="54" r="3" opacity="0.55"/><circle cx="69" cy="54" r="3" opacity="0.55"/><circle cx="98" cy="54" r="3" opacity="0.55"/><circle cx="112" cy="54" r="3" opacity="0.55"/><circle cx="91" cy="54" r="3" opacity="0.55"/><circle cx="104" cy="54" r="3" opacity="0.55"/><circle cx="100" cy="54" r="3" opacity="0.55"/><circle cx="74" cy="72" r="3" opacity="0.55"/><circle cx="123" cy="72" r="3" opacity="0.55"/><circle cx="111" cy="72" r="3" opacity="0.55"/><circle cx="91" cy="72" r="3" opacity="0.55"/><circle cx="72" cy="72" r="3" opacity="0.55"/><circle cx="131" cy="72" r="3" opacity="0.55"/><circle cx="103" cy="72" r="3" opacity="0.55"/><circle cx="220" cy="90" r="3" opacity="1"/><circle cx="229" cy="90" r="3" opacity="1"/><circle cx="220" cy="90" r="3" opacity="1"/><circle cx="232" cy="90" r="3" opacity="1"/><circle cx="202" cy="90" r="3" opacity="1"/><circle cx="225" cy="90" r="3" opacity="1"/><circle cx="205" cy="90" r="3" opacity="1"/><circle cx="210" cy="108" r="3" opacity="0.55"/><circle cx="206" cy="108" r="3" opacity="0.55"/><circle cx="156" cy="108" r="3" opacity="0.55"/><circle cx="159" cy="108" r="3" opacity="0.55"/><circle cx="164" cy="108" r="3" opacity="0.55"/><circle cx="212" cy="108" r="3" opacity="0.55"/><circle cx="178" cy="108" r="3" opacity="0.55"/></g>
+        </svg>
+        <div class="meta"><span class="pill t4">Module 13</span><span class="file">13-inside-vision-and-jepa</span></div>
+        <h3><a href="13-inside-vision-and-jepa.html">Inside vision and JEPA models</a></h3>
+        <p class="hook">Scrub channels 45 to 65 of InceptionV1's layer 4e across six image sets, see Lucent's renders,
+          browse three CLIP neurons by their top images, and compare probes on a JEPA encoder.</p>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/13.html">Quiz →</a></div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="track t5">
+    <h2><span class="dot"></span>How learning works<span class="rng">modules 14–16</span></h2>
+    <p class="sub">Watch training find a solution, measure the shape it leaves behind, and learn without labels.</p>
+    <div class="grid">
+
+      <div class="card">
+        <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: three optimiser paths zig-zagging down a valley of contour ellipses to a star, and a small step-shaped grokking curve">
+          <g class="s" opacity=".55"><ellipse cx="150" cy="78" rx="92" ry="35" transform="rotate(-18 150 78)" fill="none"/><ellipse cx="150" cy="78" rx="66" ry="25" transform="rotate(-18 150 78)" fill="none"/><ellipse cx="150" cy="78" rx="42" ry="16" transform="rotate(-18 150 78)" fill="none"/><ellipse cx="150" cy="78" rx="20" ry="8" transform="rotate(-18 150 78)" fill="none"/></g>
+          <path class="k5" d="M40 30 L70 72 L82 40 L102 88 L114 56 L132 86 L142 70 L150 78" fill="none" stroke-width="1.8" stroke-linejoin="round"/>
+          <path class="k0" d="M60 115 L96 106 L120 98 L136 88 L146 82 L150 78" fill="none" stroke-width="1.8" stroke-linejoin="round"/>
+          <path class="k3" d="M236 114 L210 92 L220 102 L184 86 L194 92 L150 78" fill="none" stroke-width="1.8" stroke-linejoin="round"/>
+          <path class="af" d="M150 70 L152.4 75.6 L158.5 76 L153.8 79.9 L155.3 85.8 L150 82.6 L144.7 85.8 L146.2 79.9 L141.5 76 L147.6 75.6 Z"/>
+          <path class="s" d="M196 14 v26 h48"/><path class="k6" d="M198 38 H222 L226 18 H242" fill="none" stroke-width="2"/>
+        </svg>
+        <div class="meta"><span class="pill t5">Module 14</span><span class="file">14-how-training-finds-a-solution</span></div>
+        <h3><a href="14-how-training-finds-a-solution.html">How training finds a solution</a></h3>
+        <p class="hook">Race SGD, momentum and Adam on a 2-D loss from any start and at any rate, browse the
+          learning-rate grid, and replay the grokking curves step by step.</p>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/14.html">Quiz →</a></div>
+      </div>
+
+      <div class="card">
+        <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: a square cut by straight lines into convex regions, with one segment across it and dots where it crosses a boundary">
+          <rect x="20" y="10" width="220" height="110" class="f5" opacity=".08"/>
+          <g class="f5"><path opacity=".18" d="M20 10 H60 L72 37 L20 30 Z"/><path opacity=".12" d="M150 10 H200 L208 38 L146 47 Z"/><path opacity=".22" d="M98 93 L130 120 H110 Z"/><path opacity=".15" d="M185 64 L240 40 V75 L190 72 Z"/></g>
+          <path class="s" d="M20 30 L240 100 M20 95 L240 20 M60 10 L110 120 M150 10 L130 120 M20 60 L240 75 M200 10 L230 120 M20 15 L120 120 M170 120 L240 40"/>
+          <path class="s dash" d="M70 45 L95 62 M160 80 L178 105 M205 25 L225 48 M40 80 L58 108"/>
+          <path class="k5" d="M28 112 L232 52" fill="none" stroke-width="2.4" stroke-linecap="round"/>
+          <g class="f5"><circle cx="158" cy="74" r="3.2"/><circle cx="97" cy="92" r="3.2"/><circle cx="137" cy="80" r="3.2"/><circle cx="170" cy="70" r="3.2"/><circle cx="213" cy="58" r="3.2"/><circle cx="94" cy="93" r="3.2"/><circle cx="229" cy="53" r="3.2"/><circle cx="55" cy="104" r="3.2"/></g>
+          <rect x="20" y="10" width="220" height="110" fill="none" class="s"/>
+        </svg>
+        <div class="meta"><span class="pill t5">Module 15</span><span class="file">15-geometry-of-representations</span></div>
+        <h3><a href="15-geometry-of-representations.html">Geometry of representations</a></h3>
+        <p class="hook">Drag a segment across a small ReLU network's regions, change the width and watch the count,
+          with the intrinsic-dimension and CKA numbers alongside.</p>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/15.html">Quiz →</a></div>
+      </div>
+
+      <div class="card">
+        <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: four clusters of dots, an arrow under a stop-grad toggle, the same dots squeezed into a knot, and a meter near zero">
+          <g><g class="f0"><circle cx="31" cy="31" r="3"/><circle cx="28" cy="35" r="3"/><circle cx="29" cy="42" r="3"/><circle cx="22" cy="27" r="3"/><circle cx="28" cy="20" r="3"/><circle cx="48" cy="18" r="3"/></g><g class="f1"><circle cx="78" cy="28" r="3"/><circle cx="92" cy="18" r="3"/><circle cx="88" cy="27" r="3"/><circle cx="79" cy="27" r="3"/><circle cx="84" cy="24" r="3"/><circle cx="79" cy="34" r="3"/></g><g class="f3"><circle cx="51" cy="75" r="3"/><circle cx="49" cy="99" r="3"/><circle cx="35" cy="94" r="3"/><circle cx="35" cy="104" r="3"/><circle cx="39" cy="90" r="3"/><circle cx="36" cy="91" r="3"/></g><g class="f6"><circle cx="83" cy="89" r="3"/><circle cx="98" cy="82" r="3"/><circle cx="59" cy="94" r="3"/><circle cx="83" cy="98" r="3"/><circle cx="83" cy="94" r="3"/><circle cx="86" cy="102" r="3"/></g></g>
+          <path class="s" d="M118 66 h40 M150 59 l8 7 l-8 7"/>
+          <rect x="114" y="28" width="50" height="16" rx="8" class="f5" opacity=".9"/><circle cx="155" cy="36" r="5.5" fill="#fff"/>
+          <text x="122" y="22" font-size="9" font-family="ui-monospace,monospace" class="sf">stop-grad</text>
+          <g><g class="f0"><circle cx="204" cy="61" r="3"/><circle cx="209" cy="63" r="3"/><circle cx="203" cy="67" r="3"/><circle cx="207" cy="61" r="3"/><circle cx="202" cy="63" r="3"/><circle cx="203" cy="60" r="3"/></g><g class="f1"><circle cx="202" cy="61" r="3"/><circle cx="207" cy="61" r="3"/><circle cx="202" cy="63" r="3"/><circle cx="205" cy="64" r="3"/><circle cx="208" cy="62" r="3"/><circle cx="205" cy="62" r="3"/></g><g class="f3"><circle cx="203" cy="63" r="3"/><circle cx="208" cy="62" r="3"/><circle cx="204" cy="61" r="3"/><circle cx="203" cy="60" r="3"/><circle cx="204" cy="60" r="3"/><circle cx="204" cy="59" r="3"/></g><g class="f6"><circle cx="206" cy="62" r="3"/><circle cx="202" cy="57" r="3"/><circle cx="205" cy="64" r="3"/><circle cx="203" cy="61" r="3"/><circle cx="204" cy="63" r="3"/><circle cx="203" cy="64" r="3"/></g></g>
+          <rect x="176" y="96" width="60" height="9" rx="4.5" class="s"/><rect x="177" y="97" width="4" height="7" rx="3" class="f6"/>
+        </svg>
+        <div class="meta"><span class="pill t5">Module 16</span><span class="file">16-self-supervised-and-jepa</span></div>
+        <h3><a href="16-self-supervised-and-jepa.html">Self-supervised learning and JEPA</a></h3>
+        <p class="hook">Train a 2-D JEPA live and switch stop-grad, the EMA target and the variance term, then replay
+          the CIFAR-10 collapse runs and the probes.</p>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/16.html">Quiz →</a></div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="track t6">
+    <h2><span class="dot"></span>Other recipes<span class="rng">modules 17–18</span></h2>
+    <p class="sub">Train from preferences instead of labels, and carry a fixed state from token to token instead of attention.</p>
+    <div class="grid">
+
+      <div class="card">
+        <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: five scores on a line, with a sigmoid curve above marking one pair's probability">
+          <path class="s" d="M30 112 h200"/>
+          <path class="s dash" d="M30 28 h200 M30 98 h200"/>
+          <path class="a" d="M30 97.3 L32 97.2 L34 97.1 L36 97.0 L38 96.9 L40 96.8 L42 96.7 L44 96.6 L46 96.5 L48 96.4 L50 96.2 L52 96.0 L54 95.9 L56 95.7 L58 95.4 L60 95.2 L62 95.0 L64 94.7 L66 94.4 L68 94.1 L70 93.7 L72 93.3 L74 92.9 L76 92.5 L78 92.0 L80 91.5 L82 90.9 L84 90.3 L86 89.7 L88 89.0 L90 88.2 L92 87.4 L94 86.6 L96 85.7 L98 84.7 L100 83.7 L102 82.7 L104 81.6 L106 80.4 L108 79.2 L110 77.9 L112 76.6 L114 75.2 L116 73.8 L118 72.3 L120 70.8 L122 69.3 L124 67.7 L126 66.2 L128 64.6 L130 63.0 L132 61.4 L134 59.8 L136 58.3 L138 56.7 L140 55.2 L142 53.7 L144 52.2 L146 50.8 L148 49.4 L150 48.1 L152 46.8 L154 45.6 L156 44.4 L158 43.3 L160 42.3 L162 41.3 L164 40.3 L166 39.4 L168 38.6 L170 37.8 L172 37.0 L174 36.3 L176 35.7 L178 35.1 L180 34.5 L182 34.0 L184 33.5 L186 33.1 L188 32.7 L190 32.3 L192 31.9 L194 31.6 L196 31.3 L198 31.0 L200 30.8 L202 30.6 L204 30.3 L206 30.1 L208 30.0 L210 29.8 L212 29.6 L214 29.5 L216 29.4 L218 29.3 L220 29.2 L222 29.1 L224 29.0 L226 28.9 L228 28.8 L230 28.7"/>
+          <g class="f6"><circle cx="52" cy="112" r="4.5"/><circle cx="95" cy="112" r="4.5"/><circle cx="140" cy="112" r="4.5"/><circle cx="168" cy="112" r="4.5"/><circle cx="214" cy="112" r="4.5"/></g>
+          <path class="k6 dash" d="M95 108 V42 M168 108 V42" fill="none" stroke-width="1"/><path class="k6" d="M169 112 V38 H30" fill="none" stroke-width="1.4" stroke-dasharray="3 3"/><circle cx="169" cy="38" r="4" class="f6"/>
+        </svg>
+        <div class="meta"><span class="pill t6">Module 17</span><span class="file">17-learning-from-preferences</span></div>
+        <h3><a href="17-learning-from-preferences.html">Learning from preferences</a></h3>
+        <p class="hook">Drag item scores and watch the pair probabilities, move β and watch one pair's DPO loss, and
+          read replies before and after training.</p>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/17.html">Quiz →</a></div>
+      </div>
+
+      <div class="card">
+        <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: a staircase of squares growing column by column beside one fixed block of shaded squares, over a row of tokens">
+          <g class="f1"><rect x="18" y="92" width="11" height="10" rx="1.5" opacity="0.45"/><rect x="33" y="92" width="11" height="10" rx="1.5" opacity="0.54"/><rect x="33" y="79" width="11" height="10" rx="1.5" opacity="0.54"/><rect x="48" y="92" width="11" height="10" rx="1.5" opacity="0.63"/><rect x="48" y="79" width="11" height="10" rx="1.5" opacity="0.63"/><rect x="48" y="66" width="11" height="10" rx="1.5" opacity="0.63"/><rect x="63" y="92" width="11" height="10" rx="1.5" opacity="0.72"/><rect x="63" y="79" width="11" height="10" rx="1.5" opacity="0.72"/><rect x="63" y="66" width="11" height="10" rx="1.5" opacity="0.72"/><rect x="63" y="53" width="11" height="10" rx="1.5" opacity="0.72"/><rect x="78" y="92" width="11" height="10" rx="1.5" opacity="0.81"/><rect x="78" y="79" width="11" height="10" rx="1.5" opacity="0.81"/><rect x="78" y="66" width="11" height="10" rx="1.5" opacity="0.81"/><rect x="78" y="53" width="11" height="10" rx="1.5" opacity="0.81"/><rect x="78" y="40" width="11" height="10" rx="1.5" opacity="0.81"/><rect x="93" y="92" width="11" height="10" rx="1.5" opacity="0.90"/><rect x="93" y="79" width="11" height="10" rx="1.5" opacity="0.90"/><rect x="93" y="66" width="11" height="10" rx="1.5" opacity="0.90"/><rect x="93" y="53" width="11" height="10" rx="1.5" opacity="0.90"/><rect x="93" y="40" width="11" height="10" rx="1.5" opacity="0.90"/><rect x="93" y="27" width="11" height="10" rx="1.5" opacity="0.90"/></g>
+          <g class="f6"><rect x="168" y="40" width="11" height="10" rx="1.5" opacity="0.35"/><rect x="168" y="53" width="11" height="10" rx="1.5" opacity="0.6"/><rect x="168" y="66" width="11" height="10" rx="1.5" opacity="0.85"/><rect x="168" y="79" width="11" height="10" rx="1.5" opacity="0.5"/><rect x="183" y="40" width="11" height="10" rx="1.5" opacity="0.7"/><rect x="183" y="53" width="11" height="10" rx="1.5" opacity="1"/><rect x="183" y="66" width="11" height="10" rx="1.5" opacity="0.45"/><rect x="183" y="79" width="11" height="10" rx="1.5" opacity="0.8"/><rect x="198" y="40" width="11" height="10" rx="1.5" opacity="0.55"/><rect x="198" y="53" width="11" height="10" rx="1.5" opacity="0.9"/><rect x="198" y="66" width="11" height="10" rx="1.5" opacity="0.4"/><rect x="198" y="79" width="11" height="10" rx="1.5" opacity="0.65"/><rect x="213" y="40" width="11" height="10" rx="1.5" opacity="0.75"/><rect x="213" y="53" width="11" height="10" rx="1.5" opacity="0.5"/><rect x="213" y="66" width="11" height="10" rx="1.5" opacity="1"/><rect x="213" y="79" width="11" height="10" rx="1.5" opacity="0.6"/></g>
+          <path class="s" d="M18 116 H236 M230 111 L236 116 L230 121"/>
+          <g class="sf"><circle cx="24" cy="116" r="2"/><circle cx="39" cy="116" r="2"/><circle cx="54" cy="116" r="2"/><circle cx="69" cy="116" r="2"/><circle cx="84" cy="116" r="2"/><circle cx="99" cy="116" r="2"/><circle cx="114" cy="116" r="2"/><circle cx="129" cy="116" r="2"/><circle cx="144" cy="116" r="2"/><circle cx="159" cy="116" r="2"/><circle cx="174" cy="116" r="2"/><circle cx="189" cy="116" r="2"/><circle cx="204" cy="116" r="2"/><circle cx="219" cy="116" r="2"/></g>
+        </svg>
+        <div class="meta"><span class="pill t6">Module 18</span><span class="file">18-beyond-attention</span></div>
+        <h3><a href="18-beyond-attention.html">Beyond attention</a></h3>
+        <p class="hook">Step a KV cache and two recurrent states token by token, and drive a two-state recurrence by
+          its decays and its gate.</p>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/18.html">Quiz →</a></div>
       </div>
 
     </div>

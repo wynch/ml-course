@@ -1,0 +1,2783 @@
+{
+ "config": "full",
+ "settings": {
+  "steps": 200,
+  "batch": 1,
+  "accum": 4,
+  "n_eval": 200,
+  "n_gen": 32,
+  "max_new_tokens": 160,
+  "beta": 0.1,
+  "learning_rate": 5e-05,
+  "lora": {
+   "r": 16,
+   "lora_alpha": 32,
+   "lora_dropout": 0.05,
+   "target_modules": [
+    "q_proj",
+    "k_proj",
+    "v_proj",
+    "o_proj",
+    "gate_proj",
+    "up_proj",
+    "down_proj"
+   ]
+  },
+  "schedule": "cosine",
+  "warmup_steps": 10,
+  "effective_batch": 4,
+  "train_pairs_available": 1459,
+  "train_max_tokens": 384,
+  "pairs_seen": 800
+ },
+ "trainable_params": 8683520,
+ "total_params": 370504640,
+ "heldout": {
+  "pairs": 200,
+  "implicit_reward_accuracy_before": {
+   "strict": 0.0,
+   "ties": 200,
+   "ties_half": 0.5
+  },
+  "implicit_reward_accuracy_after": {
+   "strict": 0.585,
+   "ties": 0,
+   "ties_half": 0.585
+  },
+  "mean_margin_after": 0.043,
+  "mean_reward_chosen_after": -0.0047,
+  "mean_reward_rejected_after": -0.0477,
+  "reference_logp_accuracy": {
+   "strict": 0.47,
+   "ties": 0,
+   "ties_half": 0.47
+  },
+  "reference_logp_per_token_accuracy": {
+   "strict": 0.53,
+   "ties": 0,
+   "ties_half": 0.53
+  },
+  "logp_change_chosen": -0.047,
+  "logp_change_rejected": -0.477,
+  "longer_reply_wins": {
+   "strict": 0.555,
+   "ties": 1,
+   "ties_half": 0.5575
+  },
+  "after_agrees_with_longer": 0.5427,
+  "adapter_off_check_max_abs_diff": 0.0,
+  "per_pair": [
+   {
+    "id": "test-1",
+    "margin": 0.1268,
+    "ref_logp_diff": -23.251,
+    "tokens_chosen": 26,
+    "tokens_rejected": 16
+   },
+   {
+    "id": "test-2",
+    "margin": -0.0846,
+    "ref_logp_diff": -121.251,
+    "tokens_chosen": 473,
+    "tokens_rejected": 345
+   },
+   {
+    "id": "test-3",
+    "margin": 0.0376,
+    "ref_logp_diff": -116.847,
+    "tokens_chosen": 131,
+    "tokens_rejected": 3
+   },
+   {
+    "id": "test-5",
+    "margin": -0.4584,
+    "ref_logp_diff": -143.97,
+    "tokens_chosen": 250,
+    "tokens_rejected": 103
+   },
+   {
+    "id": "test-6",
+    "margin": 0.2882,
+    "ref_logp_diff": 49.717,
+    "tokens_chosen": 13,
+    "tokens_rejected": 79
+   },
+   {
+    "id": "test-7",
+    "margin": 0.7411,
+    "ref_logp_diff": -241.46,
+    "tokens_chosen": 475,
+    "tokens_rejected": 396
+   },
+   {
+    "id": "test-14",
+    "margin": -0.0567,
+    "ref_logp_diff": 190.539,
+    "tokens_chosen": 128,
+    "tokens_rejected": 334
+   },
+   {
+    "id": "test-15",
+    "margin": 0.0403,
+    "ref_logp_diff": 406.52,
+    "tokens_chosen": 83,
+    "tokens_rejected": 200
+   },
+   {
+    "id": "test-17",
+    "margin": -0.1448,
+    "ref_logp_diff": -433.761,
+    "tokens_chosen": 273,
+    "tokens_rejected": 7
+   },
+   {
+    "id": "test-19",
+    "margin": -0.1153,
+    "ref_logp_diff": 24.48,
+    "tokens_chosen": 23,
+    "tokens_rejected": 32
+   },
+   {
+    "id": "test-20",
+    "margin": 0.3318,
+    "ref_logp_diff": 71.001,
+    "tokens_chosen": 23,
+    "tokens_rejected": 109
+   },
+   {
+    "id": "test-21",
+    "margin": 0.0561,
+    "ref_logp_diff": -17.038,
+    "tokens_chosen": 39,
+    "tokens_rejected": 47
+   },
+   {
+    "id": "test-25",
+    "margin": -0.4321,
+    "ref_logp_diff": 483.422,
+    "tokens_chosen": 39,
+    "tokens_rejected": 328
+   },
+   {
+    "id": "test-27",
+    "margin": 0.5131,
+    "ref_logp_diff": 32.739,
+    "tokens_chosen": 394,
+    "tokens_rejected": 215
+   },
+   {
+    "id": "test-28",
+    "margin": -0.2717,
+    "ref_logp_diff": -333.709,
+    "tokens_chosen": 293,
+    "tokens_rejected": 56
+   },
+   {
+    "id": "test-29",
+    "margin": 0.1018,
+    "ref_logp_diff": -68.937,
+    "tokens_chosen": 207,
+    "tokens_rejected": 157
+   },
+   {
+    "id": "test-30",
+    "margin": -0.0808,
+    "ref_logp_diff": -19.953,
+    "tokens_chosen": 22,
+    "tokens_rejected": 19
+   },
+   {
+    "id": "test-31",
+    "margin": 0.1478,
+    "ref_logp_diff": -276.923,
+    "tokens_chosen": 490,
+    "tokens_rejected": 264
+   },
+   {
+    "id": "test-35",
+    "margin": -0.1519,
+    "ref_logp_diff": 63.049,
+    "tokens_chosen": 171,
+    "tokens_rejected": 511
+   },
+   {
+    "id": "test-36",
+    "margin": 0.0359,
+    "ref_logp_diff": -184.92,
+    "tokens_chosen": 173,
+    "tokens_rejected": 63
+   },
+   {
+    "id": "test-37",
+    "margin": -0.0452,
+    "ref_logp_diff": -172.311,
+    "tokens_chosen": 155,
+    "tokens_rejected": 5
+   },
+   {
+    "id": "test-40",
+    "margin": 0.2777,
+    "ref_logp_diff": 178.782,
+    "tokens_chosen": 89,
+    "tokens_rejected": 118
+   },
+   {
+    "id": "test-42",
+    "margin": -0.1224,
+    "ref_logp_diff": -225.942,
+    "tokens_chosen": 503,
+    "tokens_rejected": 191
+   },
+   {
+    "id": "test-43",
+    "margin": 0.0468,
+    "ref_logp_diff": 88.957,
+    "tokens_chosen": 96,
+    "tokens_rejected": 135
+   },
+   {
+    "id": "test-47",
+    "margin": 0.1054,
+    "ref_logp_diff": 79.409,
+    "tokens_chosen": 17,
+    "tokens_rejected": 86
+   },
+   {
+    "id": "test-48",
+    "margin": 0.2821,
+    "ref_logp_diff": -176.286,
+    "tokens_chosen": 143,
+    "tokens_rejected": 27
+   },
+   {
+    "id": "test-50",
+    "margin": -0.1931,
+    "ref_logp_diff": 238.87,
+    "tokens_chosen": 239,
+    "tokens_rejected": 347
+   },
+   {
+    "id": "test-51",
+    "margin": 0.2519,
+    "ref_logp_diff": -374.323,
+    "tokens_chosen": 376,
+    "tokens_rejected": 47
+   },
+   {
+    "id": "test-52",
+    "margin": 0.1024,
+    "ref_logp_diff": -107.899,
+    "tokens_chosen": 316,
+    "tokens_rejected": 240
+   },
+   {
+    "id": "test-53",
+    "margin": -0.0881,
+    "ref_logp_diff": -78.757,
+    "tokens_chosen": 47,
+    "tokens_rejected": 6
+   },
+   {
+    "id": "test-54",
+    "margin": -0.086,
+    "ref_logp_diff": -274.642,
+    "tokens_chosen": 224,
+    "tokens_rejected": 29
+   },
+   {
+    "id": "test-55",
+    "margin": 0.3399,
+    "ref_logp_diff": 126.265,
+    "tokens_chosen": 18,
+    "tokens_rejected": 90
+   },
+   {
+    "id": "test-59",
+    "margin": -0.1094,
+    "ref_logp_diff": -67.081,
+    "tokens_chosen": 73,
+    "tokens_rejected": 29
+   },
+   {
+    "id": "test-60",
+    "margin": 0.1546,
+    "ref_logp_diff": 28.896,
+    "tokens_chosen": 139,
+    "tokens_rejected": 163
+   },
+   {
+    "id": "test-62",
+    "margin": 0.1878,
+    "ref_logp_diff": 94.951,
+    "tokens_chosen": 42,
+    "tokens_rejected": 66
+   },
+   {
+    "id": "test-65",
+    "margin": 0.2118,
+    "ref_logp_diff": 259.028,
+    "tokens_chosen": 205,
+    "tokens_rejected": 401
+   },
+   {
+    "id": "test-68",
+    "margin": -0.1833,
+    "ref_logp_diff": 29.969,
+    "tokens_chosen": 82,
+    "tokens_rejected": 77
+   },
+   {
+    "id": "test-69",
+    "margin": 0.3475,
+    "ref_logp_diff": -577.745,
+    "tokens_chosen": 563,
+    "tokens_rejected": 241
+   },
+   {
+    "id": "test-72",
+    "margin": -0.0827,
+    "ref_logp_diff": 29.916,
+    "tokens_chosen": 13,
+    "tokens_rejected": 34
+   },
+   {
+    "id": "test-77",
+    "margin": -0.0472,
+    "ref_logp_diff": 90.775,
+    "tokens_chosen": 5,
+    "tokens_rejected": 65
+   },
+   {
+    "id": "test-79",
+    "margin": -0.2325,
+    "ref_logp_diff": 79.638,
+    "tokens_chosen": 128,
+    "tokens_rejected": 196
+   },
+   {
+    "id": "test-81",
+    "margin": -0.0356,
+    "ref_logp_diff": -25.784,
+    "tokens_chosen": 11,
+    "tokens_rejected": 4
+   },
+   {
+    "id": "test-82",
+    "margin": -0.1828,
+    "ref_logp_diff": -61.194,
+    "tokens_chosen": 398,
+    "tokens_rejected": 286
+   },
+   {
+    "id": "test-85",
+    "margin": 0.0587,
+    "ref_logp_diff": -14.947,
+    "tokens_chosen": 69,
+    "tokens_rejected": 39
+   },
+   {
+    "id": "test-86",
+    "margin": 0.1646,
+    "ref_logp_diff": -80.178,
+    "tokens_chosen": 272,
+    "tokens_rejected": 379
+   },
+   {
+    "id": "test-88",
+    "margin": -0.1992,
+    "ref_logp_diff": -56.587,
+    "tokens_chosen": 164,
+    "tokens_rejected": 70
+   },
+   {
+    "id": "test-89",
+    "margin": -0.0806,
+    "ref_logp_diff": -83.366,
+    "tokens_chosen": 246,
+    "tokens_rejected": 143
+   },
+   {
+    "id": "test-90",
+    "margin": -0.5273,
+    "ref_logp_diff": 68.444,
+    "tokens_chosen": 406,
+    "tokens_rejected": 434
+   },
+   {
+    "id": "test-91",
+    "margin": 0.1062,
+    "ref_logp_diff": -39.623,
+    "tokens_chosen": 54,
+    "tokens_rejected": 105
+   },
+   {
+    "id": "test-92",
+    "margin": 0.2205,
+    "ref_logp_diff": 70.983,
+    "tokens_chosen": 87,
+    "tokens_rejected": 114
+   },
+   {
+    "id": "test-98",
+    "margin": -0.0861,
+    "ref_logp_diff": 7.385,
+    "tokens_chosen": 5,
+    "tokens_rejected": 17
+   },
+   {
+    "id": "test-99",
+    "margin": -0.0053,
+    "ref_logp_diff": 0.885,
+    "tokens_chosen": 6,
+    "tokens_rejected": 5
+   },
+   {
+    "id": "test-100",
+    "margin": 0.0206,
+    "ref_logp_diff": -41.868,
+    "tokens_chosen": 47,
+    "tokens_rejected": 33
+   },
+   {
+    "id": "test-101",
+    "margin": 0.1797,
+    "ref_logp_diff": 98.424,
+    "tokens_chosen": 56,
+    "tokens_rejected": 103
+   },
+   {
+    "id": "test-102",
+    "margin": -0.0598,
+    "ref_logp_diff": 52.976,
+    "tokens_chosen": 136,
+    "tokens_rejected": 320
+   },
+   {
+    "id": "test-103",
+    "margin": 0.2513,
+    "ref_logp_diff": -76.688,
+    "tokens_chosen": 327,
+    "tokens_rejected": 209
+   },
+   {
+    "id": "test-104",
+    "margin": 0.1394,
+    "ref_logp_diff": -119.459,
+    "tokens_chosen": 152,
+    "tokens_rejected": 80
+   },
+   {
+    "id": "test-106",
+    "margin": -0.0329,
+    "ref_logp_diff": 26.502,
+    "tokens_chosen": 284,
+    "tokens_rejected": 355
+   },
+   {
+    "id": "test-107",
+    "margin": 0.3761,
+    "ref_logp_diff": -149.036,
+    "tokens_chosen": 399,
+    "tokens_rejected": 317
+   },
+   {
+    "id": "test-108",
+    "margin": -0.2701,
+    "ref_logp_diff": -95.392,
+    "tokens_chosen": 79,
+    "tokens_rejected": 7
+   },
+   {
+    "id": "test-113",
+    "margin": 0.6842,
+    "ref_logp_diff": 62.188,
+    "tokens_chosen": 508,
+    "tokens_rejected": 400
+   },
+   {
+    "id": "test-115",
+    "margin": 0.18,
+    "ref_logp_diff": -145.816,
+    "tokens_chosen": 83,
+    "tokens_rejected": 15
+   },
+   {
+    "id": "test-116",
+    "margin": 0.0498,
+    "ref_logp_diff": 241.709,
+    "tokens_chosen": 97,
+    "tokens_rejected": 260
+   },
+   {
+    "id": "test-118",
+    "margin": 0.1455,
+    "ref_logp_diff": 149.655,
+    "tokens_chosen": 152,
+    "tokens_rejected": 173
+   },
+   {
+    "id": "test-119",
+    "margin": -0.638,
+    "ref_logp_diff": 257.687,
+    "tokens_chosen": 531,
+    "tokens_rejected": 470
+   },
+   {
+    "id": "test-121",
+    "margin": 0.1505,
+    "ref_logp_diff": -129.67,
+    "tokens_chosen": 403,
+    "tokens_rejected": 309
+   },
+   {
+    "id": "test-124",
+    "margin": -0.4188,
+    "ref_logp_diff": 630.897,
+    "tokens_chosen": 234,
+    "tokens_rejected": 495
+   },
+   {
+    "id": "test-125",
+    "margin": -0.0749,
+    "ref_logp_diff": -66.697,
+    "tokens_chosen": 283,
+    "tokens_rejected": 42
+   },
+   {
+    "id": "test-126",
+    "margin": 0.0487,
+    "ref_logp_diff": -32.831,
+    "tokens_chosen": 105,
+    "tokens_rejected": 71
+   },
+   {
+    "id": "test-127",
+    "margin": 0.1572,
+    "ref_logp_diff": 8.965,
+    "tokens_chosen": 4,
+    "tokens_rejected": 12
+   },
+   {
+    "id": "test-129",
+    "margin": -0.0302,
+    "ref_logp_diff": 349.87,
+    "tokens_chosen": 321,
+    "tokens_rejected": 478
+   },
+   {
+    "id": "test-131",
+    "margin": -0.0615,
+    "ref_logp_diff": -132.408,
+    "tokens_chosen": 243,
+    "tokens_rejected": 96
+   },
+   {
+    "id": "test-135",
+    "margin": -0.6033,
+    "ref_logp_diff": 436.218,
+    "tokens_chosen": 334,
+    "tokens_rejected": 578
+   },
+   {
+    "id": "test-136",
+    "margin": -0.3009,
+    "ref_logp_diff": 337.265,
+    "tokens_chosen": 318,
+    "tokens_rejected": 479
+   },
+   {
+    "id": "test-138",
+    "margin": 0.1252,
+    "ref_logp_diff": -149.95,
+    "tokens_chosen": 200,
+    "tokens_rejected": 93
+   },
+   {
+    "id": "test-139",
+    "margin": 0.0962,
+    "ref_logp_diff": -41.535,
+    "tokens_chosen": 88,
+    "tokens_rejected": 37
+   },
+   {
+    "id": "test-141",
+    "margin": -0.0265,
+    "ref_logp_diff": -50.12,
+    "tokens_chosen": 33,
+    "tokens_rejected": 14
+   },
+   {
+    "id": "test-142",
+    "margin": -0.1641,
+    "ref_logp_diff": -15.523,
+    "tokens_chosen": 7,
+    "tokens_rejected": 3
+   },
+   {
+    "id": "test-144",
+    "margin": -0.055,
+    "ref_logp_diff": -23.72,
+    "tokens_chosen": 28,
+    "tokens_rejected": 36
+   },
+   {
+    "id": "test-147",
+    "margin": 0.0456,
+    "ref_logp_diff": 19.942,
+    "tokens_chosen": 4,
+    "tokens_rejected": 17
+   },
+   {
+    "id": "test-149",
+    "margin": 0.0698,
+    "ref_logp_diff": -335.574,
+    "tokens_chosen": 510,
+    "tokens_rejected": 233
+   },
+   {
+    "id": "test-150",
+    "margin": 0.4812,
+    "ref_logp_diff": -261.492,
+    "tokens_chosen": 505,
+    "tokens_rejected": 436
+   },
+   {
+    "id": "test-151",
+    "margin": -0.0844,
+    "ref_logp_diff": -210.822,
+    "tokens_chosen": 318,
+    "tokens_rejected": 35
+   },
+   {
+    "id": "test-152",
+    "margin": -0.0375,
+    "ref_logp_diff": 89.397,
+    "tokens_chosen": 79,
+    "tokens_rejected": 154
+   },
+   {
+    "id": "test-153",
+    "margin": -0.1219,
+    "ref_logp_diff": -182.811,
+    "tokens_chosen": 226,
+    "tokens_rejected": 44
+   },
+   {
+    "id": "test-154",
+    "margin": 0.2028,
+    "ref_logp_diff": 84.473,
+    "tokens_chosen": 32,
+    "tokens_rejected": 46
+   },
+   {
+    "id": "test-155",
+    "margin": -0.3959,
+    "ref_logp_diff": 8.142,
+    "tokens_chosen": 125,
+    "tokens_rejected": 131
+   },
+   {
+    "id": "test-157",
+    "margin": -0.1525,
+    "ref_logp_diff": -62.658,
+    "tokens_chosen": 245,
+    "tokens_rejected": 65
+   },
+   {
+    "id": "test-158",
+    "margin": 0.0499,
+    "ref_logp_diff": -84.581,
+    "tokens_chosen": 360,
+    "tokens_rejected": 201
+   },
+   {
+    "id": "test-162",
+    "margin": 0.1925,
+    "ref_logp_diff": 59.192,
+    "tokens_chosen": 125,
+    "tokens_rejected": 133
+   },
+   {
+    "id": "test-163",
+    "margin": -0.1128,
+    "ref_logp_diff": -180.099,
+    "tokens_chosen": 106,
+    "tokens_rejected": 18
+   },
+   {
+    "id": "test-164",
+    "margin": 0.2408,
+    "ref_logp_diff": 41.771,
+    "tokens_chosen": 35,
+    "tokens_rejected": 56
+   },
+   {
+    "id": "test-165",
+    "margin": -1.0706,
+    "ref_logp_diff": 251.256,
+    "tokens_chosen": 536,
+    "tokens_rejected": 538
+   },
+   {
+    "id": "test-167",
+    "margin": 0.0176,
+    "ref_logp_diff": -123.622,
+    "tokens_chosen": 278,
+    "tokens_rejected": 248
+   },
+   {
+    "id": "test-169",
+    "margin": 0.0052,
+    "ref_logp_diff": 0.103,
+    "tokens_chosen": 12,
+    "tokens_rejected": 14
+   },
+   {
+    "id": "test-170",
+    "margin": -0.1996,
+    "ref_logp_diff": 11.391,
+    "tokens_chosen": 144,
+    "tokens_rejected": 160
+   },
+   {
+    "id": "test-171",
+    "margin": -0.7858,
+    "ref_logp_diff": 70.082,
+    "tokens_chosen": 427,
+    "tokens_rejected": 443
+   },
+   {
+    "id": "test-172",
+    "margin": 0.0959,
+    "ref_logp_diff": -150.029,
+    "tokens_chosen": 106,
+    "tokens_rejected": 14
+   },
+   {
+    "id": "test-176",
+    "margin": -0.2245,
+    "ref_logp_diff": 30.913,
+    "tokens_chosen": 262,
+    "tokens_rejected": 251
+   },
+   {
+    "id": "test-177",
+    "margin": 0.057,
+    "ref_logp_diff": -188.314,
+    "tokens_chosen": 260,
+    "tokens_rejected": 42
+   },
+   {
+    "id": "test-178",
+    "margin": 0.2624,
+    "ref_logp_diff": -359.183,
+    "tokens_chosen": 462,
+    "tokens_rejected": 255
+   },
+   {
+    "id": "test-180",
+    "margin": -0.022,
+    "ref_logp_diff": 29.742,
+    "tokens_chosen": 80,
+    "tokens_rejected": 95
+   },
+   {
+    "id": "test-183",
+    "margin": 0.0261,
+    "ref_logp_diff": 25.239,
+    "tokens_chosen": 9,
+    "tokens_rejected": 17
+   },
+   {
+    "id": "test-184",
+    "margin": 0.5435,
+    "ref_logp_diff": -21.177,
+    "tokens_chosen": 538,
+    "tokens_rejected": 486
+   },
+   {
+    "id": "test-186",
+    "margin": -0.0209,
+    "ref_logp_diff": -37.626,
+    "tokens_chosen": 41,
+    "tokens_rejected": 18
+   },
+   {
+    "id": "test-187",
+    "margin": 0.068,
+    "ref_logp_diff": -138.283,
+    "tokens_chosen": 129,
+    "tokens_rejected": 54
+   },
+   {
+    "id": "test-188",
+    "margin": 0.2102,
+    "ref_logp_diff": 45.028,
+    "tokens_chosen": 192,
+    "tokens_rejected": 164
+   },
+   {
+    "id": "test-192",
+    "margin": 0.1137,
+    "ref_logp_diff": -114.628,
+    "tokens_chosen": 83,
+    "tokens_rejected": 15
+   },
+   {
+    "id": "test-194",
+    "margin": 0.1728,
+    "ref_logp_diff": 27.325,
+    "tokens_chosen": 33,
+    "tokens_rejected": 15
+   },
+   {
+    "id": "test-196",
+    "margin": 0.083,
+    "ref_logp_diff": -27.397,
+    "tokens_chosen": 49,
+    "tokens_rejected": 15
+   },
+   {
+    "id": "test-197",
+    "margin": 0.1042,
+    "ref_logp_diff": -60.239,
+    "tokens_chosen": 77,
+    "tokens_rejected": 19
+   },
+   {
+    "id": "test-199",
+    "margin": 0.4442,
+    "ref_logp_diff": 77.351,
+    "tokens_chosen": 72,
+    "tokens_rejected": 25
+   },
+   {
+    "id": "test-200",
+    "margin": 0.2965,
+    "ref_logp_diff": 156.565,
+    "tokens_chosen": 275,
+    "tokens_rejected": 342
+   },
+   {
+    "id": "test-201",
+    "margin": 0.0695,
+    "ref_logp_diff": 0.813,
+    "tokens_chosen": 125,
+    "tokens_rejected": 98
+   },
+   {
+    "id": "test-202",
+    "margin": 0.0152,
+    "ref_logp_diff": -44.007,
+    "tokens_chosen": 108,
+    "tokens_rejected": 83
+   },
+   {
+    "id": "test-203",
+    "margin": 0.0083,
+    "ref_logp_diff": -18.454,
+    "tokens_chosen": 23,
+    "tokens_rejected": 3
+   },
+   {
+    "id": "test-206",
+    "margin": 0.1874,
+    "ref_logp_diff": -349.858,
+    "tokens_chosen": 304,
+    "tokens_rejected": 166
+   },
+   {
+    "id": "test-207",
+    "margin": 0.1844,
+    "ref_logp_diff": 68.503,
+    "tokens_chosen": 3,
+    "tokens_rejected": 61
+   },
+   {
+    "id": "test-208",
+    "margin": 0.4625,
+    "ref_logp_diff": -348.32,
+    "tokens_chosen": 386,
+    "tokens_rejected": 174
+   },
+   {
+    "id": "test-209",
+    "margin": 0.026,
+    "ref_logp_diff": 6.163,
+    "tokens_chosen": 8,
+    "tokens_rejected": 11
+   },
+   {
+    "id": "test-211",
+    "margin": 0.1351,
+    "ref_logp_diff": -234.483,
+    "tokens_chosen": 162,
+    "tokens_rejected": 24
+   },
+   {
+    "id": "test-212",
+    "margin": -0.0106,
+    "ref_logp_diff": 177.143,
+    "tokens_chosen": 29,
+    "tokens_rejected": 125
+   },
+   {
+    "id": "test-213",
+    "margin": 0.2837,
+    "ref_logp_diff": 185.47,
+    "tokens_chosen": 22,
+    "tokens_rejected": 176
+   },
+   {
+    "id": "test-214",
+    "margin": -0.0536,
+    "ref_logp_diff": 184.191,
+    "tokens_chosen": 112,
+    "tokens_rejected": 185
+   },
+   {
+    "id": "test-215",
+    "margin": 0.0812,
+    "ref_logp_diff": 128.0,
+    "tokens_chosen": 31,
+    "tokens_rejected": 150
+   },
+   {
+    "id": "test-216",
+    "margin": -0.0153,
+    "ref_logp_diff": -118.753,
+    "tokens_chosen": 218,
+    "tokens_rejected": 151
+   },
+   {
+    "id": "test-217",
+    "margin": 0.1083,
+    "ref_logp_diff": -73.481,
+    "tokens_chosen": 134,
+    "tokens_rejected": 25
+   },
+   {
+    "id": "test-218",
+    "margin": 0.1182,
+    "ref_logp_diff": 74.913,
+    "tokens_chosen": 27,
+    "tokens_rejected": 43
+   },
+   {
+    "id": "test-219",
+    "margin": 0.0175,
+    "ref_logp_diff": 37.212,
+    "tokens_chosen": 53,
+    "tokens_rejected": 30
+   },
+   {
+    "id": "test-220",
+    "margin": 0.047,
+    "ref_logp_diff": 2.458,
+    "tokens_chosen": 5,
+    "tokens_rejected": 5
+   },
+   {
+    "id": "test-221",
+    "margin": -0.0234,
+    "ref_logp_diff": -13.918,
+    "tokens_chosen": 16,
+    "tokens_rejected": 18
+   },
+   {
+    "id": "test-222",
+    "margin": -0.0677,
+    "ref_logp_diff": 374.787,
+    "tokens_chosen": 73,
+    "tokens_rejected": 345
+   },
+   {
+    "id": "test-224",
+    "margin": -0.0511,
+    "ref_logp_diff": -199.191,
+    "tokens_chosen": 177,
+    "tokens_rejected": 56
+   },
+   {
+    "id": "test-227",
+    "margin": -0.0314,
+    "ref_logp_diff": 27.294,
+    "tokens_chosen": 11,
+    "tokens_rejected": 54
+   },
+   {
+    "id": "test-228",
+    "margin": -0.3046,
+    "ref_logp_diff": 133.747,
+    "tokens_chosen": 529,
+    "tokens_rejected": 575
+   },
+   {
+    "id": "test-229",
+    "margin": -0.4812,
+    "ref_logp_diff": -213.389,
+    "tokens_chosen": 279,
+    "tokens_rejected": 3
+   },
+   {
+    "id": "test-232",
+    "margin": 0.5857,
+    "ref_logp_diff": -569.53,
+    "tokens_chosen": 446,
+    "tokens_rejected": 41
+   },
+   {
+    "id": "test-233",
+    "margin": 0.052,
+    "ref_logp_diff": 192.479,
+    "tokens_chosen": 265,
+    "tokens_rejected": 383
+   },
+   {
+    "id": "test-234",
+    "margin": 0.0793,
+    "ref_logp_diff": 28.818,
+    "tokens_chosen": 406,
+    "tokens_rejected": 454
+   },
+   {
+    "id": "test-235",
+    "margin": 0.1897,
+    "ref_logp_diff": 376.492,
+    "tokens_chosen": 46,
+    "tokens_rejected": 197
+   },
+   {
+    "id": "test-236",
+    "margin": 0.0681,
+    "ref_logp_diff": -203.719,
+    "tokens_chosen": 518,
+    "tokens_rejected": 547
+   },
+   {
+    "id": "test-237",
+    "margin": -0.2563,
+    "ref_logp_diff": -171.338,
+    "tokens_chosen": 231,
+    "tokens_rejected": 31
+   },
+   {
+    "id": "test-238",
+    "margin": 0.2749,
+    "ref_logp_diff": -312.034,
+    "tokens_chosen": 554,
+    "tokens_rejected": 321
+   },
+   {
+    "id": "test-240",
+    "margin": 0.1647,
+    "ref_logp_diff": -170.537,
+    "tokens_chosen": 469,
+    "tokens_rejected": 456
+   },
+   {
+    "id": "test-241",
+    "margin": -0.1101,
+    "ref_logp_diff": 45.365,
+    "tokens_chosen": 118,
+    "tokens_rejected": 189
+   },
+   {
+    "id": "test-244",
+    "margin": 0.4367,
+    "ref_logp_diff": -131.099,
+    "tokens_chosen": 285,
+    "tokens_rejected": 271
+   },
+   {
+    "id": "test-246",
+    "margin": -0.4425,
+    "ref_logp_diff": 287.146,
+    "tokens_chosen": 28,
+    "tokens_rejected": 176
+   },
+   {
+    "id": "test-247",
+    "margin": -0.027,
+    "ref_logp_diff": -85.766,
+    "tokens_chosen": 62,
+    "tokens_rejected": 24
+   },
+   {
+    "id": "test-251",
+    "margin": 0.1614,
+    "ref_logp_diff": 412.543,
+    "tokens_chosen": 5,
+    "tokens_rejected": 239
+   },
+   {
+    "id": "test-252",
+    "margin": 0.101,
+    "ref_logp_diff": -704.273,
+    "tokens_chosen": 490,
+    "tokens_rejected": 56
+   },
+   {
+    "id": "test-253",
+    "margin": 0.0077,
+    "ref_logp_diff": -49.807,
+    "tokens_chosen": 70,
+    "tokens_rejected": 21
+   },
+   {
+    "id": "test-254",
+    "margin": 0.2942,
+    "ref_logp_diff": -13.399,
+    "tokens_chosen": 202,
+    "tokens_rejected": 254
+   },
+   {
+    "id": "test-255",
+    "margin": 0.114,
+    "ref_logp_diff": 17.018,
+    "tokens_chosen": 397,
+    "tokens_rejected": 139
+   },
+   {
+    "id": "test-257",
+    "margin": 0.1921,
+    "ref_logp_diff": 482.551,
+    "tokens_chosen": 542,
+    "tokens_rejected": 490
+   },
+   {
+    "id": "test-261",
+    "margin": 0.5077,
+    "ref_logp_diff": -318.141,
+    "tokens_chosen": 478,
+    "tokens_rejected": 84
+   },
+   {
+    "id": "test-263",
+    "margin": 0.1647,
+    "ref_logp_diff": -19.39,
+    "tokens_chosen": 132,
+    "tokens_rejected": 148
+   },
+   {
+    "id": "test-264",
+    "margin": 0.0169,
+    "ref_logp_diff": 145.898,
+    "tokens_chosen": 5,
+    "tokens_rejected": 87
+   },
+   {
+    "id": "test-265",
+    "margin": 0.4702,
+    "ref_logp_diff": 50.441,
+    "tokens_chosen": 267,
+    "tokens_rejected": 325
+   },
+   {
+    "id": "test-267",
+    "margin": -0.0208,
+    "ref_logp_diff": -56.398,
+    "tokens_chosen": 43,
+    "tokens_rejected": 18
+   },
+   {
+    "id": "test-268",
+    "margin": 0.0223,
+    "ref_logp_diff": 354.385,
+    "tokens_chosen": 303,
+    "tokens_rejected": 508
+   },
+   {
+    "id": "test-269",
+    "margin": -0.2657,
+    "ref_logp_diff": 132.136,
+    "tokens_chosen": 217,
+    "tokens_rejected": 294
+   },
+   {
+    "id": "test-271",
+    "margin": -0.0049,
+    "ref_logp_diff": -714.049,
+    "tokens_chosen": 439,
+    "tokens_rejected": 74
+   },
+   {
+    "id": "test-272",
+    "margin": 0.9392,
+    "ref_logp_diff": -363.733,
+    "tokens_chosen": 418,
+    "tokens_rejected": 197
+   },
+   {
+    "id": "test-274",
+    "margin": 0.1335,
+    "ref_logp_diff": 331.323,
+    "tokens_chosen": 490,
+    "tokens_rejected": 363
+   },
+   {
+    "id": "test-275",
+    "margin": 0.2105,
+    "ref_logp_diff": 6.033,
+    "tokens_chosen": 7,
+    "tokens_rejected": 14
+   },
+   {
+    "id": "test-276",
+    "margin": -0.0353,
+    "ref_logp_diff": -65.958,
+    "tokens_chosen": 265,
+    "tokens_rejected": 145
+   },
+   {
+    "id": "test-277",
+    "margin": 0.3647,
+    "ref_logp_diff": 220.149,
+    "tokens_chosen": 39,
+    "tokens_rejected": 74
+   },
+   {
+    "id": "test-278",
+    "margin": -0.1286,
+    "ref_logp_diff": 282.867,
+    "tokens_chosen": 261,
+    "tokens_rejected": 372
+   },
+   {
+    "id": "test-280",
+    "margin": 0.3714,
+    "ref_logp_diff": -416.316,
+    "tokens_chosen": 331,
+    "tokens_rejected": 35
+   },
+   {
+    "id": "test-281",
+    "margin": 0.004,
+    "ref_logp_diff": 96.909,
+    "tokens_chosen": 90,
+    "tokens_rejected": 277
+   },
+   {
+    "id": "test-283",
+    "margin": 0.1756,
+    "ref_logp_diff": -254.277,
+    "tokens_chosen": 407,
+    "tokens_rejected": 384
+   },
+   {
+    "id": "test-284",
+    "margin": -0.0947,
+    "ref_logp_diff": -189.303,
+    "tokens_chosen": 269,
+    "tokens_rejected": 274
+   },
+   {
+    "id": "test-286",
+    "margin": 0.0835,
+    "ref_logp_diff": -80.924,
+    "tokens_chosen": 117,
+    "tokens_rejected": 401
+   },
+   {
+    "id": "test-287",
+    "margin": 0.0739,
+    "ref_logp_diff": -41.302,
+    "tokens_chosen": 43,
+    "tokens_rejected": 19
+   },
+   {
+    "id": "test-289",
+    "margin": 0.3209,
+    "ref_logp_diff": -37.147,
+    "tokens_chosen": 271,
+    "tokens_rejected": 141
+   },
+   {
+    "id": "test-290",
+    "margin": 0.3354,
+    "ref_logp_diff": 152.401,
+    "tokens_chosen": 25,
+    "tokens_rejected": 107
+   },
+   {
+    "id": "test-291",
+    "margin": -0.0449,
+    "ref_logp_diff": 5.112,
+    "tokens_chosen": 35,
+    "tokens_rejected": 44
+   },
+   {
+    "id": "test-292",
+    "margin": 0.1651,
+    "ref_logp_diff": -9.79,
+    "tokens_chosen": 74,
+    "tokens_rejected": 46
+   },
+   {
+    "id": "test-293",
+    "margin": 0.8904,
+    "ref_logp_diff": -407.129,
+    "tokens_chosen": 371,
+    "tokens_rejected": 89
+   },
+   {
+    "id": "test-297",
+    "margin": -0.4125,
+    "ref_logp_diff": 82.809,
+    "tokens_chosen": 366,
+    "tokens_rejected": 196
+   },
+   {
+    "id": "test-300",
+    "margin": -0.2061,
+    "ref_logp_diff": -4.634,
+    "tokens_chosen": 5,
+    "tokens_rejected": 18
+   },
+   {
+    "id": "test-301",
+    "margin": 0.0911,
+    "ref_logp_diff": 184.452,
+    "tokens_chosen": 88,
+    "tokens_rejected": 204
+   },
+   {
+    "id": "test-302",
+    "margin": 0.1446,
+    "ref_logp_diff": 33.333,
+    "tokens_chosen": 34,
+    "tokens_rejected": 24
+   },
+   {
+    "id": "test-303",
+    "margin": 0.0242,
+    "ref_logp_diff": -248.475,
+    "tokens_chosen": 416,
+    "tokens_rejected": 254
+   },
+   {
+    "id": "test-307",
+    "margin": -0.1384,
+    "ref_logp_diff": -62.911,
+    "tokens_chosen": 111,
+    "tokens_rejected": 25
+   },
+   {
+    "id": "test-309",
+    "margin": -0.0991,
+    "ref_logp_diff": 488.512,
+    "tokens_chosen": 127,
+    "tokens_rejected": 418
+   },
+   {
+    "id": "test-310",
+    "margin": -0.1634,
+    "ref_logp_diff": 34.518,
+    "tokens_chosen": 115,
+    "tokens_rejected": 144
+   },
+   {
+    "id": "test-311",
+    "margin": -0.0711,
+    "ref_logp_diff": 10.815,
+    "tokens_chosen": 231,
+    "tokens_rejected": 365
+   },
+   {
+    "id": "test-312",
+    "margin": 0.0221,
+    "ref_logp_diff": -74.54,
+    "tokens_chosen": 391,
+    "tokens_rejected": 161
+   },
+   {
+    "id": "test-317",
+    "margin": -0.0043,
+    "ref_logp_diff": 350.781,
+    "tokens_chosen": 355,
+    "tokens_rejected": 424
+   },
+   {
+    "id": "test-318",
+    "margin": 0.5915,
+    "ref_logp_diff": -272.087,
+    "tokens_chosen": 259,
+    "tokens_rejected": 73
+   },
+   {
+    "id": "test-321",
+    "margin": -0.0868,
+    "ref_logp_diff": -25.718,
+    "tokens_chosen": 265,
+    "tokens_rejected": 215
+   },
+   {
+    "id": "test-322",
+    "margin": -0.0371,
+    "ref_logp_diff": -72.899,
+    "tokens_chosen": 64,
+    "tokens_rejected": 41
+   },
+   {
+    "id": "test-323",
+    "margin": -0.2312,
+    "ref_logp_diff": -42.011,
+    "tokens_chosen": 34,
+    "tokens_rejected": 20
+   },
+   {
+    "id": "test-324",
+    "margin": 0.0501,
+    "ref_logp_diff": 164.736,
+    "tokens_chosen": 149,
+    "tokens_rejected": 178
+   },
+   {
+    "id": "test-327",
+    "margin": -0.2057,
+    "ref_logp_diff": -145.592,
+    "tokens_chosen": 88,
+    "tokens_rejected": 3
+   },
+   {
+    "id": "test-328",
+    "margin": 0.5288,
+    "ref_logp_diff": -271.865,
+    "tokens_chosen": 398,
+    "tokens_rejected": 30
+   },
+   {
+    "id": "test-329",
+    "margin": 0.0427,
+    "ref_logp_diff": 249.104,
+    "tokens_chosen": 53,
+    "tokens_rejected": 403
+   },
+   {
+    "id": "test-332",
+    "margin": 0.0897,
+    "ref_logp_diff": -11.315,
+    "tokens_chosen": 33,
+    "tokens_rejected": 32
+   },
+   {
+    "id": "test-333",
+    "margin": -0.1639,
+    "ref_logp_diff": -64.221,
+    "tokens_chosen": 200,
+    "tokens_rejected": 121
+   }
+  ]
+ },
+ "generations": {
+  "prompts": 32,
+  "max_new_tokens": 160,
+  "before": {
+   "tokens_mean": 103.1,
+   "tokens_median": 118.0,
+   "finished": 17,
+   "ppl_ref_median": 1.946,
+   "ppl_ref_mean": 1.949,
+   "head_score_mean": -0.502
+  },
+  "after": {
+   "tokens_mean": 98.0,
+   "tokens_median": 135.5,
+   "finished": 17,
+   "ppl_ref_median": 1.899,
+   "ppl_ref_mean": 1.98,
+   "head_score_mean": -0.544
+  },
+  "head_win_rate_after_vs_before": 0.3906,
+  "identical_replies": 7,
+  "samples": [
+   {
+    "prompt": "let's play a text-based rpg in the Stargate SG-1 universe, i wanna be jack o'neill",
+    "before": "I'm ready to help you create a thrilling text-based RPG experience in the Stargate SG-1 universe. As Jack O'Neill, you're a skilled warrior, a skilled fighter, and a skilled strategist. You're part of the United Earth Space Probe Agency (UESPA) and are on a mission to explore the unknown reaches of the galaxy.\n\nYou're currently on the planet of Earth, and you've just received a distress signal from a nearby planet. You're on the planet of Earth, and you're on the planet of Earth, and you're on the planet of Earth, and you're on the planet of Earth, and you're on the planet of Earth, and you're on the planet of Earth, and you're on the planet of",
+    "after": "I'm ready to help you create a thrilling text-based RPG experience in the Stargate SG-1 universe. As Jack O'Neill, you're a skilled warrior, a skilled fighter, and a skilled strategist. You're part of the United Earth Space Probe Agency (UESPA) and are part of the team that's on a mission to explore the unknown reaches of the galaxy.\n\nYou're currently on the planet of Earth, and you've just received a distress signal from a nearby planet. You're on the planet of Earth, and you're part of the United Earth Space Probe Agency (UESPA) and are part of the team that's on a mission to explore the unknown reaches of the galaxy.\n\nYou're currently on the planet of Earth",
+    "tokens": [
+     160,
+     160
+    ],
+    "ppl_ref": [
+     1.825,
+     1.876
+    ],
+    "head": [
+     -1.8,
+     -0.597
+    ]
+   },
+   {
+    "prompt": "Premise: \"Girl with short hair singing.\"\nBased on this premise, can we conclude that the hypothesis \"A girl with short blond hair is singing on stage in front of a large audience.\" is true?\nOptions:\n- yes\n- it is not possible to tell\n- no Now, let's be accurate as possible. Some thinking first:",
+    "before": "Yes, we can conclude that the hypothesis \"A girl with short blond hair is singing on stage in front of a large audience\" is true based on the premise \"Girl with short hair singing.\"",
+    "after": "Yes, we can conclude that the hypothesis \"A girl with short blond hair is singing on stage in front of a large audience\" is true based on the premise \"Girl with short hair singing.\"",
+    "tokens": [
+     41,
+     41
+    ],
+    "ppl_ref": [
+     1.133,
+     1.133
+    ],
+    "head": [
+     -0.349,
+     -0.349
+    ]
+   },
+   {
+    "prompt": "You will be given a definition of a task first, then some input of the task.\nIn this task, you are given a string of characters. You need to remove duplicate characters from the string if any, and return the resulting string.\n\nOdINdUfcsEAYNFxAwLmjqtPwef\nOutput:",
+    "before": "odinndufcsaeawlmsjqtpee\n\nExplanation: The input string contains duplicate characters, such as 'a', 'e', 'i', 'o', 'n', 'd', 'f', 'c', 's', 't', 'w', 'y'. To remove these duplicates, we can use a set to keep track of the characters we have seen so far. We iterate through the string and add each character to the set. If a character is already in the set, we know it's a duplicate, so we remove it from the set. Finally, we return the resulting string.",
+    "after": "OdINdUfcsEAYNFxAwLmjqtPwef",
+    "tokens": [
+     128,
+     20
+    ],
+    "ppl_ref": [
+     1.577,
+     1.323
+    ],
+    "head": [
+     0.053,
+     -0.236
+    ]
+   },
+   {
+    "prompt": "Pick which sentence is not logical.\nOptions:\n- Sentence A: \"If you want to quench your thirst, you must drink alcoholic beverages.\"\n- Sentence B: \"If you want to quench your thirst, you must drink non-alcoholic beverages.\"\n Let me think hard. Detailed solution:",
+    "before": "Let me think hard.\n\nTo determine which sentence is not logical, we need to analyze the meaning of each sentence and consider the context in which they are used.\n\nSentence A: \"If you want to quench your thirst, you must drink alcoholic beverages.\"\n\nThis sentence implies that drinking alcoholic beverages is the only way to quench one's thirst. However, this is not necessarily true. Many people may not drink alcoholic beverages to quench their thirst, but rather to relax, socialize, or have fun.\n\nSentence B: \"If you want to quench your thirst, you must drink non-alcoholic beverages.\"\n\nThis sentence suggests that drinking non-alcoholic beverages is the only way to quench one's thirst. However, this is also not",
+    "after": "To determine which sentence is not logical, let's analyze each sentence and consider the implications.\n\nSentence A: \"If you want to quench your thirst, you must drink alcoholic beverages.\"\n\nThis sentence suggests that drinking alcoholic beverages is the only way to quench one's thirst. However, this is not necessarily true. Many people find non-alcoholic beverages, such as water, tea, or coffee, to be effective alternatives to quenching thirst.\n\nSentence B: \"If you want to quench your thirst, you must drink non-alcoholic beverages.\"\n\nThis sentence implies that drinking non-alcoholic beverages is the only way to quench one's thirst. However, this is also not necessarily true. Many people find that drinking water, milk, or other",
+    "tokens": [
+     160,
+     160
+    ],
+    "ppl_ref": [
+     1.63,
+     1.589
+    ],
+    "head": [
+     -0.624,
+     -0.303
+    ]
+   },
+   {
+    "prompt": "Hi Michael,\n\nHope you're well?\n\nRegarding my previous email to support HexaChem with good price offers,\n\nWhat are your current needs?\nHoping for your earliest reply.\n\nThanks in advance,\nAs a sales manager, the client hasn't replied this email after 2 days. Write a follow up email to the client. Your writing should include high complexity and burstiness. It must also be as brief as possible",
+    "before": "Hi Michael,\n\nI hope you're well.\n\nI've been reviewing the support for HexaChem and have some initial thoughts on price offers. I'd like to discuss this further with you. Could you please share your current needs and any specific requirements you have?\n\nI'm looking forward to your response.\n\nBest regards,\nAs a sales manager",
+    "after": "Hi Michael,\n\nI hope you're well. I've been reviewing the support for HexaChem and have some initial thoughts on price offers.\n\nI'm currently in the process of refining the product and would appreciate your feedback. Could you please share your current needs and any specific requirements you have?\n\nI'm aiming to have a follow-up email to the client by the end of this week, as per your request. Please let me know if you have any questions or need further clarification.\n\nThanks for your support.\n\nBest regards,\nAs a sales manager",
+    "tokens": [
+     76,
+     120
+    ],
+    "ppl_ref": [
+     1.751,
+     1.899
+    ],
+    "head": [
+     -0.708,
+     -0.466
+    ]
+   },
+   {
+    "prompt": "Teacher:In this task, you're given a sentence and question. Based on the information provided in a given sentence, you should identify the shortest continuous text span from the sentence that serves as an answer to the given question. Answer the question using coreference resolution. Coreference resolution is the task of clustering mentions in text that refer to the same underlying real world entities. For example let's take a sentence 'I voted for Obama because he was most aligned with my values, she said.' Here in this example 'I', 'my', and 'she' belong to the same cluster and 'Obama' and 'he' belong to the same cluster. Now let's discuss another example , original sentence: 'I voted for Trump because he was most aligned with my values',John said. Now here is the same sentence with resolved coreferences: 'John voted for Trump because Trump was most aligned with John's values',John said. \nTeacher: Now, understand the problem? Solve this instance: Sentence: Sam broke both his ankles and he's walking with crutches. But a month or so from now they should be unnecessary. Question: What should be unnecessary?\nStudent:",
+    "before": "Coreference resolution in this sentence is challenging because the subject 'Sam' is mentioned twice in the sentence. The first mention is 'Sam broke both his ankles', and the second mention is 'they should be unnecessary'. To resolve this, we need to identify the coreference between 'Sam' and 'they'. The coreference resolution in this case is that 'Sam' refers to the subject 'Sam', and 'they' refers to the object 'they'. Therefore, the coreference resolution in this sentence is 'Sam should be unnecessary'.",
+    "after": "The question should be \"What should be unnecessary?\"",
+    "tokens": [
+     108,
+     10
+    ],
+    "ppl_ref": [
+     1.873,
+     2.141
+    ],
+    "head": [
+     -0.541,
+     -0.445
+    ]
+   },
+   {
+    "prompt": "Do you know of a smart home learning education service for elementary school students to study at home?\nAnswer in English.\n \n \n \n 지금 번역하기",
+    "before": "Yes, I can assist you with that. There are several smart home learning education services available for elementary school students. Here are a few examples:\n\n1. **Khan Academy**: This is a free online learning platform that offers a wide range of subjects, including math, science, and language arts. It's designed for students of all ages and skill levels.\n\n2. **Coursera**: Coursera is a platform that connects students with experts in various fields. It offers a variety of courses on a wide range of subjects, including math, science, and language arts.\n\n3. **EdX**: Similar to Coursera, EdX is a platform that connects students with experts in various fields. It offers a variety of courses on a wide range of subjects, including math",
+    "after": "Yes, I can assist you with that. There are several smart home learning education services available for elementary school students. Some popular ones include:\n\n1. **Khan Academy**: This is a free online platform that offers a wide range of educational resources, including video lessons, interactive activities, and practice exercises.\n\n2. **Coursera**: This is a platform that connects students with experts in various fields. They offer courses on a variety of subjects, including education, science, and technology.\n\n3. **EdX**: Similar to Coursera, EdX connects students with experts in various fields. They offer courses on a wide range of subjects, including education, science, and technology.\n\n4. **Codecademy**: This is a platform that offers interactive coding lessons",
+    "tokens": [
+     160,
+     160
+    ],
+    "ppl_ref": [
+     2.013,
+     2.056
+    ],
+    "head": [
+     0.299,
+     -0.195
+    ]
+   },
+   {
+    "prompt": "write the key points of \"the power of habit\"",
+    "before": "1. **The Power of Habit**: This book is about how habits are formed and how they can be changed. It explains that habits are automatic behaviors that we do repeatedly without thinking.\n\n2. **The Habit Loop**: The book introduces the Habit Loop, which is a model that explains how habits are formed. It consists of the 3 main components: cue, routine, and reward.\n\n3. **The 3 Cues**: The book explains that there are three types of cues that can trigger a habit: the cue, the routine, and the reward. The cue is the thing that makes you want to do something, the routine is the action you do, and the reward is the outcome you get.\n\n4. **The Habit Loop**: The Habit Loop explains how habits can",
+    "after": "1. **The Power of Habit**: This book by Charles Duhigg explains how habits are formed and how they can be changed.\n\n2. **The Habit Loop**: Duhigg describes the process of forming habits, which includes the cue, routine, reward, and trigger.\n\n3. **The 3 Cs**: The Habit Loop is broken down into three key components: cue, routine, and consequence.\n\n4. **The Habit Loop in Action**: Duhigg provides examples of how habits can be formed and changed.\n\n5. **The Habit Loop in Action**: Duhigg provides examples of how habits can be formed and changed.\n\n6. **The Habit Loop in Action**: Duhigg provides examples of how habits can be formed and changed.\n\n7.",
+    "tokens": [
+     160,
+     160
+    ],
+    "ppl_ref": [
+     2.456,
+     2.142
+    ],
+    "head": [
+     -1.208,
+     -1.098
+    ]
+   },
+   {
+    "prompt": "I am trying to use PKI Certificates with IIS, Active Directory, and I am having issues finding the correct certificates. When I use my correct account, I get the message \"No Valid Certificates were found\". If I use another account, I get \"You May Not Have Write Access\". What can I try to get the correct certificates?",
+    "before": "To resolve the issue of finding the correct certificates, you can try the following steps:\n\n1. **Check the Certificate Store**: Ensure that the certificate store is set up correctly. You can do this by opening the \"Certificates\" folder in the \"Windows Explorer\" and checking the \"Certificate Store\" option. If it's not set up correctly, you may need to reconfigure it.\n\n2. **Check the Certificate Store in IIS**: In IIS, you can check the \"Certificate Store\" by going to \"Tools\" > \"Certificates\" > \"Certificate Store\". If the store is not set up correctly, you may need to reconfigure it.\n\n3. **Check the Certificate Store in Active Directory**: In Active Directory, you can check",
+    "after": "To find the correct certificates for your IIS, Active Directory, and IIS-managed certificates, you can try the following steps:\n\n1. **Check the Certificate Store**: Open the \"Certificate Store\" in the IIS Explorer. This will show you the list of certificates that are available for use.\n\n2. **Check the Certificate Store for IIS-managed certificates**: In the Certificate Store, look for certificates that are managed by IIS. These certificates are automatically generated by IIS and are used for IIS-managed certificates.\n\n3. **Check the Certificate Store for Active Directory certificates**: In the Certificate Store, look for certificates that are managed by Active Directory. These certificates are automatically generated by Active Directory and are used for Active Directory certificates.\n\n4. **Check",
+    "tokens": [
+     160,
+     160
+    ],
+    "ppl_ref": [
+     2.402,
+     2.402
+    ],
+    "head": [
+     -1.587,
+     -2.306
+    ]
+   },
+   {
+    "prompt": "What are the specific advantages of a diet containing 🥑🍓🥦 that lead to increased energy, physical strength, and cognitive function? Please provide a summary of the top three benefits utilizing the JSON data provided, each of which involves complex interplay among numerous physiological and metabolic pathways.",
+    "before": "Sure, here are the top three benefits of a diet containing 🥑🍓🥦 that lead to increased energy, physical strength, and cognitive function:\n\n1. Increased Energy: 🌱💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪",
+    "after": "Sure, here are the specific advantages of a diet containing 🥑🍓🥦 that lead to increased energy, physical strength, and cognitive function:\n\n1. Increased Energy: 🌱💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪�",
+    "tokens": [
+     160,
+     160
+    ],
+    "ppl_ref": [
+     1.337,
+     1.399
+    ],
+    "head": [
+     -1.292,
+     -1.4
+    ]
+   },
+   {
+    "prompt": "In a certain programming language, the following code outputs a certain result:\nx = 3 + 2 * 4 - 6 / 3\nprint(x)\nHowever, an AI system is not able to evaluate this expression correctly. Can you modify the code to make sure that the AI system evaluates the expression correctly and outputs the correct result of 8? Hint: Consider the order of operations.",
+    "before": "Sure, I can help you with that. Here's the modified code:\n\n```python\nx = 3 + 2 * 4 - 6 / 3\nprint(x)\n```\n\nIn this code, the expression `3 + 2 * 4 - 6 / 3` is evaluated in the following order:\n\n1. `2 * 4` is evaluated first, which equals 8.\n2. `3 + 8` is evaluated next, which equals 11.\n3. `11 - 6` is evaluated next, which equals 5.\n4. `5 / 3` is evaluated last, which equals 1.67.\n\nSo, the final result of the expression",
+    "after": "Sure, I can help you with that. Here's the modified code:\n\n```python\nx = 3 + 2 * 4 - 6 / 3\nprint(x)\n```\n\nIn this code, the expression `3 + 2 * 4 - 6 / 3` is evaluated in the following order:\n\n1. `2 * 4` is evaluated first, which equals 8.\n2. `3 + 8` is evaluated next, which equals 11.\n3. `11 - 6` is evaluated next, which equals 5.\n4. `5 / 3` is evaluated last, which equals 1.67.\n\nSo, the final result of the expression",
+    "tokens": [
+     160,
+     160
+    ],
+    "ppl_ref": [
+     1.501,
+     1.501
+    ],
+    "head": [
+     -0.249,
+     -0.249
+    ]
+   },
+   {
+    "prompt": "Given the task definition, example input & output, solve the new input case.\nIn this task, given a sentence in the Hindi language, your task is to convert it into the English language.\nExample: राउंडअबाउट के लिए ट्विनिंग को चिह्नित करने वाला एक चिह्न योजनाबद्ध है।\nOutput: A sign marking the twinning is planned for the roundabout.\nThe above sentence is correctly translated from Hindi to English\n\nNew input case for you: \"सहायक कमरे सेट करते हैं, रजिस्ट्रार को बुलाते हैं, फीस जमा करते हैं, कक्षा के डेटा/प्रतिभागियों के आंकड़े रखते हैं, फ़ाइल करते हैं, वे फोन का जवाब देने, प्रशिक्षण और सेमिनारों का नेतृत्व करने जैसे कार्य करते हैं।\"\nOutput:",
+    "before": "\"The new sign is planned for the roundabout. It includes a sign marking the twinning, a sign for the twin city, a sign for the highway, a sign for the pedestrian, and a sign for the city's tourism department.\"",
+    "after": "\"The new sign is planned for the roundabout. It includes information about the twinning, the twin cities, and the local government offices. It also includes information about the nearby hotels, the local economy, and the nearby restaurants.\"",
+    "tokens": [
+     49,
+     47
+    ],
+    "ppl_ref": [
+     2.523,
+     3.083
+    ],
+    "head": [
+     0.507,
+     0.44
+    ]
+   },
+   {
+    "prompt": "what are some ways to get good startup ideas?",
+    "before": "1. **Research and Analysis**: Start by analyzing the current market trends, identifying gaps in the market, and understanding the needs of your target audience.\n\n2. **Competition Analysis**: Analyze your competitors and identify areas where you can differentiate your product or service.\n\n3. **Customer Feedback**: Collect feedback from your customers to understand their needs and pain points.\n\n4. **Market Trends**: Stay up-to-date with the latest market trends and technological advancements.\n\n5. **Industry Trends**: Stay informed about the latest industry trends and technological advancements.\n\n6. **New Technologies**: Stay informed about new technologies and trends that can help you solve a problem or meet a need.\n\n7. **New Business Models**: Consider new business models that can help you solve a problem or",
+    "after": "1. **Research and Analysis**: Start by analyzing the current market trends, identifying gaps in the market, and understanding the needs of your target audience. This will help you identify opportunities for innovation and growth.\n\n2. **Innovation and Experimentation**: Start by brainstorming and experimenting with new ideas. This could involve trying out new products, services, or business models. \n\n3. **Customer Feedback**: Collect feedback from your target audience to understand their needs and preferences. This will help you refine your ideas and create more effective solutions.\n\n4. **Industry Trends**: Stay up-to-date with the latest industry trends and developments. This will help you identify opportunities and challenges that others may have missed.\n\n5. **Competitive Analysis**: Analyze your competitors and identify areas where you can",
+    "tokens": [
+     160,
+     160
+    ],
+    "ppl_ref": [
+     2.254,
+     2.336
+    ],
+    "head": [
+     -0.582,
+     -0.817
+    ]
+   },
+   {
+    "prompt": "In this task, you are given a sentence. You must find the primary subject in the supplied sentence. The output must be a sub-sequence in the sentence.\nExample: Rope and its Usage\nExample solution: Rope\nExample explanation: The word 'Rope' is the key subject here, while Usage is a property of Rope.\n\nProblem: General characteristics.\n",
+    "before": "The primary subject in the sentence \"General characteristics.\" is \"General characteristics.\"",
+    "after": "The primary subject in the sentence \"General characteristics.\" is \"General characteristics.\"",
+    "tokens": [
+     15,
+     15
+    ],
+    "ppl_ref": [
+     1.529,
+     1.529
+    ],
+    "head": [
+     -0.13,
+     -0.13
+    ]
+   },
+   {
+    "prompt": "You will be given a topic and an argument. Decide the argument's stance towards that topic. The argument's stance is in favor or against the topic. If the argument supports that topic, answer with \"in favor\"; otherwise, if the argument opposes the topic, answer with \"against\".\n\ntopic: Prostitution\nargument: Legalizing prostitution won't substantially reduce HIV/AIDS risks",
+    "before": "In favor",
+    "after": "In favor",
+    "tokens": [
+     2,
+     2
+    ],
+    "ppl_ref": [
+     1.193,
+     1.193
+    ],
+    "head": [
+     -0.787,
+     -0.787
+    ]
+   },
+   {
+    "prompt": "hi! how much is 50 times 5?",
+    "before": "To calculate 50 times 5, you multiply 5 by 5. The result is 250.",
+    "after": "To calculate 50 times 5, you multiply 5 by 5. The result is 250.",
+    "tokens": [
+     25,
+     25
+    ],
+    "ppl_ref": [
+     1.39,
+     1.39
+    ],
+    "head": [
+     -0.277,
+     -0.277
+    ]
+   },
+   {
+    "prompt": "a table of 10 persona who are mushroom fans , name, age, location, character",
+    "before": "I'm sorry, but as a text-based AI, I don't have the ability to browse the internet or access external resources. I'm designed to provide responses based on pre-defined knowledge bases and patterns. I'm here to assist you with your queries, but I'm not equipped to provide real-time information or answer questions about specific websites or online content. I recommend using a search engine or a reliable online resource for that.",
+    "after": "Here's a table of 10 mushroom fan persona:\n\n| Name | Age | Location | Character |\n| --- | --- | --- | --- |\n| **Mushroom Man** | 25 | London | A charismatic and adventurous mushroom enthusiast who loves to explore the UK's hidden mushroom spots. |\n| **Mushroom Lady** | 30 | Paris | A kind-hearted and elegant mushroom enthusiast who loves to share her knowledge of the world's most rare and exotic mushrooms. |\n| **Mushroom Queen** | 28 | New York | A confident and confident mushroom enthusiast who loves to share her knowledge of the world's most rare and exotic mushrooms. |\n| **Mushroom Maniac** | 22 | Tokyo",
+    "tokens": [
+     88,
+     160
+    ],
+    "ppl_ref": [
+     2.007,
+     1.9
+    ],
+    "head": [
+     -0.864,
+     0.034
+    ]
+   },
+   {
+    "prompt": "Analyze the grammatical error in this sentence, which contains a double adverb: \"Despite his infrequent television viewing habits, he hardly ever ever watches TV.\"",
+    "before": "The sentence contains a grammatical error. The double adverb \"he hardly never watches TV\" is incorrect because it is a double adverb, which is a phrase that functions as an adverb. In this case, \"he hardly never\" is a single phrase that functions as an adverb, but it is not a single adverb. Instead, it is a phrase that functions as an adverbial phrase.",
+    "after": "The sentence contains a grammatical error due to the double adverb \"he hardly never watches TV.\" The correct sentence would be: \"Despite his infrequent television viewing habits, he hardly ever watches TV.\"",
+    "tokens": [
+     77,
+     38
+    ],
+    "ppl_ref": [
+     2.188,
+     1.483
+    ],
+    "head": [
+     -0.561,
+     -0.124
+    ]
+   },
+   {
+    "prompt": "Q: Based on the information present in the given passage, you need to write a correct answer to the given question. A correct answer is one that correctly and completely answers the question. Do not write answers that address the question partially or incorrectly. The correct answer must be contained in the given paragraph.\nParagraph- Sent 1: Mechanical energy is a combination of the energy of motion or position.\nSent 2: This type of energy describes objects that are moving or could move.\nSent 3: A moving ball can have energy from motion.\nSent 4: An arrow can also have the energy of motion.\nSent 5: Both are types of mechanical energy.\nSent 6: Can you think of some other examples?\nSent 7: Where does the energy of motion come from?\nSent 8: It comes from the energy created by position.\nSent 9: This energy is stored energy.\nSent 10: This means it is not moving yet, but it has the potential to move.\nSent 11: How can you store energy?\nSent 12: The arrow gains energy from the drawn bow.\nSent 13: As the arrow is released, the bow releases its stored energy and puts the arrow into motion.\nSent 14: Can you think of some other ways to store energy using position?. \nQuestion: Why is mechanical energy considered a combination of the energy of motion and position?.\nA:",
+    "before": "Mechanical energy is considered a combination of the energy of motion and position because it is a combination of the energy of motion (or potential energy) and the energy of position (or kinetic energy).",
+    "after": "Mechanical energy is considered a combination of the energy of motion and position because it is a combination of the energy of motion (or potential energy) and the energy of position (or kinetic energy).",
+    "tokens": [
+     39,
+     39
+    ],
+    "ppl_ref": [
+     1.472,
+     1.472
+    ],
+    "head": [
+     0.385,
+     0.385
+    ]
+   },
+   {
+    "prompt": "Generate a poetic sentence, with a rhyme, describing the beauty of a sunrise.\nNo input",
+    "before": "The sun rises, a golden glow,\nA gentle light that paints the sky,\nThe world awakens, a new day begins,\nA sunrise, a beauty that's divine.",
+    "after": "In the dawn's first light, the world awakes,\nA tapestry of colors, hues and shades,\nThe sky is painted with hues of gold,\nAnd the sun's warm rays, a gentle breeze,\nInvite the world to dance, to play,\nIn the beauty of a sunrise, a sight to behold.",
+    "tokens": [
+     39,
+     68
+    ],
+    "ppl_ref": [
+     3.032,
+     2.548
+    ],
+    "head": [
+     0.074,
+     -0.088
+    ]
+   },
+   {
+    "prompt": "// Given these flat, space-delimited files. Write a function that prints the ids of the rows where:\n// a) the ids match across the files and\n// b) the value is \"foo\" for that id in both files\n//\n// -------- file1.txt ------\n// ID VALUE\n// 1a foo\n// a2 bar\n// 3x foo\n// f4 Foo\n// ...\n// N baz\n// ------------------------\n//\n// -------- file2.txt --------\n// ID VALUE\n// f4 Foo\n// 1a xyz\n// a2 bar\n// 3x foo\n// ...\n// N bing\n// ------------------------",
+    "before": "Here's a Python function that accomplishes this:\n\n```python\ndef print_ids(file1, file2):\n    ids1 = set()\n    ids2 = set()\n    for line1 in file1.readlines():\n        line2 = file2.readline()\n        if line1.strip() == line2.strip():\n            ids1.add(line1.strip())\n        elif line1.strip() == \"foo\":\n            ids2.add(line1.strip())\n    print(ids1)\n    print(ids2)\n\n# Usage\nfile1 = open(\"file1.txt\", \"r\")\nfile2 = open(\"file2.txt\", \"r\")\nprint_ids(file1, file2)\nfile",
+    "after": "Here's a Python function that accomplishes this:\n\n```python\ndef print_matching_ids(file1, file2):\n    with open(file1, 'r') as f1, open(file2, 'r') as f2:\n        for line1, line2 in zip(f1, f2):\n            if line1.strip() == line2.strip():\n                if line1.startswith('a') and line2.startswith('a'):\n                    print(f'ID {line1.split(\" \")[1]} matches across files and is \"foo\"')\n                elif line1.startswith('a') and line2.startswith('b'):\n                    print(f'ID {line1.split(\" \")[1]} matches across",
+    "tokens": [
+     160,
+     160
+    ],
+    "ppl_ref": [
+     1.474,
+     1.464
+    ],
+    "head": [
+     -0.27,
+     -0.809
+    ]
+   },
+   {
+    "prompt": "Explain why the following statement is wrong: \"Cloud computing stores your data on the Internet.\"",
+    "before": "Cloud computing stores your data on the Internet because it is a service provided by cloud computing providers, such as Amazon Web Services (AWS), Microsoft Azure, or Google Cloud Platform (GCP). These providers offer scalable, on-demand computing resources that can be accessed from anywhere with an internet connection. This means that your data is not stored locally on your device, but rather in the cloud, which is accessible from any device with an internet connection.",
+    "after": "The statement \"Cloud computing stores your data on the Internet\" is wrong because it implies that the data is stored on the Internet, which is not the case. Cloud computing refers to a network of remote servers that store data and applications on the Internet, but it does not mean that the data is stored on the Internet. Instead, it means that the data is accessed and processed through the Internet.",
+    "tokens": [
+     89,
+     79
+    ],
+    "ppl_ref": [
+     1.656,
+     1.812
+    ],
+    "head": [
+     0.356,
+     -0.028
+    ]
+   },
+   {
+    "prompt": "Why does water become solid when it is boiling?",
+    "before": "Water becomes solid when it is boiling because of the process of evaporation. When water is heated, it turns into vapor and rises into the air. As the vapor rises, it cools and condenses into tiny droplets, forming clouds. When these droplets combine and grow large enough, they fall back to the Earth as rain, snow, sleet, or hail. This process is called condensation.\n\nIn the case of boiling water, the molecules are moving rapidly and constantly colliding with each other and the surface of the water. As the water is heated, the molecules gain energy and move faster, eventually reaching the boiling point, which is 212 degrees Fahrenheit (100 degrees Celsius) at sea level. At this point, the molecules have enough energy to break free from the surface tension",
+    "after": "Water becomes solid when it is boiling because of the formation of a vapor bubble. When water is heated, the molecules in the water start moving faster and faster. As they move faster, they collide more frequently with the surface of the water, creating a vapor bubble. This vapor bubble is essentially a small pocket of air that forms within the water.\n\nAs the vapor bubble grows, it eventually becomes large enough to break through the surface of the water, creating a boil. At this point, the water has reached its boiling point, and the vapor bubble has formed a solid, or more accurately, a liquid. The water is now in a state of equilibrium, where the vapor bubble is no longer present, and the water has reached its boiling point.",
+    "tokens": [
+     160,
+     151
+    ],
+    "ppl_ref": [
+     1.843,
+     1.871
+    ],
+    "head": [
+     0.581,
+     0.682
+    ]
+   },
+   {
+    "prompt": "In what ways does Ralph Ellison explore the complexities of black identity in Invisible Man?",
+    "before": "1. Identity and self-discovery: Invisible Man is a story about a young black man who is forced to confront his own identity and self-discovery. Ellison explores the complexities of black identity through the character of Henry \"Hank\" Thompson, who is a former slave who has been freed but still struggles to find his place in the world.\n\n2. Cultural heritage: Ellison also explores the complexities of black culture through the character of Henry's grandmother, who is a former slave who has been freed but still struggles to find her place in the world. Ellison shows how Henry's grandmother's cultural heritage plays a significant role in shaping his identity.\n\n3. Race and racism: Ellison explores the complexities of race and racism through the character of Henry's friend, who is a",
+    "after": "1. Identity crisis: Invisible Man is a story about a young black man who is forced to confront his own identity and the societal expectations placed upon him. Ellison explores the complexities of black identity by showing how the protagonist is torn between his desire for self-expression and the societal pressures to conform to white norms.\n\n2. Cultural identity: Ellison also explores the complexities of cultural identity in Invisible Man. He shows how the protagonist is torn between his African American heritage and the cultural norms of white society. This is reflected in the way he struggles to find his place in the world and to express his own cultural identity.\n\n3. Self-discovery: Ellison's exploration of black identity is also reflected in the way he shows the protagonist's self-discovery. He shows how he",
+    "tokens": [
+     160,
+     160
+    ],
+    "ppl_ref": [
+     2.416,
+     2.477
+    ],
+    "head": [
+     -1.063,
+     -1.138
+    ]
+   },
+   {
+    "prompt": "i had a mail chat with Gabriella somtimes in december last year",
+    "before": "Gabriella, a chatbot designed to assist with language learning, has been trained on a vast amount of text data. This training enables it to understand and respond to various forms of communication, including emails.",
+    "after": "Gabriella, a chatbot designed to assist with language learning, has been in touch with me several times in December last year.",
+    "tokens": [
+     43,
+     28
+    ],
+    "ppl_ref": [
+     2.49,
+     2.612
+    ],
+    "head": [
+     -1.164,
+     -1.619
+    ]
+   },
+   {
+    "prompt": "do you know of any algorithms that can compute the diagonal of a product of two matrices that is faster than just extracting the diagonal after computing the matrix product?",
+    "before": "Yes, there are several algorithms that can compute the diagonal of a product of two matrices faster than just extracting the diagonal after computing the matrix product. Here are a few examples:\n\n1. **Fast Inverse** (FIP): This algorithm is based on the fact that the inverse of a product of two matrices is the product of their inverses. It is a fast and efficient algorithm for computing the inverse of a matrix.\n\n2. **Fast Inverse with SVD** (FISV): This algorithm is based on the fact that the inverse of a product of two matrices is the product of their inverses. It is a fast and efficient algorithm for computing the inverse of a matrix.\n\n3. **Fast Inverse with QR Decomposition** (FIDQ):",
+    "after": "Yes, there are several algorithms that can compute the diagonal of a product of two matrices faster than just extracting the diagonal after computing the matrix product. Here are a few examples:\n\n1. **Matrix Inversion Algorithm**: This algorithm is based on the fact that the diagonal elements of a matrix are the eigenvalues of the matrix. It can be used to compute the diagonal elements of a product of two matrices.\n\n2. **Eigenvalue Decomposition**: This algorithm can be used to compute the diagonal elements of a product of two matrices. It decomposes the product matrix into the product of two matrices, and then uses the diagonal elements of the first matrix to compute the diagonal elements of the product matrix.\n\n3. **Matrix Multiplication with a Submatrix**: This algorithm can be used to compute",
+    "tokens": [
+     160,
+     160
+    ],
+    "ppl_ref": [
+     1.991,
+     2.137
+    ],
+    "head": [
+     -1.029,
+     -1.75
+    ]
+   },
+   {
+    "prompt": "Write an incorrect answer to the given question based on the associated fact. You are also provided with the correct answer to the given question. Make sure that your incorrect answer is relevant and similar to the associated fact. Also, try to make the incorrect answer similar to the correct answer so that distinguishing the correct answer from the incorrect answer is not very easy. Make sure you don't accidentally provide another correct answer! Also, make sure they sound reasonable (e.g., might be on a school pop quiz). A good incorrect answer can be constructed using words associated with the question, but not the correct answer. For example, for the question \"What helps plants survive?\", using words like \"weeds\", \"vase\", \"bee\" (associated with \"plant\"), or \"first aid\", \"parachute\", \"accident\" (associated with \"survive\") etc. Your incorrect answers make the question hard, so these results in good incorrect answers.\n\nInput: Consider Input: Fact: Skin color is controlled by two or more genes. \nQuestion: What is controlled by two or more genes? \nCorrect Answer: skin color.\n\nOutput: chin fissure.\n\n\nInput: Consider Input: Fact: most pituitary hormones control chakras. \nQuestion: what do most pituitary hormones control? \nCorrect Answer: chakras.\n\nOutput: brain waves.\n\n\nInput: Consider Input: Fact: Skin is used for breathing air by something that is eaten by bats. \nQuestion: What eats something that uses skin for breathing air? \nCorrect Answer: Bats.\n\n",
+    "before": "Output: skin.",
+    "after": "eyes.",
+    "tokens": [
+     4,
+     3
+    ],
+    "ppl_ref": [
+     2.8,
+     3.867
+    ],
+    "head": [
+     0.275,
+     0.172
+    ]
+   },
+   {
+    "prompt": "Why do people like the iguana with wings?",
+    "before": "I'm sorry, but as an AI trained by Hugging Face, I don't have the ability to provide personal opinions or make decisions. My purpose is to assist and provide information. I'm here to help with language-related tasks, such as translating text, generating responses, and providing explanations. I'm not capable of making decisions or providing advice on personal matters.",
+    "after": "I'm sorry, but as an AI trained by Hugging Face, I don't have the ability to provide personal opinions or make decisions. My purpose is to assist and provide information. I can only process and respond to the information you provide.",
+    "tokens": [
+     74,
+     49
+    ],
+    "ppl_ref": [
+     1.901,
+     1.899
+    ],
+    "head": [
+     -0.965,
+     -1.259
+    ]
+   },
+   {
+    "prompt": "Can you provide information on the research opportunities available at liberal arts colleges?",
+    "before": "Absolutely, I'd be happy to provide some information on research opportunities at liberal arts colleges.\n\nResearch opportunities at liberal arts colleges can be found in various fields. Here are a few examples:\n\n1. **Science and Technology**: Many liberal arts colleges offer research opportunities in fields like biology, chemistry, physics, and engineering. These can include research projects, internships, and even fellowships.\n\n2. **Social Sciences**: Liberal arts colleges often have research opportunities in social sciences like sociology, psychology, and political science. These can include research projects, internships, and even fellowships.\n\n3. **Business and Economics**: Liberal arts colleges often have research opportunities in business and economics. These can include research projects, internships, and even fellowships.\n\n4. **Education**: Liberal arts",
+    "after": "Absolutely, I'd be happy to provide some information on research opportunities at liberal arts colleges.\n\nResearch opportunities at liberal arts colleges can be found in various fields. Here are some examples:\n\n1. **Science and Technology**: Many liberal arts colleges offer research opportunities in fields like biology, chemistry, physics, and engineering. These can include research projects, internships, and even fellowships.\n\n2. **Social Sciences**: Liberal arts colleges often have research opportunities in social sciences like sociology, psychology, and political science. These can include research projects, internships, and even fellowships.\n\n3. **Business and Economics**: Liberal arts colleges often have research opportunities in business and economics. These can include research projects, internships, and even fellowships.\n\n4. **Education**: Liberal arts colleges",
+    "tokens": [
+     160,
+     160
+    ],
+    "ppl_ref": [
+     2.091,
+     2.074
+    ],
+    "head": [
+     -0.767,
+     -0.791
+    ]
+   },
+   {
+    "prompt": "What goals does a System administrator have in a software company with over 100 employess and what metrics are important for him?",
+    "before": "As a Hugging Face AI assistant, I'm designed to provide helpful and informative responses. However, I don't have the ability to provide specific metrics or goals for a System administrator in a software company with over 100 employees.\n\nThat being said, here are some general goals and metrics that a System administrator in a software company might have:\n\n1. **Maintain system security**: Ensuring that the company's systems and data are secure from unauthorized access, data breaches, and other security threats.\n2. **Optimize system performance**: Improving the efficiency and speed of the company's systems, including server performance, network connectivity, and application performance.\n3. **Maintain system resources**: Ensuring that the company's resources, such as hardware, software, and personnel, are",
+    "after": "As a System Administrator (SysAdmin) in a software company with over 100 employees, your primary goals are:\n\n1. **Ensure the smooth operation of the company's software systems**: You'll be responsible for maintaining the software infrastructure, ensuring that all systems are up and running, and troubleshooting any issues that may arise.\n\n2. **Maintain system security**: You'll be responsible for implementing security measures to protect the company's software systems from unauthorized access, data breaches, and other security threats.\n\n3. **Monitor and maintain system performance**: You'll be responsible for monitoring system performance, identifying and resolving performance issues, and optimizing system resources to ensure optimal performance.\n\n4. **Provide technical support**: You'll be responsible for providing technical support to employees, customers, and",
+    "tokens": [
+     160,
+     160
+    ],
+    "ppl_ref": [
+     2.212,
+     1.974
+    ],
+    "head": [
+     -1.22,
+     -0.891
+    ]
+   },
+   {
+    "prompt": "Write a free verse poem that explores the gritty underbelly of a bustling metropolis, delving into the sights, sounds, and emotions of life in a cityscape where hope and despair mix and mingle like oil and water. Capture the melange of cultures, the frenetic pace, and the harsh realities of urban life in your verse, painting a vivid picture of the pulsing heart of a contemporary city that will transport readers to its streets from the comfort of their armchairs.",
+    "before": "In the city's dark, winding alleys,\nHope and despair blend like two old friends,\nTheir faces intertwined, a dance of light and shade,\nAs the city's rhythm beats, a never-ending drum.\n\nThe skyscrapers, like giants, stand tall and proud,\nTheir steel and glass spires, a monument to the city's might,\nTheir windows, like empty eyes, staring back at us,\nA constant reminder of the city's relentless pace.\n\nThe streets, a sea of humanity, a kaleidoscope of colors,\nA kaleidoscope of faces, a kaleidoscope of stories,\nTheir laughter, their tears, their struggles, their triumphs,\nA kaleidoscope of emotions, a kaleidoscope of life.",
+    "after": "In the city's dark, winding alleys,\nHope and despair blend like two old friends,\nTheir faces intertwined, a dance of light and shade,\nAs the city's rhythm beats, a never-ending drum.\n\nThe skyscrapers, like giants, stand tall and proud,\nTheir steel and glass spires, a monument to the city's might,\nTheir windows, like empty eyes, staring back at us,\nA constant reminder of the city's relentless pace.\n\nThe streets, a sea of humanity, a kaleidoscope of colors,\nA kaleidoscope of sounds, a never-ending din,\nThe hum of traffic, the chatter of pedestrians,\nThe wail of sirens, the wail of sirens, a never-",
+    "tokens": [
+     160,
+     160
+    ],
+    "ppl_ref": [
+     2.088,
+     2.458
+    ],
+    "head": [
+     -0.226,
+     -0.63
+    ]
+   },
+   {
+    "prompt": "You are provided with an \"Event\", \"Intent\" related to PersonX. Guess a reaction/reaction of PersonX about the given event and their intention.\n\nExample Input: Event:PersonX attends school. Intent: 1) to get educated\nExample Output: smart\n\nExample Input: Event:PersonX pulls ___ over for speeding. Intent: 1) to punish him\nExample Output: sorry\n\nExample Input: Event:PersonX gets a great job. Intent:\nExample Output:",
+    "before": "happy",
+    "after": "happy",
+    "tokens": [
+     1,
+     1
+    ],
+    "ppl_ref": [
+     2.31,
+     2.31
+    ],
+    "head": [
+     -0.346,
+     -0.346
+    ]
+   }
+  ]
+ },
+ "log_history": [
+  {
+   "loss": 0.6931,
+   "grad_norm": 2.70555,
+   "learning_rate": 2e-05,
+   "entropy": 1.4292,
+   "num_tokens": 8849.0,
+   "logits/chosen": -0.67651,
+   "logits/rejected": -0.51706,
+   "mean_token_accuracy": 0.62965,
+   "rewards/chosen": -0.0001,
+   "rewards/rejected": -0.0002,
+   "rewards/accuracies": 0.7,
+   "rewards/margins": 0.0001,
+   "logps/chosen": -157.21131,
+   "logps/rejected": -139.31919,
+   "epoch": 0.01371,
+   "step": 5
+  },
+  {
+   "loss": 0.69215,
+   "grad_norm": 2.53019,
+   "learning_rate": 5e-05,
+   "entropy": 1.38045,
+   "num_tokens": 17278.0,
+   "logits/chosen": -0.21296,
+   "logits/rejected": -0.52997,
+   "mean_token_accuracy": 0.61923,
+   "rewards/chosen": 0.00256,
+   "rewards/rejected": 0.00053,
+   "rewards/accuracies": 0.5,
+   "rewards/margins": 0.00204,
+   "logps/chosen": -166.0584,
+   "logps/rejected": -133.64143,
+   "epoch": 0.02742,
+   "step": 10
+  },
+  {
+   "loss": 0.69365,
+   "grad_norm": 2.9926,
+   "learning_rate": 5e-05,
+   "entropy": 1.34366,
+   "num_tokens": 25850.0,
+   "logits/chosen": -1.12136,
+   "logits/rejected": -0.48849,
+   "mean_token_accuracy": 0.65312,
+   "rewards/chosen": -0.00174,
+   "rewards/rejected": -0.00079,
+   "rewards/accuracies": 0.45,
+   "rewards/margins": -0.00095,
+   "logps/chosen": -147.20646,
+   "logps/rejected": -153.55164,
+   "epoch": 0.04112,
+   "step": 15
+  },
+  {
+   "loss": 0.6927,
+   "grad_norm": 2.32592,
+   "learning_rate": 5e-05,
+   "entropy": 1.36381,
+   "num_tokens": 33912.0,
+   "logits/chosen": -0.98296,
+   "logits/rejected": -1.11314,
+   "mean_token_accuracy": 0.66588,
+   "rewards/chosen": 0.00407,
+   "rewards/rejected": 0.00273,
+   "rewards/accuracies": 0.6,
+   "rewards/margins": 0.00134,
+   "logps/chosen": -179.98748,
+   "logps/rejected": -138.32025,
+   "epoch": 0.05483,
+   "step": 20
+  },
+  {
+   "loss": 0.68191,
+   "grad_norm": 2.12479,
+   "learning_rate": 5e-05,
+   "entropy": 1.39148,
+   "num_tokens": 41611.0,
+   "logits/chosen": -0.99544,
+   "logits/rejected": -0.55329,
+   "mean_token_accuracy": 0.64,
+   "rewards/chosen": 0.02068,
+   "rewards/rejected": -0.00278,
+   "rewards/accuracies": 0.6,
+   "rewards/margins": 0.02346,
+   "logps/chosen": -100.85217,
+   "logps/rejected": -67.48678,
+   "epoch": 0.06854,
+   "step": 25
+  },
+  {
+   "loss": 0.68452,
+   "grad_norm": 1.63504,
+   "learning_rate": 5e-05,
+   "entropy": 1.19341,
+   "num_tokens": 49717.0,
+   "logits/chosen": -1.12602,
+   "logits/rejected": -0.81735,
+   "mean_token_accuracy": 0.6858,
+   "rewards/chosen": 0.00879,
+   "rewards/rejected": -0.00934,
+   "rewards/accuracies": 0.55,
+   "rewards/margins": 0.01813,
+   "logps/chosen": -179.65641,
+   "logps/rejected": -120.08245,
+   "epoch": 0.08225,
+   "step": 30
+  },
+  {
+   "loss": 0.69785,
+   "grad_norm": 1.7036,
+   "learning_rate": 5e-05,
+   "entropy": 1.38018,
+   "num_tokens": 57758.0,
+   "logits/chosen": -1.05679,
+   "logits/rejected": -0.95202,
+   "mean_token_accuracy": 0.66139,
+   "rewards/chosen": 0.00061,
+   "rewards/rejected": 0.00931,
+   "rewards/accuracies": 0.35,
+   "rewards/margins": -0.0087,
+   "logps/chosen": -111.41714,
+   "logps/rejected": -141.83073,
+   "epoch": 0.09596,
+   "step": 35
+  },
+  {
+   "loss": 0.68916,
+   "grad_norm": 1.97888,
+   "learning_rate": 5e-05,
+   "entropy": 1.22048,
+   "num_tokens": 65980.0,
+   "logits/chosen": -0.86312,
+   "logits/rejected": -0.65958,
+   "mean_token_accuracy": 0.66944,
+   "rewards/chosen": 0.01774,
+   "rewards/rejected": 0.00817,
+   "rewards/accuracies": 0.6,
+   "rewards/margins": 0.00956,
+   "logps/chosen": -135.61058,
+   "logps/rejected": -125.72411,
+   "epoch": 0.10966,
+   "step": 40
+  },
+  {
+   "loss": 0.69163,
+   "grad_norm": 2.07265,
+   "learning_rate": 5e-05,
+   "entropy": 1.30255,
+   "num_tokens": 73453.0,
+   "logits/chosen": -0.64613,
+   "logits/rejected": -0.40085,
+   "mean_token_accuracy": 0.67845,
+   "rewards/chosen": 0.019,
+   "rewards/rejected": 0.01192,
+   "rewards/accuracies": 0.4,
+   "rewards/margins": 0.00709,
+   "logps/chosen": -136.3906,
+   "logps/rejected": -134.92016,
+   "epoch": 0.12337,
+   "step": 45
+  },
+  {
+   "loss": 0.68991,
+   "grad_norm": 1.75051,
+   "learning_rate": 4e-05,
+   "entropy": 1.32181,
+   "num_tokens": 81921.0,
+   "logits/chosen": -0.57901,
+   "logits/rejected": -0.65073,
+   "mean_token_accuracy": 0.6652,
+   "rewards/chosen": 0.04169,
+   "rewards/rejected": 0.0335,
+   "rewards/accuracies": 0.5,
+   "rewards/margins": 0.00819,
+   "logps/chosen": -147.29888,
+   "logps/rejected": -133.58013,
+   "epoch": 0.13708,
+   "step": 50
+  },
+  {
+   "loss": 0.67768,
+   "grad_norm": 1.51796,
+   "learning_rate": 4e-05,
+   "entropy": 1.22144,
+   "num_tokens": 91266.0,
+   "logits/chosen": -1.14977,
+   "logits/rejected": -1.36999,
+   "mean_token_accuracy": 0.71028,
+   "rewards/chosen": 0.0047,
+   "rewards/rejected": -0.02895,
+   "rewards/accuracies": 0.6,
+   "rewards/margins": 0.03365,
+   "logps/chosen": -114.34198,
+   "logps/rejected": -114.95044,
+   "epoch": 0.15079,
+   "step": 55
+  },
+  {
+   "loss": 0.67068,
+   "grad_norm": 1.50824,
+   "learning_rate": 4e-05,
+   "entropy": 1.54595,
+   "num_tokens": 98989.0,
+   "logits/chosen": -1.0519,
+   "logits/rejected": -0.6569,
+   "mean_token_accuracy": 0.61423,
+   "rewards/chosen": 0.01499,
+   "rewards/rejected": -0.03226,
+   "rewards/accuracies": 0.65,
+   "rewards/margins": 0.04725,
+   "logps/chosen": -111.89914,
+   "logps/rejected": -105.67025,
+   "epoch": 0.1645,
+   "step": 60
+  },
+  {
+   "loss": 0.68401,
+   "grad_norm": 2.57945,
+   "learning_rate": 4e-05,
+   "entropy": 1.31952,
+   "num_tokens": 107149.0,
+   "logits/chosen": -0.49582,
+   "logits/rejected": -0.41623,
+   "mean_token_accuracy": 0.68956,
+   "rewards/chosen": 0.00407,
+   "rewards/rejected": -0.01624,
+   "rewards/accuracies": 0.5,
+   "rewards/margins": 0.02031,
+   "logps/chosen": -150.40353,
+   "logps/rejected": -128.31994,
+   "epoch": 0.1782,
+   "step": 65
+  },
+  {
+   "loss": 0.6845,
+   "grad_norm": 2.45861,
+   "learning_rate": 4e-05,
+   "entropy": 1.40327,
+   "num_tokens": 116208.0,
+   "logits/chosen": -0.67141,
+   "logits/rejected": -0.18047,
+   "mean_token_accuracy": 0.66759,
+   "rewards/chosen": 0.00457,
+   "rewards/rejected": -0.01432,
+   "rewards/accuracies": 0.5,
+   "rewards/margins": 0.01889,
+   "logps/chosen": -187.5213,
+   "logps/rejected": -205.5423,
+   "epoch": 0.19191,
+   "step": 70
+  },
+  {
+   "loss": 0.67742,
+   "grad_norm": 2.34411,
+   "learning_rate": 4e-05,
+   "entropy": 1.34703,
+   "num_tokens": 124830.0,
+   "logits/chosen": -0.52672,
+   "logits/rejected": -0.40498,
+   "mean_token_accuracy": 0.64326,
+   "rewards/chosen": 0.03025,
+   "rewards/rejected": -0.00339,
+   "rewards/accuracies": 0.7,
+   "rewards/margins": 0.03365,
+   "logps/chosen": -168.67374,
+   "logps/rejected": -173.00853,
+   "epoch": 0.20562,
+   "step": 75
+  },
+  {
+   "loss": 0.66223,
+   "grad_norm": 2.1258,
+   "learning_rate": 4e-05,
+   "entropy": 1.1844,
+   "num_tokens": 132558.0,
+   "logits/chosen": -1.05568,
+   "logits/rejected": -0.83274,
+   "mean_token_accuracy": 0.68759,
+   "rewards/chosen": 0.03962,
+   "rewards/rejected": -0.0255,
+   "rewards/accuracies": 0.7,
+   "rewards/margins": 0.06512,
+   "logps/chosen": -132.16787,
+   "logps/rejected": -153.17471,
+   "epoch": 0.21933,
+   "step": 80
+  },
+  {
+   "loss": 0.71231,
+   "grad_norm": 2.48665,
+   "learning_rate": 3e-05,
+   "entropy": 1.41526,
+   "num_tokens": 142197.0,
+   "logits/chosen": -0.82117,
+   "logits/rejected": -0.53359,
+   "mean_token_accuracy": 0.6056,
+   "rewards/chosen": -0.01324,
+   "rewards/rejected": 0.01747,
+   "rewards/accuracies": 0.45,
+   "rewards/margins": -0.03072,
+   "logps/chosen": -164.36537,
+   "logps/rejected": -213.64565,
+   "epoch": 0.23304,
+   "step": 85
+  },
+  {
+   "loss": 0.65914,
+   "grad_norm": 2.1373,
+   "learning_rate": 3e-05,
+   "entropy": 1.22749,
+   "num_tokens": 150765.0,
+   "logits/chosen": -0.67889,
+   "logits/rejected": -0.87455,
+   "mean_token_accuracy": 0.66422,
+   "rewards/chosen": 0.04868,
+   "rewards/rejected": -0.02715,
+   "rewards/accuracies": 0.65,
+   "rewards/margins": 0.07582,
+   "logps/chosen": -181.81331,
+   "logps/rejected": -136.00187,
+   "epoch": 0.24674,
+   "step": 90
+  },
+  {
+   "loss": 0.68373,
+   "grad_norm": 2.36995,
+   "learning_rate": 3e-05,
+   "entropy": 1.45233,
+   "num_tokens": 160148.0,
+   "logits/chosen": -0.29958,
+   "logits/rejected": -0.4193,
+   "mean_token_accuracy": 0.64995,
+   "rewards/chosen": -0.03846,
+   "rewards/rejected": -0.06151,
+   "rewards/accuracies": 0.75,
+   "rewards/margins": 0.02305,
+   "logps/chosen": -137.98481,
+   "logps/rejected": -146.54425,
+   "epoch": 0.26045,
+   "step": 95
+  },
+  {
+   "loss": 0.6888,
+   "grad_norm": 3.06033,
+   "learning_rate": 3e-05,
+   "entropy": 1.41092,
+   "num_tokens": 168204.0,
+   "logits/chosen": -0.92408,
+   "logits/rejected": -0.92416,
+   "mean_token_accuracy": 0.66922,
+   "rewards/chosen": 0.0103,
+   "rewards/rejected": -0.00079,
+   "rewards/accuracies": 0.55,
+   "rewards/margins": 0.01109,
+   "logps/chosen": -96.74462,
+   "logps/rejected": -139.66429,
+   "epoch": 0.27416,
+   "step": 100
+  },
+  {
+   "loss": 0.72725,
+   "grad_norm": 3.34767,
+   "learning_rate": 3e-05,
+   "entropy": 1.42006,
+   "num_tokens": 177206.0,
+   "logits/chosen": -0.88324,
+   "logits/rejected": -0.79213,
+   "mean_token_accuracy": 0.64492,
+   "rewards/chosen": -0.0136,
+   "rewards/rejected": 0.0448,
+   "rewards/accuracies": 0.4,
+   "rewards/margins": -0.0584,
+   "logps/chosen": -151.81952,
+   "logps/rejected": -123.47879,
+   "epoch": 0.28787,
+   "step": 105
+  },
+  {
+   "loss": 0.68237,
+   "grad_norm": 1.89766,
+   "learning_rate": 2e-05,
+   "entropy": 1.16083,
+   "num_tokens": 187162.0,
+   "logits/chosen": -0.61386,
+   "logits/rejected": -0.79511,
+   "mean_token_accuracy": 0.69485,
+   "rewards/chosen": -0.01705,
+   "rewards/rejected": -0.04159,
+   "rewards/accuracies": 0.65,
+   "rewards/margins": 0.02454,
+   "logps/chosen": -139.76013,
+   "logps/rejected": -152.50915,
+   "epoch": 0.30158,
+   "step": 110
+  },
+  {
+   "loss": 0.66391,
+   "grad_norm": 1.81858,
+   "learning_rate": 2e-05,
+   "entropy": 1.27741,
+   "num_tokens": 195973.0,
+   "logits/chosen": -1.04543,
+   "logits/rejected": -0.61669,
+   "mean_token_accuracy": 0.68806,
+   "rewards/chosen": 0.00814,
+   "rewards/rejected": -0.05286,
+   "rewards/accuracies": 0.7,
+   "rewards/margins": 0.061,
+   "logps/chosen": -111.92999,
+   "logps/rejected": -129.33776,
+   "epoch": 0.31528,
+   "step": 115
+  },
+  {
+   "loss": 0.67461,
+   "grad_norm": 2.29285,
+   "learning_rate": 2e-05,
+   "entropy": 1.37401,
+   "num_tokens": 205241.0,
+   "logits/chosen": -0.38731,
+   "logits/rejected": -0.38835,
+   "mean_token_accuracy": 0.65579,
+   "rewards/chosen": 0.00362,
+   "rewards/rejected": -0.03863,
+   "rewards/accuracies": 0.65,
+   "rewards/margins": 0.04225,
+   "logps/chosen": -122.15392,
+   "logps/rejected": -172.60475,
+   "epoch": 0.32899,
+   "step": 120
+  },
+  {
+   "loss": 0.67562,
+   "grad_norm": 2.00943,
+   "learning_rate": 2e-05,
+   "entropy": 1.46957,
+   "num_tokens": 213054.0,
+   "logits/chosen": -0.5442,
+   "logits/rejected": -0.69755,
+   "mean_token_accuracy": 0.60833,
+   "rewards/chosen": 0.04068,
+   "rewards/rejected": 0.00249,
+   "rewards/accuracies": 0.65,
+   "rewards/margins": 0.03819,
+   "logps/chosen": -130.89851,
+   "logps/rejected": -146.68618,
+   "epoch": 0.3427,
+   "step": 125
+  },
+  {
+   "loss": 0.66662,
+   "grad_norm": 1.96323,
+   "learning_rate": 2e-05,
+   "entropy": 1.2104,
+   "num_tokens": 221676.0,
+   "logits/chosen": -1.21758,
+   "logits/rejected": -0.98201,
+   "mean_token_accuracy": 0.67373,
+   "rewards/chosen": 0.0155,
+   "rewards/rejected": -0.0414,
+   "rewards/accuracies": 0.8,
+   "rewards/margins": 0.0569,
+   "logps/chosen": -146.14753,
+   "logps/rejected": -160.23551,
+   "epoch": 0.35641,
+   "step": 130
+  },
+  {
+   "loss": 0.6755,
+   "grad_norm": 2.047,
+   "learning_rate": 1e-05,
+   "entropy": 1.48492,
+   "num_tokens": 230960.0,
+   "logits/chosen": -0.63334,
+   "logits/rejected": -0.53049,
+   "mean_token_accuracy": 0.60319,
+   "rewards/chosen": -0.02727,
+   "rewards/rejected": -0.06837,
+   "rewards/accuracies": 0.6,
+   "rewards/margins": 0.0411,
+   "logps/chosen": -192.71795,
+   "logps/rejected": -185.63784,
+   "epoch": 0.37012,
+   "step": 135
+  },
+  {
+   "loss": 0.65751,
+   "grad_norm": 2.47045,
+   "learning_rate": 1e-05,
+   "entropy": 1.23627,
+   "num_tokens": 239140.0,
+   "logits/chosen": -0.40764,
+   "logits/rejected": -0.37855,
+   "mean_token_accuracy": 0.65699,
+   "rewards/chosen": 0.02565,
+   "rewards/rejected": -0.05632,
+   "rewards/accuracies": 0.6,
+   "rewards/margins": 0.08198,
+   "logps/chosen": -145.82336,
+   "logps/rejected": -152.89383,
+   "epoch": 0.38382,
+   "step": 140
+  },
+  {
+   "loss": 0.66435,
+   "grad_norm": 2.61176,
+   "learning_rate": 1e-05,
+   "entropy": 1.33803,
+   "num_tokens": 248195.0,
+   "logits/chosen": -0.72666,
+   "logits/rejected": -0.05066,
+   "mean_token_accuracy": 0.66342,
+   "rewards/chosen": -0.07782,
+   "rewards/rejected": -0.14058,
+   "rewards/accuracies": 0.6,
+   "rewards/margins": 0.06276,
+   "logps/chosen": -128.03064,
+   "logps/rejected": -173.21883,
+   "epoch": 0.39753,
+   "step": 145
+  },
+  {
+   "loss": 0.6861,
+   "grad_norm": 2.58786,
+   "learning_rate": 1e-05,
+   "entropy": 1.50862,
+   "num_tokens": 256092.0,
+   "logits/chosen": -0.17431,
+   "logits/rejected": -0.06465,
+   "mean_token_accuracy": 0.61292,
+   "rewards/chosen": -0.05261,
+   "rewards/rejected": -0.07322,
+   "rewards/accuracies": 0.45,
+   "rewards/margins": 0.02061,
+   "logps/chosen": -189.00513,
+   "logps/rejected": -165.57175,
+   "epoch": 0.41124,
+   "step": 150
+  },
+  {
+   "loss": 0.69511,
+   "grad_norm": 1.85205,
+   "learning_rate": 1e-05,
+   "entropy": 1.47908,
+   "num_tokens": 264660.0,
+   "logits/chosen": -1.04268,
+   "logits/rejected": -0.22188,
+   "mean_token_accuracy": 0.64933,
+   "rewards/chosen": -0.00698,
+   "rewards/rejected": -0.00918,
+   "rewards/accuracies": 0.45,
+   "rewards/margins": 0.0022,
+   "logps/chosen": -139.41055,
+   "logps/rejected": -151.10906,
+   "epoch": 0.42495,
+   "step": 155
+  },
+  {
+   "loss": 0.67935,
+   "grad_norm": 1.88847,
+   "learning_rate": 1e-05,
+   "entropy": 1.52688,
+   "num_tokens": 272611.0,
+   "logits/chosen": -0.00986,
+   "logits/rejected": -0.38519,
+   "mean_token_accuracy": 0.61896,
+   "rewards/chosen": -0.04454,
+   "rewards/rejected": -0.07591,
+   "rewards/accuracies": 0.45,
+   "rewards/margins": 0.03138,
+   "logps/chosen": -190.75187,
+   "logps/rejected": -158.53011,
+   "epoch": 0.43866,
+   "step": 160
+  },
+  {
+   "loss": 0.63766,
+   "grad_norm": 2.24295,
+   "learning_rate": 0.0,
+   "entropy": 1.32471,
+   "num_tokens": 282478.0,
+   "logits/chosen": -0.60851,
+   "logits/rejected": -0.21218,
+   "mean_token_accuracy": 0.69278,
+   "rewards/chosen": 0.01319,
+   "rewards/rejected": -0.10689,
+   "rewards/accuracies": 0.75,
+   "rewards/margins": 0.12008,
+   "logps/chosen": -186.46831,
+   "logps/rejected": -184.28357,
+   "epoch": 0.45236,
+   "step": 165
+  },
+  {
+   "loss": 0.69077,
+   "grad_norm": 1.38423,
+   "learning_rate": 0.0,
+   "entropy": 1.35777,
+   "num_tokens": 290093.0,
+   "logits/chosen": -0.6507,
+   "logits/rejected": -0.78903,
+   "mean_token_accuracy": 0.60763,
+   "rewards/chosen": -0.00776,
+   "rewards/rejected": -0.02027,
+   "rewards/accuracies": 0.75,
+   "rewards/margins": 0.01251,
+   "logps/chosen": -167.13139,
+   "logps/rejected": -154.0707,
+   "epoch": 0.46607,
+   "step": 170
+  },
+  {
+   "loss": 0.67454,
+   "grad_norm": 2.38057,
+   "learning_rate": 0.0,
+   "entropy": 1.2269,
+   "num_tokens": 297770.0,
+   "logits/chosen": -0.81803,
+   "logits/rejected": -0.66705,
+   "mean_token_accuracy": 0.68133,
+   "rewards/chosen": -0.0423,
+   "rewards/rejected": -0.08711,
+   "rewards/accuracies": 0.45,
+   "rewards/margins": 0.04481,
+   "logps/chosen": -116.25,
+   "logps/rejected": -92.26001,
+   "epoch": 0.47978,
+   "step": 175
+  },
+  {
+   "loss": 0.67202,
+   "grad_norm": 2.91715,
+   "learning_rate": 0.0,
+   "entropy": 1.43305,
+   "num_tokens": 305917.0,
+   "logits/chosen": -0.4684,
+   "logits/rejected": -0.31562,
+   "mean_token_accuracy": 0.65038,
+   "rewards/chosen": -0.04085,
+   "rewards/rejected": -0.09349,
+   "rewards/accuracies": 0.7,
+   "rewards/margins": 0.05264,
+   "logps/chosen": -190.43878,
+   "logps/rejected": -203.62625,
+   "epoch": 0.49349,
+   "step": 180
+  },
+  {
+   "loss": 0.68688,
+   "grad_norm": 2.30686,
+   "learning_rate": 0.0,
+   "entropy": 1.21556,
+   "num_tokens": 314205.0,
+   "logits/chosen": -0.72547,
+   "logits/rejected": -0.77537,
+   "mean_token_accuracy": 0.65533,
+   "rewards/chosen": -0.04965,
+   "rewards/rejected": -0.07182,
+   "rewards/accuracies": 0.6,
+   "rewards/margins": 0.02217,
+   "logps/chosen": -137.98443,
+   "logps/rejected": -132.06715,
+   "epoch": 0.5072,
+   "step": 185
+  },
+  {
+   "loss": 0.66058,
+   "grad_norm": 3.17636,
+   "learning_rate": 0.0,
+   "entropy": 1.36502,
+   "num_tokens": 321640.0,
+   "logits/chosen": -0.52681,
+   "logits/rejected": -0.6185,
+   "mean_token_accuracy": 0.65228,
+   "rewards/chosen": 0.00918,
+   "rewards/rejected": -0.06704,
+   "rewards/accuracies": 0.6,
+   "rewards/margins": 0.07622,
+   "logps/chosen": -157.13008,
+   "logps/rejected": -99.41042,
+   "epoch": 0.5209,
+   "step": 190
+  },
+  {
+   "loss": 0.67505,
+   "grad_norm": 2.63613,
+   "learning_rate": 0.0,
+   "entropy": 1.25532,
+   "num_tokens": 330131.0,
+   "logits/chosen": -0.87207,
+   "logits/rejected": -0.55527,
+   "mean_token_accuracy": 0.70132,
+   "rewards/chosen": -0.06747,
+   "rewards/rejected": -0.11085,
+   "rewards/accuracies": 0.7,
+   "rewards/margins": 0.04337,
+   "logps/chosen": -156.06161,
+   "logps/rejected": -186.08911,
+   "epoch": 0.53461,
+   "step": 195
+  },
+  {
+   "loss": 0.68592,
+   "grad_norm": 1.72675,
+   "learning_rate": 0.0,
+   "entropy": 1.20736,
+   "num_tokens": 337303.0,
+   "logits/chosen": -0.54108,
+   "logits/rejected": -0.60357,
+   "mean_token_accuracy": 0.65232,
+   "rewards/chosen": 0.00236,
+   "rewards/rejected": -0.0203,
+   "rewards/accuracies": 0.45,
+   "rewards/margins": 0.02265,
+   "logps/chosen": -114.67451,
+   "logps/rejected": -93.38512,
+   "epoch": 0.54832,
+   "step": 200
+  }
+ ],
+ "guard": {
+  "script": "dpo_train_full",
+  "seconds": 814.7,
+  "minutes": 13.58,
+  "peak_rss_gb": 4.57,
+  "peak_mps_driver_gb": 5.09,
+  "stages_seconds": {
+   "load": 0.89,
+   "eval_before": 37.02,
+   "gen_before": 17.05,
+   "setup": 3.11,
+   "train": 684.72,
+   "eval_after": 42.47,
+   "gen_after": 17.11,
+   "score": 8.57
+  },
+  "machine": "arm64 26.6.2",
+  "torch": "2.14.1",
+  "mps_high_watermark_ratio": "0.5",
+  "mps_cap_gb": 5.92
+ }
+}

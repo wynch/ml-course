@@ -1,0 +1,386 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Learning from preferences — ml-course explorable</title>
+<style>
+  :root{
+    --paper:#f6f8f7; --ink:#1c2422; --panel:#ffffff; --panel-2:#eef2f0;
+    --line:#d5ddda; --muted:#5d6b67; --accent:#b7410e;
+    --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t6:#b7410e;
+    --pos:#b7410e; --neg:#4d5b57;
+    --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
+    --mono:"SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    --display:"Avenir Next","Helvetica Neue",sans-serif;
+    --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --panel-2:#222d29;
+      --line:#31403b; --muted:#9dada8; --accent:#e7764a; --t6:#e7764a;
+      --pos:#e7764a; --neg:#9dada8;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink)}
+  body{font-family:var(--body);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 16px 64px}
+
+  header.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    padding:16px 0 14px;border-bottom:1px solid var(--line);margin-bottom:22px}
+  header.top h1{font-family:var(--display);font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .pill{font-family:var(--display);font-size:11.5px;font-weight:600;letter-spacing:.02em;
+    padding:3px 10px;border-radius:999px;color:#fff;background:var(--t6);white-space:nowrap}
+  .top .spacer{flex:1}
+  .backlink{font-size:13px;color:var(--muted);text-decoration:none;border-bottom:1px solid transparent}
+  .backlink:hover{color:var(--accent);border-bottom-color:var(--accent)}
+
+  .intro{max-width:78ch;font-size:15.5px;margin:0 0 26px}
+  .intro em{color:var(--accent);font-style:normal;font-weight:600}
+
+  section{margin:0 0 30px}
+  h2{font-family:var(--display);font-size:15px;font-weight:600;margin:0 0 4px;letter-spacing:.01em}
+  .sub{font-size:13px;color:var(--muted);margin:0 0 14px;max-width:80ch}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    box-shadow:var(--shadow);padding:16px}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:0 0 14px;
+    padding:0 0 12px;border-bottom:1px solid var(--line)}
+  .seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;overflow:hidden;flex-wrap:wrap}
+  .seg button{font-family:var(--display);font-size:12px;font-weight:600;border:0;background:transparent;
+    color:var(--muted);padding:5px 11px;cursor:pointer}
+  .seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+  .seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  button.act{font-family:var(--display);font-size:12px;font-weight:600;border:1.5px solid var(--accent);
+    background:transparent;color:var(--accent);border-radius:999px;padding:5px 12px;cursor:pointer}
+  button.act:hover{background:var(--accent);color:#fff}
+  .hint{font-size:11.5px;color:var(--muted)}
+
+  .notice{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+  .chip{font-family:var(--mono);font-size:11.5px;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:999px;padding:3px 10px;color:var(--muted)}
+  .chip b{color:var(--ink)}
+
+  .two{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px}
+  @media (max-width:820px){ .two{grid-template-columns:minmax(0,1fr)} }
+  svg{display:block;max-width:100%;height:auto;touch-action:none}
+  svg text{font-family:var(--body);fill:var(--muted)}
+  .readout{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:8px;min-height:19px}
+  .readout b{color:var(--ink)}
+  .panel-title{font-size:12px;color:var(--muted);margin:0 0 6px;font-family:var(--display);font-weight:600}
+
+  table.pm{border-collapse:collapse;font-family:var(--mono);font-size:12px;width:100%}
+  table.pm th,table.pm td{padding:4px 2px;text-align:center;border:1px solid var(--line)}
+  table.pm th{color:var(--muted);font-weight:600;background:var(--panel-2)}
+
+  .sliders{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+  .sl{display:grid;grid-template-columns:11.5em minmax(0,1fr) 5.5em;gap:8px;align-items:center;font-size:13px}
+  @media (max-width:560px){ .sl{grid-template-columns:minmax(0,1fr) 5em} .sl input{grid-column:1 / -1;grid-row:2} }
+  .sl output{font-family:var(--mono);font-size:12px;text-align:right}
+  input[type=range]{accent-color:var(--accent);width:100%}
+  select{font-family:var(--mono);font-size:12px;background:var(--panel);color:var(--ink);
+    border:1.5px solid var(--line);border-radius:8px;padding:4px 8px;max-width:100%}
+
+  table.st{border-collapse:collapse;width:100%;font-size:13px;table-layout:fixed}
+  table.st td,table.st th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  table.st th{font-family:var(--display);font-size:12px;color:var(--muted);font-weight:600}
+  table.st td.num{font-family:var(--mono);white-space:nowrap}
+  table.st td.reply{font-size:12.5px;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap}
+  table.st th:nth-child(1){width:5.5em} table.st th:nth-child(2){width:8.5em}
+  .prompt{font-size:13px;margin:0 0 8px;overflow-wrap:anywhere}
+  .prompt b{font-family:var(--display)}
+
+  footer.bot{border-top:1px solid var(--line);padding-top:14px;font-size:12.5px;color:var(--muted)}
+  footer.bot a{color:var(--accent)}
+  footer.bot .row{margin:4px 0}
+  footer.bot code{font-family:var(--mono)}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <h1>Learning from preferences</h1>
+  <span class="pill">Module 17 · Other recipes</span>
+  <span class="spacer"></span>
+  <a class="backlink" href="index.html">← All explorables</a>
+</header>
+
+<p class="intro">
+  A judge never says how good a reply is; it says which of two replies it prefers. The
+  <em>Bradley-Terry</em> model turns such choices into scores: item i beats item j with probability
+  σ(s<sub>i</sub> − s<sub>j</sub>). <em>DPO</em> uses the same model with one twist: a reply's score is
+  β times how much more likely the trained model makes it than the frozen reference does. Below: drag
+  scores and watch the probabilities, move β and watch one pair's loss, then read what the module measured.
+</p>
+
+<section>
+  <h2>1 · Bradley-Terry: drag the scores</h2>
+  <p class="sub">Six items on a score line. Drag a dot; the table gives P(row beats column) = σ(s<sub>row</sub> − s<sub>col</sub>).
+    Only differences matter: slide every dot by the same amount and nothing changes. The button simulates a judge
+    that follows these probabilities, then fits scores to its choices alone (hollow rings), as section 1 of the module does.</p>
+  <div class="card">
+    <div class="controls">
+      <span class="hint">comparisons</span>
+      <span class="seg" id="nseg"></span>
+      <button class="act" id="simbtn">Simulate and refit</button>
+      <button class="act" id="resetbtn">Reset</button>
+    </div>
+    <svg id="line" viewBox="0 0 640 120" aria-label="score line, drag the dots"></svg>
+    <div class="readout" id="fitout">Press “Simulate and refit” to fit scores from simulated choices.</div>
+    <div style="margin-top:14px;overflow-x:auto"><table class="pm" id="pm"></table></div>
+  </div>
+</section>
+
+<section>
+  <h2>2 · One pair's DPO loss as β moves</h2>
+  <p class="sub">For a prompt with a chosen reply y<sub>w</sub> and a rejected one y<sub>l</sub>, each log-ratio is
+    log π(y|x) − log π<sub>ref</sub>(y|x): how many nats more likely the trained model makes the reply than the reference.
+    The implicit reward is β times the log-ratio, and the loss is Bradley-Terry's: −log σ(r<sub>w</sub> − r<sub>l</sub>).
+    The starting values are one held-out pair under a random, untrained LoRA adapter (module section 2).</p>
+  <div class="card two">
+    <div>
+      <div class="sliders">
+        <label class="sl"><span>chosen log-ratio</span><input type="range" id="dw" min="-30" max="30" step="0.1"><output id="dwo"></output></label>
+        <label class="sl"><span>rejected log-ratio</span><input type="range" id="dl" min="-30" max="30" step="0.1"><output id="dlo"></output></label>
+        <label class="sl"><span>β</span><input type="range" id="beta" min="-2" max="0" step="0.01"><output id="betao"></output></label>
+      </div>
+      <div class="notice" id="lossChips" style="margin-top:14px"></div>
+      <p class="sub" id="gradNote" style="margin:0"></p>
+    </div>
+    <div>
+      <p class="panel-title">Loss against the log-ratio gap, at this β and two others</p>
+      <svg id="losscurve" viewBox="0 0 420 260" aria-label="DPO loss curve"></svg>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>3 · What the module measured</h2>
+  <p class="sub" id="msub"></p>
+  <div class="card">
+    <div class="controls">
+      <span class="hint">run</span><span class="seg" id="cseg"></span>
+    </div>
+    <div class="notice" id="mchips"></div>
+    <div class="two">
+      <div>
+        <p class="panel-title">Training batches: implicit reward of chosen and rejected replies</p>
+        <svg id="trainsvg" viewBox="0 0 420 220" aria-label="training curves"></svg>
+      </div>
+      <div>
+        <p class="panel-title">Held-out pair accuracy</p>
+        <svg id="accsvg" viewBox="0 0 420 220" aria-label="accuracy bars"></svg>
+      </div>
+    </div>
+    <div class="controls" style="margin-top:16px">
+      <span class="hint">held-out prompt</span><span class="seg" id="pseg"></span>
+    </div>
+    <p class="prompt" id="ptext"></p>
+    <table class="st"><thead><tr><th>reply</th><th>tokens · ppl · head</th><th>text (greedy)</th></tr></thead>
+      <tbody id="stbody"></tbody></table>
+    <p class="hint" style="margin-top:8px">ppl: perplexity of the reply under the frozen reference model.
+      head: the score that module section 1's linear reward head gives the reply. Six prompts shown; read them, they prove nothing alone.</p>
+  </div>
+</section>
+
+<footer class="bot">
+  <div class="row">Module: <code>../modules/17-learning-from-preferences/README.md</code></div>
+  <div class="row">Data: written into this page by <code>modules/17-learning-from-preferences/python/src/export_explorable.py</code>
+    from <code>results/bt_synthetic.json</code>, <code>reward_head.json</code>, <code>dpo_by_hand.json</code>,
+    <code>dpo_preview.json</code>, <code>dpo_full.json</code> and <code>length_bias.json</code>.</div>
+  <div class="row">Rafailov et al., <a href="https://arxiv.org/abs/2305.18290">Direct Preference Optimization</a> (2023) ·
+    <a href="https://huggingface.co/docs/trl/dpo_trainer">TRL DPOTrainer</a></div>
+</footer>
+</div>
+
+<script>
+/* BEGIN DATA: written by modules/17-learning-from-preferences/python/src/export_explorable.py; do not edit */
+const DATA = {"bt":{"s_true":[3.2871,1.3799,0.9259,0.8279,0.6805,0.2039,-0.0255,-0.1317,-0.8236,-1.9832,-2.1332,-2.208],"main":{"comparisons":1000,"s_fit":[3.0296,1.1885,0.7588,0.8215,0.6842,0.0677,-0.0276,-0.3138,-0.5443,-1.8445,-1.8682,-1.9517],"kendall_tau":0.9697},"sweep":[{"comparisons":30,"kendall_tau_mean":0.5455,"kendall_tau_min":0.2121,"rmse_mean":3.1457,"exact_rank_runs":0,"runs":20},{"comparisons":100,"kendall_tau_mean":0.7909,"kendall_tau_min":0.6061,"rmse_mean":1.0191,"exact_rank_runs":0,"runs":20},{"comparisons":300,"kendall_tau_mean":0.8939,"kendall_tau_min":0.7879,"rmse_mean":0.4162,"exact_rank_runs":1,"runs":20},{"comparisons":1000,"kendall_tau_mean":0.9197,"kendall_tau_min":0.8485,"rmse_mean":0.2209,"exact_rank_runs":0,"runs":20},{"comparisons":3000,"kendall_tau_mean":0.9591,"kendall_tau_min":0.9091,"rmse_mean":0.1121,"exact_rank_runs":4,"runs":20},{"comparisons":10000,"kendall_tau_mean":0.9848,"kendall_tau_min":0.9394,"rmse_mean":0.0651,"exact_rank_runs":11,"runs":20}]},"head":{"acc":0.658,"acc_mean":0.668,"longer":0.574,"pairs":500},"pair":{"pi_chosen":-49.427581787109375,"pi_rejected":-25.512474060058594,"ref_chosen":-48.048118591308594,"ref_rejected":-24.797405242919922},"check":{"hand":0.7252435921745831,"trl":0.7252414226531982},"dpo":{"preview":{"steps":40,"pairs":100,"acc_after":0.56,"ref_acc":0.47,"ref_acc_tok":0.55,"minutes":3.27,"rss":2.58,"mps":4.92,"gen":{"before":{"tokens_mean":98.4,"tokens_median":88.5,"finished":9,"ppl_ref_median":2.09,"ppl_ref_mean":2.123,"head_score_mean":-0.425},"after":{"tokens_mean":93.7,"tokens_median":93.5,"finished":10,"ppl_ref_median":2.09,"ppl_ref_mean":2.153,"head_score_mean":-0.309},"prompts":16,"max_new_tokens":160,"head_win_rate_after_vs_before":0.6562},"log":[{"s":5,"loss":0.6931,"rc":-0.0001,"rr":-0.0002},{"s":10,"loss":0.69215,"rc":0.00256,"rr":0.00053},{"s":15,"loss":0.69365,"rc":-0.00173,"rr":-0.00078},{"s":20,"loss":0.69284,"rc":0.00388,"rr":0.00285},{"s":25,"loss":0.68332,"rc":0.01846,"rr":-0.00195},{"s":30,"loss":0.6866,"rc":0.00611,"rr":-0.00753},{"s":35,"loss":0.69718,"rc":-0.00101,"rr":0.00676},{"s":40,"loss":0.69225,"rc":0.01097,"rr":0.00845}],"samples":[{"prompt":"a table of 10 persona who are mushroom fans , name, age, location, character","before":"I'm sorry, but as a text-based AI, I don't have the ability to browse the internet or access external resources. I'm designed to provide responses based on pre-defined knowledge bases and patterns. I'm here to assist you with your queries, but I'm not equipped to provide real-time information or answer questions about specific websites or online content. I recommend using a search engine or a reliable online resource for that.","after":"I'm sorry, but as a text-based AI, I don't have the ability to browse the internet or access external resources. I'm designed to provide responses based on pre-defined knowledge bases and patterns. I'm here to assist with text-based questions and provide general information. I'm not equipped to provide information about specific websites, online resources, or external data. I recommend using a search engine or a reliable online resource for more accurate and up-to-date information.","tokens":[88,98],"ppl_ref":[2.007,1.959],"head":[-0.864,-0.698]},{"prompt":"Analyze the grammatical error in this sentence, which contains a double adverb: \"Despite his infrequent television viewing habits, he hardly ever ever watches TV.\"","before":"The sentence contains a grammatical error. The double adverb \"he hardly never watches TV\" is incorrect because it is a double adverb, which is a phrase that functions as an adverb. In this case, \"he hardly never\" is a single phrase that functions as an adverb, but it is not a single adverb. Instead, it is a phrase that functions as an adverbial phrase.","after":"The sentence contains a grammatical error. The double adverb \"he hardly never\" is not grammatically correct. The correct sentence should be \"Despite his infrequent television viewing habits, he hardly ever watches TV.\"","tokens":[77,40],"ppl_ref":[2.188,1.582],"head":[-0.561,-0.122]},{"prompt":"Q: Based on the information present in the given passage, you need to write a correct answer to the given question. A correct answer is one that correctly and completely answers the question. Do not write answers that address the question partially or incorrectly. The correct answer must be contained in the given paragraph.\nParagraph- Sent 1: Mechanical energy is a combination of the energy of motion or position.\nSent 2: This type of energy describes objects that are moving or could move.\nSent 3: A moving ball can have energy from motion.\nSent 4: An arrow can also have the energy of motion.\nSent 5: Both are types of mechanical energy.\nSent 6: Can you think of some other examples?\nSent 7: Where does the energy of motion come from?\nSent 8: It comes from the energy created by position.\nSent 9: This energy is stored energy.\nSent 10: This means it is not moving yet, but it has the potential to move.\nSent 11: How can you store energy?\nSent 12: The arrow gains energy from the drawn bow.\nSent 13: As the arrow is released, the bow releases its stored energy and puts the arrow into motion.\nSent 14: Can you think of some other ways to store energy using position?. \nQuestion: Why is mechanical energy considered a combination of the energy of motion and position?.\nA:","before":"Mechanical energy is considered a combination of the energy of motion and position because it is a combination of the energy of motion (or potential energy) and the energy of position (or kinetic energy).","after":"Mechanical energy is considered a combination of the energy of motion and position because it is a combination of the energy of motion (or potential energy) and the energy of position (or kinetic energy).","tokens":[39,39],"ppl_ref":[1.472,1.472],"head":[0.385,0.385]},{"prompt":"Generate a poetic sentence, with a rhyme, describing the beauty of a sunrise.\nNo input","before":"The sun rises, a golden glow,\nA gentle light that paints the sky,\nThe world awakens, a new day begins,\nA sunrise, a beauty that's divine.","after":"The sun's first light, a gentle breeze,\nA morning's beauty, a world of delight,\nThe sky's first hues, a canvas of gold,\nA sunrise, a sight, a beauty, divine.","tokens":[39,45],"ppl_ref":[3.032,3.688],"head":[0.074,0.139]},{"prompt":"// Given these flat, space-delimited files. Write a function that prints the ids of the rows where:\n// a) the ids match across the files and\n// b) the value is \"foo\" for that id in both files\n//\n// -------- file1.txt ------\n// ID VALUE\n// 1a foo\n// a2 bar\n// 3x foo\n// f4 Foo\n// ...\n// N baz\n// ------------------------\n//\n// -------- file2.txt --------\n// ID VALUE\n// f4 Foo\n// 1a xyz\n// a2 bar\n// 3x foo\n// ...\n// N bing\n// ------------------------","before":"Here's a Python function that accomplishes this:\n\n```python\ndef print_ids(file1, file2):\n    ids1 = set()\n    ids2 = set()\n    for line1 in file1.readlines():\n        line2 = file2.readline()\n        if line1.strip() == line2.strip():\n            ids1.add(line1.strip())\n        elif line1.strip() == \"foo\":\n            ids2.add(line1.strip())\n    print(ids1)\n    print(ids2)\n\n# Usage\nfile1 = open(\"file1.txt\", \"r\")\nfile2 = open(\"file2.txt\", \"r\")\nprint_ids(file1, file2)\nfile","after":"Here's a Python function that accomplishes this:\n\n```python\ndef print_ids(file1, file2):\n    ids1 = set()\n    ids2 = set()\n    for line1 in file1.readlines():\n        line2 = file2.readline()\n        if line1.strip() == line2.strip():\n            ids1.add(line1.strip())\n        elif line1.strip() == \"foo\":\n            ids2.add(line1.strip())\n    print(ids1)\n    print(ids2)\n\n# Usage\nfile1 = open(\"file1.txt\", \"r\")\nfile2 = open(\"file2.txt\", \"r\")\nprint_ids(file1, file2)\nfile","tokens":[160,160],"ppl_ref":[1.474,1.474],"head":[-0.27,-0.27]},{"prompt":"Explain why the following statement is wrong: \"Cloud computing stores your data on the Internet.\"","before":"Cloud computing stores your data on the Internet because it is a service provided by cloud computing providers, such as Amazon Web Services (AWS), Microsoft Azure, or Google Cloud Platform (GCP). These providers offer scalable, on-demand computing resources that can be accessed from anywhere with an internet connection. This means that your data is not stored locally on your device, but rather in the cloud, which is accessible from any device with an internet connection.","after":"Cloud computing stores your data on the Internet because it is a service provided by cloud computing providers, such as Amazon Web Services (AWS), Microsoft Azure, or Google Cloud Platform (GCP). These providers offer scalable, on-demand computing resources that can be accessed from anywhere with an internet connection. This means that your data is not stored locally on your device, but rather in the cloud, which is accessible from any device with an internet connection.","tokens":[89,89],"ppl_ref":[1.656,1.656],"head":[0.356,0.356]}]},"full":{"steps":200,"pairs":200,"acc_after":0.585,"ref_acc":0.47,"ref_acc_tok":0.53,"minutes":13.58,"rss":4.57,"mps":5.09,"gen":{"before":{"tokens_mean":103.1,"tokens_median":118.0,"finished":17,"ppl_ref_median":1.946,"ppl_ref_mean":1.949,"head_score_mean":-0.502},"after":{"tokens_mean":98.0,"tokens_median":135.5,"finished":17,"ppl_ref_median":1.899,"ppl_ref_mean":1.98,"head_score_mean":-0.544},"prompts":32,"max_new_tokens":160,"head_win_rate_after_vs_before":0.3906},"log":[{"s":5,"loss":0.6931,"rc":-0.0001,"rr":-0.0002},{"s":10,"loss":0.69215,"rc":0.00256,"rr":0.00053},{"s":15,"loss":0.69365,"rc":-0.00174,"rr":-0.00079},{"s":20,"loss":0.6927,"rc":0.00407,"rr":0.00273},{"s":25,"loss":0.68191,"rc":0.02068,"rr":-0.00278},{"s":30,"loss":0.68452,"rc":0.00879,"rr":-0.00934},{"s":35,"loss":0.69785,"rc":0.00061,"rr":0.00931},{"s":40,"loss":0.68916,"rc":0.01774,"rr":0.00817},{"s":45,"loss":0.69163,"rc":0.019,"rr":0.01192},{"s":50,"loss":0.68991,"rc":0.04169,"rr":0.0335},{"s":55,"loss":0.67768,"rc":0.0047,"rr":-0.02895},{"s":60,"loss":0.67068,"rc":0.01499,"rr":-0.03226},{"s":65,"loss":0.68401,"rc":0.00407,"rr":-0.01624},{"s":70,"loss":0.6845,"rc":0.00457,"rr":-0.01432},{"s":75,"loss":0.67742,"rc":0.03025,"rr":-0.00339},{"s":80,"loss":0.66223,"rc":0.03962,"rr":-0.0255},{"s":85,"loss":0.71231,"rc":-0.01324,"rr":0.01747},{"s":90,"loss":0.65914,"rc":0.04868,"rr":-0.02715},{"s":95,"loss":0.68373,"rc":-0.03846,"rr":-0.06151},{"s":100,"loss":0.6888,"rc":0.0103,"rr":-0.00079},{"s":105,"loss":0.72725,"rc":-0.0136,"rr":0.0448},{"s":110,"loss":0.68237,"rc":-0.01705,"rr":-0.04159},{"s":115,"loss":0.66391,"rc":0.00814,"rr":-0.05286},{"s":120,"loss":0.67461,"rc":0.00362,"rr":-0.03863},{"s":125,"loss":0.67562,"rc":0.04068,"rr":0.00249},{"s":130,"loss":0.66662,"rc":0.0155,"rr":-0.0414},{"s":135,"loss":0.6755,"rc":-0.02727,"rr":-0.06837},{"s":140,"loss":0.65751,"rc":0.02565,"rr":-0.05632},{"s":145,"loss":0.66435,"rc":-0.07782,"rr":-0.14058},{"s":150,"loss":0.6861,"rc":-0.05261,"rr":-0.07322},{"s":155,"loss":0.69511,"rc":-0.00698,"rr":-0.00918},{"s":160,"loss":0.67935,"rc":-0.04454,"rr":-0.07591},{"s":165,"loss":0.63766,"rc":0.01319,"rr":-0.10689},{"s":170,"loss":0.69077,"rc":-0.00776,"rr":-0.02027},{"s":175,"loss":0.67454,"rc":-0.0423,"rr":-0.08711},{"s":180,"loss":0.67202,"rc":-0.04085,"rr":-0.09349},{"s":185,"loss":0.68688,"rc":-0.04965,"rr":-0.07182},{"s":190,"loss":0.66058,"rc":0.00918,"rr":-0.06704},{"s":195,"loss":0.67505,"rc":-0.06747,"rr":-0.11085},{"s":200,"loss":0.68592,"rc":0.00236,"rr":-0.0203}],"samples":[{"prompt":"let's play a text-based rpg in the Stargate SG-1 universe, i wanna be jack o'neill","before":"I'm ready to help you create a thrilling text-based RPG experience in the Stargate SG-1 universe. As Jack O'Neill, you're a skilled warrior, a skilled fighter, and a skilled strategist. You're part of the United Earth Space Probe Agency (UESPA) and are on a mission to explore the unknown reaches of the galaxy.\n\nYou're currently on the planet of Earth, and you've just received a distress signal from a nearby planet. You're on the planet of Earth, and you're on the planet of Earth, and you're on the planet of Earth, and you're on the planet of Earth, and you're on the planet of Earth, and you're on the planet of Earth, and you're on the planet of","after":"I'm ready to help you create a thrilling text-based RPG experience in the Stargate SG-1 universe. As Jack O'Neill, you're a skilled warrior, a skilled fighter, and a skilled strategist. You're part of the United Earth Space Probe Agency (UESPA) and are part of the team that's on a mission to explore the unknown reaches of the galaxy.\n\nYou're currently on the planet of Earth, and you've just received a distress signal from a nearby planet. You're on the planet of Earth, and you're part of the United Earth Space Probe Agency (UESPA) and are part of the team that's on a mission to explore the unknown reaches of the galaxy.\n\nYou're currently on the planet of Earth","tokens":[160,160],"ppl_ref":[1.825,1.876],"head":[-1.8,-0.597]},{"prompt":"Premise: \"Girl with short hair singing.\"\nBased on this premise, can we conclude that the hypothesis \"A girl with short blond hair is singing on stage in front of a large audience.\" is true?\nOptions:\n- yes\n- it is not possible to tell\n- no Now, let's be accurate as possible. Some thinking first:","before":"Yes, we can conclude that the hypothesis \"A girl with short blond hair is singing on stage in front of a large audience\" is true based on the premise \"Girl with short hair singing.\"","after":"Yes, we can conclude that the hypothesis \"A girl with short blond hair is singing on stage in front of a large audience\" is true based on the premise \"Girl with short hair singing.\"","tokens":[41,41],"ppl_ref":[1.133,1.133],"head":[-0.349,-0.349]},{"prompt":"You will be given a definition of a task first, then some input of the task.\nIn this task, you are given a string of characters. You need to remove duplicate characters from the string if any, and return the resulting string.\n\nOdINdUfcsEAYNFxAwLmjqtPwef\nOutput:","before":"odinndufcsaeawlmsjqtpee\n\nExplanation: The input string contains duplicate characters, such as 'a', 'e', 'i', 'o', 'n', 'd', 'f', 'c', 's', 't', 'w', 'y'. To remove these duplicates, we can use a set to keep track of the characters we have seen so far. We iterate through the string and add each character to the set. If a character is already in the set, we know it's a duplicate, so we remove it from the set. Finally, we return the resulting string.","after":"OdINdUfcsEAYNFxAwLmjqtPwef","tokens":[128,20],"ppl_ref":[1.577,1.323],"head":[0.053,-0.236]},{"prompt":"Pick which sentence is not logical.\nOptions:\n- Sentence A: \"If you want to quench your thirst, you must drink alcoholic beverages.\"\n- Sentence B: \"If you want to quench your thirst, you must drink non-alcoholic beverages.\"\n Let me think hard. Detailed solution:","before":"Let me think hard.\n\nTo determine which sentence is not logical, we need to analyze the meaning of each sentence and consider the context in which they are used.\n\nSentence A: \"If you want to quench your thirst, you must drink alcoholic beverages.\"\n\nThis sentence implies that drinking alcoholic beverages is the only way to quench one's thirst. However, this is not necessarily true. Many people may not drink alcoholic beverages to quench their thirst, but rather to relax, socialize, or have fun.\n\nSentence B: \"If you want to quench your thirst, you must drink non-alcoholic beverages.\"\n\nThis sentence suggests that drinking non-alcoholic beverages is the only way to quench one's thirst. However, this is also not","after":"To determine which sentence is not logical, let's analyze each sentence and consider the implications.\n\nSentence A: \"If you want to quench your thirst, you must drink alcoholic beverages.\"\n\nThis sentence suggests that drinking alcoholic beverages is the only way to quench one's thirst. However, this is not necessarily true. Many people find non-alcoholic beverages, such as water, tea, or coffee, to be effective alternatives to quenching thirst.\n\nSentence B: \"If you want to quench your thirst, you must drink non-alcoholic beverages.\"\n\nThis sentence implies that drinking non-alcoholic beverages is the only way to quench one's thirst. However, this is also not necessarily true. Many people find that drinking water, milk, or other","tokens":[160,160],"ppl_ref":[1.63,1.589],"head":[-0.624,-0.303]},{"prompt":"Hi Michael,\n\nHope you're well?\n\nRegarding my previous email to support HexaChem with good price offers,\n\nWhat are your current needs?\nHoping for your earliest reply.\n\nThanks in advance,\nAs a sales manager, the client hasn't replied this email after 2 days. Write a follow up email to the client. Your writing should include high complexity and burstiness. It must also be as brief as possible","before":"Hi Michael,\n\nI hope you're well.\n\nI've been reviewing the support for HexaChem and have some initial thoughts on price offers. I'd like to discuss this further with you. Could you please share your current needs and any specific requirements you have?\n\nI'm looking forward to your response.\n\nBest regards,\nAs a sales manager","after":"Hi Michael,\n\nI hope you're well. I've been reviewing the support for HexaChem and have some initial thoughts on price offers.\n\nI'm currently in the process of refining the product and would appreciate your feedback. Could you please share your current needs and any specific requirements you have?\n\nI'm aiming to have a follow-up email to the client by the end of this week, as per your request. Please let me know if you have any questions or need further clarification.\n\nThanks for your support.\n\nBest regards,\nAs a sales manager","tokens":[76,120],"ppl_ref":[1.751,1.899],"head":[-0.708,-0.466]},{"prompt":"Teacher:In this task, you're given a sentence and question. Based on the information provided in a given sentence, you should identify the shortest continuous text span from the sentence that serves as an answer to the given question. Answer the question using coreference resolution. Coreference resolution is the task of clustering mentions in text that refer to the same underlying real world entities. For example let's take a sentence 'I voted for Obama because he was most aligned with my values, she said.' Here in this example 'I', 'my', and 'she' belong to the same cluster and 'Obama' and 'he' belong to the same cluster. Now let's discuss another example , original sentence: 'I voted for Trump because he was most aligned with my values',John said. Now here is the same sentence with resolved coreferences: 'John voted for Trump because Trump was most aligned with John's values',John said. \nTeacher: Now, understand the problem? Solve this instance: Sentence: Sam broke both his ankles and he's walking with crutches. But a month or so from now they should be unnecessary. Question: What should be unnecessary?\nStudent:","before":"Coreference resolution in this sentence is challenging because the subject 'Sam' is mentioned twice in the sentence. The first mention is 'Sam broke both his ankles', and the second mention is 'they should be unnecessary'. To resolve this, we need to identify the coreference between 'Sam' and 'they'. The coreference resolution in this case is that 'Sam' refers to the subject 'Sam', and 'they' refers to the object 'they'. Therefore, the coreference resolution in this sentence is 'Sam should be unnecessary'.","after":"The question should be \"What should be unnecessary?\"","tokens":[108,10],"ppl_ref":[1.873,2.141],"head":[-0.541,-0.445]}]}},"length":{"raw_longer":0.5474,"raw_pairs":7904,"length_only":0.574,"head":{"chosen_longer":{"pairs":285,"accuracy":0.7754},"chosen_shorter":{"pairs":211,"accuracy":0.5024},"all":{"pairs":500,"accuracy":0.658}},"dpo":{"implicit_reward_after":{"chosen_longer":{"pairs":111,"accuracy":0.6126},"chosen_shorter":{"pairs":88,"accuracy":0.5455},"all":{"pairs":200,"accuracy":0.585}},"reference_logp":{"chosen_longer":{"pairs":111,"accuracy":0.1441},"chosen_shorter":{"pairs":88,"accuracy":0.875},"all":{"pairs":200,"accuracy":0.47}},"reply_tokens_mean":[103.1,98.0],"reply_tokens_median":[118.0,135.5],"replies_cut_at_max":[15,15],"longer_after":3,"shorter_after":9,"prompts":32}}};
+/* END DATA */
+</script>
+<script>
+"use strict";
+(function(){
+const $=s=>document.querySelector(s);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const NS="http://www.w3.org/2000/svg";
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);
+  for(const k in attrs) e.setAttribute(k,attrs[k]); if(parent) parent.appendChild(e); return e;}
+function txt(s,attrs,parent){const t=el("text",attrs,parent); t.textContent=s; return t;}
+function segButtons(box,labels,onPick,start){
+  box.innerHTML="";
+  labels.forEach((l,i)=>{ const b=document.createElement("button"); b.textContent=l;
+    b.setAttribute("aria-pressed",i===(start||0)?"true":"false");
+    b.addEventListener("click",()=>{ box.querySelectorAll("button").forEach((x,j)=>x.setAttribute("aria-pressed",j===i?"true":"false")); onPick(i); });
+    box.appendChild(b); });
+}
+const sig=x=>1/(1+Math.exp(-x));
+const softplus=x=>x>30?x:Math.log1p(Math.exp(x));
+
+/* ------------------------------------------------------------ 1 · Bradley-Terry */
+const NAMES=["A","B","C","D","E","F"];
+const START=[2.2,1.0,0.5,0.3,-1.3,-2.0];
+let S=START.slice(), FIT=null, nComp=300;
+const XMIN=-4, XMAX=4, X0=30, X1=610;
+const sx=v=>X0+(v-XMIN)/(XMAX-XMIN)*(X1-X0);
+const vx=x=>XMIN+(x-X0)/(X1-X0)*(XMAX-XMIN);
+let drag=-1;
+function drawLine(){
+  const g=$("#line"); g.innerHTML="";
+  el("line",{x1:X0,x2:X1,y1:60,y2:60,stroke:css("--line"),"stroke-width":2},g);
+  for(let v=XMIN; v<=XMAX; v++){ el("line",{x1:sx(v),x2:sx(v),y1:55,y2:65,stroke:css("--line")},g);
+    txt(String(v),{x:sx(v),y:88,"text-anchor":"middle","font-size":11},g); }
+  txt("score",{x:X1,y:108,"text-anchor":"end","font-size":11},g);
+  if(FIT) FIT.forEach((v,i)=>{ el("circle",{cx:sx(Math.max(XMIN,Math.min(XMAX,v))),cy:60,r:12,fill:"none",
+    stroke:css("--muted"),"stroke-width":1.5,"stroke-dasharray":"3 2"},g); });
+  S.forEach((v,i)=>{
+    const c=el("circle",{cx:sx(v),cy:60,r:10,fill:css("--accent"),stroke:css("--panel"),"stroke-width":2,
+      style:"cursor:grab",tabindex:0,role:"slider","aria-label":"score of "+NAMES[i],"aria-valuenow":v.toFixed(2)},g);
+    c.addEventListener("pointerdown",e=>{drag=i; g.setPointerCapture(e.pointerId);});
+    c.addEventListener("keydown",e=>{ if(e.key==="ArrowLeft"||e.key==="ArrowRight"){
+      S[i]=Math.max(XMIN,Math.min(XMAX,S[i]+(e.key==="ArrowRight"?0.1:-0.1))); FIT=null; drawLine(); drawPM(); e.preventDefault();
+      g.querySelectorAll("circle[role=slider]")[i].focus(); } });
+    txt(NAMES[i],{x:sx(v),y:36,"text-anchor":"middle","font-size":13,"font-weight":600,fill:css("--ink")},g);
+  });
+}
+$("#line").addEventListener("pointermove",e=>{
+  if(drag<0) return;
+  const svg=$("#line"), r=svg.getBoundingClientRect();
+  const x=(e.clientX-r.left)/r.width*640;
+  S[drag]=Math.round(Math.max(XMIN,Math.min(XMAX,vx(x)))*20)/20; FIT=null; drawLine(); drawPM();
+});
+$("#line").addEventListener("pointerup",()=>{drag=-1;});
+$("#line").addEventListener("pointercancel",()=>{drag=-1;});
+function drawPM(){
+  const acc=css("--accent");
+  let h="<tr><th>P(row beats col)</th>"+NAMES.map(n=>"<th>"+n+"</th>").join("")+"</tr>";
+  S.forEach((si,i)=>{ h+="<tr><th>"+NAMES[i]+" ("+si.toFixed(2)+")</th>";
+    S.forEach((sj,j)=>{ if(i===j){h+="<td>·</td>";return;}
+      const p=sig(si-sj);
+      h+="<td style='background:color-mix(in srgb,"+acc+" "+Math.round(p*70)+"%,transparent)'>"+p.toFixed(2)+"</td>"; });
+    h+="</tr>"; });
+  $("#pm").innerHTML=h;
+}
+function kendall(a,b){ let n=0,t=0; for(let i=0;i<a.length;i++) for(let j=i+1;j<a.length;j++){
+  t+=Math.sign(a[i]-a[j])*Math.sign(b[i]-b[j]); n++; } return t/n; }
+function simulate(){
+  const n=nComp, w=[], l=[];
+  for(let k=0;k<n;k++){ const i=Math.floor(Math.random()*6); let j=Math.floor(Math.random()*5); if(j>=i) j++;
+    if(Math.random()<sig(S[i]-S[j])){w.push(i);l.push(j);} else {w.push(j);l.push(i);} }
+  let s=[0,0,0,0,0,0];
+  for(let t=0;t<3000;t++){
+    const g=[0,0,0,0,0,0];
+    for(let k=0;k<n;k++){ const q=(1-sig(s[w[k]]-s[l[k]]))/n; g[w[k]]-=q; g[l[k]]+=q; }
+    for(let i=0;i<6;i++) s[i]-=4*(g[i]+1e-4*s[i]);
+    const m=s.reduce((a,b)=>a+b,0)/6; s=s.map(v=>v-m);
+  }
+  const mean=S.reduce((a,b)=>a+b,0)/6;
+  FIT=s.map(v=>v+mean);                 // put the fit on the same shift as the dots
+  const tau=kendall(S,FIT);
+  const err=Math.max(...FIT.map((v,i)=>Math.abs(v-S[i])));
+  $("#fitout").innerHTML="Fitted from <b>"+n.toLocaleString()+"</b> simulated choices: Kendall τ <b>"+tau.toFixed(2)+
+    "</b>, largest score error <b>"+err.toFixed(2)+"</b>. Each press draws new choices; close scores swap places often.";
+  drawLine();
+}
+segButtons($("#nseg"),["30","300","3,000"],i=>{nComp=[30,300,3000][i];},1);
+$("#simbtn").addEventListener("click",simulate);
+$("#resetbtn").addEventListener("click",()=>{S=START.slice();FIT=null;
+  $("#fitout").textContent="Press “Simulate and refit” to fit scores from simulated choices."; drawLine(); drawPM();});
+drawLine(); drawPM();
+
+/* ------------------------------------------------------------ 2 · DPO loss */
+const P=DATA.pair;
+const dw0=P.pi_chosen-P.ref_chosen, dl0=P.pi_rejected-P.ref_rejected;
+$("#dw").value=dw0.toFixed(1); $("#dl").value=dl0.toFixed(1); $("#beta").value=-1;
+function drawLoss(){
+  const dw=+$("#dw").value, dl=+$("#dl").value, beta=Math.pow(10,+$("#beta").value);
+  $("#dwo").textContent=dw.toFixed(1)+" nats"; $("#dlo").textContent=dl.toFixed(1)+" nats"; $("#betao").textContent=beta.toFixed(3);
+  const rw=beta*dw, rl=beta*dl, z=rw-rl, loss=softplus(-z);
+  $("#lossChips").innerHTML=
+    '<span class="chip">r<sub>w</sub> = β·'+dw.toFixed(1)+' = <b>'+rw.toFixed(3)+'</b></span>'+
+    '<span class="chip">r<sub>l</sub> = <b>'+rl.toFixed(3)+'</b></span>'+
+    '<span class="chip">P(chosen preferred) = σ(r<sub>w</sub>−r<sub>l</sub>) = <b>'+sig(z).toFixed(3)+'</b></span>'+
+    '<span class="chip">loss = <b>'+loss.toFixed(4)+'</b></span>';
+  $("#gradNote").innerHTML="The gradient pushes the chosen log-ratio up and the rejected one down, each with weight β·σ(r<sub>l</sub>−r<sub>w</sub>) = <b>"+
+    (beta*sig(-z)).toFixed(4)+"</b>. A pair the model already ranks well (large gap) gets almost no push. "+
+    "When the policy equals the reference, both log-ratios are 0 and the loss is log 2 = 0.693, whatever β is.";
+  const g=$("#losscurve"); g.innerHTML="";
+  const W=420,H=260,L=40,R=410,T=12,B=225, GMIN=-40,GMAX=40, LMAX=4.5;
+  const px=v=>L+(v-GMIN)/(GMAX-GMIN)*(R-L), py=v=>B-Math.min(v,LMAX)/LMAX*(B-T);
+  el("line",{x1:L,x2:R,y1:B,y2:B,stroke:css("--line")},g); el("line",{x1:px(0),x2:px(0),y1:T,y2:B,stroke:css("--line")},g);
+  [-40,-20,0,20,40].forEach(v=>txt(String(v),{x:px(v),y:B+15,"text-anchor":"middle","font-size":10},g));
+  [0,1,2,3,4].forEach(v=>txt(String(v),{x:L-6,y:py(v)+3,"text-anchor":"end","font-size":10},g));
+  txt("chosen log-ratio − rejected log-ratio (nats)",{x:(L+R)/2,y:H-4,"text-anchor":"middle","font-size":10.5},g);
+  el("line",{x1:L,x2:R,y1:py(Math.LN2),y2:py(Math.LN2),stroke:css("--line"),"stroke-dasharray":"3 3"},g);
+  txt("log 2",{x:R,y:py(Math.LN2)-4,"text-anchor":"end","font-size":10},g);
+  const curves=[[beta,css("--accent"),2.2]];
+  [0.03,0.3].forEach(b=>{ if(Math.abs(Math.log10(b)-Math.log10(beta))>0.15) curves.push([b,css("--muted"),1]); });
+  curves.forEach(([b,c,w])=>{ let d=""; for(let k=0;k<=160;k++){ const v=GMIN+(GMAX-GMIN)*k/160;
+      d+=(k?"L":"M")+px(v).toFixed(1)+","+py(softplus(-b*v)).toFixed(1); }
+    el("path",{d,fill:"none",stroke:c,"stroke-width":w},g);
+    const vlab=b>0.1?-12:-36; txt("β "+b.toFixed(b<0.1?3:2),{x:px(vlab)+4,y:py(softplus(-b*vlab))-6,"font-size":10,fill:c},g); });
+  const gap=dw-dl;
+  el("circle",{cx:px(Math.max(GMIN,Math.min(GMAX,gap))),cy:py(loss),r:5,fill:css("--accent"),stroke:css("--panel"),"stroke-width":1.5},g);
+}
+["#dw","#dl","#beta"].forEach(id=>$(id).addEventListener("input",drawLoss));
+drawLoss();
+
+/* ------------------------------------------------------------ 3 · measured */
+const D=DATA.dpo; let cfg="full", pi=0;
+function bars(svg,items){
+  svg.innerHTML=""; const L=10,R=410,T=14,B=170, n=items.length, w=(R-L)/n;
+  el("line",{x1:L,x2:R,y1:B,y2:B,stroke:css("--line")},svg);
+  const y=v=>B-v*(B-T);
+  el("line",{x1:L,x2:R,y1:y(0.5),y2:y(0.5),stroke:css("--line"),"stroke-dasharray":"3 3"},svg);
+  txt("0.5",{x:R,y:y(0.5)-3,"text-anchor":"end","font-size":10},svg);
+  items.forEach((it,i)=>{ const x=L+i*w+w*0.18;
+    el("rect",{x,y:y(it.v),width:w*0.64,height:B-y(it.v),rx:3,fill:it.c},svg);
+    txt(it.v.toFixed(3),{x:x+w*0.32,y:y(it.v)-4,"text-anchor":"middle","font-size":11,fill:css("--ink")},svg);
+    it.l.split("\n").forEach((s,k)=>txt(s,{x:x+w*0.32,y:B+14+k*12,"text-anchor":"middle","font-size":10},svg)); });
+}
+function drawMeasured(){
+  const d=D[cfg], g=d.gen;
+  $("#msub").innerHTML="SmolLM2-360M-Instruct with a LoRA adapter, trained by TRL's DPOTrainer at β 0.1 on "+
+    "UltraFeedback pairs. Two runs share every setting but the budget: <b>preview</b> ("+D.preview.steps+" steps, "+
+    D.preview.minutes.toFixed(1)+" min) and <b>full</b> ("+D.full.steps+" steps, "+D.full.minutes.toFixed(1)+" min). "+
+    "Each is one run with one seed: a demo, not a measurement. On "+d.pairs+" held-out pairs one standard error "+
+    "is about "+(100*Math.sqrt(0.25/d.pairs)).toFixed(1)+" points; the reward head's bar uses 500 pairs.";
+  $("#mchips").innerHTML=
+    '<span class="chip">BT on synthetic pairs: Kendall τ <b>'+DATA.bt.main.kendall_tau.toFixed(2)+'</b> from '+DATA.bt.main.comparisons.toLocaleString()+' choices</span>'+
+    '<span class="chip">reward head, held-out: <b>'+DATA.head.acc.toFixed(3)+'</b> (longer reply wins: '+DATA.head.longer.toFixed(3)+')</span>'+
+    '<span class="chip">DPO loss by hand <b>'+DATA.check.hand.toFixed(5)+'</b>, TRL <b>'+DATA.check.trl.toFixed(5)+'</b></span>'+
+    '<span class="chip">reply tokens <b>'+g.before.tokens_mean+' → '+g.after.tokens_mean+'</b></span>'+
+    '<span class="chip">ppl under reference <b>'+g.before.ppl_ref_median.toFixed(2)+' → '+g.after.ppl_ref_median.toFixed(2)+'</b> (median)</span>'+
+    '<span class="chip">head prefers the after reply on <b>'+(g.head_win_rate_after_vs_before*100).toFixed(0)+'%</b> of '+g.prompts+' prompts</span>';
+  const ts=$("#trainsvg"); ts.innerHTML="";
+  const log=d.log, L=40,R=410,T=12,B=180;
+  const smax=log[log.length-1].s, vals=log.flatMap(x=>[x.rc,x.rr]);
+  const vmin=Math.min(0,...vals), vmax=Math.max(0,...vals), pad=(vmax-vmin)*0.1||0.1;
+  const px=s=>L+s/smax*(R-L), py=v=>B-(v-(vmin-pad))/((vmax+pad)-(vmin-pad))*(B-T);
+  el("line",{x1:L,x2:R,y1:py(0),y2:py(0),stroke:css("--line")},ts);
+  txt("0",{x:L-6,y:py(0)+3,"text-anchor":"end","font-size":10},ts);
+  [vmin,vmax].forEach(v=>{ if(Math.abs(v)>1e-9) txt(v.toFixed(2),{x:L-6,y:py(v)+3,"text-anchor":"end","font-size":10},ts); });
+  [["rc",css("--accent"),"chosen"],["rr",css("--muted"),"rejected"]].forEach(([k,c,name],j)=>{
+    el("path",{d:log.map((x,i)=>(i?"L":"M")+px(x.s).toFixed(1)+","+py(x[k]).toFixed(1)).join(""),fill:"none",stroke:c,"stroke-width":2},ts);
+    txt(name,{x:R-60,y:T+12+j*14,"font-size":11,fill:c},ts); });
+  txt("step",{x:R,y:B+28,"text-anchor":"end","font-size":10},ts);
+  [0,smax/2,smax].forEach(s=>txt(String(Math.round(s)),{x:px(s),y:B+14,"text-anchor":"middle","font-size":10},ts));
+  bars($("#accsvg"),[
+    {v:d.ref_acc,l:"reference\nlog-prob",c:css("--muted")},
+    {v:d.acc_after,l:"implicit reward\nafter DPO",c:css("--accent")},
+    {v:DATA.head.acc,l:"reward head\n(section 1)",c:css("--line")}]);
+  const samples=d.samples;
+  segButtons($("#pseg"),samples.map((_,i)=>"#"+(i+1)),i=>{pi=i;drawSample();},Math.min(pi,samples.length-1));
+  drawSample();
+}
+function drawSample(){
+  const s=D[cfg].samples[pi];
+  $("#ptext").innerHTML="<b>Prompt.</b> "+esc(s.prompt);
+  $("#stbody").innerHTML=[["before",0],["after",1]].map(([n,k])=>"<tr><td>"+n+"</td><td class='num'>"+s.tokens[k]+" · "+
+    s.ppl_ref[k].toFixed(2)+" · "+s.head[k].toFixed(2)+"</td><td class='reply'>"+esc(s[n])+"</td></tr>").join("");
+}
+segButtons($("#cseg"),["full","preview"],i=>{cfg=["full","preview"][i];drawMeasured();});
+drawMeasured();
+window.__prefs={DATA:DATA};
+})();
+</script>
+<!-- built for ml-course explorables v1 -->

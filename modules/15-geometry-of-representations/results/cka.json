@@ -1,0 +1,58 @@
+{
+ "n_inputs": 5000,
+ "test_acc": {
+  "seed 0": 0.8646,
+  "seed 1": 0.8619
+ },
+ "pairs": [
+  {
+   "a": "trained 0",
+   "b": "trained 1",
+   "cka_hidden": 0.9272,
+   "cka_logits": 0.9139,
+   "neuron_match_hidden": 0.6415
+  },
+  {
+   "a": "init 0",
+   "b": "init 1",
+   "cka_hidden": 0.9466,
+   "cka_logits": 0.5121,
+   "neuron_match_hidden": 0.511
+  },
+  {
+   "a": "trained 0",
+   "b": "init 0",
+   "cka_hidden": 0.5116,
+   "cka_logits": 0.3788,
+   "neuron_match_hidden": 0.4455
+  },
+  {
+   "a": "trained 0",
+   "b": "init 1",
+   "cka_hidden": 0.4314,
+   "cka_logits": 0.5654,
+   "neuron_match_hidden": 0.4105
+  }
+ ],
+ "pixels_vs_hidden": {
+  "trained 0": 0.5402,
+  "init 0": 0.9678
+ },
+ "checks": {
+  "rotated_and_scaled": 1.0,
+  "permuted": 1.0,
+  "noise_vs_hidden": 0.01
+ },
+ "guard": {
+  "script": "cka.py",
+  "seconds": 8.9,
+  "minutes": 0.15,
+  "peak_rss_gb": 1.31,
+  "peak_mps_driver_gb": 0.0,
+  "stages_seconds": {},
+  "machine": "arm64 26.6.2",
+  "torch": "2.14.1",
+  "mps_high_watermark_ratio": "0.5",
+  "mps_cap_gb": 5.92
+ }
+}

@@ -1,0 +1,72 @@
+{
+ "schedule_check": {
+  "steps": 1570,
+  "warmup": 157,
+  "max_abs_diff": 0.0
+ },
+ "runs": [
+  {
+   "optimiser": "sgd",
+   "optim": "sgd",
+   "optim_args": null,
+   "lr": 0.3,
+   "torch_class": "SGD",
+   "steps": 1570,
+   "test_acc": 0.8565,
+   "test_loss": 0.3973,
+   "hand_loop_seeds": [
+    0.8582,
+    0.8596,
+    0.857
+   ]
+  },
+  {
+   "optimiser": "momentum",
+   "optim": "sgd",
+   "optim_args": "momentum=0.9",
+   "lr": 0.03,
+   "torch_class": "SGD",
+   "steps": 1570,
+   "test_acc": 0.8554,
+   "test_loss": 0.4053,
+   "hand_loop_seeds": [
+    0.8586,
+    0.8592,
+    0.8581
+   ]
+  },
+  {
+   "optimiser": "adam",
+   "optim": "adamw_torch",
+   "optim_args": null,
+   "lr": 0.003,
+   "torch_class": "AdamW",
+   "steps": 1570,
+   "test_acc": 0.8726,
+   "test_loss": 0.3568,
+   "hand_loop_seeds": [
+    0.8721,
+    0.8733,
+    0.8732
+   ]
+  }
+ ],
+ "epochs": 10,
+ "batch": 128,
+ "warmup_frac": 0.1,
+ "transformers": "5.20.1",
+ "guard": {
+  "script": "hf_way",
+  "seconds": 6.7,
+  "minutes": 0.11,
+  "peak_rss_gb": 1.15,
+  "peak_mps_driver_gb": 0.0,
+  "stages_seconds": {
+   "trainer": 6.67
+  },
+  "machine": "arm64 26.6.2",
+  "torch": "2.14.1",
+  "mps_high_watermark_ratio": "0.5",
+  "mps_cap_gb": 5.92
+ }
+}

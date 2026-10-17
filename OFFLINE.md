@@ -7,7 +7,7 @@ Preparing a pack requires a connection once; using and verifying it does not.
 |---|---|---|
 | **Reader** | Lessons, figures, source files, search, progress, quizzes, and every browser explorable | Reading and visual experiments on any laptop |
 | **Core** | Reader + Python 3.12, locked dependencies, FashionMNIST, the SmolLM3 tokenizer, and modules 01–04, 05½, and 07 | The from-scratch path |
-| **Full** | Core + all model snapshots, datasets, and environments used by modules 05–12 | A completely disconnected workshop |
+| **Full** | Core + all model snapshots, datasets, and environments used by modules 05–18 | A completely disconnected workshop |
 
 External models and datasets are downloaded from their original repositories
 on your machine. They are pinned to commit revisions in
@@ -108,6 +108,18 @@ uv run --offline --frozen --project modules/05a-data-evaluation/python pytest -q
 - The first run of module 12's `src/gpt2_sae.py`, for the same reason: it
   reads the first two row groups of the same file (about 0.37 MB) and caches
   them under `$HF_HOME/mlcourse/`.
+- The first run of module 17's `src/data.py`, for the same reason: it reads
+  the first eight row groups of the preference data's train file (about
+  17 MB) and its test file, and caches the pairs under `$HF_HOME/mlcourse/`.
+  The full pack pins both upstream files at the module's revision, but the
+  script reads over HTTP, so run it once while online.
+- Two plain downloads outside the Hub, pinned with their SHA-256 under
+  `url_downloads` in the manifest; the pack builder does not fetch them. The
+  imagenette 160-px archive (99 MB) lands in
+  `~/.cache/huggingface/mlcourse/imagenette/` on the first run of module 13's
+  `src/fetch_imagenette.py` or module 15's `src/intrinsic_dim.py`. Lucent's
+  InceptionV1 weights (27 MB) land in the torch hub cache on the first run of
+  module 13's `src/v_neuron.py`. Run those scripts once while online.
 - Preparing a pack for a different operating system or CPU architecture.
 
 Python wheels and managed Python builds are platform-specific. Prepare the lab

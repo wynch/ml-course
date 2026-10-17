@@ -1,0 +1,41 @@
+{
+ "model": "facebook/dinov2-small",
+ "revision": "ed25f3a31f01632728cabb09d1542f84ab7b0056",
+ "params": 22056576,
+ "input_size": 224,
+ "feature": "CLS after layer norm + mean patch token (768)",
+ "train_images": 10000,
+ "test_images": 10000,
+ "class_acc": 0.9662,
+ "colour_r2": 0.8447,
+ "rotation_acc": 0.8259,
+ "rotation_images": {
+  "train": 2000,
+  "test": 2000,
+  "angles": 4
+ },
+ "mps_vs_cpu": {
+  "images": 8,
+  "output": "pooler_output (CLS after layer norm, 384 numbers)",
+  "max_abs_diff": 4.374980926513672e-05,
+  "output_abs_max": 10.691640853881836,
+  "min_cosine": 0.9999998807907104
+ },
+ "device": "mps",
+ "guard": {
+  "script": "dinov2",
+  "seconds": 188.9,
+  "minutes": 3.15,
+  "peak_rss_gb": 0.76,
+  "peak_mps_driver_gb": 2.16,
+  "stages_seconds": {
+   "load": 8.41,
+   "features": 100.76,
+   "probe": 79.7
+  },
+  "machine": "arm64 26.6.2",
+  "torch": "2.14.1",
+  "mps_high_watermark_ratio": "0.5",
+  "mps_cap_gb": 5.92
+ }
+}

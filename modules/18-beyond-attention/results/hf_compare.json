@@ -1,0 +1,110 @@
+{
+ "device": "mps",
+ "transformers": "5.20.1",
+ "models": {
+  "gpt2": {
+   "id": "gpt2",
+   "revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+   "params": 124439808,
+   "config": {
+    "n_layer": 12,
+    "n_embd": 768,
+    "n_head": 12,
+    "num_hidden_layers": null,
+    "hidden_size": null,
+    "intermediate_size": null,
+    "state_size": null,
+    "conv_kernel": null,
+    "vocab_size": 50257
+   },
+   "mps_vs_cpu": {
+    "device": "mps",
+    "tokens": 10,
+    "max_abs_diff_logits": 0.000339508056640625,
+    "logit_range": [
+     -138.9,
+     -31.9
+    ],
+    "same_top1_every_position": true
+   },
+   "prompt": "The old castle on the hill was",
+   "reply": " a great place to live. It was a place where the people lived, where the people worked, where the people were educated, where the people were educated. It was a place where the people were not allowed to go out of their way",
+   "reply_seconds": 0.21,
+   "reply_tokens_per_s": 224.8,
+   "contexts": {
+    "256": {
+     "cache_bytes_after_context": 18874368,
+     "prefill_seconds": 0.03,
+     "new_tokens_per_s": 123.3
+    },
+    "960": {
+     "cache_bytes_after_context": 70778880,
+     "prefill_seconds": 0.09,
+     "new_tokens_per_s": 114.7
+    }
+   }
+  },
+  "mamba": {
+   "id": "state-spaces/mamba-130m-hf",
+   "revision": "1e76775f628fbf1350fbe4dbb3d971ba64af25a1",
+   "params": 129135360,
+   "config": {
+    "n_layer": 24,
+    "n_embd": null,
+    "n_head": null,
+    "num_hidden_layers": 24,
+    "hidden_size": 768,
+    "intermediate_size": 1536,
+    "state_size": 16,
+    "conv_kernel": 4,
+    "vocab_size": 50280
+   },
+   "mps_vs_cpu": {
+    "device": "mps",
+    "tokens": 10,
+    "max_abs_diff_logits": 0.00037384033203125,
+    "logit_range": [
+     -82.4,
+     56.3
+    ],
+    "same_top1_every_position": true
+   },
+   "prompt": "The old castle on the hill was",
+   "reply": " a great place to visit. It was a very old building, with a great hall and a great staircase. The old castle was built in the thirteenth century, and was destroyed by the Romans in the reign of Augustus. The castle was",
+   "reply_seconds": 0.36,
+   "reply_tokens_per_s": 131.5,
+   "contexts": {
+    "256": {
+     "cache_bytes_after_context": 2949120,
+     "prefill_seconds": 0.2,
+     "new_tokens_per_s": 136.7
+    },
+    "960": {
+     "cache_bytes_after_context": 2949120,
+     "prefill_seconds": 0.71,
+     "new_tokens_per_s": 135.1
+    }
+   }
+  }
+ },
+ "mamba_cuda_kernels": false,
+ "guard": {
+  "script": "hf_compare",
+  "seconds": 7.9,
+  "minutes": 0.13,
+  "peak_rss_gb": 1.13,
+  "peak_mps_driver_gb": 1.1,
+  "stages_seconds": {
+   "gpt2 load": 2.7,
+   "gpt2 ctx 256": 0.82,
+   "gpt2 ctx 960": 0.46,
+   "mamba load": 0.46,
+   "mamba ctx 256": 1.69,
+   "mamba ctx 960": 1.67
+  },
+  "machine": "arm64 26.6.2",
+  "torch": "2.14.1",
+  "mps_high_watermark_ratio": "0.5",
+  "mps_cap_gb": 5.92
+ }
+}

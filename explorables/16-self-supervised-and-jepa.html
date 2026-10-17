@@ -1,0 +1,433 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Self-supervised learning and JEPA — ml-course explorable</title>
+<style>
+  :root{
+    --paper:#f6f8f7; --ink:#1c2422; --panel:#ffffff; --panel-2:#eef2f0;
+    --line:#d5ddda; --muted:#5d6b67; --accent:#1f918d;
+    --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8;
+    --pos:#1f918d; --neg:#c1121f;
+    --c0:#1d6fb8; --c1:#d1495b; --c2:#3fa34d; --c3:#e0a100; --c4:#7b4fb0;
+    --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
+    --mono:"SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    --display:"Avenir Next","Helvetica Neue",sans-serif;
+    --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --panel-2:#222d29;
+      --line:#31403b; --muted:#9dada8; --accent:#37b3ae; --t4:#e0679a; --t5:#5aa1e6;
+      --pos:#37b3ae; --neg:#ff6b6b;
+      --c0:#5aa1e6; --c1:#ef7b8b; --c2:#6cc477; --c3:#f2c14e; --c4:#b18be0;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink)}
+  body{font-family:var(--body);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 16px 64px}
+
+  header.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    padding:16px 0 14px;border-bottom:1px solid var(--line);margin-bottom:22px}
+  header.top h1{font-family:var(--display);font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .pill{font-family:var(--display);font-size:11.5px;font-weight:600;letter-spacing:.02em;
+    padding:3px 10px;border-radius:999px;color:#fff;background:var(--t5);white-space:nowrap}
+  .top .spacer{flex:1}
+  .backlink{font-size:13px;color:var(--muted);text-decoration:none;border-bottom:1px solid transparent}
+  .backlink:hover{color:var(--accent);border-bottom-color:var(--accent)}
+
+  .intro{max-width:78ch;font-size:15.5px;margin:0 0 26px}
+  .intro em{color:var(--accent);font-style:normal;font-weight:600}
+
+  section{margin:0 0 30px}
+  h2{font-family:var(--display);font-size:15px;font-weight:600;margin:0 0 4px;letter-spacing:.01em}
+  .sub{font-size:13px;color:var(--muted);margin:0 0 14px;max-width:80ch}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    box-shadow:var(--shadow);padding:16px}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 14px;
+    padding:0 0 12px;border-bottom:1px solid var(--line)}
+  .seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;overflow:hidden;flex-wrap:wrap}
+  .seg button{font-family:var(--display);font-size:12px;font-weight:600;border:0;background:transparent;
+    color:var(--muted);padding:5px 11px;cursor:pointer}
+  .seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+  .seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  .btn{font-family:var(--display);font-size:12px;font-weight:600;border:1.5px solid var(--line);border-radius:999px;
+    background:transparent;color:var(--ink);padding:5px 12px;cursor:pointer}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .tog{display:inline-flex;align-items:center;gap:6px;font-size:13px;border:1.5px solid var(--line);
+    border-radius:999px;padding:4px 11px;cursor:pointer;user-select:none}
+  .tog input{accent-color:var(--accent);margin:0}
+  .tog.off{opacity:.5}
+  .hint{font-size:11.5px;color:var(--muted)}
+  kbd{font-family:var(--mono);font-size:10.5px;border:1px solid var(--line);border-radius:4px;
+    padding:0 4px;background:var(--panel-2)}
+
+  .notice{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+  .chip{font-family:var(--mono);font-size:11.5px;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:999px;padding:3px 10px;color:var(--muted)}
+  .chip b{color:var(--ink)}
+
+  .toy{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,.8fr);gap:16px}
+  @media (max-width:860px){ .toy{grid-template-columns:minmax(0,1fr)} }
+  .panel-title{font-size:12px;color:var(--muted);margin:0 0 6px;font-family:var(--display);font-weight:600}
+  canvas{display:block;width:100%;max-width:320px;aspect-ratio:1/1;margin:0 auto;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+  .meter{margin:0 0 14px}
+  .meter .lab{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);font-family:var(--mono)}
+  .meter .lab b{color:var(--ink)}
+  .meter .bar{position:relative;height:14px;border-radius:7px;background:var(--panel-2);overflow:hidden;border:1px solid var(--line)}
+  .meter .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:7px;transition:width .12s linear}
+  .meter .tick{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--muted);opacity:.6}
+  .verdict{font-family:var(--display);font-size:13px;font-weight:600;margin:4px 0 10px;min-height:20px}
+
+  svg{display:block;max-width:100%;height:auto}
+  svg text{font-family:var(--body);fill:var(--muted)}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:var(--muted);margin-top:6px}
+  .legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+  .legend button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+  .legend button[aria-pressed="false"]{opacity:.35}
+
+  table.st{border-collapse:collapse;width:100%;font-size:13px}
+  table.st td,table.st th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  table.st th{font-family:var(--display);font-size:12px;color:var(--muted);font-weight:600}
+  table.st td.num{font-family:var(--mono);white-space:nowrap}
+  .tablewrap{overflow-x:auto}
+  .barcell{display:flex;align-items:center;gap:8px}
+  .barcell .b{height:9px;border-radius:4px;background:var(--t5);min-width:1px}
+  tr.ref td{color:var(--muted)}
+
+  ul.notice-list{margin:0;padding-left:20px;font-size:14px}
+  ul.notice-list li{margin:6px 0}
+  ul.notice-list code{font-family:var(--mono);font-size:12.5px;background:var(--panel-2);border-radius:4px;padding:1px 4px}
+
+  footer.bot{border-top:1px solid var(--line);padding-top:14px;font-size:12.5px;color:var(--muted)}
+  footer.bot a{color:var(--accent)}
+  footer.bot .row{margin:4px 0}
+  footer.bot code{font-family:var(--mono)}
+  input[type=range]{accent-color:var(--accent);width:min(200px,100%)}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <h1>Self-supervised learning and JEPA</h1>
+  <span class="pill">Module 16 · How learning works</span>
+  <span class="spacer"></span>
+  <a class="backlink" href="index.html">← All explorables</a>
+</header>
+
+<p class="intro">
+  A <em>JEPA</em> (joint-embedding predictive architecture) learns with no labels: it encodes one view of an
+  input, and a predictor must guess the encoding of another view. The loss compares two outputs of the
+  same encoder, so it has a cheap way out: send every input to the same point. That is <em>collapse</em>.
+  Below: a two-dimensional JEPA that trains live in your browser, where you can switch the guards against
+  collapse on and off; then the same guards on CIFAR-10 in the module's runs; then what each objective's
+  encoder keeps.
+</p>
+
+<section>
+  <h2>1 · A 2-D JEPA, trained live</h2>
+  <p class="sub">256 points in four clusters. Each step draws two noisy views of every point (noise 0.2).
+    The encoder (2 → 16 tanh → 2) maps view 1 to a latent; a linear predictor maps that latent to a guess
+    of view 2's latent. Loss: the squared error of the guess. Full-batch gradient descent, rate 0.05,
+    weight decay 0.01. Switch the guards, then press <b>Reset</b> to start from the same random weights.</p>
+  <div class="card">
+    <div class="controls">
+      <button class="btn primary" id="run">Pause</button>
+      <button class="btn" id="reset">Reset</button>
+      <label class="tog" id="tsg"><input type="checkbox" id="sg"> stop-grad on the target</label>
+      <label class="tog" id="tema"><input type="checkbox" id="ema"> EMA target</label>
+      <label class="tog"><input type="checkbox" id="vr"> variance term</label>
+      <span class="hint">speed</span><input type="range" id="speed" min="1" max="20" value="6" aria-label="steps per frame">
+    </div>
+    <div class="notice" id="toychips"></div>
+    <div class="toy">
+      <div><p class="panel-title">inputs: four clusters (one view, this step)</p><canvas id="cin" width="320" height="320" aria-label="Input points"></canvas></div>
+      <div><p class="panel-title">latents of the clean points (axes fixed at ±2)</p><canvas id="cz" width="320" height="320" aria-label="Latent points"></canvas></div>
+      <div>
+        <div class="verdict" id="verdict"></div>
+        <div class="meter"><div class="lab"><span>latent std (mean of the 2 dims)</span><b id="mstd"></b></div>
+          <div class="bar"><i id="bstd" style="background:var(--t5)"></i><span class="tick" style="left:50%"></span></div>
+          <div class="hint">tick = 1.0; scale 0 to 2</div></div>
+        <div class="meter"><div class="lab"><span>effective rank (1 to 2)</span><b id="mer"></b></div>
+          <div class="bar"><i id="ber" style="background:var(--c4)"></i></div>
+          <div class="hint">2: the latents spread in both directions; 1: they lie on a line</div></div>
+        <p class="panel-title">history</p>
+        <svg id="hist" viewBox="0 0 300 150" role="img" aria-label="Latent std and effective rank over steps"></svg>
+        <div class="legend"><span><i style="background:var(--t5)"></i>std</span><span><i style="background:var(--c4)"></i>effective rank − 1</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>2 · The same guards on CIFAR-10</h2>
+  <p class="sub" id="cosub"></p>
+  <div class="card">
+    <div class="controls"><span class="hint">meter</span>
+      <span class="seg" id="mseg"><button data-m="std_norm" aria-pressed="true">latent std (normalised)</button><button data-m="erank" aria-pressed="false">effective rank</button><button data-m="pred_loss" aria-pressed="false">prediction loss</button></span></div>
+    <svg id="cplot" viewBox="0 0 640 260" role="img" aria-label="Collapse meters over training time"></svg>
+    <div class="legend" id="clegend"></div>
+    <div class="tablewrap" style="margin-top:12px"><table class="st"><thead><tr><th>variant</th><th>steps</th><th>latent std (normalised)</th><th>effective rank (of 128)</th><th>class probe</th></tr></thead><tbody id="cbody"></tbody></table></div>
+  </div>
+</section>
+
+<section>
+  <h2>3 · What each encoder keeps</h2>
+  <p class="sub" id="kpsub"></p>
+  <div class="card">
+    <div class="controls"><span class="hint">probe</span>
+      <span class="seg" id="kseg"><button data-k="class_acc" aria-pressed="true">class</button><button data-k="colour_r2" aria-pressed="false">mean colour</button><button data-k="rotation_acc" aria-pressed="false">rotation</button></span></div>
+    <div class="tablewrap"><table class="st"><thead><tr><th>encoder</th><th id="kcol">score</th><th>training</th></tr></thead><tbody id="kbody"></tbody></table></div>
+    <p class="hint" id="khint" style="margin-top:8px"></p>
+  </div>
+</section>
+
+<section>
+  <h2>What to notice</h2>
+  <div class="card"><ul class="notice-list" id="notice"></ul></div>
+</section>
+
+<footer class="bot">
+  <div class="row">Module: <code>../modules/16-self-supervised-and-jepa/README.md</code></div>
+  <div class="row">Data: written into this page by <code>modules/16-self-supervised-and-jepa/python/src/export_explorable.py</code>
+    from <code>results/collapse_*.json</code>, <code>pretrain_*.json</code> and <code>dinov2.json</code>. Panel 1 runs in your browser and is not from the module's runs.</div>
+</footer>
+</div>
+
+<script>
+/* BEGIN DATA: written by modules/16-self-supervised-and-jepa/python/src/export_explorable.py; do not edit */
+const DATA = {"collapse":{"budget":120.0,"latent_dim":128,"meter_images":2048,"floor_10k":0.401,"runs":[{"variant":"no stop-grad","steps":1598,"class_acc_10k":0.3812,"final":{"std_norm":0.0015,"std_raw":0.00037,"erank":17.83},"log":[{"seconds":0.0,"std_norm":0.1619,"erank":15.73,"pred_loss":null},{"seconds":6.0,"std_norm":0.0048,"erank":8.26,"pred_loss":0.000461},{"seconds":12.1,"std_norm":0.0039,"erank":10.73,"pred_loss":0.000117},{"seconds":18.1,"std_norm":0.0033,"erank":11.99,"pred_loss":6e-05},{"seconds":24.1,"std_norm":0.0028,"erank":13.04,"pred_loss":4e-05},{"seconds":30.2,"std_norm":0.0025,"erank":13.95,"pred_loss":3.1e-05},{"seconds":36.2,"std_norm":0.0023,"erank":14.7,"pred_loss":2.5e-05},{"seconds":42.2,"std_norm":0.0021,"erank":15.31,"pred_loss":2.1e-05},{"seconds":48.2,"std_norm":0.0019,"erank":15.74,"pred_loss":1.8e-05},{"seconds":54.2,"std_norm":0.0018,"erank":16.11,"pred_loss":1.6e-05},{"seconds":60.2,"std_norm":0.0017,"erank":16.44,"pred_loss":1.4e-05},{"seconds":66.2,"std_norm":0.0017,"erank":16.75,"pred_loss":1.3e-05},{"seconds":72.2,"std_norm":0.0016,"erank":17.0,"pred_loss":1.2e-05},{"seconds":78.2,"std_norm":0.0016,"erank":17.2,"pred_loss":1.2e-05},{"seconds":84.2,"std_norm":0.0015,"erank":17.37,"pred_loss":1.1e-05},{"seconds":90.3,"std_norm":0.0015,"erank":17.49,"pred_loss":1.1e-05},{"seconds":96.3,"std_norm":0.0015,"erank":17.58,"pred_loss":1.1e-05},{"seconds":102.3,"std_norm":0.0015,"erank":17.63,"pred_loss":1e-05},{"seconds":108.3,"std_norm":0.0015,"erank":17.66,"pred_loss":1e-05},{"seconds":114.3,"std_norm":0.0015,"erank":17.67,"pred_loss":1e-05}]},{"variant":"stop-grad","steps":2272,"class_acc_10k":0.3527,"final":{"std_norm":0.1376,"std_raw":0.127286,"erank":2.87},"log":[{"seconds":0.0,"std_norm":0.1619,"erank":15.73,"pred_loss":null},{"seconds":6.2,"std_norm":0.0044,"erank":2.34,"pred_loss":0.173991},{"seconds":12.4,"std_norm":0.001,"erank":1.27,"pred_loss":0.001984},{"seconds":18.1,"std_norm":0.3056,"erank":1.18,"pred_loss":0.384169},{"seconds":24.4,"std_norm":0.0673,"erank":1.19,"pred_loss":1.338147},{"seconds":30.3,"std_norm":0.3296,"erank":1.12,"pred_loss":0.316572},{"seconds":36.1,"std_norm":0.4562,"erank":1.06,"pred_loss":0.450666},{"seconds":42.3,"std_norm":0.2858,"erank":1.14,"pred_loss":0.270582},{"seconds":48.1,"std_norm":0.4364,"erank":1.3,"pred_loss":0.383396},{"seconds":54.4,"std_norm":0.3204,"erank":2.09,"pred_loss":0.390165},{"seconds":60.2,"std_norm":0.1903,"erank":2.01,"pred_loss":0.14009},{"seconds":66.4,"std_norm":0.1877,"erank":2.0,"pred_loss":0.094684},{"seconds":72.1,"std_norm":0.1979,"erank":2.39,"pred_loss":0.084367},{"seconds":78.4,"std_norm":0.169,"erank":2.03,"pred_loss":0.078858},{"seconds":84.1,"std_norm":0.1512,"erank":2.13,"pred_loss":0.073514},{"seconds":90.3,"std_norm":0.1412,"erank":2.57,"pred_loss":0.066558},{"seconds":96.5,"std_norm":0.1423,"erank":2.71,"pred_loss":0.058306},{"seconds":102.5,"std_norm":0.1399,"erank":2.82,"pred_loss":0.056879},{"seconds":108.5,"std_norm":0.1386,"erank":2.84,"pred_loss":0.05345},{"seconds":114.1,"std_norm":0.1383,"erank":2.86,"pred_loss":0.054627}]},{"variant":"EMA","steps":2207,"class_acc_10k":0.4479,"final":{"std_norm":0.4614,"std_raw":0.083646,"erank":5.57},"log":[{"seconds":0.0,"std_norm":0.1619,"erank":15.73,"pred_loss":null},{"seconds":6.5,"std_norm":0.0539,"erank":4.35,"pred_loss":0.029557},{"seconds":12.4,"std_norm":0.1143,"erank":3.83,"pred_loss":0.019997},{"seconds":18.4,"std_norm":0.2108,"erank":2.39,"pred_loss":0.020956},{"seconds":24.3,"std_norm":0.2853,"erank":2.67,"pred_loss":0.026668},{"seconds":30.2,"std_norm":0.3753,"erank":2.78,"pred_loss":0.03314},{"seconds":36.2,"std_norm":0.4043,"erank":3.48,"pred_loss":0.03541},{"seconds":42.0,"std_norm":0.4345,"erank":3.51,"pred_loss":0.038881},{"seconds":48.4,"std_norm":0.4668,"erank":3.96,"pred_loss":0.038889},{"seconds":54.2,"std_norm":0.4758,"erank":4.29,"pred_loss":0.041915},{"seconds":60.5,"std_norm":0.4952,"erank":4.6,"pred_loss":0.041873},{"seconds":66.3,"std_norm":0.4887,"erank":4.93,"pred_loss":0.039913},{"seconds":72.4,"std_norm":0.4804,"erank":5.05,"pred_loss":0.03915},{"seconds":78.4,"std_norm":0.4846,"erank":5.27,"pred_loss":0.039358},{"seconds":84.5,"std_norm":0.4767,"erank":5.32,"pred_loss":0.039217},{"seconds":90.0,"std_norm":0.4792,"erank":5.24,"pred_loss":0.037794},{"seconds":96.4,"std_norm":0.4686,"erank":5.48,"pred_loss":0.039017},{"seconds":102.2,"std_norm":0.4652,"erank":5.47,"pred_loss":0.037674},{"seconds":108.5,"std_norm":0.4643,"erank":5.58,"pred_loss":0.037898},{"seconds":114.4,"std_norm":0.4609,"erank":5.55,"pred_loss":0.037507}]},{"variant":"VICReg var","steps":1529,"class_acc_10k":0.2034,"final":{"std_norm":0.8819,"std_raw":1.033117,"erank":1.01},"log":[{"seconds":0.0,"std_norm":0.1619,"erank":15.73,"pred_loss":null},{"seconds":6.4,"std_norm":0.8744,"erank":1.02,"pred_loss":0.146598},{"seconds":12.7,"std_norm":0.8827,"erank":1.01,"pred_loss":0.07552},{"seconds":18.2,"std_norm":0.839,"erank":1.01,"pred_loss":0.079188},{"seconds":24.6,"std_norm":0.8828,"erank":1.02,"pred_loss":0.021942},{"seconds":30.1,"std_norm":0.9151,"erank":1.01,"pred_loss":0.041245},{"seconds":36.3,"std_norm":0.8918,"erank":1.01,"pred_loss":0.022167},{"seconds":42.6,"std_norm":0.8922,"erank":1.01,"pred_loss":0.028377},{"seconds":48.1,"std_norm":0.8598,"erank":1.01,"pred_loss":0.026399},{"seconds":54.3,"std_norm":0.8545,"erank":1.01,"pred_loss":0.027212},{"seconds":60.6,"std_norm":0.8775,"erank":1.01,"pred_loss":0.01863},{"seconds":66.1,"std_norm":0.8949,"erank":1.01,"pred_loss":0.025891},{"seconds":72.4,"std_norm":0.9007,"erank":1.01,"pred_loss":0.01652},{"seconds":78.7,"std_norm":0.9037,"erank":1.01,"pred_loss":0.025006},{"seconds":84.2,"std_norm":0.9086,"erank":1.01,"pred_loss":0.018071},{"seconds":90.4,"std_norm":0.8973,"erank":1.01,"pred_loss":0.020717},{"seconds":96.7,"std_norm":0.8724,"erank":1.01,"pred_loss":0.018821},{"seconds":102.2,"std_norm":0.8905,"erank":1.01,"pred_loss":0.012406},{"seconds":108.5,"std_norm":0.89,"erank":1.01,"pred_loss":0.014812},{"seconds":114.7,"std_norm":0.8817,"erank":1.01,"pred_loss":0.010669}]},{"variant":"SIGReg","steps":1375,"class_acc_10k":0.2213,"final":{"std_norm":0.9681,"std_raw":0.899552,"erank":7.83},"log":[{"seconds":0.0,"std_norm":0.1619,"erank":15.73,"pred_loss":null},{"seconds":6.7,"std_norm":0.8863,"erank":1.69,"pred_loss":0.230985},{"seconds":12.3,"std_norm":0.898,"erank":2.49,"pred_loss":0.224823},{"seconds":18.7,"std_norm":0.9376,"erank":3.66,"pred_loss":0.315815},{"seconds":24.3,"std_norm":0.9433,"erank":4.34,"pred_loss":0.371431},{"seconds":30.7,"std_norm":0.9506,"erank":5.12,"pred_loss":0.390843},{"seconds":36.3,"std_norm":0.958,"erank":5.62,"pred_loss":0.404943},{"seconds":42.8,"std_norm":0.9589,"erank":6.16,"pred_loss":0.399582},{"seconds":48.4,"std_norm":0.9625,"erank":6.4,"pred_loss":0.370636},{"seconds":54.7,"std_norm":0.9634,"erank":6.68,"pred_loss":0.346062},{"seconds":60.3,"std_norm":0.9627,"erank":6.85,"pred_loss":0.351587},{"seconds":66.3,"std_norm":0.9635,"erank":7.13,"pred_loss":0.284582},{"seconds":72.5,"std_norm":0.9635,"erank":7.37,"pred_loss":0.33734},{"seconds":78.1,"std_norm":0.9657,"erank":7.45,"pred_loss":0.333808},{"seconds":84.8,"std_norm":0.9654,"erank":7.61,"pred_loss":0.29723},{"seconds":90.8,"std_norm":0.9668,"erank":7.61,"pred_loss":0.330712},{"seconds":96.4,"std_norm":0.9669,"erank":7.67,"pred_loss":0.305035},{"seconds":102.3,"std_norm":0.967,"erank":7.75,"pred_loss":0.330201},{"seconds":108.6,"std_norm":0.9677,"erank":7.85,"pred_loss":0.348472},{"seconds":114.2,"std_norm":0.968,"erank":7.82,"pred_loss":0.284777}]}]},"keeps":{"encoder_params":295104,"budget":250.0,"rows":[{"key":"random","name":"random encoder (floor)","what":"none","steps":0,"p":{"class_acc":0.4183,"colour_r2":0.9214,"rotation_acc":0.4735},"class_acc_10k":0.401},{"key":"mae","name":"masked reconstruction","what":"rebuild hidden 4×4 patches","steps":3264,"p":{"class_acc":0.4735,"colour_r2":0.9867,"rotation_acc":0.4923},"class_acc_10k":0.4521},{"key":"jepa","name":"I-JEPA-lite","what":"predict an EMA encoder's latents of hidden cells","steps":4655,"p":{"class_acc":0.5012,"colour_r2":0.9376,"rotation_acc":0.4808},"class_acc_10k":0.479},{"key":"simclr","name":"SimCLR","what":"tell two augmented views of one image from the rest","steps":1737,"p":{"class_acc":0.5979,"colour_r2":0.7753,"rotation_acc":0.5306},"class_acc_10k":0.5788},{"key":"supervised","name":"supervised (ceiling)","what":"the labels","steps":7029,"p":{"class_acc":0.8288,"colour_r2":0.6648,"rotation_acc":0.5276},"class_acc_10k":0.8253}],"dinov2":{"what":"self-distillation and masked prediction (DINO + iBOT losses), 142M images","p":{"class_acc":0.9662,"colour_r2":0.8447,"rotation_acc":0.8259},"train_images":10000,"rot_images":2000}}};
+/* END DATA */
+</script>
+<script>
+"use strict";
+(function(){
+const $=s=>document.querySelector(s);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pct=(v,d)=>{d=d===undefined?1:d; const f=10**d; return (Math.floor(v*100*f+0.5+1e-9)/f).toFixed(d)+"%";};   /* halves up: 0.4735 -> 47.4% */
+const NS="http://www.w3.org/2000/svg";
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);
+  for(const k in attrs) e.setAttribute(k,attrs[k]); if(parent) parent.appendChild(e); return e;}
+
+/* ------------------------------------------------- 1 · toy JEPA core */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0;while(u===0)u=r();const v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+const H=16, N=256;
+function makeData(seed){
+  const r=mulberry32(seed), C=[[1,1],[-1,1],[-1,-1],[1,-1]], X=[], lab=[];
+  for(let i=0;i<N;i++){const c=i%4; X.push([C[c][0]+0.3*gauss(r),C[c][1]+0.3*gauss(r)]); lab.push(c);}
+  return {X,lab};
+}
+function makeNet(seed){
+  const r=mulberry32(seed), n=s=>s*gauss(r);
+  const W1=[],b1=[],W2=[[],[]];
+  for(let h=0;h<H;h++){W1.push([n(0.8),n(0.8)]); b1.push(n(0.3));}
+  for(let h=0;h<H;h++){W2[0].push(n(0.35)); W2[1].push(n(0.35));}
+  return {W1,b1,W2,b2:[0,0],P:[[1+n(0.1),n(0.1)],[n(0.1),1+n(0.1)]],pb:[0,0]};
+}
+const clone=o=>JSON.parse(JSON.stringify(o));
+function enc(net,x){
+  const h=new Array(H); for(let k=0;k<H;k++) h[k]=Math.tanh(net.W1[k][0]*x[0]+net.W1[k][1]*x[1]+net.b1[k]);
+  const z=[net.b2[0],net.b2[1]]; for(let k=0;k<H;k++){z[0]+=net.W2[0][k]*h[k]; z[1]+=net.W2[1][k]*h[k];}
+  return {h,z};
+}
+function zeroGrad(){const g={W1:[],b1:new Array(H).fill(0),W2:[new Array(H).fill(0),new Array(H).fill(0)],b2:[0,0],P:[[0,0],[0,0]],pb:[0,0]};
+  for(let k=0;k<H;k++) g.W1.push([0,0]); return g;}
+function backEnc(net,g,x,f,dz){
+  for(let d=0;d<2;d++){g.b2[d]+=dz[d]; for(let k=0;k<H;k++) g.W2[d][k]+=dz[d]*f.h[k];}
+  for(let k=0;k<H;k++){const dh=(dz[0]*net.W2[0][k]+dz[1]*net.W2[1][k])*(1-f.h[k]*f.h[k]);
+    g.W1[k][0]+=dh*x[0]; g.W1[k][1]+=dh*x[1]; g.b1[k]+=dh;}
+}
+function meters(Z){
+  const n=Z.length; let m0=0,m1=0; for(const z of Z){m0+=z[0];m1+=z[1];} m0/=n;m1/=n;
+  let a=0,b=0,c=0; for(const z of Z){const u=z[0]-m0,v=z[1]-m1;a+=u*u;b+=u*v;c+=v*v;} a/=n-1;b/=n-1;c/=n-1;
+  const tr=a+c, det=a*c-b*b, disc=Math.sqrt(Math.max(0,tr*tr/4-det)), l1=Math.max(0,tr/2+disc), l2=Math.max(0,tr/2-disc);
+  let er=1; if(tr>1e-12){const p=[l1/tr,l2/tr].filter(q=>q>1e-12); er=Math.exp(-p.reduce((s,q)=>s+q*Math.log(q),0));}
+  return {std:(Math.sqrt(a)+Math.sqrt(c))/2, erank:er};
+}
+/* One full-batch step. opt: {stopgrad, ema, variance}. The EMA target gets no gradient by construction. */
+const LR=0.05, WD=0.01, NOISE=0.2, MOM=0.99;
+function step(S,opt){
+  const r=S.rng, net=S.net, tnet=opt.ema?S.tnet:net, g=zeroGrad(), n=N;
+  const Z1=[], F1=[], F2=[], V1=[], V2=[], T=[], Pz=[];
+  S.view=[];
+  for(let i=0;i<n;i++){const x=S.data.X[i];
+    const v1=[x[0]+NOISE*gauss(r),x[1]+NOISE*gauss(r)], v2=[x[0]+NOISE*gauss(r),x[1]+NOISE*gauss(r)];
+    const f1=enc(net,v1), f2=enc(tnet,v2); V1.push(v1);V2.push(v2);F1.push(f1);F2.push(f2);Z1.push(f1.z);T.push(f2.z);
+    Pz.push([net.P[0][0]*f1.z[0]+net.P[0][1]*f1.z[1]+net.pb[0], net.P[1][0]*f1.z[0]+net.P[1][1]*f1.z[1]+net.pb[1]]);}
+  S.view=V1;
+  let loss=0; const dZ1=Z1.map(()=>[0,0]);
+  for(let i=0;i<n;i++){const e=[Pz[i][0]-T[i][0],Pz[i][1]-T[i][1]]; loss+=(e[0]*e[0]+e[1]*e[1])/n;
+    const dp=[2*e[0]/n,2*e[1]/n];
+    for(let a=0;a<2;a++){g.pb[a]+=dp[a]; for(let b=0;b<2;b++) g.P[a][b]+=dp[a]*Z1[i][b];}
+    dZ1[i][0]+=net.P[0][0]*dp[0]+net.P[1][0]*dp[1]; dZ1[i][1]+=net.P[0][1]*dp[0]+net.P[1][1]*dp[1];
+    if(!opt.stopgrad && !opt.ema) backEnc(net,g,V2[i],F2[i],[-dp[0],-dp[1]]);
+  }
+  if(opt.variance){ /* VICReg's variance hinge on the online latents, weight 1 */
+    for(let d=0;d<2;d++){let m=0; for(const z of Z1) m+=z[d]; m/=n; let v=0; for(const z of Z1) v+=(z[d]-m)**2; v/=n-1;
+      const s=Math.sqrt(v+1e-4); if(s<1){ for(let i=0;i<n;i++) dZ1[i][d]+=-0.5/s*(Z1[i][d]-m)/(n-1);}}
+  }
+  for(let i=0;i<n;i++) backEnc(net,g,V1[i],F1[i],dZ1[i]);
+  for(let k=0;k<H;k++){for(let j=0;j<2;j++) net.W1[k][j]-=LR*(g.W1[k][j]+WD*net.W1[k][j]); net.b1[k]-=LR*g.b1[k];
+    for(let d=0;d<2;d++) net.W2[d][k]-=LR*(g.W2[d][k]+WD*net.W2[d][k]);}
+  for(let d=0;d<2;d++){net.b2[d]-=LR*g.b2[d]; net.pb[d]-=LR*g.pb[d]; for(let b=0;b<2;b++) net.P[d][b]-=LR*(g.P[d][b]+WD*net.P[d][b]);}
+  if(opt.ema){const m=MOM, t=S.tnet;
+    for(let k=0;k<H;k++){for(let j=0;j<2;j++) t.W1[k][j]=m*t.W1[k][j]+(1-m)*net.W1[k][j]; t.b1[k]=m*t.b1[k]+(1-m)*net.b1[k];
+      for(let d=0;d<2;d++) t.W2[d][k]=m*t.W2[d][k]+(1-m)*net.W2[d][k];}
+    for(let d=0;d<2;d++) t.b2[d]=m*t.b2[d]+(1-m)*net.b2[d];}
+  S.t+=1; S.loss=loss;
+}
+function latents(S){ return S.data.X.map(x=>enc(S.net,x).z); }
+function init(){const net=makeNet(1); return {net, tnet:clone(net), data:makeData(7), rng:mulberry32(100), t:0, loss:NaN, view:null, hist:[]};}
+
+/* ------------------------------------------------- 1 · toy UI */
+let ST=init(), running=true;
+const opt={stopgrad:false, ema:false, variance:false};
+function readOpts(){
+  opt.ema=$("#ema").checked; opt.variance=$("#vr").checked;
+  if(opt.ema){ $("#sg").checked=true; $("#sg").disabled=true; $("#tsg").classList.add("off"); }
+  else { $("#sg").disabled=false; $("#tsg").classList.remove("off"); }
+  opt.stopgrad=$("#sg").checked;
+}
+["#sg","#ema","#vr"].forEach(s=>$(s).addEventListener("change",()=>{readOpts(); drawToy();}));
+$("#run").addEventListener("click",()=>{running=!running; $("#run").textContent=running?"Pause":"Run"; if(running) loop();});
+$("#reset").addEventListener("click",()=>{ST=init(); drawToy(); if(!running){running=true; $("#run").textContent="Pause"; loop();}});
+function canvasCtx(c){
+  const r=window.devicePixelRatio||1, w=c.clientWidth||320; if(c.width!==Math.round(w*r)){c.width=Math.round(w*r); c.height=Math.round(w*r);}
+  const x=c.getContext("2d"); x.setTransform(c.width/320,0,0,c.height/320,0,0); return x;
+}
+function scatter(c,P,lab){
+  const x=canvasCtx(c); x.clearRect(0,0,320,320);
+  x.strokeStyle=css("--line"); x.lineWidth=1; x.beginPath(); x.moveTo(160,8); x.lineTo(160,312); x.moveTo(8,160); x.lineTo(312,160); x.stroke();
+  const cols=[css("--c0"),css("--c1"),css("--c2"),css("--c3")], s=v=>160+v*75;
+  P.forEach((p,i)=>{ x.fillStyle=cols[lab[i]]; x.globalAlpha=.8; x.beginPath();
+    x.arc(Math.max(4,Math.min(316,s(p[0]))),Math.max(4,Math.min(316,160-p[1]*75)),3,0,7); x.fill(); });
+  x.globalAlpha=1; x.fillStyle=css("--muted"); x.font="10px system-ui"; x.fillText("±2",292,154);
+}
+function drawToy(){
+  const Z=latents(ST), m=meters(Z);
+  if(ST.hist.length===0||ST.hist[ST.hist.length-1].t!==ST.t) ST.hist.push({t:ST.t,std:m.std,er:m.erank});
+  if(ST.hist.length>600) ST.hist=ST.hist.filter((_,i)=>i%2===0);
+  scatter($("#cin"),ST.view||ST.data.X,ST.data.lab);
+  scatter($("#cz"),Z,ST.data.lab);
+  $("#mstd").textContent=m.std.toFixed(3); $("#bstd").style.width=Math.min(100,m.std/2*100)+"%";
+  $("#mer").textContent=m.erank.toFixed(2); $("#ber").style.width=Math.min(100,(m.erank-1)*100)+"%";
+  const guard=opt.ema?"EMA target (so stop-grad too)":(opt.stopgrad?"stop-grad":"no guard");
+  $("#toychips").innerHTML='<span class="chip">step <b>'+ST.t+'</b></span><span class="chip">loss <b>'+(isFinite(ST.loss)?ST.loss.toFixed(4):"–")+
+    '</b></span><span class="chip">target: <b>'+guard+'</b>'+(opt.variance?' + <b>variance term</b>':'')+'</span>';
+  let v;
+  if(ST.t<300) v=["var(--muted)","training…"];
+  else if(m.std<0.05) v=["var(--neg)","collapsed: every point maps near one latent"];
+  else if(m.erank<1.15) v=["var(--c3)","spread, but on a line: dimensional collapse"];
+  else v=["var(--pos)","spread in both directions"];
+  $("#verdict").style.color=v[0]; $("#verdict").textContent=v[1];
+  const sv=$("#hist"); sv.innerHTML=""; const T=Math.max(1000,ST.t), X=t=>30+t/T*262, Y=y=>130-Math.min(2,y)/2*118;
+  el("line",{x1:30,x2:292,y1:130,y2:130,stroke:css("--line")},sv); el("line",{x1:30,x2:30,y1:10,y2:130,stroke:css("--line")},sv);
+  [0,1,2].forEach(y=>{el("text",{x:24,y:Y(y)+3,"text-anchor":"end","font-size":9},sv).textContent=y;});
+  el("text",{x:292,y:144,"text-anchor":"end","font-size":9},sv).textContent=T+" steps";
+  const line=(f,col)=>el("polyline",{points:ST.hist.map(h=>X(h.t).toFixed(1)+","+Y(f(h)).toFixed(1)).join(" "),fill:"none",stroke:col,"stroke-width":1.8},sv);
+  line(h=>h.std,css("--t5")); line(h=>h.er-1,css("--c4"));
+}
+let last=0;
+function loop(){
+  if(!running) return;
+  const k=+$("#speed").value; for(let i=0;i<k;i++) step(ST,opt);
+  drawToy(); requestAnimationFrame(loop);
+}
+
+/* ------------------------------------------------- 2 · CIFAR collapse */
+const CO=DATA.collapse; let meter="std_norm";
+const VCOL=["--c1","--c3","--c0","--c4","--c2"];
+const shown=CO.runs.map(()=>true);
+$("#cosub").innerHTML="The module's runs, not your browser: the one 0.3M-parameter CNN encoder, the I-JEPA-style objective of section 1, "+
+  CO.budget+" seconds per variant on CIFAR-10. Meters on the pooled "+CO.latent_dim+"-number latents of "+CO.meter_images.toLocaleString("en-US")+
+  " test images. Normalised std: about 1 when the latents spread over the sphere, 0 when they all point one way. "+
+  "Class probe: a linear classifier on 10,000 training images; the random-encoder floor on the same probe is "+pct(CO.floor_10k)+".";
+$("#mseg").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{meter=b.dataset.m;
+  $("#mseg").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false")); drawCollapse();}));
+function drawCollapse(){
+  const sv=$("#cplot"); sv.innerHTML="";
+  const L=56,R=620,T=14,B=226;
+  const all=CO.runs.flatMap(r=>r.log.map(p=>p[meter]).filter(v=>v!==null&&v!==undefined));
+  const logy=meter==="pred_loss";
+  let ymax=meter==="erank"?Math.max(...all)*1.05:(meter==="std_norm"?Math.max(1,Math.max(...all)):Math.max(...all));
+  let ymin=logy?Math.max(1e-7,Math.min(...all.filter(v=>v>0))):0;
+  const tmax=CO.budget;
+  const X=t=>L+t/tmax*(R-L);
+  const Y=v=>logy?B-(Math.log10(Math.max(v,ymin))-Math.log10(ymin))/(Math.log10(ymax)-Math.log10(ymin))*(B-T):B-v/ymax*(B-T);
+  el("line",{x1:L,x2:R,y1:B,y2:B,stroke:css("--line")},sv); el("line",{x1:L,x2:L,y1:T,y2:B,stroke:css("--line")},sv);
+  const ticks=logy?(()=>{const a=[];for(let e=Math.ceil(Math.log10(ymin));e<=Math.floor(Math.log10(ymax));e++)a.push(10**e);return a;})()
+                  :[0,ymax/4,ymax/2,3*ymax/4,ymax];
+  ticks.forEach(v=>{el("line",{x1:L,x2:R,y1:Y(v),y2:Y(v),stroke:css("--line"),"stroke-dasharray":"2 4"},sv);
+    el("text",{x:L-6,y:Y(v)+3,"text-anchor":"end","font-size":10},sv).textContent=logy?("1e"+Math.round(Math.log10(v))):(v<10?v.toFixed(2):v.toFixed(0));});
+  for(let s=0;s<=tmax;s+=10) el("text",{x:X(s),y:B+14,"text-anchor":"middle","font-size":10},sv).textContent=s+" s";
+  el("text",{x:(L+R)/2,y:252,"text-anchor":"middle","font-size":10.5},sv).textContent="training seconds";
+  el("text",{x:12,y:(T+B)/2,"text-anchor":"middle","font-size":10.5,transform:"rotate(-90 12 "+(T+B)/2+")"},sv).textContent=
+    {std_norm:"latent std (normalised)",erank:"effective rank",pred_loss:"prediction loss (log)"}[meter];
+  CO.runs.forEach((r,i)=>{ if(!shown[i]) return;
+    const pts=r.log.filter(p=>p[meter]!==null&&p[meter]!==undefined).map(p=>X(p.seconds).toFixed(1)+","+Y(p[meter]).toFixed(1)).join(" ");
+    el("polyline",{points:pts,fill:"none",stroke:css(VCOL[i]),"stroke-width":2.2},sv); });
+  $("#clegend").innerHTML=CO.runs.map((r,i)=>'<button data-i="'+i+'" aria-pressed="'+shown[i]+'"><i style="background:'+css(VCOL[i])+'"></i>'+esc(r.variant)+'</button>').join("");
+  $("#clegend").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{const i=+b.dataset.i; shown[i]=!shown[i]; drawCollapse();}));
+  $("#cbody").innerHTML=CO.runs.map((r,i)=>'<tr><td><span style="color:'+css(VCOL[i])+'">■</span> '+esc(r.variant)+'</td><td class="num">'+r.steps.toLocaleString("en-US")+
+    '</td><td class="num">'+r.final.std_norm.toFixed(r.final.std_norm<0.01?4:3)+'</td><td class="num">'+r.final.erank.toFixed(1)+'</td><td class="num">'+pct(r.class_acc_10k)+'</td></tr>').join("");
+}
+
+/* ------------------------------------------------- 3 · what each keeps */
+const KP=DATA.keeps; let probe="class_acc";
+const KLAB={class_acc:"class accuracy (10 classes; chance 10%)",colour_r2:"mean-colour R² (1 = exact)",rotation_acc:"rotation accuracy (4 angles; chance 25%)"};
+$("#kpsub").innerHTML="Linear probes on frozen pooled latents of the test set. Every CNN row is the same "+KP.encoder_params.toLocaleString("en-US")+
+  "-parameter encoder; each objective trained for "+KP.budget+" seconds on CIFAR-10 (random: zero). Class: a linear classifier on 50,000 training images. "+
+  "Mean colour: ridge regression to the image's mean red, green and blue. Rotation: a linear classifier that tells 0°, 90°, 180° and 270° apart.";
+$("#kseg").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{probe=b.dataset.k;
+  $("#kseg").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false")); drawKeeps();}));
+function drawKeeps(){
+  $("#kcol").textContent=KLAB[probe];
+  const rows=KP.rows.concat([{name:"DINOv2-small (Hugging Face)",what:KP.dinov2.what,p:KP.dinov2.p,ref:true}]);
+  $("#kbody").innerHTML=rows.map(r=>{const v=r.p[probe]; const w=Math.max(0,v)*100;
+    return '<tr'+(r.ref?' class="ref"':'')+'><td>'+esc(r.name)+'</td><td><div class="barcell"><span class="num" style="font-family:var(--mono);min-width:4.2em">'+
+      (probe==="colour_r2"?v.toFixed(3):pct(v))+'</span><span class="b" style="width:'+(w*1.6).toFixed(0)+'px'+(r.ref?';opacity:.5':'')+'"></span></div></td><td class="hint">'+esc(r.what)+'</td></tr>';}).join("");
+  $("#khint").innerHTML="DINOv2 row: a 22M-parameter ViT trained on 142M images, at 224 pixels; class and colour probes on "+KP.dinov2.train_images.toLocaleString("en-US")+
+    " training images, rotation on "+KP.dinov2.rot_images.toLocaleString("en-US")+" per angle. A reference, not a fair rival.";
+}
+
+/* ------------------------------------------------- notice */
+function drawNotice(){
+  const R=n=>CO.runs.find(r=>r.variant===n), K=k=>KP.rows.find(r=>r.key===k);
+  const ns=R("no stop-grad"), vv=R("VICReg var"), em=R("EMA"), sr=R("SIGReg");
+  const items=[
+    "<b>Collapse is the easy minimum.</b> In panel 1, with every guard off, the 256 points shrink toward one latent within about a "+
+      "thousand steps while the loss falls. Stop-grad alone, or the EMA target, keeps them spread in this toy. The variance "+
+      "term alone holds the std near 1, but the points end on a line: effective rank 1. Press Reset after each switch.",
+    "<b>A low loss can mean nothing was learned.</b> On CIFAR-10, with no stop-grad, the prediction loss falls to about "+
+      ns.log[ns.log.length-1].pred_loss.toExponential(0)+" and the normalised std to "+ns.final.std_norm.toFixed(4)+
+      ": every latent points the same way. Its effective rank, "+ns.final.erank.toFixed(1)+", ignores size; it measures the "+
+      "tiny spread that is left.",
+    "<b>Two kinds of collapse need two meters.</b> VICReg's variance term alone keeps the std at "+vv.final.std_norm.toFixed(2)+
+      " but the effective rank at "+vv.final.erank.toFixed(2)+": one direction. VICReg itself adds a covariance term for that.",
+    "<b>Not collapsing is not the same as learning.</b> After "+CO.budget+" seconds only the EMA run ends above the random-encoder "+
+      "floor on the class probe ("+pct(em.class_acc_10k)+" against "+pct(CO.floor_10k)+"). SIGReg spreads the latents most (std "+
+      sr.final.std_norm.toFixed(2)+", rank "+sr.final.erank.toFixed(1)+") yet probes at "+pct(sr.class_acc_10k)+
+      ". Two minutes, one seed: a demo, not a measurement.",
+    "<b>Each objective keeps what its task needs.</b> SimCLR, trained to ignore colour jitter, has the lowest colour R² of the "+
+      "self-supervised encoders ("+K("simclr").p.colour_r2.toFixed(2)+") and the best class probe ("+pct(K("simclr").p.class_acc)+
+      "). Masked reconstruction must redraw pixels and keeps colour best ("+K("mae").p.colour_r2.toFixed(2)+"). No small encoder "+
+      "tells rotations apart much better than the random one ("+pct(K("random").p.rotation_acc)+" to "+
+      pct(Math.max(...KP.rows.map(r=>r.p.rotation_acc)))+"). One seed per encoder."
+  ];
+  $("#notice").innerHTML=items.map(s=>"<li>"+s+"</li>").join("");
+}
+
+readOpts(); drawToy(); loop(); drawCollapse(); drawKeeps(); drawNotice();
+if(window.matchMedia){
+  const mq=window.matchMedia("(prefers-color-scheme: dark)");
+  const redraw=()=>{ drawToy(); drawCollapse(); drawKeeps(); };
+  if(mq.addEventListener) mq.addEventListener("change",redraw); else if(mq.addListener) mq.addListener(redraw);
+}
+window.__jepa={DATA:DATA, step:step, init:init, meters:meters, latents:latents};
+})();
+</script>
+<!-- built for ml-course explorables v1 -->

@@ -1,0 +1,235 @@
+{
+ "pca": {
+  "curved_cube_10": {
+   "components": {
+    "0.5": 8,
+    "0.9": 52,
+    "0.95": 87,
+    "0.99": 216
+   },
+   "top50_share": [
+    0.07972,
+    0.0746,
+    0.0744,
+    0.07005,
+    0.06804,
+    0.06528,
+    0.06245,
+    0.0601,
+    0.05413,
+    0.05349,
+    0.01306,
+    0.00949,
+    0.00839,
+    0.00792,
+    0.00786,
+    0.00762,
+    0.00748,
+    0.00724,
+    0.00702,
+    0.00691,
+    0.00687,
+    0.00644,
+    0.00639,
+    0.00636,
+    0.00616,
+    0.00599,
+    0.0059,
+    0.00584,
+    0.00565,
+    0.00549,
+    0.00535,
+    0.00517,
+    0.00508,
+    0.00502,
+    0.00496,
+    0.00489,
+    0.00477,
+    0.00463,
+    0.00454,
+    0.00438,
+    0.00426,
+    0.00412,
+    0.00405,
+    0.00396,
+    0.00389,
+    0.00382,
+    0.00374,
+    0.00366,
+    0.00355,
+    0.00338
+   ]
+  },
+  "fashion_pixels": {
+   "components": {
+    "0.5": 3,
+    "0.9": 83,
+    "0.95": 183,
+    "0.99": 446
+   },
+   "top50_share": [
+    0.29167,
+    0.17641,
+    0.06016,
+    0.04951,
+    0.03832,
+    0.03451,
+    0.0237,
+    0.01901,
+    0.01321,
+    0.01295,
+    0.00989,
+    0.00922,
+    0.0076,
+    0.00648,
+    0.00621,
+    0.00585,
+    0.00558,
+    0.00534,
+    0.00481,
+    0.00445,
+    0.00438,
+    0.00409,
+    0.00386,
+    0.00375,
+    0.00366,
+    0.00344,
+    0.0034,
+    0.00314,
+    0.00313,
+    0.00301,
+    0.00278,
+    0.00274,
+    0.00266,
+    0.00263,
+    0.00248,
+    0.0024,
+    0.00231,
+    0.00228,
+    0.00217,
+    0.00209,
+    0.00198,
+    0.00196,
+    0.00191,
+    0.00185,
+    0.00175,
+    0.0017,
+    0.00167,
+    0.00164,
+    0.00162,
+    0.00159
+   ]
+  }
+ },
+ "midpoints": {
+  "real_test_to_train": {
+   "n": 2000,
+   "median": 3.43,
+   "p90": 5.072
+  },
+  "same_class": {
+   "pairs": 300,
+   "midpoint_median": 3.539,
+   "endpoint_median": 3.468,
+   "share_midpoint_farther_than_real_p90": 0.063,
+   "midpoint_nearest_same_class_as_an_end": 0.793
+  },
+  "different_class": {
+   "pairs": 300,
+   "midpoint_median": 4.584,
+   "endpoint_median": 3.496,
+   "share_midpoint_farther_than_real_p90": 0.293,
+   "midpoint_nearest_same_class_as_an_end": 0.727
+  }
+ },
+ "show": {
+  "same_class": [
+   {
+    "a": 335,
+    "b": 7648,
+    "nearest_train": 31099,
+    "dist_mid": 3.021,
+    "label_a": "Dress",
+    "label_b": "Dress",
+    "label_nearest": "Dress"
+   },
+   {
+    "a": 6705,
+    "b": 5256,
+    "nearest_train": 14956,
+    "dist_mid": 3.262,
+    "label_a": "Dress",
+    "label_b": "Dress",
+    "label_nearest": "Dress"
+   },
+   {
+    "a": 9465,
+    "b": 1984,
+    "nearest_train": 52377,
+    "dist_mid": 3.52,
+    "label_a": "Pullover",
+    "label_b": "Pullover",
+    "label_nearest": "Shirt"
+   },
+   {
+    "a": 485,
+    "b": 9420,
+    "nearest_train": 9679,
+    "dist_mid": 3.092,
+    "label_a": "Sneaker",
+    "label_b": "Sneaker",
+    "label_nearest": "Sneaker"
+   }
+  ],
+  "different_class": [
+   {
+    "a": 8505,
+    "b": 6369,
+    "nearest_train": 44214,
+    "dist_mid": 3.661,
+    "label_a": "Sneaker",
+    "label_b": "Sandal",
+    "label_nearest": "Sneaker"
+   },
+   {
+    "a": 3078,
+    "b": 2697,
+    "nearest_train": 41143,
+    "dist_mid": 4.569,
+    "label_a": "Sandal",
+    "label_b": "Dress",
+    "label_nearest": "Dress"
+   },
+   {
+    "a": 165,
+    "b": 752,
+    "nearest_train": 48311,
+    "dist_mid": 4.082,
+    "label_a": "Ankle boot",
+    "label_b": "Sneaker",
+    "label_nearest": "Sneaker"
+   },
+   {
+    "a": 8131,
+    "b": 6494,
+    "nearest_train": 34431,
+    "dist_mid": 2.849,
+    "label_a": "T-shirt/top",
+    "label_b": "Dress",
+    "label_nearest": "T-shirt/top"
+   }
+  ]
+ },
+ "guard": {
+  "script": "manifold.py",
+  "seconds": 9.3,
+  "minutes": 0.16,
+  "peak_rss_gb": 1.52,
+  "peak_mps_driver_gb": 0.0,
+  "stages_seconds": {},
+  "machine": "arm64 26.6.2",
+  "torch": "2.14.1",
+  "mps_high_watermark_ratio": "0.5",
+  "mps_cap_gb": 5.92
+ }
+}

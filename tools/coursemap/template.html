@@ -6,7 +6,7 @@
 :root{
   --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d;
   --t0:#a86b0e; --t0-soft:rgba(168,107,14,.10);
-  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --track-ink:#ffffff;
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8; --t6:#b7410e; --track-ink:#ffffff;
   --panel:#ffffff; --matte:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67;
   --soft:rgba(31,145,141,.10); --rail:rgba(28,36,34,.10);
   --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
@@ -20,7 +20,7 @@
     --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --matte:#f2f5f4;
     --line:rgba(232,238,236,.18); --muted:#9daba7;
     --t0:#d9962e; --t0-soft:rgba(217,150,46,.16);
-    --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --accent:#37b3ae;
+    --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --t5:#5aa1e6; --t6:#e7764a; --accent:#37b3ae;
     --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --rail:rgba(232,238,236,.14);
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
   }
@@ -30,7 +30,7 @@
   --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --matte:#f2f5f4;
   --line:rgba(232,238,236,.18); --muted:#9daba7;
   --t0:#d9962e; --t0-soft:rgba(217,150,46,.16);
-  --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --accent:#37b3ae;
+  --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --t5:#5aa1e6; --t6:#e7764a; --accent:#37b3ae;
   --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --rail:rgba(232,238,236,.14);
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
 }
@@ -38,7 +38,7 @@
   --paper:#f6f8f7; --ink:#1c2422; --panel:#ffffff; --matte:#ffffff;
   --line:rgba(28,36,34,.14); --muted:#5c6b67;
   --t0:#a86b0e; --t0-soft:rgba(168,107,14,.10);
-  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --accent:#1f918d;
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8; --t6:#b7410e; --accent:#1f918d;
   --track-ink:#ffffff; --soft:rgba(31,145,141,.10); --rail:rgba(28,36,34,.10);
   --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
 }
@@ -75,7 +75,7 @@ main{max-width:1180px;margin:0 auto;padding:clamp(1rem,3vw,1.6rem) clamp(.9rem,3
 .track{position:relative;margin:1.9rem 0 0;padding-left:1.15rem}
 .track::before{content:"";position:absolute;left:0;top:.4rem;bottom:.5rem;width:4px;
   border-radius:2px;background:var(--tc);opacity:.85}
-.track.t0{--tc:var(--t0)} .track.t1{--tc:var(--t1)} .track.t2{--tc:var(--t2)} .track.t3{--tc:var(--t3)} .track.t4{--tc:var(--t4)}
+.track.t0{--tc:var(--t0)} .track.t1{--tc:var(--t1)} .track.t2{--tc:var(--t2)} .track.t3{--tc:var(--t3)} .track.t4{--tc:var(--t4)} .track.t5{--tc:var(--t5)} .track.t6{--tc:var(--t6)}
 .track > h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
   margin:0 0 .15rem;color:var(--tc);display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap}
 .track > h2 .rng{font-family:var(--mono);font-size:.78rem;font-weight:400;
@@ -88,7 +88,7 @@ main{max-width:1180px;margin:0 auto;padding:clamp(1rem,3vw,1.6rem) clamp(.9rem,3
   border:1px solid var(--line);border-radius:14px;padding:.9rem 1rem 1rem;
   box-shadow:var(--shadow);transition:border-color .15s,transform .15s}
 .card:hover{border-color:var(--accent);transform:translateY(-2px)}
-.card.t0{--tc:var(--t0)} .card.t1{--tc:var(--t1)} .card.t2{--tc:var(--t2)} .card.t3{--tc:var(--t3)} .card.t4{--tc:var(--t4)}
+.card.t0{--tc:var(--t0)} .card.t1{--tc:var(--t1)} .card.t2{--tc:var(--t2)} .card.t3{--tc:var(--t3)} .card.t4{--tc:var(--t4)} .card.t5{--tc:var(--t5)} .card.t6{--tc:var(--t6)}
 .card.t0 .chips span{background:var(--t0-soft)}
 .card .chead{display:flex;align-items:center;gap:.5rem;padding-right:5.2rem;margin:0 0 .55rem}
 .mno{font-family:var(--mono);font-size:.72rem;font-weight:600;color:var(--track-ink);
@@ -172,14 +172,14 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
     <p class="lede">From a scalar autograd engine to a Zig inference engine — every idea built from
       scratch first, then the Hugging Face way, and drawn as a picture both times.</p>
     <div class="topline">
-      <span class="stats"><b>16</b> modules · <b>112</b> figures · <b>16</b> explorables ·
-        <b>16</b> quizzes · <b>2</b> languages</span>
+      <span class="stats"><b>22</b> modules · <b>140</b> figures · <b>22</b> explorables ·
+        <b>22</b> quizzes · <b>2</b> languages</span>
       <a class="sitebtn" href="https://wynch.github.io/ml-course/" target="_blank" rel="noopener">Course site ↗
         <span class="u">wynch.github.io/ml-course</span></a>
     </div>
     <div class="prog">
       <div class="pbar"><div id="pfill"></div></div>
-      <span id="pcount">0 / 16</span>
+      <span id="pcount">0 / 22</span>
     </div>
   </div>
 </header>
@@ -437,8 +437,8 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
 </section>
 
 <section class="track t4">
-  <h2>Looking inside<span class="rng">modules 11–12</span></h2>
-  <p class="sub">Open a trained model while it runs: read one neuron, probe each layer, patch one cell, then read features through a sparse dictionary.</p>
+  <h2>Looking inside<span class="rng">modules 11–13</span></h2>
+  <p class="sub">Open a trained model while it runs: read one neuron, probe each layer, patch one cell, read features through a sparse dictionary, then do the same to vision and JEPA models.</p>
   <div class="grid">
 
     <article class="card t4" data-mod="11">
@@ -469,6 +469,112 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
       </div>
       <div class="cfoot"><span class="path">modules/12-features-and-dictionaries</span>
         <a class="hf" href="https://github.com/jbloomAus/SAELens" target="_blank" rel="noopener">SAELens ↗</a></div>
+    </article>
+
+    <article class="card t4" data-mod="13">
+      <label class="donebox">done<input type="checkbox" data-mod="13" aria-label="Mark module 13 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">13</span><h3>Inside vision and JEPA models</h3></div>
+      <div class="fig"><img src="{{FIG13}}" alt="Module 13 figure: InceptionV1 channel 4e:55 on six image sets, and the gap of channels 45 to 65"></div>
+      <p class="build"><b>You build:</b> a forward hook on one InceptionV1 channel over drawn and real images, Lucent renders,
+        a per-block probe and three neurons in CLIP ViT-B/32, and probes on a small JEPA encoder.</p>
+      <div class="chips"><span>4e:55 ranks 21 of 21</span><span>CLIP probe 98.0% at block 12</span><span>path-length R² −0.347</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/13-inside-vision-and-jepa.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/13.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/13-inside-vision-and-jepa</span>
+        <a class="hf" href="https://github.com/greentfrapp/lucent" target="_blank" rel="noopener">Lucent ↗</a></div>
+    </article>
+
+  </div>
+</section>
+
+<section class="track t5">
+  <h2>How learning works<span class="rng">modules 14–16</span></h2>
+  <p class="sub">Watch training find a solution, measure the shape it leaves behind, and learn without labels.</p>
+  <div class="grid">
+
+    <article class="card t5" data-mod="14">
+      <label class="donebox">done<input type="checkbox" data-mod="14" aria-label="Mark module 14 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">14</span><h3>Training dynamics</h3></div>
+      <div class="fig"><img src="{{FIG14}}" alt="Module 14 figure: grokking curves on addition mod 97, weight decay 1.0 against 0"></div>
+      <p class="build"><b>You build:</b> SGD, momentum and Adam by hand on toy losses, then PyTorch's on module 02's MLP, learning-rate
+        schedules, loss slices with the top Hessian eigenvalue, and grokking with and without weight decay.</p>
+      <div class="chips"><span>groks at step 5,900</span><span>no weight decay: 4.5% test</span><span>Adam reaches at 29 of 37 rates (Rosenbrock)</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/14-how-training-finds-a-solution.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/14.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/14-how-training-finds-a-solution</span>
+        <a class="hf" href="https://huggingface.co/docs/transformers/main_classes/optimizer_schedules" target="_blank" rel="noopener">HF optimizer schedules ↗</a></div>
+    </article>
+
+    <article class="card t5" data-mod="15">
+      <label class="donebox">done<input type="checkbox" data-mod="15" aria-label="Mark module 15 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">15</span><h3>Geometry</h3></div>
+      <div class="fig"><img src="{{FIG15}}" alt="Module 15 figure: exact linear regions of a 2-12-12-2 ReLU net before and after training on two moons"></div>
+      <p class="build"><b>You build:</b> exact linear regions of a 2-D ReLU net and an exact count along lines, TwoNN and MLE checked
+        on sets of known dimension, and linear CKA between two seeds of module 02's MLP.</p>
+      <div class="chips"><span>158 → 236 regions after training</span><span>FashionMNIST ID 13–16 of 784</span><span>CKA 0.93 trained, 0.95 untrained</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/15-geometry-of-representations.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/15.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/15-geometry-of-representations</span>
+        <a class="hf" href="https://arxiv.org/abs/1905.00414" target="_blank" rel="noopener">Kornblith et al., CKA ↗</a></div>
+    </article>
+
+    <article class="card t5" data-mod="16">
+      <label class="donebox">done<input type="checkbox" data-mod="16" aria-label="Mark module 16 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">16</span><h3>SSL and JEPA</h3></div>
+      <div class="fig"><img src="{{FIG16}}" alt="Module 16 figure: linear-probe accuracy per objective on CIFAR-10, random-encoder floor and supervised ceiling marked, DINOv2 hatched"></div>
+      <p class="build"><b>You build:</b> SimCLR, masked reconstruction and a small I-JEPA on one CNN, collapse and four guards against it,
+        probes for what each encoder keeps, and a DINOv2-small probe.</p>
+      <div class="chips"><span>SimCLR 59.8% vs random 41.8%</span><span>no stop-grad: std 0.0015</span><span>DINOv2-small 96.6%</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/16-self-supervised-and-jepa.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/16.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/16-self-supervised-and-jepa</span>
+        <a class="hf" href="https://huggingface.co/facebook/dinov2-small" target="_blank" rel="noopener">DINOv2-small ↗</a></div>
+    </article>
+
+  </div>
+</section>
+
+<section class="track t6">
+  <h2>Other recipes<span class="rng">modules 17–18</span></h2>
+  <p class="sub">Train from preferences instead of labels, and carry a fixed state from token to token instead of attention.</p>
+  <div class="grid">
+
+    <article class="card t6" data-mod="17">
+      <label class="donebox">done<input type="checkbox" data-mod="17" aria-label="Mark module 17 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">17</span><h3>Preferences</h3></div>
+      <div class="fig"><img src="{{FIG17}}" alt="Module 17 figure: how often the chosen reply is the longer one, by rating gap, and held-out pair accuracy split by which reply is longer"></div>
+      <p class="build"><b>You build:</b> Bradley-Terry by hand, a reward head on frozen SmolLM2-360M, the DPO loss derived and checked
+        against TRL, then DPO with LoRA, and the length bias in all of it.</p>
+      <div class="chips"><span>reward head 0.658 held-out</span><span>DPO by hand = TRL to 2e-6</span><span>DPO 200 steps: 0.585 held-out</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/17-learning-from-preferences.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/17.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/17-learning-from-preferences</span>
+        <a class="hf" href="https://huggingface.co/docs/trl/dpo_trainer" target="_blank" rel="noopener">TRL DPO trainer ↗</a></div>
+    </article>
+
+    <article class="card t6" data-mod="18">
+      <label class="donebox">done<input type="checkbox" data-mod="18" aria-label="Mark module 18 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">18</span><h3>Recurrence and SSMs</h3></div>
+      <div class="fig"><img src="{{FIG18}}" alt="Module 18 figure: memory between tokens, the KV cache growing while recurrent states stay flat, and time per token on CPU and MPS"></div>
+      <p class="build"><b>You build:</b> a GRU, a fixed diagonal recurrence and a selective (Mamba-style) scan against the tiny GPT on
+        tiny-shakespeare, memory per generated token, and Mamba-130M against GPT-2.</p>
+      <div class="chips"><span>SSM 1.575 vs GPT 1.629 at 60 s</span><span>KV cache 12.6 MB at 4,096 tokens</span><span>Mamba state 2.9 MB, any context</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/18-beyond-attention.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/18.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/18-beyond-attention</span>
+        <a class="hf" href="https://huggingface.co/state-spaces/mamba-130m-hf" target="_blank" rel="noopener">mamba-130m-hf ↗</a></div>
     </article>
 
   </div>

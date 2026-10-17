@@ -13,8 +13,9 @@ dictionary. It has four sections, each with a figure and the numbers beside it:
 Every number in this README comes from a JSON file in [`results/`](results/),
 written by the script that measured it.
 
-This is the second module of track 4, **Looking inside**. A third, on vision
-models, is planned.
+This is the second module of track 4, **Looking inside**. Next,
+[module 13](../13-inside-vision-and-jepa/README.md) turns the same tools on
+vision models: one InceptionV1 channel, CLIP neurons and a JEPA encoder.
 
 **🕹 Interactive:** [Features and dictionaries](../../explorables/12-features-and-dictionaries.html):
 move the sparsity of the toy model, browse SAE latents and raw neurons by their

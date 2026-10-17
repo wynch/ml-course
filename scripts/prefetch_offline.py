@@ -106,23 +106,42 @@ def main() -> None:
                 command.extend(["--include", pattern])
             run(command, env=env, dry_run=args.dry_run)
         else:
-            command = [
-                "uv",
-                "run",
-                "--frozen",
-                "--project",
-                asset["project"],
-                "python",
-                str(ROOT / "scripts" / "cache_dataset.py"),
-                asset["id"],
-                "--revision",
-                asset["revision"],
-            ]
-            if asset.get("config"):
-                command.extend(["--config", asset["config"]])
-            if asset.get("split"):
-                command.extend(["--split", asset["split"]])
-            run(command, env=env, dry_run=args.dry_run)
+            # "project" caches the dataset through `datasets.load_dataset`;
+            # "include" fetches raw files for scripts that read them with
+            # hf_hub_download. An asset may need both.
+            if asset.get("project"):
+                command = [
+                    "uv",
+                    "run",
+                    "--frozen",
+                    "--project",
+                    asset["project"],
+                    "python",
+                    str(ROOT / "scripts" / "cache_dataset.py"),
+                    asset["id"],
+                    "--revision",
+                    asset["revision"],
+                ]
+                if asset.get("config"):
+                    command.extend(["--config", asset["config"]])
+                if asset.get("split"):
+                    command.extend(["--split", asset["split"]])
+                run(command, env=env, dry_run=args.dry_run)
+            if asset.get("include"):
+                command = [
+                    "hf",
+                    "download",
+                    asset["id"],
+                    "--repo-type",
+                    "dataset",
+                    "--revision",
+                    asset["revision"],
+                    "--cache-dir",
+                    str(cache / "huggingface" / "hub"),
+                ]
+                for pattern in asset["include"]:
+                    command.extend(["--include", pattern])
+                run(command, env=env, dry_run=args.dry_run)
 
     print(f"\n{args.pack.title()} offline pack ready under {cache}")
     print("Verify it with: python3 scripts/check_offline.py --pack", args.pack)

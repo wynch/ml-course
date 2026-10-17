@@ -151,9 +151,9 @@ def check_reader() -> None:
         reader / "quizzes" / "00a.html",
         reader / "quizzes" / "01.html",
         reader / "quizzes" / "05a.html",
-        reader / "content" / "modules" / "12-features-and-dictionaries" / "README.md",
-        reader / "explorables" / "12-features-and-dictionaries.html",
-        reader / "quizzes" / "12.html",
+        reader / "content" / "modules" / "18-beyond-attention" / "README.md",
+        reader / "explorables" / "18-beyond-attention.html",
+        reader / "quizzes" / "18.html",
         reader / "research" / "index.html",
         reader / "research" / "why-atlas.html",
         reader / "research" / "jepa-field-map.html",
@@ -317,6 +317,19 @@ def main() -> None:
             env,
             cwd=ROOT / "modules/12-features-and-dictionaries/python",
         )
+        for module in (
+            "13-inside-vision-and-jepa",
+            "14-how-training-finds-a-solution",
+            "15-geometry-of-representations",
+            "16-self-supervised-and-jepa",
+            "17-learning-from-preferences",
+            "18-beyond-attention",
+        ):
+            run_offline(
+                ["uv", "run", "--offline", "--frozen", "pytest", "-q"],
+                env,
+                cwd=ROOT / "modules" / module / "python",
+            )
     print(f"{args.pack} pack: PASS with network disabled")
 
 

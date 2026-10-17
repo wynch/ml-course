@@ -72,32 +72,51 @@ flowchart TD
         M09["09 · diffusion"]
         M10["10 · agents"]
     end
-    subgraph L["Looking inside · 11–12"]
+    subgraph L["Looking inside · 11–13"]
         M11["11 · inside a language model"]
         M12["12 · features and dictionaries"]
+        M13["13 · inside vision and JEPA models"]
+    end
+    subgraph H["How learning works · 14–16"]
+        M14["14 · how training finds a solution"]
+        M15["15 · geometry of representations"]
+        M16["16 · self-supervised learning and JEPA"]
+    end
+    subgraph R["Other recipes · 17–18"]
+        M17["17 · learning from preferences"]
+        M18["18 · beyond attention"]
     end
     O -.-> F
     F --> T --> B
     T --> L
+    F --> H
+    T --> R
     M08 -.-> M09 -.-> M10
-    M11 --> M12
+    M11 --> M12 --> M13
+    M14 --> M15 --> M16
+    M17 -.-> M18
 
     classDef track fill:#eef,stroke:#88a,color:#113;
     classDef origins fill:#fdf2df,stroke:#a86b0e,color:#4a2f05;
-    class F,T,B,L track;
+    class F,T,B,L,H,R track;
     class O origins;
 ```
 
 **Origins** is an optional prologue — the classic math behind modern ML, after
 Anil Ananthaswamy's *Why Machines Learn*. Take it before Track 1 or alongside
-it; nothing later depends on it, and everything later rhymes with it. The three
-numbered tracks then build on each other. **Foundations** gives you autograd, a
+it; nothing later depends on it, and everything later rhymes with it. Tracks 1
+to 3 then build on each other. **Foundations** gives you autograd, a
 network, and a tokenizer written by hand. **Transformers & LLMs** turns those
 into attention, a real model library, fine-tuning, and fast inference.
 **Breadth** takes the same ideas sideways into vision, diffusion, and agents.
 **Looking inside** opens a trained model while it runs: hooks, probes,
 activation patching, neurons read on both signs, then sparse autoencoders and
-steering. It needs track 2, not track 3.
+steering, then the same tools on vision models and a JEPA encoder. It needs
+track 2, not track 3. **How learning works** asks what training does:
+optimisers, schedules and grokking, the shape a trained network leaves in its
+data, and learning without labels. It needs track 1. **Other recipes** trains
+a model from preferences instead of labels, and swaps attention for a state
+carried from token to token. It needs track 2.
 
 ---
 
@@ -119,7 +138,7 @@ want to know where an idea came from.
 | 00b | [bayes-knn-pca](modules/00b-bayes-knn-pca) | **Naive Bayes**, **k-NN** against the Cover-Hart ceiling, and **PCA by power iteration** — all from scratch. |
 | 00c | [kernels-hopfield](modules/00c-kernels-hopfield) | A dual **SVM**, the **kernel trick**, a **Hopfield** memory, and a measured **double-descent** curve. |
 
-### Tracks 1–4 — the main line
+### Tracks 1–6 — the main line
 
 | # | Module | What you build |
 |---|--------|----------------|
@@ -136,12 +155,18 @@ want to know where an idea came from.
 | 10 | [agents](modules/10-agents) | Build agents with **smolagents** and the **Model Context Protocol (MCP)**. |
 | 11 | [inside-a-language-model](modules/11-inside-a-language-model) | **Hooks**, a per-layer **probe**, **activation patching**, and **neuron poles** on SmolLM2-360M, with **nnsight**. |
 | 12 | [features-and-dictionaries](modules/12-features-and-dictionaries) | **Toy superposition**, a **sparse autoencoder** from scratch, GPT-2's published SAE through **SAELens**, and a **steering** demo. |
+| 13 | [inside-vision-and-jepa](modules/13-inside-vision-and-jepa) | **One InceptionV1 channel** tested on drawn and real images, **feature visualisation** with Lucent, a per-block **probe** and three neurons in **CLIP**, and **probes on a JEPA encoder**. |
+| 14 | [how-training-finds-a-solution](modules/14-how-training-finds-a-solution) | **SGD**, **momentum** and **Adam** on toy losses and an MLP, **learning-rate schedules**, **loss slices** and sharpness, and **grokking** with and without weight decay. |
+| 15 | [geometry-of-representations](modules/15-geometry-of-representations) | A ReLU net's **linear regions** cut exactly, the **intrinsic dimension** of the data, and **linear CKA** between two trained nets. |
+| 16 | [self-supervised-and-jepa](modules/16-self-supervised-and-jepa) | **SimCLR**, **masked reconstruction** and an **I-JEPA**-style objective on one small CNN; **collapse** shown and blocked (stop-grad, EMA, VICReg variance, **SIGReg**); a **DINOv2** probe. |
+| 17 | [learning-from-preferences](modules/17-learning-from-preferences) | **Bradley-Terry** by hand, a **reward head** on a frozen model, **DPO** derived and checked against **TRL**, then trained with **LoRA**, and the **length bias** in all of it. |
+| 18 | [beyond-attention](modules/18-beyond-attention) | A **GRU**, a fixed diagonal recurrence and a **selective (Mamba-style) scan** against the tiny GPT; memory per generated token; **Mamba-130M** against GPT-2. |
 
 ---
 
 ## Explorables
 
-All sixteen modules — the three Origins modules, the twelve numbered ones and the
+All twenty-two modules — the three Origins modules, the eighteen numbered ones and the
 evaluation bridge — ship an **interactive, in-browser
 explainer**: a single HTML file with no dependencies, no build step and no
 network calls. Where a module
@@ -174,14 +199,20 @@ python3 -m http.server        # then browse to
 | [The ReAct loop](explorables/10-agent-loop.html) | 10 | Play a real agent transcript message by message — including the run where it fails. |
 | [Inside a language model](explorables/11-inside-a-language-model.html) | 11 | Browse three SmolLM2 neurons pole by pole, then hover a probe curve and a patching heatmap. |
 | [Features and dictionaries](explorables/12-features-and-dictionaries.html) | 12 | Move the toy model's sparsity, then browse SAE latents, raw neurons and GPT-2 features by their top contexts. |
+| [Inside vision and JEPA models](explorables/13-inside-vision-and-jepa.html) | 13 | Scrub channels 45–65 of InceptionV1's layer 4e across six image sets, see Lucent's renders, browse three CLIP neurons, compare JEPA probes. |
+| [How training finds a solution](explorables/14-how-training-finds-a-solution.html) | 14 | Race three optimisers on a 2-D loss from any start and rate, browse the learning-rate grid, replay the grokking curves. |
+| [Geometry of representations](explorables/15-geometry-of-representations.html) | 15 | Drag a segment across a small ReLU net's regions, change the width, watch the count; intrinsic dimension and CKA alongside. |
+| [Self-supervised learning and JEPA](explorables/16-self-supervised-and-jepa.html) | 16 | Train a 2-D JEPA live and switch stop-grad, the EMA target and the variance term; replay the CIFAR-10 collapse runs and the probes. |
+| [Learning from preferences](explorables/17-learning-from-preferences.html) | 17 | Drag item scores and watch the pair probabilities, move β and watch one pair's DPO loss, read replies before and after training. |
+| [Beyond attention](explorables/18-beyond-attention.html) | 18 | Step a KV cache and two recurrent states token by token, and drive a two-state recurrence by its decays and its gate. |
 
 ### Quizzes
 
-Each of the twelve numbered modules — plus the three Origins modules and the 05½
+Each of the eighteen numbered modules — plus the three Origins modules and the 05½
 bridge lab — ships a
 **10-question quiz**, every question grounded in that module's own code, figures
 and measured numbers, with an explanation revealed as soon as you answer. Start at
-[`quizzes/index.html`](quizzes/index.html), which lists all sixteen and shows your
+[`quizzes/index.html`](quizzes/index.html), which lists all twenty-two and shows your
 score for each. Nothing is uploaded: answers and scores stay in your browser's
 `localStorage`, and every quiz has a Reset button.
 

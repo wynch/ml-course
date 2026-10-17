@@ -838,7 +838,7 @@ https://wynch.github.io/ml-course/quizzes/00a.html
 - `quiz-00a-q1` the bias as a feature
 - `quiz-00a-q2` mistakes versus the bound
 - `quiz-00a-q3` why a tie counts as a mistake
-- `quiz-00a-q4` the shape of Novikoff
+- `quiz-00a-q4` the shape of Novikoff's proof
 - `quiz-00a-q5` how the margin scales the work
 - `quiz-00a-q6` the XOR obstruction
 - `quiz-00a-q7` the residual is orthogonal
@@ -1006,7 +1006,7 @@ https://wynch.github.io/ml-course/quizzes/08.html
 - `quiz-08-q4` Fine-tune vs zero-shot on beans
 - `quiz-08-q5` The patch sequence, counted
 - `quiz-08-q6` The patch-size trade-off
-- `quiz-08-q7` What a kernel
+- `quiz-08-q7` What a kernel's weights sum to
 - `quiz-08-q8` patchify shapes
 - `quiz-08-q9` same vs valid padding
 - `quiz-08-q10` How CLIP zero-shot actually scores
@@ -1035,7 +1035,7 @@ https://wynch.github.io/ml-course/quizzes/10.html
 - `quiz-10-q3` code-as-action vs text tool-calls
 - `quiz-10-q4` small-model failure modes
 - `quiz-10-q5` reading the eval suite results
-- `quiz-10-q6` the suite
+- `quiz-10-q6` the suite's aggregate success rate
 - `quiz-10-q7` the looping failure mode
 - `quiz-10-q8` how code-as-action collapses turns
 - `quiz-10-q9` action parsing and the cost of format drift
@@ -1071,6 +1071,96 @@ https://wynch.github.io/ml-course/quizzes/12.html
 - `quiz-12-q9` Loading the SAE by hand
 - `quiz-12-q10` Reading the steering demo
 
+### quiz-13 · Inside vision and JEPA models
+
+https://wynch.github.io/ml-course/quizzes/13.html
+
+- `quiz-13-q1` What drives 4e:55
+- `quiz-13-q2` The rank among neighbours
+- `quiz-13-q3` Why rank against neighbours
+- `quiz-13-q4` The random-weight control
+- `quiz-13-q5` Where the hook sits
+- `quiz-13-q6` What a render shows
+- `quiz-13-q7` CLIP before block 1
+- `quiz-13-q8` Reading three CLIP neurons
+- `quiz-13-q9` Path length in a JEPA latent
+- `quiz-13-q10` Reading a negative R²
+
+### quiz-14 · How training finds a solution
+
+https://wynch.github.io/ml-course/quizzes/14.html
+
+- `quiz-14-q1` Momentum on the Rosenbrock valley
+- `quiz-14-q2` Adam's range of rates
+- `quiz-14-q3` What momentum does to the step
+- `quiz-14-q4` Reading a learning-rate grid
+- `quiz-14-q5` Schedule against seed noise
+- `quiz-14-q6` The first step of warmup
+- `quiz-14-q7` Sharpness and test accuracy
+- `quiz-14-q8` Why filter-normalised directions
+- `quiz-14-q9` Grokking without weight decay
+- `quiz-14-q10` When the model groks
+
+### quiz-15 · Geometry of representations
+
+https://wynch.github.io/ml-course/quizzes/15.html
+
+- `quiz-15-q1` Regions before and after training
+- `quiz-15-q2` Regions along a line at width 256
+- `quiz-15-q3` Why the count along a line is exact
+- `quiz-15-q4` Intrinsic dimension of FashionMNIST
+- `quiz-15-q5` What TwoNN reads
+- `quiz-15-q6` PCA against intrinsic dimension
+- `quiz-15-q7` The hidden layer, trained and untrained
+- `quiz-15-q8` Midpoints of two images
+- `quiz-15-q9` CKA and its baseline
+- `quiz-15-q10` What leaves CKA at 1
+
+### quiz-16 · Self-supervised learning and JEPA
+
+https://wynch.github.io/ml-course/quizzes/16.html
+
+- `quiz-16-q1` A JEPA with no stop-grad
+- `quiz-16-q2` SimCLR's linear probe
+- `quiz-16-q3` Why a random-encoder floor
+- `quiz-16-q4` Reading NT-Xent
+- `quiz-16-q5` The variance term alone
+- `quiz-16-q6` Two meters, two collapses
+- `quiz-16-q7` Who keeps colour
+- `quiz-16-q8` The collapse runs
+- `quiz-16-q9` Reading SIGReg
+- `quiz-16-q10` Reading the DINOv2 number
+
+### quiz-17 · Learning from preferences
+
+https://wynch.github.io/ml-course/quizzes/17.html
+
+- `quiz-17-q1` Comparisons a ranking needs
+- `quiz-17-q2` What Bradley-Terry identifies
+- `quiz-17-q3` The reward head's held-out accuracy
+- `quiz-17-q4` The DPO loss
+- `quiz-17-q5` Why Z(x) drops out
+- `quiz-17-q6` Implicit-reward accuracy at step 0
+- `quiz-17-q7` What 200 DPO steps did
+- `quiz-17-q8` The reference model's own preference
+- `quiz-17-q9` Length bias in the reward head
+- `quiz-17-q10` Reading the DPO demo
+
+### quiz-18 · Beyond attention
+
+https://wynch.github.io/ml-course/quizzes/18.html
+
+- `quiz-18-q1` KV cache against state
+- `quiz-18-q2` The GRU's update gate
+- `quiz-18-q3` Fixed recurrence as a convolution
+- `quiz-18-q4` Floats in the GPT's cache
+- `quiz-18-q5` Equal training time
+- `quiz-18-q6` What equal wall time favours
+- `quiz-18-q7` Selective against fixed
+- `quiz-18-q8` Mamba without its kernels
+- `quiz-18-q9` Where GPT-2's cache passes Mamba's state
+- `quiz-18-q10` Why hybrids keep some attention
+
 ## Part 7 · URL map
 
 _Where things are on the public site, so you can give Vincent links. Doors outside `course/` are private and have no URL._
@@ -1091,7 +1181,7 @@ _Where things are on the public site, so you can give Vincent links. Doors outsi
 | This pack | https://wynch.github.io/ml-course/learn/pack.md |
 
 
-Modules: `00a-perceptron` The perceptron & least squares, `00b-bayes-knn-pca` Probability, neighbours & eigenvectors, `00c-kernels-hopfield` Kernels, memory & the modern bridge, `01-autograd` Autograd from scratch, `02-neural-networks` Neural networks & the training loop, `03-tokenization` Tokenization: from bytes to tokens, `04-attention-transformer` Attention & the transformer, `05-transformers-library` The transformers library, `05a-data-evaluation` Data & evaluation, `06-fine-tuning` Fine-tuning: make the model yours, `07-inference-internals` Inference internals, `08-vision` Vision: convolutions to ViTs, `09-diffusion` Diffusion: learning to denoise, `10-agents` Agents: models that act, `11-inside-a-language-model` Inside a language model, `12-features-and-dictionaries` Features and dictionaries.
+Modules: `00a-perceptron` The perceptron & least squares, `00b-bayes-knn-pca` Probability, neighbours & eigenvectors, `00c-kernels-hopfield` Kernels, memory & the modern bridge, `01-autograd` Autograd from scratch, `02-neural-networks` Neural networks & the training loop, `03-tokenization` Tokenization: from bytes to tokens, `04-attention-transformer` Attention & the transformer, `05-transformers-library` The transformers library, `05a-data-evaluation` Data & evaluation, `06-fine-tuning` Fine-tuning: make the model yours, `07-inference-internals` Inference internals, `08-vision` Vision: convolutions to ViTs, `09-diffusion` Diffusion: learning to denoise, `10-agents` Agents: models that act, `11-inside-a-language-model` Inside a language model, `12-features-and-dictionaries` Features and dictionaries, `13-inside-vision-and-jepa` Inside vision and JEPA models, `14-how-training-finds-a-solution` How training finds a solution, `15-geometry-of-representations` Geometry of representations, `16-self-supervised-and-jepa` Self-supervised learning and JEPA, `17-learning-from-preferences` Learning from preferences, `18-beyond-attention` Beyond attention.
 
 
 Doors per spine entry:

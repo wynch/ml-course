@@ -34,7 +34,13 @@
         "modules/09-diffusion/python",
         "modules/10-agents/python",
         "modules/11-inside-a-language-model/python",
-        "modules/12-features-and-dictionaries/python"
+        "modules/12-features-and-dictionaries/python",
+        "modules/13-inside-vision-and-jepa/python",
+        "modules/14-how-training-finds-a-solution/python",
+        "modules/15-geometry-of-representations/python",
+        "modules/16-self-supervised-and-jepa/python",
+        "modules/17-learning-from-preferences/python",
+        "modules/18-beyond-attention/python"
       ]
     }
   },
@@ -55,7 +61,8 @@
       "revision": "531be5e2ccc9dba0c201ad3ae567a4f3d16ecdd2",
       "project": "modules/02-neural-networks/python",
       "split": "",
-      "purpose": "Modules 02 and 09 image data.",
+      "include": ["fashion_mnist/*.parquet"],
+      "purpose": "Modules 02, 09, 14 and 15 image data.",
       "license": "MIT"
     },
     {
@@ -63,7 +70,7 @@
       "kind": "model",
       "pack": "full",
       "revision": "a10cc1512eabd3dde888204e902eca88bddb4951",
-      "purpose": "Modules 05, 06, 11 and 12 local model.",
+      "purpose": "Modules 05, 06, 11, 12 and 17 local model.",
       "license": "see upstream model card"
     },
     {
@@ -96,7 +103,7 @@
       "pack": "full",
       "revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
       "include": ["config.json", "generation_config.json", "tokenizer.json", "tokenizer_config.json", "vocab.json", "merges.txt", "model.safetensors"],
-      "purpose": "Module 12 GPT-2 small, read through TransformerLens (548 MB).",
+      "purpose": "Module 12 GPT-2 small, read through TransformerLens; module 18 comparison (548 MB).",
       "license": "see upstream model card"
     },
     {
@@ -106,6 +113,24 @@
       "revision": "57d08a4fd333fbf18caf3fbea63ceeb88e2f50d9",
       "include": ["blocks.8.hook_resid_pre/*"],
       "purpose": "Module 12 sparse autoencoder for GPT-2 small, layer 8 only (151 MB).",
+      "license": "see upstream model card"
+    },
+    {
+      "id": "facebook/dinov2-small",
+      "kind": "model",
+      "pack": "full",
+      "revision": "ed25f3a31f01632728cabb09d1542f84ab7b0056",
+      "include": ["config.json", "model.safetensors"],
+      "purpose": "Module 16 DINOv2 probe (88 MB).",
+      "license": "Apache-2.0"
+    },
+    {
+      "id": "state-spaces/mamba-130m-hf",
+      "kind": "model",
+      "pack": "full",
+      "revision": "1e76775f628fbf1350fbe4dbb3d971ba64af25a1",
+      "include": ["config.json", "generation_config.json", "tokenizer.json", "tokenizer_config.json", "model.safetensors"],
+      "purpose": "Module 18 Mamba against GPT-2 (517 MB).",
       "license": "see upstream model card"
     },
     {
@@ -121,7 +146,7 @@
       "kind": "model",
       "pack": "full",
       "revision": "3f49326eb077187dfe1c2a2bb15fbd74e6ab91e3",
-      "purpose": "Module 08 attention rollout.",
+      "purpose": "Module 08 attention rollout; module 15 intrinsic dimension.",
       "license": "see upstream model card"
     },
     {
@@ -137,7 +162,7 @@
       "kind": "model",
       "pack": "full",
       "revision": "3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268",
-      "purpose": "Module 08 zero-shot CLIP lab.",
+      "purpose": "Module 08 zero-shot CLIP lab; module 13 vision tower.",
       "license": "see upstream model card"
     },
     {
@@ -170,6 +195,24 @@
       "license": "see upstream dataset card"
     },
     {
+      "id": "uoft-cs/cifar10",
+      "kind": "dataset",
+      "pack": "full",
+      "revision": "0b2714987fa478483af9968de7c934580d0bb9a2",
+      "include": ["plain_text/*.parquet"],
+      "purpose": "Module 13 cars (test file); module 16 pretraining and probes (144 MB).",
+      "license": "see upstream dataset card"
+    },
+    {
+      "id": "trl-lib/ultrafeedback_binarized",
+      "kind": "dataset",
+      "pack": "full",
+      "revision": "47124cb5778f5d50de1c7676a412828f3ea7c555",
+      "include": ["data/test-00000-of-00001.parquet", "data/train-00000-of-00001.parquet"],
+      "purpose": "Module 17 preference pairs, pinned upstream (133 MB); the pack never ships the pairs themselves.",
+      "license": "MIT, by provenance from HuggingFaceH4/ultrafeedback_binarized; the card names none"
+    },
+    {
       "id": "AI-Lab-Makerere/beans",
       "kind": "dataset",
       "pack": "full",
@@ -196,8 +239,27 @@
       "revision": "77396f1031920d1c116ec6d63ac397ff6aa492d3",
       "project": "modules/08-vision/python",
       "split": "train[:800]",
-      "purpose": "Module 08 dataset-swap exercise.",
+      "include": ["data/test-00000-of-00001.parquet"],
+      "purpose": "Module 08 dataset-swap exercise; module 13 cats (test file, 45.8 MB, CC0).",
       "license": "see upstream dataset card"
+    }
+  ],
+  "url_downloads": [
+    {
+      "name": "imagenette2-160",
+      "pack": "full",
+      "url": "https://s3.amazonaws.com/fast-ai-imageclas/imagenette2-160.tgz",
+      "sha256": "64d0c4859f35a461889e0147755a999a48b49bf38a7e0f9bd27003f10db02fe5",
+      "purpose": "Modules 13 and 15 imagenette, 160 px (99 MB); each module fetches it on first run into the same folder, and module 13's src/fetch_imagenette.py checks its SHA-256.",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "Lucent InceptionV1 (inception5h.pth)",
+      "pack": "full",
+      "url": "https://github.com/ProGamerGov/pytorch-old-tensorflow-models/raw/master/inception5h.pth",
+      "sha256": "44f1f1e0734fa77edd0ab948c0d4d5c9ab6f4efce10b02d793fd14ab2d71a73b",
+      "purpose": "Module 13 V neuron and feature visualisation (27 MB); Lucent fetches it into the torch hub cache.",
+      "license": "see upstream repository"
     }
   ]
 }

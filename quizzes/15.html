@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz · Geometry of representations · ML course</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1d6fb8; --track:var(--t5); --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67; --grid:rgba(28,36,34,.10);
+  --warn:#c1121f; --soft:rgba(29,111,184,.10);
+  --wrong:#c0504d; --wrong-soft:rgba(192,80,77,.10);
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --grid:rgba(232,238,236,.12); --warn:#ff8f85;
+    --soft:rgba(90,161,230,.16); --t4:#e0679a; --t5:#5aa1e6; --accent:#5aa1e6;
+    --wrong:#f0938f; --wrong-soft:rgba(240,147,143,.13);
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;padding-bottom:5.6rem}
+a{color:var(--accent)}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;background:var(--track);color:var(--track-ink);
+  padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.topbar .spacer{flex:1 1 auto}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:920px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 2rem}
+.intro{max-width:70ch;color:var(--ink)}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .7rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.8rem,2vw,1.2rem);margin:1.4rem 0}
+button{font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:.34rem .82rem;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button:disabled{opacity:1}
+button.primary:hover{color:#fff;filter:brightness(1.06)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:.78rem;color:var(--muted);margin:.35rem 0 0}
+.mono,code{font-family:var(--mono);font-size:.92em}
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ───────── quiz-specific ───────── */
+.qhead{display:flex;flex-wrap:wrap;gap:.5rem;align-items:baseline;margin:0 0 .55rem}
+.qnum{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted)}
+.tag{font-family:var(--display);font-size:.68rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;border:1px solid var(--line);border-radius:999px;
+  padding:.1rem .5rem;color:var(--muted)}
+.tag.conceptual{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.tag.numbers{color:var(--t1);border-color:var(--t1)}
+.tag.predict{color:var(--t3);border-color:var(--t3)}
+.tag.code{color:var(--muted);border-color:var(--line);background:var(--grid)}
+.qhead .spacer{flex:1 1 auto}
+.qstate{font-family:var(--display);font-size:.7rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted)}
+.qtext{margin:0 0 .7rem;max-width:74ch}
+.qtext b{font-weight:600}
+pre.snippet{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--grid);
+  border:1px solid var(--line);border-radius:10px;padding:.65rem .8rem;margin:.2rem 0 .75rem;
+  overflow-x:auto}
+.srcfile{font-family:var(--mono);font-size:.76rem;color:var(--muted);margin:-.5rem 0 .75rem}
+.opts{display:flex;flex-direction:column;gap:.4rem;margin:0 0 .3rem}
+.opt{display:flex;gap:.6rem;align-items:flex-start;text-align:left;width:100%;
+  font-family:var(--body);font-size:.92rem;font-weight:400;line-height:1.45;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:10px;
+  padding:.55rem .7rem;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent);color:var(--ink);background:var(--soft)}
+.opt:disabled{cursor:default}
+.opt .key{font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--muted);
+  min-width:1.2em;padding-top:.08rem}
+.opt.picked{border-color:var(--accent)}
+.opt.right{border-color:var(--accent);background:var(--soft)}
+.opt.right .key{color:var(--accent)}
+.opt.wrongpick{border-color:var(--wrong);background:var(--wrong-soft)}
+.opt.wrongpick .key{color:var(--wrong)}
+.opt .mark{margin-left:auto;font-family:var(--display);font-size:.76rem;font-weight:600;
+  white-space:nowrap;padding-left:.5rem}
+.opt.right .mark{color:var(--accent)}
+.opt.wrongpick .mark{color:var(--wrong)}
+.numrow{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:0 0 .3rem}
+.numrow input{font-family:var(--mono);font-size:.9rem;color:var(--ink);background:var(--paper);
+  border:1px solid var(--line);border-radius:10px;padding:.45rem .6rem;width:15rem;max-width:100%}
+.acts{display:flex;flex-wrap:wrap;gap:.45rem;margin:.55rem 0 0}
+.verdictline{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.03em;
+  text-transform:uppercase;border-radius:999px;padding:.2rem .62rem;display:inline-block;
+  border:1px solid var(--line);margin:.7rem 0 .45rem}
+.verdictline.ok{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.verdictline.no{color:var(--wrong);border-color:var(--wrong);background:var(--wrong-soft)}
+.explain{font-size:.88rem;line-height:1.5;border-left:3px solid var(--line);
+  padding:.1rem 0 .1rem .75rem;margin:.2rem 0 0;max-width:74ch;color:var(--ink)}
+.explain .src{display:block;font-family:var(--mono);font-size:.76rem;color:var(--muted);margin-top:.4rem}
+.explain a.tryit{font-family:var(--display);font-size:.78rem;font-weight:600;text-decoration:none;
+  border:1px solid var(--accent);border-radius:999px;padding:.16rem .6rem;display:inline-block;
+  margin-top:.5rem}
+.explain a.tryit:hover{background:var(--soft)}
+.scorebar{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--panel);
+  border-top:1px solid var(--line);padding:.55rem clamp(.9rem,3vw,2rem)}
+.scorebar .inner{max-width:920px;margin:0 auto;display:flex;flex-wrap:wrap;gap:.5rem .9rem;
+  align-items:center}
+.scorebar .score{font-family:var(--mono);font-size:1rem;font-weight:600;color:var(--accent)}
+.scorebar .of{color:var(--muted);font-weight:400}
+.scorebar .msg{font-size:.84rem;color:var(--muted);flex:1 1 260px;min-width:0}
+.scorebar .msg b{color:var(--ink)}
+.scorebar .msg .review{display:block;font-size:.78rem;margin-top:.1rem}
+@media (max-width:700px){
+  .topbar h1{font-size:.98rem}
+  .scorebar .msg{flex-basis:100%}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Quiz · Geometry of representations</h1>
+  <span class="pill">Module 15 · How learning works</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">← All quizzes</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">Ten questions on module 15. Every number is the module's own measured output,
+      from <span class="mono">results/*.json</span>: a 2-D ReLU net's exact regions, nets of four widths on FashionMNIST,
+      module 02's MLP, and <span class="mono">ViT-base</span> on imagenette.</p>
+    <p>Answer in any order; answering locks a question and shows the explanation.
+      Your answers stay in this browser. Two questions ask you to <b>predict</b> a result
+      before you look it up; commit to an answer first.</p>
+  </section>
+
+  <div id="quiz"></div>
+</main>
+
+<footer>
+  <p class="paths">module → <a href="../modules/15-geometry-of-representations/README.md">../modules/15-geometry-of-representations/README.md</a>
+    · explorable → <a href="../explorables/15-geometry-of-representations.html">../explorables/15-geometry-of-representations.html</a></p>
+  <p>Matching reading: <a href="https://arxiv.org/abs/1906.00904">Deep ReLU Networks Have Surprisingly Few Activation Patterns</a>,
+    <a href="https://arxiv.org/abs/1905.12784">Intrinsic dimension of data representations in deep neural networks</a>, and
+    <a href="https://arxiv.org/abs/1905.00414">Similarity of Neural Network Representations Revisited</a>.</p>
+</footer>
+
+<div class="scorebar">
+  <div class="inner">
+    <span class="score"><span id="sc-score">0</span><span class="of"> / 10</span></span>
+    <span class="msg" id="sc-msg">Nothing answered yet.</span>
+    <button id="sc-reset">Reset quiz</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ═════════════════════════ PURE LOGIC START ═════════════════════════
+   Question bank + grading. Dependency-free and DOM-free: the verification
+   harness loads this file's exports under node and asserts the grading rules,
+   the score accumulation, and the answer-key balance.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const QUIZ_ID = "15";
+const STORE_KEY = "mlcourse-quiz-" + QUIZ_ID;
+const SUMMARY_KEY = "mlcourse-quiz-scores";
+
+const QUESTIONS = [
+  /* ── 1 ────────────────────────────────────────────────────── predict ── */
+  {
+    id: "q1", kind: "single", tag: "predict", topic: "Regions before and after training",
+    text: "<b>Predict</b> before you open the figure. A 2 → 12 → 12 → 2 ReLU net has 158 linear regions in the " +
+          "square [−2.5, 2.5]² at init. It is then trained on two moons to 100% train accuracy. How many regions " +
+          "does the same square hold after training?",
+    options: [
+      "About 20: training merges regions until each class has a few.",
+      "Exactly 158: training moves the boundaries but cannot change their number.",
+      "236: training added regions, with thin slivers where the moons meet.",
+      "Several thousand: every training point gets its own region."
+    ],
+    answer: 2,
+    explain: "236, up from 158, counted exactly by cutting polygons. Training can change the count because a " +
+             "second-layer neuron cuts each first-layer piece only if its boundary passes through it. By eye, " +
+             "the new boundaries gather near the data. One net, one seed.",
+    source: "modules/15-geometry-of-representations/results/regions.json → toy.regions_init, toy.regions_trained · figures/regions.png",
+    tryIt: { href: "../explorables/15-geometry-of-representations.html", label: "try it — switch between the moons net at init and trained in panel 1" }
+  },
+  /* ── 2 ───────────────────────────────────────────────── real numbers ── */
+  {
+    id: "q2", kind: "numeric", tag: "numbers", topic: "Regions along a line at width 256",
+    text: "A 784 → 256 → 256 → 10 net trained 5 epochs on FashionMNIST. A straight line runs between two test " +
+          "images. <b>Type the mean number of linear regions it crosses</b> (30 lines, trained net).",
+    answer: 127.7, tol: 6, tolLabel: "±6",
+    placeholder: "e.g. 40",
+    explain: "127.7 (151.0 at init). From width 32 to 256 the trained count goes 21.3, 32.6, 68.3, 127.7: " +
+             "ratios per doubling 1.53, 2.09, 1.87, roughly in step with the neuron count. One seed and 30 lines, " +
+             "so a demo.",
+    source: "modules/15-geometry-of-representations/results/regions.json → width.widths[3].trained_mean"
+  },
+  /* ── 3 ─────────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q3", kind: "single", tag: "conceptual", topic: "Why the count along a line is exact",
+    text: "The module counts the regions along x(t) = (1 − t)a + tb exactly, with no sampling, in a net with two " +
+          "hidden layers. What makes that possible?",
+    options: [
+      "Layer 1's pre-activations are linear in t, so each switches at one point you can solve for; between those " +
+        "points layer 1 is fixed, so layer 2's pre-activations are linear in t too.",
+      "ReLU networks are linear everywhere, so the line meets one region.",
+      "The segment is short, so at most one neuron switches along it.",
+      "The count uses the network's gradient, which is exact in PyTorch."
+    ],
+    answer: 0,
+    explain: "Inside one layer-1 piece the network up to layer 2 is a fixed linear map, so each layer-2 " +
+             "pre-activation changes sign at most once per piece. Exercise (b) builds the count this way and its " +
+             "test checks it against 100,001 samples along the segment.",
+    source: "modules/15-geometry-of-representations/python/src/regions.py → count_on_segment · README.md §1"
+  },
+  /* ── 4 ────────────────────────────────────────────────────── predict ── */
+  {
+    id: "q4", kind: "single", tag: "predict", topic: "Intrinsic dimension of FashionMNIST",
+    text: "<b>Predict</b> before you look it up. FashionMNIST images have 784 pixels. TwoNN reads the 10,000 test " +
+          "images. About what intrinsic dimension does it return?",
+    options: [
+      "About 2: clothes vary along size and darkness only.",
+      "About 16.",
+      "About 100.",
+      "About 700: almost every pixel varies on its own."
+    ],
+    answer: 1,
+    explain: "15.69 (MLE: 13.14). Both estimators were first checked on curved cubes of known dimension 2, 5, 10 " +
+             "and 20, and landed within 1 of the truth. 784 numbers per image, but the images sit near a set of about " +
+             "13 to 16 dimensions.",
+    source: "modules/15-geometry-of-representations/results/intrinsic_dim.json → fashion.pixels · figures/intrinsic_dim.png",
+    tryIt: { href: "../explorables/15-geometry-of-representations.html", label: "try it — panel 3, FashionMNIST tab" }
+  },
+  /* ── 5 ──────────────────────────────────────────────────────── code ── */
+  {
+    id: "q5", kind: "single", tag: "code", topic: "What TwoNN reads",
+    text: "<code>mu = np.sort(d[:, 1] / d[:, 0])</code>, where <code>d</code> holds each point's sorted distances to " +
+          "its nearest neighbours. TwoNN then fits <code>-log(1 - F(mu)) = dim * log(mu)</code>. What is " +
+          "<code>mu</code>?",
+    options: [
+      "The distance to the second neighbour minus the distance to the first.",
+      "The mean distance to the 20 nearest neighbours.",
+      "The share of variance held by the first principal component.",
+      "For each point, the distance to its second neighbour divided by the distance to its first."
+    ],
+    answer: 3,
+    explain: "A ratio, so the density and the scale cancel. On a d-dimensional set, P(mu > m) = m^(−d): the " +
+             "higher the dimension, the closer the second neighbour sits to the first, and the nearer mu stays to 1.",
+    source: "modules/15-geometry-of-representations/python/src/idest.py → twonn · exercises/exercise_a_id.py"
+  },
+  /* ── 6 ───────────────────────────────────────────────── real numbers ── */
+  {
+    id: "q6", kind: "numeric", tag: "numbers", topic: "PCA against intrinsic dimension",
+    text: "PCA on the same 10,000 FashionMNIST test images. <b>Type how many principal components</b> it takes to " +
+          "hold 90% of the pixel variance.",
+    answer: 83, tol: 0, tolLabel: "exact",
+    placeholder: "e.g. 20",
+    explain: "83 (183 for 95%, 446 for 99%), against an intrinsic dimension of 13 to 16. On a curved 10-d cube PCA " +
+             "needs 52 for 90%. A flat fit pays for every bend.",
+    source: "modules/15-geometry-of-representations/results/manifold.json → pca.fashion_pixels.components"
+  },
+  /* ── 7 ─────────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q7", kind: "single", tag: "conceptual", topic: "The hidden layer, trained and untrained",
+    text: "Module 02's MLP lowers the estimate from 13.1–15.7 at the pixels to 8.5–10.2 at its hidden layer. The " +
+          "same network before training gives 13.3–15.8 at its hidden layer. What does that pair of numbers show?",
+    options: [
+      "Any 256-unit layer lowers the intrinsic dimension, trained or not.",
+      "The estimators fail on ReLU outputs.",
+      "The untrained net is more accurate.",
+      "In this run the drop comes with training: a random ReLU layer of 256 units keeps about the pixels' value."
+    ],
+    answer: 3,
+    explain: "The untrained hidden layer sits at the pixel value, so width alone does not explain the drop. One run " +
+             "and one seed, and the two estimators differ by 1 to 2.5, so read each as a range.",
+    source: "modules/15-geometry-of-representations/results/intrinsic_dim.json → fashion.hidden, fashion.hidden_init"
+  },
+  /* ── 8 ───────────────────────────────────────────────── real numbers ── */
+  {
+    id: "q8", kind: "multi", tag: "numbers", topic: "Midpoints of two images",
+    text: "For 300 pairs of test images of each kind, the module takes the pixel midpoint and finds the nearest of " +
+          "the 60,000 training images. A real test image's median distance to its nearest training image is 3.43. " +
+          "<b>Tick every statement the results support.</b>",
+    options: [
+      "Midpoints of two images of the same class sit about as close to real images (median 3.54).",
+      "Midpoints of two images of different classes sit farther (median 4.58).",
+      "Every midpoint is farther from the data than every real test image.",
+      "29% of different-class midpoints are farther than 90% of real test images are."
+    ],
+    answer: [0, 1, 3],
+    explain: "Same class: 3.54; different classes: 4.58, and 29% beyond the real images' 90th percentile (6% for " +
+             "same-class pairs). Many midpoints still sit close to some real image, so C is false. Pixel distance is " +
+             "a crude ruler: a demo.",
+    source: "modules/15-geometry-of-representations/results/manifold.json → midpoints · figures/manifold.png"
+  },
+  /* ── 9 ─────────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q9", kind: "single", tag: "conceptual", topic: "CKA and its baseline",
+    text: "Linear CKA between the hidden layers of two trained seeds of module 02's MLP: 0.93. Between the two " +
+          "untrained nets: 0.95. Which reading does the data support?",
+    options: [
+      "Training makes the two nets less alike, so it destroys structure.",
+      "A random ReLU layer keeps most of the pixels' geometry (CKA 0.97 with the pixels), so any two look alike; " +
+        "0.93 alone shows little without that baseline.",
+      "The two trained nets learned identical neurons.",
+      "CKA is broken for ReLU layers."
+    ],
+    answer: 1,
+    explain: "Both untrained layers look like the pixels, so they look like each other. Training moves the hidden " +
+             "layer away from the pixels (0.54). At the logits the trained pair (0.91) does stand above the " +
+             "untrained one (0.51). A high CKA is a claim only next to the right baseline.",
+    source: "modules/15-geometry-of-representations/results/cka.json → pairs, pixels_vs_hidden · figures/cka.png",
+    tryIt: { href: "../explorables/15-geometry-of-representations.html", label: "try it — panel 4" }
+  },
+  /* ── 10 ─────────────────────────────────────────────────────── code ── */
+  {
+    id: "q10", kind: "single", tag: "code", topic: "What leaves CKA at 1",
+    text: "<code>linear_cka(x, y)</code> centres the columns, then returns ‖yᵀx‖²_F / (‖xᵀx‖_F ‖yᵀy‖_F). For " +
+          "which <code>y</code> is <code>linear_cka(x, y)</code> exactly 1, whatever <code>x</code>?",
+    options: [
+      "y = x @ A for any invertible matrix A.",
+      "y = np.maximum(x, 0).",
+      "y = 5 * x @ Q, with Q a rotation (orthogonal matrix), or x with its columns shuffled.",
+      "y = x + noise of the same size."
+    ],
+    answer: 2,
+    explain: "Linear CKA ignores rotations, reflections, column order and overall scale. A general linear map " +
+             "changes it, and so does a ReLU; exercise (c) shows by how much. The module's check: a " +
+             "rotated, scaled copy of a hidden layer gives 1.000000, a shuffled one 1.000000.",
+    source: "modules/15-geometry-of-representations/results/cka.json → checks · solutions/solution_c_cka.py"
+  }
+];
+
+
+/* ---------------------------------------------------------------- grading */
+function sameSet(a, b) {
+  const x = a.slice().sort(function (p, q) { return p - q; });
+  const y = b.slice().sort(function (p, q) { return p - q; });
+  return x.length === y.length && x.every(function (v, i) { return v === y[i]; });
+}
+function gradeSingle(q, ans) { return typeof ans === "number" && ans === q.answer; }
+function gradeMulti(q, ans) { return Array.isArray(ans) && sameSet(ans, q.answer); }
+function gradeNumeric(q, ans) {
+  const v = typeof ans === "number" ? ans : parseFloat(String(ans).replace(/[\s,_]/g, ""));
+  return isFinite(v) && Math.abs(v - q.answer) <= q.tol;
+}
+function gradeQuestion(q, ans) {
+  if (ans === undefined || ans === null) return false;
+  if (q.kind === "multi") return gradeMulti(q, ans);
+  if (q.kind === "numeric") return gradeNumeric(q, ans);
+  return gradeSingle(q, ans);
+}
+function scoreAll(questions, answers) {
+  let score = 0, answered = 0;
+  const wrong = [];
+  questions.forEach(function (q) {
+    const a = answers[q.id];
+    if (a === undefined || a === null) return;
+    answered += 1;
+    if (gradeQuestion(q, a)) score += 1; else wrong.push(q.topic);
+  });
+  return { score: score, answered: answered, total: questions.length, wrong: wrong };
+}
+function verdictFor(score, total) {
+  if (score >= 9) return { cls: "ok", text: "solid — move on" };
+  if (score >= 6) return { cls: "no", text: "review the flagged topics" };
+  return { cls: "no", text: "re-run the module notebook first" };
+}
+/* answer-key balance: how often each option position is the correct single-choice answer */
+function keyBalance(questions) {
+  const counts = [0, 0, 0, 0];
+  questions.forEach(function (q) {
+    if (q.kind === "single") counts[q.answer] += 1;
+  });
+  return counts;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { QUIZ_ID, STORE_KEY, SUMMARY_KEY, QUESTIONS, sameSet, gradeSingle,
+                     gradeMulti, gradeNumeric, gradeQuestion, scoreAll, verdictFor, keyBalance };
+}
+/* ══════════════════════════ PURE LOGIC END ══════════════════════════ */
+
+/* ═════════════════════════ DOM / rendering ═════════════════════════ */
+(function () {
+  if (typeof document === "undefined") return;   // running under node
+  const LETTERS = ["A", "B", "C", "D", "E", "F"];
+  const root = document.getElementById("quiz");
+  let answers = {};
+
+  /* ---- persistence ---- */
+  function load() {
+    try {
+      const raw = window.localStorage.getItem(STORE_KEY);
+      if (!raw) return {};
+      const obj = JSON.parse(raw);
+      return (obj && typeof obj.answers === "object" && obj.answers) ? obj.answers : {};
+    } catch (e) { return {}; }
+  }
+  function save() {
+    const s = scoreAll(QUESTIONS, answers);
+    const payload = { quiz: QUIZ_ID, answers: answers, score: s.score,
+                      total: s.total, answered: s.answered, ts: Date.now() };
+    try {
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(payload));
+      let all = {};
+      try { all = JSON.parse(window.localStorage.getItem(SUMMARY_KEY) || "{}") || {}; }
+      catch (e) { all = {}; }
+      all[QUIZ_ID] = { score: s.score, total: s.total, ts: payload.ts };
+      window.localStorage.setItem(SUMMARY_KEY, JSON.stringify(all));
+    } catch (e) { /* private mode: quiz still works, just not remembered */ }
+  }
+
+  /* ---- one question ---- */
+  function buildQuestion(q, i) {
+    const sec = document.createElement("section");
+    sec.className = "panel";
+    sec.id = "sec-" + q.id;
+
+    const head = document.createElement("div");
+    head.className = "qhead";
+    const num = document.createElement("span");
+    num.className = "qnum";
+    num.textContent = "Question " + (i + 1);
+    const tag = document.createElement("span");
+    tag.className = "tag " + q.tag;
+    tag.textContent = { conceptual: "concept", numbers: "real numbers",
+                        predict: "predict", code: "read the code" }[q.tag] || q.tag;
+    const sp = document.createElement("span");
+    sp.className = "spacer";
+    const state = document.createElement("span");
+    state.className = "qstate";
+    state.textContent = "unanswered";
+    head.appendChild(num); head.appendChild(tag); head.appendChild(sp); head.appendChild(state);
+    sec.appendChild(head);
+
+    const txt = document.createElement("p");
+    txt.className = "qtext";
+    txt.innerHTML = q.text;
+    sec.appendChild(txt);
+
+    if (q.code) {
+      const pre = document.createElement("pre");
+      pre.className = "snippet";
+      pre.textContent = q.code;
+      sec.appendChild(pre);
+      const src = document.createElement("p");
+      src.className = "srcfile";
+      src.textContent = q.file;
+      sec.appendChild(src);
+    }
+
+    const holder = { sec: sec, state: state, opts: [], input: null, checkBtn: null,
+                     result: null, q: q };
+
+    if (q.kind === "numeric") {
+      const row = document.createElement("div");
+      row.className = "numrow";
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.inputMode = "numeric";
+      inp.setAttribute("aria-label", "your answer");
+      inp.placeholder = q.placeholder || "your answer";
+      const btn = document.createElement("button");
+      btn.className = "primary";
+      btn.textContent = "Answer";
+      btn.addEventListener("click", function () {
+        const v = parseFloat(inp.value.replace(/[\s,_]/g, ""));
+        if (!isFinite(v)) { inp.focus(); return; }
+        answers[q.id] = v;
+        save(); renderQuestion(holder); renderBar();
+      });
+      inp.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); btn.click(); }
+      });
+      row.appendChild(inp); row.appendChild(btn);
+      sec.appendChild(row);
+      holder.input = inp; holder.checkBtn = btn;
+    } else {
+      const list = document.createElement("div");
+      list.className = "opts";
+      q.options.forEach(function (opt, oi) {
+        const b = document.createElement("button");
+        b.className = "opt";
+        b.type = "button";
+        const key = document.createElement("span");
+        key.className = "key";
+        key.textContent = LETTERS[oi];
+        const body = document.createElement("span");
+        body.innerHTML = opt;
+        const mark = document.createElement("span");
+        mark.className = "mark";
+        b.appendChild(key); b.appendChild(body); b.appendChild(mark);
+        b.addEventListener("click", function () {
+          if (answers[q.id] !== undefined) return;
+          if (q.kind === "multi") {
+            const cur = holder.picked;
+            const at = cur.indexOf(oi);
+            if (at >= 0) cur.splice(at, 1); else cur.push(oi);
+            b.classList.toggle("picked", at < 0);
+            holder.checkBtn.disabled = cur.length === 0;
+          } else {
+            answers[q.id] = oi;
+            save(); renderQuestion(holder); renderBar();
+          }
+        });
+        list.appendChild(b);
+        holder.opts.push({ btn: b, mark: mark });
+      });
+      sec.appendChild(list);
+
+      if (q.kind === "multi") {
+        holder.picked = [];
+        const acts = document.createElement("div");
+        acts.className = "acts";
+        const btn = document.createElement("button");
+        btn.className = "primary";
+        btn.textContent = "Answer";
+        btn.disabled = true;
+        btn.addEventListener("click", function () {
+          if (answers[q.id] !== undefined || holder.picked.length === 0) return;
+          answers[q.id] = holder.picked.slice();
+          save(); renderQuestion(holder); renderBar();
+        });
+        acts.appendChild(btn);
+        const note = document.createElement("span");
+        note.className = "hint";
+        note.style.margin = "0";
+        note.style.alignSelf = "center";
+        note.textContent = "pick every option you believe is true, then Answer";
+        acts.appendChild(note);
+        sec.appendChild(acts);
+        holder.checkBtn = btn;
+      }
+    }
+
+    const res = document.createElement("div");
+    res.style.display = "none";
+    sec.appendChild(res);
+    holder.result = res;
+
+    return holder;
+  }
+
+  /* ---- render one question's locked / unlocked state ---- */
+  function renderQuestion(h) {
+    const q = h.q, ans = answers[q.id], locked = ans !== undefined;
+    const ok = locked && gradeQuestion(q, ans);
+
+    h.state.textContent = locked ? (ok ? "correct" : "incorrect") : "unanswered";
+    h.state.style.color = locked ? (ok ? "var(--accent)" : "var(--wrong)") : "var(--muted)";
+
+    if (h.input) {
+      h.input.disabled = locked;
+      if (locked) h.input.value = String(ans);
+      h.checkBtn.disabled = locked;
+      h.checkBtn.textContent = locked ? "answered" : "Answer";
+    }
+    const correctSet = q.kind === "multi" ? q.answer : (q.kind === "single" ? [q.answer] : []);
+    const pickedSet = !locked ? (h.picked || [])
+      : (q.kind === "multi" ? ans : (q.kind === "single" ? [ans] : []));
+
+    h.opts.forEach(function (o, oi) {
+      o.btn.disabled = locked;
+      o.btn.classList.toggle("picked", !locked && pickedSet.indexOf(oi) >= 0);
+      const isRight = correctSet.indexOf(oi) >= 0;
+      const isPicked = locked && pickedSet.indexOf(oi) >= 0;
+      o.btn.classList.toggle("right", locked && isRight);
+      o.btn.classList.toggle("wrongpick", locked && isPicked && !isRight);
+      o.mark.textContent = !locked ? ""
+        : (isRight ? (isPicked ? "✓ correct · you picked it" : "✓ correct")
+                   : (isPicked ? "✗ your pick" : ""));
+    });
+    if (h.checkBtn && q.kind === "multi") {
+      h.checkBtn.disabled = locked || (h.picked || []).length === 0;
+      h.checkBtn.textContent = locked ? "answered" : "Answer";
+    }
+
+    if (!locked) { h.result.style.display = "none"; h.result.innerHTML = ""; return; }
+
+    h.result.innerHTML = "";
+    h.result.style.display = "block";
+    const v = document.createElement("span");
+    v.className = "verdictline " + (ok ? "ok" : "no");
+    v.textContent = ok ? "Correct" : "Not quite";
+    h.result.appendChild(v);
+
+    if (q.kind === "numeric") {
+      const line = document.createElement("p");
+      line.className = "hint";
+      line.style.marginTop = "0";
+      const nf = function (v) {
+        return Number(v).toLocaleString("en-US", { maximumFractionDigits: 6 });
+      };
+      line.innerHTML = "answer <span class=\"mono\">" + nf(q.answer) +
+        "</span> · accepted " + q.tolLabel + " · you typed <span class=\"mono\">" +
+        nf(ans) + "</span>";
+      h.result.appendChild(line);
+    }
+
+    const ex = document.createElement("div");
+    ex.className = "explain";
+    ex.innerHTML = q.explain;
+    const src = document.createElement("span");
+    src.className = "src";
+    src.textContent = "source · " + q.source;
+    ex.appendChild(src);
+    if (q.tryIt) {
+      const a = document.createElement("a");
+      a.className = "tryit";
+      a.href = q.tryIt.href;
+      a.textContent = q.tryIt.label;
+      ex.appendChild(a);
+    }
+    h.result.appendChild(ex);
+  }
+
+  /* ---- score bar ---- */
+  function renderBar() {
+    const s = scoreAll(QUESTIONS, answers);
+    document.getElementById("sc-score").textContent = String(s.score);
+    const msg = document.getElementById("sc-msg");
+    msg.innerHTML = "";
+    if (s.answered === 0) {
+      msg.textContent = "Nothing answered yet.";
+    } else if (s.answered < s.total) {
+      msg.textContent = s.answered + " of " + s.total + " answered — " +
+        (s.total - s.answered) + " to go.";
+    } else {
+      const vd = verdictFor(s.score, s.total);
+      const b = document.createElement("b");
+      b.textContent = s.score + " / " + s.total + " — " + vd.text + ".";
+      msg.appendChild(b);
+      const rev = document.createElement("span");
+      rev.className = "review";
+      rev.textContent = s.wrong.length
+        ? "Review: " + s.wrong.join(" · ")
+        : "Every topic clean.";
+      msg.appendChild(rev);
+    }
+  }
+
+  /* ---- boot ---- */
+  answers = load();
+  const holders = QUESTIONS.map(function (q, i) {
+    const h = buildQuestion(q, i);
+    root.appendChild(h.sec);
+    return h;
+  });
+  holders.forEach(renderQuestion);
+  renderBar();
+
+  document.getElementById("sc-reset").addEventListener("click", function () {
+    if (!window.confirm("Clear your answers for this quiz and start over?")) return;
+    answers = {};
+    holders.forEach(function (h) { h.picked = []; });
+    try {
+      window.localStorage.removeItem(STORE_KEY);
+      let all = {};
+      try { all = JSON.parse(window.localStorage.getItem(SUMMARY_KEY) || "{}") || {}; }
+      catch (e) { all = {}; }
+      delete all[QUIZ_ID];
+      window.localStorage.setItem(SUMMARY_KEY, JSON.stringify(all));
+    } catch (e) { /* ignore */ }
+    holders.forEach(renderQuestion);
+    renderBar();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+})();
+</script>
+<!-- built for ml-course quizzes v1 -->
+</html>

@@ -1,0 +1,67 @@
+{
+ "objective": "random",
+ "encoder_params": 295104,
+ "head_params": 0,
+ "latent_dim": 128,
+ "budget_seconds": 0.0,
+ "train_seconds": 0.0,
+ "steps": 0,
+ "batch": 0,
+ "images_seen": 0,
+ "lr": 0,
+ "probes": {
+  "class_acc": 0.4183,
+  "class_acc_10k": 0.401,
+  "colour_r2": 0.9214,
+  "rotation_acc": 0.4735,
+  "meters_test": {
+   "std_norm": 0.1616,
+   "std_raw": 0.04732,
+   "erank": 16.04
+  }
+ },
+ "log": [
+  {
+   "step": 0,
+   "seconds": 0.0,
+   "loss": null,
+   "std_norm": 0.1619,
+   "std_raw": 0.047407,
+   "erank": 15.73
+  }
+ ],
+ "sample": null,
+ "config": {
+  "mask_ratio": 0.6,
+  "tau": 0.2,
+  "ema": [
+   0.996,
+   1.0
+  ],
+  "weight_decay": 0.05,
+  "schedule": "linear warmup over the first 5% of the budget, then cosine to 0, keyed on wall time"
+ },
+ "data": {
+  "id": "uoft-cs/cifar10",
+  "revision": "0b2714987fa478483af9968de7c934580d0bb9a2",
+  "train": 50000,
+  "test": 10000
+ },
+ "device": "mps",
+ "guard": {
+  "script": "pretrain_random",
+  "seconds": 8.7,
+  "minutes": 0.14,
+  "peak_rss_gb": 0.87,
+  "peak_mps_driver_gb": 1.59,
+  "stages_seconds": {
+   "load": 0.07,
+   "train": 1.72,
+   "probe": 6.85
+  },
+  "machine": "arm64 26.6.2",
+  "torch": "2.14.1",
+  "mps_high_watermark_ratio": "0.5",
+  "mps_cap_gb": 5.92
+ }
+}

@@ -1,0 +1,21 @@
+[project]
+name = "mlcourse-17-learning-from-preferences"
+version = "0.1.0"
+description = "Module 17 — Learning from preferences: Bradley-Terry, a reward head, DPO by hand and with TRL + LoRA, length bias."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "datasets>=5.0.0",
+    "matplotlib>=3.11.1",
+    "numpy>=2.0",
+    "peft==0.21.2",
+    "pyarrow>=20.0",
+    "pytest>=9.1.1",
+    "torch>=2.14.1",
+    "transformers>=5.20.1",
+    "trl==1.14.2",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "../solutions"]
+addopts = "-q"

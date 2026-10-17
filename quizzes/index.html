@@ -8,7 +8,7 @@
 *,*::before,*::after{box-sizing:border-box}
 :root{
   --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d;
-  --t0:#a86b0e; --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --track-ink:#ffffff;
+  --t0:#a86b0e; --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8; --t6:#b7410e; --track-ink:#ffffff;
   --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67;
   --soft:rgba(31,145,141,.10); --sketch:rgba(28,36,34,.42);
   --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
@@ -19,7 +19,7 @@
 @media (prefers-color-scheme:dark){
   :root{
     --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
-    --muted:#9daba7; --t0:#d9962e; --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --accent:#37b3ae;
+    --muted:#9daba7; --t0:#d9962e; --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --t5:#5aa1e6; --t6:#e7764a; --accent:#37b3ae;
     --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --sketch:rgba(232,238,236,.40);
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
   }
@@ -58,6 +58,8 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
 .track.t2 > h2{color:var(--t2)} .track.t2 > h2 .dot{background:var(--t2)}
 .track.t3 > h2{color:var(--t3)} .track.t3 > h2 .dot{background:var(--t3)}
 .track.t4 > h2{color:var(--t4)} .track.t4 > h2 .dot{background:var(--t4)}
+.track.t5 > h2{color:var(--t5)} .track.t5 > h2 .dot{background:var(--t5)}
+.track.t6 > h2{color:var(--t6)} .track.t6 > h2 .dot{background:var(--t6)}
 
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:1rem}
 
@@ -74,7 +76,7 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
   text-transform:uppercase;color:var(--track-ink);padding:.24rem .6rem;border-radius:999px;
   white-space:nowrap}
 .pill.t0{background:var(--t0)}
-.pill.t1{background:var(--t1)} .pill.t2{background:var(--t2)} .pill.t3{background:var(--t3)} .pill.t4{background:var(--t4)}
+.pill.t1{background:var(--t1)} .pill.t2{background:var(--t2)} .pill.t3{background:var(--t3)} .pill.t4{background:var(--t4)} .pill.t5{background:var(--t5)} .pill.t6{background:var(--t6)}
 .card .file{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
 
 /* --- score slot, painted from localStorage --- */
@@ -105,7 +107,7 @@ footer p{margin:.3rem 0;max-width:74ch}
 <body>
 <header class="topbar">
   <h1>ML course quizzes</h1>
-  <span class="count" id="stat">16 quizzes · 160 questions</span>
+  <span class="count" id="stat">22 quizzes · 220 questions</span>
   <span class="spacer"></span>
   <a class="back" href="../explorables/index.html">Explorables</a>
   <a class="back" href="../index.html">← Course home</a>
@@ -113,7 +115,7 @@ footer p{margin:.3rem 0;max-width:74ch}
 
 <main>
   <section class="intro">
-    <p class="lede">Sixteen self-graded quizzes — one per module, including the optional Origins
+    <p class="lede">Twenty-two self-graded quizzes — one per module, including the optional Origins
       prologue and the 05½ evaluation bridge lab —
       ten questions each, every one grounded in that module's own code, figures and measured numbers.</p>
     <p>Answer in any order; a question locks as soon as you answer it and reveals why the right answer
@@ -268,8 +270,8 @@ footer p{margin:.3rem 0;max-width:74ch}
   </section>
 
   <section class="track t4">
-    <h2><span class="dot"></span>Looking inside<span class="rng">modules 11–12</span></h2>
-    <p class="sub">Open a trained model while it runs: read one neuron, probe each layer, patch one cell, then read features through a sparse dictionary.</p>
+    <h2><span class="dot"></span>Looking inside<span class="rng">modules 11–13</span></h2>
+    <p class="sub">Open a trained model while it runs: read one neuron, probe each layer, patch one cell, read features through a sparse dictionary, then do the same to vision and JEPA models.</p>
     <div class="grid">
 
       <a class="card" href="11.html">
@@ -286,6 +288,70 @@ footer p{margin:.3rem 0;max-width:74ch}
         <p class="hook">How many features the toy model keeps, what TopK does, dead latents, the loss gap an
           SAE closes, loading a published SAE by hand, and how to read a steering demo.</p>
         <div class="score" data-quiz="12"></div>
+      </a>
+
+      <a class="card" href="13.html">
+        <div class="meta"><span class="pill t4">Module 13</span><span class="file">13.html</span></div>
+        <h3>Inside vision and JEPA models</h3>
+        <p class="hook">What drives channel 4e:55, why one unit needs a rank among its neighbours, the random-weight
+          control, what a render shows, three CLIP neurons, and how to read a negative R².</p>
+        <div class="score" data-quiz="13"></div>
+      </a>
+
+    </div>
+  </section>
+
+  <section class="track t5">
+    <h2><span class="dot"></span>How learning works<span class="rng">modules 14–16</span></h2>
+    <p class="sub">Watch training find a solution, measure the shape it leaves behind, and learn without labels.</p>
+    <div class="grid">
+
+      <a class="card" href="14.html">
+        <div class="meta"><span class="pill t5">Module 14</span><span class="file">14.html</span></div>
+        <h3>How training finds a solution</h3>
+        <p class="hook">Momentum on the Rosenbrock valley, Adam's range of rates, warmup's first step, sharpness against
+          test accuracy, filter-normalised slices, and when the model groks.</p>
+        <div class="score" data-quiz="14"></div>
+      </a>
+
+      <a class="card" href="15.html">
+        <div class="meta"><span class="pill t5">Module 15</span><span class="file">15.html</span></div>
+        <h3>Geometry of representations</h3>
+        <p class="hook">Regions before and after training, why the count along a line is exact, what TwoNN reads, PCA
+          against intrinsic dimension, and CKA against its baseline.</p>
+        <div class="score" data-quiz="15"></div>
+      </a>
+
+      <a class="card" href="16.html">
+        <div class="meta"><span class="pill t5">Module 16</span><span class="file">16.html</span></div>
+        <h3>Self-supervised learning and JEPA</h3>
+        <p class="hook">A JEPA with no stop-grad, why a random-encoder floor, reading NT-Xent and SIGReg, two kinds of
+          collapse, who keeps colour, and what the DINOv2 number means.</p>
+        <div class="score" data-quiz="16"></div>
+      </a>
+
+    </div>
+  </section>
+
+  <section class="track t6">
+    <h2><span class="dot"></span>Other recipes<span class="rng">modules 17–18</span></h2>
+    <p class="sub">Train from preferences instead of labels, and carry a fixed state from token to token instead of attention.</p>
+    <div class="grid">
+
+      <a class="card" href="17.html">
+        <div class="meta"><span class="pill t6">Module 17</span><span class="file">17.html</span></div>
+        <h3>Learning from preferences</h3>
+        <p class="hook">How many comparisons a ranking needs, what Bradley-Terry identifies, the DPO loss and why Z(x)
+          drops out, what 200 DPO steps did, and length bias.</p>
+        <div class="score" data-quiz="17"></div>
+      </a>
+
+      <a class="card" href="18.html">
+        <div class="meta"><span class="pill t6">Module 18</span><span class="file">18.html</span></div>
+        <h3>Beyond attention</h3>
+        <p class="hook">KV cache against state, the GRU's update gate, a fixed recurrence as a convolution, equal
+          training time, selective against fixed, and Mamba without its kernels.</p>
+        <div class="score" data-quiz="18"></div>
       </a>
 
     </div>

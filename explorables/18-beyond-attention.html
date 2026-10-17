@@ -1,0 +1,380 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beyond attention — ml-course explorable</title>
+<style>
+  :root{
+    --paper:#f6f8f7; --ink:#1c2422; --panel:#ffffff; --panel-2:#eef2f0;
+    --line:#d5ddda; --muted:#5d6b67; --accent:#1f918d;
+    --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t6:#b7410e;
+    --gpt:#453781; --gru:#c98a2e; --ssm:#b7410e;
+    --pos:#1f918d; --neg:#c1121f;
+    --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
+    --mono:"SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    --display:"Avenir Next","Helvetica Neue",sans-serif;
+    --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --panel-2:#222d29;
+      --line:#31403b; --muted:#9dada8; --accent:#37b3ae; --t4:#e0679a; --t6:#e7764a;
+      --gpt:#9a8be0; --gru:#e0b25e; --ssm:#e7764a;
+      --pos:#37b3ae; --neg:#ff6b6b;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink)}
+  body{font-family:var(--body);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 16px 64px}
+
+  header.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    padding:16px 0 14px;border-bottom:1px solid var(--line);margin-bottom:22px}
+  header.top h1{font-family:var(--display);font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .pill{font-family:var(--display);font-size:11.5px;font-weight:600;letter-spacing:.02em;
+    padding:3px 10px;border-radius:999px;color:#fff;background:var(--t6);white-space:nowrap}
+  .top .spacer{flex:1}
+  .backlink{font-size:13px;color:var(--muted);text-decoration:none;border-bottom:1px solid transparent}
+  .backlink:hover{color:var(--accent);border-bottom-color:var(--accent)}
+
+  .intro{max-width:78ch;font-size:15.5px;margin:0 0 26px}
+  .intro em{color:var(--accent);font-style:normal;font-weight:600}
+
+  section{margin:0 0 30px}
+  h2{font-family:var(--display);font-size:15px;font-weight:600;margin:0 0 4px;letter-spacing:.01em}
+  .sub{font-size:13px;color:var(--muted);margin:0 0 14px;max-width:80ch}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    box-shadow:var(--shadow);padding:16px}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 14px;
+    padding:0 0 12px;border-bottom:1px solid var(--line)}
+  .seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;overflow:hidden;flex-wrap:wrap}
+  .seg button{font-family:var(--display);font-size:12px;font-weight:600;border:0;background:transparent;
+    color:var(--muted);padding:5px 11px;cursor:pointer}
+  .seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+  .seg button:focus-visible,.btn:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  .btn{font-family:var(--display);font-size:12px;font-weight:600;border:1.5px solid var(--line);
+    background:transparent;color:var(--ink);border-radius:999px;padding:4px 11px;cursor:pointer}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .hint{font-size:11.5px;color:var(--muted)}
+  kbd{font-family:var(--mono);font-size:10.5px;border:1px solid var(--line);border-radius:4px;
+    padding:0 4px;background:var(--panel-2)}
+
+  .notice{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+  .chip{font-family:var(--mono);font-size:11.5px;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:999px;padding:3px 10px;color:var(--muted)}
+  .chip b{color:var(--ink)}
+
+  .two{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px}
+  @media (max-width:820px){ .two{grid-template-columns:minmax(0,1fr)} }
+  svg{display:block;max-width:100%;height:auto}
+  svg text{font-family:var(--body);fill:var(--muted)}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:var(--muted);margin-top:6px}
+  .legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+  .panel-title{font-size:12px;color:var(--muted);margin:0 0 6px;font-family:var(--display);font-weight:600}
+
+  table.st{border-collapse:collapse;width:100%;font-size:13px}
+  table.st td,table.st th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  table.st th{font-family:var(--display);font-size:12px;color:var(--muted);font-weight:600}
+  table.st td.num{font-family:var(--mono);white-space:nowrap;text-align:right}
+  .tablewrap{overflow-x:auto}
+
+  .slider{display:grid;grid-template-columns:9.5em minmax(0,1fr) 5.5em;gap:8px;align-items:center;font-size:12.5px}
+  .slider span.v{font-family:var(--mono);font-size:12px;color:var(--ink)}
+  .sliders{display:flex;flex-direction:column;gap:6px;margin:0 0 12px}
+  input[type=range]{accent-color:var(--accent);width:100%}
+  .tokens{display:flex;flex-wrap:wrap;gap:2px;font-family:var(--mono);font-size:13px;margin:6px 0 0}
+  .tokens span{padding:0 4px;border-radius:3px;border:1px solid var(--line);min-width:1.2em;text-align:center}
+  .tokens span.key{border-color:var(--ssm);color:var(--ssm);font-weight:600}
+  .readout{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:8px;min-height:19px}
+  .readout b{color:var(--ink)}
+
+  ul.notice-list{margin:0;padding-left:20px;font-size:14px}
+  ul.notice-list li{margin:6px 0}
+  ul.notice-list code{font-family:var(--mono);font-size:12.5px;background:var(--panel-2);border-radius:4px;padding:1px 4px}
+
+  footer.bot{border-top:1px solid var(--line);padding-top:14px;font-size:12.5px;color:var(--muted)}
+  footer.bot a{color:var(--accent)}
+  footer.bot .row{margin:4px 0}
+  footer.bot code{font-family:var(--mono)}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <h1>Beyond attention</h1>
+  <span class="pill">Module 18 · Other recipes</span>
+  <span class="spacer"></span>
+  <a class="backlink" href="index.html">← All explorables</a>
+</header>
+
+<p class="intro">
+  To write its next token, a transformer looks back at every earlier token, so it keeps a <em>key</em> and a
+  <em>value</em> for each of them: the KV cache, which grows with every step. A recurrent model keeps one
+  fixed-size <em>state</em> instead and overwrites it at each step. Below: the two counted step by step with the
+  module's own models and measurements, then a recurrence with two states small enough to read, where you
+  set the decays and how much the input may choose them.
+</p>
+
+<section>
+  <h2>1 · KV cache against recurrent state, step by step</h2>
+  <p class="sub" id="kvsub"></p>
+  <div class="card">
+    <div class="controls">
+      <span class="hint">models</span>
+      <span class="seg" id="pairseg">
+        <button aria-pressed="true">this module's three (~620k parameters)</button>
+        <button aria-pressed="false">GPT-2 small vs Mamba-130M</button>
+      </span>
+      <button class="btn" id="stepb">+1 token</button>
+      <button class="btn" id="playb">play</button>
+      <button class="btn" id="resetb">reset</button>
+    </div>
+    <div class="controls" style="border:0;padding:0;margin:0 0 10px">
+      <span class="hint">tokens so far</span>
+      <input type="range" id="tpos" min="1" max="4096" value="1" aria-label="tokens so far" style="width:min(420px,100%)">
+      <span class="chip" id="tval"></span>
+    </div>
+    <div class="two">
+      <div>
+        <p class="panel-title">What each model holds after the last token (the first 40 tokens drawn cell by cell)</p>
+        <svg id="cells" viewBox="0 0 520 250" role="img" aria-label="Cache and state cells"></svg>
+      </div>
+      <div>
+        <p class="panel-title">Floats held to make the next token</p>
+        <svg id="bars" viewBox="0 0 400 250" role="img" aria-label="Memory per model"></svg>
+      </div>
+    </div>
+    <div class="tablewrap"><table class="st" id="kvtab"></table></div>
+    <div class="readout" id="kvread"></div>
+  </div>
+</section>
+
+<section>
+  <h2>2 · A recurrence with two states: decay and gate</h2>
+  <p class="sub">Each step: <code>h<sub>i</sub> ← a<sub>i</sub>·h<sub>i</sub> + (1 − a<sub>i</sub>)·x</code>, with
+    <code>a<sub>i</sub> = exp(−Δ·λ<sub>i</sub>)</code>. λ<sub>i</sub> sets how fast state i forgets. Δ is the
+    step size. With the gate at 0, Δ is the same at every step: the layer is linear and time-invariant, like the
+    first model of section 2. With the gate at 1, Δ comes from the input: large on the marked tokens (write
+    and forget fast), near zero on the others (hold). That is what "selective" means. The task: the input is
+    a run of noise with a few marked digits; the reader wants the last digit.</p>
+  <div class="card">
+    <div class="sliders">
+      <label class="slider"><span>slow state: λ₁</span><input type="range" id="l1" min="0" max="100" value="15"><span class="v" id="l1v"></span></label>
+      <label class="slider"><span>fast state: λ₂</span><input type="range" id="l2" min="0" max="100" value="70"><span class="v" id="l2v"></span></label>
+      <label class="slider"><span>gate (selectivity)</span><input type="range" id="gate" min="0" max="100" value="0"><span class="v" id="gatev"></span></label>
+    </div>
+    <div class="tokens" id="toks"></div>
+    <svg id="ssm" viewBox="0 0 640 260" role="img" aria-label="Two states over time"></svg>
+    <div class="legend"><span><i style="background:var(--muted)"></i>input x</span>
+      <span><i style="background:var(--ssm)"></i>slow state h₁</span>
+      <span><i style="background:var(--gru)"></i>fast state h₂</span>
+      <span><i style="background:var(--accent)"></i>last marked digit (the target)</span></div>
+    <div class="readout" id="ssmread"></div>
+  </div>
+</section>
+
+<section>
+  <h2>3 · The module's numbers</h2>
+  <p class="sub" id="losssub"></p>
+  <div class="card"><div class="tablewrap"><table class="st" id="losstab"></table></div></div>
+</section>
+
+<section>
+  <h2>What to notice</h2>
+  <div class="card"><ul class="notice-list" id="notice"></ul></div>
+</section>
+
+<footer class="bot">
+  <div class="row">Module: <code>../modules/18-beyond-attention/README.md</code></div>
+  <div class="row">Data: written into this page by <code>modules/18-beyond-attention/python/src/export_explorable.py</code>
+    from <code>results/gru.json</code>, <code>ssm.json</code>, <code>compare.json</code>, <code>decode.json</code> and
+    <code>hf_compare.json</code>. Section 2 is a toy computed in the page.</div>
+  <div class="row">The KV cache, built in Zig: <a href="07-kv-cache.html">KV cache &amp; int8</a> (module 07).</div>
+</footer>
+</div>
+
+<script>
+/* BEGIN DATA: written by modules/18-beyond-attention/python/src/export_explorable.py; do not edit */
+const DATA = {"tiny":{"gpt":{"layers":3,"d":128,"floats_per_token":768},"gru":{"layers":2,"hidden":224,"state_floats":448},"selective":{"layers":5,"E":280,"N":16,"state_floats":26600},"checkpoints":["256","1024","4096"],"measured":{"cpu":{"gpt":{"256":{"state_floats":196608,"state_bytes":786432,"tokens_per_s":4524.9},"1024":{"state_floats":786432,"state_bytes":3145728,"tokens_per_s":3194.9},"4096":{"state_floats":3145728,"state_bytes":12582912,"tokens_per_s":1706.5}},"gru":{"256":{"state_floats":448,"state_bytes":1792,"tokens_per_s":25641.0},"1024":{"state_floats":448,"state_bytes":1792,"tokens_per_s":25641.0},"4096":{"state_floats":448,"state_bytes":1792,"tokens_per_s":23255.8}},"selective":{"256":{"state_floats":26600,"state_bytes":106400,"tokens_per_s":4587.2},"1024":{"state_floats":26600,"state_bytes":106400,"tokens_per_s":4545.5},"4096":{"state_floats":26600,"state_bytes":106400,"tokens_per_s":4672.9}}},"mps":{"gpt":{"256":{"state_floats":196608,"state_bytes":786432,"tokens_per_s":379.4},"1024":{"state_floats":786432,"state_bytes":3145728,"tokens_per_s":405.7},"4096":{"state_floats":3145728,"state_bytes":12582912,"tokens_per_s":244.9}},"gru":{"256":{"state_floats":448,"state_bytes":1792,"tokens_per_s":5181.3},"1024":{"state_floats":448,"state_bytes":1792,"tokens_per_s":5076.1},"4096":{"state_floats":448,"state_bytes":1792,"tokens_per_s":5000.0}},"selective":{"256":{"state_floats":26600,"state_bytes":106400,"tokens_per_s":1739.1},"1024":{"state_floats":26600,"state_bytes":106400,"tokens_per_s":2369.7},"4096":{"state_floats":26600,"state_bytes":106400,"tokens_per_s":2283.1}}}}},"hf":{"device":"mps","contexts":["256","960"],"gpt2":{"layers":12,"d":768,"floats_per_token":18432,"cache":{"256":18874368,"960":70778880}},"mamba":{"layers":24,"E":1536,"N":16,"state_floats":737280,"cache":{"256":2949120,"960":2949120}}},"loss":{"steps":1000,"budget":60.0,"committed":1.7215,"rows":[{"name":"GPT (attention)","params":619776,"steps_val":null,"budget_val":1.6293,"budget_steps":1965},{"name":"GRU","params":619808,"steps_val":1.8334,"budget_val":1.8079,"budget_steps":1147},{"name":"diagonal linear recurrence","params":605484,"steps_val":1.5407,"budget_val":null,"budget_steps":null},{"name":"selective SSM","params":635260,"steps_val":1.5242,"budget_val":1.5746,"budget_steps":505}]}};
+/* END DATA */
+</script>
+<script>
+"use strict";
+(function(){
+const $=s=>document.querySelector(s);
+const NS="http://www.w3.org/2000/svg";
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);
+  for(const k in attrs) e.setAttribute(k,attrs[k]); if(parent) parent.appendChild(e); return e;}
+const fmt=n=>Math.round(n).toLocaleString("en-US");
+function bytes(b){ if(b<1024) return fmt(b)+" B"; if(b<1048576) return (b/1024).toFixed(1)+" KB"; return (b/1048576).toFixed(2)+" MB"; }
+function segButtons(box,onPick){
+  box.querySelectorAll("button").forEach((b,i)=>b.addEventListener("click",()=>{
+    box.querySelectorAll("button").forEach((x,j)=>x.setAttribute("aria-pressed",j===i?"true":"false")); onPick(i); }));
+}
+
+/* ------------------------------------------------------------ 1 · KV vs state */
+const D=DATA;
+const PAIRS=[
+  {max:4096, cellFloats:D.tiny.gpt.d, models:[
+    {key:"gpt", name:"GPT, KV cache", color:"var(--gpt)", grows:true, perTok:D.tiny.gpt.floats_per_token,
+     rows:2*D.tiny.gpt.layers, note:D.tiny.gpt.layers+" layers × (key + value) × "+D.tiny.gpt.d+" floats per token"},
+    {key:"gru", name:"GRU, state", color:"var(--gru)", grows:false, fixed:D.tiny.gru.state_floats,
+     note:D.tiny.gru.layers+" layers × "+D.tiny.gru.hidden+" floats"},
+    {key:"selective", name:"selective SSM, state", color:"var(--ssm)", grows:false, fixed:D.tiny.selective.state_floats,
+     note:D.tiny.selective.layers+" layers × ("+D.tiny.selective.E+" channels × "+D.tiny.selective.N+" states + conv buffer)"}]},
+  {max:1024, cellFloats:D.hf.gpt2.d, models:[
+    {key:"gpt2", name:"GPT-2 small, KV cache", color:"var(--gpt)", grows:true, perTok:D.hf.gpt2.floats_per_token,
+     rows:2*D.hf.gpt2.layers, note:D.hf.gpt2.layers+" layers × (key + value) × "+D.hf.gpt2.d+" floats per token"},
+    {key:"mamba", name:"Mamba-130M, state", color:"var(--ssm)", grows:false, fixed:D.hf.mamba.state_floats,
+     note:D.hf.mamba.layers+" layers × ("+D.hf.mamba.E+" channels × "+D.hf.mamba.N+" states + conv buffer)"}]}
+];
+let pair=0, T=1, timer=null;
+function held(m,t){ return m.grows ? m.perTok*t : m.fixed; }
+
+function drawCells(){
+  const svg=$("#cells"); svg.innerHTML="";
+  const P=PAIRS[pair], gm=P.models[0], show=Math.min(T,40), cf=P.cellFloats;
+  const cw=11, ch=11, x0=8, perRow=40;
+  el("text",{x:x0,y:14,"font-size":11},svg).textContent=gm.name+": one new column per token · one cell = "+cf+" floats";
+  const rows=Math.min(gm.rows,6);
+  for(let c=0;c<show;c++) for(let r=0;r<rows;r++){
+    el("rect",{x:x0+c*(cw+1),y:22+r*(ch+1),width:cw,height:ch,rx:2,
+      fill:gm.color,"fill-opacity":c===show-1?0.95:0.45},svg);
+  }
+  let y=22+rows*(ch+1)+12;
+  const extra=[]; if(gm.rows>rows) extra.push(gm.rows+" rows in all, 6 drawn"); if(T>40) extra.push("+"+fmt(T-40)+" more columns not drawn");
+  if(extra.length) el("text",{x:x0,y:y,"font-size":10},svg).textContent="… "+extra.join(" · ");
+  y+=24;
+  P.models.slice(1).forEach(m=>{
+    const n=Math.ceil(m.fixed/cf), drawn=Math.min(n,perRow*4);
+    el("text",{x:x0,y:y,"font-size":11},svg).textContent=m.name+": "+fmt(n)+" cells, rewritten each token"+(n>drawn?" ("+drawn+" drawn)":"");
+    for(let i=0;i<drawn;i++){
+      const c=i%perRow, r=Math.floor(i/perRow), hue=(Math.sin(i*1.7+T*0.9)+1)/2;
+      el("rect",{x:x0+c*(cw+1),y:y+8+r*(ch+1),width:cw,height:ch,rx:2,fill:m.color,"fill-opacity":0.25+0.7*hue},svg);
+    }
+    y+=Math.ceil(drawn/perRow)*(ch+1)+30;
+  });
+  svg.setAttribute("viewBox","0 0 520 "+Math.max(120,y-10));
+}
+
+function drawBars(){
+  const svg=$("#bars"); svg.innerHTML="";
+  const P=PAIRS[pair], W=400, left=8, top=16, bw=W-left-70, gap=56;
+  const maxv=Math.max(...P.models.map(m=>held(m,P.max)));
+  P.models.forEach((m,i)=>{
+    const y=top+i*gap, v=held(m,T);
+    el("text",{x:left,y:y,"font-size":11},svg).textContent=m.name;
+    el("rect",{x:left,y:y+6,width:bw,height:16,rx:3,fill:"var(--panel-2)"},svg);
+    el("rect",{x:left,y:y+6,width:Math.max(1.5,bw*v/maxv),height:16,rx:3,fill:m.color},svg);
+    const t=el("text",{x:left+bw+6,y:y+19,"font-size":11},svg); t.textContent=bytes(4*v); t.style.fill="var(--ink)";
+  });
+  const y=top+P.models.length*gap+4;
+  el("text",{x:left,y:y,"font-size":10.5},svg).textContent="linear scale; full bar = the largest model at "+fmt(P.max)+" tokens";
+}
+
+function drawTable(){
+  const P=PAIRS[pair];
+  let h="<thead><tr><th>model</th><th>what it keeps</th><th style='text-align:right'>floats now</th><th style='text-align:right'>floats read to make the next token</th></tr></thead><tbody>";
+  P.models.forEach(m=>{
+    const v=held(m,T);
+    h+="<tr><td>"+m.name+"</td><td>"+m.note+"</td><td class='num'>"+fmt(v)+"</td><td class='num'>"+fmt(v)+(m.grows?" (all of it, every step)":" (the whole state, every step)")+"</td></tr>";
+  });
+  $("#kvtab").innerHTML=h+"</tbody>";
+  const g=P.models[0], r=P.models[P.models.length-1];
+  const cross=Math.ceil(r.fixed/g.perTok);
+  let msg="The cache passes the "+r.name.split(",")[0]+"'s state after <b>"+fmt(cross)+"</b> tokens. ";
+  if(pair===0){
+    const m=D.tiny.measured, cps=D.tiny.checkpoints;
+    msg+="Measured on this Mac, tokens per second ("+cps.join(" / ")+" tokens): ";
+    msg+=["cpu","mps"].filter(d=>m[d]).map(d=>d.toUpperCase()+" GPT "+cps.map(c=>fmt(m[d].gpt[c].tokens_per_s)).join(" / ")+
+      ", SSM "+cps.map(c=>fmt(m[d].selective[c].tokens_per_s)).join(" / ")).join("; ")+".";
+  } else {
+    const c=D.hf;
+    msg+="Measured caches after "+c.contexts.join(" and ")+" tokens: GPT-2 "+c.contexts.map(t=>bytes(c.gpt2.cache[t])).join(" and ")+
+      ", Mamba "+c.contexts.map(t=>bytes(c.mamba.cache[t])).join(" and ")+".";
+  }
+  $("#kvread").innerHTML=msg;
+}
+
+function drawKV(){
+  T=Math.min(T,PAIRS[pair].max);
+  $("#tpos").max=PAIRS[pair].max; $("#tpos").value=T;
+  $("#tval").innerHTML="t = <b>"+fmt(T)+"</b>";
+  drawCells(); drawBars(); drawTable();
+}
+$("#kvsub").innerHTML="Pick the models, then add tokens one at a time or drag the slider. Counts come from the "+
+  "models' shapes, the same numbers <code>state_floats</code> returns in the module's code; the readout under the table "+
+  "gives the measured ones.";
+segButtons($("#pairseg"),i=>{pair=i; drawKV();});
+$("#tpos").addEventListener("input",e=>{T=+e.target.value; drawKV();});
+$("#stepb").addEventListener("click",()=>{T=Math.min(T+1,PAIRS[pair].max); drawKV();});
+$("#resetb").addEventListener("click",()=>{T=1; drawKV();});
+$("#playb").addEventListener("click",()=>{
+  if(timer){clearInterval(timer); timer=null; $("#playb").textContent="play"; return;}
+  $("#playb").textContent="pause";
+  timer=setInterval(()=>{ T=T<40?T+1:Math.min(PAIRS[pair].max,Math.ceil(T*1.08));
+    drawKV(); if(T>=PAIRS[pair].max){clearInterval(timer); timer=null; $("#playb").textContent="play";} },180);
+});
+
+/* ------------------------------------------------------------ 2 · two-state SSM */
+const SEQ=[]; (function(){ let s=7;
+  const rnd=()=>{ s=(s*16807)%2147483647; return s/2147483647; };
+  for(let i=0;i<60;i++){ const key=[5,19,33,47].includes(i); const v=key?[0.9,0.25,0.7,0.4][[5,19,33,47].indexOf(i)]:(rnd()-0.5)*0.9;
+    SEQ.push({key:key,x:v,label:key?String(Math.round(v*9)):"·"}); } })();
+$("#toks").innerHTML=SEQ.map(s=>"<span"+(s.key?" class='key'":"")+">"+s.label+"</span>").join("");
+
+function runSSM(l1,l2,g){
+  const h1=[],h2=[]; let a=0,b=0;
+  SEQ.forEach(s=>{
+    const dSel=s.key?4.0:0.002, dFix=0.35;
+    const d=(1-g)*dFix+g*dSel;
+    const a1=Math.exp(-d*l1), a2=Math.exp(-d*l2);
+    a=a1*a+(1-a1)*s.x; b=a2*b+(1-a2)*s.x; h1.push(a); h2.push(b);
+  });
+  return {h1,h2};
+}
+function drawSSM(){
+  const l1=+$("#l1").value/100*3, l2=+$("#l2").value/100*3, g=+$("#gate").value/100;
+  $("#l1v").textContent=l1.toFixed(2); $("#l2v").textContent=l2.toFixed(2); $("#gatev").textContent=g.toFixed(2);
+  const {h1,h2}=runSSM(l1,l2,g);
+  const target=[]; let last=0; SEQ.forEach(s=>{ if(s.key) last=s.x; target.push(last); });
+  const svg=$("#ssm"); svg.innerHTML="";
+  const W=640,H=260,L=36,R=10,Tp=10,B=24, n=SEQ.length;
+  const X=i=>L+(W-L-R)*i/(n-1), Y=v=>Tp+(H-Tp-B)*(1-(v+0.6)/1.75);
+  [-0.5,0,0.5,1].forEach(v=>{ el("line",{x1:L,x2:W-R,y1:Y(v),y2:Y(v),stroke:"var(--line)"},svg);
+    el("text",{x:4,y:Y(v)+4,"font-size":10},svg).textContent=v; });
+  SEQ.forEach((s,i)=>el("line",{x1:X(i),x2:X(i),y1:Y(0),y2:Y(s.x),stroke:s.key?"var(--accent)":"var(--muted)",
+    "stroke-width":s.key?3:1.5,"stroke-opacity":s.key?0.9:0.45},svg));
+  const path=(arr,col,w,dash)=>el("path",{d:arr.map((v,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)).join(" "),
+    fill:"none",stroke:col,"stroke-width":w,"stroke-dasharray":dash||""},svg);
+  path(target,"var(--accent)",1.5,"4 3"); path(h1,"var(--ssm)",2.4); path(h2,"var(--gru)",2);
+  el("text",{x:L,y:H-6,"font-size":10},svg).textContent="step →";
+  const err=a=>Math.sqrt(a.reduce((s,v,i)=>s+(v-target[i])**2,0)/n);
+  $("#ssmread").innerHTML="error against the last marked digit (root mean square over the 60 steps): slow state <b>"+
+    err(h1).toFixed(3)+"</b>, fast state <b>"+err(h2).toFixed(3)+"</b>"+
+    (g<0.05?" · gate 0: one Δ for every token, so noise and digits get written alike":
+     g>0.95?" · gate 1: Δ is large only on digits, so each state copies the digit and then holds it":"");
+}
+["l1","l2","gate"].forEach(id=>$("#"+id).addEventListener("input",drawSSM));
+
+/* ------------------------------------------------------------ 3 · numbers */
+const Lo=D.loss;
+$("#losssub").innerHTML="Validation loss in nats per character on the same 100 batches of module 04's validation split. "+
+  "Sections 1 and 2 ran "+fmt(Lo.steps)+" steps each; section 3 gave each model "+Lo.budget+" s of training on this Mac. "+
+  "One recipe for all, not tuned per model: a demo, not a measurement.";
+let lt="<thead><tr><th>model</th><th style='text-align:right'>parameters</th><th style='text-align:right'>"+fmt(Lo.steps)+" steps</th><th style='text-align:right'>"+Lo.budget+" s budget</th><th style='text-align:right'>steps in the budget</th></tr></thead><tbody>";
+Lo.rows.forEach(r=>{ lt+="<tr><td>"+r.name+"</td><td class='num'>"+fmt(r.params)+"</td><td class='num'>"+(r.steps_val==null?"–":r.steps_val.toFixed(3))+
+  "</td><td class='num'>"+(r.budget_val==null?"–":r.budget_val.toFixed(3))+"</td><td class='num'>"+(r.budget_steps==null?"–":fmt(r.budget_steps))+"</td></tr>"; });
+lt+="<tr><td>module 04's committed GPT (5,000 steps, another recipe)</td><td class='num'>619,776</td><td class='num' colspan='3'>"+Lo.committed.toFixed(3)+"</td></tr>";
+$("#losstab").innerHTML=lt+"</tbody>";
+
+$("#notice").innerHTML=[
+  "In section 1, the GPT's bar keeps growing and the others never move. At the start the SSM holds more than the GPT: a cache is cheap while the context is short.",
+  "Switch to GPT-2 against Mamba-130M: same story, bigger numbers. GPT-2's cache passes Mamba's fixed state after about "+fmt(Math.ceil(D.hf.mamba.state_floats/D.hf.gpt2.floats_per_token))+" tokens.",
+  "Set the gate to 0 and move both λ: the error stays above 0.5 whatever you pick. A small λ barely writes at all; a large λ writes the noise as readily as the digits.",
+  "Set the gate to 1: both states lock onto each digit and hold it through the noise. The input chose when to write. A fixed recurrence cannot do that; this is the selectivity of section 2.",
+  "The state is a summary, not a record. Attention can go back and read any earlier token exactly; a recurrent model can only read what it chose to keep."
+].map(s=>"<li>"+s+"</li>").join("");
+
+drawKV(); drawSSM();
+})();
+</script>

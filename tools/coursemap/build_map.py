@@ -54,6 +54,12 @@ FIGS: dict[str, tuple[str, str]] = {
     "10": ("10-agents", "handrolled_trace.png"),
     "11": ("11-inside-a-language-model", "patching_heatmap.png"),
     "12": ("12-features-and-dictionaries", "toy_superposition.png"),
+    "13": ("13-inside-vision-and-jepa", "v_neuron.png"),
+    "14": ("14-how-training-finds-a-solution", "grok.png"),
+    "15": ("15-geometry-of-representations", "regions.png"),
+    "16": ("16-self-supervised-and-jepa", "probes.png"),
+    "17": ("17-learning-from-preferences", "length_bias.png"),
+    "18": ("18-beyond-attention", "decode.png"),
 }
 
 

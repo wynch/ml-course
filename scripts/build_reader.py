@@ -85,6 +85,12 @@ MODULES = [
     ("10-agents", "Agents: models that act", "Agents", "modules/10-agents/README.md", "Breadth", 180, "10-agent-loop.html", "green"),
     ("11-inside-a-language-model", "Inside a language model", "Inside an LM", "modules/11-inside-a-language-model/README.md", "Looking inside", 150, "11-inside-a-language-model.html", "rose"),
     ("12-features-and-dictionaries", "Features and dictionaries", "Features", "modules/12-features-and-dictionaries/README.md", "Looking inside", 150, "12-features-and-dictionaries.html", "rose"),
+    ("13-inside-vision-and-jepa", "Inside vision and JEPA models", "Inside vision", "modules/13-inside-vision-and-jepa/README.md", "Looking inside", 90, "13-inside-vision-and-jepa.html", "rose"),
+    ("14-how-training-finds-a-solution", "How training finds a solution", "Training dynamics", "modules/14-how-training-finds-a-solution/README.md", "How learning works", 90, "14-how-training-finds-a-solution.html", "blue"),
+    ("15-geometry-of-representations", "Geometry of representations", "Geometry", "modules/15-geometry-of-representations/README.md", "How learning works", 75, "15-geometry-of-representations.html", "blue"),
+    ("16-self-supervised-and-jepa", "Self-supervised learning and JEPA", "SSL and JEPA", "modules/16-self-supervised-and-jepa/README.md", "How learning works", 90, "16-self-supervised-and-jepa.html", "blue"),
+    ("17-learning-from-preferences", "Learning from preferences", "Preferences", "modules/17-learning-from-preferences/README.md", "Other recipes", 90, "17-learning-from-preferences.html", "rust"),
+    ("18-beyond-attention", "Beyond attention", "Recurrence and SSMs", "modules/18-beyond-attention/README.md", "Other recipes", 90, "18-beyond-attention.html", "rust"),
 ]
 
 QUIZZES = {

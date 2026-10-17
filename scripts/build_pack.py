@@ -117,8 +117,9 @@ def as_list(value) -> list[str]:
     return value if isinstance(value, list) else [value]
 
 
+# The topic closes on the quote that opened it, so "Adam's range" stays whole.
 QUESTION = re.compile(
-    r"""["']?id["']?\s*:\s*["'](q\d+)["'][\s\S]*?["']?topic["']?\s*:\s*["']([^"']*)["']"""
+    r"""["']?id["']?\s*:\s*["'](q\d+)["'][\s\S]*?["']?topic["']?\s*:\s*(["'])((?:(?!\2).)*)\2"""
 )
 
 
@@ -129,7 +130,7 @@ def quizzes() -> list[dict]:
         if path.stem == "index":
             continue
         title, slug = titles.get(path.stem, (path.stem, path.stem))
-        questions = QUESTION.findall(path.read_text())
+        questions = [(qid, topic) for qid, _, topic in QUESTION.findall(path.read_text())]
         found.append({"id": path.stem, "title": title, "slug": slug,
                       "file": path.name, "questions": questions})
     return found
