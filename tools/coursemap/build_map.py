@@ -52,6 +52,8 @@ FIGS: dict[str, tuple[str, str]] = {
     "08": ("08-vision", "attention_maps.png"),
     "09": ("09-diffusion", "ddpm_dreaming.png"),
     "10": ("10-agents", "handrolled_trace.png"),
+    "11": ("11-inside-a-language-model", "patching_heatmap.png"),
+    "12": ("12-features-and-dictionaries", "toy_superposition.png"),
 }
 
 

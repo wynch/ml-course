@@ -1,4 +1,4 @@
-# ML compass pack · 2026-10-09
+# ML compass pack · 2026-10-17
 
 Built by `course/scripts/build_pack.py` from the live files of Vincent's private ML project. Seven parts, each with a one-line header saying what it is and where it comes from.
 
@@ -77,7 +77,7 @@ Rules:
      asks one new question on that slip, in another form. One follow-up per fail.
    - `intake <brief>`: a brief → cells, candidates, sentences, for his yes.
    - `rent`: lint and rot report; he decides deletes.
-   - `experiment`: parked; rule 3 when it returns.
+   - `experiment`: one pre-registered run under rule 3.
 5. A session ends in this order: one diff line, lint clean, `build.py --apply`, the
    version bump, commit. `--apply` names its backup after the version still in the
    file, so bumping first mislabels it; read the backup path it prints. A sitting
@@ -305,6 +305,7 @@ probe:
   needs: []
   see: ../ml-lab/gridjepa/runs/20260721_134506_phase1/report.md
   test: []
+  read: wiki/source-infoldm-predictive-ssl-identifiability.md
   moved: [gridjepa-e2]
   kg: null
   status: shaky
@@ -421,6 +422,7 @@ state-space-model:
   needs: []
   see: ../ml-lab/gridjepa/README.md
   test: []
+  read: wiki/source-memory-mosaics-at-scale.md
   kg: 5b840157
   status: shaky
   since: 2026-08-25
@@ -815,10 +817,10 @@ _From `compass/spine.yaml`: each entry's status and `since:` date, and the count
 
 ## Part 5 · Next box
 
-_Printed by `build.py --next` on 2026-10-09._
+_Printed by `build.py --next` on 2026-10-17._
 
 ```text
-NEXT · 2026-10-09
+NEXT · 2026-10-17
 learn  algorithm (F·computation) · parallelism (F·computation) · limit (F·calculus)
 test   parameter (2026-08-25) · learning rate (2026-08-25) · overfitting (2026-08-25)
 fill   Q7·measurement · Q2·algebra · Q3·geometry
@@ -1039,6 +1041,36 @@ https://wynch.github.io/ml-course/quizzes/10.html
 - `quiz-10-q9` action parsing and the cost of format drift
 - `quiz-10-q10` safe tool design
 
+### quiz-11 · Inside a language model
+
+https://wynch.github.io/ml-course/quizzes/11.html
+
+- `quiz-11-q1` What an editing hook does
+- `quiz-11-q2` Zeroing the space neuron
+- `quiz-11-q3` The random-weight probe
+- `quiz-11-q4` What the random-weight control rules out
+- `quiz-11-q5` The plateau layer
+- `quiz-11-q6` Patching the last token early
+- `quiz-11-q7` Where the landmark lives
+- `quiz-11-q8` What each tool can show
+- `quiz-11-q9` What sets a SwiGLU pole
+- `quiz-11-q10` nnsight reads in run order
+
+### quiz-12 · Features and dictionaries
+
+https://wynch.github.io/ml-course/quizzes/12.html
+
+- `quiz-12-q1` Dense features in the toy model
+- `quiz-12-q2` Sparse features in the toy model
+- `quiz-12-q3` What the toy model shows
+- `quiz-12-q4` What TopK does
+- `quiz-12-q5` Dead latents and k
+- `quiz-12-q6` Loss gap closed by the SAE
+- `quiz-12-q7` Why latents can look cleaner
+- `quiz-12-q8` The GPT-2 layer-8 SAE
+- `quiz-12-q9` Loading the SAE by hand
+- `quiz-12-q10` Reading the steering demo
+
 ## Part 7 · URL map
 
 _Where things are on the public site, so you can give Vincent links. Doors outside `course/` are private and have no URL._
@@ -1059,7 +1091,7 @@ _Where things are on the public site, so you can give Vincent links. Doors outsi
 | This pack | https://wynch.github.io/ml-course/learn/pack.md |
 
 
-Modules: `00a-perceptron` The perceptron & least squares, `00b-bayes-knn-pca` Probability, neighbours & eigenvectors, `00c-kernels-hopfield` Kernels, memory & the modern bridge, `01-autograd` Autograd from scratch, `02-neural-networks` Neural networks & the training loop, `03-tokenization` Tokenization: from bytes to tokens, `04-attention-transformer` Attention & the transformer, `05-transformers-library` The transformers library, `05a-data-evaluation` Data & evaluation, `06-fine-tuning` Fine-tuning: make the model yours, `07-inference-internals` Inference internals, `08-vision` Vision: convolutions to ViTs, `09-diffusion` Diffusion: learning to denoise, `10-agents` Agents: models that act.
+Modules: `00a-perceptron` The perceptron & least squares, `00b-bayes-knn-pca` Probability, neighbours & eigenvectors, `00c-kernels-hopfield` Kernels, memory & the modern bridge, `01-autograd` Autograd from scratch, `02-neural-networks` Neural networks & the training loop, `03-tokenization` Tokenization: from bytes to tokens, `04-attention-transformer` Attention & the transformer, `05-transformers-library` The transformers library, `05a-data-evaluation` Data & evaluation, `06-fine-tuning` Fine-tuning: make the model yours, `07-inference-internals` Inference internals, `08-vision` Vision: convolutions to ViTs, `09-diffusion` Diffusion: learning to denoise, `10-agents` Agents: models that act, `11-inside-a-language-model` Inside a language model, `12-features-and-dictionaries` Features and dictionaries.
 
 
 Doors per spine entry:
@@ -1080,7 +1112,7 @@ Doors per spine entry:
 | latent space | shaky | https://wynch.github.io/ml-course/modules/05-transformers-library/figures/embedding_pca.png | https://wynch.github.io/ml-course/wiki/concept-representation-learning.html |
 | feature | shaky | https://wynch.github.io/ml-course/modules/05-transformers-library/figures/embedding_pca.png | https://wynch.github.io/ml-course/wiki/concept-representation-learning.html |
 | collapse | shaky | private: `../ml-lab/gridjepa/runs/20260721_134506_phase1/report.md` | https://wynch.github.io/ml-course/wiki/concept-self-supervised-learning.html |
-| probe | shaky | private: `../ml-lab/gridjepa/runs/20260721_134506_phase1/report.md` | none |
+| probe | shaky | private: `../ml-lab/gridjepa/runs/20260721_134506_phase1/report.md` | https://wynch.github.io/ml-course/wiki/source-infoldm-predictive-ssl-identifiability.html |
 | manifold hypothesis | shaky | none | none |
 | attention | shaky | https://wynch.github.io/ml-course/explorables/04-attention.html | https://wynch.github.io/ml-course/wiki/concept-transformer-architecture.html |
 | softmax | shaky | https://wynch.github.io/ml-course/explorables/04-attention.html | none |
@@ -1089,7 +1121,7 @@ Doors per spine entry:
 | residual stream | shaky | https://wynch.github.io/ml-course/explorables/05-transformer-anatomy.html | https://wynch.github.io/ml-course/wiki/concept-transformer-architecture.html |
 | scaling law | shaky | none | https://wynch.github.io/ml-course/wiki/concept-scaling-laws.html |
 | fixed point | shaky | private: `compass/experiments/04-fixed-point/RESULTS.md` | https://wynch.github.io/ml-course/wiki/source-loopcd-decoding-looped-transformers.html |
-| state-space model | shaky | private: `../ml-lab/gridjepa/README.md` | none |
+| state-space model | shaky | private: `../ml-lab/gridjepa/README.md` | https://wynch.github.io/ml-course/wiki/source-memory-mosaics-at-scale.html |
 | JEPA | shaky | private: `../ml-lab/gridjepa/README.md`<br>private: `../ml-lab/levjepa-mobile/REPORT.md` | https://wynch.github.io/ml-course/wiki/concept-jepa.html |
 | mixture-of-experts | shaky | private: `../ml-lab/gridjepa/README.md` | https://wynch.github.io/ml-course/wiki/concept-mixture-of-experts.html |
 | inductive bias | shaky | private: `../ml-lab/gridjepa/README.md` | https://wynch.github.io/ml-course/wiki/source-local-support-learning.html |

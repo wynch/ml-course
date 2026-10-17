@@ -151,7 +151,9 @@ def check_reader() -> None:
         reader / "quizzes" / "00a.html",
         reader / "quizzes" / "01.html",
         reader / "quizzes" / "05a.html",
-        reader / "content" / "modules" / "10-agents" / "README.md",
+        reader / "content" / "modules" / "12-features-and-dictionaries" / "README.md",
+        reader / "explorables" / "12-features-and-dictionaries.html",
+        reader / "quizzes" / "12.html",
         reader / "research" / "index.html",
         reader / "research" / "why-atlas.html",
         reader / "research" / "jepa-field-map.html",
@@ -290,6 +292,30 @@ def main() -> None:
             ],
             env,
             cwd=ROOT / "modules/10-agents/python",
+        )
+        run_offline(
+            [
+                "uv",
+                "run",
+                "--offline",
+                "--frozen",
+                "pytest",
+                "-q",
+            ],
+            env,
+            cwd=ROOT / "modules/11-inside-a-language-model/python",
+        )
+        run_offline(
+            [
+                "uv",
+                "run",
+                "--offline",
+                "--frozen",
+                "pytest",
+                "-q",
+            ],
+            env,
+            cwd=ROOT / "modules/12-features-and-dictionaries/python",
         )
     print(f"{args.pack} pack: PASS with network disabled")
 

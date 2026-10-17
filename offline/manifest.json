@@ -32,7 +32,9 @@
         "modules/07-inference-internals/python",
         "modules/08-vision/python",
         "modules/09-diffusion/python",
-        "modules/10-agents/python"
+        "modules/10-agents/python",
+        "modules/11-inside-a-language-model/python",
+        "modules/12-features-and-dictionaries/python"
       ]
     }
   },
@@ -61,7 +63,7 @@
       "kind": "model",
       "pack": "full",
       "revision": "a10cc1512eabd3dde888204e902eca88bddb4951",
-      "purpose": "Modules 05 and 06 local model.",
+      "purpose": "Modules 05, 06, 11 and 12 local model.",
       "license": "see upstream model card"
     },
     {
@@ -85,7 +87,25 @@
       "kind": "model",
       "pack": "full",
       "revision": "714eb0fa89d2f80546fda750413ed43d93601a13",
-      "purpose": "Module 05 sentiment pipeline.",
+      "purpose": "Module 05 sentiment pipeline; module 12 steering score.",
+      "license": "see upstream model card"
+    },
+    {
+      "id": "gpt2",
+      "kind": "model",
+      "pack": "full",
+      "revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+      "include": ["config.json", "generation_config.json", "tokenizer.json", "tokenizer_config.json", "vocab.json", "merges.txt", "model.safetensors"],
+      "purpose": "Module 12 GPT-2 small, read through TransformerLens (548 MB).",
+      "license": "see upstream model card"
+    },
+    {
+      "id": "jbloom/GPT2-Small-SAEs-Reformatted",
+      "kind": "model",
+      "pack": "full",
+      "revision": "57d08a4fd333fbf18caf3fbea63ceeb88e2f50d9",
+      "include": ["blocks.8.hook_resid_pre/*"],
+      "purpose": "Module 12 sparse autoencoder for GPT-2 small, layer 8 only (151 MB).",
       "license": "see upstream model card"
     },
     {
@@ -137,6 +157,16 @@
       "config": "everyday-conversations",
       "split": "train[:512]",
       "purpose": "Module 06 local SFT subset.",
+      "license": "see upstream dataset card"
+    },
+    {
+      "id": "stanfordnlp/sst2",
+      "kind": "dataset",
+      "pack": "full",
+      "revision": "8d51e7e4887a4caaa95b3fbebbf53c0490b58bbb",
+      "project": "modules/11-inside-a-language-model/python",
+      "split": "",
+      "purpose": "Module 11 linear probe (about 3 MB).",
       "license": "see upstream dataset card"
     },
     {

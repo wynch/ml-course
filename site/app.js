@@ -8,6 +8,7 @@
     { name: "Foundations", blurb: "Gradients, networks, and the tokenizer that feeds them." },
     { name: "Transformers & LLMs", blurb: "Build the block, evaluate it, adapt it, and run it fast." },
     { name: "Breadth", blurb: "Carry the same ideas into pixels, denoising, and action." },
+    { name: "Looking inside", blurb: "Open a trained model while it runs: hooks, probes, patching, neurons, sparse dictionaries." },
   ];
   const ASSET_ROOTS = ["explorables", "quizzes", "research"];
   // Pages serves source files as application/octet-stream, so a direct link

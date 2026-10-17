@@ -72,13 +72,19 @@ flowchart TD
         M09["09 · diffusion"]
         M10["10 · agents"]
     end
+    subgraph L["Looking inside · 11–12"]
+        M11["11 · inside a language model"]
+        M12["12 · features and dictionaries"]
+    end
     O -.-> F
     F --> T --> B
+    T --> L
     M08 -.-> M09 -.-> M10
+    M11 --> M12
 
     classDef track fill:#eef,stroke:#88a,color:#113;
     classDef origins fill:#fdf2df,stroke:#a86b0e,color:#4a2f05;
-    class F,T,B track;
+    class F,T,B,L track;
     class O origins;
 ```
 
@@ -89,6 +95,9 @@ numbered tracks then build on each other. **Foundations** gives you autograd, a
 network, and a tokenizer written by hand. **Transformers & LLMs** turns those
 into attention, a real model library, fine-tuning, and fast inference.
 **Breadth** takes the same ideas sideways into vision, diffusion, and agents.
+**Looking inside** opens a trained model while it runs: hooks, probes,
+activation patching, neurons read on both signs, then sparse autoencoders and
+steering. It needs track 2, not track 3.
 
 ---
 
@@ -110,7 +119,7 @@ want to know where an idea came from.
 | 00b | [bayes-knn-pca](modules/00b-bayes-knn-pca) | **Naive Bayes**, **k-NN** against the Cover-Hart ceiling, and **PCA by power iteration** — all from scratch. |
 | 00c | [kernels-hopfield](modules/00c-kernels-hopfield) | A dual **SVM**, the **kernel trick**, a **Hopfield** memory, and a measured **double-descent** curve. |
 
-### Tracks 1–3 — the main line
+### Tracks 1–4 — the main line
 
 | # | Module | What you build |
 |---|--------|----------------|
@@ -118,19 +127,21 @@ want to know where an idea came from.
 | 02 | [neural-networks](modules/02-neural-networks) | A numpy MLP trained on **FashionMNIST**, loaded via Hugging Face `datasets`. |
 | 03 | [tokenization](modules/03-tokenization) | **BPE from scratch** in Python and Zig, then the real **SmolLM3** tokenizer, with a **Gradio** playground. |
 | 04 | [attention-transformer](modules/04-attention-transformer) | Attention from scratch → a tiny **char-GPT**, with **attention heatmaps**. |
-| 05 | [transformers-library](modules/05-transformers-library) | `pipeline`, `AutoModel`, **SmolLM3 anatomy**, and sampling strategies. |
+| 05 | [transformers-library](modules/05-transformers-library) | `pipeline`, `AutoModel`, **SmolLM2-360M anatomy**, and sampling strategies. |
 | 05½ | [data-evaluation](modules/05a-data-evaluation) | Splits, confusion matrices, thresholds, calibration, slices, and leakage checks **from scratch**. |
-| 06 | [fine-tuning](modules/06-fine-tuning) | **TRL SFT + LoRA** on SmolLM3, an **MLX** Mac lane, and **trackio** tracking. |
+| 06 | [fine-tuning](modules/06-fine-tuning) | **TRL SFT + LoRA** on SmolLM2-360M (SmolLM3-3B in the cloud job), an **MLX** Mac lane, and **trackio** tracking. |
 | 07 | [inference-internals](modules/07-inference-internals) | **KV cache**, quantization, and a **Zig inference capstone**. |
 | 08 | [vision](modules/08-vision) | Fine-tune a **ViT**, and visualize its **feature maps**. |
 | 09 | [diffusion](modules/09-diffusion) | A toy denoiser from scratch → the **`diffusers`** library. |
 | 10 | [agents](modules/10-agents) | Build agents with **smolagents** and the **Model Context Protocol (MCP)**. |
+| 11 | [inside-a-language-model](modules/11-inside-a-language-model) | **Hooks**, a per-layer **probe**, **activation patching**, and **neuron poles** on SmolLM2-360M, with **nnsight**. |
+| 12 | [features-and-dictionaries](modules/12-features-and-dictionaries) | **Toy superposition**, a **sparse autoencoder** from scratch, GPT-2's published SAE through **SAELens**, and a **steering** demo. |
 
 ---
 
 ## Explorables
 
-All fourteen modules — the three Origins modules, the ten numbered ones and the
+All sixteen modules — the three Origins modules, the twelve numbered ones and the
 evaluation bridge — ship an **interactive, in-browser
 explainer**: a single HTML file with no dependencies, no build step and no
 network calls. Where a module
@@ -161,14 +172,16 @@ python3 -m http.server        # then browse to
 | [Convolution vs patches](explorables/08-conv-vs-patches.html) | 08 | Slide real kernels over a real image, then watch it become a **ViT** patch sequence. |
 | [Diffusion on a spiral](explorables/09-diffusion.html) | 09 | Scrub a spiral into pure noise, then run the trained denoiser live to pull it back out. |
 | [The ReAct loop](explorables/10-agent-loop.html) | 10 | Play a real agent transcript message by message — including the run where it fails. |
+| [Inside a language model](explorables/11-inside-a-language-model.html) | 11 | Browse three SmolLM2 neurons pole by pole, then hover a probe curve and a patching heatmap. |
+| [Features and dictionaries](explorables/12-features-and-dictionaries.html) | 12 | Move the toy model's sparsity, then browse SAE latents, raw neurons and GPT-2 features by their top contexts. |
 
 ### Quizzes
 
-Each of the ten numbered modules — plus the three Origins modules and the 05½
+Each of the twelve numbered modules — plus the three Origins modules and the 05½
 bridge lab — ships a
 **10-question quiz**, every question grounded in that module's own code, figures
 and measured numbers, with an explanation revealed as soon as you answer. Start at
-[`quizzes/index.html`](quizzes/index.html), which lists all fourteen and shows your
+[`quizzes/index.html`](quizzes/index.html), which lists all sixteen and shows your
 score for each. Nothing is uploaded: answers and scores stay in your browser's
 `localStorage`, and every quiz has a Reset button.
 

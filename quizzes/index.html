@@ -8,7 +8,7 @@
 *,*::before,*::after{box-sizing:border-box}
 :root{
   --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d;
-  --t0:#a86b0e; --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --track-ink:#ffffff;
+  --t0:#a86b0e; --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --track-ink:#ffffff;
   --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67;
   --soft:rgba(31,145,141,.10); --sketch:rgba(28,36,34,.42);
   --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
@@ -19,7 +19,7 @@
 @media (prefers-color-scheme:dark){
   :root{
     --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
-    --muted:#9daba7; --t0:#d9962e; --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --accent:#37b3ae;
+    --muted:#9daba7; --t0:#d9962e; --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --accent:#37b3ae;
     --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --sketch:rgba(232,238,236,.40);
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
   }
@@ -57,6 +57,7 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
 .track.t1 > h2{color:var(--t1)} .track.t1 > h2 .dot{background:var(--t1)}
 .track.t2 > h2{color:var(--t2)} .track.t2 > h2 .dot{background:var(--t2)}
 .track.t3 > h2{color:var(--t3)} .track.t3 > h2 .dot{background:var(--t3)}
+.track.t4 > h2{color:var(--t4)} .track.t4 > h2 .dot{background:var(--t4)}
 
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:1rem}
 
@@ -73,7 +74,7 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
   text-transform:uppercase;color:var(--track-ink);padding:.24rem .6rem;border-radius:999px;
   white-space:nowrap}
 .pill.t0{background:var(--t0)}
-.pill.t1{background:var(--t1)} .pill.t2{background:var(--t2)} .pill.t3{background:var(--t3)}
+.pill.t1{background:var(--t1)} .pill.t2{background:var(--t2)} .pill.t3{background:var(--t3)} .pill.t4{background:var(--t4)}
 .card .file{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
 
 /* --- score slot, painted from localStorage --- */
@@ -104,7 +105,7 @@ footer p{margin:.3rem 0;max-width:74ch}
 <body>
 <header class="topbar">
   <h1>ML course quizzes</h1>
-  <span class="count" id="stat">14 quizzes · 140 questions</span>
+  <span class="count" id="stat">16 quizzes · 160 questions</span>
   <span class="spacer"></span>
   <a class="back" href="../explorables/index.html">Explorables</a>
   <a class="back" href="../index.html">← Course home</a>
@@ -112,7 +113,7 @@ footer p{margin:.3rem 0;max-width:74ch}
 
 <main>
   <section class="intro">
-    <p class="lede">Fourteen self-graded quizzes — one per module, including the optional Origins
+    <p class="lede">Sixteen self-graded quizzes — one per module, including the optional Origins
       prologue and the 05½ evaluation bridge lab —
       ten questions each, every one grounded in that module's own code, figures and measured numbers.</p>
     <p>Answer in any order; a question locks as soon as you answer it and reveals why the right answer
@@ -261,6 +262,30 @@ footer p{margin:.3rem 0;max-width:74ch}
         <p class="hook">What ends the ReAct loop, stop sequences, code-as-action, the documented failure
           modes, and the success rate across all 50 measured episodes.</p>
         <div class="score" data-quiz="10"></div>
+      </a>
+
+    </div>
+  </section>
+
+  <section class="track t4">
+    <h2><span class="dot"></span>Looking inside<span class="rng">modules 11–12</span></h2>
+    <p class="sub">Open a trained model while it runs: read one neuron, probe each layer, patch one cell, then read features through a sparse dictionary.</p>
+    <div class="grid">
+
+      <a class="card" href="11.html">
+        <div class="meta"><span class="pill t4">Module 11</span><span class="file">11.html</span></div>
+        <h3>Inside a language model</h3>
+        <p class="hook">What an editing hook returns, the random-weight probe control, the plateau layer,
+          where patching restores Paris, and what sets a SwiGLU neuron's pole.</p>
+        <div class="score" data-quiz="11"></div>
+      </a>
+
+      <a class="card" href="12.html">
+        <div class="meta"><span class="pill t4">Module 12</span><span class="file">12.html</span></div>
+        <h3>Features and dictionaries</h3>
+        <p class="hook">How many features the toy model keeps, what TopK does, dead latents, the loss gap an
+          SAE closes, loading a published SAE by hand, and how to read a steering demo.</p>
+        <div class="score" data-quiz="12"></div>
       </a>
 
     </div>

@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz · Features and dictionaries · ML course</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d; --track:var(--t4); --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67; --grid:rgba(28,36,34,.10);
+  --warn:#c1121f; --soft:rgba(31,145,141,.10);
+  --wrong:#c0504d; --wrong-soft:rgba(192,80,77,.10);
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --grid:rgba(232,238,236,.12); --warn:#ff8f85;
+    --soft:rgba(31,145,141,.16); --t4:#e0679a;
+    --wrong:#f0938f; --wrong-soft:rgba(240,147,143,.13);
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;padding-bottom:5.6rem}
+a{color:var(--accent)}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;background:var(--track);color:var(--track-ink);
+  padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.topbar .spacer{flex:1 1 auto}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:920px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 2rem}
+.intro{max-width:70ch;color:var(--ink)}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .7rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.8rem,2vw,1.2rem);margin:1.4rem 0}
+button{font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:.34rem .82rem;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button:disabled{opacity:1}
+button.primary:hover{color:#fff;filter:brightness(1.06)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:.78rem;color:var(--muted);margin:.35rem 0 0}
+.mono,code{font-family:var(--mono);font-size:.92em}
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ───────── quiz-specific ───────── */
+.qhead{display:flex;flex-wrap:wrap;gap:.5rem;align-items:baseline;margin:0 0 .55rem}
+.qnum{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted)}
+.tag{font-family:var(--display);font-size:.68rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;border:1px solid var(--line);border-radius:999px;
+  padding:.1rem .5rem;color:var(--muted)}
+.tag.conceptual{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.tag.numbers{color:var(--t1);border-color:var(--t1)}
+.tag.predict{color:var(--t3);border-color:var(--t3)}
+.tag.code{color:var(--muted);border-color:var(--line);background:var(--grid)}
+.qhead .spacer{flex:1 1 auto}
+.qstate{font-family:var(--display);font-size:.7rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted)}
+.qtext{margin:0 0 .7rem;max-width:74ch}
+.qtext b{font-weight:600}
+pre.snippet{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--grid);
+  border:1px solid var(--line);border-radius:10px;padding:.65rem .8rem;margin:.2rem 0 .75rem;
+  overflow-x:auto}
+.srcfile{font-family:var(--mono);font-size:.76rem;color:var(--muted);margin:-.5rem 0 .75rem}
+.opts{display:flex;flex-direction:column;gap:.4rem;margin:0 0 .3rem}
+.opt{display:flex;gap:.6rem;align-items:flex-start;text-align:left;width:100%;
+  font-family:var(--body);font-size:.92rem;font-weight:400;line-height:1.45;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:10px;
+  padding:.55rem .7rem;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent);color:var(--ink);background:var(--soft)}
+.opt:disabled{cursor:default}
+.opt .key{font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--muted);
+  min-width:1.2em;padding-top:.08rem}
+.opt.picked{border-color:var(--accent)}
+.opt.right{border-color:var(--accent);background:var(--soft)}
+.opt.right .key{color:var(--accent)}
+.opt.wrongpick{border-color:var(--wrong);background:var(--wrong-soft)}
+.opt.wrongpick .key{color:var(--wrong)}
+.opt .mark{margin-left:auto;font-family:var(--display);font-size:.76rem;font-weight:600;
+  white-space:nowrap;padding-left:.5rem}
+.opt.right .mark{color:var(--accent)}
+.opt.wrongpick .mark{color:var(--wrong)}
+.numrow{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:0 0 .3rem}
+.numrow input{font-family:var(--mono);font-size:.9rem;color:var(--ink);background:var(--paper);
+  border:1px solid var(--line);border-radius:10px;padding:.45rem .6rem;width:15rem;max-width:100%}
+.acts{display:flex;flex-wrap:wrap;gap:.45rem;margin:.55rem 0 0}
+.verdictline{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.03em;
+  text-transform:uppercase;border-radius:999px;padding:.2rem .62rem;display:inline-block;
+  border:1px solid var(--line);margin:.7rem 0 .45rem}
+.verdictline.ok{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.verdictline.no{color:var(--wrong);border-color:var(--wrong);background:var(--wrong-soft)}
+.explain{font-size:.88rem;line-height:1.5;border-left:3px solid var(--line);
+  padding:.1rem 0 .1rem .75rem;margin:.2rem 0 0;max-width:74ch;color:var(--ink)}
+.explain .src{display:block;font-family:var(--mono);font-size:.76rem;color:var(--muted);margin-top:.4rem}
+.explain a.tryit{font-family:var(--display);font-size:.78rem;font-weight:600;text-decoration:none;
+  border:1px solid var(--accent);border-radius:999px;padding:.16rem .6rem;display:inline-block;
+  margin-top:.5rem}
+.explain a.tryit:hover{background:var(--soft)}
+.scorebar{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--panel);
+  border-top:1px solid var(--line);padding:.55rem clamp(.9rem,3vw,2rem)}
+.scorebar .inner{max-width:920px;margin:0 auto;display:flex;flex-wrap:wrap;gap:.5rem .9rem;
+  align-items:center}
+.scorebar .score{font-family:var(--mono);font-size:1rem;font-weight:600;color:var(--accent)}
+.scorebar .of{color:var(--muted);font-weight:400}
+.scorebar .msg{font-size:.84rem;color:var(--muted);flex:1 1 260px;min-width:0}
+.scorebar .msg b{color:var(--ink)}
+.scorebar .msg .review{display:block;font-size:.78rem;margin-top:.1rem}
+@media (max-width:700px){
+  .topbar h1{font-size:.98rem}
+  .scorebar .msg{flex-basis:100%}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Quiz · Features and dictionaries</h1>
+  <span class="pill">Module 12 · Looking inside</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">← All quizzes</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">Ten questions on module 12. Every number is the module's own measured output,
+      from <span class="mono">results/*.json</span>: the toy model, module 04's char-GPT with its SAE,
+      <span class="mono">GPT-2 small</span> with a published SAE, and <span class="mono">SmolLM2-360M-Instruct</span>.</p>
+    <p>Answer in any order; answering locks a question and shows the explanation.
+      Your answers stay in this browser. Two questions ask you to <b>predict</b> a result
+      before you look it up; commit to an answer first.</p>
+  </section>
+
+  <div id="quiz"></div>
+</main>
+
+<footer>
+  <p class="paths">module → <a href="../modules/12-features-and-dictionaries/README.md">../modules/12-features-and-dictionaries/README.md</a>
+    · explorable → <a href="../explorables/12-features-and-dictionaries.html">../explorables/12-features-and-dictionaries.html</a></p>
+  <p>Matching reading: <a href="https://transformer-circuits.pub/2022/toy_model/index.html">Toy Models of Superposition</a>,
+    <a href="https://transformer-circuits.pub/2023/monosemantic-features">Towards Monosemanticity</a>, and the course's research page
+    <a href="../research/interp.html">Interpretability</a>.</p>
+</footer>
+
+<div class="scorebar">
+  <div class="inner">
+    <span class="score"><span id="sc-score">0</span><span class="of"> / 10</span></span>
+    <span class="msg" id="sc-msg">Nothing answered yet.</span>
+    <button id="sc-reset">Reset quiz</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ═════════════════════════ PURE LOGIC START ═════════════════════════
+   Question bank + grading. Dependency-free and DOM-free: the verification
+   harness loads this file's exports under node and asserts the grading rules,
+   the score accumulation, and the answer-key balance.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const QUIZ_ID = "12";
+const STORE_KEY = "mlcourse-quiz-" + QUIZ_ID;
+const SUMMARY_KEY = "mlcourse-quiz-scores";
+
+const QUESTIONS = [
+  /* ── 1 ────────────────────────────────────────────────────── predict ── */
+  {
+    id: "q1", kind: "single", tag: "predict", topic: "Dense features in the toy model",
+    text: "<b>Predict</b> before you open the figure. The toy model squeezes 20 features into 5 dimensions " +
+          "(importance 0.7<sup>i</sup>). Every feature is on in every input (S = 0). After training, how many " +
+          "features have a column of norm above 0.5?",
+    options: [
+      "All 20, each at a small angle to its neighbours.",
+      "5, one per dimension, at right angles; the other 15 are dropped.",
+      "10, two per dimension, pointing in opposite directions.",
+      "None: with every feature on, the loss cannot go below the mean."
+    ],
+    answer: 1,
+    explain: "5. Wᵀ W is five dots on the diagonal and nothing else: the five most important features get an " +
+             "axis each, with no sharing. Packing starts as features get sparser (6 kept at S = 0.5, 13 at " +
+             "S = 0.999): two rare features seldom fire together, so the ReLU can clip the crosstalk.",
+    source: "modules/12-features-and-dictionaries/results/toy.json → setups.A.frames[0] · figures/toy_superposition.png",
+    tryIt: { href: "../explorables/12-features-and-dictionaries.html", label: "try it — set the sparsity to 0 in panel 1" }
+  },
+  /* ── 2 ───────────────────────────────────────────────── real numbers ── */
+  {
+    id: "q2", kind: "numeric", tag: "numbers", topic: "Sparse features in the toy model",
+    text: "Same model, 20 features in 5 dimensions, but now each feature is on in only 0.1% of inputs " +
+          "(S = 0.999). <b>Type how many features it keeps</b> (column norm above 0.5).",
+    answer: 13, tol: 0, tolLabel: "exact",
+    placeholder: "e.g. 7",
+    explain: "13, every one of them sharing directions with others. The count climbs with sparsity: 5, 6, 7, " +
+             "8, 9, 10, 11, 12, 12, 13 over the ten sparsities. The least important features (importance 0.7¹⁹ " +
+             "is about 0.001) are still dropped.",
+    source: "modules/12-features-and-dictionaries/results/toy.json → setups.A.frames[9].n_represented"
+  },
+  /* ── 3 ─────────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q3", kind: "single", tag: "conceptual", topic: "What the toy model shows",
+    text: "Which reading of the toy-superposition result does the module stand behind?",
+    options: [
+      "A ReLU readout can store more sparse features than it has dimensions, and sparsity sets how many.",
+      "Real language models store more features than neurons, so neurons cannot be read.",
+      "Any network with fewer dimensions than features packs unrelated features into one neuron.",
+      "Superposition only happens without a nonlinearity."
+    ],
+    answer: 0,
+    explain: "The toy shows what <i>can</i> happen with made-up, independent features. It is no evidence about " +
+             "trained language models. The Goodfire essay finds no fault with the toy but disputes that step: " +
+             "it argues real networks reuse what features share instead of packing unrelated ones.",
+    source: "modules/12-features-and-dictionaries/README.md §1, “What this shows, and what it does not”"
+  },
+  /* ── 4 ─────────────────────────────────────────────────── read-code ── */
+  {
+    id: "q4", kind: "single", tag: "code", topic: "What TopK does",
+    text: "This is the encoder of <code>src/sae.py</code>, with k = 32 and 2,048 latents. What is the L0 " +
+          "(number of non-zero latents) of the code it returns for one character?",
+    code: "pre = F.relu((x - self.b_pre) @ self.W_enc.T + self.b_enc)\n" +
+          "v, i = pre.topk(self.k, dim=-1)\n" +
+          "return torch.zeros_like(pre).scatter_(-1, i, v)",
+    file: "modules/12-features-and-dictionaries/python/src/sae.py",
+    options: [
+      "Exactly 2,048: TopK only sorts the latents.",
+      "Whatever the L1 penalty allows; k is a soft target.",
+      "At most 32, and 32 unless fewer than 32 pre-activations are positive.",
+      "Exactly 1: the largest latent wins."
+    ],
+    answer: 2,
+    explain: "<code>topk</code> keeps the 32 largest values; <code>scatter_</code> puts them back in place in a " +
+             "tensor of zeros. A kept value can itself be 0 after the ReLU, so 32 is a ceiling. On the " +
+             "validation text the measured L0 is 32.0. No L1 term is involved: k sets the sparsity directly.",
+    source: "modules/12-features-and-dictionaries/results/sae.json → sweep[k=32].l0 · python/src/sae.py (TopKSAE.encode)"
+  },
+  /* ── 5 ────────────────────────────────────────────────────── predict ── */
+  {
+    id: "q5", kind: "single", tag: "predict", topic: "Dead latents and k",
+    text: "<b>Predict.</b> With k = 32, 274 of the 2,048 latents never fire on the validation text. The same " +
+          "SAE is trained with k = 8. How many latents are dead now?",
+    options: [
+      "About 30: fewer active latents per character spreads the work more evenly.",
+      "About 274: k does not change which latents learn.",
+      "About 1,064: more than half the dictionary never fires.",
+      "All but 8."
+    ],
+    answer: 2,
+    explain: "1,064 at k = 8, 697 at k = 16, 274 at k = 32, 5 at k = 64. A latent outside the top k gets no " +
+             "gradient that step, so with few slots a latent that stops winning can stay dead. Gao et al. add an " +
+             "auxiliary loss (AuxK) for this; the module's script does not.",
+    source: "modules/12-features-and-dictionaries/results/sae.json → sweep[].dead · figures/sae_metrics.png"
+  },
+  /* ── 6 ───────────────────────────────────────────────── real numbers ── */
+  {
+    id: "q6", kind: "numeric", tag: "numbers", topic: "Loss gap closed by the SAE",
+    text: "Next-character loss on the validation text: intact model 1.724 nats; the 512 neurons replaced by " +
+          "their mean 2.042; replaced by the k = 32 SAE's rebuild 1.729. <b>Type the share of the loss gap " +
+          "the SAE closes, in %</b> ((mean − SAE) / (mean − intact)).",
+    answer: 98.4, tol: 0.3, tolLabel: "± 0.3",
+    placeholder: "e.g. 75",
+    explain: "(2.0424 − 1.7289) / (2.0424 − 1.7240) = 0.9844, so 98.4%. The SAE explains 98.7% of the " +
+             "neurons' variance, and the model barely notices the swap. That is a good rebuild, which is not " +
+             "the same as readable latents.",
+    source: "modules/12-features-and-dictionaries/results/sae.json → lm_loss, sweep[k=32].loss_recovered_vs_mean_ablation"
+  },
+  /* ── 7 ─────────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q7", kind: "single", tag: "conceptual", topic: "Why latents can look cleaner",
+    text: "By eye, the top ten contexts of the five drawn latents look cleaner than those of the five drawn " +
+          "neurons. Which fact, besides meaning, can explain part of that?",
+    options: [
+      "The latents fire on 0.4% to 2.1% of characters, the neurons on 28% to 41%, so a neuron's top ten show a thinner slice of what it does.",
+      "The latents were picked by hand and the neurons at random.",
+      "The neurons come from a different layer.",
+      "The latents were read on training text and the neurons on validation text."
+    ],
+    answer: 0,
+    explain: "Both sets were drawn by the same rule (numpy seed 0) from the same layer, on the same validation " +
+             "text. What differs is how often they fire. The automatic check (share of a unit's top 50 on one " +
+             "character) gives a median of 1.0 for latents and 0.72 for neurons, but it measures one narrow " +
+             "kind of “one thing”, not meaning.",
+    source: "modules/12-features-and-dictionaries/README.md §2, “Latents against neurons, hedged” · results/sae.json → purity"
+  },
+  /* ── 8 ─────────────────────────────────────────── conceptual, multi ── */
+  {
+    id: "q8", kind: "multi", tag: "numbers", topic: "The GPT-2 layer-8 SAE",
+    text: "On 65,024 wikitext tokens, the published SAE on GPT-2 small's layer-8 residual stream gave these " +
+          "numbers. <b>Select all that are true.</b>",
+    options: [
+      "About 73 of its 24,576 latents are active per token.",
+      "It explains 82.5% of the variance of the residual stream.",
+      "Splicing its rebuild in leaves the next-token loss unchanged at 4.093 nats.",
+      "It closes 96.1% of the loss gap between the intact model and a zeroed residual."
+    ],
+    answer: [0, 1, 3],
+    explain: "L0 73.3, variance explained 82.5%, loss 4.093 → 4.377 nats with the splice (zeroed: 11.335), so " +
+             "96.1% of the gap closed. The splice costs 0.28 nats; part of that may come from feeding a " +
+             "web-text SAE with Wikipedia.",
+    source: "modules/12-features-and-dictionaries/results/gpt2_sae.json → stats"
+  },
+  /* ── 9 ─────────────────────────────────────────────────── read-code ── */
+  {
+    id: "q9", kind: "single", tag: "code", topic: "Loading the SAE by hand",
+    text: "Exercise (c) loads the four tensors of <code>gpt2-small-res-jb</code>, layer 8, from its safetensors " +
+          "file. Which encoder matches SAELens for this SAE?",
+    code: "sae = load_file(hf_hub_download(\"jbloom/GPT2-Small-SAEs-Reformatted\",\n" +
+          "                 \"blocks.8.hook_resid_pre/sae_weights.safetensors\"))\n" +
+          "# W_enc (768, 24576)  b_enc (24576,)  W_dec (24576, 768)  b_dec (768,)",
+    file: "modules/12-features-and-dictionaries/solutions/solution_c_sae_by_hand.py",
+    options: [
+      "<code>torch.relu(x @ W_enc + b_enc)</code>",
+      "<code>(x - b_dec) @ W_enc + b_enc</code>, with no ReLU, since L1 already makes it sparse",
+      "<code>torch.relu(x @ W_dec.T + b_dec)</code>",
+      "<code>torch.relu((x - b_dec) @ W_enc + b_enc)</code>"
+    ],
+    answer: 3,
+    explain: "This SAE subtracts the decoder bias from the input first, then applies the encoder and a ReLU. " +
+             "The test checks the hand-written encoder against SAELens to 10⁻³. The L1 penalty acts during " +
+             "training; the ReLU still zeroes the negative values at use.",
+    source: "modules/12-features-and-dictionaries/python/tests/test_solutions.py (test_sae_by_hand_matches_saelens)"
+  },
+  /* ── 10 ────────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q10", kind: "single", tag: "conceptual", topic: "Reading the steering demo",
+    text: "On SmolLM2-360M-Instruct, adding 4× the sentiment vector at layer 16 gives a mean P(positive) of " +
+          "1.00 over four requests; the system prompt “Reply in an upbeat tone.” gives 0.996. What does the " +
+          "demo show?",
+    options: [
+      "Steering ×4 beats prompting, since its score is higher.",
+      "Both work equally well, since both score about 1.",
+      "Nothing about sentiment: a random direction of the same norm scores the same.",
+      "The score misses what matters: three of the four ×4 replies leave the request, while the prompted replies stay on topic."
+    ],
+    answer: 3,
+    explain: "The sentiment scorer cannot see whether the reply answers the request. The random direction " +
+             "scores 0.38 and breaks the text into strings of words and dots. Four requests, with the layer and " +
+             "scales chosen by eye on two of them, make this a demo; a measured comparison is a separate experiment.",
+    source: "modules/12-features-and-dictionaries/results/steer.json → conditions · README.md §4",
+    tryIt: { href: "../explorables/12-features-and-dictionaries.html", label: "try it — read the replies in panel 4" }
+  }
+];
+
+/* ---------------------------------------------------------------- grading */
+function sameSet(a, b) {
+  const x = a.slice().sort(function (p, q) { return p - q; });
+  const y = b.slice().sort(function (p, q) { return p - q; });
+  return x.length === y.length && x.every(function (v, i) { return v === y[i]; });
+}
+function gradeSingle(q, ans) { return typeof ans === "number" && ans === q.answer; }
+function gradeMulti(q, ans) { return Array.isArray(ans) && sameSet(ans, q.answer); }
+function gradeNumeric(q, ans) {
+  const v = typeof ans === "number" ? ans : parseFloat(String(ans).replace(/[\s,_]/g, ""));
+  return isFinite(v) && Math.abs(v - q.answer) <= q.tol;
+}
+function gradeQuestion(q, ans) {
+  if (ans === undefined || ans === null) return false;
+  if (q.kind === "multi") return gradeMulti(q, ans);
+  if (q.kind === "numeric") return gradeNumeric(q, ans);
+  return gradeSingle(q, ans);
+}
+function scoreAll(questions, answers) {
+  let score = 0, answered = 0;
+  const wrong = [];
+  questions.forEach(function (q) {
+    const a = answers[q.id];
+    if (a === undefined || a === null) return;
+    answered += 1;
+    if (gradeQuestion(q, a)) score += 1; else wrong.push(q.topic);
+  });
+  return { score: score, answered: answered, total: questions.length, wrong: wrong };
+}
+function verdictFor(score, total) {
+  if (score >= 9) return { cls: "ok", text: "solid — move on" };
+  if (score >= 6) return { cls: "no", text: "review the flagged topics" };
+  return { cls: "no", text: "re-run the module notebook first" };
+}
+/* answer-key balance: how often each option position is the correct single-choice answer */
+function keyBalance(questions) {
+  const counts = [0, 0, 0, 0];
+  questions.forEach(function (q) {
+    if (q.kind === "single") counts[q.answer] += 1;
+  });
+  return counts;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { QUIZ_ID, STORE_KEY, SUMMARY_KEY, QUESTIONS, sameSet, gradeSingle,
+                     gradeMulti, gradeNumeric, gradeQuestion, scoreAll, verdictFor, keyBalance };
+}
+/* ══════════════════════════ PURE LOGIC END ══════════════════════════ */
+
+/* ═════════════════════════ DOM / rendering ═════════════════════════ */
+(function () {
+  if (typeof document === "undefined") return;   // running under node
+  const LETTERS = ["A", "B", "C", "D", "E", "F"];
+  const root = document.getElementById("quiz");
+  let answers = {};
+
+  /* ---- persistence ---- */
+  function load() {
+    try {
+      const raw = window.localStorage.getItem(STORE_KEY);
+      if (!raw) return {};
+      const obj = JSON.parse(raw);
+      return (obj && typeof obj.answers === "object" && obj.answers) ? obj.answers : {};
+    } catch (e) { return {}; }
+  }
+  function save() {
+    const s = scoreAll(QUESTIONS, answers);
+    const payload = { quiz: QUIZ_ID, answers: answers, score: s.score,
+                      total: s.total, answered: s.answered, ts: Date.now() };
+    try {
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(payload));
+      let all = {};
+      try { all = JSON.parse(window.localStorage.getItem(SUMMARY_KEY) || "{}") || {}; }
+      catch (e) { all = {}; }
+      all[QUIZ_ID] = { score: s.score, total: s.total, ts: payload.ts };
+      window.localStorage.setItem(SUMMARY_KEY, JSON.stringify(all));
+    } catch (e) { /* private mode: quiz still works, just not remembered */ }
+  }
+
+  /* ---- one question ---- */
+  function buildQuestion(q, i) {
+    const sec = document.createElement("section");
+    sec.className = "panel";
+    sec.id = "sec-" + q.id;
+
+    const head = document.createElement("div");
+    head.className = "qhead";
+    const num = document.createElement("span");
+    num.className = "qnum";
+    num.textContent = "Question " + (i + 1);
+    const tag = document.createElement("span");
+    tag.className = "tag " + q.tag;
+    tag.textContent = { conceptual: "concept", numbers: "real numbers",
+                        predict: "predict", code: "read the code" }[q.tag] || q.tag;
+    const sp = document.createElement("span");
+    sp.className = "spacer";
+    const state = document.createElement("span");
+    state.className = "qstate";
+    state.textContent = "unanswered";
+    head.appendChild(num); head.appendChild(tag); head.appendChild(sp); head.appendChild(state);
+    sec.appendChild(head);
+
+    const txt = document.createElement("p");
+    txt.className = "qtext";
+    txt.innerHTML = q.text;
+    sec.appendChild(txt);
+
+    if (q.code) {
+      const pre = document.createElement("pre");
+      pre.className = "snippet";
+      pre.textContent = q.code;
+      sec.appendChild(pre);
+      const src = document.createElement("p");
+      src.className = "srcfile";
+      src.textContent = q.file;
+      sec.appendChild(src);
+    }
+
+    const holder = { sec: sec, state: state, opts: [], input: null, checkBtn: null,
+                     result: null, q: q };
+
+    if (q.kind === "numeric") {
+      const row = document.createElement("div");
+      row.className = "numrow";
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.inputMode = "numeric";
+      inp.setAttribute("aria-label", "your answer");
+      inp.placeholder = q.placeholder || "your answer";
+      const btn = document.createElement("button");
+      btn.className = "primary";
+      btn.textContent = "Answer";
+      btn.addEventListener("click", function () {
+        const v = parseFloat(inp.value.replace(/[\s,_]/g, ""));
+        if (!isFinite(v)) { inp.focus(); return; }
+        answers[q.id] = v;
+        save(); renderQuestion(holder); renderBar();
+      });
+      inp.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); btn.click(); }
+      });
+      row.appendChild(inp); row.appendChild(btn);
+      sec.appendChild(row);
+      holder.input = inp; holder.checkBtn = btn;
+    } else {
+      const list = document.createElement("div");
+      list.className = "opts";
+      q.options.forEach(function (opt, oi) {
+        const b = document.createElement("button");
+        b.className = "opt";
+        b.type = "button";
+        const key = document.createElement("span");
+        key.className = "key";
+        key.textContent = LETTERS[oi];
+        const body = document.createElement("span");
+        body.innerHTML = opt;
+        const mark = document.createElement("span");
+        mark.className = "mark";
+        b.appendChild(key); b.appendChild(body); b.appendChild(mark);
+        b.addEventListener("click", function () {
+          if (answers[q.id] !== undefined) return;
+          if (q.kind === "multi") {
+            const cur = holder.picked;
+            const at = cur.indexOf(oi);
+            if (at >= 0) cur.splice(at, 1); else cur.push(oi);
+            b.classList.toggle("picked", at < 0);
+            holder.checkBtn.disabled = cur.length === 0;
+          } else {
+            answers[q.id] = oi;
+            save(); renderQuestion(holder); renderBar();
+          }
+        });
+        list.appendChild(b);
+        holder.opts.push({ btn: b, mark: mark });
+      });
+      sec.appendChild(list);
+
+      if (q.kind === "multi") {
+        holder.picked = [];
+        const acts = document.createElement("div");
+        acts.className = "acts";
+        const btn = document.createElement("button");
+        btn.className = "primary";
+        btn.textContent = "Answer";
+        btn.disabled = true;
+        btn.addEventListener("click", function () {
+          if (answers[q.id] !== undefined || holder.picked.length === 0) return;
+          answers[q.id] = holder.picked.slice();
+          save(); renderQuestion(holder); renderBar();
+        });
+        acts.appendChild(btn);
+        const note = document.createElement("span");
+        note.className = "hint";
+        note.style.margin = "0";
+        note.style.alignSelf = "center";
+        note.textContent = "pick every option you believe is true, then Answer";
+        acts.appendChild(note);
+        sec.appendChild(acts);
+        holder.checkBtn = btn;
+      }
+    }
+
+    const res = document.createElement("div");
+    res.style.display = "none";
+    sec.appendChild(res);
+    holder.result = res;
+
+    return holder;
+  }
+
+  /* ---- render one question's locked / unlocked state ---- */
+  function renderQuestion(h) {
+    const q = h.q, ans = answers[q.id], locked = ans !== undefined;
+    const ok = locked && gradeQuestion(q, ans);
+
+    h.state.textContent = locked ? (ok ? "correct" : "incorrect") : "unanswered";
+    h.state.style.color = locked ? (ok ? "var(--accent)" : "var(--wrong)") : "var(--muted)";
+
+    if (h.input) {
+      h.input.disabled = locked;
+      if (locked) h.input.value = String(ans);
+      h.checkBtn.disabled = locked;
+      h.checkBtn.textContent = locked ? "answered" : "Answer";
+    }
+    const correctSet = q.kind === "multi" ? q.answer : (q.kind === "single" ? [q.answer] : []);
+    const pickedSet = !locked ? (h.picked || [])
+      : (q.kind === "multi" ? ans : (q.kind === "single" ? [ans] : []));
+
+    h.opts.forEach(function (o, oi) {
+      o.btn.disabled = locked;
+      o.btn.classList.toggle("picked", !locked && pickedSet.indexOf(oi) >= 0);
+      const isRight = correctSet.indexOf(oi) >= 0;
+      const isPicked = locked && pickedSet.indexOf(oi) >= 0;
+      o.btn.classList.toggle("right", locked && isRight);
+      o.btn.classList.toggle("wrongpick", locked && isPicked && !isRight);
+      o.mark.textContent = !locked ? ""
+        : (isRight ? (isPicked ? "✓ correct · you picked it" : "✓ correct")
+                   : (isPicked ? "✗ your pick" : ""));
+    });
+    if (h.checkBtn && q.kind === "multi") {
+      h.checkBtn.disabled = locked || (h.picked || []).length === 0;
+      h.checkBtn.textContent = locked ? "answered" : "Answer";
+    }
+
+    if (!locked) { h.result.style.display = "none"; h.result.innerHTML = ""; return; }
+
+    h.result.innerHTML = "";
+    h.result.style.display = "block";
+    const v = document.createElement("span");
+    v.className = "verdictline " + (ok ? "ok" : "no");
+    v.textContent = ok ? "Correct" : "Not quite";
+    h.result.appendChild(v);
+
+    if (q.kind === "numeric") {
+      const line = document.createElement("p");
+      line.className = "hint";
+      line.style.marginTop = "0";
+      const nf = function (v) {
+        return Number(v).toLocaleString("en-US", { maximumFractionDigits: 6 });
+      };
+      line.innerHTML = "answer <span class=\"mono\">" + nf(q.answer) +
+        "</span> · accepted " + q.tolLabel + " · you typed <span class=\"mono\">" +
+        nf(ans) + "</span>";
+      h.result.appendChild(line);
+    }
+
+    const ex = document.createElement("div");
+    ex.className = "explain";
+    ex.innerHTML = q.explain;
+    const src = document.createElement("span");
+    src.className = "src";
+    src.textContent = "source · " + q.source;
+    ex.appendChild(src);
+    if (q.tryIt) {
+      const a = document.createElement("a");
+      a.className = "tryit";
+      a.href = q.tryIt.href;
+      a.textContent = q.tryIt.label;
+      ex.appendChild(a);
+    }
+    h.result.appendChild(ex);
+  }
+
+  /* ---- score bar ---- */
+  function renderBar() {
+    const s = scoreAll(QUESTIONS, answers);
+    document.getElementById("sc-score").textContent = String(s.score);
+    const msg = document.getElementById("sc-msg");
+    msg.innerHTML = "";
+    if (s.answered === 0) {
+      msg.textContent = "Nothing answered yet.";
+    } else if (s.answered < s.total) {
+      msg.textContent = s.answered + " of " + s.total + " answered — " +
+        (s.total - s.answered) + " to go.";
+    } else {
+      const vd = verdictFor(s.score, s.total);
+      const b = document.createElement("b");
+      b.textContent = s.score + " / " + s.total + " — " + vd.text + ".";
+      msg.appendChild(b);
+      const rev = document.createElement("span");
+      rev.className = "review";
+      rev.textContent = s.wrong.length
+        ? "Review: " + s.wrong.join(" · ")
+        : "Every topic clean.";
+      msg.appendChild(rev);
+    }
+  }
+
+  /* ---- boot ---- */
+  answers = load();
+  const holders = QUESTIONS.map(function (q, i) {
+    const h = buildQuestion(q, i);
+    root.appendChild(h.sec);
+    return h;
+  });
+  holders.forEach(renderQuestion);
+  renderBar();
+
+  document.getElementById("sc-reset").addEventListener("click", function () {
+    if (!window.confirm("Clear your answers for this quiz and start over?")) return;
+    answers = {};
+    holders.forEach(function (h) { h.picked = []; });
+    try {
+      window.localStorage.removeItem(STORE_KEY);
+      let all = {};
+      try { all = JSON.parse(window.localStorage.getItem(SUMMARY_KEY) || "{}") || {}; }
+      catch (e) { all = {}; }
+      delete all[QUIZ_ID];
+      window.localStorage.setItem(SUMMARY_KEY, JSON.stringify(all));
+    } catch (e) { /* ignore */ }
+    holders.forEach(renderQuestion);
+    renderBar();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+})();
+</script>
+<!-- built for ml-course quizzes v1 -->
+</html>

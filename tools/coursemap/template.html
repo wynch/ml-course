@@ -6,7 +6,7 @@
 :root{
   --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d;
   --t0:#a86b0e; --t0-soft:rgba(168,107,14,.10);
-  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --track-ink:#ffffff;
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --track-ink:#ffffff;
   --panel:#ffffff; --matte:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67;
   --soft:rgba(31,145,141,.10); --rail:rgba(28,36,34,.10);
   --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
@@ -20,7 +20,7 @@
     --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --matte:#f2f5f4;
     --line:rgba(232,238,236,.18); --muted:#9daba7;
     --t0:#d9962e; --t0-soft:rgba(217,150,46,.16);
-    --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --accent:#37b3ae;
+    --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --accent:#37b3ae;
     --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --rail:rgba(232,238,236,.14);
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
   }
@@ -30,7 +30,7 @@
   --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --matte:#f2f5f4;
   --line:rgba(232,238,236,.18); --muted:#9daba7;
   --t0:#d9962e; --t0-soft:rgba(217,150,46,.16);
-  --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --accent:#37b3ae;
+  --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --accent:#37b3ae;
   --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --rail:rgba(232,238,236,.14);
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
 }
@@ -38,7 +38,7 @@
   --paper:#f6f8f7; --ink:#1c2422; --panel:#ffffff; --matte:#ffffff;
   --line:rgba(28,36,34,.14); --muted:#5c6b67;
   --t0:#a86b0e; --t0-soft:rgba(168,107,14,.10);
-  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --accent:#1f918d;
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --accent:#1f918d;
   --track-ink:#ffffff; --soft:rgba(31,145,141,.10); --rail:rgba(28,36,34,.10);
   --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
 }
@@ -75,7 +75,7 @@ main{max-width:1180px;margin:0 auto;padding:clamp(1rem,3vw,1.6rem) clamp(.9rem,3
 .track{position:relative;margin:1.9rem 0 0;padding-left:1.15rem}
 .track::before{content:"";position:absolute;left:0;top:.4rem;bottom:.5rem;width:4px;
   border-radius:2px;background:var(--tc);opacity:.85}
-.track.t0{--tc:var(--t0)} .track.t1{--tc:var(--t1)} .track.t2{--tc:var(--t2)} .track.t3{--tc:var(--t3)}
+.track.t0{--tc:var(--t0)} .track.t1{--tc:var(--t1)} .track.t2{--tc:var(--t2)} .track.t3{--tc:var(--t3)} .track.t4{--tc:var(--t4)}
 .track > h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
   margin:0 0 .15rem;color:var(--tc);display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap}
 .track > h2 .rng{font-family:var(--mono);font-size:.78rem;font-weight:400;
@@ -88,7 +88,7 @@ main{max-width:1180px;margin:0 auto;padding:clamp(1rem,3vw,1.6rem) clamp(.9rem,3
   border:1px solid var(--line);border-radius:14px;padding:.9rem 1rem 1rem;
   box-shadow:var(--shadow);transition:border-color .15s,transform .15s}
 .card:hover{border-color:var(--accent);transform:translateY(-2px)}
-.card.t0{--tc:var(--t0)} .card.t1{--tc:var(--t1)} .card.t2{--tc:var(--t2)} .card.t3{--tc:var(--t3)}
+.card.t0{--tc:var(--t0)} .card.t1{--tc:var(--t1)} .card.t2{--tc:var(--t2)} .card.t3{--tc:var(--t3)} .card.t4{--tc:var(--t4)}
 .card.t0 .chips span{background:var(--t0-soft)}
 .card .chead{display:flex;align-items:center;gap:.5rem;padding-right:5.2rem;margin:0 0 .55rem}
 .mno{font-family:var(--mono);font-size:.72rem;font-weight:600;color:var(--track-ink);
@@ -172,14 +172,14 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
     <p class="lede">From a scalar autograd engine to a Zig inference engine — every idea built from
       scratch first, then the Hugging Face way, and drawn as a picture both times.</p>
     <div class="topline">
-      <span class="stats"><b>14</b> modules · <b>103</b> figures · <b>14</b> explorables ·
-        <b>14</b> quizzes · <b>2</b> languages</span>
+      <span class="stats"><b>16</b> modules · <b>112</b> figures · <b>16</b> explorables ·
+        <b>16</b> quizzes · <b>2</b> languages</span>
       <a class="sitebtn" href="https://wynch.github.io/ml-course/" target="_blank" rel="noopener">Course site ↗
         <span class="u">wynch.github.io/ml-course</span></a>
     </div>
     <div class="prog">
       <div class="pbar"><div id="pfill"></div></div>
-      <span id="pcount">0 / 14</span>
+      <span id="pcount">0 / 16</span>
     </div>
   </div>
 </header>
@@ -322,7 +322,7 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
       <label class="donebox">done<input type="checkbox" data-mod="05" aria-label="Mark module 05 done"><span class="box"></span></label>
       <div class="chead"><span class="mno">05</span><h3>The transformers library</h3></div>
       <div class="fig"><img src="{{FIG05}}" alt="Module 05 figure: logit lens — the top prediction at every layer"></div>
-      <p class="build"><b>You build:</b> a dissection of SmolLM3 — <code>pipeline</code>,
+      <p class="build"><b>You build:</b> a dissection of SmolLM2-360M — <code>pipeline</code>,
         <code>AutoModel</code>, the parameter budget, sampling, and a logit lens.</p>
       <div class="chips"><span>“Paris” @ layer 27/32</span><span>362M params dissected</span><span>CPU 27–31 tok/s</span></div>
       <div class="links">
@@ -353,7 +353,7 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
       <label class="donebox">done<input type="checkbox" data-mod="06" aria-label="Mark module 06 done"><span class="box"></span></label>
       <div class="chead"><span class="mno">06</span><h3>Fine-tuning</h3></div>
       <div class="fig"><img src="{{FIG06}}" alt="Module 06 figure: base versus fine-tuned generations side by side"></div>
-      <p class="build"><b>You build:</b> a TRL SFT run with LoRA adapters on SmolLM3, plus an MLX lane
+      <p class="build"><b>You build:</b> a TRL SFT run with LoRA adapters on SmolLM2-360M (SmolLM3-3B in the cloud job), plus an MLX lane
         that keeps the whole thing on the Mac.</p>
       <div class="chips"><span>loss 1.25 → 0.60</span><span>LoRA 2.34% trainable</span><span>MLX ~7× MPS</span></div>
       <div class="links">
@@ -431,6 +431,44 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
       </div>
       <div class="cfoot"><span class="path">modules/10-agents</span>
         <a class="hf" href="https://huggingface.co/learn/agents-course/unit1/introduction" target="_blank" rel="noopener">HF Agents unit 1 ↗</a></div>
+    </article>
+
+  </div>
+</section>
+
+<section class="track t4">
+  <h2>Looking inside<span class="rng">modules 11–12</span></h2>
+  <p class="sub">Open a trained model while it runs: read one neuron, probe each layer, patch one cell, then read features through a sparse dictionary.</p>
+  <div class="grid">
+
+    <article class="card t4" data-mod="11">
+      <label class="donebox">done<input type="checkbox" data-mod="11" aria-label="Mark module 11 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">11</span><h3>Inside a language model</h3></div>
+      <div class="fig"><img src="{{FIG11}}" alt="Module 11 figure: patching heatmap, layer by position, Eiffel Tower against Colosseum"></div>
+      <p class="build"><b>You build:</b> forward hooks on module 04's char-GPT, then a probe per layer,
+        an activation-patching sweep and a two-pole neuron reader on SmolLM2-360M.</p>
+      <div class="chips"><span>probe 87.4% from layer 18</span><span>random weights ≤ 58.0%</span><span>Paris moves at layer 27</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/11-inside-a-language-model.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/11.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/11-inside-a-language-model</span>
+        <a class="hf" href="https://nnsight.net" target="_blank" rel="noopener">nnsight docs ↗</a></div>
+    </article>
+
+    <article class="card t4" data-mod="12">
+      <label class="donebox">done<input type="checkbox" data-mod="12" aria-label="Mark module 12 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">12</span><h3>Features and dictionaries</h3></div>
+      <div class="fig"><img src="{{FIG12}}" alt="Module 12 figure: toy superposition, feature directions and norms at low and high sparsity"></div>
+      <p class="build"><b>You build:</b> the toy model of superposition, a TopK sparse autoencoder on module 04's
+        char-GPT, GPT-2's layer-8 SAE through SAELens, and a steering vector on SmolLM2-360M.</p>
+      <div class="chips"><span>13 features in 5 dims at S = 0.999</span><span>SAE 98.7% variance, k = 32</span><span>274 of 2,048 latents dead</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/12-features-and-dictionaries.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/12.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/12-features-and-dictionaries</span>
+        <a class="hf" href="https://github.com/jbloomAus/SAELens" target="_blank" rel="noopener">SAELens ↗</a></div>
     </article>
 
   </div>

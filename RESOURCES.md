@@ -58,6 +58,8 @@ Each row: what you built here → where to continue on HF Learn.
 | [08 · vision](modules/08-vision) | [Community Computer Vision Course](https://huggingface.co/learn/computer-vision-course) | The full breadth: CNNs, ViTs, multimodal, generative vision, and the task zoo beyond the single ViT you fine-tuned. |
 | [09 · diffusion](modules/09-diffusion) | [Diffusion Course](https://huggingface.co/learn/diffusion-course) | From your toy denoiser to DDPMs, guidance, Stable Diffusion, and the `diffusers` library end to end. |
 | [10 · agents](modules/10-agents) | [Agents Course](https://huggingface.co/learn/agents-course) · [MCP Course](https://huggingface.co/learn/mcp-course) · [Context Course](https://huggingface.co/learn/context-course) | The whole agentic stack: agent frameworks and certification, the Model Context Protocol in depth, and context engineering for code agents. |
+| [11 · inside-a-language-model](modules/11-inside-a-language-model) | No HF Learn course yet · [nnsight tutorials](https://nnsight.net/tutorials/) | HF Learn does not teach interpretability. The nnsight tutorials take the tool this module uses further: attribution patching, steering, and runs on remote models. |
+| [12 · features-and-dictionaries](modules/12-features-and-dictionaries) | No HF Learn course yet · [SAELens tutorials](https://github.com/jbloomAus/SAELens/tree/main/tutorials) | SAELens's own notebooks go from loading a published SAE, as this module does, to training one on a real model and analysing its features. |
 
 ---
 
@@ -321,6 +323,8 @@ The short list. Two to four external picks per module, chosen rather than dumped
 | [08 · vision](modules/08-vision) | [CNN Explainer](https://poloclub.github.io/cnn-explainer/) · [CS231n lecture notes](https://cs231n.stanford.edu/) · [labml.ai](https://nn.labml.ai/) ViT implementation · [Explained Visually](https://setosa.io/ev/) image kernels |
 | [09 · diffusion](modules/09-diffusion) | [Diffusion Explainer](https://poloclub.github.io/diffusion-explainer/) · [The Annotated Diffusion Model](https://huggingface.co/blog/annotated-diffusion) · [Step-by-Step Diffusion tutorial](https://arxiv.org/abs/2406.08929) · [fast.ai Part 2](https://course.fast.ai/) (diffusion from foundations) |
 | [10 · agents](modules/10-agents) | [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) · [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) · [12-Factor Agents](https://github.com/humanlayer/12-factor-agents) · [Lil'Log](https://lilianweng.github.io/) |
+| [11 · inside-a-language-model](modules/11-inside-a-language-model) | [ARENA chapter 1](https://learn.arena.education/) (transformer interpretability) · [Neuronpedia](https://www.neuronpedia.org) · [Transformer Circuits Thread](https://transformer-circuits.pub/) · [Neural networks are already clean](https://already-clean.goodfire.com/) (Goodfire, 2026) |
+| [12 · features-and-dictionaries](modules/12-features-and-dictionaries) | [Toy Models of Superposition](https://transformer-circuits.pub/2022/toy_model/index.html) · [Towards Monosemanticity](https://transformer-circuits.pub/2023/monosemantic-features) · [Scaling and evaluating sparse autoencoders](https://arxiv.org/abs/2406.04093) · [Neuronpedia](https://www.neuronpedia.org) |
 
 ---
 

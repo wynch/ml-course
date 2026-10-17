@@ -1,0 +1,186 @@
+{
+ "model": "module 04 tiny char-GPT (artifacts/tiny_gpt_weights.bin), 3 blocks x 512 MLP neurons",
+ "corpus": "first 20000 characters of the validation split (last 10% of tiny_shakespeare.txt)",
+ "rule": "the MLP neuron (post-GELU) with the highest Pearson r against 'this character is a space'",
+ "neuron": {
+  "block": 1,
+  "neuron": 139,
+  "r": 0.967,
+  "n_neurons_searched": 1536,
+  "mean_on_space": 1.822,
+  "mean_elsewhere": -0.082
+ },
+ "passage": "PETRUCHIO:\nNow, by the world, it is a lusty wench;\nI love her ten times more than e'er I did:",
+ "passage_activations": [
+  -0.005,
+  -0.118,
+  -0.037,
+  -0.094,
+  -0.167,
+  -0.047,
+  -0.151,
+  -0.17,
+  -0.169,
+  0.061,
+  0.522,
+  -0.157,
+  -0.167,
+  -0.115,
+  0.026,
+  1.801,
+  -0.031,
+  -0.144,
+  1.957,
+  -0.112,
+  -0.127,
+  -0.154,
+  1.618,
+  -0.084,
+  -0.169,
+  -0.151,
+  -0.17,
+  -0.098,
+  0.151,
+  2.028,
+  -0.105,
+  -0.141,
+  1.934,
+  -0.132,
+  -0.157,
+  1.723,
+  -0.145,
+  1.24,
+  -0.167,
+  -0.157,
+  -0.141,
+  -0.124,
+  -0.088,
+  1.948,
+  -0.042,
+  -0.17,
+  -0.166,
+  -0.125,
+  -0.156,
+  -0.063,
+  0.663,
+  -0.118,
+  1.434,
+  -0.165,
+  -0.165,
+  -0.17,
+  -0.166,
+  1.826,
+  -0.169,
+  -0.167,
+  -0.147,
+  1.591,
+  -0.148,
+  -0.127,
+  -0.135,
+  1.924,
+  -0.112,
+  -0.118,
+  -0.153,
+  -0.167,
+  -0.147,
+  1.894,
+  -0.165,
+  -0.17,
+  -0.144,
+  -0.17,
+  1.791,
+  -0.147,
+  -0.145,
+  -0.16,
+  -0.168,
+  1.818,
+  -0.164,
+  0.095,
+  -0.169,
+  -0.156,
+  1.697,
+  -0.141,
+  1.166,
+  -0.159,
+  -0.148,
+  -0.152,
+  0.364
+ ],
+ "edit": {
+  "loss_all_before": 1.6867,
+  "loss_all_after": 1.6911,
+  "loss_after_space_before": 3.0458,
+  "loss_after_space_after": 3.0676,
+  "loss_elsewhere_before": 1.4433,
+  "loss_elsewhere_after": 1.4445,
+  "n_after_space": 3038,
+  "n_elsewhere": 16961,
+  "top10_space_neurons": {
+   "1": [
+    139,
+    157,
+    364
+   ],
+   "2": [
+    257,
+    176,
+    231,
+    24
+   ],
+   "0": [
+    320,
+    29,
+    59
+   ]
+  },
+  "top10_min_r": 0.83,
+  "loss_after_space_top10_zeroed": 3.1223,
+  "loss_elsewhere_top10_zeroed": 1.4562,
+  "example_context": "Now, by the world, it is a ",
+  "example_top3_before": [
+   [
+    "m",
+    0.087
+   ],
+   [
+    "s",
+    0.081
+   ],
+   [
+    "p",
+    0.081
+   ]
+  ],
+  "example_top3_after": [
+   [
+    "p",
+    0.09
+   ],
+   [
+    "m",
+    0.09
+   ],
+   [
+    "c",
+    0.082
+   ]
+  ]
+ },
+ "guard": {
+  "script": "hooks.py",
+  "seconds": 1.3,
+  "minutes": 0.02,
+  "peak_rss_gb": 0.61,
+  "peak_mps_driver_gb": 0.0,
+  "stages_seconds": {
+   "load": 0.02,
+   "record and pick": 0.24,
+   "ablate": 0.47,
+   "figures": 0.53
+  },
+  "machine": "arm64 26.6.2",
+  "torch": "2.14.1",
+  "mps_high_watermark_ratio": "0.5",
+  "mps_cap_gb": 5.92
+ }
+}

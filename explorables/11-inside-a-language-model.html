@@ -1,0 +1,360 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inside a language model — ml-course explorable</title>
+<style>
+  :root{
+    --paper:#f6f8f7; --ink:#1c2422; --panel:#ffffff; --panel-2:#eef2f0;
+    --line:#d5ddda; --muted:#5d6b67; --accent:#1f918d;
+    --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a;
+    --pos:#1f918d; --neg:#c1121f;
+    --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
+    --mono:"SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    --display:"Avenir Next","Helvetica Neue",sans-serif;
+    --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --panel-2:#222d29;
+      --line:#31403b; --muted:#9dada8; --accent:#37b3ae; --t4:#e0679a;
+      --pos:#37b3ae; --neg:#ff6b6b;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink)}
+  body{font-family:var(--body);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 16px 64px}
+
+  header.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    padding:16px 0 14px;border-bottom:1px solid var(--line);margin-bottom:22px}
+  header.top h1{font-family:var(--display);font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .pill{font-family:var(--display);font-size:11.5px;font-weight:600;letter-spacing:.02em;
+    padding:3px 10px;border-radius:999px;color:#fff;background:var(--t4);white-space:nowrap}
+  .top .spacer{flex:1}
+  .backlink{font-size:13px;color:var(--muted);text-decoration:none;border-bottom:1px solid transparent}
+  .backlink:hover{color:var(--accent);border-bottom-color:var(--accent)}
+
+  .intro{max-width:78ch;font-size:15.5px;margin:0 0 26px}
+  .intro em{color:var(--accent);font-style:normal;font-weight:600}
+
+  section{margin:0 0 30px}
+  h2{font-family:var(--display);font-size:15px;font-weight:600;margin:0 0 4px;letter-spacing:.01em}
+  .sub{font-size:13px;color:var(--muted);margin:0 0 14px;max-width:80ch}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    box-shadow:var(--shadow);padding:16px}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 14px;
+    padding:0 0 12px;border-bottom:1px solid var(--line)}
+  .seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;overflow:hidden;flex-wrap:wrap}
+  .seg button{font-family:var(--display);font-size:12px;font-weight:600;border:0;background:transparent;
+    color:var(--muted);padding:5px 11px;cursor:pointer}
+  .seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+  .seg.pole button[data-pole="pos"][aria-pressed="true"]{background:var(--pos)}
+  .seg.pole button[data-pole="neg"][aria-pressed="true"]{background:var(--neg)}
+  .seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  .hint{font-size:11.5px;color:var(--muted)}
+  kbd{font-family:var(--mono);font-size:10.5px;border:1px solid var(--line);border-radius:4px;
+    padding:0 4px;background:var(--panel-2)}
+
+  .notice{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+  .chip{font-family:var(--mono);font-size:11.5px;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:999px;padding:3px 10px;color:var(--muted)}
+  .chip b{color:var(--ink)}
+
+  .ctxs{display:flex;flex-direction:column;gap:6px}
+  .ctx{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;align-items:center;
+    padding:6px 8px;border-radius:8px;border:1px solid transparent}
+  .ctx:hover{border-color:var(--line);background:var(--panel-2)}
+  .share{display:flex;flex-direction:column;gap:3px}
+  .share .bar{height:7px;border-radius:4px;background:var(--panel-2);overflow:hidden}
+  .share .bar i{display:block;height:100%}
+  .share span{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .text{font-family:var(--mono);font-size:12.5px;line-height:1.7;overflow-wrap:anywhere;white-space:pre-wrap}
+  .text .tk{border-radius:3px}
+  .text .fire{color:#fff;font-weight:600;padding:0 2px}
+  .text .nl{color:var(--muted)}
+  .text .far{opacity:.55}
+
+  .strip{display:flex;flex-wrap:wrap;font-family:var(--mono);font-size:14px;line-height:1.9;gap:1px 0}
+  .strip span{padding:0 1px;border-radius:2px;min-width:.62em;text-align:center}
+  .readout{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:8px;min-height:19px}
+  .readout b{color:var(--ink)}
+
+  .two{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px}
+  @media (max-width:820px){ .two{grid-template-columns:minmax(0,1fr)} }
+  svg{display:block;max-width:100%;height:auto}
+  svg text{font-family:var(--body);fill:var(--muted)}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:var(--muted);margin-top:6px}
+  .legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+
+  ul.notice-list{margin:0;padding-left:20px;font-size:14px}
+  ul.notice-list li{margin:6px 0}
+  ul.notice-list code{font-family:var(--mono);font-size:12.5px;background:var(--panel-2);border-radius:4px;padding:1px 4px}
+
+  footer.bot{border-top:1px solid var(--line);padding-top:14px;font-size:12.5px;color:var(--muted)}
+  footer.bot a{color:var(--accent)}
+  footer.bot .row{margin:4px 0}
+  footer.bot code{font-family:var(--mono)}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <h1>Inside a language model</h1>
+  <span class="pill">Module 11 · Looking inside</span>
+  <span class="spacer"></span>
+  <a class="backlink" href="index.html">← All explorables</a>
+</header>
+
+<p class="intro">
+  Four ways to look inside a model that is already trained. A <em>hook</em> reads one neuron as text flows
+  through module 04's char-GPT. A <em>neuron browser</em> shows what three SmolLM2-360M neurons respond to,
+  on both signs. A <em>probe</em> asks at which layer sentiment becomes readable. <em>Patching</em> asks
+  where the model keeps "Eiffel Tower" until it answers. Every number here comes from the module's own runs.
+</p>
+
+<section>
+  <h2>1 · A hook reads one neuron</h2>
+  <p class="sub" id="hooksub"></p>
+  <div class="card">
+    <div class="strip" id="strip" aria-label="Neuron value per character"></div>
+    <div class="readout" id="stripread">Hover a character.</div>
+  </div>
+</section>
+
+<section>
+  <h2>2 · Neuron browser: both poles</h2>
+  <p class="sub">In SmolLM2's MLP, a neuron's value is <code>silu(gate)·up</code>, the number <code>down_proj</code> reads.
+    It can be strongly positive or strongly negative, so each neuron has two poles. Below are the ten
+    strongest contexts for each pole in one million tokens of Wikipedia text. The highlighted token is where
+    the neuron fired; the bar is its activation as a share of the pole's maximum.</p>
+  <div class="card">
+    <div class="controls">
+      <span class="hint">neuron</span>
+      <span class="seg" id="nseg"></span>
+      <span class="hint">pole</span>
+      <span class="seg pole" id="pseg">
+        <button data-pole="pos" aria-pressed="true">+ positive</button>
+        <button data-pole="neg" aria-pressed="false">− negative</button>
+      </span>
+      <span class="hint"><kbd>←</kbd><kbd>→</kbd> neuron · <kbd>p</kbd> pole</span>
+    </div>
+    <div class="notice" id="nchips"></div>
+    <div class="ctxs" id="ctxs"></div>
+  </div>
+</section>
+
+<section class="two">
+  <div>
+    <h2>3 · Probe accuracy by layer</h2>
+    <p class="sub">One logistic regression per layer reads positive vs negative from the last token's residual
+      vector (SST-2). The grey line is the same network with random weights.</p>
+    <div class="card">
+      <svg id="probe" viewBox="0 0 520 300" role="img" aria-label="Probe accuracy by layer"></svg>
+      <div class="legend">
+        <span><i style="background:var(--pos)"></i>SmolLM2-360M-Instruct</span>
+        <span><i style="background:var(--muted)"></i>random weights</span>
+        <span><i style="background:var(--neg)"></i>majority guess</span>
+      </div>
+      <div class="readout" id="probeRead">Hover the chart.</div>
+    </div>
+  </div>
+  <div>
+    <h2>4 · Activation patching</h2>
+    <p class="sub" id="patchsub"></p>
+    <div class="card">
+      <svg id="patch" viewBox="0 0 420 520" role="img" aria-label="Patching heatmap, layer by position"></svg>
+      <div class="readout" id="patchRead">Hover a cell.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>What to notice</h2>
+  <div class="card"><ul class="notice-list" id="notice"></ul></div>
+</section>
+
+<footer class="bot">
+  <div class="row">Module: <code>../modules/11-inside-a-language-model/README.md</code></div>
+  <div class="row">Data: written into this page by <code>modules/11-inside-a-language-model/python/src/export_explorable.py</code>
+    from <code>results/hooks.json</code>, <code>probe.json</code>, <code>patching.json</code> and <code>poles.json</code>.</div>
+  <div class="row">The neuron poles follow the Goodfire essay
+    <a href="https://already-clean.goodfire.com/">Neural networks are already clean</a> (2026).
+    Logit lens: <a href="05-transformer-anatomy.html">Anatomy of a transformer</a>, panel 3.</div>
+</footer>
+</div>
+
+<script>
+/* BEGIN DATA: written by modules/11-inside-a-language-model/python/src/export_explorable.py; do not edit */
+const DATA = {"hook":{"block":1,"neuron":139,"r":0.967,"passage":"PETRUCHIO:\nNow, by the world, it is a lusty wench;\nI love her ten times more than e'er I did:","acts":[-0.005,-0.118,-0.037,-0.094,-0.167,-0.047,-0.151,-0.17,-0.169,0.061,0.522,-0.157,-0.167,-0.115,0.026,1.801,-0.031,-0.144,1.957,-0.112,-0.127,-0.154,1.618,-0.084,-0.169,-0.151,-0.17,-0.098,0.151,2.028,-0.105,-0.141,1.934,-0.132,-0.157,1.723,-0.145,1.24,-0.167,-0.157,-0.141,-0.124,-0.088,1.948,-0.042,-0.17,-0.166,-0.125,-0.156,-0.063,0.663,-0.118,1.434,-0.165,-0.165,-0.17,-0.166,1.826,-0.169,-0.167,-0.147,1.591,-0.148,-0.127,-0.135,1.924,-0.112,-0.118,-0.153,-0.167,-0.147,1.894,-0.165,-0.17,-0.144,-0.17,1.791,-0.147,-0.145,-0.16,-0.168,1.818,-0.164,0.095,-0.169,-0.156,1.697,-0.141,1.166,-0.159,-0.148,-0.152,0.364],"loss_after_space":[3.0458,3.0676,3.1223]},"probe":{"trained":[0.5149,0.5401,0.6124,0.6755,0.6583,0.6709,0.7603,0.7443,0.7534,0.7638,0.7202,0.6972,0.7018,0.6984,0.7099,0.7431,0.836,0.8693,0.8739,0.8773,0.883,0.8807,0.8773,0.8784,0.8658,0.867,0.8681,0.8693,0.8601,0.8727,0.8796,0.8624,0.8647],"random":[0.5172,0.5803,0.5539,0.5619,0.5516,0.5516,0.5505,0.5505,0.5608,0.5608,0.5505,0.5585,0.5505,0.5493,0.5505,0.5493,0.547,0.5493,0.5619,0.5573,0.5654,0.5688,0.547,0.5516,0.5356,0.5264,0.5287,0.531,0.547,0.5493,0.5482,0.5539,0.5482],"majority":0.5092,"plateau":18,"best":20,"n_test":872},"patch":{"clean":"The Eiffel Tower is located in the city of","corrupt":"The Colosseum is located in the city of","tokens_clean":["The"," E","iffel"," Tower"," is"," located"," in"," the"," city"," of"],"tokens_corrupt":["The"," Col","osse","um"," is"," located"," in"," the"," city"," of"],"ld_clean":15.434,"ld_corrupt":-12.202,"score":[[-0.0,0.419,0.513,0.289,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0],[-0.0,0.43,0.509,0.28,-0.0,-0.0,-0.0,-0.0,0.001,0.0],[-0.0,0.027,0.916,0.127,0.0,0.0,-0.0,0.0,0.001,0.001],[-0.0,0.009,0.919,0.145,-0.0,-0.001,0.0,0.0,0.001,0.002],[-0.0,0.006,0.867,0.114,-0.0,-0.001,0.002,0.0,0.0,0.002],[-0.0,0.02,0.851,0.094,-0.005,-0.001,0.002,0.0,-0.0,0.003],[-0.0,0.005,0.771,0.118,-0.004,0.0,0.002,0.0,0.0,-0.0],[-0.0,0.01,0.818,0.143,-0.004,0.0,0.002,0.0,0.001,-0.0],[-0.0,0.01,0.707,0.17,-0.003,0.0,-0.001,-0.0,0.001,-0.002],[-0.0,0.012,0.641,0.185,-0.004,0.002,0.0,-0.0,-0.005,-0.003],[-0.0,0.011,0.647,0.184,-0.004,0.002,-0.0,-0.0,-0.005,-0.003],[-0.0,0.005,0.676,0.195,-0.004,0.002,0.001,-0.0,-0.006,-0.004],[-0.0,0.004,0.685,0.182,-0.002,0.003,0.0,0.001,-0.011,-0.001],[-0.0,0.003,0.752,0.194,-0.002,0.004,-0.001,0.001,-0.007,-0.004],[-0.0,-0.003,0.745,0.156,-0.002,0.004,0.003,0.001,-0.006,-0.009],[-0.0,0.002,0.765,0.158,0.001,0.003,0.001,-0.0,-0.006,-0.008],[-0.0,0.002,0.747,0.14,0.002,0.009,0.003,-0.0,-0.008,-0.011],[-0.0,0.003,0.735,0.135,0.002,0.007,-0.004,-0.002,-0.008,-0.013],[-0.0,0.004,0.763,0.15,0.003,0.007,-0.005,-0.001,-0.008,-0.013],[-0.0,0.002,0.762,0.151,0.002,0.007,-0.005,-0.001,-0.008,-0.014],[-0.0,0.011,0.775,0.141,-0.0,0.004,-0.003,-0.001,-0.007,-0.009],[-0.0,0.011,0.771,0.141,0.001,0.003,-0.004,-0.001,-0.008,-0.011],[-0.0,0.012,0.783,0.148,0.001,0.003,-0.003,-0.001,-0.004,-0.017],[-0.0,-0.001,0.753,0.129,-0.0,0.001,-0.002,-0.0,-0.004,-0.016],[-0.0,-0.004,0.681,0.056,-0.001,0.0,-0.008,-0.001,-0.003,0.004],[-0.0,-0.005,0.598,-0.006,-0.0,0.001,-0.002,0.0,-0.003,0.061],[-0.0,-0.004,0.545,-0.03,0.001,0.003,0.007,0.002,-0.002,0.11],[-0.0,0.003,0.059,-0.0,0.012,0.02,0.075,0.013,0.008,0.792],[-0.0,0.001,0.015,0.003,0.013,0.021,0.078,0.014,0.009,0.862],[-0.0,0.001,0.015,0.005,0.013,0.02,0.075,0.013,0.007,0.867],[-0.0,0.001,0.016,0.007,0.013,0.022,0.079,0.014,0.008,0.87],[-0.0,-0.0,0.001,0.0,0.001,0.001,0.0,-0.001,0.001,0.965],[-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,-0.0,1.0]],"best_subject":{"row":3,"position":2,"token":"iffel","score":0.919},"last_first":27},"poles":{"corpus":"Salesforce/wikitext@b08601e wikitext-103-raw-v1/train-00000-of-00002.parquet, first 999,936 tokens (3906 rows of 256)","rule":"layers [4, 16, 28]; alive = both poles' top >= 1% of the layer's median top; one neuron per layer drawn with numpy default_rng(0)","neurons":[{"id":"L4/N2177","layer":4,"neuron":2177,"pos":{"max":2.821,"contexts":[{"t":["6"," ;"," Gang","an","elli"," –"," ","6"," ;"," Fant","u","zzi"," –"," ","5"," \n"," May"," ","1","3"," –"," Colon","na"," –"," "],"f":20,"a":2.821,"s":1.0,"r":"+x+"},{"t":[" friend"," Monica"," ,"," and"," is"," initially"," \""," equipped"," to"," do"," nothing"," \""," ."," James"," End","rst"," of"," the"," Hartford"," Cour","ant"," identified"," her"," as"," \""],"f":20,"a":2.256,"s":0.8,"r":"+x+"},{"t":[" '","s"," material"," lacks"," \""," wh","ining"," \""," ,"," G","ina"," Bar","rec","a"," of"," the"," Hartford"," Cour","ant"," wrote"," that"," F","ey"],"f":18,"a":2.14,"s":0.759,"r":"+x+"},{"t":[" contains"," a"," portion"," of"," the"," composition"," \""," Carol"," of"," the"," B","ells"," \""," ,"," written"," by"," Peter"," J","."," Wil","h","ous","ky"," ."," \n"],"f":20,"a":1.916,"s":0.679,"r":"+x+"},{"t":[" ;"," Gang","an","elli"," –"," ","4"," ;"," Po","zz","ob","on","elli"," –"," ","4"," \n"," May"," ","7"," –"," Colon","na"," –"," "],"f":20,"a":1.886,"s":0.669,"r":"+x+"},{"t":[" who"," were"," adopted"," by"," K","ody"," on"," June"," ","1","7"," ,"," ","2","0","1","5"," :"," \n"," Dayton"," ("," January"," ","1","6"],"f":20,"a":1.776,"s":0.629,"r":"+x+"},{"t":["-","@"," west"," ,"," Mor","a"," B","under"," in"," the"," northeast"," ,"," and"," G","har","ap","uri"," or"," Raj"," B","under"," in"," the"," south"," ."],"f":20,"a":1.717,"s":0.609,"r":"+x+"},{"t":[" \n"," Charles"," Eat","on"," ,"," O","BE"," ,"," A","FC"," ("," ","2","1"," December"," ","1","8","9","5"," –"," ","1","2"," November"],"f":20,"a":1.708,"s":0.605,"r":"+x+"},{"t":[" TD"," ,"," F","SA"," ,"," F","RS"," ,"," F","BA"," ("," ","1","0"," September"," ","1","8","9","0"," –"," ","2","2"," July"],"f":20,"a":1.647,"s":0.584,"r":"+x+"},{"t":["ie"," Stephen"," ="," \n"," Jess","ie"," Stephen"," ,"," MB","E"," ("," ","1","9"," April"," ","1","8","9","3"," –"," ","1","2"," June"],"f":20,"a":1.587,"s":0.562,"r":"+x+"}]},"neg":{"max":-2.733,"contexts":[{"t":[" w","under","kind"," ."," In"," his"," ","2","0","0","2"," interview"," with"," Jan"," Ag","hed"," ,"," the"," director"," Ing","mar"," Berg","man"," referenced"," Magn"],"f":20,"a":-2.733,"s":1.0,"r":"+x-"},{"t":[" and"," Wil","no"," were"," less"," organized"," ."," These"," activities"," were"," strictly"," controlled"," by"," the"," Soviet"," authorities"," ,"," which"," saw"," to"," it"," that"," these"," activities"," portrayed"],"f":20,"a":-2.407,"s":0.88,"r":"+x-"},{"t":["-","@"," door"," survey"," ,"," was"," done"," by"," a"," Washington"," consulting"," firm"," ,"," L","TL"," Strategies"," ."," A"," US"," State"," Department"," spokesperson"," said"," the"," report"],"f":20,"a":-1.96,"s":0.717,"r":"+x-"},{"t":[" trip"," overseas"," in"," ","1","9","7","4"," to"," Romania"," as"," part"," of"," a"," goodwill"," tour"," sponsored"," by"," the"," State"," Department"," ,"," performing"," several"," shows"],"f":20,"a":-1.731,"s":0.633,"r":"+x-"},{"t":[" Ant","imony"," is"," a"," chemical"," element"," with"," symbol"," S","b"," ("," from"," Latin"," :"," st","ib","ium"," )"," and"," atomic"," number"," ","5","1"," ."],"f":20,"a":-1.727,"s":0.632,"r":"+x-"},{"t":["ley"," Stud","ios"," in"," Memphis"," ,"," Tennessee"," ,"," was"," engineered"," by"," Davis"," McC","ain"," and"," Doug"," Eas","ley"," ."," There"," Deal"," recorded"],"f":17,"a":-1.7,"s":0.622,"r":"+x-"},{"t":[" led"," to"," the"," Allied"," capture"," of"," Rome"," in"," early"," June"," ."," \n"," ="," Ber","k","ley"," Bed","ell"," ="],"f":14,"a":-1.595,"s":0.583,"r":"+x-"},{"t":[" remaining"," calm"," under"," pressure"," ."," After"," the"," ","2","0","0","7"," win"," over"," Rutgers"," ,"," offensive"," tackle"," Scott"," Bur","ley"," described"," his"," ro","omm"],"f":20,"a":-1.554,"s":0.568,"r":"+x-"},{"t":[" and"," electronic"," equipment"," but"," allows"," for"," certain"," exemptions"," and"," ex","clusions"," from"," the"," scope"," of"," the"," law"," ."," The"," International"," Agency"," for"," Research"," on"," Cancer"],"f":20,"a":-1.514,"s":0.554,"r":"+x-"},{"t":[" order"," to"," plac","ate"," the"," Australian"," government"," ,"," but"," M","arge"," fur","iously"," objects"," to"," this"," idea"," ."," The"," State"," Department"," then"," settles"," on"," having"],"f":20,"a":-1.479,"s":0.541,"r":"+x-"}]}},{"id":"L16/N1630","layer":16,"neuron":1630,"pos":{"max":3.117,"contexts":[{"t":[" and"," a"," general"," theme"," of"," low"," material"," ,"," high"," gl","itz"," ."," But"," often"," ,"," the"," main"," spark","le"," is"," on"," Be","yon","c","é"],"f":20,"a":3.117,"s":1.0,"r":"+x+"},{"t":[" issue"," ."," John"," D","."," MacDonald"," also"," contributed"," good"," material"," ."," \n"," The"," book"," reviews"," in"," Super"," Science"," Stories"," were"," of"," a"," higher"," standard"," than"],"f":20,"a":2.598,"s":0.834,"r":"+x+"},{"t":[" jar"," ;"," in"," the"," Gospels"," she"," brought"," spices"," to"," the"," tomb"," of"," Jesus"," ."," The"," view"," through"," the"," window"," is"," of"," a"," distant"," canal"," ,"],"f":20,"a":2.551,"s":0.818,"r":"+x+"},{"t":[" titles"," of"," \""," Sh","amp","ain"," \""," and"," \""," Herm","it"," the"," Frog"," \""," ."," \n"," More"," mixed"," reviews"," were"," critical"," of"," Diam","and","is"],"f":20,"a":2.522,"s":0.809,"r":"+x+"},{"t":[" —"," wit","tic","isms"," unrelated"," to"," action"," or"," character"," \""," ,"," of"," which"," he"," found"," half"," a"," dozen"," to"," be"," of"," the"," highest"," order"," ."],"f":20,"a":2.496,"s":0.801,"r":"+x+"},{"t":[" ","4"," @",".","@"," ","3"," million"," Canadians"," ,"," or"," ","1","4"," %"," of"," the"," population"," ,"," are"," of"," Irish"," descent"," ."," As"],"f":20,"a":2.389,"s":0.766,"r":"+x+"},{"t":["2","4","0"," C","PS"," men"," served"," in"," this"," specialized"," program"," ."," One"," of"," the"," smoke","j","umping"," schools"," was"," at"," Camp"," P","ax","son"],"f":20,"a":2.342,"s":0.751,"r":"+x+"},{"t":["1","9","5","5"," title"," @","-","@"," winning"," team"," used"," to"," meet"," for"," an"," annual"," dinner"," ,"," and"," were"," guests"," of"," the"," club"," at"],"f":20,"a":2.322,"s":0.745,"r":"+x+"},{"t":[" at"," Christ"," '","s"," feet"," in"," her"," home"," ;"," by"," the"," Renaissance"," ,"," the"," image"," of"," the"," Magdal","en"," was"," of"," the"," woman"," who"," bat"],"f":20,"a":2.312,"s":0.742,"r":"+x+"},{"t":["od","rome"," ,"," visits"," to"," other"," aer","od","romes"," ,"," and"," day"," trips"," away"," ."," Half"," of"," all"," flights"," landed"," at"," the"," same"," aer","od"],"f":20,"a":2.17,"s":0.696,"r":"+x+"}]},"neg":{"max":-6.188,"contexts":[{"t":[" record"," :"," they"," conced","ed"," ","1","1","0"," goals"," in"," ","4","2"," games"," ,"," ","7"," of"," them"," coming"," from"," Arsen","al"," '"],"f":20,"a":-6.188,"s":1.0,"r":"+x-"},{"t":[" these"," strong"," winds"," were"," likely"," due"," to"," squ","alls"," ."," Heavy"," rainfall"," was"," also"," reported"," ,"," though"," the"," rains"," mainly"," occurred"," to"," the"," east"," of"],"f":20,"a":-4.366,"s":0.706,"r":"+x-"},{"t":[" final"," cost"," of"," building"," was"," £"," ","3","0"," @",",","@"," ","0","0","0"," ,"," one"," third"," of"," which"," was"," spent"," on"," the"],"f":20,"a":-3.967,"s":0.641,"r":"+x-"},{"t":["@"," ","0","0","0"," noise"," complaints"," made"," annually"," to"," the"," C","AA"," concern"," GA"," operations"," ,"," most"," of"," which"," relate"," to"," aer","ob","atics"],"f":20,"a":-3.911,"s":0.632,"r":"+x-"},{"t":[" ;"," it"," cost"," £"," ","6","4","9"," @",",","@"," ","0","0","0"," to"," lay"," ,"," half"," of"," which"," was"," met"," by"," the"],"f":20,"a":-3.783,"s":0.611,"r":"+x-"},{"t":[" @","-","@"," families"," ."," ","3","5"," @",".","@"," ","6"," %"," of"," all"," households"," were"," made"," up"," of"," individuals"," and"," ","1"],"f":20,"a":-3.722,"s":0.601,"r":"+x-"},{"t":[" overtime"," ."," During"," the"," season"," Columbus"," managed"," only"," two"," winning"," streaks"," of"," three"," or"," more"," games"," ."," One"," of"," which"," came"," towards"," the"," end"," of"],"f":20,"a":-3.522,"s":0.569,"r":"+x-"},{"t":["s"," )"," ."," \n"," ="," ="," Signs"," and"," symptoms"," ="," ="," \n"," Most"," signs"," and"," symptoms"," of"," A","ML"," are"," caused"," by"," the"," replacement"," of"],"f":20,"a":-3.497,"s":0.565,"r":"+x-"},{"t":[" for"," Birmingham"," during"," the"," ","2","0","0","0"," –"," ","0","1"," season"," ,"," scoring"," twice"," ."," Both"," goals"," came"," in"," the"," final"," league"],"f":20,"a":-3.487,"s":0.564,"r":"+x-"},{"t":[" ."," The"," initial"," American"," complement"," consisted"," of"," four"," officers"," and"," ","1","7","4"," enlisted"," men"," —"," the"," latter"," entirely"," composed"," of"," United"," States"," Navy"],"f":20,"a":-3.422,"s":0.553,"r":"+x-"}]}},{"id":"L28/N1308","layer":28,"neuron":1308,"pos":{"max":16.062,"contexts":[{"t":[" members"," of"," the"," Kar","ank","awa"," and"," Ak","ok","isa"," tribes"," who"," called"," the"," island"," Au","ia"," ."," The"," Spanish"," explorer"," Cab","e","za"," de"],"f":20,"a":16.062,"s":1.0,"r":"+x+"},{"t":[" @","-","@"," thro","ated"," ease"," ."," ","1","0"," \n"," O"," for"," a"," dra","ught"," of"," vintage"," !"," that"," hath"," been"," \n"," Cool"," '"],"f":20,"a":15.439,"s":0.961,"r":"+x+"},{"t":[" Parliament"," ."," It"," specifically"," limited"," the"," royal"," pre","rog","ative"," ,"," with"," Article"," ","1"," holding"," that"," the"," \""," power"," of"," susp","ending"," the"," laws"],"f":20,"a":14.169,"s":0.882,"r":"+x+"},{"t":["9","0"," ,"," Sweden"," built"," three"," he","mm","em","as"," of"," a"," new"," design"," ."," They"," were"," considerably"," larger"," ,"," ","4","4"," @","."],"f":20,"a":13.078,"s":0.814,"r":"+x+"},{"t":[" to"," Mang","alore"," ."," The"," convoy"," included"," two"," merchant"," vessels"," and"," the"," frig","ate"," R","é","sol","ue"," ,"," a"," ","3","6"," @","-"],"f":20,"a":12.474,"s":0.777,"r":"+x+"},{"t":[" of"," Great"," Britain"," and"," France"," ."," In"," fact"," ,"," their"," trading"," partners"," ,"," the"," Huron"," ,"," welcomed"," La"," S","alle"," and"," the"," Griff","on"," in"],"f":20,"a":11.48,"s":0.715,"r":"+x+"},{"t":[" border"," ,"," directly"," across"," from"," Port"," Huron"," ,"," Michigan"," ."," The"," city"," '","s"," natural"," harbour"," first"," attracted"," the"," French"," explorer"," La"," S","alle"," ,"],"f":20,"a":11.249,"s":0.7,"r":"+x+"},{"t":[" fields"," ."," The"," film"," gives"," an"," overview"," of"," the"," history"," of"," the"," enterprise"," ,"," as"," well"," as"," biographical"," information"," on"," founder"," Jimmy"," Wales"," ."," Wales"],"f":20,"a":10.859,"s":0.676,"r":"+x+"},{"t":[" ="," Result"," ="," ="," \n"," The"," Lords"," continued"," to"," suggest"," amendments"," to"," money"," bills"," over"," which"," it"," had"," no"," right"," of"," veto"," and"," in"," several"],"f":20,"a":10.669,"s":0.664,"r":"+x+"},{"t":[" drowned"," after"," her"," car"," was"," struck"," by"," another"],"f":3,"a":10.666,"s":0.664,"r":"+x+"}]},"neg":{"max":-18.075,"contexts":[{"t":[" prevent"," this"," from"," happening"," ,"," the"," Ulster"," Volunteers"," were"," formed"," in"," ","1","9","1","3"," under"," the"," leadership"," of"," Edward"," Carson"," ."," \n"," Their"],"f":20,"a":-18.075,"s":1.0,"r":"+x-"},{"t":[" subsequent"," campaign"," ,"," for"," the"," repeal"," of"," the"," Act"," of"," Union"," ,"," which"," failed"," ."," Later"," in"," the"," century"," ,"," Charles"," Stewart"," P","arn","ell"],"f":20,"a":-16.302,"s":0.902,"r":"+x-"},{"t":[" of"," the"," principal"," figures"," of"," Antarctic"," exploration"," ."," He"," ,"," along"," with"," his"," expedition"," ,"," made"," the"," first"," ascent"," of"," Mount"," E","re","bus"," and"],"f":20,"a":-15.953,"s":0.883,"r":"+x-"},{"t":[" '","s"," Governor"," General"," ,"," H",".","R",".","H","."," the"," Duke"," of"," Conn","aught"," ,"," and"," his"," daughter"," Princess"," Patricia"," ."," \n"," ="],"f":20,"a":-15.877,"s":0.878,"r":"+x-"},{"t":["on"," arrives"," ,"," pretending"," to"," be"," Ernest"," Worth","ing"," ,"," and"," soon"," char","ms"," Cec","ily"," ."," Long"," fascinated"," by"," Uncle"," Jack"," '","s"," hitherto"],"f":20,"a":-15.875,"s":0.878,"r":"+x-"},{"t":[" '"," friend"," Charles"," Ar","mit","age"," Brown"," ,"," under"," a"," plum"," tree"," in"," the"," garden"," of"," Ke","ats"," '"," house"," at"],"f":20,"a":-15.83,"s":0.876,"r":"+x-"},{"t":[" July"," ","2","4"," it"," was"," advancing"," from"," the"," Ch","ongs","ong"," @","-","@"," And","ong"," region"," and"," approaching"," P","oh","ang"," ."," On"],"f":20,"a":-14.533,"s":0.804,"r":"+x-"},{"t":["3","rd"," Battalion"," ,"," ","7","6","6","th"," Regiment"," was"," detached"," and"," sent"," on"," a"," mission"," to"," infilt","rate"," P","us","an"," ."," P"],"f":20,"a":-14.465,"s":0.8,"r":"+x-"},{"t":["wet","ter"," said"," \""," adds"," a"," bit"," of"," balance"," to"," the"," side"," by"," putting"," a"," bit"," more"," fire","power"," down"," the"," end"," and"," experience"," up"],"f":20,"a":-14.406,"s":0.797,"r":"+x-"},{"t":[" of"," the"," North"," Koreans"," again"," around"," the"," end"," of"," the"," month"," thanks"," to"," increased"," reinforcements"," and"," support"," closer"," to"," the"," P","us","an"," Per","imeter"],"f":20,"a":-13.959,"s":0.772,"r":"+x-"}]}}]}};
+/* END DATA */
+</script>
+<script>
+"use strict";
+(function(){
+const $=s=>document.querySelector(s);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pct=v=>(v*100).toFixed(1)+"%";
+const NS="http://www.w3.org/2000/svg";
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);
+  for(const k in attrs) e.setAttribute(k,attrs[k]); if(parent) parent.appendChild(e); return e;}
+function mix(hex,t){ // hex colour at opacity t over transparent
+  return "color-mix(in srgb,"+hex+" "+Math.round(t*100)+"%,transparent)";}
+
+/* ------------------------------------------------------------ 1 · hook strip */
+const H=DATA.hook;
+$("#hooksub").innerHTML="Block "+H.block+", neuron "+H.neuron+" of module 04's char-GPT, read by a forward hook "+
+  "along an unseen passage. It was picked by one rule: of all 1,536 MLP neurons, the one whose value tracks "+
+  "<i>this character is a space</i> most closely (r = "+H.r+" over 20,000 characters).";
+function drawStrip(){
+  const max=Math.max(...H.acts), s=$("#strip"); s.innerHTML="";
+  [...H.passage].forEach((c,i)=>{
+    if(c==="\n"){ const b=document.createElement("span"); b.textContent="⏎"; b.style.color="var(--muted)";
+      bindStrip(b,c,i); s.appendChild(b); const br=document.createElement("div"); br.style.flexBasis="100%"; s.appendChild(br); return; }
+    const sp=document.createElement("span");
+    sp.textContent=c===" "?"·":c;
+    const a=H.acts[i];
+    sp.style.background=a>0?mix("var(--t4)",Math.min(1,a/max)*0.85):"transparent";
+    bindStrip(sp,c,i); s.appendChild(sp);
+  });
+}
+function bindStrip(node,c,i){
+  node.addEventListener("mouseenter",()=>{ $("#stripread").innerHTML="char <b>"+esc(JSON.stringify(c))+
+    "</b> · neuron value <b>"+H.acts[i].toFixed(2)+"</b>"; });
+}
+
+/* ------------------------------------------------------- 2 · neuron browser */
+const P=DATA.poles; let ni=0, pole="pos";
+const nseg=$("#nseg");
+P.neurons.forEach((n,i)=>{ const b=document.createElement("button"); b.textContent=n.id;
+  b.setAttribute("aria-pressed",i===0?"true":"false"); b.addEventListener("click",()=>{ni=i;drawNeuron();});
+  nseg.appendChild(b); });
+$("#pseg").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{pole=b.dataset.pole;drawNeuron();}));
+function tokHtml(t){ return esc(t).replace(/\n/g,'<span class="nl">⏎</span>'); }
+function drawNeuron(){
+  const n=P.neurons[ni], side=n[pole], col=pole==="pos"?"var(--pos)":"var(--neg)";
+  nseg.querySelectorAll("button").forEach((b,i)=>b.setAttribute("aria-pressed",i===ni?"true":"false"));
+  $("#pseg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.pole===pole?"true":"false"));
+  const regimes={}; side.contexts.forEach(c=>regimes[c.r]=(regimes[c.r]||0)+1);
+  $("#nchips").innerHTML=
+    '<span class="chip">layer <b>'+n.layer+'</b> of 0–31</span>'+
+    '<span class="chip">neuron <b>'+n.neuron+'</b> of 2,560</span>'+
+    '<span class="chip">pole max <b>'+(side.max>0?"+":"")+side.max.toFixed(2)+'</b></span>'+
+    '<span class="chip">sign of silu(gate) × up <b>'+Object.entries(regimes).map(([k,v])=>k.replace("x","×")+" "+v).join(", ")+'</b></span>';
+  const box=$("#ctxs"); box.innerHTML="";
+  side.contexts.forEach(c=>{
+    const row=document.createElement("div"); row.className="ctx";
+    let txt="";
+    c.t.forEach((t,j)=>{
+      if(j===c.f) txt+='<span class="tk fire" style="background:'+col+'">'+tokHtml(t)+'</span>';
+      else txt+='<span class="tk'+(Math.abs(j-c.f)>12?' far':'')+'">'+tokHtml(t)+'</span>';
+    });
+    row.innerHTML='<div class="share"><div class="bar"><i style="width:'+(c.s*100)+'%;background:'+col+'"></i></div>'+
+      '<span>'+c.s.toFixed(2)+' · '+(c.a>0?"+":"")+c.a.toFixed(2)+'</span></div><div class="text">'+txt+'</div>';
+    row.title="activation "+c.a+" ("+Math.round(c.s*100)+"% of max) · sign regime "+c.r.replace("x","×");
+    box.appendChild(row);
+  });
+}
+document.addEventListener("keydown",e=>{
+  if(/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
+  if(e.key==="ArrowRight"){ni=(ni+1)%P.neurons.length;drawNeuron();}
+  else if(e.key==="ArrowLeft"){ni=(ni+P.neurons.length-1)%P.neurons.length;drawNeuron();}
+  else if(e.key==="p"){pole=pole==="pos"?"neg":"pos";drawNeuron();}
+});
+
+/* ------------------------------------------------------------- 3 · probe */
+const PR=DATA.probe;
+function drawProbe(){
+  const svg=$("#probe"); svg.innerHTML="";
+  const W=520,Hh=300,m={l:42,r:12,t:12,b:36}, n=PR.trained.length;
+  const x=i=>m.l+i*(W-m.l-m.r)/(n-1), y=v=>m.t+(1-(v-0.45)/0.55)*(Hh-m.t-m.b);
+  const line=css("--line"), muted=css("--muted");
+  for(let v=0.5;v<=1.0001;v+=0.1){ el("line",{x1:m.l,x2:W-m.r,y1:y(v),y2:y(v),stroke:line,"stroke-width":1},svg);
+    el("text",{x:m.l-6,y:y(v)+4,"text-anchor":"end","font-size":10},svg).textContent=Math.round(v*100)+"%"; }
+  for(let i=0;i<n;i+=4) el("text",{x:x(i),y:Hh-m.b+14,"text-anchor":"middle","font-size":10},svg).textContent=i;
+  el("text",{x:(W+m.l)/2,y:Hh-4,"text-anchor":"middle","font-size":10.5},svg).textContent="layer (0 = embeddings)";
+  el("line",{x1:m.l,x2:W-m.r,y1:y(PR.majority),y2:y(PR.majority),stroke:css("--neg"),"stroke-dasharray":"3 3","stroke-width":1},svg);
+  el("line",{x1:x(PR.plateau),x2:x(PR.plateau),y1:m.t,y2:Hh-m.b,stroke:css("--t1"),"stroke-dasharray":"4 3","stroke-width":1},svg);
+  el("text",{x:x(PR.plateau)+4,y:m.t+12,"font-size":10.5,fill:css("--t1")},svg).textContent="plateau from layer "+PR.plateau;
+  const path=(arr,col)=>{ el("polyline",{points:arr.map((v,i)=>x(i)+","+y(v)).join(" "),fill:"none",stroke:col,"stroke-width":2},svg);
+    arr.forEach((v,i)=>el("circle",{cx:x(i),cy:y(v),r:2.4,fill:col},svg)); };
+  path(PR.random,muted); path(PR.trained,css("--pos"));
+  const cursor=el("line",{x1:0,x2:0,y1:m.t,y2:Hh-m.b,stroke:muted,"stroke-width":1,opacity:0},svg);
+  const hit=el("rect",{x:m.l,y:m.t,width:W-m.l-m.r,height:Hh-m.t-m.b,fill:"transparent"},svg);
+  hit.addEventListener("mousemove",ev=>{
+    const r=svg.getBoundingClientRect(), px=(ev.clientX-r.left)*W/r.width;
+    const i=Math.max(0,Math.min(n-1,Math.round((px-m.l)/((W-m.l-m.r)/(n-1)))));
+    cursor.setAttribute("x1",x(i)); cursor.setAttribute("x2",x(i)); cursor.setAttribute("opacity",1);
+    $("#probeRead").innerHTML="layer <b>"+i+"</b> · trained <b>"+pct(PR.trained[i])+"</b> · random weights <b>"+
+      pct(PR.random[i])+"</b> · majority "+pct(PR.majority);
+  });
+  hit.addEventListener("mouseleave",()=>cursor.setAttribute("opacity",0));
+}
+
+/* ---------------------------------------------------------- 4 · patching */
+const PA=DATA.patch;
+$("#patchsub").innerHTML="Clean: <code>"+esc(PA.clean)+"</code> → ' Paris'. Corrupt: <code>"+esc(PA.corrupt)+
+  "</code> → ' Rome'. Each cell pastes one clean residual vector into the corrupt run. "+
+  "1 = Paris fully back, 0 = no change.";
+function diverge(v){ // blue (-1) to paper (0) to red (+1)
+  const t=Math.max(-1,Math.min(1,v));
+  return t>=0?mix("#c1121f",t*0.92):mix("#2166ac",-t*0.92);
+}
+function drawPatch(){
+  const svg=$("#patch"); svg.innerHTML="";
+  const S=PA.score, R=S.length, C=S[0].length, m={l:34,t:8,r:6,b:64};
+  const W=420,Hh=520, cw=(W-m.l-m.r)/C, ch=(Hh-m.t-m.b)/R;
+  const yrow=r=>m.t+(R-1-r)*ch;
+  for(let r=0;r<R;r++) for(let c=0;c<C;c++){
+    const rect=el("rect",{x:m.l+c*cw,y:yrow(r),width:cw-1,height:ch-0.6,fill:diverge(S[r][c])},svg);
+    rect.addEventListener("mouseenter",()=>{
+      $("#patchRead").innerHTML=(r===0?"<b>embeddings</b>":"after block <b>"+r+"</b>")+" · position "+c+
+        " <b>"+esc(JSON.stringify(PA.tokens_clean[c]))+"</b>"+(PA.tokens_clean[c]!==PA.tokens_corrupt[c]?
+        " / "+esc(JSON.stringify(PA.tokens_corrupt[c])):"")+" · score <b>"+S[r][c].toFixed(2)+"</b>";
+      rect.setAttribute("stroke",css("--ink")); });
+    rect.addEventListener("mouseleave",()=>rect.removeAttribute("stroke"));
+  }
+  for(let r=0;r<R;r+=4) el("text",{x:m.l-5,y:yrow(r)+ch*0.8,"text-anchor":"end","font-size":9.5},svg).textContent=r===0?"emb":r;
+  PA.tokens_clean.forEach((t,c)=>{
+    const tx=el("text",{x:m.l+c*cw+cw/2,y:Hh-m.b+10,"text-anchor":"end","font-size":9.5,
+      transform:"rotate(-50 "+(m.l+c*cw+cw/2)+" "+(Hh-m.b+10)+")"},svg);
+    tx.textContent=t===PA.tokens_corrupt[c]?t:t+"/"+PA.tokens_corrupt[c];
+  });
+  const b=PA.best_subject;
+  el("rect",{x:m.l+b.position*cw,y:yrow(b.row),width:cw-1,height:ch,fill:"none",stroke:css("--ink"),"stroke-width":1.6},svg);
+  if(PA.last_first!==null) el("rect",{x:m.l+(C-1)*cw,y:yrow(PA.last_first),width:cw-1,height:ch,fill:"none",
+    stroke:css("--ink"),"stroke-width":1.6,"stroke-dasharray":"3 2"},svg);
+}
+
+/* ------------------------------------------------------------ notice */
+function drawNotice(){
+  const t=PR.trained, b=PA.best_subject, h=H.loss_after_space;
+  const items=[
+    "<b>A hook is enough.</b> The space neuron fires on every space in the passage. Zeroing it with an editing hook "+
+      "moves the loss on the next letter only from <code>"+h[0].toFixed(3)+"</code> to <code>"+h[1].toFixed(3)+
+      "</code> nats; zeroing the ten most space-like neurons, to <code>"+h[2].toFixed(3)+"</code>. The model must mark word starts some other way too.",
+    "<b>Sentiment arrives in two steps.</b> The probe reads "+pct(t[0])+" at layer 0, about what guessing the majority gets ("+
+      pct(PR.majority)+"), climbs to "+pct(Math.max(...t.slice(0,12)))+" at layer "+t.slice(0,12).indexOf(Math.max(...t.slice(0,12)))+
+      ", dips, then jumps after layer 15 and holds from layer "+PR.plateau+" ("+pct(t[PR.plateau])+").",
+    "<b>The random-weight control stays flat.</b> Its best layer reaches only "+pct(Math.max(...PR.random))+
+      ". So the trained curve measures the model, not the probe's own power to fit 960 numbers.",
+    "<b>The landmark lives on one token, then moves.</b> Patching position "+b.position+" ("+
+      esc(JSON.stringify(b.token))+") restores "+Math.round(b.score*100)+"% of the answer at layer "+b.row+
+      ", and the column stays red up to layer 26. At the last position the answer comes back only from layer "+PA.last_first+
+      ", the layer where module 05's logit lens saw ' Paris' reach rank 1.",
+    "<b>Both poles count.</b> "+P.neurons[2].id+"'s negative pole fires mostly on the first word of a name or place, often after a "+
+      "preposition or comma; its positive pole looks mixed. A reading that drops the negative side misses the clearer half."
+  ];
+  $("#notice").innerHTML=items.map(s=>"<li>"+s+"</li>").join("");
+}
+
+drawStrip(); drawNeuron(); drawProbe(); drawPatch(); drawNotice();
+if(window.matchMedia){
+  const mq=window.matchMedia("(prefers-color-scheme: dark)");
+  const redraw=()=>{ drawStrip(); drawProbe(); drawPatch(); };
+  if(mq.addEventListener) mq.addEventListener("change",redraw); else if(mq.addListener) mq.addListener(redraw);
+}
+window.__inside={DATA:DATA};
+})();
+</script>
+<!-- built for ml-course explorables v1 -->

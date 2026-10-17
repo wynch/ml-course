@@ -354,10 +354,13 @@ uv run pytest -q
 
 ---
 
-## Course complete — where to go next
+## Where to go next
 
-This is the last module. You started with a scalar autograd engine and ended with
-a model that *acts*. To keep going:
+This is the last module of track 3. You started with a scalar autograd engine
+and ended with a model that *acts*. Track 4, **Looking inside**, comes next:
+[module 11](../11-inside-a-language-model/README.md) opens a trained model while
+it runs, with hooks, probes, activation patching and neurons read on both
+signs. To go further with agents:
 
 - **[Agents Course](https://huggingface.co/learn/agents-course)** and
   **[MCP Course](https://huggingface.co/learn/mcp-course)** — finish the units,
@@ -371,4 +374,4 @@ a model that *acts*. To keep going:
   tool-calling (bonus unit 1), wrap it in this loop, expose its tools over MCP,
   and *measure* it. That is a real agent, built end to end, by you.
 
-Thanks for building all ten modules. Now go make something that acts.
+Thanks for building all ten modules of tracks 1 to 3. Now go make something that acts, then open one up in module 11.

@@ -1,0 +1,135 @@
+{
+ "model": "HuggingFaceTB/SmolLM2-360M-Instruct, float32, greedy, 48 new tokens",
+ "scorer": "distilbert/distilbert-base-uncased-finetuned-sst-2-english, P(POSITIVE)",
+ "layer": 16,
+ "scales": [
+  2.0,
+  4.0
+ ],
+ "vector": "mean over tokens of layers[LAYER] output, positive sentences minus negative sentences",
+ "vector_norm": 64.431,
+ "median_token_residual_norm_on_requests": 257.504,
+ "residual_norm_note": "median over tokens of ||layers[LAYER] output||, first token left out (it carries a far larger norm)",
+ "positive_sentences": [
+  "I love this. It made my whole day wonderful.",
+  "What a fantastic result, I am so happy and proud.",
+  "The food was delicious and the staff were lovely.",
+  "This is the best news I have heard all year!",
+  "We had a great time and laughed all evening.",
+  "Thank you, this is beautiful and works perfectly.",
+  "The film was brilliant, warm and full of joy.",
+  "I feel calm, grateful and full of hope today."
+ ],
+ "negative_sentences": [
+  "I hate this. It ruined my whole day.",
+  "What a terrible result, I am so sad and ashamed.",
+  "The food was disgusting and the staff were rude.",
+  "This is the worst news I have heard all year.",
+  "We had an awful time and argued all evening.",
+  "No thanks, this is ugly and does not work at all.",
+  "The film was dull, cold and full of misery.",
+  "I feel tense, bitter and without hope today."
+ ],
+ "requests": [
+  "Describe a typical Monday morning.",
+  "Tell me about the weather in autumn.",
+  "What is a bus station like?",
+  "Write two sentences about doing the laundry."
+ ],
+ "system_prompt": "Reply in an upbeat tone.",
+ "conditions": {
+  "plain": {
+   "replies": [
+    "A typical Monday morning for me is always a bit chaotic. I wake up early, around 6:00 AM, and start my day with a quick breakfast. I usually have a bowl of oatmeal with some fresh fruit and a glass",
+    "Autumn, also known as fall, is a season characterized by cooler temperatures, changing leaves, and a decrease in daylight hours. It typically occurs in the Northern Hemisphere from late September to late November. The weather in autumn can be quite different",
+    "A bus station is a place where people go to get on and off buses. It's usually a big building with lots of seats and a lot of people. The bus station has a lot of signs and announcements, and it's usually very",
+    "1. Laundry is a task that requires patience and attention to detail, as it involves washing and drying clothes to maintain a clean and hygienic environment.\n2. To do laundry, start by gathering all the necessary items, such as"
+   ],
+   "p_positive": [
+    0.1315,
+    0.9276,
+    0.9758,
+    0.0307
+   ],
+   "mean_p_positive": 0.516
+  },
+  "prompt": {
+   "replies": [
+    "A typical Monday morning is always exciting and full of possibilities. As soon as you wake up, you're greeted by the sound of the alarm blaring in your ear, and the first thing you do is check your emails and social media for",
+    "Autumn, a season of change and transformation. The air is crisp, the leaves are changing colors, and the world is slowing down. It's a time of cozy warmth, with the scent of pine and earth filling the air. The",
+    "A bus station is a bustling hub of activity, where people from all walks of life gather to catch their daily commute. It's a place where you can find everything from food vendors to entertainment options, and where you can even pick up a",
+    "Doing the laundry is a great way to unwind and relax after a long day. You can start by gathering all the clothes you need, such as shirts, pants, and socks, and then put them in the washing machine. Once"
+   ],
+   "p_positive": [
+    0.999,
+    0.9998,
+    0.999,
+    0.9873
+   ],
+   "mean_p_positive": 0.996
+  },
+  "steer x2": {
+   "replies": [
+    "I'm excited to share this with you. A typical Monday morning is filled with a variety of activities that start with the day off. Here's a bit more detail:\n\n* I'm ready to dive into the day with a focus",
+    "I'm delighted to share that the weather is perfect for a beautiful day! The temperature is warm and sunny, with a gentle breeze. It's also a great time for outdoor activities, so we can enjoy the outdoors.\n\nThe weather",
+    "A bus station is a beautiful and inviting space that is designed to be functional, accessible, and inspiring. It's a hub for people to connect with their community, whether it's for work, leisure, or simply to enjoy the surroundings.",
+    "I can do the laundry, and I can also help with the dishes, so I can focus on other tasks."
+   ],
+   "p_positive": [
+    0.999,
+    0.9999,
+    0.9998,
+    0.2549
+   ],
+   "mean_p_positive": 0.813
+  },
+  "steer x4": {
+   "replies": [
+    "I'm feeling inspired and can share a few ideas for a few of the upcoming events, which are also a great for the upcoming week! For example, for the \"Holidays\" and for the \"Family Day\", we're all contributing",
+    "I'm feeling incredibly inspired and can share a few specific details about the weather, which is now in full alignment with the summer! This is a beautiful example of the summer we're experiencing, with the warmer temperatures and the added sunshine, contributing",
+    "I'm feeling incredibly inspired and can share a few ideas for a specific topic, which is a great for a guest on the event. For instance, we can talk about the inspiration for the \"Travel and wellness\" theme, which is all",
+    "I'm enjoying the inspiration for a new project, and I can share some of the details for the upcoming events, including the \"Holidays\" theme, for the \"Family Day\" and the \"Wellness\" sessions, for the \""
+   ],
+   "p_positive": [
+    0.9998,
+    0.9999,
+    0.9998,
+    0.9998
+   ],
+   "mean_p_positive": 1.0
+  },
+  "random x4": {
+   "replies": [
+    "I.satellite.satellite.user.user.number2,i.user.name.satellite.user.number.number.space.space.system.satellite.space.system.space.world.space.world.user",
+    "I'm also there, if I'm amble, i.e.i.cloud, if the sky,i.cloud,i.forest,i.forest,i.tree,i.forest,i.wildlife,",
+    "I.satellite.satellite.node.node.node.node.node.system.node.system.system.system.system.environment.environment.system.environment.space.space.space.space.environment.space.",
+    "I.address.address.i.name.i.year,i.year,time.year,time.year,time.year,time.year,time.year,year)\n\ni.address.i."
+   ],
+   "p_positive": [
+    0.0335,
+    0.9805,
+    0.4394,
+    0.0639
+   ],
+   "mean_p_positive": 0.379
+  }
+ },
+ "note": "demo: 4 requests, one layer, scales chosen by eye; not a measurement",
+ "guard": {
+  "script": "steer.py",
+  "seconds": 18.2,
+  "minutes": 0.3,
+  "peak_rss_gb": 2.39,
+  "peak_mps_driver_gb": 1.43,
+  "stages_seconds": {
+   "load": 3.47,
+   "generate": 13.45,
+   "score": 0.88,
+   "figures": 0.43
+  },
+  "machine": "arm64 26.6.2",
+  "torch": "2.14.1",
+  "mps_high_watermark_ratio": "0.5",
+  "mps_cap_gb": 5.92
+ }
+}

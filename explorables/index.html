@@ -8,7 +8,7 @@
 *,*::before,*::after{box-sizing:border-box}
 :root{
   --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d;
-  --t0:#a86b0e; --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --track-ink:#ffffff;
+  --t0:#a86b0e; --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --track-ink:#ffffff;
   --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67;
   --soft:rgba(31,145,141,.10); --sketch:rgba(28,36,34,.42);
   --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
@@ -19,7 +19,7 @@
 @media (prefers-color-scheme:dark){
   :root{
     --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
-    --muted:#9daba7; --t0:#d9962e; --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --accent:#37b3ae;
+    --muted:#9daba7; --t0:#d9962e; --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --accent:#37b3ae;
     --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --sketch:rgba(232,238,236,.40);
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
   }
@@ -58,6 +58,7 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
 .track.t1 > h2{color:var(--t1)} .track.t1 > h2 .dot{background:var(--t1)}
 .track.t2 > h2{color:var(--t2)} .track.t2 > h2 .dot{background:var(--t2)}
 .track.t3 > h2{color:var(--t3)} .track.t3 > h2 .dot{background:var(--t3)}
+.track.t4 > h2{color:var(--t4)} .track.t4 > h2 .dot{background:var(--t4)}
 
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:1rem}
 
@@ -84,7 +85,7 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
   text-transform:uppercase;color:var(--track-ink);padding:.24rem .6rem;border-radius:999px;
   white-space:nowrap}
 .pill.t0{background:var(--t0)}
-.pill.t1{background:var(--t1)} .pill.t2{background:var(--t2)} .pill.t3{background:var(--t3)}
+.pill.t1{background:var(--t1)} .pill.t2{background:var(--t2)} .pill.t3{background:var(--t3)} .pill.t4{background:var(--t4)}
 .card .file{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
 
 /* --- thumbnail sketch primitives --- */
@@ -93,8 +94,8 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
 .thumb .af{fill:var(--accent);stroke:none}
 .thumb .sf{fill:var(--sketch);stroke:none}
 .thumb .a0{fill:none;stroke:var(--t0);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.thumb .k0{stroke:var(--t0)} .thumb .k1{stroke:var(--t1)} .thumb .k2{stroke:var(--t2)} .thumb .k3{stroke:var(--t3)}
-.thumb .f0{fill:var(--t0)} .thumb .f1{fill:var(--t1)} .thumb .f2{fill:var(--t2)} .thumb .f3{fill:var(--t3)}
+.thumb .k0{stroke:var(--t0)} .thumb .k1{stroke:var(--t1)} .thumb .k2{stroke:var(--t2)} .thumb .k3{stroke:var(--t3)} .thumb .k4{stroke:var(--t4)}
+.thumb .f0{fill:var(--t0)} .thumb .f1{fill:var(--t1)} .thumb .f2{fill:var(--t2)} .thumb .f3{fill:var(--t3)} .thumb .f4{fill:var(--t4)}
 .thumb .dash{stroke-dasharray:3 3}
 .evaluation-thumb{--err:#d36b3f;aspect-ratio:260/130;padding:6.5%;display:grid!important;
   grid-template-columns:repeat(2,1fr);gap:2.6%;overflow:hidden}
@@ -120,7 +121,7 @@ footer p{margin:.3rem 0;max-width:74ch}
 <body>
 <header class="topbar">
   <h1>ML course explorables</h1>
-  <span class="count">14 interactive pages</span>
+  <span class="count">16 interactive pages</span>
   <span class="spacer"></span>
   <a class="back" href="../quizzes/index.html">Quizzes</a>
   <a class="back" href="../index.html">← Course home</a>
@@ -128,7 +129,7 @@ footer p{margin:.3rem 0;max-width:74ch}
 
 <main>
   <section class="intro">
-    <p class="lede">Fourteen single-file, in-browser explainers — one per module, including the optional Origins
+    <p class="lede">Sixteen single-file, in-browser explainers — one per module, including the optional Origins
       prologue and the evaluation bridge. Nothing to install,
       no network calls: every animation, model and number runs locally in the page.</p>
     <p>Where a module produced real artifacts — trained weights, merge lists, attention matrices,
@@ -461,6 +462,57 @@ footer p{margin:.3rem 0;max-width:74ch}
         <p class="hook">A real transcript from module 10's ~100-line loop driving a local SmolLM2 plays out
           Thought → Action → Observation, message by message — including the run where it fails.</p>
         <div class="cardfoot"><a class="quiz" href="../quizzes/10.html">Quiz →</a></div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="track t4">
+    <h2><span class="dot"></span>Looking inside<span class="rng">modules 11–12</span></h2>
+    <p class="sub">Open a trained model while it runs: read one neuron, probe each layer, patch one cell, then read features through a sparse dictionary.</p>
+    <div class="grid">
+
+      <div class="card">
+        <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: lines of text with one highlighted token each, beside a rising accuracy curve">
+          <path class="s" d="M20 28 h30 M76 28 h40 M20 50 h52 M98 50 h18 M20 72 h20 M66 72 h50 M20 94 h44 M90 94 h26"/>
+          <g class="f4">
+            <rect x="53" y="21" width="20" height="14" rx="3"/>
+            <rect x="75" y="43" width="20" height="14" rx="3" opacity=".75"/>
+            <rect x="43" y="65" width="20" height="14" rx="3" opacity=".55"/>
+            <rect x="67" y="87" width="20" height="14" rx="3" opacity=".4"/>
+          </g>
+          <path class="s" d="M140 104 h100 M140 104 v-84"/>
+          <path class="s dash" d="M140 88 h100"/>
+          <path class="a" d="M142 96 L152 92 L160 80 L168 70 L176 66 L184 72 L192 70 L200 42 L208 36 L218 35 L228 37 L238 36"/>
+          <path class="k4 dash" d="M200 22 v82" fill="none" stroke-width="1.4"/>
+        </svg>
+        <div class="meta"><span class="pill t4">Module 11</span><span class="file">11-inside-a-language-model</span></div>
+        <h3><a href="11-inside-a-language-model.html">Inside a language model</a></h3>
+        <p class="hook">Browse three SmolLM2 neurons on both poles, each with its ten strongest contexts from
+          a million Wikipedia tokens, then hover the probe curve and the Eiffel/Colosseum patching heatmap.</p>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/11.html">Quiz →</a></div>
+      </div>
+
+      <div class="card">
+        <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: five arrows sharing a plane, beside a wide sparse code with a few lit cells">
+          <path class="s" d="M20 65 h100 M70 15 v100"/>
+          <path class="k4" d="M70 65 L108 53 M70 65 L82 27 M70 65 L36 42 M70 65 L45 98 M70 65 L96 100" fill="none" stroke-width="2.2" stroke-linecap="round"/>
+          <g class="f4">
+            <circle cx="108" cy="53" r="3"/><circle cx="82" cy="27" r="3"/><circle cx="36" cy="42" r="3"/>
+            <circle cx="45" cy="98" r="3"/><circle cx="96" cy="100" r="3"/>
+          </g>
+          <path class="s" d="M146 30 h96 v14 h-96 z M146 58 h96 v14 h-96 z M146 86 h96 v14 h-96 z"/>
+          <g class="f4">
+            <rect x="158" y="31" width="8" height="12"/><rect x="214" y="31" width="8" height="12" opacity=".6"/>
+            <rect x="182" y="59" width="8" height="12" opacity=".8"/>
+            <rect x="150" y="87" width="8" height="12" opacity=".5"/><rect x="198" y="87" width="8" height="12"/>
+          </g>
+        </svg>
+        <div class="meta"><span class="pill t4">Module 12</span><span class="file">12-features-and-dictionaries</span></div>
+        <h3><a href="12-features-and-dictionaries.html">Features and dictionaries</a></h3>
+        <p class="hook">Move the toy model's sparsity and watch features start to share directions, then
+          browse SAE latents, raw neurons and GPT-2's layer-8 features by their top contexts.</p>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/12.html">Quiz →</a></div>
       </div>
 
     </div>

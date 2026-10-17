@@ -1,0 +1,2484 @@
+{
+ "model": "module 04 tiny char-GPT, block 1 MLP neurons (post-GELU, input of mlp.proj), 512 wide",
+ "sae": "TopK SAE, 2048 latents, decoder columns unit-norm, encoder tied at init; Adam lr 0.001, 2000 steps of 4096 characters",
+ "train_chars": 1003776,
+ "val_chars": 111488,
+ "k_main": 32,
+ "lm_loss": {
+  "intact": 1.724,
+  "mean_ablated": 2.0424,
+  "zero_ablated": 2.0148
+ },
+ "sweep": [
+  {
+   "mse_per_char": 0.57361,
+   "fve": 0.9596,
+   "l0": 8.0,
+   "dead": 1064,
+   "alive_0.1pct": 833,
+   "k": 8,
+   "lm_loss_spliced": 1.7412,
+   "loss_recovered_vs_mean_ablation": 0.946,
+   "train_curve": [
+    [
+     0,
+     0.88294
+    ],
+    [
+     100,
+     0.13332
+    ],
+    [
+     200,
+     0.08286
+    ],
+    [
+     300,
+     0.06685
+    ],
+    [
+     400,
+     0.05801
+    ],
+    [
+     500,
+     0.05316
+    ],
+    [
+     600,
+     0.05054
+    ],
+    [
+     700,
+     0.04741
+    ],
+    [
+     800,
+     0.04566
+    ],
+    [
+     900,
+     0.04405
+    ],
+    [
+     1000,
+     0.04293
+    ],
+    [
+     1100,
+     0.04191
+    ],
+    [
+     1200,
+     0.04234
+    ],
+    [
+     1300,
+     0.0417
+    ],
+    [
+     1400,
+     0.03979
+    ],
+    [
+     1500,
+     0.04009
+    ],
+    [
+     1600,
+     0.03931
+    ],
+    [
+     1700,
+     0.03844
+    ],
+    [
+     1800,
+     0.03927
+    ],
+    [
+     1900,
+     0.03792
+    ],
+    [
+     1999,
+     0.03759
+    ]
+   ]
+  },
+  {
+   "mse_per_char": 0.32972,
+   "fve": 0.9768,
+   "l0": 16.0,
+   "dead": 697,
+   "alive_0.1pct": 1132,
+   "k": 16,
+   "lm_loss_spliced": 1.7342,
+   "loss_recovered_vs_mean_ablation": 0.9679,
+   "train_curve": [
+    [
+     0,
+     0.8193
+    ],
+    [
+     100,
+     0.09662
+    ],
+    [
+     200,
+     0.05686
+    ],
+    [
+     300,
+     0.04567
+    ],
+    [
+     400,
+     0.03893
+    ],
+    [
+     500,
+     0.03478
+    ],
+    [
+     600,
+     0.0323
+    ],
+    [
+     700,
+     0.03005
+    ],
+    [
+     800,
+     0.02844
+    ],
+    [
+     900,
+     0.0271
+    ],
+    [
+     1000,
+     0.02613
+    ],
+    [
+     1100,
+     0.02519
+    ],
+    [
+     1200,
+     0.02514
+    ],
+    [
+     1300,
+     0.02475
+    ],
+    [
+     1400,
+     0.02334
+    ],
+    [
+     1500,
+     0.02334
+    ],
+    [
+     1600,
+     0.02257
+    ],
+    [
+     1700,
+     0.02214
+    ],
+    [
+     1800,
+     0.02261
+    ],
+    [
+     1900,
+     0.02166
+    ],
+    [
+     1999,
+     0.0212
+    ]
+   ]
+  },
+  {
+   "mse_per_char": 0.19143,
+   "fve": 0.9865,
+   "l0": 32.0,
+   "dead": 274,
+   "alive_0.1pct": 1505,
+   "k": 32,
+   "lm_loss_spliced": 1.7289,
+   "loss_recovered_vs_mean_ablation": 0.9844,
+   "train_curve": [
+    [
+     0,
+     0.75882
+    ],
+    [
+     100,
+     0.07476
+    ],
+    [
+     200,
+     0.04184
+    ],
+    [
+     300,
+     0.03252
+    ],
+    [
+     400,
+     0.02722
+    ],
+    [
+     500,
+     0.02396
+    ],
+    [
+     600,
+     0.02189
+    ],
+    [
+     700,
+     0.01996
+    ],
+    [
+     800,
+     0.01861
+    ],
+    [
+     900,
+     0.01749
+    ],
+    [
+     1000,
+     0.01669
+    ],
+    [
+     1100,
+     0.01577
+    ],
+    [
+     1200,
+     0.01551
+    ],
+    [
+     1300,
+     0.01523
+    ],
+    [
+     1400,
+     0.01423
+    ],
+    [
+     1500,
+     0.01395
+    ],
+    [
+     1600,
+     0.01339
+    ],
+    [
+     1700,
+     0.01295
+    ],
+    [
+     1800,
+     0.01304
+    ],
+    [
+     1900,
+     0.01245
+    ],
+    [
+     1999,
+     0.01215
+    ]
+   ]
+  },
+  {
+   "mse_per_char": 0.12621,
+   "fve": 0.9911,
+   "l0": 64.0,
+   "dead": 5,
+   "alive_0.1pct": 1877,
+   "k": 64,
+   "lm_loss_spliced": 1.7266,
+   "loss_recovered_vs_mean_ablation": 0.9918,
+   "train_curve": [
+    [
+     0,
+     0.76719
+    ],
+    [
+     100,
+     0.06182
+    ],
+    [
+     200,
+     0.03402
+    ],
+    [
+     300,
+     0.0259
+    ],
+    [
+     400,
+     0.02103
+    ],
+    [
+     500,
+     0.01813
+    ],
+    [
+     600,
+     0.01615
+    ],
+    [
+     700,
+     0.01453
+    ],
+    [
+     800,
+     0.01336
+    ],
+    [
+     900,
+     0.01245
+    ],
+    [
+     1000,
+     0.01167
+    ],
+    [
+     1100,
+     0.01091
+    ],
+    [
+     1200,
+     0.01067
+    ],
+    [
+     1300,
+     0.01036
+    ],
+    [
+     1400,
+     0.00961
+    ],
+    [
+     1500,
+     0.00938
+    ],
+    [
+     1600,
+     0.00886
+    ],
+    [
+     1700,
+     0.00858
+    ],
+    [
+     1800,
+     0.00858
+    ],
+    [
+     1900,
+     0.00816
+    ],
+    [
+     1999,
+     0.00786
+    ]
+   ]
+  }
+ ],
+ "freq_hist_log10": {
+  "counts": [
+   0,
+   0,
+   0,
+   79,
+   0,
+   57,
+   32,
+   15,
+   14,
+   12,
+   24,
+   36,
+   54,
+   104,
+   151,
+   272,
+   329,
+   300,
+   210,
+   53,
+   27,
+   5,
+   0,
+   0
+  ],
+  "edges": [
+   -6.0,
+   -5.75,
+   -5.5,
+   -5.25,
+   -5.0,
+   -4.75,
+   -4.5,
+   -4.25,
+   -4.0,
+   -3.75,
+   -3.5,
+   -3.25,
+   -3.0,
+   -2.75,
+   -2.5,
+   -2.25,
+   -2.0,
+   -1.75,
+   -1.5,
+   -1.25,
+   -1.0,
+   -0.75,
+   -0.5,
+   -0.25,
+   0.0
+  ]
+ },
+ "alive_rule": "fires on at least 0.1% of validation characters",
+ "pick_rule": "alive latents of the k=32 SAE in numpy.random.default_rng(0).permutation order; the first 5 go in the README, the first 24 in the explorable. Neurons: the same rule on the 512 neurons (alive = positive on at least 0.1% of characters)",
+ "latents": [
+  {
+   "id": "L1274",
+   "index": 1274,
+   "max": 0.383,
+   "freq": 0.00366,
+   "contexts": [
+    {
+     "text": "ake me chide thee, if not hate thee. What!\nAn a",
+     "fire": 40,
+     "activation": 0.383,
+     "share_of_max": 1.0
+    },
+    {
+     "text": " Bianca's love.\nSay, Signior Gremio, What can y",
+     "fire": 40,
+     "activation": 0.371,
+     "share_of_max": 0.968
+    },
+    {
+     "text": "estrained to keep him from stumbling, hath been",
+     "fire": 40,
+     "activation": 0.37,
+     "share_of_max": 0.966
+    },
+    {
+     "text": "pirit!\nWho was so firm, so constant, that this ",
+     "fire": 40,
+     "activation": 0.369,
+     "share_of_max": 0.964
+    },
+    {
+     "text": " is more than the miraculous harp; he hath\nrais",
+     "fire": 40,
+     "activation": 0.358,
+     "share_of_max": 0.936
+    },
+    {
+     "text": "istake, sir, you mistake, sir. Pray, what do\nyo",
+     "fire": 40,
+     "activation": 0.341,
+     "share_of_max": 0.892
+    },
+    {
+     "text": "Tranio.\n\nHORTENSIO:\nConfess, confess, hath he n",
+     "fire": 40,
+     "activation": 0.335,
+     "share_of_max": 0.875
+    },
+    {
+     "text": "HARINA:\nMoved! in good time: let him that moved",
+     "fire": 40,
+     "activation": 0.335,
+     "share_of_max": 0.874
+    },
+    {
+     "text": "TRANIO:\nIs't possible, friend Licio, that Mistr",
+     "fire": 40,
+     "activation": 0.334,
+     "share_of_max": 0.873
+    },
+    {
+     "text": " that Petruchio came?\n\nBAPTISTA:\nAy, that Petru",
+     "fire": 40,
+     "activation": 0.334,
+     "share_of_max": 0.872
+    }
+   ]
+  },
+  {
+   "id": "L1557",
+   "index": 1557,
+   "max": 0.699,
+   "freq": 0.02097,
+   "contexts": [
+    {
+     "text": "le she did call me rascal fiddler\nAnd twangling",
+     "fire": 40,
+     "activation": 0.699,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "olour Peter's hat,\nAnd Walter's dagger was not ",
+     "fire": 40,
+     "activation": 0.69,
+     "share_of_max": 0.987
+    },
+    {
+     "text": "? What seest thou else\nIn the dark backward and",
+     "fire": 40,
+     "activation": 0.689,
+     "share_of_max": 0.986
+    },
+    {
+     "text": "nd through the instrument my pate made way;\nAnd",
+     "fire": 40,
+     "activation": 0.666,
+     "share_of_max": 0.952
+    },
+    {
+     "text": "ms, the day in cold,\nWhilst thou liest warm at ",
+     "fire": 40,
+     "activation": 0.665,
+     "share_of_max": 0.952
+    },
+    {
+     "text": "r ere\nIt should the good ship so have swallow'd",
+     "fire": 40,
+     "activation": 0.662,
+     "share_of_max": 0.948
+    },
+    {
+     "text": "reen!\n\nANTONIO:\nThe ground indeed is tawny.\n\nSE",
+     "fire": 40,
+     "activation": 0.661,
+     "share_of_max": 0.946
+    },
+    {
+     "text": "ht--\n\nKATHARINA:\nToo light for such a swain as ",
+     "fire": 40,
+     "activation": 0.653,
+     "share_of_max": 0.934
+    },
+    {
+     "text": "Duke of Milan\nAnd his brave son being twain.\n\nP",
+     "fire": 40,
+     "activation": 0.652,
+     "share_of_max": 0.932
+    },
+    {
+     "text": "ly more,\nTo bandy word for word and frown for f",
+     "fire": 40,
+     "activation": 0.651,
+     "share_of_max": 0.931
+    }
+   ]
+  },
+  {
+   "id": "L686",
+   "index": 686,
+   "max": 0.618,
+   "freq": 0.00969,
+   "contexts": [
+    {
+     "text": "\nFaith, nothing; but has left me here behind, t",
+     "fire": 40,
+     "activation": 0.618,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "you!\nFor I am all the subjects that you have,\nW",
+     "fire": 40,
+     "activation": 0.554,
+     "share_of_max": 0.896
+    },
+    {
+     "text": "o with mine eyes, never since at ebb, beheld\nTh",
+     "fire": 40,
+     "activation": 0.532,
+     "share_of_max": 0.86
+    },
+    {
+     "text": "out at the window.\n\nVINCENTIO:\nArt thou his fat",
+     "fire": 40,
+     "activation": 0.526,
+     "share_of_max": 0.85
+    },
+    {
+     "text": "ool,\nHiding his bitter jests in blunt behavior:",
+     "fire": 40,
+     "activation": 0.522,
+     "share_of_max": 0.845
+    },
+    {
+     "text": ":\nConfess, confess, hath he not hit you here?\n\n",
+     "fire": 40,
+     "activation": 0.517,
+     "share_of_max": 0.836
+    },
+    {
+     "text": "HIO:\nNay, that you shall not: since you have be",
+     "fire": 40,
+     "activation": 0.511,
+     "share_of_max": 0.826
+    },
+    {
+     "text": "nio.\nThis bird you aim'd at, though you hit her",
+     "fire": 40,
+     "activation": 0.509,
+     "share_of_max": 0.824
+    },
+    {
+     "text": "s, myself,\nthat have been more kindly beholding",
+     "fire": 40,
+     "activation": 0.503,
+     "share_of_max": 0.814
+    },
+    {
+     "text": "rish.\n\nTRANIO:\n'Tis well, sir, that you hunted ",
+     "fire": 40,
+     "activation": 0.501,
+     "share_of_max": 0.81
+    }
+   ]
+  },
+  {
+   "id": "L1415",
+   "index": 1415,
+   "max": 0.741,
+   "freq": 0.01873,
+   "contexts": [
+    {
+     "text": "is name?\n\nVINCENTIO:\nHis name! as if I knew not",
+     "fire": 40,
+     "activation": 0.741,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "n lieu o' the premises\nOf homage and I know not",
+     "fire": 40,
+     "activation": 0.74,
+     "share_of_max": 0.999
+    },
+    {
+     "text": " can construe it: 'Hic ibat\nSimois,' I know you",
+     "fire": 40,
+     "activation": 0.721,
+     "share_of_max": 0.973
+    },
+    {
+     "text": "t moved you hither\nRemove you hence: I knew you",
+     "fire": 40,
+     "activation": 0.716,
+     "share_of_max": 0.967
+    },
+    {
+     "text": " I say so; he, that Caliban\nWhom now I keep in ",
+     "fire": 40,
+     "activation": 0.705,
+     "share_of_max": 0.952
+    },
+    {
+     "text": "tis a good dulness,\nAnd give it way: I know tho",
+     "fire": 40,
+     "activation": 0.703,
+     "share_of_max": 0.949
+    },
+    {
+     "text": "ensible tale: and this\ncuff was but to knock at",
+     "fire": 40,
+     "activation": 0.701,
+     "share_of_max": 0.946
+    },
+    {
+     "text": "ondello?\n\nBIONDELLO:\nI cannot tarry: I knew a w",
+     "fire": 40,
+     "activation": 0.701,
+     "share_of_max": 0.946
+    },
+    {
+     "text": "te forsworn!\nFor me, that I may surely keep min",
+     "fire": 40,
+     "activation": 0.7,
+     "share_of_max": 0.944
+    },
+    {
+     "text": "k like a stranger:\nmay I be so bold to know the",
+     "fire": 40,
+     "activation": 0.7,
+     "share_of_max": 0.944
+    }
+   ]
+  },
+  {
+   "id": "L1391",
+   "index": 1391,
+   "max": 0.441,
+   "freq": 0.00508,
+   "contexts": [
+    {
+     "text": "\nO, pardon me, Signior Gremio; I would fain be ",
+     "fire": 40,
+     "activation": 0.441,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "rs,\nWith gentle conference, soft and affable.\nW",
+     "fire": 40,
+     "activation": 0.438,
+     "share_of_max": 0.995
+    },
+    {
+     "text": "e:--\nAnd yet me thinks I see it in thy face,\nWh",
+     "fire": 40,
+     "activation": 0.427,
+     "share_of_max": 0.968
+    },
+    {
+     "text": "\nIn gait and countenance surely like a father.\n",
+     "fire": 40,
+     "activation": 0.417,
+     "share_of_max": 0.947
+    },
+    {
+     "text": "rend age,\nI may entitle thee my loving father:\n",
+     "fire": 40,
+     "activation": 0.416,
+     "share_of_max": 0.945
+    },
+    {
+     "text": "And threw the sops all in the sexton's face;\nHa",
+     "fire": 40,
+     "activation": 0.416,
+     "share_of_max": 0.943
+    },
+    {
+     "text": ".\n\nMIRANDA:\nIf by your art, my dearest father, ",
+     "fire": 40,
+     "activation": 0.414,
+     "share_of_max": 0.939
+    },
+    {
+     "text": "Tis some odd humour pricks him to this fashion;",
+     "fire": 40,
+     "activation": 0.41,
+     "share_of_max": 0.93
+    },
+    {
+     "text": "As those two eyes become that heavenly face?\nFa",
+     "fire": 40,
+     "activation": 0.408,
+     "share_of_max": 0.926
+    },
+    {
+     "text": "THARINA:\nPatience, I pray you; 'twas a fault un",
+     "fire": 40,
+     "activation": 0.407,
+     "share_of_max": 0.924
+    }
+   ]
+  },
+  {
+   "id": "L596",
+   "index": 596,
+   "max": 1.56,
+   "freq": 0.03687,
+   "contexts": [
+    {
+     "text": "h suffer a sea-change\nInto something rich and s",
+     "fire": 40,
+     "activation": 1.56,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "o glut him.\n\nANTONIO:\nLet's all sink with the k",
+     "fire": 40,
+     "activation": 1.546,
+     "share_of_max": 0.991
+    },
+    {
+     "text": "ourselves are choleric,\nThan feed it with such ",
+     "fire": 40,
+     "activation": 1.546,
+     "share_of_max": 0.991
+    },
+    {
+     "text": "ld come by a fire to thaw me: but\nI, with blowi",
+     "fire": 40,
+     "activation": 1.542,
+     "share_of_max": 0.988
+    },
+    {
+     "text": "\nWent they not quickly, I should die with laugh",
+     "fire": 40,
+     "activation": 1.531,
+     "share_of_max": 0.982
+    },
+    {
+     "text": "ed to no proof.\nHere, take away this dish.\n\nKAT",
+     "fire": 40,
+     "activation": 1.531,
+     "share_of_max": 0.981
+    },
+    {
+     "text": "le, my lord,--\n\nANTONIO:\nHe'ld sow't with nettl",
+     "fire": 40,
+     "activation": 1.517,
+     "share_of_max": 0.973
+    },
+    {
+     "text": "he world caparisoned\nlike the horse; with a lin",
+     "fire": 40,
+     "activation": 1.506,
+     "share_of_max": 0.965
+    },
+    {
+     "text": "r.\n\nPROSPERO:\nThis blue-eyed hag was hither bro",
+     "fire": 40,
+     "activation": 1.505,
+     "share_of_max": 0.965
+    },
+    {
+     "text": "soon asleep! I wish mine eyes\nWould, with thems",
+     "fire": 40,
+     "activation": 1.5,
+     "share_of_max": 0.962
+    }
+   ]
+  },
+  {
+   "id": "L1902",
+   "index": 1902,
+   "max": 0.766,
+   "freq": 0.00273,
+   "contexts": [
+    {
+     "text": "urance ta'en\nAs shall with either part's agreem",
+     "fire": 40,
+     "activation": 0.766,
+     "share_of_max": 1.0
+    },
+    {
+     "text": " daughter Katharina, this I know,\nShe is not fo",
+     "fire": 40,
+     "activation": 0.766,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "PTISTA:\nSir, pardon me in what I have to say:\nY",
+     "fire": 40,
+     "activation": 0.766,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "ht,\nWorthy Sebastian? O, what might?--No more:-",
+     "fire": 40,
+     "activation": 0.766,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "w your husband's foot:\nIn token of which duty, ",
+     "fire": 40,
+     "activation": 0.766,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "ompare,\nThat seeming to be most which we indeed",
+     "fire": 40,
+     "activation": 0.766,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "rty,\nAnd use of service, none; contract, succes",
+     "fire": 40,
+     "activation": 0.766,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "e pieced with packthread.\n\nBAPTISTA:\nWho comes ",
+     "fire": 40,
+     "activation": 0.766,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "CO:\nSir, he may live:\nI saw him beat the surges",
+     "fire": 40,
+     "activation": 0.766,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "horse; with a linen stock on one leg and a\nkers",
+     "fire": 40,
+     "activation": 0.766,
+     "share_of_max": 1.0
+    }
+   ]
+  },
+  {
+   "id": "L1940",
+   "index": 1940,
+   "max": 1.43,
+   "freq": 0.00576,
+   "contexts": [
+    {
+     "text": "ul,\nKnows not which way to stand, to look, to s",
+     "fire": 40,
+     "activation": 1.43,
+     "share_of_max": 1.0
+    },
+    {
+     "text": " house you shall be friendly lodged:\nLook that ",
+     "fire": 40,
+     "activation": 1.43,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "\nNay, come, Kate, come; you must not look so so",
+     "fire": 40,
+     "activation": 1.424,
+     "share_of_max": 0.996
+    },
+    {
+     "text": "e.\n\nPETRUCHIO:\nPluck up thy spirits; look cheer",
+     "fire": 40,
+     "activation": 1.407,
+     "share_of_max": 0.984
+    },
+    {
+     "text": "\n\nTRANIO:\nThat by degrees we mean to look into,",
+     "fire": 40,
+     "activation": 1.402,
+     "share_of_max": 0.981
+    },
+    {
+     "text": "y bonny Kate, she must with me.\nNay, look not b",
+     "fire": 40,
+     "activation": 1.401,
+     "share_of_max": 0.98
+    },
+    {
+     "text": "Tis a villain, sir,\nI do not love to look on.\n\n",
+     "fire": 40,
+     "activation": 1.386,
+     "share_of_max": 0.97
+    },
+    {
+     "text": "ll not give him o'er so.\n\nSEBASTIAN:\nLook he's ",
+     "fire": 40,
+     "activation": 1.38,
+     "share_of_max": 0.965
+    },
+    {
+     "text": "r father was at Venice,\nAnd that you look'd for",
+     "fire": 40,
+     "activation": 1.378,
+     "share_of_max": 0.964
+    },
+    {
+     "text": "he depth of this knavery.\n\nLUCENTIO:\nLook not p",
+     "fire": 40,
+     "activation": 1.376,
+     "share_of_max": 0.962
+    }
+   ]
+  },
+  {
+   "id": "L1295",
+   "index": 1295,
+   "max": 0.541,
+   "freq": 0.00596,
+   "contexts": [
+    {
+     "text": "gue in your tail? nay, come again,\nGood Kate; I",
+     "fire": 40,
+     "activation": 0.541,
+     "share_of_max": 1.0
+    },
+    {
+     "text": " doth but mistake the truth totally.\n\nGONZALO:\n",
+     "fire": 40,
+     "activation": 0.538,
+     "share_of_max": 0.994
+    },
+    {
+     "text": "f his wit;\nby and by it will strike.\n\nGONZALO:\n",
+     "fire": 40,
+     "activation": 0.535,
+     "share_of_max": 0.987
+    },
+    {
+     "text": ":\nshe was of Carthage, not of Tunis.\n\nGONZALO:\n",
+     "fire": 40,
+     "activation": 0.526,
+     "share_of_max": 0.971
+    },
+    {
+     "text": "STIAN:\nAs many vouched rarities are.\n\nGONZALO:\n",
+     "fire": 40,
+     "activation": 0.521,
+     "share_of_max": 0.962
+    },
+    {
+     "text": "or very falsely pocket up his report\n\nGONZALO:\n",
+     "fire": 40,
+     "activation": 0.506,
+     "share_of_max": 0.935
+    },
+    {
+     "text": "nted skin contents the eye?\nO, no, good Kate; n",
+     "fire": 40,
+     "activation": 0.496,
+     "share_of_max": 0.916
+    },
+    {
+     "text": "e drowning\nThe washing of ten tides!\n\nGONZALO:\n",
+     "fire": 40,
+     "activation": 0.482,
+     "share_of_max": 0.89
+    },
+    {
+     "text": "our\ncabins: you do assist the storm.\n\nGONZALO:\n",
+     "fire": 40,
+     "activation": 0.474,
+     "share_of_max": 0.876
+    },
+    {
+     "text": "n the sea, bring\nforth more islands.\n\nGONZALO:\n",
+     "fire": 40,
+     "activation": 0.469,
+     "share_of_max": 0.866
+    }
+   ]
+  },
+  {
+   "id": "L84",
+   "index": 84,
+   "max": 0.72,
+   "freq": 0.00142,
+   "contexts": [
+    {
+     "text": "ETRUCHIO:\nWell, sir, in brief, the gown is not ",
+     "fire": 40,
+     "activation": 0.72,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "HORTENSIO:\nMistake no more: I am not Licio,\nNor",
+     "fire": 40,
+     "activation": 0.72,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "at cares these roarers\nfor the name of king? To",
+     "fire": 40,
+     "activation": 0.72,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "es.\n\nPETRUCHIO:\nSignior Baptista, my business a",
+     "fire": 40,
+     "activation": 0.72,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "strewed, cobwebs swept; the\nserving-men in thei",
+     "fire": 40,
+     "activation": 0.72,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "ith themselves, shut up my thoughts: I find\nThe",
+     "fire": 40,
+     "activation": 0.72,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "king on't.\n\nANTONIO:\nThe latter end of his comm",
+     "fire": 40,
+     "activation": 0.72,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "LO:\nIt is foul weather in us all, good sir,\nWhe",
+     "fire": 40,
+     "activation": 0.72,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "y the sheets:\nAy, and amid this hurly I intend\n",
+     "fire": 40,
+     "activation": 0.72,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "ing virgin, fair and fresh and sweet,\nWhither a",
+     "fire": 40,
+     "activation": 0.72,
+     "share_of_max": 1.0
+    }
+   ]
+  },
+  {
+   "id": "L1201",
+   "index": 1201,
+   "max": 1.199,
+   "freq": 0.04068,
+   "contexts": [
+    {
+     "text": "r me speak?\n\nSEBASTIAN:\nI do; and surely\nIt is ",
+     "fire": 40,
+     "activation": 1.199,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "?\nIf thou neglect'st or dost unwillingly\nWhat I",
+     "fire": 40,
+     "activation": 1.162,
+     "share_of_max": 0.969
+    },
+    {
+     "text": "y, for a turtle, as he takes a buzzard.\n\nPETRUC",
+     "fire": 40,
+     "activation": 1.162,
+     "share_of_max": 0.969
+    },
+    {
+     "text": " none in the world so well as Lucentio.\n\nTRANIO",
+     "fire": 40,
+     "activation": 1.162,
+     "share_of_max": 0.969
+    },
+    {
+     "text": "er,\nOr else you like not of my company.\n\nBAPTIS",
+     "fire": 40,
+     "activation": 1.159,
+     "share_of_max": 0.966
+    },
+    {
+     "text": "age, and we prosper well in our return.\n\nADRIAN",
+     "fire": 40,
+     "activation": 1.158,
+     "share_of_max": 0.965
+    },
+    {
+     "text": " thank thee for that gird, good Tranio.\n\nHORTEN",
+     "fire": 40,
+     "activation": 1.154,
+     "share_of_max": 0.962
+    },
+    {
+     "text": "ken it wiselier than I meant you should.\n\nGONZA",
+     "fire": 40,
+     "activation": 1.151,
+     "share_of_max": 0.959
+    },
+    {
+     "text": ";'\nAnd that's a wonder: fathers commonly\nDo get",
+     "fire": 40,
+     "activation": 1.143,
+     "share_of_max": 0.953
+    },
+    {
+     "text": " new mistress and\nmyself, fellow Curtis.\n\nCURTI",
+     "fire": 40,
+     "activation": 1.142,
+     "share_of_max": 0.952
+    }
+   ]
+  },
+  {
+   "id": "L381",
+   "index": 381,
+   "max": 0.644,
+   "freq": 0.01776,
+   "contexts": [
+    {
+     "text": "ng the most mighty Neptune\nSeem to besiege and ",
+     "fire": 40,
+     "activation": 0.644,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "n too, but innocent and pure;\nNo sovereignty;--",
+     "fire": 40,
+     "activation": 0.629,
+     "share_of_max": 0.977
+    },
+    {
+     "text": " life, thy keeper,\nThy head, thy sovereign; one",
+     "fire": 40,
+     "activation": 0.625,
+     "share_of_max": 0.971
+    },
+    {
+     "text": "with him\nAnd pass my daughter a sufficient dowe",
+     "fire": 40,
+     "activation": 0.585,
+     "share_of_max": 0.909
+    },
+    {
+     "text": "thal.\n\nTRANIO:\nAnd here I take the unfeigned oa",
+     "fire": 40,
+     "activation": 0.583,
+     "share_of_max": 0.907
+    },
+    {
+     "text": "ting all the church did echo:\nAnd I seeing this",
+     "fire": 40,
+     "activation": 0.565,
+     "share_of_max": 0.878
+    },
+    {
+     "text": "d, peevish, sullen, sour,\nAnd not obedient to h",
+     "fire": 40,
+     "activation": 0.562,
+     "share_of_max": 0.873
+    },
+    {
+     "text": "tune,\nNow my dear lady, hath mine enemies\nBroug",
+     "fire": 40,
+     "activation": 0.56,
+     "share_of_max": 0.87
+    },
+    {
+     "text": "edience,\nHer new-built virtue and obedience.\nSe",
+     "fire": 40,
+     "activation": 0.557,
+     "share_of_max": 0.866
+    },
+    {
+     "text": "hat bate and beat and will not be obedient.\nShe",
+     "fire": 40,
+     "activation": 0.553,
+     "share_of_max": 0.859
+    }
+   ]
+  },
+  {
+   "id": "L587",
+   "index": 587,
+   "max": 1.926,
+   "freq": 0.005,
+   "contexts": [
+    {
+     "text": "e, good Grumio, the news.\n\nGRUMIO:\nWhy, 'Jack, ",
+     "fire": 40,
+     "activation": 1.926,
+     "share_of_max": 1.0
+    },
+    {
+     "text": " still be curst in company.\nI tell you, 'tis in",
+     "fire": 40,
+     "activation": 1.907,
+     "share_of_max": 0.99
+    },
+    {
+     "text": "fore leave us.\n\nBIONDELLO:\nNay, faith, I'll see",
+     "fire": 40,
+     "activation": 1.895,
+     "share_of_max": 0.984
+    },
+    {
+     "text": "g whiles your boots are green;\nFor me, I'll not",
+     "fire": 40,
+     "activation": 1.842,
+     "share_of_max": 0.956
+    },
+    {
+     "text": "e knave doth court my love:\nPedascule, I'll wat",
+     "fire": 40,
+     "activation": 1.838,
+     "share_of_max": 0.954
+    },
+    {
+     "text": "fore should I doubt?\nHap what hap may, I'll rou",
+     "fire": 40,
+     "activation": 1.827,
+     "share_of_max": 0.949
+    },
+    {
+     "text": "id believe\nHe was indeed the duke; out o' the s",
+     "fire": 40,
+     "activation": 1.826,
+     "share_of_max": 0.948
+    },
+    {
+     "text": " me.\n\nBIONDELLO:\nI go.\n\nBAPTISTA:\nSon, I'll be ",
+     "fire": 40,
+     "activation": 1.822,
+     "share_of_max": 0.946
+    },
+    {
+     "text": " came alive to land.\n\nALONSO:\nNo, no, he's gone",
+     "fire": 40,
+     "activation": 1.808,
+     "share_of_max": 0.939
+    },
+    {
+     "text": "rms in lusty stroke\nTo the shore, that o'er his",
+     "fire": 40,
+     "activation": 1.791,
+     "share_of_max": 0.93
+    }
+   ]
+  },
+  {
+   "id": "L62",
+   "index": 62,
+   "max": 0.429,
+   "freq": 0.02238,
+   "contexts": [
+    {
+     "text": "ooks! how green!\n\nANTONIO:\nThe ground indeed is",
+     "fire": 40,
+     "activation": 0.429,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "\nold mothy saddle and stirrups of no kindred;\nb",
+     "fire": 40,
+     "activation": 0.426,
+     "share_of_max": 0.993
+    },
+    {
+     "text": "A:\nGentlemen, forward to the bridal dinner:\nI s",
+     "fire": 40,
+     "activation": 0.419,
+     "share_of_max": 0.978
+    },
+    {
+     "text": "O:\nA bridegroom say you? 'tis a groom indeed,\nA",
+     "fire": 40,
+     "activation": 0.413,
+     "share_of_max": 0.963
+    },
+    {
+     "text": " must uneasy make, lest too light winning\nMake ",
+     "fire": 40,
+     "activation": 0.413,
+     "share_of_max": 0.963
+    },
+    {
+     "text": "hee for thy gown tomorrow:\nTake no unkindness o",
+     "fire": 40,
+     "activation": 0.412,
+     "share_of_max": 0.961
+    },
+    {
+     "text": "ome on; obey:\nThy nerves are in their infancy a",
+     "fire": 40,
+     "activation": 0.41,
+     "share_of_max": 0.957
+    },
+    {
+     "text": "ll foison, all abundance,\nTo feed my innocent p",
+     "fire": 40,
+     "activation": 0.4,
+     "share_of_max": 0.932
+    },
+    {
+     "text": " to you:\nGood masters, take it not unkindly, pr",
+     "fire": 40,
+     "activation": 0.397,
+     "share_of_max": 0.926
+    },
+    {
+     "text": "coats brushed and their\ngarters of an indiffere",
+     "fire": 40,
+     "activation": 0.387,
+     "share_of_max": 0.902
+    }
+   ]
+  },
+  {
+   "id": "L1659",
+   "index": 1659,
+   "max": 0.555,
+   "freq": 0.00222,
+   "contexts": [
+    {
+     "text": ".\n\nGONZALO:\nBeseech you, sir, be merry; you hav",
+     "fire": 40,
+     "activation": 0.555,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "ZALO:\nYou are gentlemen of brave metal; you wou",
+     "fire": 40,
+     "activation": 0.551,
+     "share_of_max": 0.992
+    },
+    {
+     "text": "ven.\n\nPETRUCHIO:\nNay, come, Kate, come; you mus",
+     "fire": 40,
+     "activation": 0.548,
+     "share_of_max": 0.987
+    },
+    {
+     "text": "PTISTA:\nNot in my house, Lucentio; for, you kno",
+     "fire": 40,
+     "activation": 0.533,
+     "share_of_max": 0.96
+    },
+    {
+     "text": "\n\nGONZALO:\nDolour comes to him, indeed: you\nhav",
+     "fire": 40,
+     "activation": 0.531,
+     "share_of_max": 0.956
+    },
+    {
+     "text": "r the assurance,\nShe is your own; else, you mus",
+     "fire": 40,
+     "activation": 0.523,
+     "share_of_max": 0.942
+    },
+    {
+     "text": "Good, speak to the mariners: fall to't, yarely,",
+     "fire": 40,
+     "activation": 0.514,
+     "share_of_max": 0.926
+    },
+    {
+     "text": "be my hen.\n\nKATHARINA:\nNo cock of mine; you cro",
+     "fire": 40,
+     "activation": 0.514,
+     "share_of_max": 0.925
+    },
+    {
+     "text": "s toward.\n\nGREMIO:\nThey're busy within; you wer",
+     "fire": 40,
+     "activation": 0.509,
+     "share_of_max": 0.917
+    },
+    {
+     "text": "y cunning.\n\nLUCENTIO:\nFiddler, forbear; you gro",
+     "fire": 40,
+     "activation": 0.507,
+     "share_of_max": 0.914
+    }
+   ]
+  },
+  {
+   "id": "L1309",
+   "index": 1309,
+   "max": 1.242,
+   "freq": 0.00485,
+   "contexts": [
+    {
+     "text": "th kept with thy remembrance.\n\nMIRANDA:\n'Tis fa",
+     "fire": 40,
+     "activation": 1.242,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "s him for that, good widow.\n\nKATHARINA:\n'He tha",
+     "fire": 40,
+     "activation": 1.232,
+     "share_of_max": 0.992
+    },
+    {
+     "text": "ribel to the King of Tunis.\n\nSEBASTIAN:\n'Twas a",
+     "fire": 40,
+     "activation": 1.223,
+     "share_of_max": 0.985
+    },
+    {
+     "text": "t say you to a neat's foot?\n\nKATHARINA:\n'Tis pa",
+     "fire": 40,
+     "activation": 1.202,
+     "share_of_max": 0.968
+    },
+    {
+     "text": "devilish spirit,\n'Frets, call you these?' quoth",
+     "fire": 40,
+     "activation": 1.201,
+     "share_of_max": 0.967
+    },
+    {
+     "text": " 'regia,'\nbearing my port, 'celsa senis,' that ",
+     "fire": 40,
+     "activation": 1.186,
+     "share_of_max": 0.955
+    },
+    {
+     "text": " never\nYields us kind answer.\n\nMIRANDA:\n'Tis a ",
+     "fire": 40,
+     "activation": 1.167,
+     "share_of_max": 0.94
+    },
+    {
+     "text": " unto Vincentio of Pisa,\n'Sigeia tellus,' disgu",
+     "fire": 40,
+     "activation": 1.141,
+     "share_of_max": 0.919
+    },
+    {
+     "text": " should be his wife,\n'Ay, by gogs-wouns,' quoth",
+     "fire": 40,
+     "activation": 1.131,
+     "share_of_max": 0.911
+    },
+    {
+     "text": "me.\n\nGRUMIO:\nYou are i' the right, sir: 'tis fo",
+     "fire": 40,
+     "activation": 1.13,
+     "share_of_max": 0.91
+    }
+   ]
+  },
+  {
+   "id": "L1162",
+   "index": 1162,
+   "max": 1.42,
+   "freq": 0.02346,
+   "contexts": [
+    {
+     "text": "ere an end.\n\nBAPTISTA:\nNow, by my holidame, her",
+     "fire": 40,
+     "activation": 1.42,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "r pupils presently.\nHolla, within!\nSirrah, lead",
+     "fire": 40,
+     "activation": 1.408,
+     "share_of_max": 0.991
+    },
+    {
+     "text": "RINA:\nNo shame but mine: I must, forsooth, be f",
+     "fire": 40,
+     "activation": 1.395,
+     "share_of_max": 0.982
+    },
+    {
+     "text": "sa senis,'\ndespair not.\n\nHORTENSIO:\nMadam, 'tis",
+     "fire": 40,
+     "activation": 1.393,
+     "share_of_max": 0.981
+    },
+    {
+     "text": "o fetch dew\nFrom the still-vex'd Bermoothes, th",
+     "fire": 40,
+     "activation": 1.375,
+     "share_of_max": 0.968
+    },
+    {
+     "text": ", servant, come. I am ready now.\nApproach, my A",
+     "fire": 40,
+     "activation": 1.361,
+     "share_of_max": 0.959
+    },
+    {
+     "text": "hool'd.\n\nTRANIO:\nFear you not him. Sirrah Biond",
+     "fire": 40,
+     "activation": 1.358,
+     "share_of_max": 0.957
+    },
+    {
+     "text": "e,\nIntolerable, not to be endured!\nSirrah Grumi",
+     "fire": 40,
+     "activation": 1.357,
+     "share_of_max": 0.956
+    },
+    {
+     "text": "sician groweth amorous.\n\nHORTENSIO:\nMadam, befo",
+     "fire": 40,
+     "activation": 1.348,
+     "share_of_max": 0.949
+    },
+    {
+     "text": "RUCHIO:\nI hope better.\n\nHORTENSIO:\nSirrah Biond",
+     "fire": 40,
+     "activation": 1.342,
+     "share_of_max": 0.945
+    }
+   ]
+  },
+  {
+   "id": "L1236",
+   "index": 1236,
+   "max": 1.893,
+   "freq": 0.01328,
+   "contexts": [
+    {
+     "text": "ow, to see the end of this ado.\n\nPETRUCHIO:\nFir",
+     "fire": 40,
+     "activation": 1.893,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "\nKATHARINA:\nLet me entreat you.\n\nPETRUCHIO:\nI a",
+     "fire": 40,
+     "activation": 1.891,
+     "share_of_max": 0.999
+    },
+    {
+     "text": "afe you, if I tarry: let me go.\n\nPETRUCHIO:\nNo,",
+     "fire": 40,
+     "activation": 1.879,
+     "share_of_max": 0.993
+    },
+    {
+     "text": " we sit to chat as well as eat.\n\nPETRUCHIO:\nNot",
+     "fire": 40,
+     "activation": 1.878,
+     "share_of_max": 0.992
+    },
+    {
+     "text": " the first\nYou were a moveable.\n\nPETRUCHIO:\nWhy",
+     "fire": 40,
+     "activation": 1.878,
+     "share_of_max": 0.992
+    },
+    {
+     "text": "s this kindness, son Petruchio.\n\nPETRUCHIO:\nPad",
+     "fire": 40,
+     "activation": 1.872,
+     "share_of_max": 0.989
+    },
+    {
+     "text": "ss Kate, I'll bear you company.\n\nPETRUCHIO:\n\nHa",
+     "fire": 40,
+     "activation": 1.869,
+     "share_of_max": 0.987
+    },
+    {
+     "text": "on you at the first so roundly.\n\nPETRUCHIO:\nO K",
+     "fire": 40,
+     "activation": 1.867,
+     "share_of_max": 0.986
+    },
+    {
+     "text": "h oaths to face the matter out.\n\nPETRUCHIO:\nFat",
+     "fire": 40,
+     "activation": 1.864,
+     "share_of_max": 0.985
+    },
+    {
+     "text": " cares.\n\nKATHARINA:\nI care not.\n\nPETRUCHIO:\nNay",
+     "fire": 40,
+     "activation": 1.858,
+     "share_of_max": 0.982
+    }
+   ]
+  },
+  {
+   "id": "L1583",
+   "index": 1583,
+   "max": 0.462,
+   "freq": 0.00106,
+   "contexts": [
+    {
+     "text": "nfused with a fortitude from heaven,\nWhen I hav",
+     "fire": 40,
+     "activation": 0.462,
+     "share_of_max": 1.0
+    },
+    {
+     "text": " wear such caps as these\n\nPETRUCHIO:\nWhen you a",
+     "fire": 40,
+     "activation": 0.452,
+     "share_of_max": 0.979
+    },
+    {
+     "text": " sort was well fished for.\n\nGONZALO:\nWhen I wor",
+     "fire": 40,
+     "activation": 0.421,
+     "share_of_max": 0.912
+    },
+    {
+     "text": "e business in the veins o' the earth\nWhen it is",
+     "fire": 40,
+     "activation": 0.418,
+     "share_of_max": 0.905
+    },
+    {
+     "text": ":\nNay, good, be patient.\n\nBoatswain:\nWhen the s",
+     "fire": 40,
+     "activation": 0.408,
+     "share_of_max": 0.883
+    },
+    {
+     "text": "w'd her hand to teach her fingering;\nWhen, with",
+     "fire": 40,
+     "activation": 0.399,
+     "share_of_max": 0.864
+    },
+    {
+     "text": "stake me not; I speak but as I find.\nWhence are",
+     "fire": 40,
+     "activation": 0.388,
+     "share_of_max": 0.84
+    },
+    {
+     "text": " she deny to wed, I'll crave the day\nWhen I sha",
+     "fire": 40,
+     "activation": 0.382,
+     "share_of_max": 0.828
+    },
+    {
+     "text": "uld not again undo: it was mine art,\nWhen I arr",
+     "fire": 40,
+     "activation": 0.382,
+     "share_of_max": 0.827
+    },
+    {
+     "text": "me to speak it in: you rub the sore,\nWhen you s",
+     "fire": 40,
+     "activation": 0.382,
+     "share_of_max": 0.827
+    }
+   ]
+  },
+  {
+   "id": "L1335",
+   "index": 1335,
+   "max": 1.193,
+   "freq": 0.02678,
+   "contexts": [
+    {
+     "text": "ve doth court my love:\nPedascule, I'll watch yo",
+     "fire": 40,
+     "activation": 1.193,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "te the breasts\nOf ever angry bears: it was a to",
+     "fire": 40,
+     "activation": 1.192,
+     "share_of_max": 0.999
+    },
+    {
+     "text": "r person while you take your rest,\nAnd watch yo",
+     "fire": 40,
+     "activation": 1.192,
+     "share_of_max": 0.999
+    },
+    {
+     "text": ", wast then her servant;\nAnd, for thou wast a s",
+     "fire": 40,
+     "activation": 1.179,
+     "share_of_max": 0.988
+    },
+    {
+     "text": " thou wast my daughter; and thy father\nWas Duke",
+     "fire": 40,
+     "activation": 1.171,
+     "share_of_max": 0.981
+    },
+    {
+     "text": "d in its contrary as great\nAs my trust was; whi",
+     "fire": 40,
+     "activation": 1.167,
+     "share_of_max": 0.977
+    },
+    {
+     "text": "ms, the day in cold,\nWhilst thou liest warm at ",
+     "fire": 40,
+     "activation": 1.153,
+     "share_of_max": 0.966
+    },
+    {
+     "text": "ies,\n\nPETRUCHIO:\nWho knows not where a wasp doe",
+     "fire": 40,
+     "activation": 1.15,
+     "share_of_max": 0.964
+    },
+    {
+     "text": "orders grey,\nAs he forth walked on his way:--\nO",
+     "fire": 40,
+     "activation": 1.15,
+     "share_of_max": 0.963
+    },
+    {
+     "text": "leep; 'tis a good dulness,\nAnd give it way: I k",
+     "fire": 40,
+     "activation": 1.146,
+     "share_of_max": 0.96
+    }
+   ]
+  },
+  {
+   "id": "L138",
+   "index": 138,
+   "max": 1.75,
+   "freq": 0.00559,
+   "contexts": [
+    {
+     "text": "ty\nAnd all the devils are here.'\n\nPROSPERO:\nWhy",
+     "fire": 40,
+     "activation": 1.75,
+     "share_of_max": 1.0
+    },
+    {
+     "text": " task\nAriel and all his quality.\n\nPROSPERO:\nHas",
+     "fire": 40,
+     "activation": 1.737,
+     "share_of_max": 0.993
+    },
+    {
+     "text": "NDA:\nSir, are not you my father?\n\nPROSPERO:\nThy",
+     "fire": 40,
+     "activation": 1.731,
+     "share_of_max": 0.989
+    },
+    {
+     "text": "e.\n\nARIEL:\nYes, Caliban her son.\n\nPROSPERO:\nDul",
+     "fire": 40,
+     "activation": 1.73,
+     "share_of_max": 0.988
+    },
+    {
+     "text": "emembrance! Please you, farther.\n\nPROSPERO:\nMy ",
+     "fire": 40,
+     "activation": 1.723,
+     "share_of_max": 0.985
+    },
+    {
+     "text": "tebos,\nand make a vassal of him.\n\nPROSPERO:\nSo,",
+     "fire": 40,
+     "activation": 1.716,
+     "share_of_max": 0.98
+    },
+    {
+     "text": "e.\n\nMIRANDA:\nHow came we ashore?\n\nPROSPERO:\nBy ",
+     "fire": 40,
+     "activation": 1.712,
+     "share_of_max": 0.978
+    },
+    {
+     "text": "ooping.\n\nMIRANDA:\nO the heavens!\n\nPROSPERO:\nMar",
+     "fire": 40,
+     "activation": 1.706,
+     "share_of_max": 0.975
+    },
+    {
+     "text": "ll make you\nThe queen of Naples.\n\nPROSPERO:\nSof",
+     "fire": 40,
+     "activation": 1.704,
+     "share_of_max": 0.973
+    },
+    {
+     "text": "I do? say what; what shall I do?\n\nPROSPERO:\nGo ",
+     "fire": 40,
+     "activation": 1.701,
+     "share_of_max": 0.972
+    }
+   ]
+  },
+  {
+   "id": "L863",
+   "index": 863,
+   "max": 0.866,
+   "freq": 0.0212,
+   "contexts": [
+    {
+     "text": "house.\nGo on, and fetch our horses back again.\n",
+     "fire": 40,
+     "activation": 0.866,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "or's wife,\nThe masters of some merchant and the",
+     "fire": 40,
+     "activation": 0.783,
+     "share_of_max": 0.905
+    },
+    {
+     "text": "is busy and she cannot come!\nIs that an answer?",
+     "fire": 40,
+     "activation": 0.766,
+     "share_of_max": 0.885
+    },
+    {
+     "text": "ZALO:\nGood, yet remember whom thou hast aboard.",
+     "fire": 40,
+     "activation": 0.764,
+     "share_of_max": 0.882
+    },
+    {
+     "text": "d to sleep.\n\nANTONIO:\nNor I; my spirits are nim",
+     "fire": 40,
+     "activation": 0.76,
+     "share_of_max": 0.877
+    },
+    {
+     "text": "truchio is Kated.\n\nBAPTISTA:\nNeighbours and fri",
+     "fire": 40,
+     "activation": 0.759,
+     "share_of_max": 0.877
+    },
+    {
+     "text": "orldly ends, all dedicated\nTo closeness and the",
+     "fire": 40,
+     "activation": 0.739,
+     "share_of_max": 0.853
+    },
+    {
+     "text": "So, you're paid.\n\nADRIAN:\nUninhabitable and alm",
+     "fire": 40,
+     "activation": 0.732,
+     "share_of_max": 0.845
+    },
+    {
+     "text": "him on his back.\n\nBAPTISTA:\nWhy, that's all one",
+     "fire": 40,
+     "activation": 0.731,
+     "share_of_max": 0.844
+    },
+    {
+     "text": "re, Signior Tranio.\nThis bird you aim'd at, tho",
+     "fire": 40,
+     "activation": 0.73,
+     "share_of_max": 0.843
+    }
+   ]
+  },
+  {
+   "id": "L752",
+   "index": 752,
+   "max": 0.834,
+   "freq": 0.00463,
+   "contexts": [
+    {
+     "text": "t to pieces: ergo, thou liest.\n\nTailor:\nWhy, he",
+     "fire": 40,
+     "activation": 0.834,
+     "share_of_max": 1.0
+    },
+    {
+     "text": " Come on, and kiss me, Kate.\n\nLUCENTIO:\nWell, g",
+     "fire": 40,
+     "activation": 0.816,
+     "share_of_max": 0.978
+    },
+    {
+     "text": "yers, to prayers! all lost!\n\nBoatswain:\nWhat, m",
+     "fire": 40,
+     "activation": 0.814,
+     "share_of_max": 0.976
+    },
+    {
+     "text": "n?\n\nBIONDELLO:\nHe is coming.\n\nBAPTISTA:\nWhen wi",
+     "fire": 40,
+     "activation": 0.804,
+     "share_of_max": 0.964
+    },
+    {
+     "text": "t offer to beat my servant?\n\nVINCENTIO:\nWhat am",
+     "fire": 40,
+     "activation": 0.803,
+     "share_of_max": 0.963
+    },
+    {
+     "text": "t dish: fie, fie! 'tis lewd and filthy:\nWhy, 't",
+     "fire": 40,
+     "activation": 0.802,
+     "share_of_max": 0.961
+    },
+    {
+     "text": "e!\n\nALONSO:\nI prithee, spare.\n\nGONZALO:\nWell, I",
+     "fire": 40,
+     "activation": 0.795,
+     "share_of_max": 0.953
+    },
+    {
+     "text": "his? a sleeve? 'tis like a demi-cannon:\nWhat, u",
+     "fire": 40,
+     "activation": 0.787,
+     "share_of_max": 0.944
+    },
+    {
+     "text": "h,\nLike to a censer in a barber's shop:\nWhy, wh",
+     "fire": 40,
+     "activation": 0.774,
+     "share_of_max": 0.928
+    },
+    {
+     "text": ", not remembering how I cried out then,\nWill cr",
+     "fire": 40,
+     "activation": 0.771,
+     "share_of_max": 0.924
+    }
+   ]
+  },
+  {
+   "id": "L1800",
+   "index": 1800,
+   "max": 2.081,
+   "freq": 0.17327,
+   "contexts": [
+    {
+     "text": "h long I have not seen.\n\nPETRUCHIO:\nWhat is his",
+     "fire": 40,
+     "activation": 2.081,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "\nAnd yet I come not well.\n\nBAPTISTA:\nAnd yet yo",
+     "fire": 40,
+     "activation": 2.055,
+     "share_of_max": 0.988
+    },
+    {
+     "text": "to have it cut?\n\nGRUMIO:\nThou hast faced many t",
+     "fire": 40,
+     "activation": 2.018,
+     "share_of_max": 0.97
+    },
+    {
+     "text": "hus have I politicly begun my reign,\nAnd 'tis m",
+     "fire": 40,
+     "activation": 2.013,
+     "share_of_max": 0.967
+    },
+    {
+     "text": "NIEL:\nWelcome home, Grumio!\n\nPHILIP:\nHow now, G",
+     "fire": 40,
+     "activation": 1.997,
+     "share_of_max": 0.96
+    },
+    {
+     "text": " as Rome;\nAnd so to Tripoli, if God lend me lif",
+     "fire": 40,
+     "activation": 1.987,
+     "share_of_max": 0.955
+    },
+    {
+     "text": "an,\nThy son by this hath married. Wonder not,\nN",
+     "fire": 40,
+     "activation": 1.985,
+     "share_of_max": 0.954
+    },
+    {
+     "text": "RUCHIO:\nThen show it me.\n\nKATHARINA:\nHad I a gl",
+     "fire": 40,
+     "activation": 1.978,
+     "share_of_max": 0.95
+    },
+    {
+     "text": " father's care,\nTo have him match'd; and if you",
+     "fire": 40,
+     "activation": 1.941,
+     "share_of_max": 0.933
+    },
+    {
+     "text": "en give me leave to read philosophy,\nAnd while ",
+     "fire": 40,
+     "activation": 1.938,
+     "share_of_max": 0.931
+    }
+   ]
+  }
+ ],
+ "neurons": [
+  {
+   "id": "N63",
+   "index": 63,
+   "max": 0.542,
+   "freq": 0.2991,
+   "contexts": [
+    {
+     "text": " the devil himself\nUpon thy wicked dam, come fo",
+     "fire": 40,
+     "activation": 0.542,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "aster's sake, Lucentio.\nSignior Gremio, came yo",
+     "fire": 40,
+     "activation": 0.527,
+     "share_of_max": 0.973
+    },
+    {
+     "text": "l royalties\nHe thinks me now incapable; confede",
+     "fire": 40,
+     "activation": 0.522,
+     "share_of_max": 0.964
+    },
+    {
+     "text": "op:\nWhy, what, i' devil's name, tailor, call'st",
+     "fire": 40,
+     "activation": 0.522,
+     "share_of_max": 0.963
+    },
+    {
+     "text": "and sport us at thy father's house.\nGo, call my",
+     "fire": 40,
+     "activation": 0.52,
+     "share_of_max": 0.96
+    },
+    {
+     "text": "ut supposed Lucentio\nMust get a father, call'd ",
+     "fire": 40,
+     "activation": 0.518,
+     "share_of_max": 0.956
+    },
+    {
+     "text": "me. I am ready now.\nApproach, my Ariel, come.\n\n",
+     "fire": 40,
+     "activation": 0.515,
+     "share_of_max": 0.951
+    },
+    {
+     "text": "end me to thy master.\n\nPETRUCHIO:\nWell, come, m",
+     "fire": 40,
+     "activation": 0.512,
+     "share_of_max": 0.946
+    },
+    {
+     "text": "r.\n\nPROSPERO:\nMy brother and thy uncle, call'd ",
+     "fire": 40,
+     "activation": 0.512,
+     "share_of_max": 0.945
+    },
+    {
+     "text": "\n\nBoatswain:\nHeigh, my hearts! cheerly, cheerly",
+     "fire": 40,
+     "activation": 0.512,
+     "share_of_max": 0.945
+    }
+   ]
+  },
+  {
+   "id": "N464",
+   "index": 464,
+   "max": 1.224,
+   "freq": 0.39822,
+   "contexts": [
+    {
+     "text": "gs answerable to this portion.\nMyself am struck",
+     "fire": 40,
+     "activation": 1.224,
+     "share_of_max": 1.0
+    },
+    {
+     "text": " thin and hungerly\nAnd seem'd to ask him sops a",
+     "fire": 40,
+     "activation": 1.136,
+     "share_of_max": 0.928
+    },
+    {
+     "text": "l year.\n\nPROSPERO:\nDost thou forget\nFrom what a",
+     "fire": 40,
+     "activation": 1.012,
+     "share_of_max": 0.827
+    },
+    {
+     "text": "or thee,\nAnd for thy maintenance commits his bo",
+     "fire": 40,
+     "activation": 1.004,
+     "share_of_max": 0.82
+    },
+    {
+     "text": " says so, Tranio.\n\nTRANIO:\nFaith, he is gone un",
+     "fire": 40,
+     "activation": 1.003,
+     "share_of_max": 0.819
+    },
+    {
+     "text": "y lay fretting by you:\n'Twill bring you gain, o",
+     "fire": 40,
+     "activation": 1.003,
+     "share_of_max": 0.819
+    },
+    {
+     "text": "ant and the merchant\nHave just our theme of woe",
+     "fire": 40,
+     "activation": 1.001,
+     "share_of_max": 0.818
+    },
+    {
+     "text": " Rome;\nAnd so to Tripoli, if God lend me life.\n",
+     "fire": 40,
+     "activation": 1.001,
+     "share_of_max": 0.818
+    },
+    {
+     "text": "our duty were as foolish too:\nThe wisdom of you",
+     "fire": 40,
+     "activation": 0.997,
+     "share_of_max": 0.814
+    },
+    {
+     "text": "er's blessed case!\nNay, I have ta'en you nappin",
+     "fire": 40,
+     "activation": 0.975,
+     "share_of_max": 0.796
+    }
+   ]
+  },
+  {
+   "id": "N109",
+   "index": 109,
+   "max": 0.914,
+   "freq": 0.409,
+   "contexts": [
+    {
+     "text": ", madam:\n'Hic ibat Simois; hic est Sigeia tellu",
+     "fire": 40,
+     "activation": 0.914,
+     "share_of_max": 1.0
+    },
+    {
+     "text": ":\nI pray thee, mark me.\nI, thus neglecting worl",
+     "fire": 40,
+     "activation": 0.847,
+     "share_of_max": 0.927
+    },
+    {
+     "text": "nder thy table: tut, a toy!\nAn old Italian fox ",
+     "fire": 40,
+     "activation": 0.839,
+     "share_of_max": 0.919
+    },
+    {
+     "text": "uke; out o' the substitution\nAnd executing the ",
+     "fire": 40,
+     "activation": 0.828,
+     "share_of_max": 0.906
+    },
+    {
+     "text": "took her frets,\nAnd bow'd her hand to teach her",
+     "fire": 40,
+     "activation": 0.82,
+     "share_of_max": 0.898
+    },
+    {
+     "text": "io, I pray,\nLet us, that are poor petitioners, ",
+     "fire": 40,
+     "activation": 0.809,
+     "share_of_max": 0.885
+    },
+    {
+     "text": " must begin with rudiments of art;\nTo teach you",
+     "fire": 40,
+     "activation": 0.794,
+     "share_of_max": 0.869
+    },
+    {
+     "text": " her whoever dare;\nI'll bring mine action on th",
+     "fire": 40,
+     "activation": 0.784,
+     "share_of_max": 0.858
+    },
+    {
+     "text": "r of my heart,\nOr else my heart concealing it w",
+     "fire": 40,
+     "activation": 0.779,
+     "share_of_max": 0.853
+    },
+    {
+     "text": "t o' the loss.\n\nGONZALO:\nMy lord Sebastian,\nThe",
+     "fire": 40,
+     "activation": 0.778,
+     "share_of_max": 0.852
+    }
+   ]
+  },
+  {
+   "id": "N339",
+   "index": 339,
+   "max": 1.174,
+   "freq": 0.39766,
+   "contexts": [
+    {
+     "text": "s the man lunatic?\n\nTRANIO:\nSir, you seem a sob",
+     "fire": 40,
+     "activation": 1.174,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "n this roar, allay them.\nThe sky, it seems, wou",
+     "fire": 40,
+     "activation": 1.105,
+     "share_of_max": 0.941
+    },
+    {
+     "text": "ear you company.\n\nPETRUCHIO:\n\nHaberdasher:\nHere",
+     "fire": 40,
+     "activation": 1.095,
+     "share_of_max": 0.933
+    },
+    {
+     "text": "ho knows not that?\n\nGRUMIO:\nThou, it seems, tha",
+     "fire": 40,
+     "activation": 1.074,
+     "share_of_max": 0.915
+    },
+    {
+     "text": "e; but for the miracle,\nI mean our preservation",
+     "fire": 40,
+     "activation": 1.045,
+     "share_of_max": 0.891
+    },
+    {
+     "text": "ubt it, thou mayst slide\nfrom my shoulder to my",
+     "fire": 40,
+     "activation": 1.039,
+     "share_of_max": 0.886
+    },
+    {
+     "text": "A match!\n\nADRIAN:\nThough this island seem to be",
+     "fire": 40,
+     "activation": 1.025,
+     "share_of_max": 0.874
+    },
+    {
+     "text": "AN:\nDone. The wager?\n\nANTONIO:\nA laughter.\n\nSEB",
+     "fire": 40,
+     "activation": 1.024,
+     "share_of_max": 0.873
+    },
+    {
+     "text": "birth;\nBeside, so qualified as may beseem\nThe s",
+     "fire": 40,
+     "activation": 1.014,
+     "share_of_max": 0.864
+    },
+    {
+     "text": "shall not;\nAs with the meat, some undeserved fa",
+     "fire": 40,
+     "activation": 1.011,
+     "share_of_max": 0.861
+    }
+   ]
+  },
+  {
+   "id": "N285",
+   "index": 285,
+   "max": 1.263,
+   "freq": 0.27912,
+   "contexts": [
+    {
+     "text": " mine, before you touch the meat.\n\nKATHARINA:\nI",
+     "fire": 40,
+     "activation": 1.263,
+     "share_of_max": 1.0
+    },
+    {
+     "text": "en, the mustard without the beef.\n\nKATHARINA:\nG",
+     "fire": 40,
+     "activation": 1.261,
+     "share_of_max": 0.999
+    },
+    {
+     "text": " thee to be but young and light--\n\nKATHARINA:\nT",
+     "fire": 40,
+     "activation": 1.256,
+     "share_of_max": 0.995
+    },
+    {
+     "text": "urtle! shall a buzzard take thee?\n\nKATHARINA:\nA",
+     "fire": 40,
+     "activation": 1.255,
+     "share_of_max": 0.994
+    },
+    {
+     "text": "woe:\nAnd now you know my meaning,\n\nKATHARINA:\nA",
+     "fire": 40,
+     "activation": 1.252,
+     "share_of_max": 0.991
+    },
+    {
+     "text": "d. Kiss him for that, good widow.\n\nKATHARINA:\n'",
+     "fire": 40,
+     "activation": 1.25,
+     "share_of_max": 0.99
+    },
+    {
+     "text": "ld, Kate? O, put me in thy books!\n\nKATHARINA:\nW",
+     "fire": 40,
+     "activation": 1.248,
+     "share_of_max": 0.989
+    },
+    {
+     "text": "u to a piece of beef and mustard?\n\nKATHARINA:\nA",
+     "fire": 40,
+     "activation": 1.24,
+     "share_of_max": 0.982
+    },
+    {
+     "text": "as he says, or we shall never go.\n\nKATHARINA:\nF",
+     "fire": 40,
+     "activation": 1.238,
+     "share_of_max": 0.98
+    },
+    {
+     "text": " the mustard is too hot a little.\n\nKATHARINA:\nW",
+     "fire": 40,
+     "activation": 1.231,
+     "share_of_max": 0.975
+    }
+   ]
+  }
+ ],
+ "purity": {
+  "rule": "share of a unit's top 50 activations (validation) whose firing character is its most common one",
+  "latents_alive": 1505,
+  "neurons": 512,
+  "latents_median": 1.0,
+  "neurons_median": 0.72,
+  "latents_share_ge_0.9": 0.75,
+  "neurons_share_ge_0.9": 0.312,
+  "latents_hist": [
+   0,
+   8,
+   36,
+   54,
+   49,
+   72,
+   57,
+   48,
+   52,
+   1129
+  ],
+  "neurons_hist": [
+   0,
+   0,
+   13,
+   29,
+   59,
+   81,
+   69,
+   43,
+   58,
+   160
+  ]
+ },
+ "guard": {
+  "script": "sae.py",
+  "seconds": 224.2,
+  "minutes": 3.74,
+  "peak_rss_gb": 1.72,
+  "peak_mps_driver_gb": 4.96,
+  "stages_seconds": {
+   "collect": 1.71,
+   "sae k=8": 56.15,
+   "sae k=16": 54.19,
+   "sae k=32": 54.47,
+   "sae k=64": 54.95,
+   "features": 1.61,
+   "figures": 1.07
+  },
+  "machine": "arm64 26.6.2",
+  "torch": "2.14.1",
+  "mps_high_watermark_ratio": "0.5",
+  "mps_cap_gb": 5.92
+ }
+}

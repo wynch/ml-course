@@ -83,6 +83,8 @@ MODULES = [
     ("08-vision", "Vision: convolutions to ViTs", "Vision", "modules/08-vision/README.md", "Breadth", 180, "08-conv-vs-patches.html", "green"),
     ("09-diffusion", "Diffusion: learning to denoise", "Diffusion", "modules/09-diffusion/README.md", "Breadth", 180, "09-diffusion.html", "green"),
     ("10-agents", "Agents: models that act", "Agents", "modules/10-agents/README.md", "Breadth", 180, "10-agent-loop.html", "green"),
+    ("11-inside-a-language-model", "Inside a language model", "Inside an LM", "modules/11-inside-a-language-model/README.md", "Looking inside", 150, "11-inside-a-language-model.html", "rose"),
+    ("12-features-and-dictionaries", "Features and dictionaries", "Features", "modules/12-features-and-dictionaries/README.md", "Looking inside", 150, "12-features-and-dictionaries.html", "rose"),
 ]
 
 QUIZZES = {
