@@ -11,6 +11,9 @@
     { name: "Looking inside", blurb: "Open a trained model while it runs: hooks, probes, patching, neurons, sparse dictionaries, vision and JEPA encoders." },
     { name: "How learning works", blurb: "Watch training find a solution, measure the shape it leaves, and learn without labels." },
     { name: "Other recipes", blurb: "Train from preferences instead of labels, and carry a state instead of attention." },
+    { name: "Why they work", blurb: "Fit the curves that plan big models, and watch a model learn from its prompt." },
+    { name: "Using models well", blurb: "Spend tokens on reasoning, fetch the right passage, and make a model smaller." },
+    { name: "Acting and planning", blurb: "Learn from reward, then plan inside a model of the world." },
   ];
   const ASSET_ROOTS = ["explorables", "quizzes", "research"];
   // Pages serves source files as application/octet-stream, so a direct link

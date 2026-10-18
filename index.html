@@ -4,12 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Build ML From Scratch — Then the Hugging Face Way</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="description" content="A hands-on ML course: build everything twice — first from scratch, then the Hugging Face way. Interactive explorables and self-graded quizzes, all in the browser.">
 <style>
 *,*::before,*::after{box-sizing:border-box}
 :root{
   --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d;
-  --t0:#a86b0e; --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8; --t6:#b7410e; --track-ink:#ffffff;
+  --t0:#a86b0e; --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8; --t6:#b7410e; --t7:#6e7a14; --t8:#9a6a00; --t9:#4f6272; --track-ink:#ffffff;
   --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67;
   --soft:rgba(31,145,141,.10); --sketch:rgba(28,36,34,.42);
   --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
@@ -20,7 +23,7 @@
 @media (prefers-color-scheme:dark){
   :root{
     --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
-    --muted:#9daba7; --t0:#d9962e; --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --t5:#5aa1e6; --t6:#e7764a; --accent:#37b3ae;
+    --muted:#9daba7; --t0:#d9962e; --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --t5:#5aa1e6; --t6:#e7764a; --t7:#aab53c; --t8:#d9a63a; --t9:#93a8b8; --accent:#37b3ae;
     --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --sketch:rgba(232,238,236,.40);
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
   }
@@ -56,7 +59,7 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
   border:1px solid var(--line);border-radius:999px;padding:.2rem .65rem;
   display:flex;align-items:center;gap:.4rem}
 .tracknote .dot{width:.55rem;height:.55rem;border-radius:3px;display:inline-block}
-.tracknote .d0{background:var(--t0)} .tracknote .d1{background:var(--t1)} .tracknote .d2{background:var(--t2)} .tracknote .d3{background:var(--t3)} .tracknote .d4{background:var(--t4)} .tracknote .d5{background:var(--t5)} .tracknote .d6{background:var(--t6)}
+.tracknote .d0{background:var(--t0)} .tracknote .d1{background:var(--t1)} .tracknote .d2{background:var(--t2)} .tracknote .d3{background:var(--t3)} .tracknote .d4{background:var(--t4)} .tracknote .d5{background:var(--t5)} .tracknote .d6{background:var(--t6)} .tracknote .d7{background:var(--t7)} .tracknote .d8{background:var(--t8)} .tracknote .d9{background:var(--t9)}
 
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(288px,1fr));gap:1rem;margin:2.1rem 0 0}
 
@@ -72,7 +75,7 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
   text-transform:uppercase;color:var(--track-ink);padding:.24rem .6rem;border-radius:999px;
   white-space:nowrap}
 .pill.t0{background:var(--t0)} .pill.t1{background:var(--t1)}
-.pill.t2{background:var(--t2)} .pill.t3{background:var(--t3)} .pill.t4{background:var(--t4)} .pill.t5{background:var(--t5)} .pill.t6{background:var(--t6)}
+.pill.t2{background:var(--t2)} .pill.t3{background:var(--t3)} .pill.t4{background:var(--t4)} .pill.t5{background:var(--t5)} .pill.t6{background:var(--t6)} .pill.t7{background:var(--t7)} .pill.t8{background:var(--t8)} .pill.t9{background:var(--t9)}
 .card h3{font-family:var(--display);font-size:1.08rem;font-weight:600;margin:0 0 .4rem;
   line-height:1.3;letter-spacing:.1px}
 .card .hook{font-size:.89rem;color:var(--muted);margin:0;line-height:1.45}
@@ -99,7 +102,7 @@ footer p{margin:.3rem 0;max-width:74ch}
 <body>
 <header class="topbar">
   <h1>Build ML From Scratch</h1>
-  <span class="count">22 modules · 22 explorables · 220 quiz questions</span>
+  <span class="count">29 modules · 29 explorables · 290 quiz questions</span>
   <span class="spacer"></span>
   <a class="back" href="reader/">Reader</a>
   <a class="back" href="map.html">Course map</a>
@@ -132,6 +135,9 @@ footer p{margin:.3rem 0;max-width:74ch}
       <li><span class="dot d4"></span>Looking inside · 11–13</li>
       <li><span class="dot d5"></span>How learning works · 14–16</li>
       <li><span class="dot d6"></span>Other recipes · 17–18</li>
+      <li><span class="dot d7"></span>Why they work · 19–20</li>
+      <li><span class="dot d8"></span>Using models well · 21–23</li>
+      <li><span class="dot d9"></span>Acting and planning · 24–25</li>
     </ul>
   </section>
 
@@ -142,7 +148,7 @@ footer p{margin:.3rem 0;max-width:74ch}
       <div class="meta"><span class="pill t0">Read anywhere</span></div>
       <h3>Offline reader — the whole course as an installable offline app</h3>
       <p class="hook">Every lesson, figure, explorable and quiz in one app you can install and keep.
-        Search across all twenty-two modules, tick labs off as you finish them, and read the entire
+        Search across all twenty-nine modules, tick labs off as you finish them, and read the entire
         course on a plane: after the first visit nothing needs the network. Progress lives in this
         browser, and you can export it as JSON to move it to another device.</p>
       <span class="go">Open the reader →</span>
@@ -152,7 +158,7 @@ footer p{margin:.3rem 0;max-width:74ch}
       <span class="glyph" aria-hidden="true">🕹</span>
       <div class="meta"><span class="pill t2">Interactive</span></div>
       <h3>Explorables</h3>
-      <p class="hook">Twenty-two single-file, in-browser explainers — one per module. Snap a perceptron
+      <p class="hook">Twenty-nine single-file, in-browser explainers — one per module. Snap a perceptron
         line onto its bound, roll a ball down a loss surface, step through BPE merges, scrub an attention
         matrix, watch a real 50k-parameter denoiser pull a spiral back out of noise. Where a module
         produced real artifacts, the page inlines them.</p>
@@ -163,7 +169,7 @@ footer p{margin:.3rem 0;max-width:74ch}
       <span class="glyph" aria-hidden="true">✅</span>
       <div class="meta"><span class="pill t1">Check yourself</span></div>
       <h3>Quizzes</h3>
-      <p class="hook">Twenty-two self-graded quizzes, ten questions each, every one grounded in that module's own
+      <p class="hook">Twenty-nine self-graded quizzes, ten questions each, every one grounded in that module's own
         code, figures and measured numbers. Each question locks when you answer and explains why the right
         answer is right — and why the tempting one is not.</p>
       <span class="go">Take a quiz →</span>
@@ -173,7 +179,7 @@ footer p{margin:.3rem 0;max-width:74ch}
       <span class="glyph" aria-hidden="true">📚</span>
       <div class="meta"><span class="pill t3">The course</span></div>
       <h3>Modules, code &amp; figures</h3>
-      <p class="hook">The course itself lives in the repository: twenty-two module walkthroughs, runnable
+      <p class="hook">The course itself lives in the repository: twenty-nine module walkthroughs, runnable
         <code>uv</code> scripts, exercises with solutions, and the generated figures. Clone it and work
         through the modules in order — foundations are load-bearing for everything after.</p>
       <span class="go">Browse the repository →</span>

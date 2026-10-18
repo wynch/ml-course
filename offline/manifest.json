@@ -40,7 +40,14 @@
         "modules/15-geometry-of-representations/python",
         "modules/16-self-supervised-and-jepa/python",
         "modules/17-learning-from-preferences/python",
-        "modules/18-beyond-attention/python"
+        "modules/18-beyond-attention/python",
+        "modules/19-scaling-laws/python",
+        "modules/20-in-context-learning/python",
+        "modules/21-retrieval-and-memory/python",
+        "modules/22-reasoning-at-test-time/python",
+        "modules/23-compression/python",
+        "modules/24-reinforcement-learning/python",
+        "modules/25-world-models-and-planning/python"
       ]
     }
   },
@@ -70,7 +77,7 @@
       "kind": "model",
       "pack": "full",
       "revision": "a10cc1512eabd3dde888204e902eca88bddb4951",
-      "purpose": "Modules 05, 06, 11, 12 and 17 local model.",
+      "purpose": "Modules 05, 06, 11, 12, 17, 20, 21 and 23 local model.",
       "license": "see upstream model card"
     },
     {
@@ -86,7 +93,7 @@
       "kind": "model",
       "pack": "full",
       "revision": "5d5e6fee5beb5d4d4d85e2203ef23e1230a9aac7",
-      "purpose": "Module 06 MLX lane.",
+      "purpose": "Module 06 MLX lane; module 23 MLX copy and its local 4-bit conversion (724 MB).",
       "license": "see upstream model card"
     },
     {
@@ -132,6 +139,24 @@
       "include": ["config.json", "generation_config.json", "tokenizer.json", "tokenizer_config.json", "model.safetensors"],
       "purpose": "Module 18 Mamba against GPT-2 (517 MB).",
       "license": "see upstream model card"
+    },
+    {
+      "id": "sentence-transformers/all-MiniLM-L6-v2",
+      "kind": "model",
+      "pack": "full",
+      "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+      "include": ["config.json", "model.safetensors", "tokenizer.json", "tokenizer_config.json", "vocab.txt", "special_tokens_map.json"],
+      "purpose": "Module 21 embeddings (91 MB); not the onnx, openvino or TF copies.",
+      "license": "Apache-2.0"
+    },
+    {
+      "id": "mlx-community/Qwen3-1.7B-4bit",
+      "kind": "model",
+      "pack": "full",
+      "revision": "3b1b1768f8f8cf8351c712464f906e86c2b8269e",
+      "include": ["*.json", "*.txt", "model.safetensors"],
+      "purpose": "Module 22 replies (923 MB); needed only to regenerate them, as the module ships its cached replies.",
+      "license": "Apache-2.0"
     },
     {
       "id": "facebook/bart-large-mnli",
@@ -191,7 +216,8 @@
       "revision": "8d51e7e4887a4caaa95b3fbebbf53c0490b58bbb",
       "project": "modules/11-inside-a-language-model/python",
       "split": "",
-      "purpose": "Module 11 linear probe (about 3 MB).",
+      "include": ["data/train-00000-of-00001.parquet", "data/validation-00000-of-00001.parquet"],
+      "purpose": "Module 11 linear probe; module 20 few-shot prompts, raw train and validation files (about 3 MB).",
       "license": "see upstream dataset card"
     },
     {
@@ -211,6 +237,24 @@
       "include": ["data/test-00000-of-00001.parquet", "data/train-00000-of-00001.parquet"],
       "purpose": "Module 17 preference pairs, pinned upstream (133 MB); the pack never ships the pairs themselves.",
       "license": "MIT, by provenance from HuggingFaceH4/ultrafeedback_binarized; the card names none"
+    },
+    {
+      "id": "rajpurkar/squad",
+      "kind": "dataset",
+      "pack": "full",
+      "revision": "7b6d24c440a36b6815f21b70d25016731768db1f",
+      "include": ["plain_text/validation-00000-of-00001.parquet"],
+      "purpose": "Module 21 questions and paragraphs, validation file (1.8 MB).",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "id": "openai/gsm8k",
+      "kind": "dataset",
+      "pack": "full",
+      "revision": "740312add88f781978c0658806c59bc2815b9866",
+      "include": ["main/test-00000-of-00001.parquet", "main/train-00000-of-00001.parquet"],
+      "purpose": "Module 22 problems and few-shot examples (2.7 MB).",
+      "license": "MIT"
     },
     {
       "id": "AI-Lab-Makerere/beans",

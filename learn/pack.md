@@ -1,4 +1,4 @@
-# ML compass pack · 2026-10-17
+# ML compass pack · 2026-10-18
 
 Built by `course/scripts/build_pack.py` from the live files of Vincent's private ML project. Seven parts, each with a one-line header saying what it is and where it comes from.
 
@@ -817,10 +817,10 @@ _From `compass/spine.yaml`: each entry's status and `since:` date, and the count
 
 ## Part 5 · Next box
 
-_Printed by `build.py --next` on 2026-10-17._
+_Printed by `build.py --next` on 2026-10-18._
 
 ```text
-NEXT · 2026-10-17
+NEXT · 2026-10-18
 learn  algorithm (F·computation) · parallelism (F·computation) · limit (F·calculus)
 test   parameter (2026-08-25) · learning rate (2026-08-25) · overfitting (2026-08-25)
 fill   Q7·measurement · Q2·algebra · Q3·geometry
@@ -1161,6 +1161,111 @@ https://wynch.github.io/ml-course/quizzes/18.html
 - `quiz-18-q9` Where GPT-2's cache passes Mamba's state
 - `quiz-18-q10` Why hybrids keep some attention
 
+### quiz-19 · Scaling laws
+
+https://wynch.github.io/ml-course/quizzes/19.html
+
+- `quiz-19-q1` Six widths, one recipe
+- `quiz-19-q2` One run, many lengths
+- `quiz-19-q3` The compute of the largest run
+- `quiz-19-q4` Why check the fitter first
+- `quiz-19-q5` Does α hold still?
+- `quiz-19-q6` The exponent of L(N)
+- `quiz-19-q7` What the data carry
+- `quiz-19-q8` A staircase, not an optimum
+- `quiz-19-q9` Tokens per parameter
+- `quiz-19-q10` Kaplan against Chinchilla
+
+### quiz-20 · In-context learning
+
+https://wynch.github.io/ml-course/quizzes/20.html
+
+- `quiz-20-q1` Fewer pairs than dimensions
+- `quiz-20-q2` One gradient step, by formula
+- `quiz-20-q3` The shuffled-y control
+- `quiz-20-q4` The main net on shuffled prompts
+- `quiz-20-q5` The bars, met or missed
+- `quiz-20-q6` Why a fresh task per prompt
+- `quiz-20-q7` Where the guesses come from
+- `quiz-20-q8` A gradient step, or not
+- `quiz-20-q9` What one example buys
+- `quiz-20-q10` Coin-flip labels
+
+### quiz-21 · Retrieval and memory
+
+https://wynch.github.io/ml-course/quizzes/21.html
+
+- `quiz-21-q1` BM25 against MiniLM on SQuAD
+- `quiz-21-q2` What idf does
+- `quiz-21-q3` The ceiling row
+- `quiz-21-q4` Mean pooling
+- `quiz-21-q5` A language model's states as search vectors
+- `quiz-21-q6` A wrong passage
+- `quiz-21-q7` Reading the RAG table
+- `quiz-21-q8` What the inverted index buys
+- `quiz-21-q9` SQuAD's F1
+- `quiz-21-q10` Where an agent keeps memory
+
+### quiz-22 · Reasoning at test time
+
+https://wynch.github.io/ml-course/quizzes/22.html
+
+- `quiz-22-q1` Answer only against chain of thought
+- `quiz-22-q2` The registered gain
+- `quiz-22-q3` Why the vote works
+- `quiz-22-q4` Two votes
+- `quiz-22-q5` The ceiling
+- `quiz-22-q6` The self-grader
+- `quiz-22-q7` Reading best-of-n
+- `quiz-22-q8` The token cap
+- `quiz-22-q9` Turning thinking off
+- `quiz-22-q10` What reasoning training adds
+
+### quiz-23 · Compression
+
+https://wynch.github.io/ml-course/quizzes/23.html
+
+- `quiz-23-q1` Which weights to drop
+- `quiz-23-q2` Why T² in the distillation loss
+- `quiz-23-q3` Bits per weight with groups
+- `quiz-23-q4` One scale per row
+- `quiz-23-q5` Fake quantisation
+- `quiz-23-q6` What 4 bits cost
+- `quiz-23-q7` Hand against MLX
+- `quiz-23-q8` Paired seeds
+- `quiz-23-q9` The size of the student
+- `quiz-23-q10` What zeros save
+
+### quiz-24 · Reinforcement learning
+
+https://wynch.github.io/ml-course/quizzes/24.html
+
+- `quiz-24-q1` Three bandit rules over 10,000 pulls
+- `quiz-24-q2` Regret of random pulling
+- `quiz-24-q3` Why ε-greedy's regret is a straight line
+- `quiz-24-q4` UCB1's bonus
+- `quiz-24-q5` Q-learning's training curve
+- `quiz-24-q6` Starting Q at zero
+- `quiz-24-q7` One CartPole step from rest
+- `quiz-24-q8` When the clip removes the gradient
+- `quiz-24-q9` PPO with and without the clip
+- `quiz-24-q10` Reading three seeds
+
+### quiz-25 · World models and planning
+
+https://wynch.github.io/ml-course/quizzes/25.html
+
+- `quiz-25-q1` A JEPA's loss
+- `quiz-25-q2` The one-hot planner
+- `quiz-25-q3` Why a random-weight planner
+- `quiz-25-q4` Reading the shooting step
+- `quiz-25-q5` A perfect model
+- `quiz-25-q6` Meters that miss
+- `quiz-25-q7` The one-hot model
+- `quiz-25-q8` Reading the JEPA loss
+- `quiz-25-q9` Why the test filter
+- `quiz-25-q10` What the grid says about JEPAs
+
 ## Part 7 · URL map
 
 _Where things are on the public site, so you can give Vincent links. Doors outside `course/` are private and have no URL._
@@ -1181,7 +1286,7 @@ _Where things are on the public site, so you can give Vincent links. Doors outsi
 | This pack | https://wynch.github.io/ml-course/learn/pack.md |
 
 
-Modules: `00a-perceptron` The perceptron & least squares, `00b-bayes-knn-pca` Probability, neighbours & eigenvectors, `00c-kernels-hopfield` Kernels, memory & the modern bridge, `01-autograd` Autograd from scratch, `02-neural-networks` Neural networks & the training loop, `03-tokenization` Tokenization: from bytes to tokens, `04-attention-transformer` Attention & the transformer, `05-transformers-library` The transformers library, `05a-data-evaluation` Data & evaluation, `06-fine-tuning` Fine-tuning: make the model yours, `07-inference-internals` Inference internals, `08-vision` Vision: convolutions to ViTs, `09-diffusion` Diffusion: learning to denoise, `10-agents` Agents: models that act, `11-inside-a-language-model` Inside a language model, `12-features-and-dictionaries` Features and dictionaries, `13-inside-vision-and-jepa` Inside vision and JEPA models, `14-how-training-finds-a-solution` How training finds a solution, `15-geometry-of-representations` Geometry of representations, `16-self-supervised-and-jepa` Self-supervised learning and JEPA, `17-learning-from-preferences` Learning from preferences, `18-beyond-attention` Beyond attention.
+Modules: `00a-perceptron` The perceptron & least squares, `00b-bayes-knn-pca` Probability, neighbours & eigenvectors, `00c-kernels-hopfield` Kernels, memory & the modern bridge, `01-autograd` Autograd from scratch, `02-neural-networks` Neural networks & the training loop, `03-tokenization` Tokenization: from bytes to tokens, `04-attention-transformer` Attention & the transformer, `05-transformers-library` The transformers library, `05a-data-evaluation` Data & evaluation, `06-fine-tuning` Fine-tuning: make the model yours, `07-inference-internals` Inference internals, `08-vision` Vision: convolutions to ViTs, `09-diffusion` Diffusion: learning to denoise, `10-agents` Agents: models that act, `11-inside-a-language-model` Inside a language model, `12-features-and-dictionaries` Features and dictionaries, `13-inside-vision-and-jepa` Inside vision and JEPA models, `14-how-training-finds-a-solution` How training finds a solution, `15-geometry-of-representations` Geometry of representations, `16-self-supervised-and-jepa` Self-supervised learning and JEPA, `17-learning-from-preferences` Learning from preferences, `18-beyond-attention` Beyond attention, `19-scaling-laws` Scaling laws, `20-in-context-learning` In-context learning, `21-retrieval-and-memory` Retrieval and memory, `22-reasoning-at-test-time` Reasoning at test time, `23-compression` Compression, `24-reinforcement-learning` Reinforcement learning, `25-world-models-and-planning` World models and planning.
 
 
 Doors per spine entry:

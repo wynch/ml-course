@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz · Reinforcement learning · ML course</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d; --track:var(--t9); --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67; --grid:rgba(28,36,34,.10);
+  --warn:#c1121f; --soft:rgba(31,145,141,.10);
+  --wrong:#c0504d; --wrong-soft:rgba(192,80,77,.10);
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t9:#4f6272;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --grid:rgba(232,238,236,.12); --warn:#ff8f85;
+    --soft:rgba(31,145,141,.16); --t4:#e0679a; --t9:#93a8b8; --track-ink:#121816;
+    --wrong:#f0938f; --wrong-soft:rgba(240,147,143,.13);
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;padding-bottom:5.6rem}
+a{color:var(--accent)}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;background:var(--track);color:var(--track-ink);
+  padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.topbar .spacer{flex:1 1 auto}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:920px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 2rem}
+.intro{max-width:70ch;color:var(--ink)}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .7rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.8rem,2vw,1.2rem);margin:1.4rem 0}
+button{font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:.34rem .82rem;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button:disabled{opacity:1}
+button.primary:hover{color:#fff;filter:brightness(1.06)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:.78rem;color:var(--muted);margin:.35rem 0 0}
+.mono,code{font-family:var(--mono);font-size:.92em}
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ───────── quiz-specific ───────── */
+.qhead{display:flex;flex-wrap:wrap;gap:.5rem;align-items:baseline;margin:0 0 .55rem}
+.qnum{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted)}
+.tag{font-family:var(--display);font-size:.68rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;border:1px solid var(--line);border-radius:999px;
+  padding:.1rem .5rem;color:var(--muted)}
+.tag.conceptual{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.tag.numbers{color:var(--t1);border-color:var(--t1)}
+.tag.predict{color:var(--t3);border-color:var(--t3)}
+.tag.code{color:var(--muted);border-color:var(--line);background:var(--grid)}
+.qhead .spacer{flex:1 1 auto}
+.qstate{font-family:var(--display);font-size:.7rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted)}
+.qtext{margin:0 0 .7rem;max-width:74ch}
+.qtext b{font-weight:600}
+pre.snippet{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--grid);
+  border:1px solid var(--line);border-radius:10px;padding:.65rem .8rem;margin:.2rem 0 .75rem;
+  overflow-x:auto}
+.srcfile{font-family:var(--mono);font-size:.76rem;color:var(--muted);margin:-.5rem 0 .75rem}
+.opts{display:flex;flex-direction:column;gap:.4rem;margin:0 0 .3rem}
+.opt{display:flex;gap:.6rem;align-items:flex-start;text-align:left;width:100%;
+  font-family:var(--body);font-size:.92rem;font-weight:400;line-height:1.45;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:10px;
+  padding:.55rem .7rem;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent);color:var(--ink);background:var(--soft)}
+.opt:disabled{cursor:default}
+.opt .key{font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--muted);
+  min-width:1.2em;padding-top:.08rem}
+.opt.picked{border-color:var(--accent)}
+.opt.right{border-color:var(--accent);background:var(--soft)}
+.opt.right .key{color:var(--accent)}
+.opt.wrongpick{border-color:var(--wrong);background:var(--wrong-soft)}
+.opt.wrongpick .key{color:var(--wrong)}
+.opt .mark{margin-left:auto;font-family:var(--display);font-size:.76rem;font-weight:600;
+  white-space:nowrap;padding-left:.5rem}
+.opt.right .mark{color:var(--accent)}
+.opt.wrongpick .mark{color:var(--wrong)}
+.numrow{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:0 0 .3rem}
+.numrow input{font-family:var(--mono);font-size:.9rem;color:var(--ink);background:var(--paper);
+  border:1px solid var(--line);border-radius:10px;padding:.45rem .6rem;width:15rem;max-width:100%}
+.acts{display:flex;flex-wrap:wrap;gap:.45rem;margin:.55rem 0 0}
+.verdictline{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.03em;
+  text-transform:uppercase;border-radius:999px;padding:.2rem .62rem;display:inline-block;
+  border:1px solid var(--line);margin:.7rem 0 .45rem}
+.verdictline.ok{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.verdictline.no{color:var(--wrong);border-color:var(--wrong);background:var(--wrong-soft)}
+.explain{font-size:.88rem;line-height:1.5;border-left:3px solid var(--line);
+  padding:.1rem 0 .1rem .75rem;margin:.2rem 0 0;max-width:74ch;color:var(--ink)}
+.explain .src{display:block;font-family:var(--mono);font-size:.76rem;color:var(--muted);margin-top:.4rem}
+.explain a.tryit{font-family:var(--display);font-size:.78rem;font-weight:600;text-decoration:none;
+  border:1px solid var(--accent);border-radius:999px;padding:.16rem .6rem;display:inline-block;
+  margin-top:.5rem}
+.explain a.tryit:hover{background:var(--soft)}
+.scorebar{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--panel);
+  border-top:1px solid var(--line);padding:.55rem clamp(.9rem,3vw,2rem)}
+.scorebar .inner{max-width:920px;margin:0 auto;display:flex;flex-wrap:wrap;gap:.5rem .9rem;
+  align-items:center}
+.scorebar .score{font-family:var(--mono);font-size:1rem;font-weight:600;color:var(--accent)}
+.scorebar .of{color:var(--muted);font-weight:400}
+.scorebar .msg{font-size:.84rem;color:var(--muted);flex:1 1 260px;min-width:0}
+.scorebar .msg b{color:var(--ink)}
+.scorebar .msg .review{display:block;font-size:.78rem;margin-top:.1rem}
+@media (max-width:700px){
+  .topbar h1{font-size:.98rem}
+  .scorebar .msg{flex-basis:100%}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Quiz · Reinforcement learning</h1>
+  <span class="pill">Module 24 · Acting and planning</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">← All quizzes</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">Ten questions on module 24. Every number is the module's own measured output,
+      from <span class="mono">results/*.json</span>: three bandit rules over 10,000 pulls, Q-learning on a walled grid,
+      a hand-written CartPole, and REINFORCE and PPO on it.</p>
+    <p>Answer in any order; answering locks a question and shows the explanation.
+      Your answers stay in this browser. Three questions ask you to <b>predict</b> a result
+      before you look it up; commit to an answer first.</p>
+  </section>
+
+  <div id="quiz"></div>
+</main>
+
+<footer>
+  <p class="paths">module → <a href="../modules/24-reinforcement-learning/README.md">../modules/24-reinforcement-learning/README.md</a>
+    · explorable → <a href="../explorables/24-reinforcement-learning.html">../explorables/24-reinforcement-learning.html</a></p>
+  <p>Matching reading: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton and Barto, Reinforcement Learning</a>
+    (chapters 2, 6 and 13), and <a href="https://arxiv.org/abs/1707.06347">Proximal Policy Optimization Algorithms</a>.</p>
+</footer>
+
+<div class="scorebar">
+  <div class="inner">
+    <span class="score"><span id="sc-score">0</span><span class="of"> / 10</span></span>
+    <span class="msg" id="sc-msg">Nothing answered yet.</span>
+    <button id="sc-reset">Reset quiz</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ═════════════════════════ PURE LOGIC START ═════════════════════════
+   Question bank + grading. Dependency-free and DOM-free: the verification
+   harness loads this file's exports under node and asserts the grading rules,
+   the score accumulation, and the answer-key balance.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const QUIZ_ID = "24";
+const STORE_KEY = "mlcourse-quiz-" + QUIZ_ID;
+const SUMMARY_KEY = "mlcourse-quiz-scores";
+
+const QUESTIONS = [
+  /* ── 1 ────────────────────────────────────────────────────── predict ── */
+  {
+    id: "q1", kind: "single", tag: "predict", topic: "Three bandit rules over 10,000 pulls",
+    text: "<b>Predict</b> before you open the figure. Five arms paying with probabilities 0.2, 0.4, 0.5, 0.6 and 0.7; " +
+          "10,000 pulls; 20 seeds. Which ordering of median regret (lowest first) did the module measure?",
+    options: [
+      "UCB1, then Thompson, then ε-greedy: UCB1 has the best guarantees.",
+      "Thompson (43), then UCB1 (228) and ε-greedy (237), close together.",
+      "ε-greedy, then UCB1, then Thompson: exploring at random is the cheapest.",
+      "All three within 10% of each other."
+    ],
+    answer: 1,
+    explain: "Thompson 43 (range 24–89), UCB1 228 (185–279), ε-greedy 237 (213–439). UCB1 and ε-greedy overlap; " +
+             "After the first 8 pulls, UCB1's median passes ε-greedy's only at pull 9,350. Pulling at random loses 2,207.",
+    source: "modules/24-reinforcement-learning/results/bandits.json → rules.*.final_median",
+    tryIt: { href: "../explorables/24-reinforcement-learning.html", label: "try it — panel 2" }
+  },
+  /* ── 2 ───────────────────────────────────────────────── real numbers ── */
+  {
+    id: "q2", kind: "numeric", tag: "numbers", topic: "Regret of random pulling",
+    text: "Regret adds up, for every pull, the best arm's probability (0.7) minus the pulled arm's. A player that pulls " +
+          "the five arms at random has expected loss 0.7 − 0.48 per pull. <b>Type the median regret the random player " +
+          "measured after 10,000 pulls.</b>",
+    answer: 2207, tol: 30, tolLabel: "± 30",
+    placeholder: "e.g. 1500",
+    explain: "2,207 (range 2,181–2,231 over 20 seeds), against 0.22 × 10,000 = 2,200 expected. A test checks the " +
+             "measured rate against 0.22 to 2%.",
+    source: "modules/24-reinforcement-learning/results/bandits.json → rules.random, random_expected_slope"
+  },
+  /* ── 3 ─────────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q3", kind: "single", tag: "conceptual", topic: "Why ε-greedy's regret is a straight line",
+    text: "Over the last 5,000 pulls, ε-greedy's (ε 0.1) regret rose by 110, and it pulled the best arm 92% of the time. " +
+          "Why does its regret keep growing at a steady rate?",
+    options: [
+      "It pulls a random arm 10% of the time forever, which costs 0.1 × 0.22 = 0.022 per pull: 110 over 5,000.",
+      "Its estimates of the arms never settle.",
+      "It has locked onto the 0.6 arm by mistake.",
+      "The coins get harder as the game goes on."
+    ],
+    answer: 0,
+    explain: "Once the best arm is known, the only cost left is the forced exploration: 10% of pulls, each losing 0.22 on " +
+             "average. UCB1's regret rose only 47 over the same pulls: its bonus shrinks as it learns.",
+    source: "modules/24-reinforcement-learning/README.md §1 · results/bandits.json → egreedy_expected_late_slope"
+  },
+  /* ── 4 ─────────────────────────────────────────────────── read-code ── */
+  {
+    id: "q4", kind: "single", tag: "code", topic: "UCB1's bonus",
+    text: "This is UCB1's choice in <code>src/bandits.py</code>. An arm has been pulled 50 times and then left alone " +
+          "while t keeps growing. What happens to its bonus?",
+    code: "mean = sums / counts\n" +
+          "bonus = np.sqrt(2.0 * math.log(t) / counts)\n" +
+          "return argmax_random(mean + bonus, rng)",
+    file: "modules/24-reinforcement-learning/python/src/bandits.py",
+    options: [
+      "It stays fixed, so the arm is never tried again.",
+      "It shrinks, since the arm's estimate gets older.",
+      "It grows slowly, like the square root of ln t, so the arm is tried again some day.",
+      "It grows like t, so the arm is tried again within a few pulls."
+    ],
+    answer: 2,
+    explain: "With its count fixed, only ln t moves. No arm is dropped for good, but a clearly worse one is retried " +
+             "rarely: over 10,000 pulls UCB1 pulled the 0.2 arm 66 times (median) and the 0.6 arm 957 times.",
+    source: "modules/24-reinforcement-learning/results/bandits.json → rules.ucb.pulls_per_mean"
+  },
+  /* ── 5 ────────────────────────────────────────────────────── predict ── */
+  {
+    id: "q5", kind: "single", tag: "predict", topic: "Q-learning's training curve",
+    text: "<b>Predict.</b> The shortest path through the walled grid takes 36 moves. Q-learning, ε 0.1, α 0.5, 300 " +
+          "episodes. What is the median, over 20 seeds, of the mean moves in the last 50 episodes?",
+    options: [
+      "36: once Q is right, every episode takes the shortest path.",
+      "About 40: the 10% random moves still add a few detours.",
+      "About 100: 300 episodes are too few.",
+      "Over 500: the walls trap it."
+    ],
+    answer: 1,
+    explain: "40.0 (range 39.6–40.7). Yet the greedy path, with no random moves, is 36 in all 20 seeds. The training " +
+             "curve measures the exploring policy, not the learned one.",
+    source: "modules/24-reinforcement-learning/results/qlearning.json → summary",
+    tryIt: { href: "../explorables/24-reinforcement-learning.html", label: "try it — panel 3" }
+  },
+  /* ── 6 ─────────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q6", kind: "single", tag: "conceptual", topic: "Starting Q at zero",
+    text: "Every move on the grid gives reward −1, and Q starts at 0 in every cell. Why does that help the agent explore?",
+    options: [
+      "It makes the learning rate larger.",
+      "It does not matter; any starting value gives the same run.",
+      "Zero is the true value of every cell.",
+      "A move never tried keeps Q = 0, which beats any tried move (those fall below 0), so the greedy choice seeks untried moves."
+    ],
+    answer: 3,
+    explain: "Starting above the true values (here −1 to −36) is optimism: the agent is disappointed by each move it tries " +
+             "and moves on to others. In all 20 seeds the greedy move ended up a best move in every free cell.",
+    source: "modules/24-reinforcement-learning/README.md §2 · results/qlearning.json → summary.share_cells_greedy_optimal_min"
+  },
+  /* ── 7 ─────────────────────────────────────────────────── read-code ── */
+  {
+    id: "q7", kind: "multi", tag: "code", topic: "One CartPole step from rest",
+    text: "From the state (x, ẋ, θ, θ̇) = (0, 0, 0, 0), the cart is pushed right (+10 N) for one step of 0.02 s. " +
+          "<b>Select all that are true</b> of the new state.",
+    code: "temp     = (F + m*l*theta_dot**2*sin(theta)) / (M + m)\n" +
+          "theta_dd = (g*sin(theta) - cos(theta)*temp) / (l*(4/3 - m*cos(theta)**2/(M + m)))\n" +
+          "x_dd     = temp - m*l*theta_dd*cos(theta) / (M + m)\n" +
+          "x, x_dot = x + tau*x_dot, x_dot + tau*x_dd\n" +
+          "theta, theta_dot = theta + tau*theta_dot, theta_dot + tau*theta_dd",
+    file: "modules/24-reinforcement-learning/python/src/cartpole.py",
+    options: [
+      "x is still 0: the position moves with the old speed, which was 0.",
+      "ẋ = 8/41 ≈ 0.195 m/s.",
+      "θ̇ is positive: the pole starts to lean the way the cart is pushed.",
+      "θ̇ = −12/41 ≈ −0.293 rad/s: the pole starts to tip back, away from the push."
+    ],
+    answer: [0, 1, 3],
+    explain: "temp = 100/11, θ̈ = −600/41, ẍ = 400/41; times 0.02 gives ẋ = 8/41 and θ̇ = −12/41. Positions use the old " +
+             "speeds, so x and θ stay 0. The test checks these fractions to 10⁻¹⁵.",
+    source: "modules/24-reinforcement-learning/python/tests/test_cartpole.py → test_one_step_from_rest_exact"
+  },
+  /* ── 8 ─────────────────────────────────────────────────── read-code ── */
+  {
+    id: "q8", kind: "single", tag: "code", topic: "When the clip removes the gradient",
+    text: "PPO's objective for one sample, with ε = 0.2. For which sample is the gradient with respect to the new " +
+          "policy zero?",
+    code: "ratio = torch.exp(logp_new - logp_old)\n" +
+          "obj = torch.min(ratio * adv, torch.clamp(ratio, 1 - clip, 1 + clip) * adv).mean()",
+    file: "modules/24-reinforcement-learning/python/src/ppo.py",
+    options: [
+      "ratio 0.7, advantage +1",
+      "ratio 1.1, advantage +1",
+      "ratio 1.3, advantage −1",
+      "ratio 1.3, advantage +1"
+    ],
+    answer: 3,
+    explain: "With A > 0 and ρ above 1.2, the clipped term 1.2·A is the smaller one and does not depend on ρ: no push to " +
+             "raise ρ further. At ρ 0.7 with A > 0, and at ρ 1.3 with A < 0, the unclipped term is smaller, so the " +
+             "gradient stays and pulls ρ back. The clip fraction counts both kinds of samples outside [0.8, 1.2].",
+    source: "modules/24-reinforcement-learning/python/tests/test_solutions.py → test_clip_by_hand"
+  },
+  /* ── 9 ────────────────────────────────────────────────────── predict ── */
+  {
+    id: "q9", kind: "single", tag: "predict", topic: "PPO with and without the clip",
+    text: "<b>Predict.</b> PPO at learning rate 2.5 × 10⁻³ (ten times CleanRL's), 200,000 steps, three seeds, run twice: " +
+          "once as written, once with the clip removed. With the clip, all three greedy policies hold the pole for 500 " +
+          "steps. Without it?",
+    options: [
+      "The same: the clip only matters for large networks.",
+      "Better: without the clip it learns faster and stays at 500.",
+      "All three reach a 500-step episode early, then collapse: greedy test returns of about 10, 189 and 111.",
+      "None ever reaches a 500-step episode."
+    ],
+    answer: 2,
+    explain: "Without the clip, single updates moved some action probabilities by about half or more; seed 0 ended " +
+             "pushing one way, about 10 steps per episode. One rate and three seeds: a demo, not a measurement.",
+    source: "modules/24-reinforcement-learning/results/ppo_fast.json, ppo_fast_noclip.json → runs.*.eval_greedy_mean",
+    tryIt: { href: "../explorables/24-reinforcement-learning.html", label: "try it — switch runs in panel 5" }
+  },
+  /* ── 10 ──────────────────────────────────────────────── real numbers ── */
+  {
+    id: "q10", kind: "multi", tag: "numbers", topic: "Reading three seeds",
+    text: "REINFORCE (Adam 0.01) and PPO at CleanRL's rate (2.5 × 10⁻⁴), 200,000 steps each, three seeds. <b>Select " +
+          "all that are true.</b>",
+    options: [
+      "Every REINFORCE seed had a 500-step episode within 14,000 steps.",
+      "Every REINFORCE seed ended with a greedy policy that lasts 500 steps.",
+      "At CleanRL's rate, PPO's clip fraction averaged under 0.1% in every seed.",
+      "At CleanRL's rate, all three PPO seeds' 20-episode means reached 500."
+    ],
+    answer: [0, 2],
+    explain: "REINFORCE's first 500-step episodes came at steps 9,781, 7,804 and 13,684, but seed 0 then lost its policy: " +
+             "its greedy test mean is 121. PPO's clip fraction averaged 0.04–0.08%, so the clip hardly acted; only seed " +
+             "0's 20-episode mean reached 500, at 160,000 steps. Three seeds, one budget: read ranges, not winners.",
+    source: "modules/24-reinforcement-learning/results/reinforce.json, ppo.json → runs"
+  }
+];
+
+/* ---------------------------------------------------------------- grading */
+function sameSet(a, b) {
+  const x = a.slice().sort(function (p, q) { return p - q; });
+  const y = b.slice().sort(function (p, q) { return p - q; });
+  return x.length === y.length && x.every(function (v, i) { return v === y[i]; });
+}
+function gradeSingle(q, ans) { return typeof ans === "number" && ans === q.answer; }
+function gradeMulti(q, ans) { return Array.isArray(ans) && sameSet(ans, q.answer); }
+function gradeNumeric(q, ans) {
+  const v = typeof ans === "number" ? ans : parseFloat(String(ans).replace(/[\s,_]/g, ""));
+  return isFinite(v) && Math.abs(v - q.answer) <= q.tol;
+}
+function gradeQuestion(q, ans) {
+  if (ans === undefined || ans === null) return false;
+  if (q.kind === "multi") return gradeMulti(q, ans);
+  if (q.kind === "numeric") return gradeNumeric(q, ans);
+  return gradeSingle(q, ans);
+}
+function scoreAll(questions, answers) {
+  let score = 0, answered = 0;
+  const wrong = [];
+  questions.forEach(function (q) {
+    const a = answers[q.id];
+    if (a === undefined || a === null) return;
+    answered += 1;
+    if (gradeQuestion(q, a)) score += 1; else wrong.push(q.topic);
+  });
+  return { score: score, answered: answered, total: questions.length, wrong: wrong };
+}
+function verdictFor(score, total) {
+  if (score >= 9) return { cls: "ok", text: "solid — move on" };
+  if (score >= 6) return { cls: "no", text: "review the flagged topics" };
+  return { cls: "no", text: "re-run the module notebook first" };
+}
+/* answer-key balance: how often each option position is the correct single-choice answer */
+function keyBalance(questions) {
+  const counts = [0, 0, 0, 0];
+  questions.forEach(function (q) {
+    if (q.kind === "single") counts[q.answer] += 1;
+  });
+  return counts;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { QUIZ_ID, STORE_KEY, SUMMARY_KEY, QUESTIONS, sameSet, gradeSingle,
+                     gradeMulti, gradeNumeric, gradeQuestion, scoreAll, verdictFor, keyBalance };
+}
+/* ══════════════════════════ PURE LOGIC END ══════════════════════════ */
+
+/* ═════════════════════════ DOM / rendering ═════════════════════════ */
+(function () {
+  if (typeof document === "undefined") return;   // running under node
+  const LETTERS = ["A", "B", "C", "D", "E", "F"];
+  const root = document.getElementById("quiz");
+  let answers = {};
+
+  /* ---- persistence ---- */
+  function load() {
+    try {
+      const raw = window.localStorage.getItem(STORE_KEY);
+      if (!raw) return {};
+      const obj = JSON.parse(raw);
+      return (obj && typeof obj.answers === "object" && obj.answers) ? obj.answers : {};
+    } catch (e) { return {}; }
+  }
+  function save() {
+    const s = scoreAll(QUESTIONS, answers);
+    const payload = { quiz: QUIZ_ID, answers: answers, score: s.score,
+                      total: s.total, answered: s.answered, ts: Date.now() };
+    try {
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(payload));
+      let all = {};
+      try { all = JSON.parse(window.localStorage.getItem(SUMMARY_KEY) || "{}") || {}; }
+      catch (e) { all = {}; }
+      all[QUIZ_ID] = { score: s.score, total: s.total, ts: payload.ts };
+      window.localStorage.setItem(SUMMARY_KEY, JSON.stringify(all));
+    } catch (e) { /* private mode: quiz still works, just not remembered */ }
+  }
+
+  /* ---- one question ---- */
+  function buildQuestion(q, i) {
+    const sec = document.createElement("section");
+    sec.className = "panel";
+    sec.id = "sec-" + q.id;
+
+    const head = document.createElement("div");
+    head.className = "qhead";
+    const num = document.createElement("span");
+    num.className = "qnum";
+    num.textContent = "Question " + (i + 1);
+    const tag = document.createElement("span");
+    tag.className = "tag " + q.tag;
+    tag.textContent = { conceptual: "concept", numbers: "real numbers",
+                        predict: "predict", code: "read the code" }[q.tag] || q.tag;
+    const sp = document.createElement("span");
+    sp.className = "spacer";
+    const state = document.createElement("span");
+    state.className = "qstate";
+    state.textContent = "unanswered";
+    head.appendChild(num); head.appendChild(tag); head.appendChild(sp); head.appendChild(state);
+    sec.appendChild(head);
+
+    const txt = document.createElement("p");
+    txt.className = "qtext";
+    txt.innerHTML = q.text;
+    sec.appendChild(txt);
+
+    if (q.code) {
+      const pre = document.createElement("pre");
+      pre.className = "snippet";
+      pre.textContent = q.code;
+      sec.appendChild(pre);
+      const src = document.createElement("p");
+      src.className = "srcfile";
+      src.textContent = q.file;
+      sec.appendChild(src);
+    }
+
+    const holder = { sec: sec, state: state, opts: [], input: null, checkBtn: null,
+                     result: null, q: q };
+
+    if (q.kind === "numeric") {
+      const row = document.createElement("div");
+      row.className = "numrow";
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.inputMode = "numeric";
+      inp.setAttribute("aria-label", "your answer");
+      inp.placeholder = q.placeholder || "your answer";
+      const btn = document.createElement("button");
+      btn.className = "primary";
+      btn.textContent = "Answer";
+      btn.addEventListener("click", function () {
+        const v = parseFloat(inp.value.replace(/[\s,_]/g, ""));
+        if (!isFinite(v)) { inp.focus(); return; }
+        answers[q.id] = v;
+        save(); renderQuestion(holder); renderBar();
+      });
+      inp.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); btn.click(); }
+      });
+      row.appendChild(inp); row.appendChild(btn);
+      sec.appendChild(row);
+      holder.input = inp; holder.checkBtn = btn;
+    } else {
+      const list = document.createElement("div");
+      list.className = "opts";
+      q.options.forEach(function (opt, oi) {
+        const b = document.createElement("button");
+        b.className = "opt";
+        b.type = "button";
+        const key = document.createElement("span");
+        key.className = "key";
+        key.textContent = LETTERS[oi];
+        const body = document.createElement("span");
+        body.innerHTML = opt;
+        const mark = document.createElement("span");
+        mark.className = "mark";
+        b.appendChild(key); b.appendChild(body); b.appendChild(mark);
+        b.addEventListener("click", function () {
+          if (answers[q.id] !== undefined) return;
+          if (q.kind === "multi") {
+            const cur = holder.picked;
+            const at = cur.indexOf(oi);
+            if (at >= 0) cur.splice(at, 1); else cur.push(oi);
+            b.classList.toggle("picked", at < 0);
+            holder.checkBtn.disabled = cur.length === 0;
+          } else {
+            answers[q.id] = oi;
+            save(); renderQuestion(holder); renderBar();
+          }
+        });
+        list.appendChild(b);
+        holder.opts.push({ btn: b, mark: mark });
+      });
+      sec.appendChild(list);
+
+      if (q.kind === "multi") {
+        holder.picked = [];
+        const acts = document.createElement("div");
+        acts.className = "acts";
+        const btn = document.createElement("button");
+        btn.className = "primary";
+        btn.textContent = "Answer";
+        btn.disabled = true;
+        btn.addEventListener("click", function () {
+          if (answers[q.id] !== undefined || holder.picked.length === 0) return;
+          answers[q.id] = holder.picked.slice();
+          save(); renderQuestion(holder); renderBar();
+        });
+        acts.appendChild(btn);
+        const note = document.createElement("span");
+        note.className = "hint";
+        note.style.margin = "0";
+        note.style.alignSelf = "center";
+        note.textContent = "pick every option you believe is true, then Answer";
+        acts.appendChild(note);
+        sec.appendChild(acts);
+        holder.checkBtn = btn;
+      }
+    }
+
+    const res = document.createElement("div");
+    res.style.display = "none";
+    sec.appendChild(res);
+    holder.result = res;
+
+    return holder;
+  }
+
+  /* ---- render one question's locked / unlocked state ---- */
+  function renderQuestion(h) {
+    const q = h.q, ans = answers[q.id], locked = ans !== undefined;
+    const ok = locked && gradeQuestion(q, ans);
+
+    h.state.textContent = locked ? (ok ? "correct" : "incorrect") : "unanswered";
+    h.state.style.color = locked ? (ok ? "var(--accent)" : "var(--wrong)") : "var(--muted)";
+
+    if (h.input) {
+      h.input.disabled = locked;
+      if (locked) h.input.value = String(ans);
+      h.checkBtn.disabled = locked;
+      h.checkBtn.textContent = locked ? "answered" : "Answer";
+    }
+    const correctSet = q.kind === "multi" ? q.answer : (q.kind === "single" ? [q.answer] : []);
+    const pickedSet = !locked ? (h.picked || [])
+      : (q.kind === "multi" ? ans : (q.kind === "single" ? [ans] : []));
+
+    h.opts.forEach(function (o, oi) {
+      o.btn.disabled = locked;
+      o.btn.classList.toggle("picked", !locked && pickedSet.indexOf(oi) >= 0);
+      const isRight = correctSet.indexOf(oi) >= 0;
+      const isPicked = locked && pickedSet.indexOf(oi) >= 0;
+      o.btn.classList.toggle("right", locked && isRight);
+      o.btn.classList.toggle("wrongpick", locked && isPicked && !isRight);
+      o.mark.textContent = !locked ? ""
+        : (isRight ? (isPicked ? "✓ correct · you picked it" : "✓ correct")
+                   : (isPicked ? "✗ your pick" : ""));
+    });
+    if (h.checkBtn && q.kind === "multi") {
+      h.checkBtn.disabled = locked || (h.picked || []).length === 0;
+      h.checkBtn.textContent = locked ? "answered" : "Answer";
+    }
+
+    if (!locked) { h.result.style.display = "none"; h.result.innerHTML = ""; return; }
+
+    h.result.innerHTML = "";
+    h.result.style.display = "block";
+    const v = document.createElement("span");
+    v.className = "verdictline " + (ok ? "ok" : "no");
+    v.textContent = ok ? "Correct" : "Not quite";
+    h.result.appendChild(v);
+
+    if (q.kind === "numeric") {
+      const line = document.createElement("p");
+      line.className = "hint";
+      line.style.marginTop = "0";
+      const nf = function (v) {
+        return Number(v).toLocaleString("en-US", { maximumFractionDigits: 6 });
+      };
+      line.innerHTML = "answer <span class=\"mono\">" + nf(q.answer) +
+        "</span> · accepted " + q.tolLabel + " · you typed <span class=\"mono\">" +
+        nf(ans) + "</span>";
+      h.result.appendChild(line);
+    }
+
+    const ex = document.createElement("div");
+    ex.className = "explain";
+    ex.innerHTML = q.explain;
+    const src = document.createElement("span");
+    src.className = "src";
+    src.textContent = "source · " + q.source;
+    ex.appendChild(src);
+    if (q.tryIt) {
+      const a = document.createElement("a");
+      a.className = "tryit";
+      a.href = q.tryIt.href;
+      a.textContent = q.tryIt.label;
+      ex.appendChild(a);
+    }
+    h.result.appendChild(ex);
+  }
+
+  /* ---- score bar ---- */
+  function renderBar() {
+    const s = scoreAll(QUESTIONS, answers);
+    document.getElementById("sc-score").textContent = String(s.score);
+    const msg = document.getElementById("sc-msg");
+    msg.innerHTML = "";
+    if (s.answered === 0) {
+      msg.textContent = "Nothing answered yet.";
+    } else if (s.answered < s.total) {
+      msg.textContent = s.answered + " of " + s.total + " answered — " +
+        (s.total - s.answered) + " to go.";
+    } else {
+      const vd = verdictFor(s.score, s.total);
+      const b = document.createElement("b");
+      b.textContent = s.score + " / " + s.total + " — " + vd.text + ".";
+      msg.appendChild(b);
+      const rev = document.createElement("span");
+      rev.className = "review";
+      rev.textContent = s.wrong.length
+        ? "Review: " + s.wrong.join(" · ")
+        : "Every topic clean.";
+      msg.appendChild(rev);
+    }
+  }
+
+  /* ---- boot ---- */
+  answers = load();
+  const holders = QUESTIONS.map(function (q, i) {
+    const h = buildQuestion(q, i);
+    root.appendChild(h.sec);
+    return h;
+  });
+  holders.forEach(renderQuestion);
+  renderBar();
+
+  document.getElementById("sc-reset").addEventListener("click", function () {
+    if (!window.confirm("Clear your answers for this quiz and start over?")) return;
+    answers = {};
+    holders.forEach(function (h) { h.picked = []; });
+    try {
+      window.localStorage.removeItem(STORE_KEY);
+      let all = {};
+      try { all = JSON.parse(window.localStorage.getItem(SUMMARY_KEY) || "{}") || {}; }
+      catch (e) { all = {}; }
+      delete all[QUIZ_ID];
+      window.localStorage.setItem(SUMMARY_KEY, JSON.stringify(all));
+    } catch (e) { /* ignore */ }
+    holders.forEach(renderQuestion);
+    renderBar();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+})();
+</script>
+<!-- built for ml-course quizzes v1 -->
+</html>

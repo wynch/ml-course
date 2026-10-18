@@ -7,7 +7,7 @@ Preparing a pack requires a connection once; using and verifying it does not.
 |---|---|---|
 | **Reader** | Lessons, figures, source files, search, progress, quizzes, and every browser explorable | Reading and visual experiments on any laptop |
 | **Core** | Reader + Python 3.12, locked dependencies, FashionMNIST, the SmolLM3 tokenizer, and modules 01–04, 05½, and 07 | The from-scratch path |
-| **Full** | Core + all model snapshots, datasets, and environments used by modules 05–18 | A completely disconnected workshop |
+| **Full** | Core + all model snapshots, datasets, and environments used by modules 05–25 | A completely disconnected workshop |
 
 External models and datasets are downloaded from their original repositories
 on your machine. They are pinned to commit revisions in
@@ -108,6 +108,11 @@ uv run --offline --frozen --project modules/05a-data-evaluation/python pytest -q
 - The first run of module 12's `src/gpt2_sae.py`, for the same reason: it
   reads the first two row groups of the same file (about 0.37 MB) and caches
   them under `$HF_HOME/mlcourse/`.
+- The first run of module 19's `src/corpus.py` and module 23's
+  `src/corpus.py`, for the same reason. Module 19 reads the first 5M
+  characters of the same file (about 12 MB), unless module 11's cached slice
+  is already there; module 23 reads its first two row groups, as module 12
+  does. Both cache the text under `$HF_HOME/mlcourse/`.
 - The first run of module 17's `src/data.py`, for the same reason: it reads
   the first eight row groups of the preference data's train file (about
   17 MB) and its test file, and caches the pairs under `$HF_HOME/mlcourse/`.

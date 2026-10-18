@@ -151,13 +151,16 @@ def check_reader() -> None:
         reader / "quizzes" / "00a.html",
         reader / "quizzes" / "01.html",
         reader / "quizzes" / "05a.html",
-        reader / "content" / "modules" / "18-beyond-attention" / "README.md",
-        reader / "explorables" / "18-beyond-attention.html",
-        reader / "quizzes" / "18.html",
+        reader / "content" / "modules" / "25-world-models-and-planning" / "README.md",
+        reader / "explorables" / "25-world-models-and-planning.html",
+        reader / "quizzes" / "25.html",
         reader / "research" / "index.html",
         reader / "research" / "why-atlas.html",
         reader / "research" / "jepa-field-map.html",
         reader / "research" / "assets" / "fonts.css",
+        reader / "favicon.svg",
+        reader / "favicon.ico",
+        reader / "apple-touch-icon.png",
     ]
     missing = [str(path.relative_to(ROOT)) for path in required if not path.exists()]
     if missing:
@@ -324,6 +327,13 @@ def main() -> None:
             "16-self-supervised-and-jepa",
             "17-learning-from-preferences",
             "18-beyond-attention",
+            "19-scaling-laws",
+            "20-in-context-learning",
+            "21-retrieval-and-memory",
+            "22-reasoning-at-test-time",
+            "23-compression",
+            "24-reinforcement-learning",
+            "25-world-models-and-planning",
         ):
             run_offline(
                 ["uv", "run", "--offline", "--frozen", "pytest", "-q"],

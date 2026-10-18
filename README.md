@@ -86,19 +86,38 @@ flowchart TD
         M17["17 · learning from preferences"]
         M18["18 · beyond attention"]
     end
+    subgraph W["Why they work · 19–20"]
+        M19["19 · scaling laws"]
+        M20["20 · in-context learning"]
+    end
+    subgraph U["Using models well · 21–23"]
+        M22["22 · reasoning at test time"]
+        M21["21 · retrieval and memory"]
+        M23["23 · compression"]
+    end
+    subgraph A["Acting and planning · 24–25"]
+        M24["24 · reinforcement learning"]
+        M25["25 · world models and planning"]
+    end
     O -.-> F
     F --> T --> B
     T --> L
     F --> H
     T --> R
+    T --> W
+    T --> U
+    F --> A
     M08 -.-> M09 -.-> M10
     M11 --> M12 --> M13
     M14 --> M15 --> M16
     M17 -.-> M18
+    M19 --> M20
+    M22 -.-> M21 -.-> M23
+    M24 --> M25
 
     classDef track fill:#eef,stroke:#88a,color:#113;
     classDef origins fill:#fdf2df,stroke:#a86b0e,color:#4a2f05;
-    class F,T,B,L,H,R track;
+    class F,T,B,L,H,R,W,U,A track;
     class O origins;
 ```
 
@@ -116,7 +135,15 @@ track 2, not track 3. **How learning works** asks what training does:
 optimisers, schedules and grokking, the shape a trained network leaves in its
 data, and learning without labels. It needs track 1. **Other recipes** trains
 a model from preferences instead of labels, and swaps attention for a state
-carried from token to token. It needs track 2.
+carried from token to token. It needs track 2. **Why they work** fits the
+curves that plan big models, then trains a small transformer that learns a
+task from the examples in its prompt. It needs track 2. **Using models well**
+spends more tokens on each question, fetches the right passage for the model
+to read, and makes a model smaller; read 22, then 21, then 23. It needs
+track 2. **Acting and planning** learns from reward instead of labels, then
+plans inside a learned model of the world. It needs track 1; module 25 also
+uses module 16's JEPA. The suggested order after module 18 is 19, 20, 22, 21,
+23, 24, 25.
 
 ---
 
@@ -138,7 +165,7 @@ want to know where an idea came from.
 | 00b | [bayes-knn-pca](modules/00b-bayes-knn-pca) | **Naive Bayes**, **k-NN** against the Cover-Hart ceiling, and **PCA by power iteration** — all from scratch. |
 | 00c | [kernels-hopfield](modules/00c-kernels-hopfield) | A dual **SVM**, the **kernel trick**, a **Hopfield** memory, and a measured **double-descent** curve. |
 
-### Tracks 1–6 — the main line
+### Tracks 1–9 — the main line
 
 | # | Module | What you build |
 |---|--------|----------------|
@@ -161,12 +188,19 @@ want to know where an idea came from.
 | 16 | [self-supervised-and-jepa](modules/16-self-supervised-and-jepa) | **SimCLR**, **masked reconstruction** and an **I-JEPA**-style objective on one small CNN; **collapse** shown and blocked (stop-grad, EMA, VICReg variance, **SIGReg**); a **DINOv2** probe. |
 | 17 | [learning-from-preferences](modules/17-learning-from-preferences) | **Bradley-Terry** by hand, a **reward head** on a frozen model, **DPO** derived and checked against **TRL**, then trained with **LoRA**, and the **length bias** in all of it. |
 | 18 | [beyond-attention](modules/18-beyond-attention) | A **GRU**, a fixed diagonal recurrence and a **selective (Mamba-style) scan** against the tiny GPT; memory per generated token; **Mamba-130M** against GPT-2. |
+| 19 | [scaling-laws](modules/19-scaling-laws) | Six **char-GPTs** from 51k to 3.2M parameters on the same data, **L(N)** and **L(D)** fitted, and why a toy grid fakes a **compute-optimal** size. |
+| 20 | [in-context-learning](modules/20-in-context-learning) | A 2-block transformer that **regresses in context**, set against **least squares**, ridge, k-NN and one gradient step; then **few-shot** SST-2 on SmolLM2-360M. |
+| 21 | [retrieval-and-memory](modules/21-retrieval-and-memory) | **Embeddings** by mean pooling, **BM25** over a hand-built **inverted index**, and a **RAG** loop on SQuAD with the right paragraph as the ceiling. |
+| 22 | [reasoning-at-test-time](modules/22-reasoning-at-test-time) | **Chain of thought**, **self-consistency** and **best-of-n** on 200 GSM8K problems with Qwen3-1.7B on **MLX**: accuracy against tokens spent. |
+| 23 | [compression](modules/23-compression) | **Distillation** into a half-size student, **magnitude pruning**, **int8 and 4-bit quantisation** by hand, then MLX's own 4-bit copy. |
+| 24 | [reinforcement-learning](modules/24-reinforcement-learning) | **Bandits**, tabular **Q-learning**, then **REINFORCE** and **PPO** on a CartPole written by hand from its equations. |
+| 25 | [world-models-and-planning](modules/25-world-models-and-planning) | An 8 × 8 **grid world**, a one-hot model and a **JEPA** of it, and **planning by random shooting** in each. |
 
 ---
 
 ## Explorables
 
-All twenty-two modules — the three Origins modules, the eighteen numbered ones and the
+All twenty-nine modules — the three Origins modules, the twenty-five numbered ones and the
 evaluation bridge — ship an **interactive, in-browser
 explainer**: a single HTML file with no dependencies, no build step and no
 network calls. Where a module
@@ -205,14 +239,21 @@ python3 -m http.server        # then browse to
 | [Self-supervised learning and JEPA](explorables/16-self-supervised-and-jepa.html) | 16 | Train a 2-D JEPA live and switch stop-grad, the EMA target and the variance term; replay the CIFAR-10 collapse runs and the probes. |
 | [Learning from preferences](explorables/17-learning-from-preferences.html) | 17 | Drag item scores and watch the pair probabilities, move β and watch one pair's DPO loss, read replies before and after training. |
 | [Beyond attention](explorables/18-beyond-attention.html) | 18 | Step a KV cache and two recurrent states token by token, and drive a two-state recurrence by its decays and its gate. |
+| [Scaling laws](explorables/19-scaling-laws.html) | 19 | Browse the six real curves, drag N and D on a fitted surface and read the loss and the cost, see which size wins at each budget. |
+| [In-context learning](explorables/20-in-context-learning.html) | 20 | Place points and watch a trained net's guess and the least-squares line move together; browse the error curves and the few-shot prompts. |
+| [Retrieval and memory](explorables/21-retrieval-and-memory.html) | 21 | Type a question and see BM25 and cosine rank 200 paragraphs side by side, with each word's part of the BM25 score. |
+| [Reasoning at test time](explorables/22-reasoning-at-test-time.html) | 22 | Browse the real replies, eight samples per problem, slide n and watch the vote and the accuracy curves move. |
+| [Compression](explorables/23-compression.html) | 23 | Quantise a block of real weights at the bits and group size you pick and watch the error histogram; see what pruning removes. |
+| [Reinforcement learning](explorables/24-reinforcement-learning.html) | 24 | Play the bandit by hand against the three rules, replay a trained CartPole episode, browse the curves and the clip. |
+| [World models and planning](explorables/25-world-models-and-planning.html) | 25 | Draw walls, drop the agent and the goal, and watch both planners choose their moves, with the path each one imagines. |
 
 ### Quizzes
 
-Each of the eighteen numbered modules — plus the three Origins modules and the 05½
+Each of the twenty-five numbered modules — plus the three Origins modules and the 05½
 bridge lab — ships a
 **10-question quiz**, every question grounded in that module's own code, figures
 and measured numbers, with an explanation revealed as soon as you answer. Start at
-[`quizzes/index.html`](quizzes/index.html), which lists all twenty-two and shows your
+[`quizzes/index.html`](quizzes/index.html), which lists all twenty-nine and shows your
 score for each. Nothing is uploaded: answers and scores stay in your browser's
 `localStorage`, and every quiz has a Reset button.
 

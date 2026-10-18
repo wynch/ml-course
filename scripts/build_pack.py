@@ -42,7 +42,10 @@ NOTE = re.compile(r'the paper list in Obsidian named "([^"]+)"')
 NOTE_TEXT = "a paper list in an Obsidian note"
 LEAK = re.compile(r'/Users/|~/Perso|Obsidian named "')
 SHELL = ('<!doctype html>\n<meta charset="utf-8">\n'
-         '<meta name="viewport" content="width=device-width, initial-scale=1">\n')
+         '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+         '<link rel="icon" href="../favicon.svg" type="image/svg+xml">\n'
+         '<link rel="icon" href="../favicon.ico" sizes="any">\n'
+         '<link rel="apple-touch-icon" href="../apple-touch-icon.png">\n')
 
 NO_TOOLS = """\
 You are reading this in a claude.ai chat with no tools. You cannot run lint,
@@ -271,9 +274,9 @@ def copy_compass() -> str:
         "# Compass page, published copy\n\n"
         f"`index.html` here is a copy of the private project's `compass/index.html`, "
         f"version {label}, taken {TODAY} by `scripts/build_pack.py`.\n\n"
-        + ("It is identical after three added header lines and two scrubs. "
-           "The three lines (doctype, charset, viewport) make a phone render it at its "
-           "own width. " if wrapped else "It is identical after two scrubs. ") +
+        + ("It is identical after six added header lines and two scrubs. "
+           "Three lines (doctype, charset, viewport) make a phone render it at its "
+           "own width; three link the course icon. " if wrapped else "It is identical after two scrubs. ") +
         "The first makes home paths relative to the project root "
         "(`compass/index.html`, `../ml-lab/crystallizer`); the second replaces the "
         "title of a private Obsidian note with \"an Obsidian note\".\n\n" +

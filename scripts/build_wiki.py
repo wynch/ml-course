@@ -435,7 +435,11 @@ def document(title: str, body: str, bar: str, script: str = "") -> str:
         "<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n"
         "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n"
         "<meta name=\"robots\" content=\"noindex\">\n"
-        f"<title>{escape(title)} · ML wiki</title>\n<style>{CSS}</style>\n</head>\n<body>\n"
+        f"<title>{escape(title)} · ML wiki</title>\n"
+        "<link rel=\"icon\" href=\"../favicon.svg\" type=\"image/svg+xml\">\n"
+        "<link rel=\"icon\" href=\"../favicon.ico\" sizes=\"any\">\n"
+        "<link rel=\"apple-touch-icon\" href=\"../apple-touch-icon.png\">\n"
+        f"<style>{CSS}</style>\n</head>\n<body>\n"
         f"<nav class=\"bar\">{bar}</nav>\n<main>\n{body}\n</main>\n{script}</body>\n</html>\n"
     )
 

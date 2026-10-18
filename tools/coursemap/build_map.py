@@ -60,6 +60,13 @@ FIGS: dict[str, tuple[str, str]] = {
     "16": ("16-self-supervised-and-jepa", "probes.png"),
     "17": ("17-learning-from-preferences", "length_bias.png"),
     "18": ("18-beyond-attention", "decode.png"),
+    "19": ("19-scaling-laws", "fit.png"),
+    "20": ("20-in-context-learning", "icl.png"),
+    "21": ("21-retrieval-and-memory", "retrieval.png"),
+    "22": ("22-reasoning-at-test-time", "vote.png"),
+    "23": ("23-compression", "quant.png"),
+    "24": ("24-reinforcement-learning", "ppo_clip.png"),
+    "25": ("25-world-models-and-planning", "plan.png"),
 }
 
 

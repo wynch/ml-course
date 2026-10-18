@@ -1,0 +1,196 @@
+{
+ "d_model": 160,
+ "n_layer": 4,
+ "n_head": 4,
+ "block": 128,
+ "batch": 32,
+ "steps": 977,
+ "warmup": 100,
+ "lr": 0.0003,
+ "weight_decay": 0.1,
+ "vocab": 142,
+ "train_chars": 4950000,
+ "held_chars": 50000,
+ "held_chars_predicted": 49920,
+ "device": "mps",
+ "runs": [
+  {
+   "seed": 0,
+   "n_params_total": 1280640,
+   "n_non_embedding": 1237440,
+   "curve": [
+    {
+     "step": 8,
+     "tokens": 32768,
+     "held_loss": 4.618976
+    },
+    {
+     "step": 15,
+     "tokens": 61440,
+     "held_loss": 4.281017
+    },
+    {
+     "step": 31,
+     "tokens": 126976,
+     "held_loss": 3.957944
+    },
+    {
+     "step": 61,
+     "tokens": 249856,
+     "held_loss": 3.231387
+    },
+    {
+     "step": 92,
+     "tokens": 376832,
+     "held_loss": 2.768877
+    },
+    {
+     "step": 122,
+     "tokens": 499712,
+     "held_loss": 2.595383
+    },
+    {
+     "step": 183,
+     "tokens": 749568,
+     "held_loss": 2.496628
+    },
+    {
+     "step": 244,
+     "tokens": 999424,
+     "held_loss": 2.451009
+    },
+    {
+     "step": 366,
+     "tokens": 1499136,
+     "held_loss": 2.404393
+    },
+    {
+     "step": 488,
+     "tokens": 1998848,
+     "held_loss": 2.301824
+    },
+    {
+     "step": 732,
+     "tokens": 2998272,
+     "held_loss": 2.147093
+    },
+    {
+     "step": 977,
+     "tokens": 4001792,
+     "held_loss": 2.030571
+    }
+   ],
+   "train_loss": [
+    [
+     1,
+     4.94454
+    ],
+    [
+     50,
+     3.46936
+    ],
+    [
+     100,
+     2.70877
+    ],
+    [
+     150,
+     2.58011
+    ],
+    [
+     200,
+     2.50657
+    ],
+    [
+     250,
+     2.46217
+    ],
+    [
+     300,
+     2.43734
+    ],
+    [
+     350,
+     2.43703
+    ],
+    [
+     400,
+     2.35957
+    ],
+    [
+     450,
+     2.30423
+    ],
+    [
+     500,
+     2.30266
+    ],
+    [
+     550,
+     2.22146
+    ],
+    [
+     600,
+     2.21595
+    ],
+    [
+     650,
+     2.21277
+    ],
+    [
+     700,
+     2.10838
+    ],
+    [
+     750,
+     2.13023
+    ],
+    [
+     800,
+     2.06872
+    ],
+    [
+     850,
+     2.07928
+    ],
+    [
+     900,
+     2.0569
+    ],
+    [
+     950,
+     2.01303
+    ]
+   ]
+  }
+ ],
+ "mps_vs_cpu": {
+  "device": "mps",
+  "windows": 8,
+  "max_abs_diff_logits": 2.0742416381835938e-05,
+  "logit_range": [
+   -8.396050453186035,
+   8.827825546264648
+  ],
+  "loss_mps": 1.9698765277862549,
+  "loss_cpu": 1.9698765277862549,
+  "same_argmax_share": 1.0
+ },
+ "sample_seed0": "The of ) @-@ 204 0 , Binug4 , the eyp stute math siome the ficramition , whas empay be @-@ diclame resth sengres rearasis from eth meewn 's prasing purinapsrecaty ,",
+ "guard": {
+  "script": "train.py --d 160",
+  "seconds": 30.0,
+  "minutes": 0.5,
+  "peak_rss_gb": 0.63,
+  "peak_mps_driver_gb": 1.1,
+  "stages_seconds": {
+   "load data": 0.33,
+   "train seed 0": 29.34,
+   "check and sample": 0.36
+  },
+  "machine": "arm64 26.6.2",
+  "torch": "2.14.1",
+  "mps_high_watermark_ratio": "0.5",
+  "mps_cap_gb": 5.92
+ }
+}

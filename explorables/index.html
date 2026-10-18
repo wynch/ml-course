@@ -4,11 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Explorables · ML course</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <style>
 *,*::before,*::after{box-sizing:border-box}
 :root{
   --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d;
-  --t0:#a86b0e; --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8; --t6:#b7410e; --track-ink:#ffffff;
+  --t0:#a86b0e; --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8; --t6:#b7410e; --t7:#6e7a14; --t8:#9a6a00; --t9:#4f6272; --track-ink:#ffffff;
   --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67;
   --soft:rgba(31,145,141,.10); --sketch:rgba(28,36,34,.42);
   --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
@@ -19,7 +22,7 @@
 @media (prefers-color-scheme:dark){
   :root{
     --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
-    --muted:#9daba7; --t0:#d9962e; --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --t5:#5aa1e6; --t6:#e7764a; --accent:#37b3ae;
+    --muted:#9daba7; --t0:#d9962e; --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --t5:#5aa1e6; --t6:#e7764a; --t7:#aab53c; --t8:#d9a63a; --t9:#93a8b8; --accent:#37b3ae;
     --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --sketch:rgba(232,238,236,.40);
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
   }
@@ -61,6 +64,9 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
 .track.t4 > h2{color:var(--t4)} .track.t4 > h2 .dot{background:var(--t4)}
 .track.t5 > h2{color:var(--t5)} .track.t5 > h2 .dot{background:var(--t5)}
 .track.t6 > h2{color:var(--t6)} .track.t6 > h2 .dot{background:var(--t6)}
+.track.t7 > h2{color:var(--t7)} .track.t7 > h2 .dot{background:var(--t7)}
+.track.t8 > h2{color:var(--t8)} .track.t8 > h2 .dot{background:var(--t8)}
+.track.t9 > h2{color:var(--t9)} .track.t9 > h2 .dot{background:var(--t9)}
 
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:1rem}
 
@@ -87,7 +93,7 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
   text-transform:uppercase;color:var(--track-ink);padding:.24rem .6rem;border-radius:999px;
   white-space:nowrap}
 .pill.t0{background:var(--t0)}
-.pill.t1{background:var(--t1)} .pill.t2{background:var(--t2)} .pill.t3{background:var(--t3)} .pill.t4{background:var(--t4)} .pill.t5{background:var(--t5)} .pill.t6{background:var(--t6)}
+.pill.t1{background:var(--t1)} .pill.t2{background:var(--t2)} .pill.t3{background:var(--t3)} .pill.t4{background:var(--t4)} .pill.t5{background:var(--t5)} .pill.t6{background:var(--t6)} .pill.t7{background:var(--t7)} .pill.t8{background:var(--t8)} .pill.t9{background:var(--t9)}
 .card .file{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
 
 /* --- thumbnail sketch primitives --- */
@@ -96,8 +102,8 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
 .thumb .af{fill:var(--accent);stroke:none}
 .thumb .sf{fill:var(--sketch);stroke:none}
 .thumb .a0{fill:none;stroke:var(--t0);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.thumb .k0{stroke:var(--t0)} .thumb .k1{stroke:var(--t1)} .thumb .k2{stroke:var(--t2)} .thumb .k3{stroke:var(--t3)} .thumb .k4{stroke:var(--t4)} .thumb .k5{stroke:var(--t5)} .thumb .k6{stroke:var(--t6)}
-.thumb .f0{fill:var(--t0)} .thumb .f1{fill:var(--t1)} .thumb .f2{fill:var(--t2)} .thumb .f3{fill:var(--t3)} .thumb .f4{fill:var(--t4)} .thumb .f5{fill:var(--t5)} .thumb .f6{fill:var(--t6)}
+.thumb .k0{stroke:var(--t0)} .thumb .k1{stroke:var(--t1)} .thumb .k2{stroke:var(--t2)} .thumb .k3{stroke:var(--t3)} .thumb .k4{stroke:var(--t4)} .thumb .k5{stroke:var(--t5)} .thumb .k6{stroke:var(--t6)} .thumb .k7{stroke:var(--t7)} .thumb .k8{stroke:var(--t8)} .thumb .k9{stroke:var(--t9)}
+.thumb .f0{fill:var(--t0)} .thumb .f1{fill:var(--t1)} .thumb .f2{fill:var(--t2)} .thumb .f3{fill:var(--t3)} .thumb .f4{fill:var(--t4)} .thumb .f5{fill:var(--t5)} .thumb .f6{fill:var(--t6)} .thumb .f7{fill:var(--t7)} .thumb .f8{fill:var(--t8)} .thumb .f9{fill:var(--t9)}
 .thumb .dash{stroke-dasharray:3 3}
 .evaluation-thumb{--err:#d36b3f;aspect-ratio:260/130;padding:6.5%;display:grid!important;
   grid-template-columns:repeat(2,1fr);gap:2.6%;overflow:hidden}
@@ -123,7 +129,7 @@ footer p{margin:.3rem 0;max-width:74ch}
 <body>
 <header class="topbar">
   <h1>ML course explorables</h1>
-  <span class="count">22 interactive pages</span>
+  <span class="count">29 interactive pages</span>
   <span class="spacer"></span>
   <a class="back" href="../quizzes/index.html">Quizzes</a>
   <a class="back" href="../index.html">← Course home</a>
@@ -131,7 +137,7 @@ footer p{margin:.3rem 0;max-width:74ch}
 
 <main>
   <section class="intro">
-    <p class="lede">Twenty-two single-file, in-browser explainers — one per module, including the optional Origins
+    <p class="lede">Twenty-nine single-file, in-browser explainers — one per module, including the optional Origins
       prologue and the evaluation bridge. Nothing to install,
       no network calls: every animation, model and number runs locally in the page.</p>
     <p>Where a module produced real artifacts — trained weights, merge lists, attention matrices,
@@ -622,6 +628,122 @@ footer p{margin:.3rem 0;max-width:74ch}
         <p class="hook">Step a KV cache and two recurrent states token by token, and drive a two-state recurrence by
           its decays and its gate.</p>
         <div class="cardfoot"><a class="quiz" href="../quizzes/18.html">Quiz →</a></div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="track t7">
+    <h2><span class="dot"></span>Why they work<span class="rng">modules 19–20</span></h2>
+    <p class="sub">Fit the laws that plan big models, then watch a small transformer learn a task from its prompt.</p>
+    <div class="grid">
+
+      <div class="card">
+        <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: six loss curves falling on log-log axes, a dashed power-law line across their ends, and a thin shaded band round the top curve">
+          <path class="s" d="M30 12 V118 H240"/>
+          <path class="f1" opacity=".18" d="M34 26 L60 40 L100 52 L150 60 L234 70 L234 76 L150 66 L100 58 L60 46 L34 34 Z"/>
+          <path class="k1" d="M34 30 L39 32.4 L44 34.6 L49 36.7 L54 38.6 L59 40.5 L64 42.2 L69 43.8 L74 45.3 L79 46.7 L84 48 L89 49.3 L94 50.5 L99 51.6 L104 52.7 L109 53.7 L114 54.6 L119 55.5 L124 56.3 L129 57.1 L134 57.9 L139 58.6 L144 59.3 L149 60 L154 60.6 L159 61.2 L164 61.8 L169 62.3 L174 62.9 L179 63.4 L184 63.9 L189 64.3 L194 64.8 L199 65.2 L204 65.7 L209 66.1 L214 66.5 L219 66.9 L224 67.3 L229 67.6 L234 68" fill="none" stroke-width="1.8"/><path class="k2" d="M34 39 L39 41.5 L44 43.9 L49 46.1 L54 48.2 L59 50.1 L64 51.9 L69 53.6 L74 55.2 L79 56.7 L84 58.2 L89 59.5 L94 60.7 L99 61.9 L104 63 L109 64.1 L114 65.1 L119 66 L124 66.9 L129 67.7 L134 68.5 L139 69.3 L144 70 L149 70.7 L154 71.4 L159 72 L164 72.6 L169 73.2 L174 73.7 L179 74.2 L184 74.7 L189 75.2 L194 75.7 L199 76.2 L204 76.6 L209 77 L214 77.5 L219 77.9 L224 78.2 L229 78.6 L234 79" fill="none" stroke-width="1.8"/><path class="k3" d="M34 48 L39 50.7 L44 53.2 L49 55.5 L54 57.7 L59 59.8 L64 61.7 L69 63.5 L74 65.2 L79 66.8 L84 68.3 L89 69.7 L94 71 L99 72.2 L104 73.4 L109 74.5 L114 75.5 L119 76.5 L124 77.4 L129 78.3 L134 79.2 L139 80 L144 80.7 L149 81.4 L154 82.1 L159 82.8 L164 83.4 L169 84 L174 84.6 L179 85.1 L184 85.6 L189 86.1 L194 86.6 L199 87.1 L204 87.5 L209 88 L214 88.4 L219 88.8 L224 89.2 L229 89.6 L234 90" fill="none" stroke-width="1.8"/><path class="k7" d="M34 57 L39 59.8 L44 62.5 L49 65 L54 67.3 L59 69.4 L64 71.5 L69 73.4 L74 75.1 L79 76.8 L84 78.4 L89 79.9 L94 81.2 L99 82.5 L104 83.8 L109 84.9 L114 86 L119 87 L124 88 L129 88.9 L134 89.8 L139 90.6 L144 91.4 L149 92.2 L154 92.9 L159 93.5 L164 94.2 L169 94.8 L174 95.4 L179 96 L184 96.5 L189 97 L194 97.5 L199 98 L204 98.5 L209 98.9 L214 99.4 L219 99.8 L224 100.2 L229 100.6 L234 101" fill="none" stroke-width="1.8"/><path class="k0" d="M34 66 L39 69 L44 71.8 L49 74.4 L54 76.8 L59 79.1 L64 81.2 L69 83.2 L74 85.1 L79 86.8 L84 88.5 L89 90 L94 91.5 L99 92.8 L104 94.1 L109 95.3 L114 96.5 L119 97.5 L124 98.6 L129 99.5 L134 100.4 L139 101.3 L144 102.1 L149 102.9 L154 103.6 L159 104.3 L164 105 L169 105.6 L174 106.2 L179 106.8 L184 107.4 L189 107.9 L194 108.4 L199 108.9 L204 109.4 L209 109.9 L214 110.3 L219 110.8 L224 111.2 L229 111.6 L234 112" fill="none" stroke-width="1.8"/><path class="k6" d="M34 75 L39 78.1 L44 81.1 L49 83.8 L54 86.4 L59 88.8 L64 91 L69 93.1 L74 95 L79 96.9 L84 98.6 L89 100.2 L94 101.7 L99 103.2 L104 104.5 L109 105.8 L114 106.9 L119 108.1 L124 109.1 L129 110.1 L134 111.1 L139 112 L144 112.8 L149 113.6 L154 114.4 L159 115.1 L164 115.8 L169 116.5 L174 117.1 L179 117.7 L184 118.3 L189 118.8 L194 119.4 L199 119.9 L204 120.4 L209 120.8 L214 121.3 L219 121.7 L224 122.2 L229 122.6 L234 123" fill="none" stroke-width="1.8"/>
+          <path class="k6 dash" d="M60 24 L236 110" fill="none" stroke-width="1.6"/>
+        </svg>
+        <div class="meta"><span class="pill t7">Module 19</span><span class="file">19-scaling-laws</span></div>
+        <h3><a href="19-scaling-laws.html">Scaling laws</a></h3>
+        <p class="hook">Browse the six real loss curves, drag N and D on the fitted surface and read the loss and the cost,
+          and see which size wins at each budget.</p>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/19.html">Quiz →</a></div>
+      </div>
+
+      <div class="card">
+        <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: five points along a slanted line, the least-squares line through them, and the net's dashed guess lying almost on it">
+          <path class="s" d="M20 118 H240 M20 118 V12"/>
+          <path class="a" d="M24 106 L236 30"/>
+          <path class="k7 dash" d="M24 104 L29.4 102.8 L34.8 101.6 L40.2 100.3 L45.6 99 L51 97.6 L56.4 96.1 L61.8 94.5 L67.2 92.7 L72.6 90.9 L78 88.9 L83.4 86.8 L88.8 84.6 L94.2 82.4 L99.6 80.1 L105 77.7 L110.4 75.3 L115.8 72.9 L121.2 70.6 L126.6 68.3 L132 66.1 L137.4 64 L142.8 61.9 L148.2 60 L153.6 58.2 L159 56.6 L164.4 55 L169.8 53.6 L175.2 52.2 L180.6 50.9 L186 49.7 L191.4 48.5 L196.8 47.3 L202.2 46.1 L207.6 44.9 L213 43.6 L218.4 42.2 L223.8 40.8 L229.2 39.2 L234.6 37.5 L240 35.7" fill="none" stroke-width="2"/>
+          <g class="f7"><circle cx="49" cy="95" r="4.2"/><circle cx="84" cy="83" r="4.2"/><circle cx="121" cy="66" r="4.2"/><circle cx="158" cy="55" r="4.2"/><circle cx="199" cy="37" r="4.2"/></g>
+        </svg>
+        <div class="meta"><span class="pill t7">Module 20</span><span class="file">20-in-context-learning</span></div>
+        <h3><a href="20-in-context-learning.html">In-context learning</a></h3>
+        <p class="hook">Place points and watch a trained net's guess and the least-squares line move together, then
+          browse the error curves, the gradient-step demo and the few-shot prompts.</p>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/20.html">Quiz →</a></div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="track t8">
+    <h2><span class="dot"></span>Using models well<span class="rng">modules 21–23</span></h2>
+    <p class="sub">Fetch the right passage, spend more tokens on each question, and make a model smaller.</p>
+    <div class="grid">
+
+      <div class="card">
+        <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: two ranked lists of five bars side by side, with the gold paragraph boxed at rank one in the first list and rank three in the second">
+          <text x="20" y="16" font-size="9" font-family="ui-monospace,monospace" class="sf">BM25</text>
+          <text x="140" y="16" font-size="9" font-family="ui-monospace,monospace" class="sf">cosine</text>
+          <rect x="20" y="26" width="88" height="11" rx="2" class="f8" opacity="1.00"/><rect x="17" y="23" width="94" height="17" rx="3" fill="none" class="k0" stroke-width="1.8"/><text x="116" y="35" font-size="9" font-family="ui-monospace,monospace" class="sf">gold</text><rect x="20" y="44" width="74" height="11" rx="2" class="f8" opacity="0.87"/><rect x="20" y="62" width="62" height="11" rx="2" class="f8" opacity="0.74"/><rect x="20" y="80" width="50" height="11" rx="2" class="f8" opacity="0.61"/><rect x="20" y="98" width="40" height="11" rx="2" class="f8" opacity="0.48"/>
+          <rect x="140" y="26" width="80" height="11" rx="2" class="f2" opacity="1.00"/><rect x="140" y="44" width="72" height="11" rx="2" class="f2" opacity="0.87"/><rect x="140" y="62" width="66" height="11" rx="2" class="f2" opacity="0.74"/><rect x="137" y="59" width="72" height="17" rx="3" fill="none" class="k0" stroke-width="1.8"/><text x="214" y="71" font-size="9" font-family="ui-monospace,monospace" class="sf">gold</text><rect x="140" y="80" width="52" height="11" rx="2" class="f2" opacity="0.61"/><rect x="140" y="98" width="44" height="11" rx="2" class="f2" opacity="0.48"/>
+        </svg>
+        <div class="meta"><span class="pill t8">Module 21</span><span class="file">21-retrieval-and-memory</span></div>
+        <h3><a href="21-retrieval-and-memory.html">Retrieval and memory</a></h3>
+        <p class="hook">Type a question and see BM25 and cosine rank 200 SQuAD paragraphs side by side, read how each
+          word adds to BM25's score, and see what SmolLM2 answered.</p>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/21.html">Quiz →</a></div>
+      </div>
+
+      <div class="card">
+        <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: eight chains of dots fanning out from one point; five end on the same amber square, three on scattered grey squares, with a tally bar beside them">
+          <circle cx="26" cy="60" r="4" class="sf"/>
+          <path class="k8" d="M26 60 L57 39.5 L88 24.5 L119 19 L150 24.5 L181 39.5 L212 60" fill="none" stroke-width="1.2" opacity=".75"/><circle cx="57" cy="39.5" r="2.2" class="f8"/><circle cx="88" cy="24.5" r="2.2" class="f8"/><circle cx="119" cy="19" r="2.2" class="f8"/><circle cx="150" cy="24.5" r="2.2" class="f8"/><circle cx="181" cy="39.5" r="2.2" class="f8"/><path class="k8" d="M26 60 L57 45.4 L88 34.7 L119 30.8 L150 34.7 L181 45.4 L212 60" fill="none" stroke-width="1.2" opacity=".75"/><circle cx="57" cy="45.4" r="2.2" class="f8"/><circle cx="88" cy="34.7" r="2.2" class="f8"/><circle cx="119" cy="30.8" r="2.2" class="f8"/><circle cx="150" cy="34.7" r="2.2" class="f8"/><circle cx="181" cy="45.4" r="2.2" class="f8"/><path class="k8" d="M26 60 L57 51.2 L88 44.8 L119 42.5 L150 44.8 L181 51.2 L212 60" fill="none" stroke-width="1.2" opacity=".75"/><circle cx="57" cy="51.2" r="2.2" class="f8"/><circle cx="88" cy="44.8" r="2.2" class="f8"/><circle cx="119" cy="42.5" r="2.2" class="f8"/><circle cx="150" cy="44.8" r="2.2" class="f8"/><circle cx="181" cy="51.2" r="2.2" class="f8"/><path class="k8" d="M26 60 L57 57.1 L88 54.9 L119 54.1 L150 54.9 L181 57.1 L212 60" fill="none" stroke-width="1.2" opacity=".75"/><circle cx="57" cy="57.1" r="2.2" class="f8"/><circle cx="88" cy="54.9" r="2.2" class="f8"/><circle cx="119" cy="54.1" r="2.2" class="f8"/><circle cx="150" cy="54.9" r="2.2" class="f8"/><circle cx="181" cy="57.1" r="2.2" class="f8"/><path class="k8" d="M26 60 L57 62.9 L88 65.1 L119 65.8 L150 65.1 L181 62.9 L212 60" fill="none" stroke-width="1.2" opacity=".75"/><circle cx="57" cy="62.9" r="2.2" class="f8"/><circle cx="88" cy="65.1" r="2.2" class="f8"/><circle cx="119" cy="65.8" r="2.2" class="f8"/><circle cx="150" cy="65.1" r="2.2" class="f8"/><circle cx="181" cy="62.9" r="2.2" class="f8"/><path class="s" d="M26 60 L56 61.8 L86 61.2 L116 56.5 L146 47.2 L176 33.8 L206 18" fill="none" stroke-width="1.2" opacity=".75"/><circle cx="56" cy="61.8" r="2.2" class="sf"/><circle cx="86" cy="61.2" r="2.2" class="sf"/><circle cx="116" cy="56.5" r="2.2" class="sf"/><circle cx="146" cy="47.2" r="2.2" class="sf"/><circle cx="176" cy="33.8" r="2.2" class="sf"/><path class="s" d="M26 60 L55 82 L84 100 L113 111.2 L142 114.7 L171 111.3 L200 104" fill="none" stroke-width="1.2" opacity=".75"/><circle cx="55" cy="82" r="2.2" class="sf"/><circle cx="84" cy="100" r="2.2" class="sf"/><circle cx="113" cy="111.2" r="2.2" class="sf"/><circle cx="142" cy="114.7" r="2.2" class="sf"/><circle cx="171" cy="111.3" r="2.2" class="sf"/><path class="s" d="M26 60 L57.3 89.8 L88.7 114.1 L120 128.9 L151.3 132.8 L182.7 127.1 L214 116" fill="none" stroke-width="1.2" opacity=".75"/><circle cx="57.3" cy="89.8" r="2.2" class="sf"/><circle cx="88.7" cy="114.1" r="2.2" class="sf"/><circle cx="120" cy="128.9" r="2.2" class="sf"/><circle cx="151.3" cy="132.8" r="2.2" class="sf"/><circle cx="182.7" cy="127.1" r="2.2" class="sf"/>
+          <rect x="205" y="53" width="14" height="14" rx="2" class="f8"/><rect x="201" y="13" width="10" height="10" rx="2" class="sf"/><rect x="195" y="99" width="10" height="10" rx="2" class="sf"/><rect x="209" y="111" width="10" height="10" rx="2" class="sf"/>
+          <rect x="230" y="78" width="12" height="5" rx="1" class="f8"/><rect x="230" y="71" width="12" height="5" rx="1" class="f8"/><rect x="230" y="64" width="12" height="5" rx="1" class="f8"/><rect x="230" y="57" width="12" height="5" rx="1" class="f8"/><rect x="230" y="50" width="12" height="5" rx="1" class="f8"/><rect x="230" y="43" width="12" height="5" rx="1" class="sf" opacity=".6"/><rect x="230" y="36" width="12" height="5" rx="1" class="sf" opacity=".6"/><rect x="230" y="29" width="12" height="5" rx="1" class="sf" opacity=".6"/>
+        </svg>
+        <div class="meta"><span class="pill t8">Module 22</span><span class="file">22-reasoning-at-test-time</span></div>
+        <h3><a href="22-reasoning-at-test-time.html">Reasoning at test time</a></h3>
+        <p class="hook">Browse the real replies, eight samples per problem, slide n and watch the vote and the accuracy
+          curves move.</p>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/22.html">Quiz →</a></div>
+      </div>
+
+      <div class="card">
+        <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: a row of weights snapping onto four horizontal levels, with short red ticks for the rounding error">
+          <path class="s dash" d="M20 28 H240 M20 52 H240 M20 76 H240 M20 100 H240"/><path class="k6" d="M28 105.6 V100 M43.5 61.5 V52 M59 92.3 V100 M74.5 62 V52 M90 75.7 V76 M105.5 34.7 V28 M121 75.3 V76 M136.5 94.9 V100 M152 65.9 V76 M167.5 84.3 V76 M183 78.4 V76 M198.5 27.4 V28 M214 85.7 V76 M229.5 71.7 V76" fill="none" stroke-width="1.6"/>
+          <circle cx="28" cy="100" r="3.6" class="f8"/><circle cx="28" cy="105.6" r="2.4" class="sf" opacity=".7"/><circle cx="43.5" cy="52" r="3.6" class="f8"/><circle cx="43.5" cy="61.5" r="2.4" class="sf" opacity=".7"/><circle cx="59" cy="100" r="3.6" class="f8"/><circle cx="59" cy="92.3" r="2.4" class="sf" opacity=".7"/><circle cx="74.5" cy="52" r="3.6" class="f8"/><circle cx="74.5" cy="62" r="2.4" class="sf" opacity=".7"/><circle cx="90" cy="76" r="3.6" class="f8"/><circle cx="90" cy="75.7" r="2.4" class="sf" opacity=".7"/><circle cx="105.5" cy="28" r="3.6" class="f8"/><circle cx="105.5" cy="34.7" r="2.4" class="sf" opacity=".7"/><circle cx="121" cy="76" r="3.6" class="f8"/><circle cx="121" cy="75.3" r="2.4" class="sf" opacity=".7"/><circle cx="136.5" cy="100" r="3.6" class="f8"/><circle cx="136.5" cy="94.9" r="2.4" class="sf" opacity=".7"/><circle cx="152" cy="76" r="3.6" class="f8"/><circle cx="152" cy="65.9" r="2.4" class="sf" opacity=".7"/><circle cx="167.5" cy="76" r="3.6" class="f8"/><circle cx="167.5" cy="84.3" r="2.4" class="sf" opacity=".7"/><circle cx="183" cy="76" r="3.6" class="f8"/><circle cx="183" cy="78.4" r="2.4" class="sf" opacity=".7"/><circle cx="198.5" cy="28" r="3.6" class="f8"/><circle cx="198.5" cy="27.4" r="2.4" class="sf" opacity=".7"/><circle cx="214" cy="76" r="3.6" class="f8"/><circle cx="214" cy="85.7" r="2.4" class="sf" opacity=".7"/><circle cx="229.5" cy="76" r="3.6" class="f8"/><circle cx="229.5" cy="71.7" r="2.4" class="sf" opacity=".7"/>
+        </svg>
+        <div class="meta"><span class="pill t8">Module 23</span><span class="file">23-compression</span></div>
+        <h3><a href="23-compression.html">Compression</a></h3>
+        <p class="hook">Quantise a block of SmolLM2's real weights at the bits and group size you pick and watch the error
+          histogram, see which weights pruning removes, and replay the distillation curves.</p>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/23.html">Quiz →</a></div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="track t9">
+    <h2><span class="dot"></span>Acting and planning<span class="rng">modules 24–25</span></h2>
+    <p class="sub">Learn from reward instead of labels, then plan inside a model of the world.</p>
+    <div class="grid">
+
+      <div class="card">
+        <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: five slot-machine arms of different heights, one boxed as the best, and a cart on a track with an upright pole between two dashed limit lines">
+          <path class="s" d="M14 114 H118"/>
+          <rect x="18" y="74" width="12" height="38" rx="2" class="f9" opacity="0.45"/><circle cx="24" cy="68" r="3.4" class="f9"/><rect x="38" y="50" width="12" height="62" rx="2" class="f9" opacity="0.56"/><circle cx="44" cy="44" r="3.4" class="f9"/><rect x="58" y="82" width="12" height="30" rx="2" class="f9" opacity="0.67"/><circle cx="64" cy="76" r="3.4" class="f9"/><rect x="78" y="62" width="12" height="50" rx="2" class="f9" opacity="0.78"/><circle cx="84" cy="56" r="3.4" class="f9"/><rect x="98" y="68" width="12" height="44" rx="2" class="f9" opacity="0.89"/><circle cx="104" cy="62" r="3.4" class="f9"/><rect x="36" y="40" width="16" height="74" rx="2" fill="none" class="k0" stroke-width="1.6"/>
+          <path class="s" d="M130 104 H246"/><path class="s dash" d="M140 30 V112 M236 30 V112"/><rect x="172" y="88" width="34" height="14" rx="3" class="f9"/><circle cx="179" cy="104" r="3.2" class="sf"/><circle cx="199" cy="104" r="3.2" class="sf"/><path class="k9" d="M189 88 L196 36" fill="none" stroke-width="3" stroke-linecap="round"/><circle cx="196" cy="36" r="3.4" class="f9"/>
+        </svg>
+        <div class="meta"><span class="pill t9">Module 24</span><span class="file">24-reinforcement-learning</span></div>
+        <h3><a href="24-reinforcement-learning.html">Reinforcement learning</a></h3>
+        <p class="hook">Play the bandit by hand against the three rules, replay a trained CartPole episode, and browse
+          the training curves and the clip.</p>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/24.html">Quiz →</a></div>
+      </div>
+
+      <div class="card">
+        <svg class="thumb" viewBox="0 0 260 130" role="img" aria-label="Sketch: an 8 by 8 grid with slate walls and a gold star; a solid blue path reaches the star while a red dotted path wanders near the start">
+          <rect x="72" y="10" width="104" height="104" fill="none" class="s"/><path class="s" opacity=".35" d="M85 10 V114 M72 23 H176 M98 10 V114 M72 36 H176 M111 10 V114 M72 49 H176 M124 10 V114 M72 62 H176 M137 10 V114 M72 75 H176 M150 10 V114 M72 88 H176 M163 10 V114 M72 101 H176"/><g class="f9"><rect x="111" y="23" width="13" height="13"/><rect x="111" y="36" width="13" height="13"/><rect x="111" y="49" width="13" height="13"/><rect x="137" y="62" width="13" height="13"/><rect x="137" y="75" width="13" height="13"/><rect x="137" y="88" width="13" height="13"/><rect x="85" y="75" width="13" height="13"/><rect x="98" y="75" width="13" height="13"/></g><path class="k5" d="M78.5 16.5 L91.5 16.5 L104.5 16.5 L104.5 29.5 L104.5 42.5 L104.5 55.5 L104.5 68.5 L117.5 68.5 L130.5 68.5 L130.5 81.5 L130.5 94.5 L130.5 107.5 L143.5 107.5 L156.5 107.5 L169.5 107.5" fill="none" stroke-width="2.2"/><path class="k6 dash" d="M78.5 16.5 L78.5 29.5 L91.5 29.5 L91.5 42.5 L78.5 42.5 L78.5 55.5 L91.5 55.5 L91.5 68.5 L78.5 68.5" fill="none" stroke-width="2"/><path class="k5 dash" d="M169.5 107.5 L169.5 94.5" fill="none" stroke-width="1" opacity=".6"/><path class="k6 dash" d="M78.5 68.5 L78.5 81.5 L78.5 94.5" fill="none" stroke-width="1" opacity=".6"/><circle cx="78.5" cy="16.5" r="3.6" class="sf"/><path class="f0" d="M169.5 101.5 L171 105.4 L175.2 105.6 L172 108.3 L173 112.4 L169.5 110.1 L166 112.4 L167 108.3 L163.8 105.6 L168 105.4 Z"/>
+        </svg>
+        <div class="meta"><span class="pill t9">Module 25</span><span class="file">25-world-models-and-planning</span></div>
+        <h3><a href="25-world-models-and-planning.html">World models and planning</a></h3>
+        <p class="hook">Draw walls, drop the agent and the goal, and watch both planners choose their moves, with the path
+          each one imagines.</p>
+        <div class="cardfoot"><a class="quiz" href="../quizzes/25.html">Quiz →</a></div>
       </div>
 
     </div>

@@ -1,12 +1,15 @@
 <meta charset="utf-8">
 <title>ML Course Map</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 *,*::before,*::after{box-sizing:border-box}
 :root{
   --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d;
   --t0:#a86b0e; --t0-soft:rgba(168,107,14,.10);
-  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8; --t6:#b7410e; --track-ink:#ffffff;
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8; --t6:#b7410e; --t7:#6e7a14; --t8:#9a6a00; --t9:#4f6272; --track-ink:#ffffff;
   --panel:#ffffff; --matte:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67;
   --soft:rgba(31,145,141,.10); --rail:rgba(28,36,34,.10);
   --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
@@ -20,7 +23,7 @@
     --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --matte:#f2f5f4;
     --line:rgba(232,238,236,.18); --muted:#9daba7;
     --t0:#d9962e; --t0-soft:rgba(217,150,46,.16);
-    --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --t5:#5aa1e6; --t6:#e7764a; --accent:#37b3ae;
+    --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --t5:#5aa1e6; --t6:#e7764a; --t7:#aab53c; --t8:#d9a63a; --t9:#93a8b8; --accent:#37b3ae;
     --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --rail:rgba(232,238,236,.14);
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
   }
@@ -30,7 +33,7 @@
   --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --matte:#f2f5f4;
   --line:rgba(232,238,236,.18); --muted:#9daba7;
   --t0:#d9962e; --t0-soft:rgba(217,150,46,.16);
-  --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --t5:#5aa1e6; --t6:#e7764a; --accent:#37b3ae;
+  --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --t5:#5aa1e6; --t6:#e7764a; --t7:#aab53c; --t8:#d9a63a; --t9:#93a8b8; --accent:#37b3ae;
   --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --rail:rgba(232,238,236,.14);
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
 }
@@ -38,7 +41,7 @@
   --paper:#f6f8f7; --ink:#1c2422; --panel:#ffffff; --matte:#ffffff;
   --line:rgba(28,36,34,.14); --muted:#5c6b67;
   --t0:#a86b0e; --t0-soft:rgba(168,107,14,.10);
-  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8; --t6:#b7410e; --accent:#1f918d;
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8; --t6:#b7410e; --t7:#6e7a14; --t8:#9a6a00; --t9:#4f6272; --accent:#1f918d;
   --track-ink:#ffffff; --soft:rgba(31,145,141,.10); --rail:rgba(28,36,34,.10);
   --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
 }
@@ -75,7 +78,7 @@ main{max-width:1180px;margin:0 auto;padding:clamp(1rem,3vw,1.6rem) clamp(.9rem,3
 .track{position:relative;margin:1.9rem 0 0;padding-left:1.15rem}
 .track::before{content:"";position:absolute;left:0;top:.4rem;bottom:.5rem;width:4px;
   border-radius:2px;background:var(--tc);opacity:.85}
-.track.t0{--tc:var(--t0)} .track.t1{--tc:var(--t1)} .track.t2{--tc:var(--t2)} .track.t3{--tc:var(--t3)} .track.t4{--tc:var(--t4)} .track.t5{--tc:var(--t5)} .track.t6{--tc:var(--t6)}
+.track.t0{--tc:var(--t0)} .track.t1{--tc:var(--t1)} .track.t2{--tc:var(--t2)} .track.t3{--tc:var(--t3)} .track.t4{--tc:var(--t4)} .track.t5{--tc:var(--t5)} .track.t6{--tc:var(--t6)} .track.t7{--tc:var(--t7)} .track.t8{--tc:var(--t8)} .track.t9{--tc:var(--t9)}
 .track > h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
   margin:0 0 .15rem;color:var(--tc);display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap}
 .track > h2 .rng{font-family:var(--mono);font-size:.78rem;font-weight:400;
@@ -88,7 +91,7 @@ main{max-width:1180px;margin:0 auto;padding:clamp(1rem,3vw,1.6rem) clamp(.9rem,3
   border:1px solid var(--line);border-radius:14px;padding:.9rem 1rem 1rem;
   box-shadow:var(--shadow);transition:border-color .15s,transform .15s}
 .card:hover{border-color:var(--accent);transform:translateY(-2px)}
-.card.t0{--tc:var(--t0)} .card.t1{--tc:var(--t1)} .card.t2{--tc:var(--t2)} .card.t3{--tc:var(--t3)} .card.t4{--tc:var(--t4)} .card.t5{--tc:var(--t5)} .card.t6{--tc:var(--t6)}
+.card.t0{--tc:var(--t0)} .card.t1{--tc:var(--t1)} .card.t2{--tc:var(--t2)} .card.t3{--tc:var(--t3)} .card.t4{--tc:var(--t4)} .card.t5{--tc:var(--t5)} .card.t6{--tc:var(--t6)} .card.t7{--tc:var(--t7)} .card.t8{--tc:var(--t8)} .card.t9{--tc:var(--t9)}
 .card.t0 .chips span{background:var(--t0-soft)}
 .card .chead{display:flex;align-items:center;gap:.5rem;padding-right:5.2rem;margin:0 0 .55rem}
 .mno{font-family:var(--mono);font-size:.72rem;font-weight:600;color:var(--track-ink);
@@ -172,14 +175,14 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
     <p class="lede">From a scalar autograd engine to a Zig inference engine — every idea built from
       scratch first, then the Hugging Face way, and drawn as a picture both times.</p>
     <div class="topline">
-      <span class="stats"><b>22</b> modules · <b>140</b> figures · <b>22</b> explorables ·
-        <b>22</b> quizzes · <b>2</b> languages</span>
+      <span class="stats"><b>29</b> modules · <b>164</b> figures · <b>29</b> explorables ·
+        <b>29</b> quizzes · <b>2</b> languages</span>
       <a class="sitebtn" href="https://wynch.github.io/ml-course/" target="_blank" rel="noopener">Course site ↗
         <span class="u">wynch.github.io/ml-course</span></a>
     </div>
     <div class="prog">
       <div class="pbar"><div id="pfill"></div></div>
-      <span id="pcount">0 / 22</span>
+      <span id="pcount">0 / 29</span>
     </div>
   </div>
 </header>
@@ -576,6 +579,138 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
       <div class="cfoot"><span class="path">modules/18-beyond-attention</span>
         <a class="hf" href="https://huggingface.co/state-spaces/mamba-130m-hf" target="_blank" rel="noopener">mamba-130m-hf ↗</a></div>
     </article>
+
+  </div>
+</section>
+
+<section class="track t7">
+  <h2>Why they work<span class="rng">modules 19–20</span></h2>
+  <p class="sub">Fit the laws that plan big models, then watch a small transformer learn a task from its prompt.</p>
+  <div class="grid">
+
+
+    <article class="card t7" data-mod="19">
+      <label class="donebox">done<input type="checkbox" data-mod="19" aria-label="Mark module 19 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">19</span><h3>Scaling laws</h3></div>
+      <div class="fig"><img src="{{FIG19}}" alt="Module 19 figure: loss against parameters at 4M tokens with the fitted power law, and loss against tokens for the two largest models"></div>
+      <p class="build"><b>You build:</b> module 04's char-GPT at six widths from 51k to 3.2M parameters on 4M characters, a power-law fitter checked on known data, L(N) and L(D) fits, and loss against compute.</p>
+      <div class="chips"><span>α = 0.074 (R² 0.962)</span><span>6 sizes, 51k–3.2M params</span><span>seed band 0.0056 nats</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/19-scaling-laws.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/19.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/19-scaling-laws</span>
+        <a class="hf" href="https://arxiv.org/abs/2203.15556" target="_blank" rel="noopener">Chinchilla paper ↗</a></div>
+    </article>
+
+
+    <article class="card t7" data-mod="20">
+      <label class="donebox">done<input type="checkbox" data-mod="20" aria-label="Mark module 20 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">20</span><h3>In-context learning</h3></div>
+      <div class="fig"><img src="{{FIG20}}" alt="Module 20 figure: training loss, and the error by number of pairs for the net and four classic rules"></div>
+      <p class="build"><b>You build:</b> a 2-block transformer that fits a line to the (x, y) pairs in its prompt, least squares, ridge, 3-NN and one gradient step beside it, and few-shot SST-2 on SmolLM2-360M.</p>
+      <div class="chips"><span>MSE/d 0.075 at 10 pairs</span><span>5× better than one GD step</span><span>SST-2 79% → 89% with 1 example</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/20-in-context-learning.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/20.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/20-in-context-learning</span>
+        <a class="hf" href="https://huggingface.co/datasets/stanfordnlp/sst2" target="_blank" rel="noopener">stanfordnlp/sst2 ↗</a></div>
+    </article>
+
+
+  </div>
+</section>
+
+<section class="track t8">
+  <h2>Using models well<span class="rng">modules 21–23</span></h2>
+  <p class="sub">Fetch the right passage, spend more tokens on each question, and make a model smaller.</p>
+  <div class="grid">
+
+
+    <article class="card t8" data-mod="21">
+      <label class="donebox">done<input type="checkbox" data-mod="21" aria-label="Mark module 21 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">21</span><h3>Retrieval</h3></div>
+      <div class="fig"><img src="{{FIG21}}" alt="Module 21 figure: recall at k for BM25 and the two cosine retrievers on SQuAD"></div>
+      <p class="build"><b>You build:</b> mean-pooled embeddings from MiniLM and SmolLM2, BM25 over a hand-built inverted index, and a RAG loop on 200 SQuAD questions with the gold paragraph as the ceiling.</p>
+      <div class="chips"><span>BM25 recall@1 75.5% vs MiniLM 62.5%</span><span>SmolLM2 EM 37% with the gold paragraph</span><span>4.5% with none</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/21-retrieval-and-memory.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/21.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/21-retrieval-and-memory</span>
+        <a class="hf" href="https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2" target="_blank" rel="noopener">all-MiniLM-L6-v2 ↗</a></div>
+    </article>
+
+
+    <article class="card t8" data-mod="22">
+      <label class="donebox">done<input type="checkbox" data-mod="22" aria-label="Mark module 22 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">22</span><h3>Chain of thought and votes</h3></div>
+      <div class="fig"><img src="{{FIG22}}" alt="Module 22 figure: accuracy against n samples, for the vote, its any-of-n ceiling and one sample"></div>
+      <p class="build"><b>You build:</b> answer-only and chain-of-thought prompts, a majority vote over n samples, and best-of-n with the model grading its own answers, on 200 GSM8K problems with Qwen3-1.7B on MLX.</p>
+      <div class="chips"><span>Chain of thought 61.5% vs answer only 15.0%</span><span>Vote of 5: +7.5 points</span><span>Any of 8 right: 80.0%</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/22-reasoning-at-test-time.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/22.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/22-reasoning-at-test-time</span>
+        <a class="hf" href="https://huggingface.co/datasets/openai/gsm8k" target="_blank" rel="noopener">openai/gsm8k ↗</a></div>
+    </article>
+
+
+    <article class="card t8" data-mod="23">
+      <label class="donebox">done<input type="checkbox" data-mod="23" aria-label="Mark module 23 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">23</span><h3>Compression</h3></div>
+      <div class="fig"><img src="{{FIG23}}" alt="Module 23 figure: perplexity against bytes for each scheme, and the error of every weight in one matrix"></div>
+      <p class="build"><b>You build:</b> a half-size student distilled from module 04's char-GPT, magnitude pruning of SmolLM2-360M, int8 and 4-bit group quantisation by hand, and MLX's own 4-bit copy beside it.</p>
+      <div class="chips"><span>4-bit g64: ppl 16.07 → 19.94</span><span>prune 10%: magnitude 16.4, random 715</span><span>MLX 4-bit: 2.7× the bf16 speed</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/23-compression.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/23.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/23-compression</span>
+        <a class="hf" href="https://github.com/ml-explore/mlx-lm" target="_blank" rel="noopener">mlx-lm ↗</a></div>
+    </article>
+
+
+  </div>
+</section>
+
+<section class="track t9">
+  <h2>Acting and planning<span class="rng">modules 24–25</span></h2>
+  <p class="sub">Learn from reward instead of labels, then plan inside a model of the world.</p>
+  <div class="grid">
+
+
+    <article class="card t9" data-mod="24">
+      <label class="donebox">done<input type="checkbox" data-mod="24" aria-label="Mark module 24 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">24</span><h3>RL</h3></div>
+      <div class="fig"><img src="{{FIG24}}" alt="Module 24 figure: PPO at two learning rates, with and without the clip: return, clip fraction and ratio spread"></div>
+      <p class="build"><b>You build:</b> ε-greedy, UCB1 and Thompson bandits, tabular Q-learning on a 10 × 10 grid, a CartPole from its equations of motion, then REINFORCE and PPO on it.</p>
+      <div class="chips"><span>Thompson regret 43 vs UCB1 228</span><span>Q-learning path 36 moves = BFS, 20 of 20 seeds</span><span>PPO lr 2.5e-3: 3 of 3 at 500 with the clip, 0 of 3 without</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/24-reinforcement-learning.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/24.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/24-reinforcement-learning</span>
+        <a class="hf" href="https://arxiv.org/abs/1707.06347" target="_blank" rel="noopener">PPO paper ↗</a></div>
+    </article>
+
+
+    <article class="card t9" data-mod="25">
+      <label class="donebox">done<input type="checkbox" data-mod="25" aria-label="Mark module 25 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">25</span><h3>World models</h3></div>
+      <div class="fig"><img src="{{FIG25}}" alt="Module 25 figure: success per agent on 300 test arenas, and one arena with each planner's real path and first imagined plan"></div>
+      <p class="build"><b>You build:</b> an 8 × 8 grid world, a one-hot next-state model and a JEPA latent model of it, and a random-shooting planner in each, against random actions and BFS.</p>
+      <div class="chips"><span>one-hot planner 75.7%</span><span>JEPA planner 3.7%</span><span>random actions 3.7%</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/25-world-models-and-planning.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/25.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/25-world-models-and-planning</span>
+        <a class="hf" href="https://arxiv.org/abs/2506.09985" target="_blank" rel="noopener">V-JEPA 2 ↗</a></div>
+    </article>
+
 
   </div>
 </section>

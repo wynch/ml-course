@@ -15,8 +15,9 @@ numbers beside it:
 Every number in this README comes from a JSON file in [`results/`](results/),
 written by the script that measured it.
 
-This is the second module of track 6, **Other recipes**, and the last module
-of the course.
+This is the second module of track 6, **Other recipes**. Next,
+[module 19](../19-scaling-laws/README.md) opens track 7 and asks how the loss
+falls as a model and its data grow.
 
 **🕹 Interactive:** [Beyond attention](../../explorables/18-beyond-attention.html):
 step a KV cache and two recurrent states token by token, and drive a recurrence

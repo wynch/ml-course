@@ -4,11 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Quizzes · ML course</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <style>
 *,*::before,*::after{box-sizing:border-box}
 :root{
   --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d;
-  --t0:#a86b0e; --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8; --t6:#b7410e; --track-ink:#ffffff;
+  --t0:#a86b0e; --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8; --t6:#b7410e; --t7:#6e7a14; --t8:#9a6a00; --t9:#4f6272; --track-ink:#ffffff;
   --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67;
   --soft:rgba(31,145,141,.10); --sketch:rgba(28,36,34,.42);
   --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
@@ -19,7 +22,7 @@
 @media (prefers-color-scheme:dark){
   :root{
     --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
-    --muted:#9daba7; --t0:#d9962e; --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --t5:#5aa1e6; --t6:#e7764a; --accent:#37b3ae;
+    --muted:#9daba7; --t0:#d9962e; --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --t5:#5aa1e6; --t6:#e7764a; --t7:#aab53c; --t8:#d9a63a; --t9:#93a8b8; --accent:#37b3ae;
     --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --sketch:rgba(232,238,236,.40);
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
   }
@@ -60,6 +63,9 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
 .track.t4 > h2{color:var(--t4)} .track.t4 > h2 .dot{background:var(--t4)}
 .track.t5 > h2{color:var(--t5)} .track.t5 > h2 .dot{background:var(--t5)}
 .track.t6 > h2{color:var(--t6)} .track.t6 > h2 .dot{background:var(--t6)}
+.track.t7 > h2{color:var(--t7)} .track.t7 > h2 .dot{background:var(--t7)}
+.track.t8 > h2{color:var(--t8)} .track.t8 > h2 .dot{background:var(--t8)}
+.track.t9 > h2{color:var(--t9)} .track.t9 > h2 .dot{background:var(--t9)}
 
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:1rem}
 
@@ -76,7 +82,7 @@ main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw
   text-transform:uppercase;color:var(--track-ink);padding:.24rem .6rem;border-radius:999px;
   white-space:nowrap}
 .pill.t0{background:var(--t0)}
-.pill.t1{background:var(--t1)} .pill.t2{background:var(--t2)} .pill.t3{background:var(--t3)} .pill.t4{background:var(--t4)} .pill.t5{background:var(--t5)} .pill.t6{background:var(--t6)}
+.pill.t1{background:var(--t1)} .pill.t2{background:var(--t2)} .pill.t3{background:var(--t3)} .pill.t4{background:var(--t4)} .pill.t5{background:var(--t5)} .pill.t6{background:var(--t6)} .pill.t7{background:var(--t7)} .pill.t8{background:var(--t8)} .pill.t9{background:var(--t9)}
 .card .file{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
 
 /* --- score slot, painted from localStorage --- */
@@ -107,7 +113,7 @@ footer p{margin:.3rem 0;max-width:74ch}
 <body>
 <header class="topbar">
   <h1>ML course quizzes</h1>
-  <span class="count" id="stat">22 quizzes · 220 questions</span>
+  <span class="count" id="stat">29 quizzes · 290 questions</span>
   <span class="spacer"></span>
   <a class="back" href="../explorables/index.html">Explorables</a>
   <a class="back" href="../index.html">← Course home</a>
@@ -115,7 +121,7 @@ footer p{margin:.3rem 0;max-width:74ch}
 
 <main>
   <section class="intro">
-    <p class="lede">Twenty-two self-graded quizzes — one per module, including the optional Origins
+    <p class="lede">Twenty-nine self-graded quizzes — one per module, including the optional Origins
       prologue and the 05½ evaluation bridge lab —
       ten questions each, every one grounded in that module's own code, figures and measured numbers.</p>
     <p>Answer in any order; a question locks as soon as you answer it and reveals why the right answer
@@ -352,6 +358,86 @@ footer p{margin:.3rem 0;max-width:74ch}
         <p class="hook">KV cache against state, the GRU's update gate, a fixed recurrence as a convolution, equal
           training time, selective against fixed, and Mamba without its kernels.</p>
         <div class="score" data-quiz="18"></div>
+      </a>
+
+    </div>
+  </section>
+
+  <section class="track t7">
+    <h2><span class="dot"></span>Why they work<span class="rng">modules 19–20</span></h2>
+    <p class="sub">Fit the laws that plan big models, then watch a small transformer learn a task from its prompt.</p>
+    <div class="grid">
+
+      <a class="card" href="19.html">
+        <div class="meta"><span class="pill t7">Module 19</span><span class="file">19.html</span></div>
+        <h3>Scaling laws</h3>
+        <p class="hook">Six widths and one recipe, the compute of the largest run, why check the fitter first, the exponent
+          of L(N), a staircase instead of an optimum, and Kaplan against Chinchilla.</p>
+        <div class="score" data-quiz="19"></div>
+      </a>
+
+      <a class="card" href="20.html">
+        <div class="meta"><span class="pill t7">Module 20</span><span class="file">20.html</span></div>
+        <h3>In-context learning</h3>
+        <p class="hook">Fewer pairs than dimensions, one gradient step by formula, the shuffled-y control, whether a layer
+          is a gradient step, what one example buys, and coin-flip labels.</p>
+        <div class="score" data-quiz="20"></div>
+      </a>
+
+    </div>
+  </section>
+
+  <section class="track t8">
+    <h2><span class="dot"></span>Using models well<span class="rng">modules 21–23</span></h2>
+    <p class="sub">Fetch the right passage, spend more tokens on each question, and make a model smaller.</p>
+    <div class="grid">
+
+      <a class="card" href="21.html">
+        <div class="meta"><span class="pill t8">Module 21</span><span class="file">21.html</span></div>
+        <h3>Retrieval and memory</h3>
+        <p class="hook">BM25 against MiniLM, what idf does, the ceiling row, mean pooling, a wrong passage, reading the RAG
+          table, SQuAD's F1, and where an agent keeps memory.</p>
+        <div class="score" data-quiz="21"></div>
+      </a>
+
+      <a class="card" href="22.html">
+        <div class="meta"><span class="pill t8">Module 22</span><span class="file">22.html</span></div>
+        <h3>Reasoning at test time</h3>
+        <p class="hook">Answer only against chain of thought, why the vote works, the any-of-n ceiling, the self-grader,
+          reading best-of-n, the token cap, and what reasoning training adds.</p>
+        <div class="score" data-quiz="22"></div>
+      </a>
+
+      <a class="card" href="23.html">
+        <div class="meta"><span class="pill t8">Module 23</span><span class="file">23.html</span></div>
+        <h3>Compression</h3>
+        <p class="hook">Which weights to drop, why T² in the distillation loss, bits per weight with groups, fake
+          quantisation, what 4 bits cost, hand against MLX, and what zeros save.</p>
+        <div class="score" data-quiz="23"></div>
+      </a>
+
+    </div>
+  </section>
+
+  <section class="track t9">
+    <h2><span class="dot"></span>Acting and planning<span class="rng">modules 24–25</span></h2>
+    <p class="sub">Learn from reward instead of labels, then plan inside a model of the world.</p>
+    <div class="grid">
+
+      <a class="card" href="24.html">
+        <div class="meta"><span class="pill t9">Module 24</span><span class="file">24.html</span></div>
+        <h3>Reinforcement learning</h3>
+        <p class="hook">Three bandit rules over 10,000 pulls, why ε-greedy's regret is a straight line, UCB1's bonus,
+          starting Q at zero, one CartPole step, and when the clip removes the gradient.</p>
+        <div class="score" data-quiz="24"></div>
+      </a>
+
+      <a class="card" href="25.html">
+        <div class="meta"><span class="pill t9">Module 25</span><span class="file">25.html</span></div>
+        <h3>World models and planning</h3>
+        <p class="hook">A JEPA's loss, the one-hot planner, why a random-weight planner, reading the shooting step, a
+          perfect model, meters that miss, and what the grid says about JEPAs.</p>
+        <div class="score" data-quiz="25"></div>
       </a>
 
     </div>

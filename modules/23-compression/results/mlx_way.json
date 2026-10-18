@@ -1,0 +1,89 @@
+{
+ "mlx_id": "mlx-community/SmolLM2-360M-Instruct",
+ "mlx_revision": "5d5e6fee5beb5d4d4d85e2203ef23e1230a9aac7",
+ "bits": 4,
+ "group": 64,
+ "converted_to": "~/.cache/huggingface/mlcourse/smollm2-360m-instruct-mlx-5d5e6fe-4bit-g64",
+ "converted_this_run": false,
+ "mlx_copy_vs_hf": {
+  "hf_tensors": 290,
+  "mlx_tensors": 290,
+  "equal_tensors": 290,
+  "text_tokens": 144610,
+  "same_token_ids": true
+ },
+ "ppl_tokens": 32736,
+ "speed_setup": {
+  "prompt": "Write a short paragraph about the history of the bicycle.",
+  "greedy": true,
+  "new_tokens": 128,
+  "repeats": 3,
+  "framework": "transformers generate, KV cache, float32 on MPS"
+ },
+ "rows": [
+  {
+   "setting": "MLX bf16 (cached, untouched)",
+   "loss": 2.77774,
+   "ppl": 16.0827,
+   "tokens": 32736,
+   "speed": {
+    "tokens": 128,
+    "repeats": 3,
+    "median_tok_s": 148.3,
+    "all_tok_s": [
+     148.3,
+     148.4,
+     147.3
+    ]
+   },
+   "mlx_peak_gb": 2.03
+  },
+  {
+   "setting": "MLX 4-bit, group 64 (mlx_lm.convert)",
+   "loss": 2.99287,
+   "ppl": 19.9428,
+   "tokens": 32736,
+   "speed": {
+    "tokens": 128,
+    "repeats": 3,
+    "median_tok_s": 398.9,
+    "all_tok_s": [
+     392.4,
+     399.3,
+     398.9
+    ]
+   },
+   "mlx_peak_gb": 1.69,
+   "check_vs_hand": {
+    "matrices": 225,
+    "bit_identical": 225,
+    "max_abs_diff": 0.0
+   }
+  }
+ ],
+ "safetensors_bytes": {
+  "bf16": 723674815,
+  "4bit_g64": 203695762
+ },
+ "mlx": {
+  "mlx": "0.32.4",
+  "mlx_lm": "0.32.2"
+ },
+ "guard": {
+  "script": "mlx_way.py",
+  "seconds": 12.1,
+  "minutes": 0.2,
+  "peak_rss_gb": 2.66,
+  "peak_mps_driver_gb": 0.0,
+  "stages_seconds": {
+   "copy_check": 1.21,
+   "convert": 0.0,
+   "MLX bf16 (cached, untouched)": 6.34,
+   "MLX 4-bit, group 64 (mlx_lm.convert)": 4.58
+  },
+  "machine": "arm64 26.6.2",
+  "torch": "2.14.1",
+  "mps_high_watermark_ratio": "0.5",
+  "mps_cap_gb": 5.92
+ }
+}

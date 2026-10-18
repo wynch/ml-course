@@ -1,0 +1,378 @@
+{
+ "teacher": {
+  "params": 619776,
+  "d_model": 128,
+  "n_layer": 3,
+  "val_loss": 1.724,
+  "trained_steps": 5000,
+  "trained_batch": 64
+ },
+ "student": {
+  "params": 299376,
+  "d_model": 88,
+  "n_layer": 3,
+  "n_head": 4,
+  "share_of_teacher": 0.483
+ },
+ "setup": {
+  "steps": 1000,
+  "batch": 64,
+  "block": 128,
+  "lr": 0.001,
+  "warmup": 50,
+  "schedule": "cosine",
+  "weight_decay": 0.1,
+  "T": 2.0,
+  "alpha": 0.5,
+  "seeds": [
+   0,
+   1,
+   2
+  ],
+  "val_chars": 111539,
+  "device": "mps"
+ },
+ "runs": [
+  {
+   "kind": "scratch",
+   "seed": 0,
+   "val_loss": 2.0542,
+   "curve": [
+    {
+     "step": 0,
+     "val_loss": 4.2111
+    },
+    {
+     "step": 100,
+     "val_loss": 2.5481
+    },
+    {
+     "step": 200,
+     "val_loss": 2.4002
+    },
+    {
+     "step": 300,
+     "val_loss": 2.3206
+    },
+    {
+     "step": 400,
+     "val_loss": 2.2602
+    },
+    {
+     "step": 500,
+     "val_loss": 2.1911
+    },
+    {
+     "step": 600,
+     "val_loss": 2.1355
+    },
+    {
+     "step": 700,
+     "val_loss": 2.094
+    },
+    {
+     "step": 800,
+     "val_loss": 2.0742
+    },
+    {
+     "step": 900,
+     "val_loss": 2.0564
+    },
+    {
+     "step": 1000,
+     "val_loss": 2.0542
+    }
+   ],
+   "params": 299376
+  },
+  {
+   "kind": "distil",
+   "seed": 0,
+   "val_loss": 2.0174,
+   "curve": [
+    {
+     "step": 0,
+     "val_loss": 4.2111
+    },
+    {
+     "step": 100,
+     "val_loss": 2.5651
+    },
+    {
+     "step": 200,
+     "val_loss": 2.3942
+    },
+    {
+     "step": 300,
+     "val_loss": 2.3058
+    },
+    {
+     "step": 400,
+     "val_loss": 2.2509
+    },
+    {
+     "step": 500,
+     "val_loss": 2.1753
+    },
+    {
+     "step": 600,
+     "val_loss": 2.1117
+    },
+    {
+     "step": 700,
+     "val_loss": 2.0683
+    },
+    {
+     "step": 800,
+     "val_loss": 2.0383
+    },
+    {
+     "step": 900,
+     "val_loss": 2.02
+    },
+    {
+     "step": 1000,
+     "val_loss": 2.0174
+    }
+   ],
+   "params": 299376
+  },
+  {
+   "kind": "scratch",
+   "seed": 1,
+   "val_loss": 2.0829,
+   "curve": [
+    {
+     "step": 0,
+     "val_loss": 4.1926
+    },
+    {
+     "step": 100,
+     "val_loss": 2.5441
+    },
+    {
+     "step": 200,
+     "val_loss": 2.3978
+    },
+    {
+     "step": 300,
+     "val_loss": 2.3127
+    },
+    {
+     "step": 400,
+     "val_loss": 2.2567
+    },
+    {
+     "step": 500,
+     "val_loss": 2.2009
+    },
+    {
+     "step": 600,
+     "val_loss": 2.1539
+    },
+    {
+     "step": 700,
+     "val_loss": 2.1272
+    },
+    {
+     "step": 800,
+     "val_loss": 2.1022
+    },
+    {
+     "step": 900,
+     "val_loss": 2.0851
+    },
+    {
+     "step": 1000,
+     "val_loss": 2.0829
+    }
+   ],
+   "params": 299376
+  },
+  {
+   "kind": "distil",
+   "seed": 1,
+   "val_loss": 2.0396,
+   "curve": [
+    {
+     "step": 0,
+     "val_loss": 4.1926
+    },
+    {
+     "step": 100,
+     "val_loss": 2.542
+    },
+    {
+     "step": 200,
+     "val_loss": 2.3882
+    },
+    {
+     "step": 300,
+     "val_loss": 2.2975
+    },
+    {
+     "step": 400,
+     "val_loss": 2.2372
+    },
+    {
+     "step": 500,
+     "val_loss": 2.1726
+    },
+    {
+     "step": 600,
+     "val_loss": 2.1174
+    },
+    {
+     "step": 700,
+     "val_loss": 2.0835
+    },
+    {
+     "step": 800,
+     "val_loss": 2.0577
+    },
+    {
+     "step": 900,
+     "val_loss": 2.0429
+    },
+    {
+     "step": 1000,
+     "val_loss": 2.0396
+    }
+   ],
+   "params": 299376
+  },
+  {
+   "kind": "scratch",
+   "seed": 2,
+   "val_loss": 2.0624,
+   "curve": [
+    {
+     "step": 0,
+     "val_loss": 4.1883
+    },
+    {
+     "step": 100,
+     "val_loss": 2.5429
+    },
+    {
+     "step": 200,
+     "val_loss": 2.4112
+    },
+    {
+     "step": 300,
+     "val_loss": 2.334
+    },
+    {
+     "step": 400,
+     "val_loss": 2.2656
+    },
+    {
+     "step": 500,
+     "val_loss": 2.1882
+    },
+    {
+     "step": 600,
+     "val_loss": 2.1415
+    },
+    {
+     "step": 700,
+     "val_loss": 2.1056
+    },
+    {
+     "step": 800,
+     "val_loss": 2.079
+    },
+    {
+     "step": 900,
+     "val_loss": 2.0669
+    },
+    {
+     "step": 1000,
+     "val_loss": 2.0624
+    }
+   ],
+   "params": 299376
+  },
+  {
+   "kind": "distil",
+   "seed": 2,
+   "val_loss": 2.0303,
+   "curve": [
+    {
+     "step": 0,
+     "val_loss": 4.1883
+    },
+    {
+     "step": 100,
+     "val_loss": 2.5466
+    },
+    {
+     "step": 200,
+     "val_loss": 2.4103
+    },
+    {
+     "step": 300,
+     "val_loss": 2.3307
+    },
+    {
+     "step": 400,
+     "val_loss": 2.2536
+    },
+    {
+     "step": 500,
+     "val_loss": 2.1532
+    },
+    {
+     "step": 600,
+     "val_loss": 2.1053
+    },
+    {
+     "step": 700,
+     "val_loss": 2.0667
+    },
+    {
+     "step": 800,
+     "val_loss": 2.0453
+    },
+    {
+     "step": 900,
+     "val_loss": 2.0322
+    },
+    {
+     "step": 1000,
+     "val_loss": 2.0303
+    }
+   ],
+   "params": 299376
+  }
+ ],
+ "mean_val_loss": {
+  "scratch": 2.0665,
+  "distil": 2.0291
+ },
+ "gap_scratch_minus_distil": [
+  0.0368,
+  0.0433,
+  0.0321
+ ],
+ "guard": {
+  "script": "distil.py",
+  "seconds": 191.1,
+  "minutes": 3.19,
+  "peak_rss_gb": 0.5,
+  "peak_mps_driver_gb": 1.03,
+  "stages_seconds": {
+   "teacher": 0.36,
+   "scratch_seed0": 28.23,
+   "distil_seed0": 36.61,
+   "scratch_seed1": 26.08,
+   "distil_seed1": 36.47,
+   "scratch_seed2": 26.13,
+   "distil_seed2": 37.26
+  },
+  "machine": "arm64 26.6.2",
+  "torch": "2.14.1",
+  "mps_high_watermark_ratio": "0.5",
+  "mps_cap_gb": 5.92
+ }
+}

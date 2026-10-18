@@ -1,0 +1,18 @@
+[project]
+name = "mlcourse-19-scaling-laws"
+version = "0.1.0"
+description = "Module 19 — Scaling laws: six char-GPTs from 51k to 3.2M parameters, the exponents of L(N) and L(D), and the compute-optimal size."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "huggingface-hub>=1.0",
+    "matplotlib>=3.11.1",
+    "numpy>=2.0",
+    "pyarrow>=20.0",
+    "pytest>=9.1.1",
+    "torch>=2.13.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "../solutions"]
+addopts = "-q"

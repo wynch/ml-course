@@ -1,0 +1,43 @@
+{
+ "tokens": 32,
+ "logit_range": [
+  -20.0,
+  36.75
+ ],
+ "gpu_vs_cpu_bf16": {
+  "max_abs_diff": 9.32422,
+  "mean_abs_diff": 1.081334,
+  "top1_agree_positions": 17,
+  "same_top1_last_position": true
+ },
+ "gpu_vs_cpu_f32": {
+  "max_abs_diff": 0.06258,
+  "mean_abs_diff": 0.005008,
+  "top1_agree_positions": 32,
+  "same_top1_last_position": true
+ },
+ "gpu_bf16_vs_gpu_f32": {
+  "max_abs_diff": 0.85454,
+  "mean_abs_diff": 0.077035,
+  "top1_agree_positions": 32,
+  "same_top1_last_position": true
+ },
+ "cpu_bf16_vs_cpu_f32": {
+  "max_abs_diff": 9.31354,
+  "mean_abs_diff": 1.089661,
+  "top1_agree_positions": 17,
+  "same_top1_last_position": true
+ },
+ "one_layer_max_error_vs_float64": {
+  "bf16_running_sum_numpy": 0.35247,
+  "gpu_qmm_bf16": 0.04279,
+  "cpu_qmm_bf16": 0.35247
+ },
+ "guard": {
+  "script": "device_check",
+  "minutes": 3.87,
+  "peak_rss_gb": 1.71,
+  "peak_metal_gb": 1.21,
+  "machine": "arm64 26.6.2"
+ }
+}

@@ -68,6 +68,8 @@ GUIDES = [
     ("cloud", "Optional cloud lane", "Cloud lane", "CLOUD.md"),
 ]
 
+# Reading order, not number order: the lesson's Previous and Next buttons
+# follow this list (22 comes before 21).
 MODULES = [
     ("00a-perceptron", "The perceptron & least squares", "Perceptron", "modules/00a-perceptron/README.md", "Origins", 120, "00a-perceptron.html", "amber"),
     ("00b-bayes-knn-pca", "Probability, neighbours & eigenvectors", "Bayes, k-NN & PCA", "modules/00b-bayes-knn-pca/README.md", "Origins", 120, "00b-pca.html", "amber"),
@@ -91,6 +93,13 @@ MODULES = [
     ("16-self-supervised-and-jepa", "Self-supervised learning and JEPA", "SSL and JEPA", "modules/16-self-supervised-and-jepa/README.md", "How learning works", 90, "16-self-supervised-and-jepa.html", "blue"),
     ("17-learning-from-preferences", "Learning from preferences", "Preferences", "modules/17-learning-from-preferences/README.md", "Other recipes", 90, "17-learning-from-preferences.html", "rust"),
     ("18-beyond-attention", "Beyond attention", "Recurrence and SSMs", "modules/18-beyond-attention/README.md", "Other recipes", 90, "18-beyond-attention.html", "rust"),
+    ("19-scaling-laws", "Scaling laws", "Scaling laws", "modules/19-scaling-laws/README.md", "Why they work", 60, "19-scaling-laws.html", "olive"),
+    ("20-in-context-learning", "In-context learning", "In-context learning", "modules/20-in-context-learning/README.md", "Why they work", 60, "20-in-context-learning.html", "olive"),
+    ("22-reasoning-at-test-time", "Reasoning at test time", "Reasoning at test time", "modules/22-reasoning-at-test-time/README.md", "Using models well", 75, "22-reasoning-at-test-time.html", "ochre"),
+    ("21-retrieval-and-memory", "Retrieval and memory", "Retrieval", "modules/21-retrieval-and-memory/README.md", "Using models well", 75, "21-retrieval-and-memory.html", "ochre"),
+    ("23-compression", "Compression", "Compression", "modules/23-compression/README.md", "Using models well", 120, "23-compression.html", "ochre"),
+    ("24-reinforcement-learning", "Reinforcement learning", "RL", "modules/24-reinforcement-learning/README.md", "Acting and planning", 75, "24-reinforcement-learning.html", "slate"),
+    ("25-world-models-and-planning", "World models and planning", "World models", "modules/25-world-models-and-planning/README.md", "Acting and planning", 60, "25-world-models-and-planning.html", "slate"),
 ]
 
 QUIZZES = {
@@ -373,6 +382,10 @@ h1 {
 """
 
 
+# Kept at the course root so the site pages share them; copied to the reader root.
+ICONS = ("favicon.svg", "favicon.ico", "apple-touch-icon.png")
+
+
 def human_size(count: int) -> str:
     if count < 1024:
         return f"{count} B"
@@ -392,6 +405,9 @@ def page(directory: Path, title: str, crumb: str, back: str, body: str) -> str:
         "<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n"
         "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n"
         f"<title>{escape(title)}</title>\n"
+        f"<link rel=\"icon\" href=\"{up}favicon.svg\" type=\"image/svg+xml\">\n"
+        f"<link rel=\"icon\" href=\"{up}favicon.ico\" sizes=\"any\">\n"
+        f"<link rel=\"apple-touch-icon\" href=\"{up}apple-touch-icon.png\">\n"
         f"<link rel=\"stylesheet\" href=\"{up}browse.css\">\n</head>\n<body>\n<main>\n"
         f"{back}\n<h1>{escape(title)}</h1>\n<p class=\"crumb\">{escape(crumb)}</p>\n"
         f"{body}\n</main>\n</body>\n</html>\n"
@@ -503,6 +519,8 @@ def main() -> None:
     READER.mkdir(parents=True)
     for filename in ("index.html", "styles.css", "app.js", "sw.js", "manifest.webmanifest"):
         shutil.copy2(SITE / filename, READER / filename)
+    for filename in ICONS:
+        shutil.copy2(ROOT / filename, READER / filename)
 
     copy_filtered(ROOT / "modules", READER / "content" / "modules")
     copy_filtered(ROOT / "docs", READER / "content" / "docs")

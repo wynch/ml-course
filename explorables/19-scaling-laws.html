@@ -1,0 +1,369 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scaling laws — ml-course explorable</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+  :root{
+    --paper:#f6f8f7; --ink:#1c2422; --panel:#ffffff; --panel-2:#eef2f0;
+    --line:#d5ddda; --muted:#5d6b67; --accent:#6e7a14;
+    --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t6:#b7410e; --t7:#6e7a14;
+    --s0:#fde725; --s1:#7ad151; --s2:#22a884; --s3:#2a788e; --s4:#414487; --s5:#440154;
+    --fit:#c1121f; --extra:rgba(193,18,31,.06);
+    --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
+    --mono:"SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    --display:"Avenir Next","Helvetica Neue",sans-serif;
+    --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  :root{ --s0:#c8b400; }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --panel-2:#222d29;
+      --line:#31403b; --muted:#9dada8; --accent:#aab53c; --t4:#e0679a; --t6:#e7764a; --t7:#aab53c;
+      --s0:#fde725; --s1:#9be06e; --s2:#3fc8a0; --s3:#4fa3c0; --s4:#8f92e0; --s5:#c58ae8;
+      --fit:#ff6b6b; --extra:rgba(255,107,107,.08);
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink)}
+  body{font-family:var(--body);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 16px 64px}
+
+  header.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    padding:16px 0 14px;border-bottom:1px solid var(--line);margin-bottom:22px}
+  header.top h1{font-family:var(--display);font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .pill{font-family:var(--display);font-size:11.5px;font-weight:600;letter-spacing:.02em;
+    padding:3px 10px;border-radius:999px;color:#fff;background:var(--t7);white-space:nowrap}
+  @media (prefers-color-scheme: dark){ .pill{color:#121816} }
+  .top .spacer{flex:1}
+  .backlink{font-size:13px;color:var(--muted);text-decoration:none;border-bottom:1px solid transparent}
+  .backlink:hover{color:var(--accent);border-bottom-color:var(--accent)}
+
+  .intro{max-width:78ch;font-size:15.5px;margin:0 0 26px}
+  .intro em{color:var(--accent);font-style:normal;font-weight:600}
+
+  section{margin:0 0 30px}
+  h2{font-family:var(--display);font-size:15px;font-weight:600;margin:0 0 4px;letter-spacing:.01em}
+  .sub{font-size:13px;color:var(--muted);margin:0 0 14px;max-width:80ch}
+  .sub code{font-family:var(--mono);font-size:12px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    box-shadow:var(--shadow);padding:16px}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 14px;
+    padding:0 0 12px;border-bottom:1px solid var(--line)}
+  .seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;overflow:hidden;flex-wrap:wrap}
+  .seg button{font-family:var(--display);font-size:12px;font-weight:600;border:0;background:transparent;
+    color:var(--muted);padding:5px 11px;cursor:pointer}
+  .seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+  @media (prefers-color-scheme: dark){ .seg button[aria-pressed="true"]{color:#121816} }
+  .seg button:focus-visible,.btn:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  .hint{font-size:11.5px;color:var(--muted)}
+
+  .notice{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+  .chip{font-family:var(--mono);font-size:11.5px;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:999px;padding:3px 10px;color:var(--muted)}
+  .chip b{color:var(--ink)}
+  .chip.warn{border-color:var(--fit);color:var(--fit)}
+
+  .two{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:18px}
+  @media (max-width:820px){ .two{grid-template-columns:minmax(0,1fr)} }
+  svg{display:block;max-width:100%;height:auto}
+  svg text{font-family:var(--body);fill:var(--muted)}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:var(--muted);margin-top:6px}
+  .legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+  .panel-title{font-size:12px;color:var(--muted);margin:0 0 6px;font-family:var(--display);font-weight:600}
+
+  table.st{border-collapse:collapse;width:100%;font-size:13px}
+  table.st td,table.st th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  table.st th{font-family:var(--display);font-size:12px;color:var(--muted);font-weight:600}
+  table.st td.num,table.st th.num{font-family:var(--mono);white-space:nowrap;text-align:right}
+  .tablewrap{overflow-x:auto}
+  table.st td.mono{font-family:var(--mono);font-size:12.5px}
+
+  .slider{display:grid;grid-template-columns:10em minmax(0,1fr) 8em;gap:8px;align-items:center;font-size:12.5px}
+  @media (max-width:520px){ .slider{grid-template-columns:7em minmax(0,1fr) 6.5em} }
+  .slider span.v{font-family:var(--mono);font-size:12px;color:var(--ink)}
+  .sliders{display:flex;flex-direction:column;gap:6px;margin:0 0 12px}
+  input[type=range]{accent-color:var(--accent);width:100%}
+  .readout{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:8px;min-height:19px}
+  .readout b{color:var(--ink)}
+  .sample{font-family:var(--mono);font-size:12.5px;background:var(--panel-2);border-radius:8px;padding:10px 12px;
+    margin-top:10px;white-space:pre-wrap;word-break:break-word;color:var(--ink)}
+  .big{font-family:var(--display);font-size:26px;font-weight:600;color:var(--ink)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 10px}
+  .stat{background:var(--panel-2);border-radius:8px;padding:8px 10px}
+  .stat .k{font-size:11.5px;color:var(--muted)}
+  .stat .v{font-family:var(--mono);font-size:15px;color:var(--ink)}
+
+  ul.notice-list{margin:0;padding-left:20px;font-size:14px}
+  ul.notice-list li{margin:6px 0}
+
+  footer.bot{border-top:1px solid var(--line);padding-top:14px;font-size:12.5px;color:var(--muted)}
+  footer.bot a{color:var(--accent)}
+  footer.bot .row{margin:4px 0}
+  footer.bot code{font-family:var(--mono);overflow-wrap:anywhere}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <h1>Scaling laws</h1>
+  <span class="pill">Module 19 · Why they work</span>
+  <span class="spacer"></span>
+  <a class="backlink" href="index.html">← All explorables</a>
+</header>
+
+<p class="intro">
+  Six small character-level GPTs, the same recipe, one pass over the same 4 million characters of Wikipedia.
+  Only the width changes. A <em>scaling law</em> is a guess that the loss follows a simple curve in the number of
+  parameters <em>N</em> and the number of training tokens <em>D</em>. Below: the six real curves first, then a
+  surface fitted to them that you can push past the data, then the compute question: for a fixed budget, a big
+  model trained briefly or a small one trained long?
+</p>
+
+<section>
+  <h2>1 · The six real curves</h2>
+  <p class="sub" id="cursub"></p>
+  <div class="card">
+    <div class="controls">
+      <span class="hint">size</span>
+      <span class="seg" id="sizeseg"></span>
+    </div>
+    <div class="two">
+      <div>
+        <p class="panel-title">Held-out loss against training tokens (log-log; band: two seeds)</p>
+        <svg id="curves" viewBox="0 0 560 340" role="img" aria-label="Held-out loss against tokens for six sizes"></svg>
+      </div>
+      <div>
+        <p class="panel-title">The chosen size at 4M tokens</p>
+        <div class="stats" id="sizestats"></div>
+        <p class="panel-title" style="margin-top:10px">160 characters it wrote after "The " (temperature 1)</p>
+        <div class="sample" id="sample"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>2 · Drag N and D</h2>
+  <p class="sub" id="fitsub"></p>
+  <div class="card">
+    <div class="sliders">
+      <label class="slider"><span>parameters N</span><input type="range" id="nsl" min="40" max="90" value="65" aria-label="parameters N, log scale"><span class="v" id="nv"></span></label>
+      <label class="slider"><span>tokens D</span><input type="range" id="dsl" min="50" max="100" value="66" aria-label="tokens D, log scale"><span class="v" id="dv"></span></label>
+    </div>
+    <div class="stats" id="fitstats"></div>
+    <div class="notice" id="fitchips"></div>
+    <div class="two">
+      <div>
+        <p class="panel-title">Fitted L(N, D) against D at your N (red), over the six real curves</p>
+        <svg id="fitd" viewBox="0 0 560 340" role="img" aria-label="Fitted loss against tokens"></svg>
+      </div>
+      <div>
+        <p class="panel-title">At your compute C = 6ND: the fit's loss for each split of C into N and D</p>
+        <svg id="iso" viewBox="0 0 420 340" role="img" aria-label="Loss along the line of equal compute"></svg>
+      </div>
+    </div>
+    <div class="readout" id="fitread"></div>
+  </div>
+</section>
+
+<section>
+  <h2>3 · The module's numbers</h2>
+  <p class="sub" id="tabsub"></p>
+  <div class="card"><div class="tablewrap"><table class="st" id="tab"></table></div>
+    <div class="tablewrap" style="margin-top:14px"><table class="st" id="frtab"></table></div></div>
+</section>
+
+<section>
+  <h2>What to notice</h2>
+  <div class="card"><ul class="notice-list" id="notice"></ul></div>
+</section>
+
+<footer class="bot">
+  <div class="row">Module: <code>../modules/19-scaling-laws/README.md</code></div>
+  <div class="row">Data: written into this page by <code>modules/19-scaling-laws/python/src/export_explorable.py</code>
+    from <code>results/train_d*.json</code>, <code>fit.json</code> and <code>frontier.json</code>. The fitted surface in
+    section 2 is evaluated in the page from the fit's five numbers.</div>
+  <div class="row">The model itself, built from scratch: <a href="04-attention.html">Attention &amp; transformer</a> (module 04).</div>
+</footer>
+</div>
+
+<script>
+/* BEGIN DATA: written by modules/19-scaling-laws/python/src/export_explorable.py; do not edit */
+const DATA = {"steps":977,"tokens":4001792,"warmup_tokens":409600,"sizes":[{"d":32,"n":50880,"total":59520,"seeds":[{"seed":0,"curve":[[32768,4.936799],[61440,4.901767],[126976,4.750654],[249856,4.50279],[376832,4.149352],[499712,3.799425],[749568,3.357193],[999424,3.131546],[1499136,2.846977],[1998848,2.682522],[2998272,2.547182],[4001792,2.492145]]},{"seed":1,"curve":[[32768,4.950392],[61440,4.920606],[126976,4.773099],[249856,4.519524],[376832,4.165627],[499712,3.814859],[749568,3.366657],[999424,3.135933],[1499136,2.848098],[1998848,2.688918],[2998272,2.547715],[4001792,2.486499]]}],"train_seconds":12.71,"flops_per_s":96118572916,"sample":"The on ) 1wst ded0 , Binse4 Vind weyprddut 22 , Is omeen The 'rimis , ged d an Zhay Fadesywd Nes d testhhed Melur theas s frmame atheeward @-@ú indi brss parlcacnid"},{"d":48,"n":113184,"total":126144,"seeds":[{"seed":0,"curve":[[32768,4.916943],[61440,4.839315],[126976,4.62665],[249856,4.302232],[376832,3.855593],[499712,3.470954],[749568,3.063861],[999424,2.856502],[1499136,2.647095],[1998848,2.55319],[2998272,2.468717],[4001792,2.430483]]},{"seed":1,"curve":[[32768,4.943218],[61440,4.886406],[126976,4.696129],[249856,4.368524],[376832,3.891129],[499712,3.491268],[749568,3.075509],[999424,2.856367],[1499136,2.646433],[1998848,2.555166],[2998272,2.47104],[4001792,2.432031]]}],"train_seconds":14.64,"flops_per_s":185630666282,"sample":"The ongum ww , . 0 , Binse4 Vind weyprddus 22 , Is omee . Aficrielem wagr d an Zhay Fadeay d Nes d resthhan Melur Dreas Han mame at weward higasindioutin parlcactrd"},{"d":64,"n":200064,"total":217344,"seeds":[{"seed":0,"curve":[[32768,4.904861],[61440,4.789856],[126976,4.566031],[249856,4.172176],[376832,3.642079],[499712,3.24352],[749568,2.856985],[999424,2.693325],[1499136,2.550756],[1998848,2.484875],[2998272,2.423568],[4001792,2.380288]]}],"train_seconds":15.38,"flops_per_s":312333360737,"sample":"The ongum wst doul s Binsec Vindowey . fus 22 , he omee . Aficrielem wagh dean Zhay be @-y dicesod testhhan ages rereas s fomame at wewars miganindioutin parl actin"},{"d":96,"n":447552,"total":473472,"seeds":[{"seed":0,"curve":[[32768,4.843546],[61440,4.631402],[126976,4.373289],[249856,3.807391],[376832,3.22918],[499712,2.888651],[749568,2.63506],[999424,2.553559],[1499136,2.469234],[1998848,2.428775],[2998272,2.339711],[4001792,2.238676]]}],"train_seconds":19.47,"flops_per_s":551929125789,"sample":"The of ) 11 2 dext , Binsec Vind wey istus — ad horomer . Aft Uweler aged dan , Jay Fadesy dices deresth sengelur the sis frormetat weward thas ind puminas recactio"},{"d":160,"n":1237440,"total":1280640,"seeds":[{"seed":0,"curve":[[32768,4.618976],[61440,4.281017],[126976,3.957944],[249856,3.231387],[376832,2.768877],[499712,2.595383],[749568,2.496628],[999424,2.451009],[1499136,2.404393],[1998848,2.301824],[2998272,2.147093],[4001792,2.030571]]}],"train_seconds":29.34,"flops_per_s":1012674333840,"sample":"The of ) @-@ 204 0 , Binug4 , the eyp stute math siome the ficramition , whas empay be @-@ diclame resth sengres rearasis from eth meewn 's prasing purinapsrecaty ,"},{"d":256,"n":3159552,"total":3228672,"seeds":[{"seed":0,"curve":[[32768,4.350915],[61440,3.903907],[126976,3.395285],[249856,2.763166],[376832,2.556291],[499712,2.490224],[749568,2.435875],[999424,2.387091],[1499136,2.260665],[1998848,2.121588],[2998272,1.976877],[4001792,1.854716]]}],"train_seconds":51.33,"flops_per_s":1477950896223,"sample":"The of staw ted d0 , Binde , Heng , prifuse mading of the Astariels , gen deat Zhay Fady wadden od tos her bages , reapison mase at weward to a in the spapprecarnin"}],"fit":{"alpha":0.0738,"a":1.743,"r2":0.9623,"band":0.0056,"alpha_by_tokens":{"61":0.1206,"122":0.1074,"244":0.0639,"488":0.053,"977":0.0738},"l_of_d":{"160":{"beta":0.1152,"r2":0.96},"256":{"beta":0.1445,"r2":0.956}},"joint":{"E":0.8416581729175312,"A":10.20218404658508,"B":2374.822450176548,"alpha":0.18,"beta":0.58,"rmse":0.10897165425687992,"max_abs_err":0.3313681480506916,"n_points":42},"baselines":{"unigram":3.1688,"bigram":2.4465}},"frontier":{"rows":[{"C":152552079360.0002,"d":32,"loss":3.7994},{"C":178880112062.09506,"d":32,"loss":3.6192},{"C":209751939308.7847,"d":32,"loss":3.4476},{"C":245951746880.1892,"d":32,"loss":3.2991},{"C":288399058396.1333,"d":32,"loss":3.1745},{"C":338172092448.2516,"d":32,"loss":3.0567},{"C":396535150797.0183,"d":32,"loss":2.9445},{"C":464970733330.62085,"d":32,"loss":2.8377},{"C":545217195548.66003,"d":32,"loss":2.7457},{"C":639312905121.228,"d":32,"loss":2.6666},{"C":749648019159.1183,"d":32,"loss":2.613},{"C":879025197407.2496,"d":32,"loss":2.5604},{"C":1030730793557.7245,"d":32,"loss":2.5244},{"C":1208618333037.3032,"d":32,"loss":2.4942},{"C":1417206397716.9438,"d":48,"loss":2.5441},{"C":1661793403946.2021,"d":48,"loss":2.5107},{"C":1948592189428.3284,"d":48,"loss":2.4777},{"C":2284887827623.1313,"d":48,"loss":2.4534},{"C":2679222678374.7847,"d":48,"loss":2.4324},{"C":3141613375298.5845,"d":64,"loss":2.444},{"C":3683805261697.016,"d":64,"loss":2.4201},{"C":4319570738018.267,"d":64,"loss":2.3961},{"C":5065059099282.623,"d":96,"loss":2.4369},{"C":5939206748815.884,"d":96,"loss":2.4062},{"C":6964218208268.509,"d":96,"loss":2.3712},{"C":8166130142219.463,"d":96,"loss":2.3347},{"C":9575472724345.52,"d":96,"loss":2.2785},{"C":11228045144742.746,"d":160,"loss":2.4012},{"C":13165824957325.846,"d":160,"loss":2.344},{"C":15438034365947.111,"d":160,"loss":2.2863},{"C":18102390534331.816,"d":160,"loss":2.2247},{"C":21226571679377.2,"d":160,"loss":2.1647},{"C":24889936188550.418,"d":160,"loss":2.1013},{"C":29185538429269.734,"d":160,"loss":2.0376},{"C":34222492454529.22,"d":256,"loss":2.1698},{"C":40128743646056.97,"d":256,"loss":2.1005},{"C":47054318698456.984,"d":256,"loss":2.043},{"C":55175136498287.19,"d":256,"loss":1.9871},{"C":64697476699507.28,"d":256,"loss":1.9211},{"C":75863219503103.92,"d":256,"loss":1.8547}],"joint_n_opt_exponent":0.763}};
+/* END DATA */
+</script>
+<script>
+"use strict";
+(function(){
+const $=s=>document.querySelector(s);
+const NS="http://www.w3.org/2000/svg";
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);
+  for(const k in attrs) e.setAttribute(k,attrs[k]); if(parent) parent.appendChild(e); return e;}
+const fmt=n=>Math.round(n).toLocaleString("en-US");
+function si(n){ if(n>=1e9) return (n/1e9).toFixed(n>=1e10?0:1)+"B"; if(n>=1e6) return (n/1e6).toFixed(n>=1e7?0:2)+"M";
+  if(n>=1e3) return (n/1e3).toFixed(0)+"k"; return String(Math.round(n)); }
+function sci(x){ const e=Math.floor(Math.log10(x)); return (x/Math.pow(10,e)).toFixed(1)+"e"+e; }
+function dur(s){ if(s<90) return s.toFixed(0)+" s"; if(s<5400) return (s/60).toFixed(0)+" min";
+  if(s<172800) return (s/3600).toFixed(1)+" h"; if(s<3.15e7*2) return (s/86400).toFixed(0)+" days"; return (s/3.15e7).toFixed(0)+" years"; }
+function segButtons(box,labels,start,onPick){
+  box.innerHTML="";
+  labels.forEach((l,i)=>{ const b=document.createElement("button"); b.textContent=l;
+    b.setAttribute("aria-pressed",i===start?"true":"false"); box.appendChild(b);
+    b.addEventListener("click",()=>{ box.querySelectorAll("button").forEach((x,j)=>x.setAttribute("aria-pressed",j===i?"true":"false")); onPick(i); }); });
+}
+const D=DATA, S=D.sizes, F=D.fit, J=F.joint;
+const COL=["var(--s0)","var(--s1)","var(--s2)","var(--s3)","var(--s4)","var(--s5)"];
+const lossFit=(n,d)=>J.E+J.A*Math.pow(n,-J.alpha)+J.B*Math.pow(d,-J.beta);
+const N_LO=S[0].n, N_HI=S[S.length-1].n, D_HI=D.tokens;
+const D_LO=S[0].seeds[0].curve.find(p=>p[0]>D.warmup_tokens)[0];   /* the fit uses checkpoints after warmup */
+
+/* a log-log frame: returns {x, y, g} */
+function frame(svg,W,H,xr,yr,xlab,ylab,xt,yt){
+  svg.innerHTML="";
+  const m={l:46,r:12,t:10,b:38}, pw=W-m.l-m.r, ph=H-m.t-m.b;
+  const lx=Math.log(xr[0]), lX=Math.log(xr[1]), ly=Math.log(yr[0]), lY=Math.log(yr[1]);
+  const x=v=>m.l+pw*(Math.log(v)-lx)/(lX-lx), y=v=>m.t+ph*(1-(Math.log(v)-ly)/(lY-ly));
+  el("rect",{x:m.l,y:m.t,width:pw,height:ph,fill:"none",stroke:"var(--line)"},svg);
+  xt.forEach(v=>{ el("line",{x1:x(v),x2:x(v),y1:m.t,y2:m.t+ph,stroke:"var(--line)","stroke-opacity":.6},svg);
+    const t=el("text",{x:x(v),y:m.t+ph+14,"font-size":10,"text-anchor":"middle"},svg); t.textContent=si(v); });
+  yt.forEach(v=>{ el("line",{x1:m.l,x2:m.l+pw,y1:y(v),y2:y(v),stroke:"var(--line)","stroke-opacity":.6},svg);
+    const t=el("text",{x:m.l-5,y:y(v)+3,"font-size":10,"text-anchor":"end"},svg); t.textContent=v.toFixed(1); });
+  el("text",{x:m.l+pw/2,y:H-6,"font-size":11,"text-anchor":"middle"},svg).textContent=xlab;
+  el("text",{x:12,y:m.t+ph/2,"font-size":11,"text-anchor":"middle",transform:"rotate(-90 12 "+(m.t+ph/2)+")"},svg).textContent=ylab;
+  const clip="c"+Math.random().toString(36).slice(2,8);
+  const cp=el("clipPath",{id:clip},svg); el("rect",{x:m.l,y:m.t,width:pw,height:ph},cp);
+  const g=el("g",{"clip-path":"url(#"+clip+")"},svg);
+  return {x,y,g,m,pw,ph};
+}
+function path(pts,fx,fy){ return pts.map((p,i)=>(i?"L":"M")+fx(p[0]).toFixed(1)+" "+fy(p[1]).toFixed(1)).join(""); }
+
+function drawRealCurves(f,sel,faint,xmap){
+  S.forEach((s,i)=>{
+    const map=xmap?(t=>xmap(t,s)):(t=>t);
+    if(s.seeds.length>1){
+      const a=s.seeds[0].curve, b=s.seeds[1].curve;
+      const top=a.map((p,k)=>[map(p[0]),Math.max(p[1],b[k][1])]), bot=a.map((p,k)=>[map(p[0]),Math.min(p[1],b[k][1])]).reverse();
+      el("path",{d:path(top.concat(bot),f.x,f.y)+"Z",fill:COL[i],"fill-opacity":faint?.18:.35,stroke:"none"},f.g);
+    }
+    const c=s.seeds[0].curve.map(p=>[map(p[0]),p[1]]);
+    el("path",{d:path(c,f.x,f.y),fill:"none",stroke:COL[i],"stroke-width":i===sel?3:1.6,"stroke-opacity":faint?.45:(sel==null||i===sel?1:.55)},f.g);
+    if(!faint) c.forEach(p=>el("circle",{cx:f.x(p[0]),cy:f.y(p[1]),r:i===sel?3:2,fill:COL[i]},f.g));
+  });
+}
+
+/* ------------------------------------------------------------ 1 · real curves */
+let sel=S.length-1;
+function drawCurves(){
+  const f=frame($("#curves"),560,340,[2e4,6e6],[1.7,5.4],"training tokens (characters)","held-out loss (nats/char)",
+    [1e5,1e6],[2,2.5,3,4,5]);
+  el("rect",{x:f.x(2e4),y:f.m.t,width:f.x(D.warmup_tokens)-f.x(2e4),height:f.ph,fill:"var(--panel-2)"},f.g);
+  el("text",{x:f.x(2.2e4),y:f.m.t+12,"font-size":9.5},f.g).textContent="warmup";
+  [["bigram","4 3"],["unigram","1 3"]].forEach(([k,da])=>{
+    el("line",{x1:f.m.l,x2:f.m.l+f.pw,y1:f.y(F.baselines[k]),y2:f.y(F.baselines[k]),stroke:"var(--muted)","stroke-dasharray":da},f.g);
+    el("text",{x:f.m.l+f.pw-4,y:f.y(F.baselines[k])-4,"font-size":9.5,"text-anchor":"end"},f.g).textContent=k+" table "+F.baselines[k].toFixed(2);
+  });
+  drawRealCurves(f,sel,false);
+  const s=S[sel], last=s.seeds.map(x=>x.curve[x.curve.length-1][1]);
+  let h="<div class='stat'><div class='k'>d_model</div><div class='v'>"+s.d+"</div></div>"+
+    "<div class='stat'><div class='k'>N, non-embedding</div><div class='v'>"+fmt(s.n)+"</div></div>"+
+    "<div class='stat'><div class='k'>loss at 4M tokens</div><div class='v'>"+last.map(v=>v.toFixed(3)).join(" / ")+"</div></div>"+
+    "<div class='stat'><div class='k'>tokens per parameter</div><div class='v'>"+(D.tokens/s.n).toFixed(1)+"</div></div>";
+  $("#sizestats").innerHTML=h;
+  $("#sample").textContent=s.sample;
+}
+$("#cursub").innerHTML="Click a size. Every model saw the same "+fmt(D.tokens)+" characters in the same order (seed 0); "+
+  "d 32 and d 48 also ran a second seed, and the band spans the two. The dashed lines are what counting pairs or single "+
+  "characters gives on the same held-out text. Seed-1 losses show after the slash.";
+segButtons($("#sizeseg"),S.map(s=>"d "+s.d),sel,i=>{sel=i; drawCurves();});
+
+/* ------------------------------------------------------------ 2 · fitted surface */
+const sliderN=()=>Math.pow(10,+$("#nsl").value/10), sliderD=()=>Math.pow(10,+$("#dsl").value/10);
+function bestSplit(C){
+  let best=null;
+  for(let k=0;k<=400;k++){ const n=Math.pow(10,3+k*0.0175*1.0); const d=C/(6*n); if(d<1e3) continue;
+    const l=lossFit(n,d); if(!best||l<best.l) best={n,d,l}; }
+  return best;
+}
+function drawFit(){
+  const n=sliderN(), d=sliderD(), C=6*n*d, l=lossFit(n,d);
+  $("#nv").textContent=si(n); $("#dv").textContent=si(d);
+  const rate=S[S.length-1].flops_per_s;
+  const inside=n>=N_LO*0.999&&n<=N_HI*1.001&&d>=D_LO*0.999&&d<=D_HI*1.001;
+  const b=bestSplit(C);
+  $("#fitstats").innerHTML=
+    "<div class='stat'><div class='k'>fitted loss</div><div class='v'>"+l.toFixed(3)+" nats/char</div></div>"+
+    "<div class='stat'><div class='k'>compute C = 6ND</div><div class='v'>"+sci(C)+" FLOPs</div></div>"+
+    "<div class='stat'><div class='k'>at the d "+S[S.length-1].d+" run's rate on this Mac</div><div class='v'>"+dur(C/rate)+"</div></div>"+
+    "<div class='stat'><div class='k'>tokens per parameter</div><div class='v'>"+(d/n).toFixed(d/n<10?2:0)+"</div></div>";
+  $("#fitchips").innerHTML=(inside?"<span class='chip'><b>inside</b> the measured range</span>":
+      "<span class='chip warn'><b>outside</b> the measured range: the fit is a guess here</span>")+
+    "<span class='chip'>measured: N "+si(N_LO)+"–"+si(N_HI)+", D "+si(D_LO)+"–"+si(D_HI)+"</span>"+
+    "<span class='chip'>the fit's best split of this C: N <b>"+si(b.n)+"</b>, D <b>"+si(b.d)+"</b>, loss "+b.l.toFixed(3)+"</span>";
+
+  const f=frame($("#fitd"),560,340,[1e5,1e10],[0.5,4],"training tokens D","loss (nats/char)",[1e6,1e7,1e8,1e9],[0.5,1,1.5,2,3,4]);
+  el("rect",{x:f.x(D_LO),y:f.m.t,width:f.x(D_HI)-f.x(D_LO),height:f.ph,fill:"var(--panel-2)"},f.g);
+  drawRealCurves(f,null,true);
+  const pts=[]; for(let k=0;k<=80;k++){ const dd=Math.pow(10,5+k*5/80); pts.push([dd,lossFit(n,dd)]); }
+  el("path",{d:path(pts,f.x,f.y),fill:"none",stroke:"var(--fit)","stroke-width":2.4},f.g);
+  el("line",{x1:f.m.l,x2:f.m.l+f.pw,y1:f.y(J.E),y2:f.y(J.E),stroke:"var(--fit)","stroke-dasharray":"2 4","stroke-opacity":.7},f.g);
+  el("text",{x:f.m.l+6,y:f.y(J.E)-4,"font-size":9.5},f.g).textContent="E = "+J.E.toFixed(2)+" (the fit's floor)";
+  el("circle",{cx:f.x(d),cy:f.y(l),r:5,fill:"var(--fit)"},f.g);
+
+  const g=frame($("#iso"),420,340,[1e3,1e10],[0.5,6],"N (D = C / 6N)","fitted loss",[1e4,1e6,1e8,1e10],[0.5,1,2,4]);
+  el("rect",{x:g.x(N_LO),y:g.m.t,width:g.x(N_HI)-g.x(N_LO),height:g.ph,fill:"var(--panel-2)"},g.g);
+  const iso=[]; for(let k=0;k<=120;k++){ const nn=Math.pow(10,3+k*7/120), dd=C/(6*nn); if(dd<1e2) break; iso.push([nn,lossFit(nn,dd)]); }
+  if(iso.length>1) el("path",{d:path(iso,g.x,g.y),fill:"none",stroke:"var(--fit)","stroke-width":2},g.g);
+  el("circle",{cx:g.x(n),cy:g.y(l),r:5,fill:"var(--fit)"},g.g);
+  el("circle",{cx:g.x(b.n),cy:g.y(b.l),r:5,fill:"none",stroke:"var(--ink)","stroke-width":1.5},g.g);
+  el("text",{x:g.x(b.n)+7,y:g.y(b.l)+14,"font-size":10},g.g).textContent="best split";
+
+  $("#fitread").innerHTML="L(N, D) = <b>"+J.E.toFixed(3)+"</b> + <b>"+J.A.toPrecision(3)+"</b> / N^<b>"+J.alpha+"</b> + <b>"+
+    J.B.toPrecision(3)+"</b> / D^<b>"+J.beta+"</b> · fitted to "+J.n_points+" checkpoints after warmup, RMSE "+J.rmse.toFixed(3)+
+    ", worst miss "+J.max_abs_err.toFixed(3)+" nats. Shaded: the measured range.";
+}
+$("#fitsub").innerHTML="One formula, <code>L = E + A/N^α + B/D^β</code>, fitted to every checkpoint the six sizes logged after "+
+  "warmup. Drag N and D and read what it predicts and what that run would cost. Inside the shaded range the formula "+
+  "follows the real curves to within "+J.max_abs_err.toFixed(2)+" nats (they bend near the bigram line, a power law does not); "+
+  "outside it, it is a guess from a toy fit, nothing more. The time uses the rate the largest "+
+  "model reached on this Mac; larger models would run at another rate.";
+$("#nsl").addEventListener("input",drawFit); $("#dsl").addEventListener("input",drawFit);
+
+/* ------------------------------------------------------------ 3 · tables */
+function drawTables(){
+  const marks=[0.25,0.5,1,2,4];
+  const pick=(c,m)=>c.reduce((a,p)=>Math.abs(Math.log(p[0]/(m*1e6)))<Math.abs(Math.log(a[0]/(m*1e6)))?p:a);
+  let h="<thead><tr><th>d</th><th class='num'>N</th>"+marks.map(m=>"<th class='num'>"+m+"M</th>").join("")+"<th class='num'>seed gap at 4M</th></tr></thead><tbody>";
+  S.forEach(s=>{
+    const c=s.seeds[0].curve;
+    const gap=s.seeds.length>1?Math.abs(c[c.length-1][1]-s.seeds[1].curve[c.length-1][1]).toFixed(4):"";
+    h+="<tr><td>"+s.d+"</td><td class='num'>"+fmt(s.n)+"</td>"+marks.map(m=>"<td class='num'>"+pick(c,m)[1].toFixed(3)+"</td>").join("")+
+      "<td class='num'>"+gap+"</td></tr>";
+  });
+  $("#tab").innerHTML=h+"</tbody>";
+  const ab=F.alpha_by_tokens, steps=Object.keys(ab).map(Number).sort((a,b)=>a-b);
+  let g="<thead><tr><th>fit</th><th>value</th><th>note</th></tr></thead><tbody>";
+  g+="<tr><td>L(N) at 4M tokens</td><td class='mono'>α = "+F.alpha.toFixed(3)+"</td><td>R² "+F.r2.toFixed(3)+"; noise band from two seeds "+F.band.toFixed(4)+"</td></tr>";
+  g+="<tr><td>L(N) at "+steps.map(s=>si(s*4096)).join(", ")+"</td><td class='mono'>"+steps.map(s=>ab[s].toFixed(3)).join(", ")+"</td><td>the exponent moves with the budget</td></tr>";
+  Object.entries(F.l_of_d).forEach(([d,v])=>{ g+="<tr><td>L(D), d "+d+", 0.5M–4M</td><td class='mono'>β = "+v.beta.toFixed(3)+"</td><td>R² "+v.r2.toFixed(2)+"</td></tr>"; });
+  g+="<tr><td>joint L(N, D)</td><td class='mono'>α "+J.alpha+", β "+J.beta+"</td><td>N_opt ∝ C^"+D.frontier.joint_n_opt_exponent+" if the form held beyond the data</td></tr>";
+  const wins=[]; D.frontier.rows.forEach(r=>{ if(!wins.length||wins[wins.length-1].d!==r.d) wins.push({d:r.d,a:r.C,b:r.C}); wins[wins.length-1].b=r.C; });
+  g+="<tr><td>lowest loss at each C (40 budgets)</td><td class='mono'>"+wins.map(w=>"d "+w.d+" up to "+sci(w.b)).join(", ")+"</td><td>each size wins until its run ends at 4M tokens</td></tr>";
+  $("#frtab").innerHTML=g+"</tbody>";
+}
+$("#tabsub").innerHTML="Held-out loss in nats per character at the five marked token counts (seed 0), then the fits.";
+
+$("#notice").innerHTML=[
+  "At equal tokens, every larger model ends lower, and by far more than the gap between two seeds.",
+  "The three smallest models end near the bigram line: at this budget they have learned little beyond pairs of characters.",
+  "The bigger models are still falling fast at 4M tokens. The exponent of L(N) measures how fast each size learns in 977 steps, as much as what it could reach.",
+  "In section 2, push D far right: the curve flattens toward E. Push N up at fixed C: past the best split, the loss rises again, because the run gets fewer tokens.",
+  "In the last row of the table, each budget's winner is the smallest size whose run still reaches it. The staircase follows where the runs stop at 4M tokens; it does not locate an optimum.",
+  "Outside the shaded range the formula is extrapolating from six tiny models that had not finished learning. Published laws come from runs millions of times larger."
+].map(t=>"<li>"+t+"</li>").join("");
+
+drawCurves(); drawFit(); drawTables();
+})();
+</script>

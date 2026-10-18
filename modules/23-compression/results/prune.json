@@ -1,0 +1,118 @@
+{
+ "model": "HuggingFaceTB/SmolLM2-360M-Instruct",
+ "revision": "a10cc1512eabd3dde888204e902eca88bddb4951",
+ "dtype": "float32",
+ "device": "mps",
+ "matrices": 224,
+ "block_weights": 314572800,
+ "all_params": 361821120,
+ "ppl_setup": {
+  "windows": 32,
+  "window_tokens": 1024,
+  "predicted_tokens": 32736,
+  "text": "wikitext-103 train, first two row groups"
+ },
+ "request": "Explain in two sentences why the sky is blue.",
+ "new_tokens": 40,
+ "seed": 0,
+ "rows": [
+  {
+   "method": "untouched",
+   "fraction": 0.0,
+   "loss": 2.77702,
+   "ppl": 16.0711,
+   "tokens": 32736,
+   "reply": "The sky is blue because of a phenomenon known as Rayleigh scattering, which occurs when sunlight enters Earth's atmosphere and encounters tiny molecules of gases such as nitrogen and oxygen. These molecules scatter the shorter wavelengths"
+  },
+  {
+   "method": "magnitude",
+   "fraction": 0.1,
+   "loss": 2.79816,
+   "ppl": 16.4144,
+   "tokens": 32736,
+   "zero_share_of_block_weights": 0.1,
+   "zero_share_of_all_params": 0.0869,
+   "reply": "The sky is blue because of a phenomenon known as Rayleigh scattering, which occurs when sunlight enters Earth's atmosphere and encounters tiny molecules of gases such as nitrogen and oxygen. These molecules scatter the shorter wavelengths"
+  },
+  {
+   "method": "magnitude",
+   "fraction": 0.3,
+   "loss": 3.81558,
+   "ppl": 45.4032,
+   "tokens": 32736,
+   "zero_share_of_block_weights": 0.3,
+   "zero_share_of_all_params": 0.2608,
+   "reply": "The sky is blue because of a phenomenon called Rayleigh scattering, which occurs when sunlight passes through Earth's atmosphere. As sunlight travels from the blue and violet parts of the visible spectrum, it is bent"
+  },
+  {
+   "method": "magnitude",
+   "fraction": 0.5,
+   "loss": 7.30349,
+   "ppl": 1485.4734,
+   "tokens": 32736,
+   "zero_share_of_block_weights": 0.5,
+   "zero_share_of_all_params": 0.4347,
+   "reply": "i\n of.--------in-in-\ning\n...(or in-ninat-in-in-in-in-\n"
+  },
+  {
+   "method": "random",
+   "fraction": 0.1,
+   "loss": 6.572,
+   "ppl": 714.8004,
+   "tokens": 32736,
+   "zero_share_of_block_weights": 0.1,
+   "zero_share_of_all_params": 0.0869,
+   "reply": "Up!\nUp!\nUp! Up!Up! Up! Up is the up! Up is the word is the word is the word is the word is the word is the word is the"
+  },
+  {
+   "method": "random",
+   "fraction": 0.3,
+   "loss": 15.60532,
+   "ppl": 5988305.0,
+   "tokens": 32736,
+   "zero_share_of_block_weights": 0.3,
+   "zero_share_of_all_params": 0.2608,
+   "reply": "pectivespectives( pots oyster theCreateModel potsTherpectives potsimportthew potsimport Pediatrneteswithstanding() fork pots pots pots pots pots pots pots pots pots pots pots hotsimport pots pots pots pots potsiv pots"
+  },
+  {
+   "method": "random",
+   "fraction": 0.5,
+   "loss": 19.77189,
+   "ppl": 386210304.0,
+   "tokens": 32736,
+   "zero_share_of_block_weights": 0.5,
+   "zero_share_of_all_params": 0.4347,
+   "reply": "marymarymarymarymarymarymarymarymarymarymarymarymarymarymarymarymarymarymarymarymarymarymarymarymarymarymarymarymarymarymadmadmadmadmadmadmadmadmadmad"
+  }
+ ],
+ "mps_vs_cpu": {
+  "tokens": 256,
+  "max_abs_diff_logits": 0.00011777877807617188,
+  "logit_range": [
+   -27.98,
+   26.89
+  ],
+  "same_top1_every_position": true
+ },
+ "guard": {
+  "script": "prune.py",
+  "seconds": 80.1,
+  "minutes": 1.34,
+  "peak_rss_gb": 2.44,
+  "peak_mps_driver_gb": 3.53,
+  "stages_seconds": {
+   "load": 3.97,
+   "untouched": 10.28,
+   "magnitude_0.1": 10.65,
+   "magnitude_0.3": 10.66,
+   "magnitude_0.5": 10.67,
+   "random_0.1": 11.2,
+   "random_0.3": 11.23,
+   "random_0.5": 11.26
+  },
+  "machine": "arm64 26.6.2",
+  "torch": "2.14.1",
+  "mps_high_watermark_ratio": "0.5",
+  "mps_cap_gb": 5.92
+ }
+}

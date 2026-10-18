@@ -1,0 +1,408 @@
+{
+ "config": {
+  "model_revision": "pinned in common.py",
+  "header": "Classify the sentiment of each movie review as positive or negative.\n\n",
+  "ks": [
+   0,
+   1,
+   4,
+   8
+  ],
+  "words": [
+   6,
+   40
+  ],
+  "label_token_ids": {
+   "negative": 3524,
+   "positive": 2731
+  },
+  "batch": 16,
+  "majority_share": 0.5091743119266054,
+  "n_test": 872
+ },
+ "conditions": {
+  "k=0": {
+   "accuracy": 0.7935779816513762,
+   "correct": 692,
+   "n": 872,
+   "ci95": [
+    0.7654543657542783,
+    0.8191262250740177
+   ],
+   "share_positive": 0.3256880733944954,
+   "mean_prompt_tokens": 44.163990825688074
+  },
+  "k=1": {
+   "accuracy": 0.8864678899082569,
+   "correct": 773,
+   "n": 872,
+   "ci95": [
+    0.8636941099968067,
+    0.9058514333982546
+   ],
+   "share_positive": 0.5561926605504587,
+   "mean_prompt_tokens": 69.79243119266054
+  },
+  "k=4": {
+   "accuracy": 0.8772935779816514,
+   "correct": 765,
+   "n": 872,
+   "ci95": [
+    0.853846291082751,
+    0.8974311088489261
+   ],
+   "share_positive": 0.5217889908256881,
+   "mean_prompt_tokens": 146.2821100917431
+  },
+  "k=8": {
+   "accuracy": 0.8887614678899083,
+   "correct": 775,
+   "n": 872,
+   "ci95": [
+    0.8661626221417945,
+    0.9079499571191129
+   ],
+   "share_positive": 0.5126146788990825,
+   "mean_prompt_tokens": 249.7901376146789
+  },
+  "k=8, random labels": {
+   "accuracy": 0.841743119266055,
+   "correct": 734,
+   "n": 872,
+   "ci95": [
+    0.8160256410456885,
+    0.8644627029653746
+   ],
+   "share_positive": 0.5,
+   "mean_prompt_tokens": 249.7901376146789
+  }
+ },
+ "paired": [
+  {
+   "a": "k=8",
+   "b": "k=0",
+   "only_a_right": 137,
+   "only_b_right": 54
+  },
+  {
+   "a": "k=4",
+   "b": "k=0",
+   "only_a_right": 134,
+   "only_b_right": 61
+  },
+  {
+   "a": "k=8",
+   "b": "k=4",
+   "only_a_right": 48,
+   "only_b_right": 38
+  },
+  {
+   "a": "k=8",
+   "b": "k=8, random labels",
+   "only_a_right": 82,
+   "only_b_right": 41
+  }
+ ],
+ "mps_vs_cpu": {
+  "device": "mps",
+  "max_abs_diff_last_logits": 2.574920654296875e-05,
+  "logit_range": [
+   -10.802745819091797,
+   24.62198257446289
+  ],
+  "same_answer": true
+ },
+ "example_prompt_k1": "Classify the sentiment of each movie review as positive or negative.\n\nReview: retains an extraordinary faith in the ability of images to communicate the truth of the world around him\nSentiment: positive\n\nReview: it 's a charming and often affecting journey .\nSentiment:",
+ "examples": [
+  {
+   "test": "it 's a charming and often affecting journey .",
+   "label": 1,
+   "demos": [
+    [
+     "retains an extraordinary faith in the ability of images to communicate the truth of the world around him",
+     1
+    ],
+    [
+     "the cast , collectively a successful example of the lovable-loser protagonist",
+     1
+    ],
+    [
+     "most substantial feature for some time",
+     1
+    ],
+    [
+     "trained to live out and carry on their parents ' anguish",
+     0
+    ],
+    [
+     "can impart a message without bludgeoning the audience over the head",
+     1
+    ],
+    [
+     "is n't heated properly , so that it ends up",
+     0
+    ],
+    [
+     "the movie attempts to mine laughs from a genre -- the gangster/crime comedy -- that wore out its welcome with audiences several years ago , and its cutesy reliance on movie-specific cliches is n't exactly endearing .",
+     0
+    ],
+    [
+     "cloaked in the euphemism ` urban drama",
+     0
+    ]
+   ],
+   "margin": {
+    "k=0": 0.7127399444580078,
+    "k=1": 2.7601490020751953,
+    "k=4": 1.997823715209961,
+    "k=8": 0.6863231658935547,
+    "k=8, random labels": 2.077524185180664
+   }
+  },
+  {
+   "test": "unflinchingly bleak and desperate",
+   "label": 0,
+   "demos": [
+    [
+     "one of french cinema 's master craftsmen",
+     1
+    ],
+    [
+     "filmmakers david weissman and bill weber benefit enormously from the cockettes ' camera craziness -- not only did they film performances , but they did the same at home .",
+     1
+    ],
+    [
+     "is a canny crowd pleaser , and the last kiss ... provides more than enough sentimental catharsis for a satisfying evening at the multiplex .",
+     1
+    ],
+    [
+     "-- the real issues tucked between the silly and crude storyline",
+     0
+    ],
+    [
+     "the pacing is often way off and there are too many bona fide groaners among too few laughs .",
+     0
+    ],
+    [
+     "dialogue that cuts to the chase of the modern girl 's dilemma",
+     1
+    ],
+    [
+     "suffers from a paunchy midsection , several plodding action sequences and a wickedly undramatic central theme .",
+     0
+    ],
+    [
+     "of the worst films of 2002",
+     0
+    ]
+   ],
+   "margin": {
+    "k=0": -2.901198387145996,
+    "k=1": -0.7222080230712891,
+    "k=4": -2.0706100463867188,
+    "k=8": -1.2487030029296875,
+    "k=8, random labels": -1.2517471313476562
+   }
+  },
+  {
+   "test": "allows us to hope that nolan is poised to embark a major career as a commercial yet inventive filmmaker .",
+   "label": 1,
+   "demos": [
+    [
+     "a teenybopper ed wood film , replete with the pubescent scandalous innuendo",
+     0
+    ],
+    [
+     "been , pardon the pun , sucked out and replaced by goth goofiness",
+     0
+    ],
+    [
+     "begins with promise , but runs aground after being snared in its own tangled plot .",
+     0
+    ],
+    [
+     "gives her best performance since abel ferrara had her beaten to a pulp in his dangerous game",
+     1
+    ],
+    [
+     ", but i suspect it might deliver again and again .",
+     1
+    ],
+    [
+     "childhood innocence combined with indoctrinated prejudice",
+     1
+    ],
+    [
+     "we did n't get more re-creations of all those famous moments from the show",
+     0
+    ],
+    [
+     "an affectionately goofy satire that 's unafraid to throw elbows when necessary",
+     1
+    ]
+   ],
+   "margin": {
+    "k=0": -1.2550220489501953,
+    "k=1": 1.690786361694336,
+    "k=4": 2.028961181640625,
+    "k=8": 3.4127159118652344,
+    "k=8, random labels": 3.3062667846679688
+   }
+  },
+  {
+   "test": "the acting , costumes , music , cinematography and sound are all astounding given the production 's austere locales .",
+   "label": 1,
+   "demos": [
+    [
+     "the sad cad that really gives the film its oomph",
+     1
+    ],
+    [
+     "offers no new insight on the matter , nor",
+     0
+    ],
+    [
+     "gives her best performance since abel ferrara had her beaten to a pulp in his dangerous game .",
+     1
+    ],
+    [
+     "to be a parody of gross-out flicks , college flicks , or even flicks in general",
+     0
+    ],
+    [
+     "skin of man gets a few cheap shocks from its kids-in-peril theatrics",
+     0
+    ],
+    [
+     "which might have been called freddy gets molested by a dog",
+     0
+    ],
+    [
+     "the new thriller proves that director m. night shyamalan can weave an eerie spell and that mel gibson can gasp , shudder and even tremble without losing his machismo .",
+     1
+    ],
+    [
+     "be lying if i said my ribcage did n't ache by the end of kung pow",
+     1
+    ]
+   ],
+   "margin": {
+    "k=0": 1.1787166595458984,
+    "k=1": 2.1198673248291016,
+    "k=4": 1.986745834350586,
+    "k=8": 1.43341064453125,
+    "k=8, random labels": 0.08130264282226562
+   }
+  },
+  {
+   "test": "it 's slow -- very , very slow .",
+   "label": 0,
+   "demos": [
+    [
+     "whether it 's the worst movie of 2002 , i ca n't say for sure : memories of rollerball have faded , and i skipped country bears",
+     0
+    ],
+    [
+     "delivering a wholesome fantasy for kids",
+     1
+    ],
+    [
+     "no solace here , no entertainment value , merely a fierce lesson in where filmmaking can take us",
+     0
+    ],
+    [
+     "except a lingering creepiness one feels from being dragged through a sad , sordid universe of guns , drugs , avarice and damaged dreams",
+     0
+    ],
+    [
+     "zips along with b-movie verve while adding the rich details and go-for-broke acting that heralds something special .",
+     1
+    ],
+    [
+     "if you are willing to do this , then you so crazy !",
+     0
+    ],
+    [
+     "an athlete , a movie star , and",
+     1
+    ],
+    [
+     "the local flavor with a hugely enjoyable film about changing times , clashing cultures and the pleasures of a well-made pizza",
+     1
+    ]
+   ],
+   "margin": {
+    "k=0": -1.4643096923828125,
+    "k=1": -2.9267501831054688,
+    "k=4": -3.0621204376220703,
+    "k=8": -2.4123687744140625,
+    "k=8, random labels": -2.7658138275146484
+   }
+  },
+  {
+   "test": "although laced with humor and a few fanciful touches , the film is a refreshingly serious look at young women .",
+   "label": 1,
+   "demos": [
+    [
+     "lee 's character did n't just go to a bank manager and save everyone the misery",
+     0
+    ],
+    [
+     "besides its terrific performances , is fontaine 's willingness to wander into the dark areas of parent-child relationships without flinching .",
+     1
+    ],
+    [
+     "it 's an experience in understanding a unique culture that is presented with universal appeal .",
+     1
+    ],
+    [
+     "it 's hard to believe that something so short could be so flabby .",
+     0
+    ],
+    [
+     "it 's as comprehensible as any dummies guide , something even non-techies can enjoy .",
+     1
+    ],
+    [
+     "is the awkwardly paced soap opera-ish story",
+     0
+    ],
+    [
+     "... feels as if ( there 's ) a choke leash around your neck so director nick cassavetes can give it a good , hard yank whenever he wants you to feel something .",
+     0
+    ],
+    [
+     "like e.t. the first time i saw it as a young boy",
+     1
+    ]
+   ],
+   "margin": {
+    "k=0": 0.21201324462890625,
+    "k=1": 1.660573959350586,
+    "k=4": 2.6354141235351562,
+    "k=8": 2.7409744262695312,
+    "k=8, random labels": 2.1640892028808594
+   }
+  }
+ ],
+ "guard": {
+  "script": "fewshot",
+  "seconds": 193.9,
+  "minutes": 3.23,
+  "peak_rss_gb": 2.49,
+  "peak_mps_driver_gb": 3.19,
+  "stages_seconds": {
+   "data": 10.98,
+   "load": 3.31,
+   "k=0": 11.05,
+   "k=1": 16.88,
+   "k=4": 34.03,
+   "k=8": 59.14,
+   "k=8, random labels": 57.15
+  },
+  "machine": "arm64 26.6.2",
+  "torch": "2.14.1",
+  "mps_high_watermark_ratio": "0.5",
+  "mps_cap_gb": 5.92
+ }
+}

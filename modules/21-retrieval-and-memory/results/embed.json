@@ -1,0 +1,585 @@
+{
+ "data": {
+  "dataset": "rajpurkar/squad",
+  "revision": "7b6d24c440a36b6815f21b70d25016731768db1f",
+  "file": "plain_text/validation-00000-of-00001.parquet",
+  "licence": "CC BY-SA 4.0",
+  "n_paragraphs": 2067,
+  "n_questions": 10570,
+  "n_articles": 48
+ },
+ "chance_same_article": 0.0242,
+ "models": {
+  "minilm": {
+   "id": "sentence-transformers/all-MiniLM-L6-v2",
+   "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+   "params": 22713216,
+   "dim": 384,
+   "max_len": 256,
+   "cut_paragraphs": 168,
+   "cut_questions": 0,
+   "cos_question_gold": {
+    "p05": 0.3119,
+    "median": 0.5828,
+    "p95": 0.7512,
+    "mean": 0.563
+   },
+   "cos_question_random": {
+    "p05": -0.1005,
+    "median": 0.0121,
+    "p95": 0.1926,
+    "mean": 0.0259
+   },
+   "cos_paragraph_pairs": {
+    "p05": -0.1106,
+    "median": 0.0083,
+    "p95": 0.2064,
+    "mean": 0.0234
+   },
+   "gold_beats_random": 0.9976,
+   "nn_same_article": 0.9594,
+   "hist": {
+    "gold": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     3,
+     4,
+     4,
+     4,
+     4,
+     10,
+     16,
+     24,
+     22,
+     38,
+     45,
+     55,
+     59,
+     91,
+     85,
+     121,
+     149,
+     163,
+     165,
+     233,
+     259,
+     313,
+     345,
+     381,
+     442,
+     498,
+     525,
+     551,
+     589,
+     688,
+     664,
+     673,
+     636,
+     632,
+     528,
+     500,
+     338,
+     320,
+     194,
+     96,
+     59,
+     28,
+     15,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "random": [
+     11,
+     42,
+     70,
+     139,
+     277,
+     471,
+     620,
+     862,
+     1018,
+     1071,
+     1103,
+     935,
+     837,
+     736,
+     532,
+     430,
+     348,
+     246,
+     205,
+     121,
+     101,
+     83,
+     55,
+     40,
+     30,
+     35,
+     16,
+     18,
+     25,
+     11,
+     6,
+     10,
+     9,
+     9,
+     9,
+     9,
+     6,
+     8,
+     1,
+     0,
+     5,
+     0,
+     1,
+     1,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "range": [
+     -0.2,
+     1.0
+    ]
+   }
+  },
+  "smollm2": {
+   "id": "HuggingFaceTB/SmolLM2-360M-Instruct",
+   "revision": "a10cc1512eabd3dde888204e902eca88bddb4951",
+   "params": 361821120,
+   "dim": 960,
+   "max_len": 512,
+   "cut_paragraphs": 9,
+   "cut_questions": 0,
+   "cos_question_gold": {
+    "p05": 0.7056,
+    "median": 0.856,
+    "p95": 0.9305,
+    "mean": 0.8417
+   },
+   "cos_question_random": {
+    "p05": 0.4266,
+    "median": 0.6931,
+    "p95": 0.8419,
+    "mean": 0.6717
+   },
+   "cos_paragraph_pairs": {
+    "p05": 0.3548,
+    "median": 0.6597,
+    "p95": 0.854,
+    "mean": 0.6391
+   },
+   "gold_beats_random": 0.9103,
+   "nn_same_article": 0.8921,
+   "hist": {
+    "gold": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     3,
+     1,
+     0,
+     2,
+     3,
+     7,
+     6,
+     14,
+     11,
+     11,
+     17,
+     29,
+     35,
+     46,
+     71,
+     107,
+     119,
+     191,
+     256,
+     349,
+     458,
+     666,
+     848,
+     1029,
+     1290,
+     1404,
+     1412,
+     1219,
+     713,
+     238,
+     14,
+     0
+    ],
+    "random": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     2,
+     3,
+     4,
+     5,
+     7,
+     6,
+     18,
+     16,
+     23,
+     29,
+     43,
+     49,
+     49,
+     65,
+     73,
+     101,
+     104,
+     135,
+     174,
+     192,
+     223,
+     264,
+     316,
+     326,
+     410,
+     456,
+     532,
+     569,
+     630,
+     720,
+     721,
+     729,
+     798,
+     660,
+     620,
+     531,
+     407,
+     255,
+     180,
+     84,
+     34,
+     6,
+     0,
+     0,
+     0
+    ],
+    "range": [
+     -0.2,
+     1.0
+    ]
+   }
+  }
+ },
+ "mps_vs_cpu": {
+  "model": "minilm",
+  "texts": 8,
+  "max_abs_diff": 1.6391277313232422e-07,
+  "min_cosine": 0.9999999403953552,
+  "device": "mps"
+ },
+ "neighbours": [
+  {
+   "paragraph": 948,
+   "title": "Newcastle_upon_Tyne",
+   "text": "The historic heart of Newcastle is the Grainger Town area. Established on classical streets built by Richard Grainger, a builder and developer, between 1835 and 1842, some of Newcastle upon Tyne's finest buildings and streets lie within this area of the city centre including Grainger Market, Theatre",
+   "minilm": [
+    {
+     "paragraph": 949,
+     "title": "Newcastle_upon_Tyne",
+     "cos": 0.6854,
+     "text": "The Grainger Market replaced an earlier market originally built in 1808 called the Butcher Market. The Grainger Market itself, was opened in 1835 and was Newcas"
+    },
+    {
+     "paragraph": 952,
+     "title": "Newcastle_upon_Tyne",
+     "cos": 0.5541,
+     "text": "Other shopping destinations in Newcastle include Grainger Street and the area around Grey's Monument, the relatively modern Eldon Garden and Monument Mall compl"
+    },
+    {
+     "paragraph": 945,
+     "title": "Newcastle_upon_Tyne",
+     "cos": 0.5454,
+     "text": "The city has an extensive neoclassical centre referred to as Tyneside Classical largely developed in the 1830s by Richard Grainger and John Dobson, and recently"
+    }
+   ],
+   "smollm2": [
+    {
+     "paragraph": 949,
+     "title": "Newcastle_upon_Tyne",
+     "cos": 0.9756,
+     "text": "The Grainger Market replaced an earlier market originally built in 1808 called the Butcher Market. The Grainger Market itself, was opened in 1835 and was Newcas"
+    },
+    {
+     "paragraph": 944,
+     "title": "Newcastle_upon_Tyne",
+     "cos": 0.9677,
+     "text": "In large parts, Newcastle still retains a medieval street layout. Narrow alleys or 'chares', most of which can only be traversed by foot, still exist in abundan"
+    },
+    {
+     "paragraph": 945,
+     "title": "Newcastle_upon_Tyne",
+     "cos": 0.9632,
+     "text": "The city has an extensive neoclassical centre referred to as Tyneside Classical largely developed in the 1830s by Richard Grainger and John Dobson, and recently"
+    }
+   ]
+  },
+  {
+   "paragraph": 1036,
+   "title": "Victoria_and_Albert_Museum",
+   "text": "Several French paintings entered the collection as part of the 260 paintings and miniatures (not all the works were French, for example Carlo Crivelli's Virgin and Child) that formed part of the Jones bequest of 1882 and as such are displayed in the galleries of continental art 1600–1800, including ",
+   "minilm": [
+    {
+     "paragraph": 1042,
+     "title": "Victoria_and_Albert_Museum",
+     "cos": 0.5248,
+     "text": "With the opening of the Dorothy and Michael Hintze sculpture galleries in 2006 it was decided to extend the chronology of the works on display up to 1950; this "
+    },
+    {
+     "paragraph": 1028,
+     "title": "Victoria_and_Albert_Museum",
+     "cos": 0.4991,
+     "text": "The Soulages collection of Italian and French Renaissance objects was acquired between 1859 and 1865, and includes several cassone. The John Jones Collection of"
+    },
+    {
+     "paragraph": 1035,
+     "title": "Victoria_and_Albert_Museum",
+     "cos": 0.4876,
+     "text": "In 1857 John Sheepshanks donated 233 paintings, mainly by contemporary British artists, and a similar number of drawings to the museum with the intention of for"
+    }
+   ],
+   "smollm2": [
+    {
+     "paragraph": 1028,
+     "title": "Victoria_and_Albert_Museum",
+     "cos": 0.971,
+     "text": "The Soulages collection of Italian and French Renaissance objects was acquired between 1859 and 1865, and includes several cassone. The John Jones Collection of"
+    },
+    {
+     "paragraph": 1040,
+     "title": "Victoria_and_Albert_Museum",
+     "cos": 0.9617,
+     "text": "Rodin is represented by more than 20 works in the museum collection, making it one of the largest collections of the sculptor's work outside France; these were "
+    },
+    {
+     "paragraph": 1018,
+     "title": "Victoria_and_Albert_Museum",
+     "cos": 0.9565,
+     "text": "Not only the work of British artists and craftspeople is on display, but also work produced by European artists that was purchased or commissioned by British pa"
+    }
+   ]
+  },
+  {
+   "paragraph": 279,
+   "title": "Computational_complexity_theory",
+   "text": "Along the same lines, co-NP is the class containing the complement problems (i.e. problems with the yes/no answers reversed) of NP problems. It is believed that NP is not equal to co-NP; however, it has not yet been proven. It has been shown that if these two complexity classes are not equal then P ",
+   "minilm": [
+    {
+     "paragraph": 273,
+     "title": "Computational_complexity_theory",
+     "cos": 0.6123,
+     "text": "The complexity class P is often seen as a mathematical abstraction modeling those computational tasks that admit an efficient algorithm. This hypothesis is call"
+    },
+    {
+     "paragraph": 272,
+     "title": "Computational_complexity_theory",
+     "cos": 0.5654,
+     "text": "If a problem X is in C and hard for C, then X is said to be complete for C. This means that X is the hardest problem in C. (Since many problems could be equally"
+    },
+    {
+     "paragraph": 271,
+     "title": "Computational_complexity_theory",
+     "cos": 0.5592,
+     "text": "This motivates the concept of a problem being hard for a complexity class. A problem X is hard for a class of problems C if every problem in C can be reduced to"
+    }
+   ],
+   "smollm2": [
+    {
+     "paragraph": 275,
+     "title": "Computational_complexity_theory",
+     "cos": 0.9731,
+     "text": "It was shown by Ladner that if P ≠ NP then there exist problems in NP that are neither in P nor NP-complete. Such problems are called NP-intermediate problems. "
+    },
+    {
+     "paragraph": 272,
+     "title": "Computational_complexity_theory",
+     "cos": 0.9704,
+     "text": "If a problem X is in C and hard for C, then X is said to be complete for C. This means that X is the hardest problem in C. (Since many problems could be equally"
+    },
+    {
+     "paragraph": 280,
+     "title": "Computational_complexity_theory",
+     "cos": 0.9683,
+     "text": "Similarly, it is not known if L (the set of all problems that can be solved in logarithmic space) is strictly contained in P or equal to P. Again, there are man"
+    }
+   ]
+  },
+  {
+   "paragraph": 913,
+   "title": "Geology",
+   "text": "The development of plate tectonics provided a physical basis for many observations of the solid Earth. Long linear regions of geologic features could be explained as plate boundaries. Mid-ocean ridges, high regions on the seafloor where hydrothermal vents and volcanoes exist, were explained as diver",
+   "minilm": [
+    {
+     "paragraph": 912,
+     "title": "Geology",
+     "cos": 0.6993,
+     "text": "In the 1960s, a series of discoveries, the most important of which was seafloor spreading, showed that the Earth's lithosphere, which includes the crust and rig"
+    },
+    {
+     "paragraph": 929,
+     "title": "Geology",
+     "cos": 0.5913,
+     "text": "Among the most well-known experiments in structural geology are those involving orogenic wedges, which are zones in which mountains are built along convergent t"
+    },
+    {
+     "paragraph": 923,
+     "title": "Geology",
+     "cos": 0.5291,
+     "text": "The addition of new rock units, both depositionally and intrusively, often occurs during deformation. Faulting and other deformational processes result in the c"
+    }
+   ],
+   "smollm2": [
+    {
+     "paragraph": 912,
+     "title": "Geology",
+     "cos": 0.9646,
+     "text": "In the 1960s, a series of discoveries, the most important of which was seafloor spreading, showed that the Earth's lithosphere, which includes the crust and rig"
+    },
+    {
+     "paragraph": 929,
+     "title": "Geology",
+     "cos": 0.9536,
+     "text": "Among the most well-known experiments in structural geology are those involving orogenic wedges, which are zones in which mountains are built along convergent t"
+    },
+    {
+     "paragraph": 928,
+     "title": "Geology",
+     "cos": 0.9411,
+     "text": "Structural geologists use microscopic analysis of oriented thin sections of geologic samples to observe the fabric within the rocks which gives information abou"
+    }
+   ]
+  },
+  {
+   "paragraph": 2021,
+   "title": "French_and_Indian_War",
+   "text": "Following the treaty, King George III issued the Royal Proclamation of 1763 on October 7, 1763, which outlined the division and administration of the newly conquered territory, and to some extent continues to govern relations between the government of modern Canada and the First Nations. Included in",
+   "minilm": [
+    {
+     "paragraph": 1980,
+     "title": "French_and_Indian_War",
+     "cos": 0.5601,
+     "text": "After the disastrous 1757 British campaigns (resulting in a failed expedition against Louisbourg and the Siege of Fort William Henry, which was followed by Indi"
+    },
+    {
+     "paragraph": 2019,
+     "title": "French_and_Indian_War",
+     "cos": 0.5586,
+     "text": "The war in North America officially ended with the signing of the Treaty of Paris on 10 February 1763, and war in the European theatre of the Seven Years' War w"
+    },
+    {
+     "paragraph": 2020,
+     "title": "French_and_Indian_War",
+     "cos": 0.5352,
+     "text": "Britain gained control of French Canada and Acadia, colonies containing approximately 80,000 primarily French-speaking Roman Catholic residents. The deportation"
+    }
+   ],
+   "smollm2": [
+    {
+     "paragraph": 2002,
+     "title": "French_and_Indian_War",
+     "cos": 0.9499,
+     "text": "An early important political response to the opening of hostilities was the convening of the Albany Congress in June and July, 1754. The goal of the congress wa"
+    },
+    {
+     "paragraph": 547,
+     "title": "Huguenot",
+     "cos": 0.9425,
+     "text": "The exodus of Huguenots from France created a brain drain, as many Huguenots had occupied important places in society. The kingdom did not fully recover for yea"
+    },
+    {
+     "paragraph": 2022,
+     "title": "French_and_Indian_War",
+     "cos": 0.9369,
+     "text": "For many native populations, the elimination of French power in North America meant the disappearance of a strong ally and counterweight to British expansion, l"
+    }
+   ]
+  }
+ ],
+ "cache": "~/.cache/huggingface/mlcourse/squad-7b6d24c/",
+ "guard": {
+  "script": "embed",
+  "seconds": 165.4,
+  "minutes": 2.76,
+  "peak_rss_gb": 2.65,
+  "peak_mps_driver_gb": 2.99,
+  "stages_seconds": {
+   "load": 0.26,
+   "minilm_paragraphs": 7.71,
+   "minilm_questions": 2.45,
+   "smollm2_paragraphs": 104.89,
+   "smollm2_questions": 49.87
+  },
+  "machine": "arm64 26.6.2",
+  "torch": "2.14.1",
+  "mps_high_watermark_ratio": "0.5",
+  "mps_cap_gb": 5.92
+ }
+}
