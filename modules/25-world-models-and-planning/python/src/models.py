@@ -2,7 +2,8 @@
 
 - ``OneHotModel``: observation + action -> a score for each of the 64 cells
   where the agent may be next. Walls and goal do not move, so the next
-  observation is the old one with the agent plane replaced by the top cell.
+  observation is the old one with the agent plane replaced by the cell with
+  the highest score.
 - ``JEPA``: an encoder maps the observation to a 32-number latent; a predictor
   maps (latent, action) to the next latent. Module 16's objective: the target
   is what a slow moving average of the encoder (EMA) outputs for the next

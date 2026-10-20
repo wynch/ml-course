@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 import time
 from pathlib import Path
@@ -13,6 +14,7 @@ import torch
 from common import MODEL_ID, load_tokenizer
 
 FIG_DIR = Path(__file__).resolve().parents[1] / "figures"
+RESULTS = Path(__file__).resolve().parents[1] / "results" / "tokens_per_sec.json"
 
 PROMPT_LENS = [8, 64, 256]
 NEW_TOKENS = 64
@@ -24,20 +26,32 @@ def _make_prompt(tokenizer, n_tokens: int) -> str:
     return tokenizer.decode(ids)
 
 
+def _sync(device) -> None:
+    """Wait for queued GPU work, so the clock measures finished work."""
+    if device.type == "mps":
+        torch.mps.synchronize()
+    elif device.type == "cuda":
+        torch.cuda.synchronize()
+
+
 def time_generation(model, tokenizer, prompt: str, new_tokens: int) -> float:
+    """Tokens/sec over the whole generate call, prompt pass (prefill) included."""
     ids = tokenizer(prompt, return_tensors="pt").to(model.device)
 
     with torch.no_grad():
         model.generate(**ids, max_new_tokens=4, do_sample=False,
                         pad_token_id=tokenizer.eos_token_id)
 
+    _sync(model.device)
     start = time.perf_counter()
     with torch.no_grad():
-        model.generate(**ids, max_new_tokens=new_tokens, do_sample=False,
-                        pad_token_id=tokenizer.eos_token_id)
+        out = model.generate(**ids, max_new_tokens=new_tokens, do_sample=False,
+                             pad_token_id=tokenizer.eos_token_id)
+    _sync(model.device)
     elapsed = time.perf_counter() - start
 
-    return new_tokens / elapsed
+    generated = out.shape[1] - ids.input_ids.shape[1]  # may stop early at EOS
+    return generated / elapsed
 
 
 def benchmark() -> dict[str, list[float]]:
@@ -96,6 +110,13 @@ def main() -> None:
         print(f"{dev.upper():>4}: {pretty}")
     FIG_DIR.mkdir(exist_ok=True)
     plot(results, FIG_DIR / "tokens_per_sec.png")
+    RESULTS.parent.mkdir(exist_ok=True)
+    RESULTS.write_text(json.dumps({
+        "model": MODEL_ID, "new_tokens": NEW_TOKENS, "prompt_lens": PROMPT_LENS,
+        "tokens_per_sec": {d: [round(v, 1) for v in sp] for d, sp in results.items()},
+        "torch": torch.__version__,
+    }, indent=2) + "\n")
+    print(f"wrote {RESULTS}")
 
 
 if __name__ == "__main__":

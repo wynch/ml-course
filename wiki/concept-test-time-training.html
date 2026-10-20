@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Test-Time Training · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="test-time-training">Test-Time Training</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">test-time-training</span> <span class="tag">continual-learning</span> <span class="tag">linear-attention</span> <span class="tag">arc-agi</span> <span class="tag">adaptation</span> <span class="tag">hub</span></div>
+<p>Test-time training (TTT) updates weights while the model is in use, on the input in front of it, instead of keeping them fixed after training. The wiki uses the term for two things that share a name:</p>
+<div class="tw"><table><thead><tr><th>Sense</th><th>What is trained at test time</th><th>Where</th></tr></thead><tbody><tr><td>A layer</td><td>a small inner network that serves as the layer's memory; it takes gradient steps as tokens arrive, often to bind keys to values</td><td><a href="source-ttt-kv-binding-linear-attention.html">source-ttt-kv-binding-linear-attention</a>; TTT layers, arXiv 2407.04620 (not in raw)</td></tr><tr><td>A procedure</td><td>a whole pretrained model, fine-tuned on the examples of one new task before it answers</td><td><a href="source-arc-prize-2025-report.html">source-arc-prize-2025-report</a></td></tr></tbody></table></div>
+<p>The two meet in one idea: the weights, or part of them, act as a working memory for the current input.</p>
+<h2 id="the-layer-memory-or-linear-attention">The layer: memory or linear attention?</h2>
+<p>A TTT layer was read as online memorisation: the inner network learns to map each key to its value, and the query reads that memory back. Liu et al. test the reading and find against it (<code>raw/arxiv-2602-21204-test-time-training-with-kv-binding.md</code>, §4; <a href="source-ttt-kv-binding-linear-attention.html">source-ttt-kv-binding-linear-attention</a>):</p>
+<ul><li>more inner steps fit keys and values better yet make the task worse (§4.1, Figure 1);</li><li>gradient <em>ascent</em> in the inner loop, trained from scratch, does as well or slightly better: perplexity 16.19 against 16.43, top-1 79.61% against 79.34% (§4.2, Table 1);</li><li>using the keys in place of the queries changes little (§4.4, Table 1).</li></ul>
+<p>Their theorem: with a linear, bias-free last inner layer, a broad class of TTT layers, including multi-layer inner networks and momentum, can be written as linear attention, a learned mix of queries, keys and values (§5, Theorems 5.1–5.3). The rewrite allows a parallel form that runs the layer up to 4.0× faster at inference (§6.2, Figure 4).</p>
+<p>Gated DeltaNet gives the same link from the other side: its update rule is one step of gradient descent on ‖S k − v‖² at test time, with the gate acting as weight decay (<code>raw/arxiv-2412-06464-gated-delta-networks-improving-mamba2-with.md</code>, §3.1, Table 1; <a href="source-gated-deltanet.html">source-gated-deltanet</a>). So "memory by gradient steps" and "linear attention with a delta rule" are one mechanism; see <a href="concept-state-space-models.html">concept-state-space-models</a>.</p>
+<p>Contradiction (partial), carried from <a href="concept-test-time-compute.html">concept-test-time-compute</a>: TTT layers were presented as memorising at test time; Liu et al. argue they act as learned linear attention instead. Gated DeltaNet still reads its own, similar update as a write to memory, so the two papers use "memory" differently. The proofs need a linear, bias-free last inner layer, and the experiments cover two open models only (<code>raw/arxiv-2602-21204-test-time-training-with-kv-binding.md</code>, §7).</p>
+<h2 id="the-procedure-arc">The procedure: ARC</h2>
+<p>The ARC Prize 2025 report credits test-time training with the top Kaggle scores in both 2024 (the ARChitects) and 2025 (NVARC, 24.03% on the private ARC-AGI-2 set): the network is fine-tuned at inference time on the examples of a new task, so "the neural weights are trained to represent a task-specific solver program" (<code>raw/arxiv-2601-10904-arc-prize-2025-technical-report.md</code>, §2.2, §3.1.2). The report then notes a step further, networks trained from scratch on one task: CompressARC uses 76K parameters and about 20 minutes per puzzle on one RTX 4070, minimising description length (same file, §3.2.2; see <a href="concept-minimum-description-length.html">concept-minimum-description-length</a>); TRM trains one 7M network on all the puzzles at once, with a learned embedding per puzzle (<a href="source-trm-tiny-recursive-model.html">source-trm-tiny-recursive-model</a>).</p>
+<h2 id="the-local-line">The local line</h2>
+<p>Vincent's Continual Interpretability Layer built a never-reset TTT cell for live audio and OS-event streams. Resetting the inner state per sequence was "catastrophic on live streams" (excess 786 against 27.5 for the never-reset cell over two hours); on Dohare et al.'s Slowly-Changing Regression the cell kept its plasticity where a backprop MLP lost it (error ratio 0.989 against 1.364). But no learned cell beat floor B, a self-weighting mix of four simple predictors, and the line was stopped on 2026-07-20 and sunset on 2026-10-07 (<span class="dead" title="not published">experiment-continual-interpretability-layer</span>). Loss of plasticity itself is in <code>raw/arxiv-2306-13812-maintaining-plasticity-in-deep-continual-learning.md</code> (§3, Appendix B; <a href="source-loss-of-plasticity.html">source-loss-of-plasticity</a>).</p>
+<h2 id="open-questions">Open questions</h2>
+<ul><li>If the inner loop is not a memory, why does more inner-loop capacity help at all? Updating only the last inner layer gave the best scores in Liu et al. (<code>raw/arxiv-2602-21204-test-time-training-with-kv-binding.md</code>, §6.1, Table 2).</li><li>Do Titans and Atlas fall under the same theorem? The authors expect so and leave it untested (same file, §7).</li><li>Can a model keep learning at test time over hundreds of phases without losing plasticity? Local Support Learning names test-time training as future work (<code>raw/arxiv-2610-02126-local-support-learning.md</code>, §6; <a href="concept-continual-learning.html">concept-continual-learning</a>).</li></ul>
+<h2 id="key-sources">Key sources</h2>
+<ul><li><a href="source-ttt-kv-binding-linear-attention.html">source-ttt-kv-binding-linear-attention</a> · <a href="source-gated-deltanet.html">source-gated-deltanet</a> · <a href="source-arc-prize-2025-report.html">source-arc-prize-2025-report</a> · <a href="source-trm-tiny-recursive-model.html">source-trm-tiny-recursive-model</a> · <a href="source-loss-of-plasticity.html">source-loss-of-plasticity</a></li><li>Hubs: <a href="concept-state-space-models.html">concept-state-space-models</a>, <a href="concept-test-time-compute.html">concept-test-time-compute</a>, <a href="concept-continual-learning.html">concept-continual-learning</a>, <a href="concept-arc-agi.html">concept-arc-agi</a>; thread <a href="thread-test-time-compute.html">thread-test-time-compute</a></li><li>Local: <span class="dead" title="not published">experiment-continual-interpretability-layer</span></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2602-21204-test-time-training-with-kv-binding.md</code> (arXiv 2602.21204)</li><li><code>raw/arxiv-2412-06464-gated-delta-networks-improving-mamba2-with.md</code> (arXiv 2412.06464)</li><li><code>raw/arxiv-2601-10904-arc-prize-2025-technical-report.md</code> (arXiv 2601.10904)</li><li><code>raw/arxiv-2306-13812-maintaining-plasticity-in-deep-continual-learning.md</code> (arXiv 2306.13812)</li><li><code>raw/arxiv-2610-02126-local-support-learning.md</code></li><li>Sun et al., TTT layers: <a href="https://arxiv.org/abs/2407.04620" rel="noreferrer">https://arxiv.org/abs/2407.04620</a> (not in raw)</li></ul>
+<details class="src"><summary>Sources (6)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2602-21204-test-time-training-with-kv-binding.md</code></li><li><code>raw/arxiv-2412-06464-gated-delta-networks-improving-mamba2-with.md</code></li><li><code>raw/arxiv-2601-10904-arc-prize-2025-technical-report.md</code></li><li><code>raw/arxiv-2306-13812-maintaining-plasticity-in-deep-continual-learning.md</code></li><li><code>raw/arxiv-2610-02126-local-support-learning.md</code></li><li><a href="https://arxiv.org/abs/2407.04620" rel="noreferrer">https://arxiv.org/abs/2407.04620</a></li></ul></details>
+</main>
+</body>
+</html>

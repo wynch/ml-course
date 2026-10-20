@@ -1,0 +1,337 @@
+{
+ "width": 1024,
+ "batch": 2048,
+ "depths": [
+  2,
+  4,
+  8,
+  16
+ ],
+ "steps": 3,
+ "checkpoint_segments": {
+  "2": 1,
+  "4": 2,
+  "8": 3,
+  "16": 4
+ },
+ "note": "live = peak bytes of tensors alive (weights, optimizer, gradients, activations, data); rss = peak resident memory of the fresh process; extra = minus the inference process at the same depth",
+ "by_depth": {
+  "2": {
+   "params": 1863690,
+   "params_mb": 7.1,
+   "activation_mb_one_layer": 8.0,
+   "rules": {
+    "inference": {
+     "live_peak_mb": 37.3,
+     "extra_mb": 0.0,
+     "rss_peak_mb": 340.1,
+     "rss_extra_mb": 0.0,
+     "seconds_per_step_metered": 0.008
+    },
+    "backprop": {
+     "live_peak_mb": 59.5,
+     "extra_mb": 22.3,
+     "rss_peak_mb": 382.2,
+     "rss_extra_mb": 42.1,
+     "seconds_per_step_metered": 0.022,
+     "autograd_saved_mb": 26.3
+    },
+    "checkpointing": {
+     "live_peak_mb": 59.5,
+     "extra_mb": 22.3,
+     "rss_peak_mb": 382.8,
+     "rss_extra_mb": 42.8,
+     "seconds_per_step_metered": 0.031,
+     "autograd_saved_mb": 14.3
+    },
+    "mezo": {
+     "live_peak_mb": 37.3,
+     "extra_mb": 0.0,
+     "rss_peak_mb": 340.0,
+     "rss_extra_mb": -0.0,
+     "seconds_per_step_metered": 0.061
+    },
+    "forward_forward": {
+     "live_peak_mb": 116.5,
+     "extra_mb": 79.2,
+     "rss_peak_mb": 439.6,
+     "rss_extra_mb": 99.5,
+     "seconds_per_step_metered": 0.034
+    },
+    "mono_forward": {
+     "live_peak_mb": 72.8,
+     "extra_mb": 35.6,
+     "rss_peak_mb": 391.5,
+     "rss_extra_mb": 51.4,
+     "seconds_per_step_metered": 0.017
+    },
+    "predictive_coding": {
+     "live_peak_mb": 93.5,
+     "extra_mb": 56.3,
+     "rss_peak_mb": 417.0,
+     "rss_extra_mb": 77.0,
+     "seconds_per_step_metered": 0.29
+    },
+    "backprop_sgd": {
+     "live_peak_mb": 45.3,
+     "extra_mb": 8.0,
+     "rss_peak_mb": 353.5,
+     "rss_extra_mb": 13.4,
+     "seconds_per_step_metered": 0.019,
+     "autograd_saved_mb": 26.3
+    },
+    "mono_forward_sgd": {
+     "live_peak_mb": 58.5,
+     "extra_mb": 21.3,
+     "rss_peak_mb": 369.6,
+     "rss_extra_mb": 29.5,
+     "seconds_per_step_metered": 0.015
+    }
+   }
+  },
+  "4": {
+   "params": 3962890,
+   "params_mb": 15.1,
+   "activation_mb_one_layer": 8.0,
+   "rules": {
+    "inference": {
+     "live_peak_mb": 45.3,
+     "extra_mb": 0.0,
+     "rss_peak_mb": 347.8,
+     "rss_extra_mb": 0.0,
+     "seconds_per_step_metered": 0.012
+    },
+    "backprop": {
+     "live_peak_mb": 99.5,
+     "extra_mb": 54.3,
+     "rss_peak_mb": 428.4,
+     "rss_extra_mb": 80.7,
+     "seconds_per_step_metered": 0.041,
+     "autograd_saved_mb": 50.3
+    },
+    "checkpointing": {
+     "live_peak_mb": 91.5,
+     "extra_mb": 46.3,
+     "rss_peak_mb": 423.0,
+     "rss_extra_mb": 75.2,
+     "seconds_per_step_metered": 0.055,
+     "autograd_saved_mb": 22.3
+    },
+    "mezo": {
+     "live_peak_mb": 45.3,
+     "extra_mb": 0.0,
+     "rss_peak_mb": 347.8,
+     "rss_extra_mb": 0.1,
+     "seconds_per_step_metered": 0.124
+    },
+    "forward_forward": {
+     "live_peak_mb": 141.4,
+     "extra_mb": 96.2,
+     "rss_peak_mb": 468.1,
+     "rss_extra_mb": 120.3,
+     "seconds_per_step_metered": 0.071
+    },
+    "mono_forward": {
+     "live_peak_mb": 98.0,
+     "extra_mb": 52.7,
+     "rss_peak_mb": 416.3,
+     "rss_extra_mb": 68.5,
+     "seconds_per_step_metered": 0.038
+    },
+    "predictive_coding": {
+     "live_peak_mb": 163.6,
+     "extra_mb": 118.4,
+     "rss_peak_mb": 489.6,
+     "rss_extra_mb": 141.9,
+     "seconds_per_step_metered": 0.615
+    },
+    "backprop_sgd": {
+     "live_peak_mb": 69.3,
+     "extra_mb": 24.0,
+     "rss_peak_mb": 385.8,
+     "rss_extra_mb": 38.1,
+     "seconds_per_step_metered": 0.037,
+     "autograd_saved_mb": 50.3
+    },
+    "mono_forward_sgd": {
+     "live_peak_mb": 67.5,
+     "extra_mb": 22.3,
+     "rss_peak_mb": 377.6,
+     "rss_extra_mb": 29.9,
+     "seconds_per_step_metered": 0.032
+    }
+   }
+  },
+  "8": {
+   "params": 8161290,
+   "params_mb": 31.1,
+   "activation_mb_one_layer": 8.0,
+   "rules": {
+    "inference": {
+     "live_peak_mb": 61.3,
+     "extra_mb": 0.0,
+     "rss_peak_mb": 363.3,
+     "rss_extra_mb": 0.0,
+     "seconds_per_step_metered": 0.025
+    },
+    "backprop": {
+     "live_peak_mb": 179.6,
+     "extra_mb": 118.3,
+     "rss_peak_mb": 524.8,
+     "rss_extra_mb": 161.4,
+     "seconds_per_step_metered": 0.095,
+     "autograd_saved_mb": 98.3
+    },
+    "checkpointing": {
+     "live_peak_mb": 159.6,
+     "extra_mb": 98.3,
+     "rss_peak_mb": 503.2,
+     "rss_extra_mb": 139.8,
+     "seconds_per_step_metered": 0.118,
+     "autograd_saved_mb": 30.3
+    },
+    "mezo": {
+     "live_peak_mb": 61.3,
+     "extra_mb": 0.0,
+     "rss_peak_mb": 363.8,
+     "rss_extra_mb": 0.5,
+     "seconds_per_step_metered": 0.267
+    },
+    "forward_forward": {
+     "live_peak_mb": 189.5,
+     "extra_mb": 128.2,
+     "rss_peak_mb": 515.8,
+     "rss_extra_mb": 152.5,
+     "seconds_per_step_metered": 0.137
+    },
+    "mono_forward": {
+     "live_peak_mb": 146.5,
+     "extra_mb": 85.2,
+     "rss_peak_mb": 464.3,
+     "rss_extra_mb": 101.0,
+     "seconds_per_step_metered": 0.072
+    },
+    "predictive_coding": {
+     "live_peak_mb": 307.7,
+     "extra_mb": 246.4,
+     "rss_peak_mb": 650.3,
+     "rss_extra_mb": 287.0,
+     "seconds_per_step_metered": 1.322
+    },
+    "backprop_sgd": {
+     "live_peak_mb": 117.3,
+     "extra_mb": 56.0,
+     "rss_peak_mb": 449.9,
+     "rss_extra_mb": 86.6,
+     "seconds_per_step_metered": 0.076,
+     "autograd_saved_mb": 98.3
+    },
+    "mono_forward_sgd": {
+     "live_peak_mb": 83.7,
+     "extra_mb": 22.4,
+     "rss_peak_mb": 393.8,
+     "rss_extra_mb": 30.5,
+     "seconds_per_step_metered": 0.064
+    }
+   }
+  },
+  "16": {
+   "params": 16558090,
+   "params_mb": 63.2,
+   "activation_mb_one_layer": 8.0,
+   "rules": {
+    "inference": {
+     "live_peak_mb": 93.3,
+     "extra_mb": 0.0,
+     "rss_peak_mb": 395.6,
+     "rss_extra_mb": 0.0,
+     "seconds_per_step_metered": 0.048
+    },
+    "backprop": {
+     "live_peak_mb": 339.7,
+     "extra_mb": 246.4,
+     "rss_peak_mb": 720.2,
+     "rss_extra_mb": 324.6,
+     "seconds_per_step_metered": 0.164,
+     "autograd_saved_mb": 194.3
+    },
+    "checkpointing": {
+     "live_peak_mb": 291.7,
+     "extra_mb": 198.4,
+     "rss_peak_mb": 648.2,
+     "rss_extra_mb": 252.6,
+     "seconds_per_step_metered": 0.211,
+     "autograd_saved_mb": 38.3
+    },
+    "mezo": {
+     "live_peak_mb": 93.3,
+     "extra_mb": 0.0,
+     "rss_peak_mb": 396.8,
+     "rss_extra_mb": 1.1,
+     "seconds_per_step_metered": 0.514
+    },
+    "forward_forward": {
+     "live_peak_mb": 285.6,
+     "extra_mb": 192.3,
+     "rss_peak_mb": 612.2,
+     "rss_extra_mb": 216.6,
+     "seconds_per_step_metered": 0.289
+    },
+    "mono_forward": {
+     "live_peak_mb": 243.6,
+     "extra_mb": 150.2,
+     "rss_peak_mb": 561.2,
+     "rss_extra_mb": 165.5,
+     "seconds_per_step_metered": 0.187
+    },
+    "predictive_coding": {
+     "live_peak_mb": 595.8,
+     "extra_mb": 502.5,
+     "rss_peak_mb": 971.4,
+     "rss_extra_mb": 575.7,
+     "seconds_per_step_metered": 2.676
+    },
+    "backprop_sgd": {
+     "live_peak_mb": 213.3,
+     "extra_mb": 120.0,
+     "rss_peak_mb": 578.6,
+     "rss_extra_mb": 182.9,
+     "seconds_per_step_metered": 0.154,
+     "autograd_saved_mb": 194.3
+    },
+    "mono_forward_sgd": {
+     "live_peak_mb": 116.1,
+     "extra_mb": 22.7,
+     "rss_peak_mb": 425.2,
+     "rss_extra_mb": 29.5,
+     "seconds_per_step_metered": 0.14
+    }
+   }
+  }
+ },
+ "share_of_backprop_extra_at_16": {
+  "backprop": 1.0,
+  "checkpointing": 0.805,
+  "mezo": 0.0,
+  "forward_forward": 0.78,
+  "mono_forward": 0.61,
+  "predictive_coding": 2.039,
+  "backprop_sgd": 0.487,
+  "mono_forward_sgd": 0.092
+ },
+ "guard": {
+  "script": "memory",
+  "seconds": 138.3,
+  "minutes": 2.31,
+  "peak_rss_gb": 0.21,
+  "peak_mps_driver_gb": 0.0,
+  "stages_seconds": {},
+  "machine": "arm64 26.6.2",
+  "python": "3.12.13",
+  "torch": "2.14.1",
+  "threads": 4,
+  "device": "cpu",
+  "mps_high_watermark_ratio": "0.5",
+  "children_peak_rss_gb": 0.95
+ }
+}

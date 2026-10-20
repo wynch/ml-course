@@ -217,7 +217,7 @@ footer .path{font-family:var(--mono);font-size:.78rem}
   An agent is a language model, some tools, and a loop. The model writes a <strong>Thought</strong>,
   then an <strong>Action</strong> naming one tool; the harness runs it and pastes the
   <strong>Observation</strong> back into the conversation; repeat until the model writes a Final
-  Answer. Every transcript below is a <strong>real run</strong> of module 10's ~100-line loop driving
+  Answer. Every transcript below is a <strong>real run</strong> of module 10's hand-rolled loop (about 70 lines) driving
   a local SmolLM2-1.7B — including the one where it fails.
   <em>Pick a task, press play, and watch the loop turn.</em>
 </p>
@@ -364,8 +364,11 @@ footer .path{font-family:var(--mono);font-size:.78rem}
       <li><strong>Watch the failure trace.</strong> Pick the Earth-radii task. The knowledge base
         answers <code>Did you mean: earth radius km?</code> — it literally names the right key — and
         the model re-issues the same rejected string four more times until
-        <code>max_steps = 6</code> cuts it off. Small models loop; that transcript is shipped on
-        purpose, and fixing it from the system prompt alone is exercise (b).</li>
+        <code>max_steps = 6</code> cuts it off. Small models loop, but here the tool shares the blame:
+        this first version of <code>kb_lookup</code> turned <code>Earth's</code> into
+        <code>earths</code> and listed two keys in one comma-joined string, which the model copied
+        whole. The transcript is shipped on purpose; fixing it from the system prompt is
+        exercise (b).</li>
       <li><strong>Code-as-action collapses turns.</strong> The two-hop task costs the hand-rolled loop
         two full Thought/Action/Observation cycles; the <code>CodeAgent</code> does it in one step
         because it can write <code>calculator(f"{seconds_in_day} * 3")</code> — a program, not a

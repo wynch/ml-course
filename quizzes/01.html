@@ -359,8 +359,9 @@ const QUESTIONS = [
     ],
     answer: 0,
     explain: `Too-large learning rates fail in two <em>distinct</em> ways, and the surface is tuned to
-      separate them: roughly <code>0.35–1.2</code> overshoots the local curvature
-      (<code>|1 − lr·λ| &gt; 1</code>) and oscillates forever; from about <code>1.3</code> each step
+      separate them. From roughly <code>0.35</code> to <code>1.2</code> the step is too large for the
+      narrow well (<code>lr·λ &gt; 2</code>), so the ball cannot settle at its bottom, but the gentler
+      bowl around it keeps it from escaping, and it oscillates forever. From about <code>1.3</code> each step
       lands further out than the last and the iterate escapes the view. "Oscillates forever" is the
       tempting answer precisely because it is the other, milder band — one notch lower on the same
       slider.`,
@@ -373,7 +374,7 @@ const QUESTIONS = [
     style: "predict-the-behavior",
     topic: "what momentum actually changes",
     hint: "v ← μv − lr·g; p ← p + v — it is a velocity, not a bigger step",
-    prompt: `In panel 1, dropping the ball in the upper-left basin at <code>lr = 0.08</code>,
+    prompt: `In panel 1, starting the ball from the default point in the upper left at <code>lr = 0.08</code>,
       <code>momentum = 0</code> settles it in the local minimum at <code>f = −0.750</code>, never
       finding the global <code>f = −1.097</code>. Set <code>momentum = 0.9</code> and run again from
       the same start:`,
@@ -389,8 +390,9 @@ const QUESTIONS = [
       <code>SGD(momentum=0.9)</code>. Accumulated speed lets the iterate cross a shallow barrier the
       raw gradient would never leave. "Same path, fewer steps" is the usual misreading: momentum
       changes the <em>trajectory</em>, not just the pace, which is exactly why it can change which
-      minimum you land in. It does raise the effective step (about <code>lr/(1−μ)</code>), but 0.08
-      at μ = 0.9 is still well inside the stable band.`,
+      minimum you land in. On a long slope its step grows to about <code>lr/(1−μ)</code> = 0.8, but that
+      is not what decides stability in a well. With momentum the run settles while
+      <code>lr·λ &lt; 2(1+μ)</code>; even in the sharpest well (λ ≈ 8) that is 0.64 against 3.8, so this run still settles.`,
     src: `explorables/01-gradient-descent.html — "What to notice", second bullet`,
     tryIt: `try it — set momentum to 0.9 and re-drop the ball at the same point`
   },
@@ -459,7 +461,7 @@ function gradeMulti(q, resp) {
 function gradeNumeric(q, resp) {
   const v = typeof resp === "number" ? resp : parseFloat(resp);
   if (!isFinite(v)) return false;
-  return Math.abs(v - q.answer) <= (q.tol || 0);
+  return Math.abs(v - q.answer) <= (q.tol || 0) + 1e-9;
 }
 function gradeOne(q, resp) {
   if (resp === undefined || resp === null) return false;

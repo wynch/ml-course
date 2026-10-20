@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Exploring LLMs with MLX and the Neural Accelerators in the M5 GPU (Apple, 2025) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="exploring-llms-with-mlx-and-the-m5-neural-accelerators">Exploring LLMs with MLX and the M5 Neural Accelerators</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">apple-silicon</span> <span class="tag">mlx</span> <span class="tag">inference</span> <span class="tag">quantization</span> <span class="tag">hardware</span> <span class="tag">edge-ai</span> <span class="tag">2025</span></div>
+<p><strong>Authors:</strong> none named; Apple Machine Learning Research <strong>Published:</strong> 2025-11-19, Apple Machine Learning Research blog; no paper <strong>Raw copy:</strong> <code>raw/web-2025-apple-mlx-m5-neural-accelerators.md</code> (captured 2026-10-20; Figure 1, the time to first token in seconds per model, is a chart and did not survive; Table 1 did)</p>
+<p>Every claim below cites the raw file as R, with its section.</p>
+<h2 id="summary">Summary</h2>
+<p>MLX is Apple's open-source array framework for Apple silicon, with a NumPy-like API, automatic differentiation and one memory pool shared by CPU and GPU (R, "What is MLX"). MLX LM, built on it, runs and fine-tunes most language models on Hugging Face and quantises a model in seconds (R, "Running LLMs on Apple Silicon").</p>
+<p>The post's news: the M5 chip puts "Neural Accelerators" inside the GPU, units for matrix multiplication, and MLX uses them through the TensorOps and Metal Performance Primitives of Metal 4 (R, "Inference Performance on M5 with MLX"). It needs macOS 26.2 or later (R, footnote 1). These are GPU units; the post never mentions the separate Neural Engine (ANE).</p>
+<h2 id="key-claims">Key claims</h2>
+<ul><li><strong>Set-up.</strong> A MacBook Pro with M5 and 24 GB against a similar M4 machine; prompts of 4,096 tokens, then 128 generated tokens, through <code>mlx_lm.generate</code> (R, "Inference Performance on M5 with MLX").</li><li><strong>First token, compute-bound.</strong> The M5 gets the first token in under 10 s for a dense 14B model and under 3 s for a 30B MoE (R, "Time to First Token"). Speed-ups over the M4 run from 3.33× (gpt-oss-20b) to 4.06× (Qwen3-14B, 4-bit) (R, Table 1).</li><li><strong>Later tokens, bandwidth-bound.</strong> Generation is 19–27% faster, in line with memory bandwidth: 120 GB/s on the M4, 153 GB/s on the M5, 28% more (R, "Time to First Token"; Table 1 gives 1.19–1.27×).</li><li><strong>Memory.</strong> All six models fit in 24 GB; Qwen3-8B in BF16 takes 17.46 GB, Qwen3-30B-A3B at 4 bits 17.31 GB, Qwen3-14B at 4 bits 9.16 GB (R, Table 1).</li><li><strong>Images.</strong> A 1024×1024 image from FLUX-dev at 4 bits (12B parameters) is "more than 3.8x faster" on the M5 (R, closing paragraph).</li></ul>
+<div class="tw"><table><thead><tr><th>Model</th><th>First-token speed-up</th><th>Generation speed-up</th><th>Memory (GB)</th></tr></thead><tbody><tr><td>Qwen3-1.7B, BF16</td><td>3.57</td><td>1.27</td><td>4.40</td></tr><tr><td>Qwen3-8B, BF16</td><td>3.62</td><td>1.24</td><td>17.46</td></tr><tr><td>Qwen3-8B, 4-bit</td><td>3.97</td><td>1.24</td><td>5.61</td></tr><tr><td>Qwen3-14B, 4-bit</td><td>4.06</td><td>1.19</td><td>9.16</td></tr><tr><td>gpt-oss-20b, MXFP4</td><td>3.33</td><td>1.24</td><td>12.08</td></tr><tr><td>Qwen3-30B-A3B, 4-bit</td><td>3.52</td><td>1.25</td><td>17.31</td></tr></tbody></table></div>
+<p>(R, Table 1)</p>
+<h2 id="caveats">Caveats</h2>
+<ul><li>Apple measures its own hardware. One prompt length, one generation length, batch of one; no energy or heat figures.</li><li>Inference only. The post says MLX can fine-tune, but gives no training numbers on the M5.</li><li>The seconds behind "under 10 s" and "under 3 s" sit in Figure 1, which this capture lost; the wiki has only the two bounds and the ratios.</li><li>A blog post, not a paper; no named authors.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><span class="dead" title="not published">experiment-edge-autoresearch-and-ane</span> — Vincent's Apple-silicon line trained on the Neural Engine through private APIs; this post documents a public route on the GPU of the same machines.</li><li><a href="source-apple-foundation-models-2025.html">source-apple-foundation-models-2025</a> — what Apple ships on device: a 3B model with 2-bit weights.</li><li><a href="source-mebp-on-device-backprop.html">source-mebp-on-device-backprop</a> — training on the phone, with graphs compiled ahead of time in MIL or MLX.</li><li><a href="concept-llm-serving.html">concept-llm-serving</a> — why the first token is compute-bound and later tokens bandwidth-bound.</li><li><a href="guide-mit-efficient-ml-6-5940.html">guide-mit-efficient-ml-6-5940</a> — Stop 2 (quantisation).</li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/web-2025-apple-mlx-m5-neural-accelerators.md</code></li><li><a href="https://machinelearning.apple.com/research/exploring-llms-mlx-m5" rel="noreferrer">https://machinelearning.apple.com/research/exploring-llms-mlx-m5</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/web-2025-apple-mlx-m5-neural-accelerators.md</code></li><li><a href="https://machinelearning.apple.com/research/exploring-llms-mlx-m5" rel="noreferrer">https://machinelearning.apple.com/research/exploring-llms-mlx-m5</a></li></ul></details>
+</main>
+</body>
+</html>

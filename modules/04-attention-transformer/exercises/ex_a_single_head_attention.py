@@ -6,7 +6,7 @@ You are given input token vectors X and the three projection matrices
 No PyTorch. Just numpy. This is the core computation the whole module is built
 on; doing it once by hand makes the rest legible.
 
-Run:  uv run python exercises/ex_a_single_head_attention.py
+Run (from python/):  uv run python ../exercises/ex_a_single_head_attention.py
 It checks your output against a reference. All-close ⇒ correct.
 """
 

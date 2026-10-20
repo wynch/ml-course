@@ -59,17 +59,17 @@ border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem
 <nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
 <main>
 <h1 id="learning-to-reason-without-external-rewards-intuitor">Learning to Reason without External Rewards (Intuitor)</h1>
-<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-04-05</span> <span class="tag">reasoning</span> <span class="tag">unsupervised-learning</span> <span class="tag">self-improvement</span> <span class="tag">model-confidence</span></div>
-<p><strong>Authors:</strong> Xuandong Zhao, Zhewei Kang, Aosong Feng, Sergey Levine, Dawn Song <strong>Date:</strong> 2025-05-26 (revised 2026-03-23) <strong>arXiv:</strong> <a href="https://arxiv.org/abs/2505.19590" rel="noreferrer">2505.19590</a></p>
+<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-10-20</span> <span class="tag">reasoning</span> <span class="tag">unsupervised-learning</span> <span class="tag">self-improvement</span> <span class="tag">model-confidence</span></div>
+<p><strong>Authors:</strong> Xuandong Zhao, Zhewei Kang, Aosong Feng, Sergey Levine, Dawn Song <strong>Date:</strong> 2025-05-26 (v5 2026-05-16; ICLR 2026) <strong>arXiv:</strong> <a href="https://arxiv.org/abs/2505.19590" rel="noreferrer">2505.19590</a></p>
 <h2 id="summary">Summary</h2>
-<p>Introduces Intuitor, which leverages model confidence as the sole reward mechanism, enabling unsupervised reasoning without external labels. Achieves competitive performance on mathematical tasks and superior generalization to out-of-domain applications like code generation.</p>
+<p>Introduces Intuitor, which uses the model's own confidence, which it calls self-certainty, as its only reward, enabling unsupervised reasoning without external labels. Achieves competitive performance on mathematical tasks and superior generalization to out-of-domain applications like code generation.</p>
 <h2 id="key-ideas">Key Ideas</h2>
 <ul><li>Model confidence as intrinsic reward — no human labels or external reward models needed</li><li>Competitive on math benchmarks, with strong out-of-domain generalization</li><li>Demonstrates that self-supervised signals can drive reasoning capabilities</li></ul>
 <h2 id="connections">Connections</h2>
-<ul><li>Compare with <a href="source-sdpo-self-distillation-rl.html">source-sdpo-self-distillation-rl</a> — both eliminate external reward models</li><li>Relevant to <a href="concept-self-improvement.html">concept-self-improvement</a> — unsupervised capability growth</li><li>Relevant to <a href="concept-llm-reasoning.html">concept-llm-reasoning</a></li></ul>
+<ul><li>Compare with <a href="source-sdpo-self-distillation-rl.html">source-sdpo-self-distillation-rl</a> — both eliminate external reward models</li><li>Relevant to <a href="concept-self-improvement.html">concept-self-improvement</a> — unsupervised capability growth</li><li>Relevant to <a href="concept-llm-reasoning.html">concept-llm-reasoning</a></li><li><a href="source-spurious-rewards.html">source-spurious-rewards</a> — the control a reward-free method needs: on Qwen2.5-Math, GRPO with random rewards already gains 21.4 points on MATH-500, and such gains often fail on Llama and OLMo (<code>raw/arxiv-2506-10947-spurious-rewards-rethinking-training-signals-in.md</code>, §2.2, §3)</li><li><a href="source-distribution-sharpening-power-sampling.html">source-distribution-sharpening-power-sampling</a> — the same aim, better reasoning with no outside reward, done at sampling time instead of in the loss</li></ul>
 <h2 id="references">References</h2>
 <ul><li><a href="https://arxiv.org/abs/2505.19590" rel="noreferrer">arXiv page</a></li></ul>
-<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2505.19590" rel="noreferrer">https://arxiv.org/abs/2505.19590</a></li></ul></details>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2505.19590" rel="noreferrer">https://arxiv.org/abs/2505.19590</a></li><li><code>raw/arxiv-2506-10947-spurious-rewards-rethinking-training-signals-in.md</code></li></ul></details>
 </main>
 </body>
 </html>

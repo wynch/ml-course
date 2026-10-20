@@ -6,9 +6,11 @@ Two `# TODO(you):` blocks:
 2. `my_top_eigenpairs` — after each eigenpair, *deflate* the matrix so the next
    iteration finds the runner-up instead of the same vector again.
 
-The check runs both on a 6x6 symmetric matrix and on the real 784x784
-FashionMNIST-shaped covariance built from seeded random data, and compares every
-eigenvalue and every eigenvector direction against `numpy.linalg.eigh`.
+The check runs on a 6x6 symmetric matrix and on a 784x784 covariance built from
+seeded random data (FashionMNIST-shaped, not FashionMNIST), and compares every
+eigenvalue and every eigenvector direction against `numpy.linalg.eigh`. A third
+case, diag(-5, 1, 0.5), has a negative dominant eigenvalue: leave out the sign
+step and it never converges.
 
 Run:  cd python && uv run ../exercises/ex3_power_iteration.py
 """
@@ -65,7 +67,7 @@ def my_top_eigenpairs(A, k, seed=0):
 def _compare(name, A, k):
     vals, vecs = my_top_eigenpairs(A, k)
     w, V = np.linalg.eigh(A)
-    order = np.argsort(w)[::-1][:k]
+    order = np.argsort(np.abs(w))[::-1][:k]          # power iteration ranks by |λ|
     w, V = w[order], V[:, order]
     rel = np.abs(vals - w) / np.abs(w)
     cos = np.abs((_fix_signs(vecs.T) * _fix_signs(V.T)).sum(axis=1))
@@ -85,8 +87,17 @@ def _check():
     ok = _compare("6x6 random symmetric", small, 4)
 
     X = rng.normal(size=(2000, 784)) @ rng.normal(size=(784, 784)) * 0.05
-    C = np.cov(X, rowvar=False)                       # a real 784x784 covariance
+    C = np.cov(X, rowvar=False)                       # 784x784, from seeded random data
     ok = _compare("784x784 covariance", C, 5) and ok
+
+    # The dominant eigenvalue is negative, so each multiply flips v's sign.
+    # Without the sign alignment v never stops moving and the loop runs out.
+    neg = np.diag([-5.0, 1.0, 0.5])
+    lam, v, n_iter = my_power_iteration(neg, seed=1)
+    neg_ok = abs(lam + 5.0) < 1e-8 and abs(abs(v[0]) - 1.0) < 1e-8 and n_iter < MAX_ITER
+    print(f"diag(-5, 1, 0.5): eigenvalue {lam:.6f} after {n_iter} iterations "
+          f"({'converged' if n_iter < MAX_ITER else 'never converged: check the sign step'})")
+    ok = neg_ok and ok
 
     print("\n" + ("PASS — power iteration + deflation agrees with LAPACK."
                   if ok else "FAIL — implement the two TODO blocks above."))

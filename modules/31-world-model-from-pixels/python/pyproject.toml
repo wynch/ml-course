@@ -1,0 +1,19 @@
+[project]
+name = "mlcourse-31-world-model-from-pixels"
+version = "0.1.0"
+description = "Module 31 — A world model from pixels: a small JEPA (encoder, predictor, SIGReg) trained end to end on 64-px frames of a two-room world, probed, and planned with CEM, random shooting and gradients; PLDM's extra terms on module 25's grid; the stable-worldmodel library's env, loss and CEM solver as the check."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "imageio>=2.38.1",
+    "matplotlib>=3.11.1",
+    "numpy>=2.0",
+    "opencv-python-headless>=5.0.0.93",
+    "pytest>=9.1.1",
+    "stable-worldmodel==0.1.1",
+    "torch>=2.14.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "../solutions"]
+addopts = "-q"

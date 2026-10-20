@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Sanity Checks for Sparse Autoencoders: Do SAEs Beat Random Baselines? (Korznikov et al., 2026) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="sanity-checks-for-sparse-autoencoders">Sanity Checks for Sparse Autoencoders</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">interpretability</span> <span class="tag">sparse-autoencoders</span> <span class="tag">baselines</span> <span class="tag">superposition</span> <span class="tag">evaluation</span> <span class="tag">gemma</span> <span class="tag">2026</span></div>
+<p><strong>Authors:</strong> Anton Korznikov, Andrey Galichin, Alexey Dontsov, Oleg Rogov, Ivan Oseledets, Elena Tutubalina (the paper text gives no affiliation) <strong>Published:</strong> arXiv 2602.14111, v1 2026-02-15 (the only version); formatted for ICML <strong>Raw copy:</strong> <code>raw/arxiv-2602-14111-sanity-checks-for-sparse-autoencoders-do.md</code> (captured 2026-10-19, full text of v1)</p>
+<p>Every claim below cites the raw file as R, with its section, table or figure.</p>
+<h2 id="summary">Summary</h2>
+<p>A sparse autoencoder (SAE) rewrites a model's activation as a sparse sum of learned directions, in the hope that each direction is one of the model's own features (R, §2.1). The paper asks whether training actually finds those features, with two tests.</p>
+<p><strong>Test 1, known features.</strong> The authors build fake activations in 100 dimensions from 3,200 planted feature directions, about 20 active per sample, and train SAEs of the matching size (R, §3.1). BatchTopK and JumpReLU SAEs explain 67–71% of the variance yet recover almost nothing: with equal feature frequencies, 3 of 3,200 features (cosine above 0.8); with long-tailed frequencies, 9% (BatchTopK, 297) and 7% (JumpReLU, 225), all from the most frequent features (R, §3.2, Figures 2–3).</p>
+<p><strong>Test 2, random baselines on real models.</strong> On Gemma-2-2B (layers 12 and 19) and Llama-3-8B (layer 16), each SAE is compared with three crippled copies: decoder directions frozen at random; decoder held within cosine 0.8 of its random start ("soft-frozen"); encoder frozen at random (R, §4.1). The copies come close on every standard score (R, §4.2, Abstract):</p>
+<ul><li>interpretability judged by an LLM (AutoInterp): 0.88 soft-frozen against 0.90 trained (BatchTopK); the abstract gives 0.87 against 0.90;</li><li>sparse probing with the single best latent: 0.69 against 0.72 (abstract); gaps of 0.001 to 0.07 across settings;</li><li>causal editing (RAVEL): soft-frozen matches or beats the trained SAE, up to 0.78.</li></ul>
+<p>Reconstruction is where training shows most: at L0 = 160 the trained JumpReLU explains 0.85 of the variance, the soft-frozen copy 0.79 and the fully frozen ones about 0.6 (R, §4.2).</p>
+<p>The authors' reading: SAEs move little from their random start ("lazy training") and the dictionary is so large that some random directions line up with any concept by chance. Reconstruction does not reward matching the model's features, so it is a poor guide to whether they were found (R, §4.2, §6, Appendix D).</p>
+<h2 id="caveats">Caveats</h2>
+<ul><li><strong>Architecture matters in the toy test.</strong> A plain TopK SAE recovers 99.9% of features in the equal-frequency setting and up to 43% in the long-tailed one; the abstract's 9% is for BatchTopK only. The authors call TopK's result an artefact, since its frozen copies also match it on real data (R, Appendix B, Appendix C).</li><li><strong>Causal editing barely moves anywhere off layer 12.</strong> On Gemma layer 19 and Llama-3-8B every variant, trained or not, scores 0.48–0.53 (R, Appendix E, Tables 3–4), so that metric separates little there.</li><li>The toy features fire independently; real features are correlated (R, §5).</li><li>Transcoders and crosscoders are not tested (R, §5).</li><li>The authors present the baselines as checks, "not a verdict on SAEs as a paradigm" (R, §6).</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-sae-monosemanticity-2023.html">source-sae-monosemanticity-2023</a>, <a href="source-sae-scaling-trilogy.html">source-sae-scaling-trilogy</a>: the SAE results these baselines test; both pages carry the SAE Contradiction line this paper now backs with full text.</li><li><a href="source-goodfire-already-clean.html">source-goodfire-already-clean</a>: a second line of doubt, from vision: SAE latents there are mostly copies of single neurons.</li><li><a href="source-gdm-sae-negative-results.html">source-gdm-sae-negative-results</a>: Google DeepMind's 2025 notes, where SAE probes lose to dense linear probes out of distribution and the team deprioritises SAE research.</li><li><a href="source-axbench.html">source-axbench</a>: SAEs also lose at steering and concept detection, to prompting and to simple supervised directions.</li><li><a href="concept-superposition.html">concept-superposition</a>, <a href="concept-polysemanticity.html">concept-polysemanticity</a>: the toy test is built on the superposition hypothesis (R, §3.1).</li><li><a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a>, <a href="guide-mech-interp-tour.html">guide-mech-interp-tour</a>.</li><li>Course module 12 (<code>course/modules/12-features-and-dictionaries</code>) trains a dictionary from scratch; a frozen-decoder copy is a cheap control for it.</li><li>Hub (2026-10-20): <a href="concept-sparse-autoencoders.html">concept-sparse-autoencoders</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2602-14111-sanity-checks-for-sparse-autoencoders-do.md</code></li><li><a href="https://arxiv.org/abs/2602.14111" rel="noreferrer">https://arxiv.org/abs/2602.14111</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2602-14111-sanity-checks-for-sparse-autoencoders-do.md</code></li><li><a href="https://arxiv.org/abs/2602.14111" rel="noreferrer">https://arxiv.org/abs/2602.14111</a></li></ul></details>
+</main>
+</body>
+</html>

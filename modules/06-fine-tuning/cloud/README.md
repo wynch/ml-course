@@ -16,15 +16,20 @@ the top of the file is all Jobs needs.
 
 Jobs bills the GPU **flavor** by the second. Ballpark on-demand rates:
 
-| Flavor       | GPU        | ~$/hour | Good for                          |
-|--------------|------------|---------|-----------------------------------|
-| `t4-small`   | 1× T4 16GB | ~$0.40  | 360M–3B LoRA, the default here    |
-| `a10g-small` | 1× A10G    | ~$1.00  | same job, ~2–3× faster wall-clock |
-| `l4x1`       | 1× L4      | ~$0.80  | a middle ground                   |
+| Flavor       | GPU          | ~$/hour | Good for                                  |
+|--------------|--------------|---------|-------------------------------------------|
+| `a10g-small` | 1× A10G 24GB | ~$1.00  | 3B LoRA in bf16, the default here         |
+| `l4x1`       | 1× L4 24GB   | ~$0.80  | same job, also bf16                       |
+| `t4-small`   | 1× T4 16GB   | ~$0.40  | the 360M smoke test; no bf16, fp16 only   |
 
-A full `sft_job.py` run (SmolLM3-3B, 1000 steps, ~8k examples) lands around
-**15–60 min** depending on flavor, so **≈ $0.50–1.00 on `t4-small`**. Always
-check current pricing — rates change.
+We have not run this job, so we quote no run time. Measure it: run the timing
+test below on the flavor you chose, read the seconds per step from the
+logs, multiply by `MAX_STEPS`, and set `--timeout` to twice that. Cost is that
+time times the hourly rate. Always check current pricing — rates change.
+
+The default run is SmolLM3-3B for 90 steps on the whole `everyday-conversations`
+subset (2,260 conversations, packed into 1,024-token sequences, 16 per step):
+about three passes, like the local lab.
 
 ## Launch it
 
@@ -33,13 +38,13 @@ From `modules/06-fine-tuning/`:
 ```bash
 hf jobs uv run \
     --name sft-smollm \
-    --flavor t4-small \
+    --flavor a10g-small \
     --timeout 2h \
     --secrets HF_TOKEN \
     cloud/sft_job.py
 ```
 
-- `--flavor a10g-small` swaps in the faster (~$1/h) GPU.
+- Set `--timeout` from the timing test below; `2h` is a placeholder.
 - `--secrets HF_TOKEN` forwards your token into the job so it can read gated
   models and push the adapter back to the Hub.
 
@@ -47,7 +52,7 @@ hf jobs uv run \
 
 If you omit `--timeout`, Jobs applies a **default 30-minute** limit and your run
 is **killed mid-training** with a confusing non-error exit. Any real fine-tune
-needs an explicit, generous `--timeout` (we pass `2h` above). This is the single
+needs an explicit, generous `--timeout` (twice the measured time). This is the single
 most common way a first cloud run "silently fails".
 
 ## Watch and manage the run
@@ -67,7 +72,7 @@ watch the loss from your laptop while the GPU works. Set a Space id and trackio
 will create/host a **free** monitoring Space:
 
 ```bash
-hf jobs uv run --name sft-smollm --flavor t4-small --timeout 2h \
+hf jobs uv run --name sft-smollm --flavor a10g-small --timeout 2h \
     --secrets HF_TOKEN \
     -e TRACKIO_SPACE=your-username/smollm-sft \
     -e PUSH_REPO=your-username/smollm-sft-lora \
@@ -85,17 +90,27 @@ Every knob is an env var (`-e KEY=VALUE`):
 | Env var        | Default                              | Meaning                        |
 |----------------|--------------------------------------|--------------------------------|
 | `MODEL_ID`     | `HuggingFaceTB/SmolLM3-3B`           | base model to fine-tune        |
-| `MAX_STEPS`    | `1000`                               | training steps                 |
-| `TRAIN_SLICE`  | `8000`                               | # examples from smoltalk       |
+| `MAX_STEPS`    | `90`                                 | training steps                 |
+| `TRAIN_SLICE`  | `2260`                               | # examples (the whole subset)  |
 | `PUSH_REPO`    | `""` (no push)                       | Hub repo for the adapter       |
-| `TRACKIO_SPACE`| `""` (local logs only)               | Space id for live monitoring   |
+| `TRACKIO_SPACE`| `""` (no live logging)              | Space id for live monitoring   |
 
-Cheap pipeline smoke test before spending on the big model:
+Two cheap tests before the full run. First the pipeline, on the small model
+and the cheapest GPU:
 
 ```bash
 hf jobs uv run --name sft-smoke --flavor t4-small --timeout 30m \
     --secrets HF_TOKEN \
     -e MODEL_ID=HuggingFaceTB/SmolLM2-360M-Instruct -e MAX_STEPS=50 \
+    cloud/sft_job.py
+```
+
+Then the timing: the real model on the flavor you chose, for a few steps.
+Its seconds per step, times `MAX_STEPS`, times two, is your `--timeout`:
+
+```bash
+hf jobs uv run --name sft-timing --flavor a10g-small --timeout 30m \
+    --secrets HF_TOKEN -e MAX_STEPS=10 \
     cloud/sft_job.py
 ```
 

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Deriving Neural Scaling Laws from Natural Language Statistics · ML wiki</title>
+<title>Deriving Neural Scaling Laws from the statistics of natural language · ML wiki</title>
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
@@ -58,18 +58,18 @@ border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem
 <body>
 <nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
 <main>
-<h1 id="deriving-neural-scaling-laws-from-natural-language-statistics">Deriving Neural Scaling Laws from Natural Language Statistics</h1>
-<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-04-05</span> <span class="tag">scaling-laws</span> <span class="tag">theory</span> <span class="tag">language-statistics</span> <span class="tag">training</span></div>
-<p><strong>Authors:</strong> Francesco Cagnetta, Allan Raventos, Surya Ganguli, Matthieu Wyart <strong>Date:</strong> 2026-02-07 (revised 2026-02-12) <strong>arXiv:</strong> <a href="https://arxiv.org/abs/2602.07488" rel="noreferrer">2602.07488</a></p>
+<h1 id="deriving-neural-scaling-laws-from-the-statistics-of-natural-language">Deriving Neural Scaling Laws from the statistics of natural language</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-10-20</span> <span class="tag">scaling-laws</span> <span class="tag">theory</span> <span class="tag">language-statistics</span> <span class="tag">training</span></div>
+<p><strong>Authors:</strong> Francesco Cagnetta, Allan Raventós, Surya Ganguli, Matthieu Wyart <strong>Date:</strong> 2026-02-07 (v3 2026-07-03; ICML 2026) <strong>arXiv:</strong> <a href="https://arxiv.org/abs/2602.07488" rel="noreferrer">2602.07488</a></p>
 <h2 id="summary">Summary</h2>
 <p>First theoretical framework for quantitatively predicting neural scaling law exponents from natural language statistics. Derives a parameter-free formula that predicts data-limited scaling exponents matching empirical measurements.</p>
 <h2 id="key-ideas">Key Ideas</h2>
-<ul><li>Two critical language statistics:<ol><li>Decay of pairwise token correlations across time separation</li><li>Next-token conditional entropy decay with conditioning context length</li></ol></li><li>Parameter-free formula predicts scaling exponents</li><li>Strong alignment with empirical measurements from GPT-2 and LLaMA on TinyStories and WikiText</li><li>First principled derivation of scaling laws from data properties</li></ul>
+<ul><li>Two critical language statistics:<ol><li>Decay of pairwise token correlations across time separation</li><li>Next-token conditional entropy decay with conditioning context length</li></ol></li><li>Parameter-free formula predicts scaling exponents</li><li>Matches scaling laws measured by training GPT-2- and LLaMA-style models from scratch on TinyStories and WikiText (abstract)</li><li>First principled derivation of scaling laws from data properties</li></ul>
 <h2 id="connections">Connections</h2>
-<ul><li>Foundational for <a href="concept-scaling-laws.html">concept-scaling-laws</a> — theoretical grounding</li><li>Related to <a href="source-language-models-as-scaffolds.html">source-language-models-as-scaffolds</a> — challenges pure scaling narrative</li><li>Connects data properties to model performance predictions</li></ul>
+<ul><li>Foundational for <a href="concept-scaling-laws.html">concept-scaling-laws</a> — theoretical grounding</li><li>Related to <a href="source-language-models-as-scaffolds.html">source-language-models-as-scaffolds</a> — challenges pure scaling narrative</li><li>Connects data properties to model performance predictions</li><li><a href="source-superposition-robust-scaling.html">source-superposition-robust-scaling</a> — a rival route to the exponents, from how the model packs tokens rather than from the data alone: in the strong-superposition regime the width exponent is near 1 whatever the token frequencies (<code>raw/arxiv-2505-10465-superposition-yields-robust-neural-scaling.md</code>, §3.2, §4)</li></ul>
 <h2 id="references">References</h2>
 <ul><li><a href="https://arxiv.org/abs/2602.07488" rel="noreferrer">arXiv page</a></li></ul>
-<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2602.07488" rel="noreferrer">https://arxiv.org/abs/2602.07488</a></li></ul></details>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2602.07488" rel="noreferrer">https://arxiv.org/abs/2602.07488</a></li><li><code>raw/arxiv-2505-10465-superposition-yields-robust-neural-scaling.md</code></li></ul></details>
 </main>
 </body>
 </html>

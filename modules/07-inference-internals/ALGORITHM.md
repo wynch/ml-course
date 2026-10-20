@@ -156,8 +156,10 @@ and then masks its upper triangle to `-inf` so a token can't see the future. In
 the decode loop the future *literally does not exist yet* — the cache only holds
 positions `0..pos` — so the mask is free: we just loop `j` up to `pos`. The
 whole quadratic score matrix collapses to a single length-`(pos+1)` `scores`
-vector, reused every step. This is exactly why the KV cache turns an O(T²)
-per-step forward into an O(T) one; the
+vector, reused every step. The cache turns the per-step forward from
+O(T·d² + T²·d) into O(d² + T·d): it saves re-running the projections and MLP
+for every past token, and the score matrix shrinks from T×T to one row. At this
+model's size the first saving is most of the win; the
 [timing figure](figures/kv_cache_timing.png) shows the resulting linear-vs-
 quadratic curves, and the [cache schematic](figures/kv_cache_schematic.png)
 draws what those buffers hold.
@@ -198,13 +200,17 @@ block, `layerNorm(ln_f)` runs and then the logits are `x @ wte^T` — the token
 embedding *reused* as the output projection (no separate matrix exists in the
 weight file). Notice what Python's `generate` does: it calls `self(idx_cond)` —
 the entire model — on the growing sequence every iteration. Without a cache
-that's the O(n³) baseline; PyTorch's own `generate` relies on `use_cache=True`
+that's the O(n³) baseline: summed over n steps, the attention scores cost
+Σ t² ≈ n³/3 dot products and the weight matrices Σ t·d² ≈ n²d²/2 multiply-adds,
+and at this size (d = 128, n ≤ 128) the second term dominates. PyTorch's own `generate` relies on `use_cache=True`
 under the hood to avoid it. The Zig version makes the two phases explicit:
 `step` over the prompt is prefill, `step` per emitted token is decode. The
 engine implements *both* strategies (`--no-cache` replays the whole sequence
-each step) so you can measure the difference yourself — and because the
-attention math is identical, `selfcheck` confirms the two paths produce bitwise-
-equal logits.
+each step) so you can measure the difference yourself. `selfcheck` tests the
+cache against a third path, `Model.forwardFull`, which runs the whole prompt at
+once with a T×T masked score matrix and no cache, and shares only the kernels
+with `step`. The two agree at every position; `parity.py` then checks the
+cached path against PyTorch.
 
 ---
 

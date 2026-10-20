@@ -1,7 +1,7 @@
 """Solution 3 — grad_check implemented; it fingers the buggy op.
 
 The bug lives in `buggy_engine.Value.__mul__`: its backward uses
-`self.data` for BOTH parents,
+`self.data` for BOTH inputs,
 
     self.grad  += self.data * out.grad   # correct would be other.data
     other.grad += self.data * out.grad   # this line is right
@@ -21,7 +21,7 @@ _EX = pathlib.Path(__file__).resolve().parents[1] / "exercises"
 sys.path.insert(0, str(_EX))
 from buggy_engine import Value  # noqa: E402
 
-ONE_LINE_ANSWER = "mul — its backward multiplies BOTH parents by self.data instead of the other factor"
+ONE_LINE_ANSWER = "mul — its backward multiplies BOTH inputs by self.data instead of the other factor"
 
 
 def grad_check(build, x0, eps=1e-6):

@@ -6,11 +6,11 @@ Then contrast it with temperature sampling to feel why greedy is deterministic.
 
 Fill in every ``# TODO(you):`` and run:
 
-    uv run python exercises/exercise_a_greedy.py
+    uv run python ../exercises/exercise_a_greedy.py      # from python/
 
-Check against the reference solution:
+Check your version (the tests import it instead of the reference solution):
 
-    uv run pytest tests/test_solutions.py -k greedy -v
+    CHECK=exercises uv run pytest tests/test_solutions.py -k greedy -v
 """
 
 from __future__ import annotations

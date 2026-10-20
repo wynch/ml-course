@@ -18,6 +18,9 @@ Run:  uv run scripts/kernel_lift.py
 import _bootstrap  # noqa: F401
 from _bootstrap import FIGDIR
 
+import json
+import pathlib
+
 import matplotlib
 
 matplotlib.use("Agg")
@@ -27,6 +30,7 @@ import numpy as np
 from kernelmem.lift import check_identity, phi_paraboloid, phi_quadratic
 from kernelmem.svm import DualSVM, circles, kernel_matrix
 
+OUT_JSON = pathlib.Path(__file__).resolve().parents[1] / "run_kernel_lift.json"
 IN = "#5ec962"    # inner ring, class +1
 OUT = "#453781"   # outer ring, class −1
 
@@ -51,9 +55,27 @@ def main() -> None:
     print(f"feature-space plane: w = ({w3[0]:+.4f}, {w3[1]:+.4f}, {w3[2]:+.4f})  b = {b3:+.4f}")
     print("  pulled back to 2D that plane reads "
           f"{w3[0]:+.4f}·x1² {np.sqrt(2) * w3[1]:+.4f}·x1x2 {w3[2]:+.4f}·x2² {b3:+.4f} = 0")
-    print(f"  → an ellipse with semi-axes ≈ {np.sqrt(-b3 / w3[0]):.4f} and "
-          f"{np.sqrt(-b3 / w3[2]):.4f}: a near-circle, not exactly one, because the "
-          "sampled rings are not exactly symmetric")
+    # The curve is xᵀAx = b with A symmetric; the x₁x₂ term tilts it, so the
+    # semi-axes come from A's eigenvalues, not from the x₁ and x₂ intercepts.
+    A = -np.array([[w3[0], np.sqrt(2) * w3[1] / 2],
+                   [np.sqrt(2) * w3[1] / 2, w3[2]]])
+    ev, evec = np.linalg.eigh(A)
+    semi = np.sqrt(b3 / ev)                      # ascending ev → descending axes
+    tilt = float(np.degrees(np.arctan2(evec[1, 0], evec[0, 0])))
+    tilt = (tilt + 90.0) % 180.0 - 90.0          # long axis angle in (−90°, 90°]
+    print(f"  → an ellipse with semi-axes {semi[1]:.4f} and {semi[0]:.4f}, long axis at "
+          f"{tilt:+.1f}° from x1 (the x1x2 term turns it off the coordinate axes): a "
+          "near-circle, not exactly one, because the sampled rings are not exactly symmetric")
+
+    results = {
+        "identity_max_abs_err": float(err),
+        "quadratic": {"train_accuracy": acc, "support_vectors": int(sv.sum()),
+                      "w": [float(v) for v in w3], "b": float(b3),
+                      "x1x2_coefficient": float(np.sqrt(2) * w3[1]),
+                      "semi_axes": [float(semi[1]), float(semi[0])],
+                      "long_axis_tilt_deg": tilt},
+        "kernels": {},
+    }
 
     # the max-margin threshold in the 1D feature ‖x‖², used for the paraboloid panel
     r2_in = (X[y == 1] ** 2).sum(1).max()
@@ -154,7 +176,12 @@ def main() -> None:
         ax.set_aspect("equal")
         ax.set_title(f"{title}\ntrain acc {a * 100:.1f}% · {int(s.sum())} SVs", fontsize=10)
         ax.set_xlabel("$x_1$")
-        print(f"{kind:7s} acc {a:.4f}  SVs {int(s.sum()):3d}  margin {m.margin():.4f}")
+        # 2/√Σα is the margin only at a hard-margin optimum; under C = 1 it is not.
+        tag = "2/sqrt(sum alpha), not a margin (soft)" if C is not None else "margin"
+        print(f"{kind:7s} acc {a:.4f}  SVs {int(s.sum()):3d}  {tag} {m.margin():.4f}")
+        results["kernels"][kind] = {"train_accuracy": a, "support_vectors": int(s.sum()),
+                                    "two_over_sqrt_sum_alpha": float(m.margin()),
+                                    "C": C, "is_margin": C is None}
     axes[0].set_ylabel("$x_2$")
 
     fig.tight_layout()
@@ -167,6 +194,9 @@ def main() -> None:
     K_direct = kernel_matrix(X, X, "poly", degree=2)
     K_via_phi = F @ F.T
     print(f"Gram via kernel vs via phi: max abs diff {np.abs(K_direct - K_via_phi).max():.3e}")
+    results["quadratic"]["explicit_vs_kernel_max_abs"] = float(np.abs(explicit - kernelised).max())
+    OUT_JSON.write_text(json.dumps(results, indent=1) + "\n")
+    print(f"wrote {OUT_JSON}")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-# ML compass pack · 2026-10-18
+# ML compass pack · 2026-10-20
 
 Built by `course/scripts/build_pack.py` from the live files of Vincent's private ML project. Seven parts, each with a one-line header saying what it is and where it comes from.
 
@@ -817,10 +817,10 @@ _From `compass/spine.yaml`: each entry's status and `since:` date, and the count
 
 ## Part 5 · Next box
 
-_Printed by `build.py --next` on 2026-10-18._
+_Printed by `build.py --next` on 2026-10-20._
 
 ```text
-NEXT · 2026-10-18
+NEXT · 2026-10-20
 learn  algorithm (F·computation) · parallelism (F·computation) · limit (F·calculus)
 test   parameter (2026-08-25) · learning rate (2026-08-25) · overfitting (2026-08-25)
 fill   Q7·measurement · Q2·algebra · Q3·geometry
@@ -868,7 +868,7 @@ https://wynch.github.io/ml-course/quizzes/00c.html
 - `quiz-00c-q1` Why only support vectors matter
 - `quiz-00c-q2` One solver, three kernels
 - `quiz-00c-q3` Measuring a margin without w
-- `quiz-00c-q4` Why Hopfield energy can only fall
+- `quiz-00c-q4` Why Hopfield energy never rises
 - `quiz-00c-q5` Measured Hopfield capacity
 - `quiz-00c-q6` The attention-Hopfield bridge
 - `quiz-00c-q7` Where the spike lands
@@ -902,7 +902,7 @@ https://wynch.github.io/ml-course/quizzes/02.html
 - `quiz-02-q5` matmul speedups: cache order vs BLAS
 - `quiz-02-q6` parameter count of the 2-16-16-2 net
 - `quiz-02-q7` dying ReLU at tiny width
-- `quiz-02-q8` momentum multiplies the effective step
+- `quiz-02-q8` what momentum does to the step
 - `quiz-02-q9` He initialization
 - `quiz-02-q10` what the loop and the optimizers really do
 
@@ -945,7 +945,7 @@ https://wynch.github.io/ml-course/quizzes/05.html
 - `quiz-05-q3` The parameter budget
 - `quiz-05-q4` The decision layer
 - `quiz-05-q5` MPS vs CPU at batch 1
-- `quiz-05-q6` top-k vs top-p
+- `quiz-05-q6` top-k, top-p and min-p
 - `quiz-05-q7` Hand-rolled greedy decoding
 - `quiz-05-q8` How the budget scales with model size
 - `quiz-05-q9` Reading a chat template
@@ -1030,8 +1030,8 @@ https://wynch.github.io/ml-course/quizzes/09.html
 
 https://wynch.github.io/ml-course/quizzes/10.html
 
-- `quiz-10-q1` the ReAct loop and how it terminates
-- `quiz-10-q2` why generation stops at “Observation:”
+- `quiz-10-q1` what RESULT: OK means
+- `quiz-10-q2` why the reply is cut at “Observation:”
 - `quiz-10-q3` code-as-action vs text tool-calls
 - `quiz-10-q4` small-model failure modes
 - `quiz-10-q5` reading the eval suite results
@@ -1266,6 +1266,126 @@ https://wynch.github.io/ml-course/quizzes/25.html
 - `quiz-25-q9` Why the test filter
 - `quiz-25-q10` What the grid says about JEPAs
 
+### quiz-26 · RL with a checker
+
+https://wynch.github.io/ml-course/quizzes/26.html
+
+- `quiz-26-q1` What RL changes first
+- `quiz-26-q2` pass@1 after training
+- `quiz-26-q3` A group where all agree
+- `quiz-26-q4` Reading RLOO's advantage
+- `quiz-26-q5` Rewards from a coin
+- `quiz-26-q6` Why no crossover
+- `quiz-26-q7` The three methods
+- `quiz-26-q8` Reading the length average
+- `quiz-26-q9` Why the coin's rate
+- `quiz-26-q10` What the module stands behind
+
+### quiz-27 · Memory as a matrix: the delta rule
+
+https://wynch.github.io/ml-course/quizzes/27.html
+
+- `quiz-27-q1` Writing one key twice
+- `quiz-27-q2` The delta rule as a gradient step
+- `quiz-27-q3` A full state, random keys
+- `quiz-27-q4` Which pairs survive
+- `quiz-27-q5` Bytes in a memory mixer's state
+- `quiz-27-q6` Why the chunked form needs a triangular solve
+- `quiz-27-q7` The bug in the first grid
+- `quiz-27-q8` Recall against state size
+- `quiz-27-q9` Where the hybrid's cache becomes the smaller
+- `quiz-27-q10` What the pass-code test shows
+
+### quiz-28 · Fewer bits, trained in
+
+https://wynch.github.io/ml-course/quizzes/28.html
+
+- `quiz-28-q1` Ternary after the fact
+- `quiz-28-q2` The straight-through estimator
+- `quiz-28-q3` Bits per weight, rounded arm
+- `quiz-28-q4` A badly tuned baseline
+- `quiz-28-q5` The cost of 2 bits
+- `quiz-28-q6` Why the bf16 cast flips codes
+- `quiz-28-q7` The fine-tune and the cast
+- `quiz-28-q8` The 2-bit cliff
+- `quiz-28-q9` What the rotation keeps
+- `quiz-28-q10` Bytes of a 4-bit cache
+
+### quiz-29 · Learning something new without losing the old
+
+https://wynch.github.io/ml-course/quizzes/29.html
+
+- `quiz-29-q1` How fast forgetting comes
+- `quiz-29-q2` What replay keeps
+- `quiz-29-q3` What the KL measures
+- `quiz-29-q4` Replay against the one number
+- `quiz-29-q5` Self-distillation breaks it the other way
+- `quiz-29-q6` LoRA, honestly compared
+- `quiz-29-q7` Why LoRA starts unchanged
+- `quiz-29-q8` Forgetting is not plasticity loss
+- `quiz-29-q9` Dead units
+- `quiz-29-q10` Where a LoRA step's memory goes
+
+### quiz-30 · Learning without a backward pass
+
+https://wynch.github.io/ml-course/quizzes/30.html
+
+- `quiz-30-q1` MeZO's memory
+- `quiz-30-q2` Three nudges
+- `quiz-30-q3` Adam's share
+- `quiz-30-q4` Predictive coding's memory
+- `quiz-30-q5` Checkpointing
+- `quiz-30-q6` How the error travels
+- `quiz-30-q7` Mono-Forward
+- `quiz-30-q8` MeZO from scratch
+- `quiz-30-q9` MeZO on a language model
+- `quiz-30-q10` Forward-forward at test time
+
+### quiz-31 · A world model from pixels
+
+https://wynch.github.io/ml-course/quizzes/31.html
+
+- `quiz-31-q1` Prediction alone
+- `quiz-31-q2` Which meter sees which collapse
+- `quiz-31-q3` Embedding size
+- `quiz-31-q4` Random shooting in the latent
+- `quiz-31-q5` Reading CEM
+- `quiz-31-q6` Across the wall
+- `quiz-31-q7` A perfect model that fails
+- `quiz-31-q8` Inverse dynamics on the grid
+- `quiz-31-q9` The second layer
+- `quiz-31-q10` BatchNorm at test time
+
+### quiz-32 · Is the explanation real?
+
+https://wynch.github.io/ml-course/quizzes/32.html
+
+- `quiz-32-q1` SAE against transcoder
+- `quiz-32-q2` Recovery
+- `quiz-32-q3` What recovery shows
+- `quiz-32-q4` Reading the attribution hooks
+- `quiz-32-q5` Attribution on the random copy
+- `quiz-32-q6` A faithfulness ratio
+- `quiz-32-q7` Seeds
+- `quiz-32-q8` The detection score
+- `quiz-32-q9` Detection against token R²
+- `quiz-32-q10` The GPT-2 lane
+
+### quiz-33 · Text by denoising
+
+https://wynch.github.io/ml-course/quizzes/33.html
+
+- `quiz-33-q1` One step of flow matching
+- `quiz-33-q2` The 1/t weight
+- `quiz-33-q3` Equal compute
+- `quiz-33-q4` Four ways to score one model
+- `quiz-33-q5` One step for the whole line
+- `quiz-33-q6` The confidence rule
+- `quiz-33-q7` Why blocks can be cached
+- `quiz-33-q8` Filling a gap
+- `quiz-33-q9` Seen again and again
+- `quiz-33-q10` The library's loss
+
 ## Part 7 · URL map
 
 _Where things are on the public site, so you can give Vincent links. Doors outside `course/` are private and have no URL._
@@ -1286,7 +1406,7 @@ _Where things are on the public site, so you can give Vincent links. Doors outsi
 | This pack | https://wynch.github.io/ml-course/learn/pack.md |
 
 
-Modules: `00a-perceptron` The perceptron & least squares, `00b-bayes-knn-pca` Probability, neighbours & eigenvectors, `00c-kernels-hopfield` Kernels, memory & the modern bridge, `01-autograd` Autograd from scratch, `02-neural-networks` Neural networks & the training loop, `03-tokenization` Tokenization: from bytes to tokens, `04-attention-transformer` Attention & the transformer, `05-transformers-library` The transformers library, `05a-data-evaluation` Data & evaluation, `06-fine-tuning` Fine-tuning: make the model yours, `07-inference-internals` Inference internals, `08-vision` Vision: convolutions to ViTs, `09-diffusion` Diffusion: learning to denoise, `10-agents` Agents: models that act, `11-inside-a-language-model` Inside a language model, `12-features-and-dictionaries` Features and dictionaries, `13-inside-vision-and-jepa` Inside vision and JEPA models, `14-how-training-finds-a-solution` How training finds a solution, `15-geometry-of-representations` Geometry of representations, `16-self-supervised-and-jepa` Self-supervised learning and JEPA, `17-learning-from-preferences` Learning from preferences, `18-beyond-attention` Beyond attention, `19-scaling-laws` Scaling laws, `20-in-context-learning` In-context learning, `21-retrieval-and-memory` Retrieval and memory, `22-reasoning-at-test-time` Reasoning at test time, `23-compression` Compression, `24-reinforcement-learning` Reinforcement learning, `25-world-models-and-planning` World models and planning.
+Modules: `00a-perceptron` The perceptron & least squares, `00b-bayes-knn-pca` Probability, neighbours & eigenvectors, `00c-kernels-hopfield` Kernels, memory & the modern bridge, `01-autograd` Autograd from scratch, `02-neural-networks` Neural networks & the training loop, `03-tokenization` Tokenization: from bytes to tokens, `04-attention-transformer` Attention & the transformer, `05-transformers-library` The transformers library, `05a-data-evaluation` Data & evaluation, `06-fine-tuning` Fine-tuning: make the model yours, `07-inference-internals` Inference internals, `08-vision` Vision: convolutions to ViTs, `09-diffusion` Diffusion: learning to denoise, `10-agents` Agents: models that act, `33-text-by-denoising` Text by denoising, `11-inside-a-language-model` Inside a language model, `12-features-and-dictionaries` Features and dictionaries, `13-inside-vision-and-jepa` Inside vision and JEPA models, `32-is-the-explanation-real` Is the explanation real?, `14-how-training-finds-a-solution` How training finds a solution, `15-geometry-of-representations` Geometry of representations, `16-self-supervised-and-jepa` Self-supervised learning and JEPA, `29-learning-new-keeping-old` Learning something new without losing the old, `30-learning-without-a-backward-pass` Learning without a backward pass, `17-learning-from-preferences` Learning from preferences, `18-beyond-attention` Beyond attention, `27-memory-as-a-matrix` Memory as a matrix: the delta rule, `19-scaling-laws` Scaling laws, `20-in-context-learning` In-context learning, `22-reasoning-at-test-time` Reasoning at test time, `21-retrieval-and-memory` Retrieval and memory, `23-compression` Compression, `28-fewer-bits-trained-in` Fewer bits, trained in, `24-reinforcement-learning` Reinforcement learning, `25-world-models-and-planning` World models and planning, `26-rl-with-a-checker` RL with a checker, `31-world-model-from-pixels` A world model from pixels.
 
 
 Doors per spine entry:

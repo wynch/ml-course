@@ -16,6 +16,8 @@ Run:  uv run scripts/naive_bayes.py
 import _bootstrap  # noqa: F401
 from _bootstrap import FIGDIR
 
+import json
+
 import numpy as np
 
 from origins.bayes import GaussianBayes, GaussianNaiveBayes
@@ -97,7 +99,12 @@ def fit_pair(xtr, ytr_all, xte, yte_all, pair, names):
         cm[t, p] += 1
     print(f"  {names[0]} vs {names[1]}: train {len(Xtr)}  test {len(Xte)}  "
           f"accuracy {acc:.4f}  confusion {cm.tolist()}")
-    return nb, acc, cm
+    # The same classifier with the naive assumption dropped. With this much
+    # shrinkage on each 784×784 covariance it is solvable in seconds.
+    full = GaussianBayes(var_smoothing=VAR_SMOOTHING).fit(Xtr, ytr)
+    acc_full = full.score(Xte, yte)
+    print(f"    full covariance, same var_smoothing: accuracy {acc_full:.4f}")
+    return nb, acc, cm, acc_full
 
 
 def part2() -> dict:
@@ -121,7 +128,7 @@ def part2() -> dict:
           f"{4 * xtr.shape[1]}, fitted in closed form (no optimiser)")
 
     fig, axes = plt.subplots(2, 4, figsize=(11.6, 6.0))
-    for r, ((_, names), (nb, acc, cm)) in enumerate(zip(pairs, fits)):
+    for r, ((_, names), (nb, acc, cm, _full)) in enumerate(zip(pairs, fits)):
         for j in range(2):
             ax = axes[r, j]
             ax.imshow(nb.theta_[j].reshape(28, 28), cmap="viridis")
@@ -158,13 +165,21 @@ def part2() -> dict:
         "acc_easy": fits[1][1],
         "cm_hard": fits[0][2].tolist(),
         "cm_easy": fits[1][2].tolist(),
+        "acc_hard_full_cov": fits[0][3],
+        "acc_easy_full_cov": fits[1][3],
+        "train_per_pair": [int(sum(np.isin(ytr_all, p))) for p, _n in pairs],
+        "var_smoothing": VAR_SMOOTHING,
     }
 
 
 def main() -> None:
     r1 = part1()
     r2 = part2()
-    print("\nsummary:", {**r1, **r2})
+    summary = {**r1, **r2}
+    print("\nsummary:", summary)
+    out = FIGDIR.parent / "python" / "naive_bayes_results.json"
+    out.write_text(json.dumps(summary, indent=1) + "\n")
+    print(f"wrote {out}")
 
 
 if __name__ == "__main__":

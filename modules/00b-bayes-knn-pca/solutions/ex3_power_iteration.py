@@ -61,7 +61,7 @@ def my_top_eigenpairs(A, k, seed=0):
 def _compare(name, A, k):
     vals, vecs = my_top_eigenpairs(A, k)
     w, V = np.linalg.eigh(A)
-    order = np.argsort(w)[::-1][:k]
+    order = np.argsort(np.abs(w))[::-1][:k]          # power iteration ranks by |λ|
     w, V = w[order], V[:, order]
     rel = np.abs(vals - w) / np.abs(w)
     cos = np.abs((_fix_signs(vecs.T) * _fix_signs(V.T)).sum(axis=1))
@@ -81,8 +81,17 @@ def _check():
     ok = _compare("6x6 random symmetric", small, 4)
 
     X = rng.normal(size=(2000, 784)) @ rng.normal(size=(784, 784)) * 0.05
-    C = np.cov(X, rowvar=False)                       # a real 784x784 covariance
+    C = np.cov(X, rowvar=False)                       # 784x784, from seeded random data
     ok = _compare("784x784 covariance", C, 5) and ok
+
+    # The dominant eigenvalue is negative, so each multiply flips v's sign.
+    # Without the sign alignment v never stops moving and the loop runs out.
+    neg = np.diag([-5.0, 1.0, 0.5])
+    lam, v, n_iter = my_power_iteration(neg, seed=1)
+    neg_ok = abs(lam + 5.0) < 1e-8 and abs(abs(v[0]) - 1.0) < 1e-8 and n_iter < MAX_ITER
+    print(f"diag(-5, 1, 0.5): eigenvalue {lam:.6f} after {n_iter} iterations "
+          f"({'converged' if n_iter < MAX_ITER else 'never converged: check the sign step'})")
+    ok = neg_ok and ok
 
     print("\n" + ("PASS — power iteration + deflation agrees with LAPACK."
                   if ok else "FAIL — implement the two TODO blocks above."))

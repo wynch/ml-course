@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Program Synthesis · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="program-synthesis">Program Synthesis</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">program-synthesis</span> <span class="tag">library-learning</span> <span class="tag">neural-symbolic</span> <span class="tag">decompilation</span> <span class="tag">arc-agi</span> <span class="tag">hub</span></div>
+<p>Program synthesis: find a program that meets a specification, most often a few input-output examples. The answer is code that can be run, read and checked, not a set of weights. In this wiki it appears in three forms: search for programs, growing a library of reusable parts, and turning trained networks into programs (decompilation). It is the symbolic end of <a href="concept-neural-symbolic-bridge.html">concept-neural-symbolic-bridge</a>.</p>
+<h2 id="three-forms">Three forms</h2>
+<div class="tw"><table><thead><tr><th>Form</th><th>What is searched or built</th><th>In this wiki</th></tr></thead><tbody><tr><td>Search guided by a model</td><td>candidate programs, proposed by a neural network or an LLM and kept only if a checker accepts them</td><td><a href="source-funsearch.html">source-funsearch</a>, <a href="source-alphaevolve.html">source-alphaevolve</a>, <a href="source-worldcoder.html">source-worldcoder</a>, <a href="source-symbolica-arc-agi-2.html">source-symbolica-arc-agi-2</a></td></tr><tr><td>Library learning</td><td>a growing set of named sub-programs, refactored out of solved tasks, that makes later search shorter</td><td><a href="source-dreamcoder.html">source-dreamcoder</a>, <a href="source-lilo-library-learning.html">source-lilo-library-learning</a></td></tr><tr><td>Compile and decompile</td><td>programs turned into transformer weights, and trained weights read back as programs</td><td><a href="source-tracr-compiled-transformers.html">source-tracr-compiled-transformers</a>, <a href="source-decompiling-transformers-to-rasp.html">source-decompiling-transformers-to-rasp</a>, <a href="source-weights-to-code-discrete-transformer.html">source-weights-to-code-discrete-transformer</a></td></tr></tbody></table></div>
+<h2 id="how-it-changed">How it changed</h2>
+<ul><li><strong>2020, DreamCoder.</strong> A wake-sleep loop: search for programs guided by a recognition model; refactor solved programs into new library entries; train the recognition model on replayed and sampled programs. From a handful of examples per task it rediscovers basics of functional programming, vector algebra and physics (<code>raw/arxiv-2006-08381-dreamcoder-growing-generalizable-interpretable-knowledge-with.md</code>, Abstract, "Wake/Sleep Program Learning", "Results").</li><li><strong>2023, FunSearch.</strong> A frozen LLM proposes Python functions; every one is run and scored; winners join an evolving population. It found larger cap sets in dimension 8 than any known (Nature 625, 2024; doi 10.1038/s41586-023-06924-6; not in raw).</li><li><strong>2023–24, LILO.</strong> An LLM replaces DreamCoder's neural search; Stitch, a symbolic compressor, finds the best abstractions in seconds on one CPU; an LLM names and documents each one (<code>raw/arxiv-2310-19791-lilo-learning-interpretable-libraries-by-compressing.md</code>, Abstract, §3).</li><li><strong>2025, AlphaEvolve.</strong> Gemini models drive an evolutionary loop over whole code files, scored by automated checkers. Results include a 4×4 complex matrix product with 48 scalar multiplications and a scheduling heuristic that recovers 0.7% of Google's fleet compute (<code>raw/arxiv-2506-13131-alphaevolve-a-coding-agent-for-scientific.md</code>, §3.1, §3.3).</li><li><strong>2026, decompilation.</strong> D-RASP proves that a GPT-2-style transformer whose layer norms act linearly has an equivalent RASP program, exponential in size, then prunes it by causal tests to a small program on small trained models (<code>raw/arxiv-2602-08857-discovering-interpretable-algorithms-by-decompiling-transformers.md</code>, §3.1, §3.2, §4). Tracr goes the other way, compiling RASP into weights (arXiv 2301.05062; not in raw).</li></ul>
+<h2 id="arc-the-refinement-loop">ARC: the refinement loop</h2>
+<p>The ARC Prize 2025 report names the year's theme the <strong>refinement loop</strong>: per task, a program or a set of weights improved step by step against a feedback signal. It lists four kinds: test-time training of a pretrained model, training from scratch on one task, evolutionary program synthesis, and chains of thought refined against a verifier (<code>raw/arxiv-2601-10904-arc-prize-2025-technical-report.md</code>, §3, §3.1). Two runner-up papers evolve ARC programs, one in natural language, one in Python with a library of abstractions built as it goes; both explore many candidates, then check them against the training pairs, and repeat (same file, §3.1.1).</p>
+<p>Contradiction (partial), carried from <a href="concept-arc-agi.html">concept-arc-agi</a>: program synthesis did not win ARC Prize 2025. The top Kaggle entry built on test-time training and the top paper trained a 7M network from scratch; program synthesis took the second paper award (SOAR, an LLM fine-tuned on its own search traces) and two runner-up places (same file, §2.2, §2.3, Table 2). The report itself treats program search in symbol space and training in weight space as two forms of one loop (§3.1.2). Symbolica's 85.28% on the ARC-AGI-2 public set comes from an LLM agent writing Python, but the same model alone scores 79.03% (<code>raw/web-2026-symbolica-arcgentica-arc-agi-2.md</code>, Figure 1 data; <a href="source-symbolica-arc-agi-2.html">source-symbolica-arc-agi-2</a>).</p>
+<h2 id="local-lines">Local lines</h2>
+<p>Vincent's ARC lines were program-search or symbolic, and all were sunset on 2026-10-07: ORCHID-lite scored 0% on official ARC-AGI-1 (<span class="dead" title="not published">experiment-orchid-lite</span>); CPE reached at best 28/1000 on the ARC-AGI-2 training split, with an untrained neural guide (<span class="dead" title="not published">experiment-cpe</span>). The lesson kept on both pages: heuristic play and learned resources need leakage and transfer audits before a score is trusted (<span class="dead" title="not published">analysis-experiments-second-chance</span>). Both scored programs by description length; see <a href="concept-minimum-description-length.html">concept-minimum-description-length</a>.</p>
+<h2 id="open-questions">Open questions</h2>
+<ul><li>Does a library pay off on ARC, where each task is new? Pang's runner-up builds one as it goes (<code>raw/arxiv-2601-10904-arc-prize-2025-technical-report.md</code>, §3.1.1); the report gives no ablation.</li><li>How much of an LLM-guided synthesis score is the model, and how much the search? Symbolica's table says mostly the model, for its strongest model.</li><li>Can decompilation reach a stock language model? D-RASP's readable programs come from small trained transformers only.</li></ul>
+<h2 id="key-sources">Key sources</h2>
+<ul><li>Search: <a href="source-funsearch.html">source-funsearch</a> · <a href="source-alphaevolve.html">source-alphaevolve</a> · <a href="source-worldcoder.html">source-worldcoder</a> · <a href="source-symbolica-arc-agi-2.html">source-symbolica-arc-agi-2</a></li><li>Libraries: <a href="source-dreamcoder.html">source-dreamcoder</a> · <a href="source-lilo-library-learning.html">source-lilo-library-learning</a></li><li>Compile and decompile: <a href="source-tracr-compiled-transformers.html">source-tracr-compiled-transformers</a> · <a href="source-decompiling-transformers-to-rasp.html">source-decompiling-transformers-to-rasp</a> · <a href="source-weights-to-code-discrete-transformer.html">source-weights-to-code-discrete-transformer</a> · <a href="source-weiss-2021-thinking-like-transformers-rasp.html">source-weiss-2021-thinking-like-transformers-rasp</a></li><li>ARC: <a href="source-arc-prize-2025-report.html">source-arc-prize-2025-report</a> · <a href="entity-arc-prize.html">entity-arc-prize</a> · <a href="concept-arc-agi.html">concept-arc-agi</a></li><li>Hubs: <a href="concept-neural-symbolic-bridge.html">concept-neural-symbolic-bridge</a>, <a href="concept-automated-scientific-discovery.html">concept-automated-scientific-discovery</a>; local: <span class="dead" title="not published">experiment-cpe</span>, <span class="dead" title="not published">experiment-orchid-lite</span>, <span class="dead" title="not published">idea-neural-symbolic-ecology</span></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2006-08381-dreamcoder-growing-generalizable-interpretable-knowledge-with.md</code> (arXiv 2006.08381)</li><li><code>raw/arxiv-2310-19791-lilo-learning-interpretable-libraries-by-compressing.md</code> (arXiv 2310.19791)</li><li><code>raw/arxiv-2506-13131-alphaevolve-a-coding-agent-for-scientific.md</code> (arXiv 2506.13131)</li><li><code>raw/arxiv-2601-10904-arc-prize-2025-technical-report.md</code> (arXiv 2601.10904)</li><li><code>raw/arxiv-2602-08857-discovering-interpretable-algorithms-by-decompiling-transformers.md</code> (arXiv 2602.08857)</li><li><code>raw/web-2026-symbolica-arcgentica-arc-agi-2.md</code></li><li>FunSearch: <a href="https://doi.org/10.1038/s41586-023-06924-6" rel="noreferrer">https://doi.org/10.1038/s41586-023-06924-6</a> · WorldCoder: <a href="https://arxiv.org/abs/2402.12275" rel="noreferrer">https://arxiv.org/abs/2402.12275</a> · Tracr: <a href="https://arxiv.org/abs/2301.05062" rel="noreferrer">https://arxiv.org/abs/2301.05062</a> · Discrete Transformer: <a href="https://arxiv.org/abs/2601.05770" rel="noreferrer">https://arxiv.org/abs/2601.05770</a></li></ul>
+<details class="src"><summary>Sources (10)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2006-08381-dreamcoder-growing-generalizable-interpretable-knowledge-with.md</code></li><li><code>raw/arxiv-2310-19791-lilo-learning-interpretable-libraries-by-compressing.md</code></li><li><code>raw/arxiv-2506-13131-alphaevolve-a-coding-agent-for-scientific.md</code></li><li><code>raw/arxiv-2601-10904-arc-prize-2025-technical-report.md</code></li><li><code>raw/arxiv-2602-08857-discovering-interpretable-algorithms-by-decompiling-transformers.md</code></li><li><code>raw/web-2026-symbolica-arcgentica-arc-agi-2.md</code></li><li><a href="https://doi.org/10.1038/s41586-023-06924-6" rel="noreferrer">https://doi.org/10.1038/s41586-023-06924-6</a></li><li><a href="https://arxiv.org/abs/2402.12275" rel="noreferrer">https://arxiv.org/abs/2402.12275</a></li><li><a href="https://arxiv.org/abs/2301.05062" rel="noreferrer">https://arxiv.org/abs/2301.05062</a></li><li><a href="https://arxiv.org/abs/2601.05770" rel="noreferrer">https://arxiv.org/abs/2601.05770</a></li></ul></details>
+</main>
+</body>
+</html>

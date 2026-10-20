@@ -1,8 +1,9 @@
 """Shared helpers for module 25: the laptop guard, paths, results.
 
-Import this module before torch. It caps the MPS allocator at half of unified
-memory. Every script in this module runs on the CPU, so the cap only matters
-if you change that; it is set anyway, as in every module.
+Import this module before torch. It caps the MPS allocator at half of Metal's
+recommended working set (5.92 GB on a 16 GB Mac). Every script in this module
+runs on the CPU, so the cap only matters if you change that; it is set anyway,
+as in every module.
 """
 
 from __future__ import annotations

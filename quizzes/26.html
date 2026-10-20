@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz · RL with a checker · ML course</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d; --track:var(--t9); --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67; --grid:rgba(28,36,34,.10);
+  --warn:#c1121f; --soft:rgba(31,145,141,.10);
+  --wrong:#c0504d; --wrong-soft:rgba(192,80,77,.10);
+  --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8; --t9:#4f6272;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --grid:rgba(232,238,236,.12); --warn:#ff8f85;
+    --soft:rgba(31,145,141,.16); --t4:#e0679a; --t5:#5aa1e6; --t9:#93a8b8; --track-ink:#121816;
+    --wrong:#f0938f; --wrong-soft:rgba(240,147,143,.13);
+  }
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;padding-bottom:5.6rem}
+a{color:var(--accent)}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;background:var(--track);color:var(--track-ink);
+  padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.topbar .spacer{flex:1 1 auto}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:920px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 2rem}
+.intro{max-width:70ch;color:var(--ink)}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .7rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:clamp(.8rem,2vw,1.2rem);margin:1.4rem 0}
+button{font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:.34rem .82rem;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button:disabled{opacity:1}
+button.primary:hover{color:#fff;filter:brightness(1.06)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:.78rem;color:var(--muted);margin:.35rem 0 0}
+.mono,code{font-family:var(--mono);font-size:.92em}
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* ───────── quiz-specific ───────── */
+.qhead{display:flex;flex-wrap:wrap;gap:.5rem;align-items:baseline;margin:0 0 .55rem}
+.qnum{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted)}
+.tag{font-family:var(--display);font-size:.68rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;border:1px solid var(--line);border-radius:999px;
+  padding:.1rem .5rem;color:var(--muted)}
+.tag.conceptual{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.tag.numbers{color:var(--t1);border-color:var(--t1)}
+.tag.predict{color:var(--t3);border-color:var(--t3)}
+.tag.code{color:var(--muted);border-color:var(--line);background:var(--grid)}
+.qhead .spacer{flex:1 1 auto}
+.qstate{font-family:var(--display);font-size:.7rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted)}
+.qtext{margin:0 0 .7rem;max-width:74ch}
+.qtext b{font-weight:600}
+pre.snippet{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:var(--grid);
+  border:1px solid var(--line);border-radius:10px;padding:.65rem .8rem;margin:.2rem 0 .75rem;
+  overflow-x:auto}
+.srcfile{font-family:var(--mono);font-size:.76rem;color:var(--muted);margin:-.5rem 0 .75rem}
+.opts{display:flex;flex-direction:column;gap:.4rem;margin:0 0 .3rem}
+.opt{display:flex;gap:.6rem;align-items:flex-start;text-align:left;width:100%;
+  font-family:var(--body);font-size:.92rem;font-weight:400;line-height:1.45;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:10px;
+  padding:.55rem .7rem;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--accent);color:var(--ink);background:var(--soft)}
+.opt:disabled{cursor:default}
+.opt .key{font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--muted);
+  min-width:1.2em;padding-top:.08rem}
+.opt.picked{border-color:var(--accent)}
+.opt.right{border-color:var(--accent);background:var(--soft)}
+.opt.right .key{color:var(--accent)}
+.opt.wrongpick{border-color:var(--wrong);background:var(--wrong-soft)}
+.opt.wrongpick .key{color:var(--wrong)}
+.opt .mark{margin-left:auto;font-family:var(--display);font-size:.76rem;font-weight:600;
+  white-space:nowrap;padding-left:.5rem}
+.opt.right .mark{color:var(--accent)}
+.opt.wrongpick .mark{color:var(--wrong)}
+.numrow{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:0 0 .3rem}
+.numrow input{font-family:var(--mono);font-size:.9rem;color:var(--ink);background:var(--paper);
+  border:1px solid var(--line);border-radius:10px;padding:.45rem .6rem;width:15rem;max-width:100%}
+.acts{display:flex;flex-wrap:wrap;gap:.45rem;margin:.55rem 0 0}
+.verdictline{font-family:var(--display);font-size:.78rem;font-weight:600;letter-spacing:.03em;
+  text-transform:uppercase;border-radius:999px;padding:.2rem .62rem;display:inline-block;
+  border:1px solid var(--line);margin:.7rem 0 .45rem}
+.verdictline.ok{color:var(--accent);border-color:var(--accent);background:var(--soft)}
+.verdictline.no{color:var(--wrong);border-color:var(--wrong);background:var(--wrong-soft)}
+.explain{font-size:.88rem;line-height:1.5;border-left:3px solid var(--line);
+  padding:.1rem 0 .1rem .75rem;margin:.2rem 0 0;max-width:74ch;color:var(--ink)}
+.explain .src{display:block;font-family:var(--mono);font-size:.76rem;color:var(--muted);margin-top:.4rem}
+.explain a.tryit{font-family:var(--display);font-size:.78rem;font-weight:600;text-decoration:none;
+  border:1px solid var(--accent);border-radius:999px;padding:.16rem .6rem;display:inline-block;
+  margin-top:.5rem}
+.explain a.tryit:hover{background:var(--soft)}
+.scorebar{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--panel);
+  border-top:1px solid var(--line);padding:.55rem clamp(.9rem,3vw,2rem)}
+.scorebar .inner{max-width:920px;margin:0 auto;display:flex;flex-wrap:wrap;gap:.5rem .9rem;
+  align-items:center}
+.scorebar .score{font-family:var(--mono);font-size:1rem;font-weight:600;color:var(--accent)}
+.scorebar .of{color:var(--muted);font-weight:400}
+.scorebar .msg{font-size:.84rem;color:var(--muted);flex:1 1 260px;min-width:0}
+.scorebar .msg b{color:var(--ink)}
+.scorebar .msg .review{display:block;font-size:.78rem;margin-top:.1rem}
+@media (max-width:700px){
+  .topbar h1{font-size:.98rem}
+  .scorebar .msg{flex-basis:100%}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Quiz · RL with a checker</h1>
+  <span class="pill">Module 26 · Acting and planning</span>
+  <span class="spacer"></span>
+  <a class="back" href="index.html">← All quizzes</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">Ten questions on module 26. Every number is the module's own measured output,
+      from <span class="mono">results/*.json</span>: a small char-GPT that adds 3-digit numbers, trained by GRPO,
+      Dr. GRPO and RLOO against a checker, 3 seeds each, with two random-reward controls, and pass@k on 500 test sums.</p>
+    <p>Answer in any order; answering locks a question and shows the explanation.
+      Your answers stay in this browser. Two questions ask you to <b>predict</b> a result
+      before you look it up; commit to an answer first.</p>
+  </section>
+
+  <div id="quiz"></div>
+</main>
+
+<footer>
+  <p class="paths">module → <a href="../modules/26-rl-with-a-checker/README.md">../modules/26-rl-with-a-checker/README.md</a>
+    · explorable → <a href="../explorables/26-rl-with-a-checker.html">../explorables/26-rl-with-a-checker.html</a></p>
+  <p>Matching reading: <a href="https://arxiv.org/abs/2402.03300">DeepSeekMath (GRPO)</a>,
+    <a href="https://arxiv.org/abs/2503.20783">Dr. GRPO</a>, <a href="https://arxiv.org/abs/2504.13837">Yue et al.</a> and
+    <a href="https://arxiv.org/abs/2506.10947">Spurious Rewards</a>.</p>
+</footer>
+
+<div class="scorebar">
+  <div class="inner">
+    <span class="score"><span id="sc-score">0</span><span class="of"> / 10</span></span>
+    <span class="msg" id="sc-msg">Nothing answered yet.</span>
+    <button id="sc-reset">Reset quiz</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ═════════════════════════ PURE LOGIC START ═════════════════════════
+   Question bank + grading. Dependency-free and DOM-free: the verification
+   harness loads this file's exports under node and asserts the grading rules,
+   the score accumulation, and the answer-key balance.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const QUIZ_ID = "26";
+const STORE_KEY = "mlcourse-quiz-" + QUIZ_ID;
+const SUMMARY_KEY = "mlcourse-quiz-scores";
+
+const QUESTIONS = [
+  /* ── 1 ────────────────────────────────────────────────────── predict ── */
+  {
+    id: "q1", kind: "single", tag: "predict", topic: "What RL changes first",
+    text: "<b>Predict</b> before you open the figures. The base model writes worked replies " +
+          "(<code>[4+5=9,7+8+0=15,3+4+1=8]859.</code>) 24.7% of the time, and they are right 91.2% of the time; its " +
+          "direct replies (<code>859.</code>) are right 48.5% of the time. After 300 GRPO steps with the checker, what " +
+          "share of its replies are worked?",
+    options: [
+      "About 25%: the reward never mentions the style, so the style does not move.",
+      "Near 0%: short replies are cheaper, so RL drops the steps.",
+      "Over 98%: worked replies are right more often, so they get pushed up.",
+      "About 50%: RL balances the two styles."
+    ],
+    answer: 2,
+    explain: "99.2% under GRPO, 98.4% under Dr. GRPO and RLOO (mean of 3 seeds). The mean reply grows from 10.7 to " +
+             "about 29 characters. No reward asked for longer replies; longer replies were right more often.",
+    source: "modules/26-rl-with-a-checker/results/rl.json → arms.*.worked_share · figures/training.png",
+    tryIt: { href: "../explorables/26-rl-with-a-checker.html", label: "see it — panel 2, worked share" }
+  },
+  /* ── 2 ───────────────────────────────────────────────── real numbers ── */
+  {
+    id: "q2", kind: "numeric", tag: "numbers", topic: "pass@1 after training",
+    text: "Dr. GRPO, 300 steps of 32 sums × 8 replies, 3 seeds. The base's pass@1 on the 500 test sums is 59.1%. " +
+          "<b>Type Dr. GRPO's pass@1, mean of the 3 seeds, in percent.</b>",
+    answer: 94.9, tol: 0.5, tolLabel: "± 0.5",
+    placeholder: "e.g. 70",
+    explain: "94.9% (seeds 94.7 to 95.1). RLOO also 94.9%, GRPO 94.0%. Within the worked style, accuracy moved less: " +
+             "91.2% to about 95%. Most of the gain is the switch of style.",
+    source: "modules/26-rl-with-a-checker/results/rl.json → arms.drgrpo.pass_at_k.1"
+  },
+  /* ── 3 ─────────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q3", kind: "single", tag: "conceptual", topic: "A group where all agree",
+    text: "A group of 8 replies to one sum, all 8 right. What does this group add to the update?",
+    options: [
+      "A strong push up on all 8, since every one earned the reward.",
+      "Nothing: every advantage is the reward minus the group's mean, which is 0 for each.",
+      "A push down, to keep the model from growing too sure.",
+      "It depends on the KL penalty."
+    ],
+    answer: 1,
+    explain: "The group is its own baseline. Late in training most groups are all right: 55% to 61% of them over steps " +
+             "100 to 290. The push fades as the model improves, which is one reason the runs settle at about 1.4 nats " +
+             "from the base.",
+    source: "modules/26-rl-with-a-checker/python/src/rl.py (adv_group) · results/rl.json → arms.*.dead_groups_100_290"
+  },
+  /* ── 4 ─────────────────────────────────────────────────── read-code ── */
+  {
+    id: "q4", kind: "single", tag: "code", topic: "Reading RLOO's advantage",
+    text: "This is RLOO's advantage in <code>src/rl.py</code>; <code>r</code> has shape (32 sums, 8 replies). " +
+          "Which is true for every reply?",
+    code: "def adv_loo(r):\n" +
+          "    g = r.shape[1]\n" +
+          "    return r - (r.sum(1, keepdim=True) - r) / (g - 1)",
+    file: "modules/26-rl-with-a-checker/python/src/rl.py",
+    options: [
+      "It equals GRPO's advantage.",
+      "It is r minus the group mean, divided by the group's spread.",
+      "It is always positive for a right reply and 0 for a wrong one.",
+      "It equals 8/7 times (r − group mean), Dr. GRPO's advantage."
+    ],
+    answer: 3,
+    explain: "rᵢ − (S − rᵢ)/7 = (8/7)(rᵢ − S/8). Adam divides each step by a running size of the gradient, so the " +
+             "factor cancels: with the same seed, RLOO and Dr. GRPO sampled the same replies for the first 110 to 180 " +
+             "steps, and ended within 0.3 points.",
+    source: "modules/26-rl-with-a-checker/results/rl.json → rloo_vs_drgrpo · exercises/exercise_a_advantages.py"
+  },
+  /* ── 5 ────────────────────────────────────────────────────── predict ── */
+  {
+    id: "q5", kind: "single", tag: "predict", topic: "Rewards from a coin",
+    text: "<b>Predict.</b> Same GRPO loop, but each reply's reward is a coin flip, with the batch's true success rate, " +
+          "so the coin hands out as many 1s as the checker would, at random. After 300 steps, pass@1 on the test sums is…",
+    options: [
+      "under 10%: the model is wrecked.",
+      "about 59%, as before: the coin's advantages average zero.",
+      "about 75%: random rewards still help, as some papers report.",
+      "about 94%, like the true reward."
+    ],
+    answer: 0,
+    explain: "4.6% (seeds 2.0 to 9.2), with KL to the base 12.8 nats per reply. The module had written down \"within 5 " +
+             "points of 59.1%\": a miss. Each step is still a full Adam step in a random direction, and nothing pulls the " +
+             "model back. With 4 clipped steps per batch, 2.4%.",
+    source: "modules/26-rl-with-a-checker/results/rl.json → arms.random, expectations_met.E6"
+  },
+  /* ── 6 ─────────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q6", kind: "single", tag: "conceptual", topic: "Why no crossover",
+    text: "Yue et al. (2025) found base models beat their RL-trained versions at large k. Here the trained models match " +
+          "or beat the base at every k from 1 to 128. Why can this test not show the crossover?",
+    options: [
+      "Because 128 samples are too few to estimate pass@k.",
+      "Because the trained models are bigger than the base.",
+      "Because the checker grades the steps as well as the answer.",
+      "Because the base already reaches 99.56% at k = 16 and gets every test sum right at least once in 128: there is no room above it."
+    ],
+    answer: 3,
+    explain: "Every trained model also solves all 500 sums at least once, so no sum is lost. The result fits the reading " +
+             "that RL picks among answers the base already gives; it cannot test whether something is lost. A harder " +
+             "task, where the base misses sums even at large k, could.",
+    source: "modules/26-rl-with-a-checker/results/rl.json → base.pass_at_k, arms.*.crossover · figures/passk.png",
+    tryIt: { href: "../explorables/26-rl-with-a-checker.html", label: "see it — panel 3, slide k" }
+  },
+  /* ── 7 ─────────────────────────────────────────── real numbers, multi ── */
+  {
+    id: "q7", kind: "multi", tag: "numbers", topic: "The three methods",
+    text: "Mean of 3 seeds after 300 steps. <b>Select all that are true.</b>",
+    options: [
+      "Over steps 100 to 290, GRPO's wrong replies are longer than Dr. GRPO's (26.4 against 24.2 characters).",
+      "GRPO ends with the highest pass@1 of the three.",
+      "Every true-reward run ends 1.3 to 1.5 nats per reply from the base.",
+      "Greedy accuracy ends above 99% for all three."
+    ],
+    answer: [0, 2, 3],
+    explain: "GRPO's length average gives each character of a long reply a smaller push, so long wrong replies are " +
+             "punished less; its pass@1 ends lowest, 94.0% against 94.9%. KL ends at 1.32 to 1.44 per run; greedy at 99.7% " +
+             "to 99.9%.",
+    source: "modules/26-rl-with-a-checker/results/rl.json → arms.*.length_wrong_100_290, kl_final, greedy_acc"
+  },
+  /* ── 8 ─────────────────────────────────────────────────── read-code ── */
+  {
+    id: "q8", kind: "single", tag: "code", topic: "Reading the length average",
+    text: "This is how <code>pg_loss</code> adds up characters. Two wrong replies, advantage −1 each, one 4 characters " +
+          "long, one 28. With <code>length_norm=True</code> (GRPO), how does the push on one character of the long " +
+          "reply compare with one of the short reply?",
+    code: "if length_norm:\n" +
+          "    per_seq = per_tok.sum(1) / mask.sum(1).clamp(min=1)\n" +
+          "else:\n" +
+          "    per_seq = per_tok.sum(1) / task.MAX_REPLY\n" +
+          "return per_seq.mean()",
+    file: "modules/26-rl-with-a-checker/python/src/rl.py",
+    options: [
+      "1/7 as large: each reply's push is shared among its own characters.",
+      "The same: every character gets the advantage.",
+      "7 times as large: longer replies carry more weight.",
+      "Zero: wrong replies are not pushed."
+    ],
+    answer: 0,
+    explain: "4/28 = 1/7. With <code>length_norm=False</code> (Dr. GRPO, RLOO) both get the same push, 1/32 of the " +
+             "advantage. tests/test_solutions.py checks the 1/7.",
+    source: "modules/26-rl-with-a-checker/python/src/rl.py (pg_loss) · exercises/exercise_c_loss.py"
+  },
+  /* ── 9 ─────────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q9", kind: "single", tag: "conceptual", topic: "Why the coin's rate",
+    text: "The random-reward control flips each coin with the batch's true success rate, not with 50%. Why?",
+    options: [
+      "To make the control train faster.",
+      "So it hands out as many 1s as the checker would: the only difference left is whether the 1s land on right replies.",
+      "Because GRPO needs rewards between 0 and 1.",
+      "To match the clip of PPO."
+    ],
+    answer: 1,
+    explain: "A control should change one thing. Same loop, same number of rewarded replies; only the link between " +
+             "reward and correctness is cut. Without the checker's link, the model fell from 59.1% to 4.6%.",
+    source: "modules/26-rl-with-a-checker/python/src/rl.py (run) · README.md §3"
+  },
+  /* ── 10 ────────────────────────────────────────────────── conceptual ── */
+  {
+    id: "q10", kind: "single", tag: "conceptual", topic: "What the module stands behind",
+    text: "Which reading of this module does the README stand behind?",
+    options: [
+      "RL with a checker teaches a small model to add numbers it could not add before.",
+      "Random rewards help any model, as Shao et al. found.",
+      "Here, RL lifted pass@1 by about 35 points mostly by making a style the base already did well the default; it lost no test sum, and the test had no room to show a crossover.",
+      "GRPO is the best of the three methods."
+    ],
+    answer: 2,
+    explain: "The worked share went from 24.7% to over 98%, and accuracy within that style moved from 91.2% to about " +
+             "95%. The base got every test sum right at least once in 128 tries before training. One task, one small " +
+             "model, 3 seeds.",
+    source: "modules/26-rl-with-a-checker/README.md §2–3"
+  }
+];
+
+/* ---------------------------------------------------------------- grading */
+function sameSet(a, b) {
+  const x = a.slice().sort(function (p, q) { return p - q; });
+  const y = b.slice().sort(function (p, q) { return p - q; });
+  return x.length === y.length && x.every(function (v, i) { return v === y[i]; });
+}
+function gradeSingle(q, ans) { return typeof ans === "number" && ans === q.answer; }
+function gradeMulti(q, ans) { return Array.isArray(ans) && sameSet(ans, q.answer); }
+function gradeNumeric(q, ans) {
+  const v = typeof ans === "number" ? ans : parseFloat(String(ans).replace(/[\s,_]/g, ""));
+  return isFinite(v) && Math.abs(v - q.answer) <= q.tol + 1e-9;
+}
+function gradeQuestion(q, ans) {
+  if (ans === undefined || ans === null) return false;
+  if (q.kind === "multi") return gradeMulti(q, ans);
+  if (q.kind === "numeric") return gradeNumeric(q, ans);
+  return gradeSingle(q, ans);
+}
+function scoreAll(questions, answers) {
+  let score = 0, answered = 0;
+  const wrong = [];
+  questions.forEach(function (q) {
+    const a = answers[q.id];
+    if (a === undefined || a === null) return;
+    answered += 1;
+    if (gradeQuestion(q, a)) score += 1; else wrong.push(q.topic);
+  });
+  return { score: score, answered: answered, total: questions.length, wrong: wrong };
+}
+function verdictFor(score, total) {
+  if (score >= 9) return { cls: "ok", text: "solid — move on" };
+  if (score >= 6) return { cls: "no", text: "review the flagged topics" };
+  return { cls: "no", text: "re-run the module notebook first" };
+}
+/* answer-key balance: how often each option position is the correct single-choice answer */
+function keyBalance(questions) {
+  const counts = [0, 0, 0, 0];
+  questions.forEach(function (q) {
+    if (q.kind === "single") counts[q.answer] += 1;
+  });
+  return counts;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { QUIZ_ID, STORE_KEY, SUMMARY_KEY, QUESTIONS, sameSet, gradeSingle,
+                     gradeMulti, gradeNumeric, gradeQuestion, scoreAll, verdictFor, keyBalance };
+}
+/* ══════════════════════════ PURE LOGIC END ══════════════════════════ */
+
+/* ═════════════════════════ DOM / rendering ═════════════════════════ */
+(function () {
+  if (typeof document === "undefined") return;   // running under node
+  const LETTERS = ["A", "B", "C", "D", "E", "F"];
+  const root = document.getElementById("quiz");
+  let answers = {};
+
+  /* ---- persistence ---- */
+  function load() {
+    try {
+      const raw = window.localStorage.getItem(STORE_KEY);
+      if (!raw) return {};
+      const obj = JSON.parse(raw);
+      return (obj && typeof obj.answers === "object" && obj.answers) ? obj.answers : {};
+    } catch (e) { return {}; }
+  }
+  function save() {
+    const s = scoreAll(QUESTIONS, answers);
+    const payload = { quiz: QUIZ_ID, answers: answers, score: s.score,
+                      total: s.total, answered: s.answered, ts: Date.now() };
+    try {
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(payload));
+      let all = {};
+      try { all = JSON.parse(window.localStorage.getItem(SUMMARY_KEY) || "{}") || {}; }
+      catch (e) { all = {}; }
+      all[QUIZ_ID] = { score: s.score, total: s.total, ts: payload.ts };
+      window.localStorage.setItem(SUMMARY_KEY, JSON.stringify(all));
+    } catch (e) { /* private mode: quiz still works, just not remembered */ }
+  }
+
+  /* ---- one question ---- */
+  function buildQuestion(q, i) {
+    const sec = document.createElement("section");
+    sec.className = "panel";
+    sec.id = "sec-" + q.id;
+
+    const head = document.createElement("div");
+    head.className = "qhead";
+    const num = document.createElement("span");
+    num.className = "qnum";
+    num.textContent = "Question " + (i + 1);
+    const tag = document.createElement("span");
+    tag.className = "tag " + q.tag;
+    tag.textContent = { conceptual: "concept", numbers: "real numbers",
+                        predict: "predict", code: "read the code" }[q.tag] || q.tag;
+    const sp = document.createElement("span");
+    sp.className = "spacer";
+    const state = document.createElement("span");
+    state.className = "qstate";
+    state.textContent = "unanswered";
+    head.appendChild(num); head.appendChild(tag); head.appendChild(sp); head.appendChild(state);
+    sec.appendChild(head);
+
+    const txt = document.createElement("p");
+    txt.className = "qtext";
+    txt.innerHTML = q.text;
+    sec.appendChild(txt);
+
+    if (q.code) {
+      const pre = document.createElement("pre");
+      pre.className = "snippet";
+      pre.textContent = q.code;
+      sec.appendChild(pre);
+      const src = document.createElement("p");
+      src.className = "srcfile";
+      src.textContent = q.file;
+      sec.appendChild(src);
+    }
+
+    const holder = { sec: sec, state: state, opts: [], input: null, checkBtn: null,
+                     result: null, q: q };
+
+    if (q.kind === "numeric") {
+      const row = document.createElement("div");
+      row.className = "numrow";
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.inputMode = "numeric";
+      inp.setAttribute("aria-label", "your answer");
+      inp.placeholder = q.placeholder || "your answer";
+      const btn = document.createElement("button");
+      btn.className = "primary";
+      btn.textContent = "Answer";
+      btn.addEventListener("click", function () {
+        const v = parseFloat(inp.value.replace(/[\s,_]/g, ""));
+        if (!isFinite(v)) { inp.focus(); return; }
+        answers[q.id] = v;
+        save(); renderQuestion(holder); renderBar();
+      });
+      inp.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); btn.click(); }
+      });
+      row.appendChild(inp); row.appendChild(btn);
+      sec.appendChild(row);
+      holder.input = inp; holder.checkBtn = btn;
+    } else {
+      const list = document.createElement("div");
+      list.className = "opts";
+      q.options.forEach(function (opt, oi) {
+        const b = document.createElement("button");
+        b.className = "opt";
+        b.type = "button";
+        const key = document.createElement("span");
+        key.className = "key";
+        key.textContent = LETTERS[oi];
+        const body = document.createElement("span");
+        body.innerHTML = opt;
+        const mark = document.createElement("span");
+        mark.className = "mark";
+        b.appendChild(key); b.appendChild(body); b.appendChild(mark);
+        b.addEventListener("click", function () {
+          if (answers[q.id] !== undefined) return;
+          if (q.kind === "multi") {
+            const cur = holder.picked;
+            const at = cur.indexOf(oi);
+            if (at >= 0) cur.splice(at, 1); else cur.push(oi);
+            b.classList.toggle("picked", at < 0);
+            holder.checkBtn.disabled = cur.length === 0;
+          } else {
+            answers[q.id] = oi;
+            save(); renderQuestion(holder); renderBar();
+          }
+        });
+        list.appendChild(b);
+        holder.opts.push({ btn: b, mark: mark });
+      });
+      sec.appendChild(list);
+
+      if (q.kind === "multi") {
+        holder.picked = [];
+        const acts = document.createElement("div");
+        acts.className = "acts";
+        const btn = document.createElement("button");
+        btn.className = "primary";
+        btn.textContent = "Answer";
+        btn.disabled = true;
+        btn.addEventListener("click", function () {
+          if (answers[q.id] !== undefined || holder.picked.length === 0) return;
+          answers[q.id] = holder.picked.slice();
+          save(); renderQuestion(holder); renderBar();
+        });
+        acts.appendChild(btn);
+        const note = document.createElement("span");
+        note.className = "hint";
+        note.style.margin = "0";
+        note.style.alignSelf = "center";
+        note.textContent = "pick every option you believe is true, then Answer";
+        acts.appendChild(note);
+        sec.appendChild(acts);
+        holder.checkBtn = btn;
+      }
+    }
+
+    const res = document.createElement("div");
+    res.style.display = "none";
+    sec.appendChild(res);
+    holder.result = res;
+
+    return holder;
+  }
+
+  /* ---- render one question's locked / unlocked state ---- */
+  function renderQuestion(h) {
+    const q = h.q, ans = answers[q.id], locked = ans !== undefined;
+    const ok = locked && gradeQuestion(q, ans);
+
+    h.state.textContent = locked ? (ok ? "correct" : "incorrect") : "unanswered";
+    h.state.style.color = locked ? (ok ? "var(--accent)" : "var(--wrong)") : "var(--muted)";
+
+    if (h.input) {
+      h.input.disabled = locked;
+      if (locked) h.input.value = String(ans);
+      h.checkBtn.disabled = locked;
+      h.checkBtn.textContent = locked ? "answered" : "Answer";
+    }
+    const correctSet = q.kind === "multi" ? q.answer : (q.kind === "single" ? [q.answer] : []);
+    const pickedSet = !locked ? (h.picked || [])
+      : (q.kind === "multi" ? ans : (q.kind === "single" ? [ans] : []));
+
+    h.opts.forEach(function (o, oi) {
+      o.btn.disabled = locked;
+      o.btn.classList.toggle("picked", !locked && pickedSet.indexOf(oi) >= 0);
+      const isRight = correctSet.indexOf(oi) >= 0;
+      const isPicked = locked && pickedSet.indexOf(oi) >= 0;
+      o.btn.classList.toggle("right", locked && isRight);
+      o.btn.classList.toggle("wrongpick", locked && isPicked && !isRight);
+      o.mark.textContent = !locked ? ""
+        : (isRight ? (isPicked ? "✓ correct · you picked it" : "✓ correct")
+                   : (isPicked ? "✗ your pick" : ""));
+    });
+    if (h.checkBtn && q.kind === "multi") {
+      h.checkBtn.disabled = locked || (h.picked || []).length === 0;
+      h.checkBtn.textContent = locked ? "answered" : "Answer";
+    }
+
+    if (!locked) { h.result.style.display = "none"; h.result.innerHTML = ""; return; }
+
+    h.result.innerHTML = "";
+    h.result.style.display = "block";
+    const v = document.createElement("span");
+    v.className = "verdictline " + (ok ? "ok" : "no");
+    v.textContent = ok ? "Correct" : "Not quite";
+    h.result.appendChild(v);
+
+    if (q.kind === "numeric") {
+      const line = document.createElement("p");
+      line.className = "hint";
+      line.style.marginTop = "0";
+      const nf = function (v) {
+        return Number(v).toLocaleString("en-US", { maximumFractionDigits: 6 });
+      };
+      line.innerHTML = "answer <span class=\"mono\">" + nf(q.answer) +
+        "</span> · accepted " + q.tolLabel + " · you typed <span class=\"mono\">" +
+        nf(ans) + "</span>";
+      h.result.appendChild(line);
+    }
+
+    const ex = document.createElement("div");
+    ex.className = "explain";
+    ex.innerHTML = q.explain;
+    const src = document.createElement("span");
+    src.className = "src";
+    src.textContent = "source · " + q.source;
+    ex.appendChild(src);
+    if (q.tryIt) {
+      const a = document.createElement("a");
+      a.className = "tryit";
+      a.href = q.tryIt.href;
+      a.textContent = q.tryIt.label;
+      ex.appendChild(a);
+    }
+    h.result.appendChild(ex);
+  }
+
+  /* ---- score bar ---- */
+  function renderBar() {
+    const s = scoreAll(QUESTIONS, answers);
+    document.getElementById("sc-score").textContent = String(s.score);
+    const msg = document.getElementById("sc-msg");
+    msg.innerHTML = "";
+    if (s.answered === 0) {
+      msg.textContent = "Nothing answered yet.";
+    } else if (s.answered < s.total) {
+      msg.textContent = s.answered + " of " + s.total + " answered — " +
+        (s.total - s.answered) + " to go.";
+    } else {
+      const vd = verdictFor(s.score, s.total);
+      const b = document.createElement("b");
+      b.textContent = s.score + " / " + s.total + " — " + vd.text + ".";
+      msg.appendChild(b);
+      const rev = document.createElement("span");
+      rev.className = "review";
+      rev.textContent = s.wrong.length
+        ? "Review: " + s.wrong.join(" · ")
+        : "Every topic clean.";
+      msg.appendChild(rev);
+    }
+  }
+
+  /* ---- boot ---- */
+  answers = load();
+  const holders = QUESTIONS.map(function (q, i) {
+    const h = buildQuestion(q, i);
+    root.appendChild(h.sec);
+    return h;
+  });
+  holders.forEach(renderQuestion);
+  renderBar();
+
+  document.getElementById("sc-reset").addEventListener("click", function () {
+    if (!window.confirm("Clear your answers for this quiz and start over?")) return;
+    answers = {};
+    holders.forEach(function (h) { h.picked = []; });
+    try {
+      window.localStorage.removeItem(STORE_KEY);
+      let all = {};
+      try { all = JSON.parse(window.localStorage.getItem(SUMMARY_KEY) || "{}") || {}; }
+      catch (e) { all = {}; }
+      delete all[QUIZ_ID];
+      window.localStorage.setItem(SUMMARY_KEY, JSON.stringify(all));
+    } catch (e) { /* ignore */ }
+    holders.forEach(renderQuestion);
+    renderBar();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+})();
+</script>
+<!-- built for ml-course quizzes v1 -->
+</html>

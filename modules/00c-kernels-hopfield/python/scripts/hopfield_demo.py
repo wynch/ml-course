@@ -12,6 +12,9 @@ Run:  uv run scripts/hopfield_demo.py
 import _bootstrap  # noqa: F401
 from _bootstrap import FIGDIR
 
+import json
+import pathlib
+
 import matplotlib
 
 matplotlib.use("Agg")
@@ -31,6 +34,9 @@ from kernelmem.hopfield import (
 CORRUPT = 0.30
 SEED = 4
 CMAP = "cividis"
+
+
+OUT_JSON = pathlib.Path(__file__).resolve().parents[1] / "run_hopfield_demo.json"
 
 
 def main() -> None:
@@ -98,7 +104,7 @@ def main() -> None:
         ax.axhline(energy(W, target), color=colour, ls=":", lw=1.0, alpha=0.8)
     ax.set_xlabel("neuron updates (asynchronous, random order)")
     ax.set_ylabel(r"energy  $E(s) = -\frac{1}{2}\, s^\top W s$")
-    ax.set_title("Every accepted flip lowers E — the state slides into a valley")
+    ax.set_title("No flip ever raises E — the state slides into a valley")
     ax.set_xlim(0, 120)
     ax.legend(fontsize=8, loc="upper right")
     ax.grid(alpha=0.25)
@@ -125,6 +131,19 @@ def main() -> None:
     fig.savefig(out, dpi=110)
     plt.close(fig)
     print(f"wrote {out}")
+
+    record = {
+        "n_neurons": n, "patterns": names, "corrupt_fraction": CORRUPT, "seed": SEED,
+        "runs": [{"name": name,
+                  "overlap_start": float(overlap(start, xi)),
+                  "overlap_final": float(overlap(final, xi)),
+                  "energy_start": float(trace[0][1]), "energy_final": float(trace[-1][1]),
+                  "neuron_updates": len(trace) - 1}
+                 for name, xi, start, final, trace in runs],
+        "largest_single_update_energy_increase": float(worst),
+    }
+    OUT_JSON.write_text(json.dumps(record, indent=1) + "\n")
+    print(f"wrote {OUT_JSON}")
 
 
 if __name__ == "__main__":

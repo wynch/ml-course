@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Lambda-RLM: Lambda Calculus for LLMs · ML wiki</title>
+<title>The Y-Combinator for LLMs: Solving Long-Context Rot with λ-Calculus (λ-RLM) · ML wiki</title>
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
@@ -58,16 +58,16 @@ border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem
 <body>
 <nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
 <main>
-<h1 id="lambda-rlm-lambda-calculus-for-llms">Lambda-RLM: Lambda Calculus for LLMs</h1>
-<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-04-05</span> <span class="tag">llm-reasoning</span> <span class="tag">lambda-calculus</span> <span class="tag">formal-methods</span> <span class="tag">recursive</span></div>
-<p><strong>HuggingFace:</strong> <a href="https://huggingface.co/papers/2603.20105" rel="noreferrer">papers/2603.20105</a> <strong>Code:</strong> <a href="https://github.com/lambda-calculus-LLM/lambda-RLM" rel="noreferrer">lambda-calculus-LLM/lambda-RLM</a> <strong>Via:</strong> @huggingpapers on X</p>
+<h1 id="the-y-combinator-for-llms-solving-long-context-rot-with-λ-calculus-λ-rlm">The Y-Combinator for LLMs: Solving Long-Context Rot with λ-Calculus (λ-RLM)</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-10-19</span> <span class="tag">llm-reasoning</span> <span class="tag">lambda-calculus</span> <span class="tag">formal-methods</span> <span class="tag">recursive</span></div>
+<p><strong>Authors:</strong> Amartya Roy, Rasul Tutunov, Xiaotong Ji, Matthieu Zimmer, Haitham Bou-Ammar · <strong>arXiv:</strong> <a href="https://arxiv.org/abs/2603.20105" rel="noreferrer">2603.20105</a> · <strong>Date:</strong> 2026-03-20 <strong>HuggingFace:</strong> <a href="https://huggingface.co/papers/2603.20105" rel="noreferrer">papers/2603.20105</a> <strong>Code:</strong> <a href="https://github.com/lambda-calculus-LLM/lambda-RLM" rel="noreferrer">lambda-calculus-LLM/lambda-RLM</a> <strong>Via:</strong> @huggingpapers on X</p>
 <h2 id="summary">Summary</h2>
-<p>Applies lambda calculus formalisms to language models, connecting formal computation theory with LLM capabilities.</p>
+<p>λ-RLM swaps the free-form recursive code of Recursive Language Models for a typed runtime: a small library of pre-checked λ-calculus combinators, with the LLM called only on bounded leaf tasks. It claims termination, closed-form cost bounds and an optimal split rule. Across 4 long-context tasks and 9 base models it beats standard RLM in 29 of 36 pairs, raises mean accuracy by up to 21.9 points and cuts latency by up to 4.1× (abstract).</p>
 <h2 id="connections">Connections</h2>
-<ul><li>Formal methods approach to <a href="concept-llm-reasoning.html">concept-llm-reasoning</a></li><li>Related to <a href="source-recursive-language-models.html">source-recursive-language-models</a> — recursive computation in LLMs</li><li>Connects to <a href="source-subleq-transformer-computer.html">source-subleq-transformer-computer</a> — computational power of transformers</li></ul>
+<ul><li>Formal methods approach to <a href="concept-llm-reasoning.html">concept-llm-reasoning</a></li><li>Related to <a href="source-recursive-language-models.html">source-recursive-language-models</a> — recursive computation in LLMs</li><li>Connects to <a href="source-subleq-transformer-computer.html">source-subleq-transformer-computer</a> — computational power of transformers</li><li><a href="source-language-models-as-scaffolds.html">source-language-models-as-scaffolds</a> — structure around the model instead of a bigger model</li></ul>
 <h2 id="references">References</h2>
-<ul><li><a href="https://huggingface.co/papers/2603.20105" rel="noreferrer">HuggingFace paper</a></li><li><a href="https://github.com/lambda-calculus-LLM/lambda-RLM" rel="noreferrer">GitHub repo</a></li></ul>
-<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://huggingface.co/papers/2603.20105" rel="noreferrer">https://huggingface.co/papers/2603.20105</a></li><li><a href="https://github.com/lambda-calculus-LLM/lambda-RLM" rel="noreferrer">https://github.com/lambda-calculus-LLM/lambda-RLM</a></li><li><a href="https://x.com/huggingpapers/status/2036237735699022056" rel="noreferrer">https://x.com/huggingpapers/status/2036237735699022056</a></li></ul></details>
+<ul><li><a href="https://arxiv.org/abs/2603.20105" rel="noreferrer">arXiv 2603.20105</a></li><li><a href="https://huggingface.co/papers/2603.20105" rel="noreferrer">HuggingFace paper</a></li><li><a href="https://github.com/lambda-calculus-LLM/lambda-RLM" rel="noreferrer">GitHub repo</a></li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://huggingface.co/papers/2603.20105" rel="noreferrer">https://huggingface.co/papers/2603.20105</a></li><li><a href="https://github.com/lambda-calculus-LLM/lambda-RLM" rel="noreferrer">https://github.com/lambda-calculus-LLM/lambda-RLM</a></li><li><a href="https://x.com/huggingpapers/status/2036237735699022056" rel="noreferrer">https://x.com/huggingpapers/status/2036237735699022056</a></li><li><a href="https://arxiv.org/abs/2603.20105" rel="noreferrer">https://arxiv.org/abs/2603.20105</a></li></ul></details>
 </main>
 </body>
 </html>

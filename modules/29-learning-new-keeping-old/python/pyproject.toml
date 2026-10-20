@@ -1,0 +1,20 @@
+[project]
+name = "mlcourse-29-learning-new-keeping-old"
+version = "0.1.0"
+description = "Module 29 — Learning something new without losing the old: forgetting under full fine-tuning, LoRA, replay and self-distillation on a char-GPT, forward KL as a predictor, loss of plasticity and continual backprop; then PEFT LoRA on SmolLM2-360M-Instruct with a 500-item forgetting probe and a memory budget."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "datasets>=5.0.0",
+    "matplotlib>=3.11.1",
+    "numpy>=2.0",
+    "peft==0.21.2",
+    "pytest>=9.1.1",
+    "scipy>=1.14",
+    "torch>=2.14.1",
+    "transformers>=5.20.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "../solutions"]
+addopts = "-q"

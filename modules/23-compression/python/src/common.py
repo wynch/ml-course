@@ -1,8 +1,8 @@
 """Shared helpers for module 23: the laptop guard, paths, seeds, loaders, perplexity, results.
 
-Import this module before torch. It caps the MPS allocator at half of unified
-memory, so a run that grows too large fails with an error instead of pushing
-the whole Mac into swap.
+Import this module before torch. It caps the MPS allocator at half of Metal's
+recommended working set (5.92 GB on a 16 GB Mac), so a run that grows too
+large fails with an error instead of pushing the whole Mac into swap.
 """
 
 from __future__ import annotations

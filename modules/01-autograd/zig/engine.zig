@@ -5,8 +5,9 @@
 //! garbage-collected closures, so instead each node stores its operation as an
 //! `Op` enum plus indices to its children. The backward pass is one `switch` over
 //! that enum. Nodes live in a single flat `ArrayList` owned by the `Engine`; a
-//! "Value" is just a `usize` index into that list. Rebuilding the graph each step
-//! is `clearRetainingCapacity()` — the arena/list is reused, nothing leaks.
+//! "Value" is just a `usize` index into that list. `main.zig` builds a fresh
+//! `Engine` each step inside an arena it resets with `.retain_capacity`, so the
+//! memory is reused and nothing leaks.
 
 const std = @import("std");
 

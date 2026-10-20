@@ -158,7 +158,7 @@
 </section>
 
 <section>
-  <h2>2 · Same blocks, bigger numbers</h2>
+  <h2>2 · Same layout, bigger numbers</h2>
   <p class="sub">Parameter budget of the selected model, and the three models side by side. All counts computed
     from the real configs (module 04's exported checkpoint manifest; SmolLM2 / SmolLM3 <code>config.json</code>).</p>
   <div class="card">
@@ -201,10 +201,12 @@
       <li><b>GQA is visible in the shapes.</b> Hover <em>attention</em> on SmolLM2: <code>q_proj</code> is
         960→960 but <code>k_proj</code>/<code>v_proj</code> are only 960→320 — 5 key/value heads shared
         across 15 query heads. That asymmetry is what makes the KV cache affordable (module 07).</li>
-      <li><b>Most of the depth is retrieval, not answering.</b> The lens strip is bright (answer far from #1)
+      <li><b>The answer shows up late, in this reading.</b> The lens strip is bright (answer far from #1)
         for 26 layers of nonsense — <code>' psychiat'</code>, <code>"('.//"</code> — then
-        <code>' Paris'</code> snaps to rank 1 at layer 27 with 71% and holds to the end.
-        The residual stream commits <em>late</em>.</li>
+        <code>' Paris'</code> snaps to rank 1 at layer 27 with 71% and holds to the end (98.5% at layer 32).
+        Careful: the logit lens reads every layer in the last layer's terms, which early layers do not use,
+        so part of the nonsense is the lens, not the model. The tuned lens fits one small map per layer and
+        reads them more faithfully (<a href="https://arxiv.org/abs/2303.08112">arXiv 2303.08112</a>).</li>
       <li><b>Layer 0 is a mirror.</b> Read straight off the embeddings, the "prediction" is
         <code>' of'</code> at 100% — the last input token itself. The stack has to <em>do work</em>
         before the lens says anything interesting.</li>
@@ -310,7 +312,7 @@ const LENS=[
  [21,"' psychiat'",0.863,29269],[22,"' psychiat'",0.490,23202],[23,"' psychiat'",0.508,30298],
  [24,"' showc'",0.402,12591],[25,"' assembl'",0.097,1911],[26,"':||'",0.199,148],
  [27,"' Paris'",0.710,0],[28,"' Paris'",0.987,0],[29,"' Paris'",0.995,0],
- [30,"' Paris'",0.984,0],[31,"' Paris'",0.981,0],[32,"' Paris'",0.790,0]
+ [30,"' Paris'",0.984,0],[31,"' Paris'",0.981,0],[32,"' Paris'",0.985,0]
 ];
 const DECISION_LAYER=27;
 

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Why SWE-bench Verified no longer measures frontier coding capabilities (OpenAI, 2026) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="openai-stops-reporting-swe-bench-verified">OpenAI stops reporting SWE-bench Verified</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">benchmarks</span> <span class="tag">coding-agents</span> <span class="tag">evaluation</span> <span class="tag">contamination</span> <span class="tag">swe-bench</span> <span class="tag">openai</span> <span class="tag">2026</span></div>
+<p><strong>Author:</strong> OpenAI (no named authors) <strong>Published:</strong> 2026-02-23, <a href="https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/" rel="noreferrer">https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/</a> <strong>Raw copy:</strong> <code>raw/web-2026-openai-no-longer-swe-bench-verified.md</code> (captured 2026-10-20 from the Internet Archive snapshot of 2026-10-15; openai.com refused the fetch)</p>
+<p>Every claim below cites the raw file as R, with its section.</p>
+<h2 id="summary">Summary</h2>
+<p>OpenAI published SWE-bench Verified in August 2024: software engineers reviewed 1,699 SWE-bench problems, three per problem, and kept 500 (R, "Background"). In February 2026 it stopped reporting the benchmark and asked other labs to stop too (R, opening). Two reasons:</p>
+<ol><li><strong>Tests reject correct fixes.</strong> OpenAI audited the 138 Verified problems that o3 did not solve consistently over 64 runs, 27.6% of the set; at least six engineers reviewed each. At least 59.4% had material problems in test design or task text (R, "Too narrow and too wide tests").</li><li><strong>Models have seen the answers.</strong> Every frontier model tested could reproduce, for some tasks, the human-written fix (the "gold patch") or the task text word for word (R, opening, "Contamination").</li></ol>
+<p>The page's title is "Why SWE-bench Verified no longer measures frontier coding capabilities"; the URL says "why we no longer evaluate".</p>
+<h2 id="key-results">Key results</h2>
+<div class="tw"><table><thead><tr><th>Finding</th><th>Number</th><th>R, section</th></tr></thead><tbody><tr><td>Top Verified score over the six months before the post</td><td>74.9% → 80.9%</td><td>opening</td></tr><tr><td>Audited problems with material issues</td><td>59.4% of 138</td><td>"Too narrow and too wide tests"</td></tr><tr><td>"Narrow" tests: demand one implementation detail</td><td>35.5%</td><td>same</td></tr><tr><td>"Wide" tests: check behaviour the task never asked for</td><td>18.8%</td><td>same</td></tr><tr><td>Other issues</td><td>5.1%</td><td>same</td></tr><tr><td>Tasks GPT-5.2 solved that OpenAI judged almost impossible</td><td>31</td><td>"Contamination"</td></tr></tbody></table></div>
+<ul><li><strong>Examples.</strong> A pylint task's tests import a function name the task never mentions, so valid fixes fail on import; a sympy task's tests cover three issues while its text describes one (R, "Too narrow and too wide tests").</li><li><strong>How contamination was probed.</strong> GPT-5 questioned GPT-5.2-Chat, Claude Opus 4.5 and Gemini 3 Flash Preview over 15 turns per task, with the task id, text, gold patch and tests; a judge model rated each answer from "none" to "strong", a second judge checked that GPT-5 had not leaked the answer, and people read the "strong" cases (R, "Contamination").</li><li><strong>All three labs' models leak.</strong> GPT-5.2 wrote a Django gold patch from one line of the task; Opus 4.5 quoted an Astropy diff and its inline comment; Gemini 3 Flash gave a Django task's text and patch from the task id alone (R, "GPT-5.2", "Claude Opus 4.5", "Gemini 3 Flash").</li><li><strong>Seen tasks pass more often</strong>, because the model knows what the under-specified tests want; OpenAI states this without numbers (R, opening).</li><li><strong>What OpenAI recommends.</strong> The public split of SWE-bench Pro: "not perfect", but its pipeline found contamination there "significantly rarer and less egregious", and no model reproduced a full gold patch (R, "Discussion"). Longer term, privately written tests graded by people, as in GDPval (same).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>OpenAI's own models are among those it scores; the post shows chosen examples, not per-model contamination rates.</li><li>"Seen tasks pass more often" comes without a number.</li><li>The 59.4% is of the hardest 138 tasks, not of all 500.</li><li>Reported, not confirmed: in July 2026 OpenAI withdrew its recommendation of SWE-bench Pro too (secondary reports; see <a href="source-swe-bench-pro.html">source-swe-bench-pro</a>). The archived copy of this post, dated 2026-10-15, still recommends Pro and carries no note of a change (R).</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="concept-swe-bench.html">concept-swe-bench</a>, <a href="source-swe-bench-paper.html">source-swe-bench-paper</a>: the benchmark it retires.</li><li><a href="source-swe-bench-pro.html">source-swe-bench-pro</a>: the successor it names.</li><li><a href="source-agyn-multi-agent-swe.html">source-agyn-multi-agent-swe</a>, <a href="source-gea-group-evolving-agents.html">source-gea-group-evolving-agents</a>, <a href="source-rrsi-regularized-harness-evolution.html">source-rrsi-regularized-harness-evolution</a>: wiki results scored on Verified.</li><li><a href="source-frontiercode-cognition-eval.html">source-frontiercode-cognition-eval</a>, <a href="entity-cognition.html">entity-cognition</a>: another successor, scored on whether code is fit to merge.</li><li><span class="dead" title="not published">idea-benchmark-honest-epistemic-loop</span>: outside support for held-out, uncontaminated tests.</li><li><a href="entity-openai.html">entity-openai</a>.</li><li>Hub (2026-10-20): <a href="concept-evaluation-methodology.html">concept-evaluation-methodology</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/web-2026-openai-no-longer-swe-bench-verified.md</code></li><li><a href="https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/" rel="noreferrer">https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/</a></li><li><a href="https://web.archive.org/web/20261015182204/https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/" rel="noreferrer">https://web.archive.org/web/20261015182204/https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/web-2026-openai-no-longer-swe-bench-verified.md</code></li><li><a href="https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/" rel="noreferrer">https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/</a></li></ul></details>
+</main>
+</body>
+</html>

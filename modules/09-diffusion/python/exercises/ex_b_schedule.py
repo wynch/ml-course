@@ -1,11 +1,14 @@
 """Exercise (b) — noise schedules: linear vs cosine, compared by reverse GIF.
 
 The schedule is the sequence of beta_t (how much noise is injected per step).
-The *original* DDPM used a linear schedule; improved DDPM introduced a cosine
-schedule that adds noise more gently at the ends, so more of the timesteps do
-useful work. You will implement the cosine schedule, then this script trains the
-2D spiral model under each schedule and renders both reverse-process GIFs plus
-a plot of their alpha_bar curves so you can compare.
+The original DDPM used a linear schedule, 1e-4 -> 0.02, tuned for T = 1000;
+improved DDPM introduced a cosine schedule. At this module's T = 200 the linear
+range never reaches pure noise (sqrt(alpha_bar_T) = 0.364), so sampling starts
+from noise the model never saw at its last step. You will implement the cosine
+schedule, then this script trains the 2D spiral model under each schedule and
+renders both reverse-process GIFs plus a plot of their alpha_bar curves.
+Compare the GIFs, then read sqrt(alpha_bar_T) for both curves in
+ex_b_schedules.png.
 
     uv run python exercises/ex_b_schedule.py
 
@@ -80,7 +83,7 @@ def main():
         diffusion = build_diffusion(sched, T, device)
         diffs[sched] = diffusion
         model = DenoiseMLP()
-        train_toy(model, diffusion, data, epochs=2000, device=device, log_every=0)
+        train_toy(model, diffusion, data, steps=2000, device=device, log_every=0)
         reverse_gif(model, diffusion, device, FIG / f"ex_b_{sched}.gif")
         print(f"  wrote ex_b_{sched}.gif")
 

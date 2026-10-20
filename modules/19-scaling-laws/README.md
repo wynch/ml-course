@@ -107,8 +107,10 @@ et al. (2020) do; it is about 12 · layers · d². Exercise (a) derives it.
 **One recipe for all six.** AdamW (betas 0.9, 0.99, weight decay 0.1, module
 04's), gradient clip 1.0, dropout 0. The learning rate warms up over 100 steps
 to 3 × 10⁻⁴ and then **stays constant**. Each step is 32 windows of 128
-characters, 4,096 tokens; 977 steps make 4,001,792 tokens, one pass over the
-first 4,950,000 characters with no window seen twice. The last 50,000
+characters, 4,096 tokens; 977 steps make 4,001,792 tokens: 31,264 windows of
+129 characters (128 inputs and the next character), drawn without replacement
+from the 38,372 windows in the first 4,950,000 characters. A run sees 81% of
+the training part, and no window twice. The last 50,000
 characters are held out; the held-out loss is the mean cross-entropy over 390
 windows of 128, in nats per character.
 
@@ -118,9 +120,19 @@ section 3 can use every checkpoint. A schedule that decays toward the end
 would give lower final losses, and would tie each checkpoint to the planned
 length.
 
+Hägele et al. ([arXiv 2405.18392](https://arxiv.org/abs/2405.18392), 2024)
+keep both. Train at a constant rate, and for each length you want, branch off
+and decay the rate to zero over a short final stretch, a "cooldown". They find
+that this scales as reliably as a cosine schedule of that length, so one long
+run and a few cheap branches stand for many runs. This warmup-stable-decay
+schedule is now common for that reason. We skip the cooldowns: every number
+here is a loss at a constant rate.
+
 **Two seeds for the two smallest.** d 32 and d 48 also run seed 1 (another
-init and another data order). The gap between their two seeds is the only
-measure of noise we have; every figure shows it as a band.
+init, and another 81% of the windows in another order). The gap between their
+two seeds is the only measure of noise we have, and it mixes the two sources:
+the starting weights and the text each run saw. Every figure shows it as a
+band.
 
 ![Held-out loss against tokens for six sizes, with unigram and bigram baselines](figures/loss_curves.png)
 
@@ -202,7 +214,8 @@ L(N, D) = E + A / N^α + B / D^β
 ```
 
 Fitted to all 42 seed-0 checkpoints after warmup (grid search over α and β,
-least squares for E, A and B): E = 0.842, A = 10.2, B = 2,375, α = 0.18,
+least squares on L for E, A and B; Chinchilla instead minimised a Huber loss
+on log L, which weighs outliers less, so the two fits are not the same): E = 0.842, A = 10.2, B = 2,375, α = 0.18,
 β = 0.58. It misses the real points by 0.109 nats RMS and by up to 0.331 (d 32
 at 0.5M tokens), because the real curves flatten near the bigram level and
 this form cannot. E, the floor the formula reaches with infinite N and D, is
@@ -245,6 +258,11 @@ never does: with more compute you can always do at least as well. What the
 grid does say is that, at these budgets, more tokens beat more parameters, and
 we ran out of tokens before finding where that turns.
 
+**Tokens per parameter** (D / N) at 4M tokens run from 78.7 (d 32) to 1.27
+(d 256); d 64 lands at 20.0, Chinchilla's rule of thumb (section 4). By that
+rule d 96 and above are short of data at every budget here, which fits the
+smaller model winning every overlap.
+
 A line through the steps (N of the winner against C, leaving out the budgets
 where d 256 wins, since nothing larger was there to beat it) has slope 0.76.
 The joint fit of section 2 implies N_opt ∝ C^0.763 (β / (α + β)). The two
@@ -258,7 +276,9 @@ per size, several seeds, and an expectation written down before the run.
 
 **6ND undercounts small models.** Attention scores cost about
 2 · layers · context · d more operations per token in the forward pass, which
-6ND leaves out. That is 24% of the forward pass at d 32 and 4% at d 256
+6ND leaves out. (This counts the whole 128 × 128 score matrix, because our
+attention computes it all and then masks the future; a causal kernel would do
+about half.) That is 24% of the forward pass at d 32 and 4% at d 256
 (`results/frontier.json`, `flops_note`). Counting it would shift the small
 models' curves right.
 
@@ -278,16 +298,47 @@ trained over 400 models from 70M to 16B parameters and found N_opt and D_opt
 both growing about as C^0.5: about 20 tokens per parameter. Chinchilla, 70B
 parameters on 1.4T tokens, beat Gopher, 280B parameters on 300B tokens, at the
 same compute. Their fitted form is the one in section 2, with E = 1.69,
-α = 0.34, β = 0.28. They traced much of the gap with Kaplan to the learning-rate
+α = 0.34, β = 0.28 (from their third method, which fits that formula to all
+runs at once). They traced much of the gap with Kaplan to the learning-rate
 schedule: Kaplan's intermediate checkpoints came from runs whose schedule was
-set for a longer length. Later work found more causes: counting N without
+set for a longer length, the trap section 1's constant rate avoids. Later work found more causes: counting N without
 embeddings at small scale (Pearce and Song, [Reconciling Kaplan and Chinchilla
 Scaling Laws](https://arxiv.org/abs/2406.12907), 2024), and the cost of the
 output layer, warmup and optimiser tuning (Porian et al., [Resolving Discrepancies in Compute-Optimal
 Scaling of Language Models](https://arxiv.org/abs/2406.19146), 2024). A
-replication of Chinchilla's third method found its fitted numbers hard to
-reproduce (Besiroglu et al., [Chinchilla Scaling: A replication
-attempt](https://arxiv.org/abs/2404.10102), 2024).
+replication of that third method found its fitted numbers hard to reproduce
+(Besiroglu et al., [Chinchilla Scaling: A replication
+attempt](https://arxiv.org/abs/2404.10102), 2024); their refit gives
+α ≈ 0.35 and β ≈ 0.37, still near 20 tokens per parameter. Schaeffer et al.
+([arXiv 2509.23963](https://arxiv.org/abs/2509.23963), 2025) find the
+prescription robust to how the models' parameters are counted and to
+sizable errors in those counts, though most sensitive to errors that push
+them all one way.
+
+**Since Chinchilla: train smaller, longer.** Chinchilla minimises training
+compute only. A model that will answer many queries also costs compute at
+every answer, and counting that, Sardana et al.
+([arXiv 2401.00448](https://arxiv.org/abs/2401.00448), 2023) find it should be
+smaller and trained longer; their models kept improving up to 10,000 tokens
+per parameter. Gadre et al. ([arXiv 2403.08540](https://arxiv.org/abs/2403.08540),
+2024) show such "over-trained" runs stay predictable: from 104 models they
+predict a run 32 times past Chinchilla's ratio. The Llama 3 report
+(Grattafiori et al., [arXiv 2407.21783](https://arxiv.org/abs/2407.21783),
+2024) sizes its 405B model to be about compute-optimal on a corpus of about
+15T tokens, and trains its smaller models "much longer than is
+compute-optimal", so they serve better for the same inference cost.
+
+**How to fit on a small budget.** Choshen, Zhang and Andreas ([A Hitchhiker's
+Guide to Scaling Law Estimation](https://arxiv.org/abs/2410.11840), 2024)
+estimate over 1,000 laws from 485 published models. They find that fitting to
+intermediate checkpoints, not only final losses, makes a law much more
+accurate, and that seeds vary so much that several small models are sometimes
+worth more than one large one. This module follows the first advice, since its
+fits use every checkpoint after warmup, and heeds the second in part: two seeds
+of the smallest models measure the noise, though no fit averages over them. Gemstones (McLeish et al.,
+[arXiv 2502.06857](https://arxiv.org/abs/2502.06857), 2025), over 4,000
+checkpoints, finds that the prescriptions shift with the model shapes and the
+checkpoints chosen for the fit: another reason to hold ours loosely.
 
 Our α = 0.074 sits close to Kaplan's 0.076, and our N_opt exponent 0.76 close to
 their 0.73. Read nothing into either match: characters instead of sub-words, six
@@ -304,6 +355,10 @@ finished learning. They neither confirm nor test either paper.
   best point.
 - **The effect of the recipe.** We used one learning rate for every size. The
   best rate usually changes with size, so tuning it per size could change α.
+  The usual remedy is μP (Yang et al., [Tensor Programs
+  V](https://arxiv.org/abs/2203.03466), 2022): a way to scale the
+  initialisation and the learning rate of each layer with width so that the
+  best rate stays put as the model grows.
 
 ## Run it
 
@@ -376,4 +431,12 @@ seed band and the frontier, and the explorable against the results.
 - Pearce and Song, [Reconciling Kaplan and Chinchilla Scaling Laws](https://arxiv.org/abs/2406.12907) (2024)
 - Porian et al., [Resolving Discrepancies in Compute-Optimal Scaling of Language Models](https://arxiv.org/abs/2406.19146) (2024)
 - Besiroglu et al., [Chinchilla Scaling: A replication attempt](https://arxiv.org/abs/2404.10102) (2024)
+- Schaeffer et al., [Evaluating the Robustness of Chinchilla Compute-Optimal Scaling](https://arxiv.org/abs/2509.23963) (2025)
+- Hägele et al., [Scaling Laws and Compute-Optimal Training Beyond Fixed Training Durations](https://arxiv.org/abs/2405.18392) (2024), warmup-stable-decay
+- Sardana et al., [Beyond Chinchilla-Optimal: Accounting for Inference in Language Model Scaling Laws](https://arxiv.org/abs/2401.00448) (2023)
+- Gadre et al., [Language models scale reliably with over-training and on downstream tasks](https://arxiv.org/abs/2403.08540) (2024)
+- Grattafiori et al., [The Llama 3 Herd of Models](https://arxiv.org/abs/2407.21783) (2024)
+- Choshen, Zhang and Andreas, [A Hitchhiker's Guide to Scaling Law Estimation](https://arxiv.org/abs/2410.11840) (2024)
+- McLeish et al., [Gemstones: A Model Suite for Multi-Faceted Scaling Laws](https://arxiv.org/abs/2502.06857) (2025)
+- Yang et al., [Tensor Programs V](https://arxiv.org/abs/2203.03466) (2022), μP
 - Merity et al., [Pointer Sentinel Mixture Models](https://arxiv.org/abs/1609.07843) (2016), which introduced wikitext-103

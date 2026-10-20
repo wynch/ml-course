@@ -1,0 +1,33 @@
+{
+ "written": "2026-10-20, before any run in results/runs/, results/plasticity/ or results/library/",
+ "seen_before_writing": [
+  "the start model's curve up to step 3,214 of 5,000 (Shakespeare loss 1.74 at step 3,000; GSM8K loss rising, 3.5 to 4.0)",
+  "four plasticity trials of 400 tasks, one seed, deleted: plain SGD (rate 0.1) and Adam (rate 1e-3), each with and without continual backprop. Adam's online accuracy went from about 0.70 on early tasks to about 0.68, dead units to 62%; with continual backprop it held about 0.71, dead units 22%. Plain SGD lost about 1 point. Adam and 800 tasks were chosen from these trials.",
+  "results/library_memory.json and results/library_memory_batch4.json (the memory of one LoRA step; no expectation is scored on them)"
+ ],
+ "definitions": {
+  "forgetting": "held-out loss on the old text (Shakespeare; for section 5 the 500-item probe) minus its value at step 0, in nats per character (per token in section 5)",
+  "new_gain": "held-out loss on the new text (GSM8K solutions) at step 0 minus its value now",
+  "kl_new": "mean over held-out new-text positions of KL(start model || current model), nats",
+  "matched": "for each run, forgetting read off its own curve at the new-text loss L*, the highest final new-text loss among the arm means, so that every arm passes through it"
+ },
+ "expectations": {
+  "E1": "full (lr 1e-3) forgets: the Shakespeare loss rises by at least 0.5 nats per character by step 600, mean of 3 seeds.",
+  "E2": "LoRA learns less and forgets less: lora4 and lora32 each end with a higher new-text loss and a smaller forgetting than full, in every seed.",
+  "E3": "replay (a quarter of each batch from Shakespeare) keeps forgetting under a third of full's, with a final new-text loss within 0.1 nats of full's (means of 3 seeds).",
+  "E4": "distill (half the target from the start model) forgets less than full, mean of 3 seeds.",
+  "E5": "One number: across the 18 final points (6 arms x 3 seeds), the Spearman correlation between forgetting and KL on the new text is at least 0.7.",
+  "E6": "KL measured on the old text ranks forgetting better than KL on the new text: a higher Spearman over the same 18 points.",
+  "E7": "replay breaks the one-number rule: at its own final KL on the new text, it forgets less than half what full forgets at the same KL, read off full's mean curve.",
+  "E8": "At matched new-text loss L*, replay forgets least of the six arms.",
+  "P1": "Plasticity, plain backprop with Adam: mean online accuracy over tasks 751-800 is at least 3 points below tasks 1-50, mean of 3 seeds.",
+  "P2": "Continual backprop with Adam: the same drop is at most 1 point.",
+  "P3": "At task 800, plain backprop with Adam has more than half its hidden units dead; continual backprop under 30%.",
+  "P4": "Plain SGD (rate 0.1) loses less than Adam over the same 800 tasks.",
+  "P5": "A fresh network on each task beats plain backprop's tasks 751-800 by at least 3 points of online accuracy.",
+  "L1": "SmolLM2 with LoRA: every arm lowers the GSM8K loss; the probe loss rises in lora8_gentle, lora8 and lora64, and more at rate 1e-3 (lora8) than at 1e-4 (lora8_gentle).",
+  "L2": "Across the 16 checkpoints after step 0 (4 arms x 4), the Spearman correlation between the probe's rise and KL on the new task is at least 0.7.",
+  "L3": "lora64 forgets more than lora8 at the same rate and steps.",
+  "L4": "lora8_replay (one chat in four sequences) forgets less than half what lora8 forgets, with a GSM8K loss within 0.05 nats of lora8's."
+ }
+}

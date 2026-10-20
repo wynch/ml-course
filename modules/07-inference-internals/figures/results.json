@@ -1,0 +1,29 @@
+{
+  "perplexity_f32": {
+    "tokens": 1587,
+    "mean_nll": 1.5385,
+    "perplexity": 4.6574
+  },
+  "perplexity_int8": {
+    "tokens": 1587,
+    "mean_nll": 1.5383,
+    "perplexity": 4.6568
+  },
+  "bytes_f32": 2479104,
+  "bytes_int8": 634480,
+  "int8_max_abs_logit_diff": 0.056605517864227295,
+  "selfcheck": "selfcheck cached decode vs full recompute, 27 positions: max|diff| = 0e0",
+  "cost_model": {
+    "weight_macs_per_token": 598144,
+    "attention_macs_per_token_per_position": 768,
+    "ratio_off_over_on": {
+      "16": 7.5,
+      "32": 15.4,
+      "64": 31.1,
+      "128": 61.9,
+      "512": 234.4
+    },
+    "attention_cells_ratio_n128": 43.3
+  },
+  "bench_csv": "bench.csv"
+}

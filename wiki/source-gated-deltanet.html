@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Gated Delta Networks: Improving Mamba2 with Delta Rule (Yang, Kautz, Hatamizadeh, 2024) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="gated-deltanet">Gated DeltaNet</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">linear-attention</span> <span class="tag">state-space-models</span> <span class="tag">ssm</span> <span class="tag">delta-rule</span> <span class="tag">architecture</span> <span class="tag">hybrid-models</span> <span class="tag">long-context</span> <span class="tag">2024</span></div>
+<p><strong>Authors:</strong> Songlin Yang (MIT CSAIL; work done as an intern at NVIDIA), Jan Kautz, Ali Hatamizadeh (NVIDIA); Yang and Hatamizadeh marked as equal contributors <strong>Published:</strong> arXiv 2412.06464, v1 2024-12-09, v3 2025-03-06; ICLR 2025 (arXiv comment); code at github.com/NVlabs/GatedDeltaNet <strong>Raw copy:</strong> <code>raw/arxiv-2412-06464-gated-delta-networks-improving-mamba2-with.md</code> (full text of v3 from the arXiv HTML, captured 2026-10-20)</p>
+<p>Every claim below cites the raw file as R, with its section, table or figure.</p>
+<h2 id="summary">Summary</h2>
+<p>A linear-attention layer keeps a matrix as its memory and writes each key-value pair into it. Such a matrix can hold only as many clean pairs as it has dimensions; past that, pairs collide and exact recall fails (R, §1).</p>
+<p>Two earlier fixes each solve half the problem (R, §1):</p>
+<ul><li><strong>Gating (Mamba-2).</strong> Every step multiplies the whole memory by a learned factor α between 0 and 1. It can wipe memory fast, but it fades every pair equally.</li><li><strong>Delta rule (DeltaNet).</strong> Each step reads what the memory already says for the key and replaces that one value. The update is precise, but it cannot clear old content quickly.</li></ul>
+<p>The gated delta rule does both: S_t = S_{t-1} α_t (I − β_t k_t k_tᵀ) + β_t v_t k_tᵀ. With α near 0 it clears memory; with α near 1 it is the plain delta rule (R, §1, §3.1, Eq. 10). Read as learning, the delta rule is one step of gradient descent on ‖S k − v‖² at test time, and α adds weight decay to that step (R, §3.1, Table 1). The paper extends DeltaNet's chunked parallel algorithm so the layer trains fast on GPUs (R, §3.3).</p>
+<p>The block follows Llama's layout, with SwiGLU layers between token mixers; q, k and v pass through a short convolution and SiLU, with L2 norm on q and k; the output is normed and gated (R, §3.4). Two hybrids add attention over a 2K sliding window (SWA): H1 is Gated DeltaNet plus SWA; H2 stacks Mamba-2, Gated DeltaNet and SWA (R, §3.4).</p>
+<h2 id="key-results">Key results</h2>
+<p>All models: 1.3B parameters, 100B FineWeb-Edu tokens, 4K training context, same recipe (R, §4 Setup).</p>
+<ul><li><strong>Needle in a haystack (synthetic).</strong> Gating helps when the haystack is real text, the delta rule helps when the needle is complex: on the UUID task at 2K, Gated DeltaNet 84.2, DeltaNet 47.0, Mamba-2 47.6. Plain decay hurts long retention: on pass-key retrieval at 8K, Mamba-2 falls to 30.4 while DeltaNet holds 98.8 and Gated DeltaNet 91.8 (R, §3.2, Table 2).</li><li><strong>Language modelling.</strong> Average over eight zero-shot tasks: Gated DeltaNet 55.32, Mamba-2 54.89, DeltaNet 52.14, Transformer++ 52.25; hybrids H1 56.40, H2 56.18 (R, Table 3). The text reports 400M models too, but the v3 table holds only the 1.3B rows (R, §4, Table 3).</li><li><strong>Real-world retrieval.</strong> Pure recurrent models trail the Transformer (average 30.6 for Gated DeltaNet against 37.0); both hybrids pass it (39.0 and 40.1) (R, Table 4). The gap to DeltaNet and Mamba-2 is smaller here than on the synthetic tasks; the authors blame repetition errors in small models without instruction tuning (R, §4).</li><li><strong>Long context.</strong> On 14 LongBench tasks, average 16.6 for Gated DeltaNet, 13.5 for Mamba-2, 11.0 for Transformer++; hybrids 17.8 and 18.4 (R, Table 5).</li><li><strong>Training speed.</strong> About the same as DeltaNet, slightly slower than Mamba-2 (2–3K tokens per second less) on one H100; the SWA hybrids train faster than the pure recurrent layer (R, §4, Figure 3).</li><li><strong>Ablations (400M, 15B tokens).</strong> Removing the short convolution or the output gate hurts; L2 norm on q and k matters more than the choice of activation; head size 128 is the chosen trade-off (R, Appendix B.2, Table S.1). Of four hybrid orders, Mamba-2 then Gated DeltaNet then SWA scores best (R, Table S.2).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>One scale (1.3B, 100B tokens) for the main tables; the hybrids use a 2K window, half the 4K training length (R, §4).</li><li>Length extrapolation to 20K is "mixed"; Gated DeltaNet has the lowest perplexity among recurrent models only "overall" (R, §4, Figure 2).</li><li>The Transformer++ baseline scores lowest on LongBench (11.0), below every recurrent model, which is worth keeping in mind when reading the gains (R, Table 5).</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-mamba-2-ssm-duality.html">source-mamba-2-ssm-duality</a> — the gated (decay) half of the rule; Gated DeltaNet keeps Mamba-2's parameterisation of α (R, §3.4, footnote 4).</li><li><a href="source-mamba-3.html">source-mamba-3</a> — a year later Mamba-3 beats Gated DeltaNet at 1.5B (56.4 against 55.8 on its own eight-task average), but a state-tracking variant of Gated DeltaNet still leads on modular arithmetic with brackets (<code>raw/arxiv-2603-15569-mamba-3-improved-sequence-modeling-using.md</code>, Table 3, Table 5b).</li><li><a href="source-olmo-hybrid-rnn-transformer.html">source-olmo-hybrid-rnn-transformer</a> — uses Gated DeltaNet as its recurrent layer, three to each attention layer.</li><li><a href="source-m2rnn-matrix-valued-states.html">source-m2rnn-matrix-valued-states</a> — compared against Gated DeltaNet hybrids.</li><li><a href="source-ttt-kv-binding-linear-attention.html">source-ttt-kv-binding-linear-attention</a> — the same bridge from the other side: this paper reads the delta rule as test-time gradient descent (R, §3.1); that one reads test-time training as linear attention.</li><li><a href="source-memory-mosaics-at-scale.html">source-memory-mosaics-at-scale</a> — keeps every key-value pair instead of a fixed matrix, the opposite answer to memory collisions.</li><li><a href="concept-transformer-architecture.html">concept-transformer-architecture</a>, <a href="concept-long-context.html">concept-long-context</a>.</li><li>Hub (2026-10-20): <a href="concept-state-space-models.html">concept-state-space-models</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2412-06464-gated-delta-networks-improving-mamba2-with.md</code></li><li><a href="https://arxiv.org/abs/2412.06464" rel="noreferrer">https://arxiv.org/abs/2412.06464</a></li><li><a href="https://github.com/NVlabs/GatedDeltaNet" rel="noreferrer">https://github.com/NVlabs/GatedDeltaNet</a></li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2412-06464-gated-delta-networks-improving-mamba2-with.md</code></li><li><a href="https://arxiv.org/abs/2412.06464" rel="noreferrer">https://arxiv.org/abs/2412.06464</a></li><li><a href="https://github.com/NVlabs/GatedDeltaNet" rel="noreferrer">https://github.com/NVlabs/GatedDeltaNet</a></li><li><code>raw/arxiv-2603-15569-mamba-3-improved-sequence-modeling-using.md</code></li></ul></details>
+</main>
+</body>
+</html>

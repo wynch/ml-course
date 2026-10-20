@@ -8,7 +8,7 @@ See the [module README](../README.md) for the full walkthrough, theory, and figu
 ```bash
 uv sync
 uv run python scripts/step1_numpy_attention.py   # numpy SDPA + causal-mask figure
-uv run python scripts/train.py                    # train the tiny GPT on MPS (~4-8 min on M5)
+uv run python scripts/train.py                    # train the tiny GPT on MPS (about 4 min on M5)
 uv run python scripts/figures.py                  # all figures + attention gif from the trained model
 uv run python scripts/export_weights.py           # write artifacts/ for the module-07 Zig capstone
 ```

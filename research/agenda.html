@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Edge research agenda · Hidden Patch</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<meta name="description" content="Eleven open research questions one person can work on with a laptop or a phone, ranked, each with a first experiment written down before any code and the papers behind it.">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/atlas.css">
+<style>
+/* page-specific */
+.beat>*,.prose>*{min-width:0}
+.score{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.tbl td a{text-decoration:none}
+.tbl td a:hover{text-decoration:underline}
+.prereg{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:.7rem}
+.prereg>div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.8rem .9rem;display:grid;gap:.3rem;align-content:start;font-size:.95rem;line-height:1.45}
+.prereg .k{font-family:var(--mono);font-size:.7rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.prereg>div.setup{grid-column:1/-1;border-left:4px solid var(--why)}
+.prereg>div.mind{border-color:var(--bad)}
+.prereg>div.mind .k{color:var(--bad)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:.4rem 1.4rem;margin:0;font-size:.93rem}
+.facts div{display:grid;gap:.15rem;padding:.45rem 0;border-top:1px dashed var(--line)}
+.facts dt{font-family:var(--mono);font-size:.7rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.facts dd{margin:0}
+.course{font-family:var(--ui);font-size:.93rem;padding:.6rem .85rem;border-radius:10px;border:1px solid var(--line);background:var(--panel-2)}
+.course b{font-family:var(--display)}
+.papers{font-family:var(--ui);font-size:.86rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:.3rem .9rem;margin:0;padding:0;list-style:none}
+.papers li{margin:0}
+.protocol{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:.5rem}
+.protocol li{margin:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:.6rem .75rem;font-family:var(--ui);font-size:.9rem}
+.protocol li b{display:block;font-family:var(--display);font-size:1rem}
+</style>
+</head>
+<body data-chapter="agenda" data-part="5">
+<header id="topbar" class="topbar"></header>
+
+<main class="chapter">
+  <section class="opener">
+    <p class="eyebrow"><span class="sw"></span>Companion · Map</p>
+    <h1 class="big">Edge research agenda</h1>
+    <p class="because plain">Eleven open questions one person can work on with a 16 GB Apple-silicon laptop, a phone and, now and then, a few dollars of cloud. Each comes with the first experiment written down before any code: what we expect, what we measure, and what would change our mind.</p>
+    <p class="meta"><span>Written 2026-10-19</span><span>11 questions · 11 first experiments</span><span>Builds on: <a href="lab.html">17 The laptop lab</a> · <a href="../index.html">the course</a></span></p>
+    <ul class="toc">
+      <li><a href="#limits"><span class="q">?</span>Limits</a></li>
+      <li><a href="#rank"><span class="q">?</span>Ranking</a></li>
+      <li><a href="#protocol"><span class="q">?</span>Protocol</a></li>
+      <li><a href="#a1"><span class="q">?</span>The eleven questions</a></li>
+      <li><a href="#left"><span class="q">?</span>Left out</a></li>
+      <li><a href="#start"><span class="q">?</span>Where to start</a></li>
+    </ul>
+  </section>
+
+  <section class="beat" id="limits">
+    <header>
+      <span class="num">Read this first</span>
+      <h2>What the agenda rests on, and its limits</h2>
+    </header>
+    <div class="prose">
+      <p>Ten scouts read recent arXiv listings and citation trails and opened every paper named here on its abstract page on 2026-10-19. None of them could run a web search, so work from January to September 2026 is thin. A paper that already answers one of these questions may exist: search for 30 minutes before any run.</p>
+      <p>Time and compute figures are the scouts' estimates unless marked "measured". Numbers from this course's own modules are measured, and each links to its explorable.</p>
+      <p>Several modules added to the course on 2026-10-19 and 20 ran toy versions of these questions. Each question below says where the course stands, so you can start from a result instead of from nothing.</p>
+    </div>
+  </section>
+
+  <section class="beat" id="rank">
+    <header>
+      <span class="num">Ranking</span>
+      <h2>Which question is worth a week?</h2>
+      <p class="short">Score = value of the answer (1 to 5) × the chance a laptop answers it cleanly (1 to 5). Value asks whether the question is open in print and whether the answer would change what you believe or build. Chance asks about compute, tooling, and whether the result can be read without a confound.</p>
+    </header>
+    <div class="tbl"><table>
+      <thead><tr><th>#</th><th>Question</th><th>Value</th><th>Chance</th><th>Score</th></tr></thead>
+      <tbody>
+        <tr><td class="n">1</td><td><a href="#a1">When does a JEPA latent work as a planning cost?</a></td><td class="n">5</td><td class="n">4</td><td class="n best">20</td></tr>
+        <tr><td class="n">2</td><td><a href="#a2">Does one number, forward KL, predict forgetting on a 0.5B model?</a></td><td class="n">4</td><td class="n">4</td><td class="n">16</td></tr>
+        <tr><td class="n">3</td><td><a href="#a3">Do fast weights memorize, or act as linear attention?</a></td><td class="n">3.5</td><td class="n">4.5</td><td class="n">16</td></tr>
+        <tr><td class="n">4</td><td><a href="#a4">Interpretability methods graded against a known basis</a></td><td class="n">3.5</td><td class="n">4.5</td><td class="n">16</td></tr>
+        <tr><td class="n">5</td><td><a href="#a5">Picking the right answer from 8 samples with the model's own signals</a></td><td class="n">3</td><td class="n">5</td><td class="n">15</td></tr>
+        <tr><td class="n">6</td><td><a href="#a6">Does small-model RL add anything a random reward does not?</a></td><td class="n">5</td><td class="n">3</td><td class="n">15</td></tr>
+        <tr><td class="n">7</td><td><a href="#a7">What makes a toy net grok, and what warns first?</a></td><td class="n">3</td><td class="n">5</td><td class="n">15</td></tr>
+        <tr><td class="n">8</td><td><a href="#a8">Data-bound pretraining: where does diffusion overtake left-to-right?</a></td><td class="n">4</td><td class="n">3.5</td><td class="n">14</td></tr>
+        <tr><td class="n">9</td><td><a href="#a9">Ternary against 4-bit at the same file size, and where the model runs</a></td><td class="n">3.5</td><td class="n">4</td><td class="n">14</td></tr>
+        <tr><td class="n">10</td><td><a href="#a10">Real-time latent planning on a phone</a></td><td class="n">3.5</td><td class="n">3.5</td><td class="n">12</td></tr>
+        <tr><td class="n">11</td><td><a href="#a11">What does recursion buy a tiny reasoner, once augmentation is controlled?</a></td><td class="n">4</td><td class="n">3</td><td class="n">12</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="beat" id="protocol">
+    <header>
+      <span class="num">Protocol</span>
+      <h2>Rules every experiment here follows</h2>
+    </header>
+    <ul class="protocol">
+      <li><b>One question</b>One experiment answers one question.</li>
+      <li><b>Written first</b>Expectation, measurement and what would change our mind, on the page before any code.</li>
+      <li><b>Three seeds</b>Or more. A gap under 0.05 on one seed means nothing.</li>
+      <li><b>A null</b>A random-weight or shuffled control, matched in size.</li>
+      <li><b>A cheap floor</b>The plain baseline is always in the race.</li>
+      <li><b>Misses reported</b>A missed expectation is a result.</li>
+    </ul>
+  </section>
+
+  <!-- ============ 1 ============ -->
+  <section class="beat" id="a1">
+    <header>
+      <span class="num">Question 1 · score 20</span>
+      <h2>When does a JEPA latent work as a planning cost?</h2>
+      <p class="short">Does a JEPA latent plan badly on a grid because it collapses, or because its target is too wide for a low-dimensional state? Does a SIGReg target of the right width, or a latent shaped to step distance, fix it?</p>
+    </header>
+    <div class="prose">
+      <p><b>Why it is open.</b> LeWorldModel plans from pixels with 15M parameters and two losses (next embedding plus SIGReg), but loses on its two-room task; its authors blame a 2-D state fighting a 192-dimensional Gaussian target, and nobody has tested the fix. SIGReg comes from LeJEPA (λ 0.05, about 50 lines). Value shaping and bisimulation both reshape the latent, because distance to the goal in the latent may mislead; neither is compared with a plain SIGReg latent. JEPA-WMs finds CEM with an L2 cost the robust planner; HWM lifts hard mazes from 44% to 83% with a second level.</p>
+    </div>
+    <p class="course"><b>Where the course stands.</b> <a href="../explorables/25-world-models-and-planning.html">Module 25</a>: on an 8 × 8 grid, a JEPA planner reached the goal 3.7% of the time, the same as random actions, while a one-hot model reached 75.7%. <a href="../explorables/31-world-model-from-pixels.html">Module 31</a>: SIGReg stops collapse from pixels; a 192-wide latent reads the position best (probe R² 1.00, against 0.28 at width 8); on module 25's grid, an inverse-dynamics term puts the agent back in the latent (R² 0.97), yet planning stays at chance (4.8%).</p>
+    <div class="prereg">
+      <div class="setup"><span class="k">First experiment</span>Module 25's grid, data, planner and 300 test arenas, a 20-step budget. Arms: (a) its EMA JEPA, the baseline; (b) SIGReg, λ 0.1, 1,024 projections, no EMA, latent width 4, 8 and 32; (c) SIGReg at width 8 plus a loss pulling latent distance toward the true number of steps on training data. 3 seeds each, 15 runs.</div>
+      <div><span class="k">Expect</span>Every SIGReg arm reaches the goal at least 0.15 more often than random actions (0.037); width 8 beats width 32 by at least 0.05; shaping adds at least 0.10 on starts 9 to 20 steps away; no arm reaches the one-hot model's 0.757.</div>
+      <div><span class="k">Measure</span>Success over 300 arenas; Spearman between latent distance and true steps; effective rank; whether imagined and real states agree after 1 and 8 steps.</div>
+      <div class="mind"><span class="k">Change our mind</span>All SIGReg arms within 0.03 of random: collapse was not the cause; the planner or the one-step predictor is. Width 32 at or above width 8: the low-dimension story fails at toy scale. Spearman above 0.9 with success near random: blame the planner, not the latent.</div>
+    </div>
+    <dl class="facts">
+      <div><dt>Compute</dt><dd>Minutes per run on the laptop; 15 runs, half a day.</dd></div>
+      <div><dt>Risks</dt><dd>The grid is low-dimensional by design, which may not carry to pixels. Arm (c) uses true step counts, so it is no longer pure self-supervision; report it as such.</dd></div>
+    </dl>
+    <ul class="papers">
+      <li><a href="https://arxiv.org/abs/2603.19312">LeWorldModel</a></li>
+      <li><a href="https://arxiv.org/abs/2511.08544">LeJEPA</a></li>
+      <li><a href="https://arxiv.org/abs/2601.00844">Value shaping, 2601.00844</a></li>
+      <li><a href="https://arxiv.org/abs/2602.18639">Bisimulation, 2602.18639</a></li>
+      <li><a href="https://arxiv.org/abs/2512.24497">JEPA-WMs</a></li>
+      <li><a href="https://arxiv.org/abs/2604.03208">HWM</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="beat" id="a2">
+    <header>
+      <span class="num">Question 2 · score 16</span>
+      <h2>Does forward KL predict forgetting on a 0.5B model, whatever the method?</h2>
+      <p class="short">When a 0.5B model learns new facts on a laptop by LoRA, self-distillation, replay or a gated adapter, does forward KL to the base model on the new-task prompts predict how much general skill it loses?</p>
+    </header>
+    <div class="prose">
+      <p><b>Why it is open.</b> RL's Razor shows on large models that forgetting tracks this KL. SDFT uses the model with a demonstration in its context as its own teacher (89% against 80% for SFT on a knowledge task). Local Support Learning gates each adapter to inputs like its data. Sparse memory finetuning cuts the NaturalQuestions F1 drop to 11%, against 71% for LoRA. LoRA forgets less and learns less. No paper puts these methods on one KL axis at 0.5B, the size where MeBP now fits LoRA training on an iPhone 15 Pro Max in under 1 GB.</p>
+    </div>
+    <p class="course"><b>Where the course stands.</b> <a href="../explorables/29-learning-new-keeping-old.html">Module 29</a> ran this on a character model: full fine-tuning forgot 1.24 nats per character of Shakespeare, replay 0.26, and KL to the start model on the new text ranked the methods only weakly (ρ 0.35). The question at 0.5B, with facts in question-and-answer form, is still open.</p>
+    <div class="prereg">
+      <div class="setup"><span class="k">First experiment</span>Qwen2.5-0.5B-Instruct in MLX, LoRA rank 8 to 16. New skill: 1,000 made-up facts in question-and-answer form. Arms: LoRA SFT; LoRA SFT plus replay; LoRA SDFT; LoRA with an LSL-style gate. Vary the steps for about 20 points per arm; 3 seeds. Probe: 250 general questions, 250 held-out text items and a dozen instruction-following items.</div>
+      <div><span class="k">Expect</span>Across all points, probe drop against forward KL has a Spearman above 0.7. At matched new-task accuracy, SDFT forgets least.</div>
+      <div><span class="k">Measure</span>New-task accuracy, probe drop, and forward KL on new-task prompts, per checkpoint. Compute the KL before looking at the probe.</div>
+      <div class="mind"><span class="k">Change our mind</span>Spearman below 0.4. Or the gate shows high KL and low forgetting, so the law holds only for ungated updates. Or no arm learns the facts without wrecking the probe, which is itself the answer.</div>
+    </div>
+    <dl class="facts">
+      <div><dt>Compute</dt><dd>About 100 runs of 5 to 15 minutes: one to two days of laptop. No cloud.</dd></div>
+      <div><dt>Risks</dt><dd>SDFT leans on in-context learning, which is weak at 0.5B. The LSL gate must be rebuilt from the paper.</dd></div>
+    </dl>
+    <ul class="papers">
+      <li><a href="https://arxiv.org/abs/2509.04259">RL's Razor</a></li>
+      <li><a href="https://arxiv.org/abs/2601.19897">SDFT</a></li>
+      <li><a href="https://arxiv.org/abs/2610.02126">Local Support Learning</a></li>
+      <li><a href="https://arxiv.org/abs/2510.15103">Sparse memory finetuning</a></li>
+      <li><a href="https://arxiv.org/abs/2405.09673">LoRA learns less and forgets less</a></li>
+      <li><a href="https://arxiv.org/abs/2510.03425">MeBP</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="beat" id="a3">
+    <header>
+      <span class="num">Question 3 · score 16</span>
+      <h2>Do fast weights memorize, or act as linear attention?</h2>
+      <p class="short">In a test-time-training layer, does taking more inner gradient steps raise recall because the layer stores keys to values? Or does recall not follow the inner loss, as the linear-attention reading predicts?</p>
+    </header>
+    <div class="prose">
+      <p><b>Why it is open.</b> Titans and ATLAS (80% over Titans at 10M tokens of context) explain their gains by memorization. Another paper argues the same layers are learned linear attention. LaCT shows that chunk size changes everything: older TTT layers used under 5% of the GPU's arithmetic. TTT layers and TTT-E2E set the base. The two readings predict opposite things on a synthetic task that runs in minutes.</p>
+    </div>
+    <p class="course"><b>Where the course stands.</b> <a href="../explorables/27-memory-as-a-matrix.html">Module 27</a> wrote linear attention, decay and the delta rule as writes into one matrix and measured recall on MQAR: on an overwritten key the delta rule reads 1.00 and linear attention 0.66, and at 48 pairs the size of the state, not the rule, decides recall. It did not test TTT layers.</p>
+    <div class="prereg">
+      <div class="setup"><span class="k">First experiment</span>Multi-query associative recall (MQAR), 64 to 512 pairs. Two-layer models of 1 to 5M parameters with a TTT-MLP layer at 1, 2, 4 and 8 inner steps, and chunks of 16, 256 and the whole sequence. Floors: linear attention and Gated DeltaNet with the same state size in bytes. 3 seeds, about 36 runs plus floors.</div>
+      <div><span class="k">Expect</span>The memorization reading: more inner steps lower the end-of-sequence reconstruction loss and raise recall, together.</div>
+      <div><span class="k">Measure</span>Recall; the inner reconstruction loss; the number of pairs at 50% recall.</div>
+      <div class="mind"><span class="k">Change our mind</span>Recall flat or falling as the inner loss falls supports the linear-attention reading. A floor that matches the best TTT arm says the inner loop buys nothing at this size.</div>
+    </div>
+    <dl class="facts">
+      <div><dt>Compute</dt><dd>5 to 10 minutes per run on the laptop's GPU; about a day.</dd></div>
+      <div><dt>Risks</dt><dd>Small models may not separate the two readings. The fast kernels need CUDA, so a plain PyTorch recurrence is slow past 1,024 tokens.</dd></div>
+    </dl>
+    <ul class="papers">
+      <li><a href="https://arxiv.org/abs/2501.00663">Titans</a></li>
+      <li><a href="https://arxiv.org/abs/2505.23735">ATLAS</a></li>
+      <li><a href="https://arxiv.org/abs/2602.21204">TTT with KV binding is linear attention</a></li>
+      <li><a href="https://arxiv.org/abs/2505.23884">LaCT</a></li>
+      <li><a href="https://arxiv.org/abs/2407.04620">TTT layers</a></li>
+      <li><a href="https://arxiv.org/abs/2512.23675">TTT-E2E</a></li>
+      <li><a href="https://arxiv.org/abs/2312.04927">MQAR (Zoology)</a></li>
+      <li><a href="https://arxiv.org/abs/2412.06464">Gated DeltaNet</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="beat" id="a4">
+    <header>
+      <span class="num">Question 4 · score 16</span>
+      <h2>Interpretability methods graded against a known basis</h2>
+      <p class="short">On a model built so its true neurons are known, do transcoders recover them better than sparse autoencoders, and does the gap survive more seeds and a random-model control?</p>
+    </header>
+    <div class="prose">
+      <p><b>Why it is open.</b> The Sparse Transformer testbed (a 5-layer TinyStories model) reports that transcoders recover the true neurons with 52.6% higher cosine than SAEs, on one setup. SAE features change with the seed (a consistency method gains 35.9%) and with the data budget (matched features rise from 2% at 5M tokens to 29% at 50M). Random transformers score nearly as well as trained ones on automated interpretability. Reruns of the same fine-tune sit more than half as far apart as each sits from the base model. An earlier paper already favoured transcoders.</p>
+    </div>
+    <p class="course"><b>Where the course stands.</b> <a href="../explorables/32-is-the-explanation-real.html">Module 32</a> built a two-layer version and found the reverse of the testbed: SAEs recovered 63% of the true neurons, transcoders 35%. Dictionaries recovered a random-weight copy's neurons just as well (mean best cosine 0.84). Which result holds at the testbed's size, across widths and seeds, is open.</p>
+    <div class="prereg">
+      <div class="setup"><span class="k">First experiment</span>Train the testbed recipe, or a two-layer version of 10 to 30M parameters, in MLX. On one MLP layer, train an SAE, a transcoder and a skip transcoder at 3 widths × 5 seeds (45 dictionaries); repeat one width on a random-weight copy.</div>
+      <div><span class="k">Expect</span>Transcoders recover at least 20% more cosine to the true neurons than SAEs at every width; the spread across seeds is smaller than the gap between methods; recovery on the random copy is near zero.</div>
+      <div><span class="k">Measure</span>Mean best cosine to the true neuron vectors; the share of features matched across seeds.</div>
+      <div class="mind"><span class="k">Change our mind</span>The seed spread overlaps the gap between methods at any width.</div>
+    </div>
+    <dl class="facts">
+      <div><dt>Compute</dt><dd>The model 1 to 3 hours; each dictionary 5 to 10 minutes; under a day.</dd></div>
+      <div><dt>Risks</dt><dd>Ground truth exists only for models made sparse by design; a win here may not carry to dense models.</dd></div>
+    </dl>
+    <ul class="papers">
+      <li><a href="https://arxiv.org/abs/2610.19907">Sparse Transformer testbed</a></li>
+      <li><a href="https://arxiv.org/abs/2610.23801">SAE seed consistency, 2610.23801</a></li>
+      <li><a href="https://arxiv.org/abs/2610.20680">SAE data budget, 2610.20680</a></li>
+      <li><a href="https://arxiv.org/abs/2501.17727">Random-transformer control</a></li>
+      <li><a href="https://arxiv.org/abs/2610.17093">Fine-tune reruns, 2610.17093</a></li>
+      <li><a href="https://arxiv.org/abs/2501.18823">Transcoders beat SAEs</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="beat" id="a5">
+    <header>
+      <span class="num">Question 5 · score 15</span>
+      <h2>Picking the right answer from 8 samples, using the model's own signals</h2>
+      <p class="short">On a 4-bit 1.7B model, can token confidence or the model's own yes-or-no judgement close the gap between a majority vote and "some sample is right"?</p>
+    </header>
+    <div class="prose">
+      <p><b>Why it is open.</b> DeepConf filters samples by confidence, at up to 512 samples on models of 8B and more. Voting levels off where coverage does not. Generative verifiers, and a result where a 1B model beats a 405B one, need trained checkers. Nobody has mapped 8 samples on a model small enough for a phone.</p>
+    </div>
+    <p class="course"><b>Where the course stands.</b> <a href="../explorables/22-reasoning-at-test-time.html">Module 22</a> measured Qwen3-1.7B in 4 bits on 200 GSM8K problems: greedy 61.5%, a vote over 8 samples 69.5%, and "any of 8 right" 80.0%. That gap of about 10 points is the room. The experiment reuses the module's prompt, answer extractor and problems.</p>
+    <div class="prereg">
+      <div class="setup"><span class="k">First experiment</span>Rerun module 22's 8 samples, saving each token's log-probability. Selectors: a plain vote over 8; a vote weighted by mean log-probability; DeepConf's lowest-group filter (keep the top half, then vote); P(Yes) from Qwen3-0.6B and 1.7B asked "Is this solution correct?".</div>
+      <div><span class="k">Expect</span>The best selector gains 1 to 3 points over the plain vote; none passes 75%; P(Yes) has an AUROC under 0.8; the 0.6B judge adds nothing.</div>
+      <div><span class="k">Measure</span>Accuracy; a paired sign test on the problems where two selectors differ; the share of the gap recovered; each signal's AUROC; a calibration curve.</div>
+      <div class="mind"><span class="k">Change our mind</span>5 points or more from any selector, or an AUROC above 0.8, makes self-selection worth building into a phone pipeline. A loss suggests 4-bit weights spoil confidence.</div>
+    </div>
+    <dl class="facts">
+      <div><dt>Compute</dt><dd>About 0.4M generated tokens plus 3,200 prefill passes: 2 to 3 hours. Free.</dd></div>
+      <div><dt>Risks</dt><dd>200 problems give wide intervals (one problem is 0.5 points). GSM8K may be in Qwen3's training data, which lifts every arm alike. A second experiment, knowing when not to call a tool (When2Call), uses the same signal.</dd></div>
+    </dl>
+    <ul class="papers">
+      <li><a href="https://arxiv.org/abs/2508.15260">DeepConf</a></li>
+      <li><a href="https://arxiv.org/abs/2407.21787">Large Language Monkeys</a></li>
+      <li><a href="https://arxiv.org/abs/2408.15240">Generative verifiers</a></li>
+      <li><a href="https://arxiv.org/abs/2502.06703">1B beats 405B, 2502.06703</a></li>
+      <li><a href="https://arxiv.org/abs/2504.18851">When2Call</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section class="beat" id="a6">
+    <header>
+      <span class="num">Question 6 · score 15</span>
+      <h2>Does small-model RL add anything a random reward does not?</h2>
+      <p class="short">On a model under 1B with an exact checker, does RL with verifiable rewards reach problems the base model never solves at large k, and how much of its gain does a random reward also give?</p>
+    </header>
+    <div class="prose">
+      <p><b>Why it is open.</b> Yue et al. find that base models win at large pass@k; ProRL finds that long RL reaches problems the base never solves. Random rewards give Qwen2.5-Math-7B 21.4 points, against 29.1 for true ones. One training example lifts a 1.5B model from 36.0% to 73.6% on MATH500. LoRA GRPO costs about $9 at 1.5B (Tina). All of this is on 1.5B to 7B models, and the debate is open. Reasoning Gym gives exact checkers with tunable difficulty.</p>
+    </div>
+    <p class="course"><b>Where the course stands.</b> <a href="../explorables/26-rl-with-a-checker.html">Module 26</a> ran it on a character model that adds numbers: Dr. GRPO lifted pass@1 from 59.1% to 94.9%, mostly by making the base's worked style the default, and a coin-flip reward wrecked the model (4.6%). The trained models matched or beat the base at every k up to 128. Whether this holds on a real 0.5B model, and off Qwen, is open.</p>
+    <div class="prereg">
+      <div class="setup"><span class="k">First experiment</span>Qwen2.5-0.5B-Instruct and one non-Qwen base of similar size; LoRA GRPO on Reasoning Gym's countdown, levels 1 to 3 trained, level 4 held out. Arms: true reward; random reward at the same rate; no RL. Pass@k for k = 1 to 64 (256 with cloud) on 200 problems per level, with the unbiased estimator.</div>
+      <div><span class="k">Expect</span>True reward beats the base at k = 1 by 10 points or more on trained levels; the base matches or beats it at k ≥ 64; a random reward gives under half the true gain on the non-Qwen base; on level 4, RL solves nothing the base misses.</div>
+      <div><span class="k">Measure</span>Pass@k curves; the count of problems RL solves and the base never does.</div>
+      <div class="mind"><span class="k">Change our mind</span>RL solving 5% or more that the base never solves backs ProRL. A random reward matching the true one on the non-Qwen base means every small-RL result needs this control.</div>
+    </div>
+    <dl class="facts">
+      <div><dt>Compute</dt><dd>About 4M generated tokens per arm plus evaluation: one to two days of laptop, or $3 to $5 on one rented GPU.</dd></div>
+      <div><dt>Risks</dt><dd>MLX GRPO tools are third-party and unchecked. Evaluation at k = 256 dominates the cost. 300 steps may be too short to see ProRL's effect, so a null is weak evidence.</dd></div>
+    </dl>
+    <ul class="papers">
+      <li><a href="https://arxiv.org/abs/2504.13837">Yue et al., pass@k</a></li>
+      <li><a href="https://arxiv.org/abs/2505.24864">ProRL</a></li>
+      <li><a href="https://arxiv.org/abs/2506.10947">Spurious rewards</a></li>
+      <li><a href="https://arxiv.org/abs/2504.20571">One training example</a></li>
+      <li><a href="https://arxiv.org/abs/2504.15777">Tina</a></li>
+      <li><a href="https://arxiv.org/abs/2505.24760">Reasoning Gym</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ 7 ============ -->
+  <section class="beat" id="a7">
+    <header>
+      <span class="num">Question 7 · score 15</span>
+      <h2>What makes a toy net grok, and what warns first?</h2>
+      <p class="short">Is the course's "weight decay 0 never groks" result a float32 softmax collapse, and which progress measure crosses before test accuracy does?</p>
+    </header>
+    <div class="prose">
+      <p><b>Why it is open.</b> Prieto et al. show that without regularization a float32 softmax rounds to 0 and 1 and learning stops; StableMax or a projected gradient brings grokking back. Three 2026 papers say the general solution forms during memorization: an idealized model built from a never-grokking net's phases scores 95.5% against the net's 0.23%; a refitted readout generalizes first. Muon cuts the time to grok from 153 to 103 epochs. No one has compared the warning signals on one run.</p>
+    </div>
+    <p class="course"><b>Where the course stands.</b> <a href="../explorables/14-how-training-finds-a-solution.html">Module 14</a>: with weight decay 0, test accuracy is still 4.5% at step 20,000 and the weight norm is still rising (80.6). This question tests a claim the course makes.</p>
+    <div class="prereg">
+      <div class="setup"><span class="k">First experiment</span>Module 14's setup, weight decay 0 unless named. Arms: float32 softmax; StableMax; float64 softmax on the CPU; projected gradient; weight decay 1.0 as the control. 3 seeds, 20,000 steps. Log the share of training examples whose float32 gradient is exactly zero.</div>
+      <div><span class="k">Expect</span>The StableMax, float64 and projected-gradient arms reach 95% test accuracy in 2 of 3 seeds; the float32 softmax arm does not.</div>
+      <div><span class="k">Measure</span>Test accuracy over steps; the zero-gradient share.</div>
+      <div class="mind"><span class="k">Change our mind</span>StableMax and float64 both fail in 3 of 3 seeds: the weight-norm reading stands.</div>
+    </div>
+    <dl class="facts">
+      <div><dt>Compute</dt><dd>15 runs of about 5 minutes; float64 on the CPU is 3 to 5 times slower; about 2 hours. The race between warning signals (refitted readout, idealized model, Fourier loss, HTSR α) adds 2 hours on 5 seeds.</dd></div>
+      <div><dt>Risks</dt><dd>Little value outside teaching. The laptop's GPU has no float64, so that arm runs on the CPU.</dd></div>
+    </dl>
+    <ul class="papers">
+      <li><a href="https://arxiv.org/abs/2501.04697">Grokking at the edge of numerical stability</a></li>
+      <li><a href="https://arxiv.org/abs/2603.23784">2603.23784</a></li>
+      <li><a href="https://arxiv.org/abs/2610.22593">2610.22593</a></li>
+      <li><a href="https://arxiv.org/abs/2603.01968">2603.01968</a></li>
+      <li><a href="https://arxiv.org/abs/2504.16041">Muon and grokking</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ 8 ============ -->
+  <section class="beat" id="a8">
+    <header>
+      <span class="num">Question 8 · score 14</span>
+      <h2>Data-bound pretraining: where does diffusion overtake left-to-right?</h2>
+      <p class="short">On a few million characters repeated many times, after how many epochs does a masked or block-diffusion language model beat a left-to-right model of the same size?</p>
+    </header>
+    <div class="prose">
+      <p><b>Why it is open.</b> Two 2025 papers show diffusion uses repeated data better; in one, a 1B diffusion model passes 56% on HellaSwag from 1B unique tokens repeated. A 2026 paper cuts the claimed 16× compute penalty to 3.0× with blocks of 4 and exact likelihood. Repeated-data pretraining favours small batches and weight decay 30 times the usual. Nobody has drawn the crossover at laptop scale, where data is always short.</p>
+    </div>
+    <p class="course"><b>Where the course stands.</b> <a href="../explorables/33-text-by-denoising.html">Module 33</a>: at equal compute, masked diffusion's bound is 2.56 nats per character against 1.75 for the left-to-right twin; on 100,000 characters seen 200 times, diffusion passes the overfitting twin, but not the twin stopped at its best. <a href="../explorables/19-scaling-laws.html">Module 19</a> gives the character model and data (wikitext, 5M characters).</p>
+    <div class="prereg">
+      <div class="setup"><span class="k">First experiment</span>Module 19's model at about 1M parameters. Arms: left-to-right; block diffusion with blocks of 4. 1, 4, 16 and 64 epochs on 1M characters; 3 seeds at 1 and 64 epochs.</div>
+      <div><span class="k">Expect</span>Left-to-right wins at 1 to 4 epochs; block diffusion wins by 32 to 64.</div>
+      <div><span class="k">Measure</span>Held-out loss per character (diffusion by exact likelihood in its decoding order); accuracy at filling a masked span.</div>
+      <div class="mind"><span class="k">Change our mind</span>No crossover by 64 epochs with tuned dropout on the left-to-right model, recorded as "needs more parameters than a laptop gives"; or a crossover in loss but not in filling spans.</div>
+    </div>
+    <dl class="facts">
+      <div><dt>Compute</dt><dd>The longest run under an hour; the whole grid 4 to 6 hours. A second, cheaper question: does Muon win per second on Apple silicon, where AdamW won per unit of time on an A100 by 3.38 to 6.96%?</dd></div>
+      <div><dt>Risks</dt><dd>Scoring by the bound is biased against diffusion; tuned dropout may erase the effect; crossovers at small scale may not match the predicted threshold.</dd></div>
+    </dl>
+    <ul class="papers">
+      <li><a href="https://arxiv.org/abs/2507.15857">Diffusion beats AR with repeated data</a></li>
+      <li><a href="https://arxiv.org/abs/2511.03276">Super data learners</a></li>
+      <li><a href="https://arxiv.org/abs/2610.17590">The 16× gap revisited</a></li>
+      <li><a href="https://arxiv.org/abs/2610.15965">2610.15965</a></li>
+      <li><a href="https://arxiv.org/abs/2509.14786">2509.14786</a></li>
+      <li><a href="https://arxiv.org/abs/2610.21555">Muon against AdamW, 2610.21555</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ 9 ============ -->
+  <section class="beat" id="a9">
+    <header>
+      <span class="num">Question 9 · score 14</span>
+      <h2>Ternary against 4-bit at the same file size, and where the model runs</h2>
+      <p class="short">For a tiny language model of a fixed number of megabytes, does ternary training beat a wider model rounded to 4 bits after training, and does the answer flip with the number of tokens per parameter?</p>
+    </header>
+    <div class="prose">
+      <p><b>Why it is open.</b> ParetoQ puts the best accuracy per byte at 1.58 to 3 bits, with a change between 2 and 3 bits, at 600M parameters and up. Low-bit rounding hurts more as models see more tokens. At 60K parameters a claimed 22% ternary win was partly a badly shaped baseline. Casting to bf16 at export flips ternary codes and once erased a fine-tune: GSM8K fell from 58.79% to 0.78%.</p>
+      <p>A second experiment: which weight formats let a small model run on a phone's neural engine, and at what energy per token? One study measured only M1 and M3 Macs; Apple ships 2-bit trained weights on its 3B on-device model.</p>
+    </div>
+    <p class="course"><b>Where the course stands.</b> <a href="../explorables/28-fewer-bits-trained-in.html">Module 28</a>: at 1.5 MB, ternary scored 1.617 against 1.648 for 4 bits, and tuning the float baseline cut the gap from 0.168 to 0.031. The tokens-per-parameter question is open.</p>
+    <div class="prereg">
+      <div class="setup"><span class="k">First experiment</span>A module-04-style character model in MLX. Arm A: ternary training (absmean, straight-through). Arm B: an fp16 model of the same file size (within 5%), rounded to 4 bits in groups of 64 after training. Storage 0.5 and 2 MB; 20 and 200 tokens per parameter; 3 shapes per cell, best kept; learning rate tuned on one seed; 3 seeds. Export each ternary model in fp32 and with a bf16 cast.</div>
+      <div><span class="k">Expect</span>Ternary wins at 20 tokens per parameter and loses or ties at 200; the bf16 cast flips under 2% of codes when training from scratch.</div>
+      <div><span class="k">Measure</span>Validation bits per byte; the share of flipped codes.</div>
+      <div class="mind"><span class="k">Change our mind</span>Ternary wins at both ratios, or loses at both.</div>
+    </div>
+    <dl class="facts">
+      <div><dt>Compute</dt><dd>About 72 runs of 2 to 15 minutes: one night.</dd></div>
+      <div><dt>Risks</dt><dd>Small-scale verdicts flip with the baseline's shape. The file size must count scales and zero points.</dd></div>
+    </dl>
+    <ul class="papers">
+      <li><a href="https://arxiv.org/abs/2502.02631">ParetoQ</a></li>
+      <li><a href="https://arxiv.org/abs/2411.17691">Low-bit favours undertrained LLMs</a></li>
+      <li><a href="https://arxiv.org/abs/2411.04330">2411.04330</a></li>
+      <li><a href="https://arxiv.org/abs/2609.29397">Baseline shape decides the verdict</a></li>
+      <li><a href="https://arxiv.org/abs/2610.07853">Lost in the bf16 cast</a></li>
+      <li><a href="https://arxiv.org/abs/2608.22110">Neural engine study, 2608.22110</a></li>
+      <li><a href="https://arxiv.org/abs/2507.13575">Apple foundation models 2025</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ 10 ============ -->
+  <section class="beat" id="a10">
+    <header>
+      <span class="num">Question 10 · score 12</span>
+      <h2>Real-time latent planning on a phone</h2>
+      <p class="short">Can a 15M-parameter world model with one token per frame plan by CEM on an iPhone 15 Pro in under half a second, sustained?</p>
+    </header>
+    <div class="prose">
+      <p><b>Why it is open.</b> LeWM uses one 192-dimensional vector per frame, about 200 times fewer tokens than DINO-WM, and plans in under a second on a GPU. Orion and a 2026 study show that whether the neural engine takes a model depends on its graph and its weight format. No one has published latent planning on a phone.</p>
+    </div>
+    <p class="course"><b>Where the course stands.</b> <a href="../explorables/31-world-model-from-pixels.html">Module 31</a> trained a small LeWM-style model on a laptop and planned with it; within one room random shooting reached 70% of goals and CEM 26%. This question needs question 1 to give a model that plans better than random.</p>
+    <div class="prereg">
+      <div class="setup"><span class="k">First experiment</span>Export a trained LeWM-tiny (a ViT-Tiny encoder plus predictor) to Core ML; send the 300 CEM candidates through the predictor in one batch; 30 iterations, a 5-step horizon.</div>
+      <div><span class="k">Expect</span>The neural engine accepts the graph; one full plan takes under 500 ms, sustained after the phone heats up and slows.</div>
+      <div><span class="k">Measure</span>Whether the model compiles for each compute unit; warm and sustained latency over 3 minutes or more; cosine agreement with PyTorch; energy from Xcode's gauge.</div>
+      <div class="mind"><span class="k">Change our mind</span>The neural engine rejects the graph, or a plan takes over 2 s. Then try fewer CEM samples or a distilled MLP predictor.</div>
+    </div>
+    <dl class="facts">
+      <div><dt>Compute</dt><dd>Laptop plus phone; a day or two of engineering. No cloud.</dd></div>
+      <div><dt>Risks</dt><dd>Much engineering and little science if the answer is a plain yes. Core ML may split the batched predictor across units in ways hard to read.</dd></div>
+    </dl>
+    <ul class="papers">
+      <li><a href="https://arxiv.org/abs/2603.19312">LeWorldModel</a></li>
+      <li><a href="https://arxiv.org/abs/2411.04983">DINO-WM</a></li>
+      <li><a href="https://arxiv.org/abs/2603.06728">Orion</a></li>
+      <li><a href="https://arxiv.org/abs/2608.22110">Neural engine study, 2608.22110</a></li>
+    </ul>
+  </section>
+
+  <!-- ============ 11 ============ -->
+  <section class="beat" id="a11">
+    <header>
+      <span class="num">Question 11 · score 12</span>
+      <h2>What does recursion buy a tiny reasoner, once augmentation is controlled?</h2>
+      <p class="short">In a 7M-parameter recursive network on Sudoku or mazes, how much accuracy comes from recursion, how much from deep supervision and how much from data augmentation, at equal parameters and compute?</p>
+    </header>
+    <div class="prose">
+      <p><b>Why it is open.</b> TRM (7M parameters, 45% on ARC-AGI-1, 8% on ARC-AGI-2) beat HRM and dropped its hierarchy. Ren and Liu found that augmentation alone moved HRM from 54.5% to 96.9% on Sudoku-Extreme; nobody has run that audit on TRM. Equilibrium Reasoners claim that depth scales at test time. The ARC Prize 2025 report names the per-task refinement loop as the year's theme. This question takes a published model apart rather than proposing a new one.</p>
+    </div>
+    <div class="prereg">
+      <div class="setup"><span class="k">First experiment</span>TRM at 1 to 7M parameters, 6 × 6 Sudoku, 1,000 training puzzles. Arms: recursions n = 1, 2, 4 and 6, augmentation on and off; plus one arm with recursion off and depth raised to match the compute. 2 to 3 seeds. Test each model at n, 2n and 4n.</div>
+      <div><span class="k">Expect</span>Augmentation explains more than n; accuracy rises with the trained n up to 4, then flattens; recursion past training adds under 2 points at test time; the depth-matched arm lands within 3 points of n = 4.</div>
+      <div><span class="k">Measure</span>Exact solves on 1,000 held-out puzzles.</div>
+      <div class="mind"><span class="k">Change our mind</span>5 points or more from recursion past training backs the attractor reading. n = 1 with augmentation matching n = 6 says recursion is not the part that works.</div>
+    </div>
+    <dl class="facts">
+      <div><dt>Compute</dt><dd>16 to 20 runs of 1 to 3 hours: one to three days of laptop, or about $5 of cloud.</dd></div>
+      <div><dt>Risks</dt><dd>6 × 6 Sudoku may be too easy to separate the arms; TRM's own training budget on Sudoku-Extreme was not checked.</dd></div>
+    </dl>
+    <ul class="papers">
+      <li><a href="https://arxiv.org/abs/2510.04871">TRM</a></li>
+      <li><a href="https://arxiv.org/abs/2506.21734">HRM</a></li>
+      <li><a href="https://arxiv.org/abs/2601.10679">Reasoning or guessing?</a></li>
+      <li><a href="https://arxiv.org/abs/2605.21488">Equilibrium Reasoners</a></li>
+      <li><a href="https://arxiv.org/abs/2601.10904">ARC Prize 2025 report</a></li>
+    </ul>
+  </section>
+
+  <section class="beat" id="left">
+    <header>
+      <span class="num">Left out</span>
+      <h2>What did not make the list, and why</h2>
+    </header>
+    <div class="prose">
+      <ul>
+        <li><b>Local learning rules priced in joules on Apple silicon</b> (NoProp, Mono-Forward, PC-ALM). A real gap, but the case for them at the edge rests on training on the phone, which question 2 covers better. Score about 10. <a href="../explorables/30-learning-without-a-backward-pass.html">Module 30</a> measured their memory and accuracy; it planned energy and could not measure it without root access.</li>
+        <li><b>Spiking language models</b> (<a href="https://arxiv.org/abs/2610.15146">2610.15146</a>). They need hardware a laptop does not have.</li>
+      </ul>
+      <p>Papers: <a href="https://arxiv.org/abs/2503.24322">NoProp</a> · <a href="https://arxiv.org/abs/2501.09238">Mono-Forward</a> · <a href="https://arxiv.org/abs/2605.31022">PC-ALM</a>.</p>
+    </div>
+  </section>
+
+  <section class="remember" id="start">
+    <h2>Where to <span class="w">start</span></h2>
+    <ol>
+      <li><b>Question 5, choosing among 8 samples.</b>Not the top score, but it costs 2 to 3 hours, reuses module 22's problems and extractor, and has a known room of about 10 points. It practises writing the expectation down before the bigger two.</li>
+      <li><b>Question 1, a JEPA latent as a planning cost.</b>The top score. Half a day on module 25's grid. Its result decides whether question 10 is worth building.</li>
+      <li><b>Question 2, forward KL and forgetting at 0.5B.</b>One measurable law, with the facts given as questions and answers. One to two days, no cloud.</li>
+    </ol>
+    <p>Next in line: question 6, once about $5 of cloud pays for the large-k evaluation, and question 3 for a one-day test of a theory.</p>
+  </section>
+
+  <section class="sources">
+    <h2>Sources</h2>
+    <ol>
+      <li>Every paper is linked under its question at <code>arxiv.org/abs/&lt;id&gt;</code>; the scouts opened each abstract page on 2026-10-19. Claims are taken from those abstracts.</li>
+      <li>Course numbers come from the module results named in each "Where the course stands" note.</li>
+    </ol>
+  </section>
+</main>
+<footer id="site-footer"></footer>
+
+<script src="assets/atlas.js"></script>
+</body>
+</html>

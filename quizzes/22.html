@@ -250,8 +250,9 @@ const QUESTIONS = [
       "Half-way between the two samples' accuracies."
     ],
     answer: 2,
-    explain: "With two samples the vote always returns the first one's answer. Averaged over all pairs it equals the " +
-             "mean single-sample accuracy, 61.1% for both. The gain starts at n = 3 (64.3%).",
+    explain: "With two samples the vote always returns the earlier one's answer. Averaged over all pairs this is a " +
+             "weighted mean of single-sample accuracies, the same as the plain mean in expectation; here both are " +
+             "61.1%. The gain starts at n = 3 (64.3%).",
     source: "modules/22-reasoning-at-test-time/results/analysis.json → section2.vote_mean_over_subsets"
   },
   /* ── 5 ───────────────────────────────────────────────── real numbers ── */
@@ -319,7 +320,8 @@ const QUESTIONS = [
   /* ── 9 ─────────────────────────────────────────────────── read-code ── */
   {
     id: "q9", kind: "single", tag: "code", topic: "Turning thinking off",
-    text: "Qwen3 can write a hidden reasoning block before it answers. How does the module turn it off?",
+    text: "Qwen3 can write a reasoning block, which chat apps fold away, before it answers. How does the module " +
+          "turn it off?",
     code: "tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True,\n" +
           "                        enable_thinking=False)\n" +
           "# ...<|im_start|>assistant\\n<think>\\n\\n</think>\\n\\n",
@@ -341,14 +343,16 @@ const QUESTIONS = [
     text: "Self-consistency and best-of-n leave the weights alone. What does reinforcement-learned reasoning, as " +
           "DeepSeek-R1 describes it, change that they cannot?",
     options: [
-      "Which chains the model writes: chains that end at a checked right answer become more likely, and they grow longer and start to check themselves.",
+      "Which chains the model writes: chains that end at a checked right answer become more likely, so the right chains it could already write come up more often.",
       "Nothing: it is self-consistency run during training.",
       "Only the speed of generation.",
       "It removes the need for any answer checker."
     ],
     answer: 0,
     explain: "Sampling at test time can only pick among chains the model already writes. Training on a final-answer " +
-             "check shifts the model's own distribution. The two combine: a trained reasoner can still gain from votes.",
+             "check shifts the model's own distribution. Yue et al. (2025) find the untrained base still solves more " +
+             "problems given many tries, so the training mostly sharpens chains the base could already write. " +
+             "The two combine: a trained reasoner can still gain from votes.",
     source: "modules/22-reasoning-at-test-time/README.md §4"
   }
 ];
@@ -363,7 +367,7 @@ function gradeSingle(q, ans) { return typeof ans === "number" && ans === q.answe
 function gradeMulti(q, ans) { return Array.isArray(ans) && sameSet(ans, q.answer); }
 function gradeNumeric(q, ans) {
   const v = typeof ans === "number" ? ans : parseFloat(String(ans).replace(/[\s,_]/g, ""));
-  return isFinite(v) && Math.abs(v - q.answer) <= q.tol;
+  return isFinite(v) && Math.abs(v - q.answer) <= q.tol + 1e-9;
 }
 function gradeQuestion(q, ans) {
   if (ans === undefined || ans === null) return false;

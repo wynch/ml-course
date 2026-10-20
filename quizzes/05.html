@@ -211,9 +211,11 @@ const QUESTIONS = [
           "What shape is <code>logits</code> on each pass through the loop?",
     code: "norm = model.model.norm\n" +
           "head = model.lm_head\n\n" +
+          "last = len(hidden_states) - 1\n" +
           "for layer_idx, hs in enumerate(hidden_states):\n" +
           "    h = hs[0, -1]  # last position\n" +
-          "    logits = head(norm(h))\n" +
+          "    # hidden_states[-1] already went through the final norm\n" +
+          "    logits = head(h) if layer_idx == last else head(norm(h))\n" +
           "    probs = F.softmax(logits.float(), dim=-1)\n" +
           "    top1 = int(probs.argmax().item())",
     file: "modules/05-transformers-library/python/src/logit_lens.py",
@@ -228,7 +230,7 @@ const QUESTIONS = [
              "<code>lm_head</code> is the tied <code>960 → 49,152</code> unembedding, so one vocabulary " +
              "score vector comes out. The <code>(1, seq, 49152)</code> distractor is what " +
              "<code>model(**ids).logits</code> gives you — but this loop deliberately took one position first.",
-    source: "modules/05-transformers-library/python/src/logit_lens.py:50-57"
+    source: "modules/05-transformers-library/python/src/logit_lens.py, layerwise_predictions"
   },
   /* ── 3 ───────────────────────────────────────────── real numbers ── */
   {
@@ -252,21 +254,21 @@ const QUESTIONS = [
     options: [
       "Layer 16 of 32, at 90% — the middle of the stack is where facts are retrieved.",
       "Layer 27 of 32, at 71% — then it holds to the end.",
-      "Layer 32 of 32, at 79% — nothing is decided before the very last block.",
+      "Layer 32 of 32, at 98% — nothing is decided before the very last block.",
       "Layer 4 of 32, at 27% — the answer is present early and is only sharpened afterwards."
     ],
     answer: 1,
     explain: "Layer 27 is the decision layer: <code>' Paris'</code> jumps from rank 148 to rank 1 at 71%, " +
-             "then sits at 98–99% for layers 28–31 and eases back to 79% at layer 32. The “layer 16 at 90%” " +
+             "then sits at 98–99% from layer 28 to the end (98.5% at layer 32). The “layer 16 at 90%” " +
              "distractor is a real number from the same run — but that 90% belongs to <code>' psychiat'</code>, " +
              "a confident piece of nonsense. High confidence is not the same as the right answer.",
-    source: "modules/05-transformers-library/figures/logit_lens.png · README “decision layer” · explorables/05-transformer-anatomy.html LENS rows 16 and 27"
+    source: "modules/05-transformers-library/results/logit_lens.json · figures/logit_lens.png · README “decision layer” · explorables/05-transformer-anatomy.html LENS rows 16 and 27"
   },
   /* ── 5 ───────────────────────────────────────────────── conceptual ── */
   {
     id: "q5", kind: "single", tag: "conceptual", topic: "MPS vs CPU at batch 1",
-    text: "Exercise (c) times 64 greedy-decoded tokens at batch size 1 and finds <b>CPU at 27–31 tok/s " +
-          "beating MPS at 18–19 tok/s</b>. What explains it?",
+    text: "Exercise (c) times 64 greedy-decoded tokens at batch size 1 and finds <b>CPU at 29–32 tok/s " +
+          "beating MPS at 16–21 tok/s</b>. What explains it?",
     options: [
       "SmolLM2 is too large for the GPU's memory, so MPS falls back to swapping through the CPU anyway.",
       "MPS runs in float16 while the CPU path stays in float32, and the conversion cost dominates.",
@@ -279,27 +281,29 @@ const QUESTIONS = [
              "(long prompts, big batches, training), which single-token decode at batch 1 is the opposite of. " +
              "The float16 answer is tempting but wrong here: <code>load_model()</code> loads " +
              "<code>dtype=torch.float32</code> on both devices, so the comparison is like-for-like.",
-    source: "modules/05-transformers-library/figures/tokens_per_sec.png · solutions/solution_c_tokens_per_sec.py · python/src/common.py:54"
+    source: "modules/05-transformers-library/results/tokens_per_sec.json · figures/tokens_per_sec.png · solutions/solution_c_tokens_per_sec.py · python/src/common.py (load_model)"
   },
   /* ── 6 ───────────────────────────────────────────────── conceptual ── */
   {
-    id: "q6", kind: "single", tag: "conceptual", topic: "top-k vs top-p",
-    text: "For the open-ended prompt <span class=\"mono\">\"My favorite color is\"</span>, " +
-          "<code>sampling_lab.py</code> measures that <code>top_k=5</code> keeps 5 tokens while " +
-          "<code>top_p=0.8</code> keeps <b>14</b>. Which statement generalises correctly?",
+    id: "q6", kind: "single", tag: "predict", topic: "top-k, top-p and min-p",
+    text: "For the open-ended prompt <span class=\"mono\">\"My favorite color is\"</span> " +
+          "(<code>' blue'</code> at 40%), <code>sampling_lab.py</code> measures that <code>top_k=5</code> keeps " +
+          "5 tokens, <code>top_p=0.8</code> keeps <b>14</b> and <code>min_p=0.1</code> keeps <b>5</b>. " +
+          "<b>Predict</b> the three counts on <span class=\"mono\">\"The capital of France is\"</span>, " +
+          "where <code>' Paris'</code> holds 91%.",
     options: [
-      "top-p keeps every token whose individual probability exceeds 0.8, so it is a per-token threshold.",
-      "top-p always keeps more tokens than top-k, because a cumulative budget is looser than a count.",
-      "top-p sizes the nucleus from the distribution's shape, so a flat distribution gives a wide set and a peaked one a narrow set.",
-      "top-p and top-k are equivalent once you convert p into the matching k for the model's average entropy."
+      "top-k 5, top-p 1, min-p 1 — the two adaptive filters shrink to the one sure token; the count filter does not.",
+      "top-k 5, top-p 14, min-p 5 — the settings fix the counts, whatever the prompt.",
+      "top-k 5, top-p 1, min-p 5 — min-p is a count like top-k; only top-p adapts.",
+      "top-k 1, top-p 1, min-p 1 — every filter collapses to greedy when the model is sure."
     ],
-    answer: 2,
-    explain: "top-p keeps the <i>smallest set whose cumulative</i> mass reaches p, so the count is a " +
-             "consequence, not a setting — 14 tokens for a flat colour distribution, but on " +
-             "<span class=\"mono\">\"The capital of France is\"</span> (91% on <code>' Paris'</code>) " +
-             "p=0.8 would stop after a single token. That is exactly why “top-p always keeps more” is wrong: " +
-             "it happened to keep more <i>here</i> because this prompt is uncertain.",
-    source: "modules/05-transformers-library/python/src/sampling_lab.py:110-160 (fig_topk_topp) · figures/topk_topp.png · figures/next_token_dist.png"
+    answer: 0,
+    explain: "top-p keeps the smallest set whose mass reaches 0.8, and <code>' Paris'</code> alone holds 0.91, so " +
+             "one token. min-p keeps every token with at least 0.1 × 0.91 = 9.1%; the runner-up, " +
+             "<code>' located'</code>, has 3.3%, so again one token. top-k keeps 5 no matter what: it is the " +
+             "only one of the three that ignores the distribution's shape. That is why top-p and min-p are " +
+             "called adaptive (min-p: Nguyen et al., arXiv 2407.01082).",
+    source: "modules/05-transformers-library/results/sampling.json (kept counts for both prompts) · python/src/sampling_lab.py (kept_counts) · figures/topk_topp.png"
   },
   /* ── 7 ─────────────────────────────────────────────────── read-code ── */
   {
@@ -357,13 +361,14 @@ const QUESTIONS = [
       "<code>&lt;|im_start|&gt;</code> and <code>&lt;|im_end|&gt;</code> are added/special tokens that mark turn boundaries.",
       "The role words <code>system</code>, <code>user</code> and <code>assistant</code> are ordinary tokens — only the delimiters are special.",
       "<code>add_generation_prompt=True</code> appends the opening of the assistant turn, so the model continues in the assistant's voice.",
-      "<code>apply_chat_template</code> returns token ids only; the wrapper string is never materialised."
+      "With no system message, the template sends no system turn: the model sees only what you typed."
     ],
     answer: [0, 1, 2],
     explain: "The first three are what the figure shows — orange boxes for the two delimiters, plain boxes for " +
-             "everything else including the role words. The last is false: <code>tokenize=False</code> returns the " +
-             "exact string, which is how <code>build_chat_prompt()</code> in <code>common.py</code> hands a raw " +
-             "prompt to the sampling labs.",
+             "everything else including the role words. The last is false: with no system message, SmolLM2's " +
+             "template inserts its own, “You are a helpful AI assistant named SmolLM, trained by Hugging Face”. " +
+             "Print <code>apply_chat_template(..., tokenize=False)</code>, which returns the exact string, before " +
+             "you trust a prompt.",
     source: "modules/05-transformers-library/python/src/chat_template.py:28-45 · python/src/common.py:64-76 · figures/chat_template.png"
   },
   /* ── 10 ─────────────────────────────────────────────────── predict ── */
@@ -378,8 +383,8 @@ const QUESTIONS = [
       "<code>' Paris'</code> already, but far down at a few percent — the embedding knows the answer weakly."
     ],
     answer: 2,
-    explain: "With a tied head, running an embedding vector back through the unembedding scores that same row " +
-             "highest — the lens reads the last input token, <code>' of'</code>, at 100%, and " +
+    explain: "With a tied head, running an embedding vector back through the unembedding gives that same row " +
+             "a large score, here and usually the largest (a row with a much bigger norm could win instead) — the lens reads the last input token, <code>' of'</code>, at 100%, and " +
              "<code>' Paris'</code> sits at rank 7,043. Layer 0 is a mirror: the stack has to do work before " +
              "the lens says anything. The tempting “weak Paris” answer assumes retrieval starts in the " +
              "embedding; the ranks say it does not.",
@@ -398,7 +403,7 @@ function gradeSingle(q, ans) { return typeof ans === "number" && ans === q.answe
 function gradeMulti(q, ans) { return Array.isArray(ans) && sameSet(ans, q.answer); }
 function gradeNumeric(q, ans) {
   const v = typeof ans === "number" ? ans : parseFloat(String(ans).replace(/[\s,_]/g, ""));
-  return isFinite(v) && Math.abs(v - q.answer) <= q.tol;
+  return isFinite(v) && Math.abs(v - q.answer) <= q.tol + 1e-9;
 }
 function gradeQuestion(q, ans) {
   if (ans === undefined || ans === null) return false;

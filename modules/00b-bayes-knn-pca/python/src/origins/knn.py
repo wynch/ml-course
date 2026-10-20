@@ -3,8 +3,8 @@
 The classifier is four lines of numpy. The interesting part is
 :func:`cover_hart_bound`: Cover & Hart (1967) proved that as the training set
 grows, the 1-NN error rate settles at a value no worse than *twice* the Bayes
-error. Half the information is in the labels of the nearest points; the other
-half you cannot have.
+error. They put it as "half the classification information is in the nearest
+neighbour"; read that as a statement about error, not information.
 
 Everything here is written for the two-Gaussian family in :mod:`origins.data`,
 where the Bayes error is available in closed form and the asymptotic 1-NN error

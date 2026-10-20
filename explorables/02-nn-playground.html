@@ -121,7 +121,7 @@ footer a:hover{text-decoration:underline}
       as <span class="mono">src/data.py</span> does, generated here with a seeded PRNG so every reload is
       identical. Press play and watch the boundary bend around the moons; the dashed curves are the
       <em>real Python run's</em> loss and validation accuracy, so you can see whether your in-browser
-      twin lands in the same place (it reached <b>97.2%</b> on the full set after 120 epochs).</p>
+      twin lands in the same place (it reached <b>97.5%</b> on the full set after 120 epochs).</p>
   </section>
 
   <!-- ══════════════════ the stage ══════════════════ -->
@@ -140,10 +140,8 @@ footer a:hover{text-decoration:underline}
           <span>white line = the 0.5 boundary</span>
         </div>
         <p class="hint">Space = play/pause. Hidden size, activation and seed rebuild the net (same seed ⇒
-          same run every reload). The Python script used <span class="mono">lr = 0.3</span>; in the browser
-          that sits right on the edge of stability — set the slider to <span class="mono">0.300</span> to
-          reproduce its spiky curve, and see the notes below for why the default here is
-          <span class="mono">0.100</span>.</p>
+          same run every reload). The Python script and this page both default to <span class="mono">lr = 0.1</span>. Set the
+          slider to <span class="mono">0.300</span> to see the run turn spiky; the notes below say why.</p>
       </div>
       <div class="charts">
         <div>
@@ -231,20 +229,22 @@ footer a:hover{text-decoration:underline}
         hyperplane; the curve you see is a piecewise-linear stitching of them. Switch the activation to
         <code>tanh</code> and the same net produces visibly <em>smoother</em> bends — that is the only
         thing you changed.</li>
-      <li><b>Capacity shows up as a kink budget.</b> With ReLU, <code>hidden = 2</code> usually collapses
+      <li><b>Capacity shows up as a kink budget.</b> With ReLU, <code>hidden = 2</code> often collapses
         to a single class — two units, and a big early step can kill both (the classic dying-ReLU
         failure); <code>3–4</code> gets ~85–90%; from <code>6</code> upward it fits, and
         <code>16</code> (the module's choice, 354 parameters) mostly buys margin. Switch to
         <code>tanh</code> and even <code>hidden = 2</code> manages ~88%, because tanh units never die.</li>
       <li><b>Noise sets the accuracy ceiling.</b> The moons overlap at <code>noise = 0.2</code>, so ~97%
-        is the honest maximum — the real Python run scored <code>97.2%</code> on the full 600 points and
-        this JS twin lands in the same band (96–98% across seeds). Module 01's net hit <em>100%</em>
+        is typical — the real Python run scored <code>97.5%</code> on the full 600 points and
+        this JS twin lands in the same band (94–98% over the first five seeds). Module 01's net hit <em>100%</em>
         only because it used <code>noise = 0.1</code> with 100 points.</li>
-      <li><b>Momentum multiplies your learning rate.</b> The effective step is about
-        <code>lr/(1−μ)</code>, so <code>lr = 0.3</code> with <code>μ = 0.9</code> steps like
-        <code>3.0</code> — right on the edge. Set the slider there and the loss curve gets the same
-        spikes as the real Python curve (look at its epoch-83 blow-out); on some seeds it never recovers,
-        which is exactly why the default here is the calmer <code>0.1</code>.</li>
+      <li><b>Momentum stretches your step on long slopes.</b> On a steady slope the velocity grows to
+        <code>lr/(1−μ)</code>, ten times <code>lr</code> at <code>μ = 0.9</code>. Across a steep valley
+        momentum helps less: plain SGD is stable while <code>lr·λ &lt; 2</code> (λ is the valley's
+        curvature), momentum while <code>lr·λ &lt; 2(1+μ)</code>. At <code>lr = 0.3</code> this net sits
+        close enough to that edge to spike: an earlier Python run at 0.3 saw validation accuracy fall to
+        56% at epoch 71 and the train loss jump to 0.88 at epoch 83. That is why the default here, and in
+        <code>train_toy.py</code>, is the calmer <code>0.1</code>.</li>
       <li><b>Weights spread out as the net commits.</b> The histogram starts as the He-init Gaussian
         (<code>σ = √(2/fan_in)</code>) and grows heavy tails where units have specialised. Watch layer 1
         in particular: those 2 → h weights <em>are</em> the directions of the cuts you see in the plot.</li>
@@ -579,11 +579,12 @@ function isoSegments(field, res, level) {
 
 /* --- real data inlined from the course -------------------------------
    modules/02-neural-networks — python/train_toy.py re-run verbatim
-   (moons, n=600, noise=0.2, seed=0, MLP [2,16,16,2], SGD lr=0.3 mu=0.9,
-   batch 32, 120 epochs). Final full-set accuracy 0.9717, 354 params.  */
-const PY_TRAIN_LOSS = [0.3864,0.2571,0.2046,0.1291,0.1227,0.1803,0.1148,0.1170,0.1285,0.1054,0.1237,0.4679,0.2704,0.2235,0.1726,0.2382,0.2421,0.2114,0.2475,0.1535,0.1265,0.2349,0.3248,0.2956,0.1801,0.3740,0.2438,0.1767,0.1575,0.4348,0.2457,0.1306,0.1331,0.1978,0.1624,0.1357,0.1270,0.2168,0.2628,0.1485,0.1657,0.1207,0.1252,0.1454,0.1584,0.1405,0.0996,0.0971,0.0889,0.0869,0.1168,0.1438,0.1699,0.1326,0.0971,0.0994,0.0901,0.1034,0.1085,0.1232,0.0714,0.0733,0.0955,0.1100,0.0823,0.0830,0.0831,0.0629,0.2359,0.2875,0.3480,0.4738,0.3331,0.3147,0.2796,0.2547,0.2421,0.2465,0.2307,0.1915,0.1643,0.2126,0.8811,0.3008,0.2385,0.2755,0.2544,0.1913,0.2661,0.2948,0.2238,0.1467,0.1365,0.1868,0.3673,0.1792,0.1436,0.3156,0.1765,0.2713,0.3347,0.2316,0.1834,0.1333,0.1144,0.1244,0.1129,0.1972,0.1563,0.1197,0.1022,0.1066,0.0995,0.1033,0.0910,0.0863,0.0873,0.1063,0.1344,0.1032];
-const PY_VAL_ACC = [0.7000,0.9533,0.9667,0.9733,0.9800,0.9800,0.9600,0.9800,0.9667,0.9867,0.9600,0.8867,0.9467,0.9467,0.9400,0.8200,0.9800,0.8133,0.9800,0.9333,0.9467,0.9600,0.8600,0.8933,0.9733,0.8733,0.9333,0.9733,0.9800,0.7267,0.9733,0.9800,0.9533,0.9600,0.9600,0.9733,0.9667,0.9867,0.9333,0.9800,0.9867,0.9800,0.9867,0.9467,0.9667,0.9733,0.9867,0.9867,0.9867,0.9867,0.9667,0.9867,0.9800,0.9800,0.9933,0.9733,0.9533,0.9800,0.9800,0.9867,0.9933,0.9733,0.9933,0.9867,0.9867,0.9933,0.9933,0.9867,0.9867,0.9467,0.5600,0.9000,0.9000,0.9000,0.9267,0.9333,0.9400,0.9400,0.9533,0.9600,0.9600,0.9067,0.9133,0.9467,0.9267,0.9533,0.9400,0.9533,0.9533,0.9733,0.9467,0.9667,0.9867,0.9800,0.9533,0.9867,0.9867,0.8800,0.9667,0.9400,0.9867,0.9933,0.9800,0.9800,0.9867,0.9867,0.9933,0.9733,0.9467,0.9800,0.9800,0.9667,0.9867,0.9733,0.9800,0.9867,0.9733,0.9733,0.9800,0.9733];
-const PY_FINAL_ACC = 0.9717;
+   (moons, n=600, noise=0.2, seed=0, MLP [2,16,16,2], SGD lr=0.1 mu=0.9,
+   batch 32, 120 epochs); numbers from results/toy.json. Final full-set
+   accuracy 0.9750, 354 params.  */
+const PY_TRAIN_LOSS = [0.3895,0.2735,0.2003,0.1385,0.1165,0.1021,0.0910,0.0930,0.1084,0.1007,0.1231,0.1179,0.0886,0.1011,0.0978,0.0980,0.0825,0.1294,0.1223,0.1091,0.0965,0.0901,0.0738,0.0833,0.0650,0.0627,0.0625,0.0726,0.1084,0.3053,0.1474,0.1036,0.0833,0.0874,0.0803,0.0781,0.0737,0.0739,0.0875,0.0718,0.0735,0.0746,0.0641,0.0681,0.0744,0.0621,0.0596,0.0630,0.0595,0.0602,0.0624,0.0760,0.0956,0.0725,0.0602,0.0645,0.0677,0.0658,0.0703,0.0635,0.0634,0.0581,0.0632,0.0778,0.0829,0.0718,0.0712,0.0581,0.1190,0.2031,0.1477,0.1359,0.0957,0.0842,0.0864,0.1112,0.0893,0.1096,0.1265,0.1012,0.1020,0.0853,0.0684,0.0779,0.0807,0.0888,0.1372,0.1046,0.0744,0.1172,0.1011,0.0821,0.0728,0.0847,0.0868,0.0774,0.1233,0.1232,0.1119,0.1211,0.0767,0.0652,0.0657,0.0643,0.0584,0.0598,0.0605,0.1475,0.1163,0.0975,0.0782,0.0676,0.0670,0.0609,0.0714,0.0674,0.0572,0.0680,0.0902,0.0662];
+const PY_VAL_ACC = [0.9133,0.9267,0.9733,0.9800,0.9867,0.9800,0.9800,0.9733,0.9800,0.9800,0.9800,0.9600,0.9800,0.9867,0.9600,0.9733,0.9800,0.9800,0.9467,0.9800,0.9667,0.9800,0.9867,0.9733,0.9800,0.9800,0.9933,0.9800,0.9867,0.9867,0.9733,0.9800,0.9733,0.9867,0.9800,0.9933,0.9867,0.9867,0.9933,0.9733,0.9800,0.9800,0.9867,0.9867,0.9800,0.9800,0.9867,0.9800,0.9867,0.9800,0.9867,0.9800,0.9600,0.9733,0.9867,0.9800,0.9733,0.9933,0.9733,0.9867,0.9867,0.9733,0.9867,0.9733,0.9867,0.9867,0.9867,0.9733,0.9867,0.9533,0.9867,0.9733,0.9800,0.9800,0.9800,0.9733,0.9667,0.9867,0.9600,0.9867,0.9867,0.9867,0.9733,0.9733,0.9867,0.9800,1.0000,0.9733,0.9800,0.9867,0.9867,0.9600,0.9800,0.9733,0.9800,0.9800,0.9933,0.9800,1.0000,0.9867,0.9800,0.9867,0.9867,0.9867,0.9800,0.9867,0.9867,0.9933,0.9867,0.9800,0.9933,0.9733,0.9867,0.9867,0.9867,0.9933,0.9800,0.9867,0.9800,0.9867];
+const PY_FINAL_ACC = 0.9750;
 
 if (typeof module !== "undefined" && module.exports) {
   module.exports = { mulberry32, makeRandn, viridis, makeMoons, trainValSplit, MLP, SGD,

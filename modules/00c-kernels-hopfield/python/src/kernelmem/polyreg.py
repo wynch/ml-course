@@ -7,8 +7,9 @@ Fit y ≈ Φ(x)β where Φ is a Legendre basis of a chosen degree. Two regimes:
 - **Overparameterised** (p > n): infinitely many β interpolate the training
   data exactly. ``np.linalg.pinv`` picks the one with the smallest ‖β‖₂. That
   choice — the *implicit bias* — is what makes the overparameterised regime
-  behave at all, and it is the same kind of implicit bias that gradient
-  descent brings to a wildly overparameterised neural network.
+  behave at all. Gradient descent on least squares, started at β = 0, lands
+  on exactly this solution; in a deep network the implicit bias of gradient
+  descent is of the same kind but is not an ℓ₂ norm.
 
 Right at the boundary p = n there is exactly one interpolant and no freedom to
 pick a well-behaved one, so ‖β‖ blows up. That spike is the interpolation

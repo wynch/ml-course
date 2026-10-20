@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>LeJEPA: Provable and Scalable Self-Supervised Learning Without the Heuristics (Balestriero &amp; LeCun, 2025) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="lejepa-provable-and-scalable-self-supervised-learning-without-the-heuristics">LeJEPA: Provable and Scalable Self-Supervised Learning Without the Heuristics</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-19</span> <span>updated 2026-10-20</span> <span class="tag">jepa</span> <span class="tag">self-supervised-learning</span> <span class="tag">sigreg</span> <span class="tag">representation-learning</span> <span class="tag">collapse</span> <span class="tag">isotropy</span> <span class="tag">theory</span> <span class="tag">meta-fair</span> <span class="tag">2025</span></div>
+<p><strong>Authors:</strong> Randall Balestriero (Brown University, Meta-FAIR), Yann LeCun (NYU, Meta-FAIR); equal contribution <strong>Published:</strong> arXiv 2511.08544, v1 2025-11-11, v3 2025-11-14 <strong>Raw copy:</strong> <code>raw/arxiv-2511-08544-lejepa-provable-and-scalable-self-supervised.md</code> (captured 2026-10-19, full text of v3) <strong>Code:</strong> <a href="https://github.com/rbalestr-lab/lejepa" rel="noreferrer">https://github.com/rbalestr-lab/lejepa</a> (named in the abstract; not captured)</p>
+<p>Every claim below cites the raw file as R, with its section, table or figure.</p>
+<h2 id="summary">Summary</h2>
+<p>A JEPA learns by making the embedding of one view of an input predict the embedding of another view. Left alone, that loss is minimised by mapping every input to the same point: collapse. Earlier JEPAs and their relatives block collapse with a stack of tricks: a stop-gradient, a teacher network kept as a slow average (EMA) of the student, asymmetric views, whitening layers, and many settings to tune together (R, §1, §2.2).</p>
+<p>The paper replaces the stack with one argument and one term:</p>
+<ol><li><strong>What the embeddings should look like.</strong> Among embeddings with the same total variance, an isotropic Gaussian (the same spread in every direction, no favoured axis) gives the lowest bias and variance for a linear probe trained later on an unknown task. The authors prove this for linear probes and for two nonlinear ones, k-nearest-neighbours and kernel regression (R, §3.1, Lemmas 1 and 2; §3.2, Theorem 1; Appendix A, Theorems 7 and 8).</li><li><strong>How to push them there: SIGReg</strong> (Sketched Isotropic Gaussian Regularization). Project the batch of embeddings onto many random directions; on each line, test whether the projected values look like a standard Gaussian; add the test's statistic to the loss. A hyperspherical form of the Cramér–Wold theorem says that if every 1-D projection matches, the whole distribution matches (R, §4.1, Lemma 3, Theorem 2). The test chosen is Epps–Pulley, which compares characteristic functions; it gives bounded gradients and costs time and memory linear in batch size (R, §4.2.3).</li><li><strong>LeJEPA = prediction loss + SIGReg.</strong> Every view's embedding is pulled toward the mean embedding of the two global views (an L2 loss), and SIGReg is applied to each view's batch. One weight, λ, trades the two terms off. No predictor network, no teacher, no stop-gradient, no schedule; the core is about 50 lines of PyTorch (R, §5.1, Eq. 9).</li></ol>
+<h2 id="key-results">Key results</h2>
+<ul><li><strong>One knob.</strong> Accuracy is stable across λ, view counts, batch size, slice count, integration range and projector size; none of the settings in the ablation collapses. Recommended start: λ = 0.05, 2 global and 8 local views, batch size of 128 or more, 1024 slices, 17 integration points on [−5, 5] (R, §6.1, Table 1, Figure 8).</li><li><strong>Any backbone.</strong> About 50 timm models under 20M parameters, from 8 families, pretrained on ImageNet-10, reach 91.5% to 95% frozen linear-probe accuracy (R, §6.1, Figure 9).</li><li><strong>Teacher and predictor are optional.</strong> On ImageNet-100, a ResNet-50 with neither a predictor nor weight averaging reaches 83.93% (3-layer projector); averaging the encoder (SWA) adds a little for ViTs and is not needed to stop collapse (R, §6.1, Table 4).</li><li><strong>The training loss tracks quality.</strong> Training loss and downstream accuracy have a Spearman correlation of about 85%; dividing the loss by λ^0.4 raises it to nearly 99%, so models can be chosen without labels (R, §6.2, Eq. 10, Figure 11).</li><li><strong>ImageNet-1k.</strong> Online linear-probe accuracy 77.1% for ViT-Large (0.3B) and 78.5% for ConvNeXtV2-Huge (0.6B) (R, §6.4). The abstract's headline, 79% with a frozen ViT-H/14, has no table or section in the body (R, Abstract).</li><li><strong>In-domain beats transfer on Galaxy10</strong> (galaxy shapes, 11,000 training images): a ConvNeXt-V2 Nano pretrained there with LeJEPA reaches 76.52% with a frozen backbone and 82.72% fine-tuned, against 71.38% and 81.60% for DINOv3 ViT-S/16 trained on natural images (R, §6.3, Table 3, Figure 1).</li><li><strong>Scale.</strong> Training stays stable up to a 1.8B-parameter ViT-g (R, §6.4, Figure 1 caption).</li><li><strong>VICReg as a special case.</strong> If SIGReg's per-direction test only checks mean and standard deviation, LeJEPA becomes VICReg in the limit of many slices; the authors advise against this, since such a test admits collapsed solutions (R, §5.2, Appendix B.14).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>The in-domain win holds on galaxy images only. On the five natural-image sets of Table 5, an I-JEPA ViT-H/14 trained on ImageNet-22k and transferred beats every small in-domain LeJEPA model (for example flowers102 85.76% against at best 82.19%) (R, Table 5).</li><li>"We consistently outperform IJEPA" (R, §6.4) holds against plain I-JEPA on the average at 10 shots and at full data. At 1 shot plain I-JEPA ViT-H is ahead of LeJEPA ViT-L (30.20 against 29.55), and I-JEPA + STOP and I-JEPA on ImageNet-22k lead at full data (80.70 and 80.82 against 79.48) (R, Table 2).</li><li>All tests are image classification probes, plus PCA pictures and thresholded attention maps shown as qualitative evidence (R, §6.5). There is no video, planning or language test here; <a href="source-levjepa.html">source-levjepa</a> took SIGReg to video later.</li><li>The optimality proof is about probes on frozen features with a fixed total variance (R, §3). It does not say a JEPA trained this way learns the right features, only how their distribution should be shaped.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="concept-jepa.html">concept-jepa</a>: the paper that removes the EMA teacher from the JEPA recipe; settles the interim Contradiction line there.</li><li><a href="source-weak-sigreg.html">source-weak-sigreg</a>: takes SIGReg into supervised training, with a cheaper covariance-only variant.</li><li><a href="source-levjepa.html">source-levjepa</a>: carries SIGReg to video (λ = 0.02), with the same two senior authors.</li><li><a href="source-ssl-decorrelation.html">source-ssl-decorrelation</a>: VICReg is the moment-matching special case of SIGReg (R, §5.2).</li><li><a href="source-ijepa-self-supervised-learning.html">source-ijepa-self-supervised-learning</a>, <a href="source-dino-lineage.html">source-dino-lineage</a>: the baselines; both rely on an EMA teacher.</li><li><a href="source-contrastive-learning-gaussian-representations.html">source-contrastive-learning-gaussian-representations</a>: another route by which SSL embeddings end up Gaussian.</li><li><a href="source-infoldm-predictive-ssl-identifiability.html">source-infoldm-predictive-ssl-identifiability</a>: also matches latents to a simple Gaussian, there for identifiability rather than probe risk.</li><li><a href="concept-self-supervised-learning.html">concept-self-supervised-learning</a>, <a href="guide-ssl-vision-tour.html">guide-ssl-vision-tour</a>, <a href="thread-predict-in-latent-space.html">thread-predict-in-latent-space</a>, <a href="source-bundle-self-supervised-vision-and-jepa.html">source-bundle-self-supervised-vision-and-jepa</a>, <a href="entity-yann-lecun.html">entity-yann-lecun</a>, <a href="entity-meta-fair.html">entity-meta-fair</a>.</li><li>Hub (2026-10-20): <a href="entity-randall-balestriero.html">entity-randall-balestriero</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2511-08544-lejepa-provable-and-scalable-self-supervised.md</code></li><li><a href="https://arxiv.org/abs/2511.08544" rel="noreferrer">https://arxiv.org/abs/2511.08544</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2511-08544-lejepa-provable-and-scalable-self-supervised.md</code></li><li><a href="https://arxiv.org/abs/2511.08544" rel="noreferrer">https://arxiv.org/abs/2511.08544</a></li></ul></details>
+</main>
+</body>
+</html>

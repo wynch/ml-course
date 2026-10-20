@@ -234,7 +234,7 @@ const QUESTIONS = [
       "About 88% too: a linear probe on 960 numbers can learn sentiment from any network.",
       "About 75%: random weights keep half the signal.",
       "Exactly 50.9%, the majority guess, at every layer.",
-      "58.0%, at layer 1, and close to that everywhere else."
+      "58.0%, at layer 1, and between 52.6% and 56.9% at every deeper layer."
     ],
     answer: 3,
     explain: "The random curve stays between 51.7% and 58.0%. It is above the 50.9% majority guess, since a " +
@@ -318,7 +318,9 @@ const QUESTIONS = [
       "The top contexts of a neuron's positive pole describe everything the neuron does."
     ],
     answer: [0, 2],
-    explain: "A probe reads; it does not show use. Patching intervenes, so it does. A SwiGLU neuron has two " +
+    explain: "A probe reads; it does not show use. Patching intervenes, so it can show that a cell affects " +
+             "the output; pasting clean into corrupt, as this module does, shows the cell is enough, not that " +
+             "the model needs it. A SwiGLU neuron has two " +
              "poles: in L28/N1308 the positive pole looks mixed and the negative one reads cleanly, which a " +
              "positive-only reading misses.",
     source: "modules/11-inside-a-language-model/README.md §2 (last paragraph), §3, §4"
@@ -373,7 +375,7 @@ function gradeSingle(q, ans) { return typeof ans === "number" && ans === q.answe
 function gradeMulti(q, ans) { return Array.isArray(ans) && sameSet(ans, q.answer); }
 function gradeNumeric(q, ans) {
   const v = typeof ans === "number" ? ans : parseFloat(String(ans).replace(/[\s,_]/g, ""));
-  return isFinite(v) && Math.abs(v - q.answer) <= q.tol;
+  return isFinite(v) && Math.abs(v - q.answer) <= q.tol + 1e-9;
 }
 function gradeQuestion(q, ans) {
   if (ans === undefined || ans === null) return false;

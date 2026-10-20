@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Grokking at the Edge of Numerical Stability (Prieto, Barsbey, Mediano, Birdal, 2025) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="grokking-at-the-edge-of-numerical-stability">Grokking at the edge of numerical stability</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">grokking</span> <span class="tag">generalization</span> <span class="tag">softmax</span> <span class="tag">floating-point</span> <span class="tag">weight-decay</span> <span class="tag">optimization</span> <span class="tag">training-dynamics</span> <span class="tag">2025</span></div>
+<p><strong>Authors:</strong> Lucas Prieto, Melih Barsbey, Pedro A. M. Mediano, Tolga Birdal; Imperial College London <strong>Published:</strong> arXiv 2501.04697, v1 2025-01-08, v2 2025-05-19. Code: <a href="https://github.com/LucasPrietoAl/grokking-at-the-edge-of-numerical-stability" rel="noreferrer">https://github.com/LucasPrietoAl/grokking-at-the-edge-of-numerical-stability</a> <strong>Raw copy:</strong> <code>raw/arxiv-2501-04697-grokking-at-the-edge-of-numerical.md</code> (full text of v2 from the arXiv HTML, captured 2026-10-20)</p>
+<p>Every claim below cites the raw file as R, with its section, table or figure.</p>
+<h2 id="summary">Summary</h2>
+<p>Grokking: a network fits its training set, then much later generalises. Two puzzles: why the delay, and why it often fails to happen at all without weight decay (R, §1). The authors answer both with one mechanism.</p>
+<p>Once every training example is right, the cheapest way to lower cross-entropy loss is to make every logit bigger, which changes no prediction. They call this naïve loss minimisation (NLM). For networks where scaling the weights scales the output (ReLU MLPs, transformers without biases, and the last layer of most networks), the gradient then lines up with the weights themselves (R, §4.2, Definitions 5–6). Past overfitting, the cosine between update and weights reaches about 0.9 in output layers (R, §4.2, Figure 5).</p>
+<p>The logits grow until float32 can no longer tell them apart. In the softmax's sum, the true class's term swamps the rest, the loss rounds to exactly zero, and so does the gradient from that example. They call this softmax collapse (SC) (R, §3.1, Definitions 1–3). Learning stops, sometimes before test accuracy has moved (R, §3.2, Figure 2).</p>
+<h2 id="key-results">Key results</h2>
+<p>The tasks are addition, subtraction and multiplication mod 113, sparse parity and a 200-image MNIST subset, on a two-layer MLP of width 200 and a one-layer transformer with 4 heads, full batch, weight decay 0 unless stated (R, §2).</p>
+<ul><li><strong>Precision decides when learning stops.</strong> With 60% or 70% of the pairs as training data and no weight decay, test accuracy rises, then halts when collapse sets in; float64 halts later than float32, float16 earlier. At 40%, collapse comes before any progress, the usual "no grokking without weight decay" (R, §3.2–3.3, Figure 2).</li><li><strong>Stop the collapse and grokking returns, with no weight decay.</strong> StableMax swaps the softmax's exponential for a ramp, x + 1 above zero and 1/(1 − x) below; with it, the 40% setting groks (R, §3.3, Definition 4, Figure 4). The weight norm grows all the while, so shrinking weights is not needed for grokking (R, §3.3, Figure 4 middle).</li><li><strong>Remove the scaling and the delay goes.</strong> ⊥Grad keeps only the part of each gradient orthogonal to the current weights. ⊥SGD reaches 100% test accuracy on subtraction mod 113 within 400 iterations, with no overfitting phase first (R, §5.1, Definition 7, Figure 6). It beats the best tuned weight decay, with nothing to tune (R, Appendix E, Figure 15).</li><li><strong>Why weight decay works, on this reading.</strong> It pulls weights back along the same direction NLM pushes them; generalisation comes once that pull outweighs the gain from scaling (R, §5.2, Figure 6c). Mean-squared-error loss cannot be lowered forever by scaling, which explains grokking without regularisation in shallow MSE networks (R, §5.2).</li><li><strong>Less input dimension, no delay.</strong> Coding each number as a random 14-bit vector instead of one-hot makes memorising harder; train and test accuracy then rise together (R, §4.1, Figure 4 right).</li><li><strong>The Fourier circuit needs no weight decay.</strong> MLPs that grok with StableMax and no weight decay show sparse Fourier weights like the ones in Nanda et al. The authors call this "very superficial" (R, Appendix C.2, Figure 12).</li><li><strong>Temperature does not fix it.</strong> Softmax at temperature 10⁵ only delays collapse; label smoothing prevents it but stops full generalisation (R, Appendix F, Figure 16).</li></ul>
+<h2 id="beyond-toy-tasks">Beyond toy tasks</h2>
+<p>On ResNet18 and GPT-2 small, neither method helps much (R, Appendix G, Table 1):</p>
+<div class="tw"><table><thead><tr><th></th><th>CIFAR10</th><th>CIFAR100</th><th>ImageNet-1k</th><th>WikiText-103 top-5</th></tr></thead><tbody><tr><td>Softmax</td><td>87.17%</td><td>59.98%</td><td>69.33%</td><td>60.48%</td></tr><tr><td>StableMax</td><td>87.01%</td><td>60.63%</td><td>65.87%</td><td>51.85%</td></tr><tr><td>⊥Grad</td><td>87.22%</td><td>62.69%</td><td>68.95%</td><td>59.64%</td></tr></tbody></table></div>
+<h2 id="caveats">Caveats</h2>
+<ul><li>Most results are curves; the raw keeps their captions only.</li><li>The account covers homogeneous or nearly homogeneous models; models with skip connections and biases are argued from experiments, not proven (R, §4.2, §7).</li><li>Plain gradient descent run long enough hits a second rounding problem: updates too small to change a weight. Adam's scaling masks it (R, Appendix C).</li><li>Adam's ε can also halt learning at very low losses (R, Appendix I).</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-nanda-2023-grokking-modular-addition.html">source-nanda-2023-grokking-modular-addition</a> — the mechanistic account of the same task family. Contradiction (partial): Nanda et al.'s late "cleanup" phase is, in this paper's reading of them, driven by weight decay; here the Fourier structure appears with no weight decay at all (R, Appendix C.2), and weight decay's role is to stop logit scaling (R, §5.2).</li><li><a href="source-grokking-intrinsic-symmetries.html">source-grokking-intrinsic-symmetries</a> — a rival account by task symmetry; <a href="source-litman-generalization-theory.html">source-litman-generalization-theory</a> — another, by signal and noise directions, whose preconditioner also speeds grokking.</li><li><a href="source-trm-tiny-recursive-model.html">source-trm-tiny-recursive-model</a> — TRM trains with this paper's stable-max loss "for improved stability" (<code>raw/arxiv-2510-04871-less-is-more-recursive-reasoning-with.md</code>, "Hyper-parameters and setup").</li><li><a href="source-goodfire-already-clean.html">source-goodfire-already-clean</a> — on whether networks memorise first.</li><li>Course: module 14 §4 cites this paper for its weight-decay-0 run, which never grokked in 20,000 steps; there the final logits span −2,198 to −366, against −115.2 to 11.5 with weight decay 1.0 (<code>course/modules/14-how-training-finds-a-solution/README.md</code>, §4).</li><li>Hub (2026-10-20): <a href="concept-grokking.html">concept-grokking</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2501-04697-grokking-at-the-edge-of-numerical.md</code></li><li><a href="https://arxiv.org/abs/2501.04697" rel="noreferrer">https://arxiv.org/abs/2501.04697</a></li><li><code>course/modules/14-how-training-finds-a-solution/README.md</code></li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2501-04697-grokking-at-the-edge-of-numerical.md</code></li><li><a href="https://arxiv.org/abs/2501.04697" rel="noreferrer">https://arxiv.org/abs/2501.04697</a></li><li><code>course/modules/14-how-training-finds-a-solution/README.md</code></li><li><code>raw/arxiv-2510-04871-less-is-more-recursive-reasoning-with.md</code></li></ul></details>
+</main>
+</body>
+</html>

@@ -349,7 +349,7 @@ function gradeSingle(q, ans) { return typeof ans === "number" && ans === q.answe
 function gradeMulti(q, ans) { return Array.isArray(ans) && sameSet(ans, q.answer); }
 function gradeNumeric(q, ans) {
   const v = typeof ans === "number" ? ans : parseFloat(String(ans).replace(/[\s,_]/g, ""));
-  return isFinite(v) && Math.abs(v - q.answer) <= q.tol;
+  return isFinite(v) && Math.abs(v - q.answer) <= q.tol + 1e-9;
 }
 function gradeQuestion(q, ans) {
   if (ans === undefined || ans === null) return false;

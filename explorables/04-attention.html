@@ -175,8 +175,8 @@ footer .path,.path{font-family:var(--mono)}
   <ul class="notice">
     <li><b>Turn the causal mask off.</b> The upper triangle lights up and every row changes — because
       the softmax renormalises over more keys. That is exactly why a decoder-only LM <em>must</em>
-      mask: with the future visible, predicting the next token is trivial and the model learns nothing
-      useful. (Module 04 exercise <span class="path">ex_b_ablate_causal_mask.py</span> does this ablation
+      mask: with the future visible, the next-token target leaks into the input, and a model trained
+      that way cannot generate, where the future does not exist. (Module 04 exercise <span class="path">ex_b_ablate_causal_mask.py</span> does this ablation
       for real.) Note token 0 is unaffected: it can only ever see itself.</li>
     <li><b>Push temperature toward 0.1.</b> The same scores collapse onto a single bright cell per row —
       attention becomes a hard lookup. Push it to 4 and every row flattens toward uniform 1/i,
@@ -185,8 +185,10 @@ footer .path,.path{font-family:var(--mono)}
     <li><b>Real heads specialise.</b> Sweep layer/head on the real model: some rows are a bright
       diagonal (attend to <em>self</em>), some are a bright sub-diagonal (attend to the
       <em>previous</em> token — the bigram detector), and several put heavy mass on token 0, a
-      "no-op / attention sink" parking spot. L2H3 on <code>To be or not to be</code> is a strong
-      previous-token head; L1H0 is a sink.</li>
+      "no-op / attention sink" parking spot (named by Xiao et al.,
+      <a href="https://arxiv.org/abs/2309.17453">arXiv 2309.17453</a>). L2H3 on <code>To be or not to be</code> is a strong
+      previous-token head; L1H0 is a sink. A 2025 fix, a sigmoid gate on each head's output, makes sinks
+      go away (<a href="https://arxiv.org/abs/2505.06708">arXiv 2505.06708</a>).</li>
     <li><b>Row 0 is always 1.000.</b> With the mask on, the first query has exactly one legal key —
       itself — so its softmax is forced. Later rows have more choices, which is why attention entropy
       (shown in the readout) generally rises with position.</li>

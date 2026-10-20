@@ -1,0 +1,68 @@
+{
+  "n_examples": 160,
+  "n_resamples": 2000,
+  "sweep_all_rows": {
+    "0.30": {
+      "accuracy": 0.7312,
+      "precision": 0.6667,
+      "recall": 0.9512,
+      "f1": 0.7839
+    },
+    "0.50": {
+      "accuracy": 0.7937,
+      "precision": 0.8101,
+      "recall": 0.7805,
+      "f1": 0.795
+    },
+    "0.70": {
+      "accuracy": 0.7312,
+      "precision": 0.898,
+      "recall": 0.5366,
+      "f1": 0.6718
+    }
+  },
+  "protocol": {
+    "split_train_validation_test": [
+      112,
+      24,
+      24
+    ],
+    "threshold_chosen_on_validation": 0.43,
+    "validation_f1": 0.7059,
+    "test_f1": 0.6923,
+    "test_f1_ci95": [
+      0.4444,
+      0.8667
+    ]
+  },
+  "ece_10_bins_all_rows": 0.0657,
+  "slices_all_rows": {
+    "daylight": {
+      "n": 120,
+      "positives": 71,
+      "recall": 0.7887,
+      "f1": 0.8058,
+      "f1_ci95": [
+        0.7218,
+        0.8725
+      ]
+    },
+    "low-light": {
+      "n": 40,
+      "positives": 11,
+      "recall": 0.7273,
+      "f1": 0.7273,
+      "f1_ci95": [
+        0.4284,
+        0.9093
+      ]
+    }
+  },
+  "f1_gap_daylight_minus_lowlight": {
+    "gap": 0.0785,
+    "ci95": [
+      -0.1108,
+      0.3472
+    ]
+  }
+}

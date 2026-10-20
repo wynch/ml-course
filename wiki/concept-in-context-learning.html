@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>In-Context Learning · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="in-context-learning">In-Context Learning</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">in-context-learning</span> <span class="tag">induction-heads</span> <span class="tag">few-shot</span> <span class="tag">prompting</span> <span class="tag">associative-memory</span> <span class="tag">hub</span></div>
+<p>In-context learning (ICL): a model does a new task from examples or instructions in its prompt, with no change to its weights. GPT-3 made the term common: at 175B parameters, a few worked examples in the prompt matched or beat fine-tuned systems on some tasks, and failed on others such as arithmetic beyond three digits (arXiv 2005.14165; not in raw; <a href="source-gpt3-few-shot-learners.html">source-gpt3-few-shot-learners</a>).</p>
+<h2 id="how-it-works-inside">How it works inside</h2>
+<ul><li><strong>Induction heads.</strong> Anthropic found a two-head circuit that does "find the last time this token appeared and copy what came next", [A][B]…[A] → [B]. The 2022 paper argues it drives a large share of all ICL: across 34 models it forms in a sudden phase change at the same point in training where ICL jumps, and ablating it cuts ICL in small models (transformer-circuits.pub, 2022; not in raw; <a href="source-anthropic-mi-foundations.html">source-anthropic-mi-foundations</a>). That paper measures ICL as the drop in loss between token 50 and token 500 of a long text.</li><li><strong>One layer can do it.</strong> Memory Mosaics replace attention with associative memories whose key sums up the recent past and whose value looks one token ahead. One such layer does what an induction head does, which takes a transformer two layers and position encoding (<code>raw/arxiv-2507-03285-memory-mosaics-at-scale.md</code>, §3; <a href="source-memory-mosaics-at-scale.html">source-memory-mosaics-at-scale</a>).</li></ul>
+<h2 id="how-well-it-scales-with-examples">How well it scales with examples</h2>
+<p>Memory Mosaics v2 measures accuracy against the number of in-context examples on three classification tasks. Its llama-style transformers (about 8B parameters, 1T tokens) get worse as examples are added, while Memory Mosaics v2 gets better (<code>raw/arxiv-2507-03285-memory-mosaics-at-scale.md</code>, §5.3). The numbers sit in plots only, so the wiki cannot check their size. Compressing models (RNNs, state-space models) must squeeze the context before they see the question; on Tacred in-context, Mamba-2.8B scores 0 at every shot count, in a table the paper copies from other work (same file, Appendix D, Table 8; <a href="concept-state-space-models.html">concept-state-space-models</a>).</p>
+<h2 id="icl-as-a-tool-for-training">ICL as a tool for training</h2>
+<ul><li><strong>A teacher made from a prompt.</strong> SDFT turns the model plus one demonstration in context into a teacher for the bare model. It works at 7B and fails at 3B, which its authors put down to weak ICL in the smaller model (<code>raw/arxiv-2601-19897-self-distillation-enables-continual-learning.md</code>, §4.4, §5; <a href="concept-knowledge-distillation.html">concept-knowledge-distillation</a>).</li><li><strong>A harness that makes tasks look alike.</strong> Zhang argues a good harness shows the model structurally similar tasks as near-identical text in its main context, so that training on one task carries over to others (<code>raw/web-2026-alexzhang-harness-compositional.md</code>, "The capacity for compositional generalization can live in the harness."; <a href="source-language-models-as-scaffolds.html">source-language-models-as-scaffolds</a>). The claim is about what the context looks like, not about ICL itself.</li></ul>
+<h2 id="where-it-sits-against-weights">Where it sits against weights</h2>
+<p>Context or weights is the question behind <span class="dead" title="not published">experiment-weights-vs-context</span> (new knowledge held in the prompt, in retrieval, or in a weight update) and behind <a href="concept-test-time-training.html">concept-test-time-training</a>, which updates weights at test time for what ICL leaves undone.</p>
+<h2 id="open-questions">Open questions</h2>
+<ul><li>Do induction heads explain ICL in today's large models, or only its first form? The 2022 evidence is strongest in small models.</li><li>Does accuracy fall with more examples in other transformers too, or only in Memory Mosaics' baselines? The claim rests on one paper's plots.</li></ul>
+<h2 id="key-sources">Key sources</h2>
+<ul><li><a href="source-gpt3-few-shot-learners.html">source-gpt3-few-shot-learners</a> · <a href="source-anthropic-mi-foundations.html">source-anthropic-mi-foundations</a> · <a href="source-memory-mosaics-at-scale.html">source-memory-mosaics-at-scale</a> · <a href="source-language-models-as-scaffolds.html">source-language-models-as-scaffolds</a></li><li>Related: <a href="concept-test-time-compute.html">concept-test-time-compute</a> · <a href="concept-test-time-training.html">concept-test-time-training</a> · <a href="concept-long-context.html">concept-long-context</a> · <a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a> · <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2507-03285-memory-mosaics-at-scale.md</code> (§3, §5.3, Appendix D)</li><li><code>raw/arxiv-2601-19897-self-distillation-enables-continual-learning.md</code> (§4.4, §5)</li><li><code>raw/web-2026-alexzhang-harness-compositional.md</code></li><li>Brown et al., 2020, GPT-3: <a href="https://arxiv.org/abs/2005.14165" rel="noreferrer">https://arxiv.org/abs/2005.14165</a> (not in raw)</li><li>Olsson et al., 2022, induction heads: <a href="https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html" rel="noreferrer">https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html</a> (not in raw)</li></ul>
+<details class="src"><summary>Sources (5)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2507-03285-memory-mosaics-at-scale.md</code></li><li><code>raw/arxiv-2601-19897-self-distillation-enables-continual-learning.md</code></li><li><code>raw/web-2026-alexzhang-harness-compositional.md</code></li><li><a href="https://arxiv.org/abs/2005.14165" rel="noreferrer">https://arxiv.org/abs/2005.14165</a></li><li><a href="https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html" rel="noreferrer">https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html</a></li></ul></details>
+</main>
+</body>
+</html>

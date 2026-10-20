@@ -115,7 +115,7 @@
 </header>
 
 <p class="intro">
-  Six small character-level GPTs, the same recipe, one pass over the same 4 million characters of Wikipedia.
+  Six small character-level GPTs, the same recipe, 4 million characters of Wikipedia each, none seen twice.
   Only the width changes. A <em>scaling law</em> is a guess that the loss follows a simple curve in the number of
   parameters <em>N</em> and the number of training tokens <em>D</em>. Below: the six real curves first, then a
   surface fitted to them that you can push past the data, then the compute question: for a fixed budget, a big
@@ -361,7 +361,7 @@ $("#notice").innerHTML=[
   "The bigger models are still falling fast at 4M tokens. The exponent of L(N) measures how fast each size learns in 977 steps, as much as what it could reach.",
   "In section 2, push D far right: the curve flattens toward E. Push N up at fixed C: past the best split, the loss rises again, because the run gets fewer tokens.",
   "In the last row of the table, each budget's winner is the smallest size whose run still reaches it. The staircase follows where the runs stop at 4M tokens; it does not locate an optimum.",
-  "Outside the shaded range the formula is extrapolating from six tiny models that had not finished learning. Published laws come from runs millions of times larger."
+  "Outside the shaded range the formula is extrapolating from six tiny models that had not finished learning. Published laws come from runs with up to ten billion times the compute of our largest."
 ].map(t=>"<li>"+t+"</li>").join("");
 
 drawCurves(); drawFit(); drawTables();

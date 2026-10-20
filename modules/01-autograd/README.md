@@ -8,7 +8,8 @@ In this module you build a **scalar automatic-differentiation engine** — a
 `Value` type that records every `+`, `*`, `tanh`, `exp`, `pow`, `relu` you apply
 to it, then differentiates the whole expression with one call to `backward()`.
 On top of it you build a tiny MLP and train it to classify the two-moons dataset
-to 100% accuracy. Then you do it **again in Zig**, so you can see the same
+to 100% accuracy on its 100 training points (there is no held-out set here;
+module 02 adds one). Then you do it **again in Zig**, so you can see the same
 algorithm with all of its memory and ownership made explicit.
 
 This is a from-scratch reconstruction of Karpathy's
@@ -68,6 +69,15 @@ its output, multiplies by its own **local derivative**, and adds the result into
 each input. Do this in reverse topological order — every consumer before its
 producer — and each node's gradient is complete by the time it passes messages on.
 
+Two terms. A **directed acyclic graph (DAG)** is a graph whose arrows never loop
+back to where they started. A **topological sort** lists its nodes so that every
+node comes after all the nodes it reads from; walking that list backwards visits
+each consumer before its producer.
+
+The graph below is the neuron from the figure, with inputs `x1 = 2`, `w1 = −3`,
+`x2 = 0`, `w2 = 1`, `b = 6.8814`. Then `n = 0.8814`, `o = tanh(n) = 0.7071`, and
+the local derivative of tanh is `1 − o² = 0.5`.
+
 ```mermaid
 flowchart RL
     O["o = tanh(n)<br/>grad = 1.0"] -->|"× (1 − o²)"| N["n<br/>grad = 0.5"]
@@ -101,13 +111,20 @@ with pure matplotlib — no system packages required:
 uv run scripts/computation_graph.py
 ```
 
-Train the MLP on make_moons and produce the loss curve and decision-boundary figures:
+Train the MLP on make_moons and produce the loss curve and decision-boundary figures.
+The labels are −1 and +1, and the loss is the **hinge** (max-margin) loss: each
+point costs `max(0, 1 − y·score)`, so it stops costing anything once it sits on
+the right side with a margin of 1. The accuracy printed at each step is measured
+on the training points, before that step's update:
 
 ```bash
 uv run scripts/train_moons.py
 ```
 
-Convince yourself the gradients are right by checking them against finite differences:
+Convince yourself the gradients are right by checking them against **finite
+differences**: nudge one input by a tiny `ε` each way and measure how much the
+output moves, `(f(x+ε) − f(x−ε)) / 2ε`. That needs no calculus, so it is an
+independent check:
 
 ```bash
 uv run scripts/grad_check.py
@@ -127,9 +144,10 @@ indices, and the backward pass is one `switch`. Nodes live in a single
 arena-backed `ArrayList` that is reused across training steps. Read
 [ALGORITHM.md](ALGORITHM.md) for the line-by-line comparison.
 
-Both languages train on the **exact same data**: `python/scripts/gen_zig_data.py`
-samples make_moons and writes it to `zig/moons_data.zig` as a Zig array, so the
-two lanes are directly comparable.
+Both lanes draw from the same generator (`make_moons`, noise 0.1, seed 1337),
+but the Zig lane uses a smaller sample and net: 40 points and a 2→8→1 MLP,
+against 100 points and 2→16→16→1 in Python. `python/scripts/gen_zig_data.py`
+writes the 40 points to `zig/moons_data.zig` as a Zig array.
 
 Regenerate the shared dataset (optional — a copy is committed):
 
@@ -183,8 +201,10 @@ Skeletons are in `exercises/` (look for `# TODO(you):`), full answers in
 ## What's next
 
 You just built the machinery that PyTorch and JAX scale up to billions of
-parameters. The natural next step is to see that same idea powering large
-language models. Continue with the **Hugging Face LLM Course, Chapter 1**:
+parameters. [Module 02](../02-neural-networks/README.md) moves from scalars to
+matrices: the same backward pass, written by hand for whole layers, trained on
+real images with a held-out set. For a wider view of where this leads, the
+**Hugging Face LLM Course, Chapter 1** is a good companion:
 <https://huggingface.co/learn/llm-course/chapter1>.
 
 Reference for this module: Karpathy's original

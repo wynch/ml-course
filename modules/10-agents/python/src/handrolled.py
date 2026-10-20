@@ -1,4 +1,4 @@
-"""A ReAct agent loop, hand-rolled in ~100 lines. No agent framework.
+"""A ReAct agent loop, hand-rolled: the loop itself is about 70 lines. No framework.
 
 This is the whole idea of an agent, laid bare:
 
@@ -23,7 +23,7 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from tools import TOOL_REGISTRY
+from tools import NAIVE_TOOL_REGISTRY, TOOL_REGISTRY
 import model_local
 
 # --- the ReAct prompt -----------------------------------------------------
@@ -97,12 +97,16 @@ class Trace:
 
 def run_react(task: str, model_id: str = model_local.DEFAULT_MODEL,
               max_steps: int = 6, verbose: bool = False,
-              temperature: float = 0.0, system_prompt: str | None = None) -> Trace:
+              temperature: float = 0.0, system_prompt: str | None = None,
+              tools: dict | None = None) -> Trace:
     """Run the hand-rolled ReAct loop on one task and return its Trace.
 
     ``temperature=0`` is greedy/reproducible; the eval lab passes ``>0`` to
     sample. ``system_prompt`` overrides the default (exercise B swaps it).
+    ``tools`` overrides the tool registry (the failure demo passes the naive
+    kb_lookup).
     """
+    tools = tools or TOOL_REGISTRY
     trace = Trace(task=task)
     n_steps = 0
     messages = [
@@ -112,8 +116,8 @@ def run_react(task: str, model_id: str = model_local.DEFAULT_MODEL,
 
     for _ in range(max_steps):
         n_steps += 1
-        # 1. Ask the model for the next Thought + Action. Stop before it can
-        #    hallucinate its own Observation.
+        # 1. Ask the model for the next Thought + Action. The model may go on
+        #    to write its own Observation; generate() cuts the reply there.
         raw = model_local.generate(messages, model_id=model_id,
                                     max_new_tokens=200, stop=["Observation:"],
                                     temperature=temperature)
@@ -149,9 +153,9 @@ def run_react(task: str, model_id: str = model_local.DEFAULT_MODEL,
         trace.add("action", arg, tool=tool_name)
 
         # 5. Run the tool -> Observation.
-        entry = TOOL_REGISTRY.get(tool_name)
+        entry = tools.get(tool_name)
         if entry is None:
-            obs = f"Error: unknown tool {tool_name!r}. Tools: {', '.join(TOOL_REGISTRY)}"
+            obs = f"Error: unknown tool {tool_name!r}. Tools: {', '.join(tools)}"
         else:
             try:
                 obs = entry[0](arg)
@@ -191,7 +195,8 @@ DEMO_TASKS = [
     "Look up 'seconds in a day' in the knowledge base, then use the calculator to multiply that number by 3.",
 ]
 
-# One instructive failure the README dissects (multi-hop division trips the small model).
+# One instructive failure the README dissects: a retry loop on a failed lookup.
+# It runs with the first, faulty kb_lookup, which caused part of the loop.
 FAILURE_TASK = (
     "Look up the Earth's radius and the Moon's distance in the knowledge base, "
     "then compute how many Earth radii fit in the Earth-Moon distance."
@@ -205,7 +210,8 @@ def main():
     traces = []
     for task in DEMO_TASKS + [FAILURE_TASK]:
         print(f"\n### {task}")
-        tr = run_react(task, verbose=False)
+        tools = NAIVE_TOOL_REGISTRY if task == FAILURE_TASK else None
+        tr = run_react(task, verbose=False, tools=tools)
         traces.append(tr)
         rendered = trace_to_text(tr)
         print(rendered)

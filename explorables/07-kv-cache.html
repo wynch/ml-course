@@ -264,10 +264,10 @@ Drag the marker to read any point.</p>
       </div>
     </div>
     <div>
-      <p class="cap">measured vs predicted speedup</p>
+      <p class="cap">measured speedup vs the cost model</p>
       <div style="overflow-x:auto">
         <table id="benchTable"><thead><tr>
-          <th>ctx</th><th>on</th><th>off</th><th>measured</th><th>(t+1)/2</th>
+          <th>ctx</th><th>on</th><th>off</th><th>measured</th><th>cost model</th>
         </tr></thead><tbody></tbody></table>
       </div>
     </div>
@@ -276,12 +276,16 @@ Drag the marker to read any point.</p>
     <div class="cell cool"><div class="k">cache on</div><div class="v" id="bOn">—<small> tok/s</small></div></div>
     <div class="cell hot"><div class="k">cache off</div><div class="v" id="bOff">—<small> tok/s</small></div></div>
     <div class="cell"><div class="k">measured speedup</div><div class="v" id="bSpd">—</div></div>
-    <div class="cell"><div class="k">predicted (t+1)/2</div><div class="v" id="bPred">—</div></div>
+    <div class="cell"><div class="k">cost model</div><div class="v" id="bPred">—</div></div>
   </div>
-  <p class="src">The cell counter in panel 1 <i>predicts</i> this chart. Per step, cache-off does
-  t(t+1)/2 cells where cache-on does t, so the ratio should be (t+1)/2 — 64.5× at t = 128. The
-  engine measures <b>62.8×</b>. Every row of the table lands within ~7% of the prediction, which is
-  how you know the counter and the wall clock are describing the same thing.</p>
+  <p class="src">Why about n/2? Without a cache, each new token re-runs <i>every</i> earlier token
+  through all the weight matrices (QKV, output projection, MLP and head: 598,144 multiply-adds per
+  token here), not just the attention scores. Over an n-token generation that is about n²/2
+  token-passes against n, so the ratio is about n/2. The cost model column counts those
+  multiply-adds plus the attention ones (768·t per token at position t) for the exact loops
+  <code>bench</code> runs: 61.9× at n = 128, where the engine measures <b>62.8×</b>. The attention
+  cells of panel 1 give only 43× at n = 128; they are the smaller part of the work, and would take
+  over only past t ≈ 800, where 768·t passes 598,144.</p>
 </div>
 
 <h2><span class="num">3</span>int8: 3.9× smaller, same perplexity</h2>
@@ -318,12 +322,12 @@ row 0 of <code>blocks.0.attn.qkv.weight</code> being quantized.</p>
   <div class="chips" style="margin-top:16px">
     <div class="chip"><span class="n">2.48 MB</span><span class="l">f32 weight blob</span></div>
     <div class="chip win"><span class="n">0.63 MB</span><span class="l">int8 Q8 blob — 3.9× smaller</span></div>
-    <div class="chip"><span class="n">4.657</span><span class="l">perplexity, f32 (held-out Shakespeare)</span></div>
-    <div class="chip win"><span class="n">4.657</span><span class="l">perplexity, int8 — identical to 3 d.p.</span></div>
+    <div class="chip"><span class="n">4.6574</span><span class="l">perplexity, f32 (held-out Shakespeare)</span></div>
+    <div class="chip win"><span class="n">4.6568</span><span class="l">perplexity, int8 — 0.0006 lower</span></div>
     <div class="chip"><span class="n">0.06</span><span class="l">max |Δ logit| vs f32</span></div>
   </div>
   <p class="src">Real file sizes: 2,479,104 B → 634,480 B = 3.91×. Perplexity and logit error from the
-  module README's quantization table. Honest caveat carried over from the module: this engine
+  module's <code>figures/results.json</code>. Honest caveat carried over from the module: this engine
   <i>dequantizes</i> at load and runs the identical f32 compute path, so decode speed is unchanged
   (~490 tok/s either way). The win here is bytes on disk and in RAM, at essentially zero quality cost.
   Real engines also win speed, but only on large memory-bandwidth-bound models with true int8 kernels.</p>
@@ -338,16 +342,21 @@ row 0 of <code>blocks.0.attn.qkv.weight</code> being quantized.</p>
     <li>The two totals are exact closed forms, not estimates: cache-on lands on
     <b>n(n+1)/2</b> cells and cache-off on <b>n(n+1)(n+2)/6</b>. At n = 128 that is 8,256 versus
     357,760 — a 43× difference over the whole generation.</li>
-    <li>Per <i>step</i> the gap is bigger and keeps widening: (t+1)/2. This is why the speedup in
-    panel 2 is not a constant &mdash; it is 8× at t = 16 and 63× at t = 128, and it would keep climbing.</li>
+    <li>Attention cells are not what the clock in panel 2 measures. The speedup there is 8× at
+    n = 16 and 63× at n = 128, more than the 43× of cells, because cache-off also re-runs every
+    earlier token through the weight matrices. That weight work grows as n²/2 against n, so the
+    speedup keeps climbing, about n/2.</li>
     <li>Turn off the log axis in panel 2. The cache-on curve becomes a flat line and the cache-off
     curve vanishes into the floor. Linear-vs-quadratic is not a subtle effect.</li>
     <li>In panel 3, drag to index 98 &mdash; that is the row's largest-magnitude weight (0.097437), so it
     lands exactly on code ±127 with zero error. Every other weight in the row is quantized
     <i>relative to it</i>; that is what "per-row scale" buys you, and why max |Δ| stays under 4e-4.</li>
     <li>The cache is free speed but not free memory. Watch the strip in panel 1: 768 floats per
-    position, 384 KB at 128 tokens for a 620K-parameter model. Scale that to a 70B model with a
-    128K context and the KV cache, not the weights, becomes the thing that does not fit.</li>
+    position, 384 KB at 128 tokens for a 620K-parameter model. A 70B model such as Llama 3 shares
+    each key and value across 8 query heads (grouped-query attention, GQA), so it stores about
+    320 KB per token: some 40 GB for one 128K-token sequence, against 140 GB of bf16 weights. Serve a
+    batch of such sequences and the cache outgrows the weights; GQA, and DeepSeek's latent attention
+    (MLA), exist to shrink it.</li>
   </ul>
 </div>
 
@@ -536,7 +545,7 @@ function refreshA(){
   document.getElementById('eqLine').innerHTML =
     'cache on: Σ t = <b>t(t+1)/2</b> = <b>' + fmt(cellsOnTotal(t)) + '</b>' +
     ' &nbsp;·&nbsp; cache off: Σ t(t+1)/2 = <b>t(t+1)(t+2)/6</b> = <b>' + fmt(cellsOffTotal(t)) + '</b>' +
-    ' &nbsp;·&nbsp; this step the ratio is (t+1)/2 = <b>' + (t ? ((t+1)/2).toFixed(1) + '×' : '—') + '</b>';
+    ' &nbsp;·&nbsp; this step the cell ratio is (t+1)/2 = <b>' + (t ? ((t+1)/2).toFixed(1) + '×' : '—') + '</b>';
   var fl = cacheFloats(t);
   document.getElementById('rFloats').textContent = fmt(fl);
   document.getElementById('rKB').innerHTML = (fl*4/1024).toFixed(1) + '<small> KB</small>';
@@ -692,12 +701,21 @@ function refreshB(){
   document.getElementById('bOn').innerHTML  = s.on.toFixed(1)  + '<small> tok/s</small>';
   document.getElementById('bOff').innerHTML = s.off.toFixed(1) + '<small> tok/s</small>';
   document.getElementById('bSpd').textContent  = (s.on/s.off).toFixed(1) + '×';
-  document.getElementById('bPred').textContent = ((s.n+1)/2).toFixed(1) + '×';
+  document.getElementById('bPred').textContent = costModel(s.n).toFixed(1) + '×';
   var rows = benchTbody.querySelectorAll('tr');
   for(var i=0;i<rows.length;i++) rows[i].classList.toggle('hi', i === B.idx);
   drawBench();
 }
 var benchTbody = document.querySelector('#benchTable tbody');
+// Multiply-adds of the exact loops `bench` runs (main.zig genLen). Per token at
+// position p (0-based): C weight work plus A·(p+1) attention work, with
+// C = 3·(4·128² + 2·128·512) + 128·65 = 598,144 and A = 2·128·3 = 768.
+function costModel(n){
+  var C = 598144, A = 768, on = 0, off = 0, p, m;
+  for(p=0; p<n; p++) on += C + A*(p+1);
+  for(m=1; m<n; m++) for(p=0; p<m; p++) off += C + A*(p+1);
+  return off/on;
+}
 (function buildBenchTable(){
   var html = '';
   for(var i=0;i<BENCH.length;i++){
@@ -707,7 +725,7 @@ var benchTbody = document.querySelector('#benchTable tbody');
       '<td class="mono">'+s.on.toFixed(1)+'</td>' +
       '<td class="mono">'+s.off.toFixed(1)+'</td>' +
       '<td class="mono">'+(s.on/s.off).toFixed(1)+'×</td>' +
-      '<td class="mono">'+((s.n+1)/2).toFixed(1)+'×</td></tr>';
+      '<td class="mono">'+costModel(s.n).toFixed(1)+'×</td></tr>';
   }
   benchTbody.innerHTML = html;
   benchTbody.addEventListener('click', function(e){

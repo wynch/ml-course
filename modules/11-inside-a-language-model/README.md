@@ -157,6 +157,11 @@ Two controls:
   patterns in any big random projection of the words. If it scored well here,
   a high score on the trained model would tell us about the probe, not the model.
 
+The random-weight control is honest but weak: a deep transformer at random
+init mixes tokens poorly, so 58% is a low bar. A stronger one is a
+bag-of-words logistic regression on the sentence itself; that is the bar a
+model's layers should beat. This module does not run it.
+
 ![Probe accuracy by layer, trained against random weights](figures/probe_by_layer.png)
 
 | | Accuracy |
@@ -178,7 +183,8 @@ curve stays between 86.0% and 88.3%. The random-weight curve stays flat,
 between 51.7% and 58.0% at every depth.
 
 A probe shows that the information is *there*, in a form a line can read. It
-does not show that the model *uses* it. Patching asks that.
+does not show that the model *uses* it. Patching intervenes, and so gets
+closer; section 3 says how far.
 
 ## 3 · Activation patching
 
@@ -214,6 +220,13 @@ found ` Paris` reaching rank 1 at layer 27 too. Two methods, one layer.
 The positions in between (` is` to ` city`) never pass 0.08: the model does
 not park the landmark there.
 
+Read the heatmap for what it tests. This run pastes clean into corrupt, which
+asks whether a cell is *enough* to bring Paris back. The reverse, pasting
+corrupt into clean, asks whether the model *needs* that cell. The two can
+disagree (Heimersheim & Nanda,
+[How to use and interpret activation patching](https://arxiv.org/abs/2404.15255)).
+One prompt pair is also one example, not a rule.
+
 ## 4 · Neuron poles
 
 In SmolLM2's SwiGLU MLP, a neuron's value is
@@ -226,7 +239,8 @@ It can be large and positive or large and negative, so each neuron has two
 **poles**. The Goodfire essay [Neural networks are already
 clean](https://already-clean.goodfire.com/) (Cammarata, 2026) reads neurons
 this way, pole by pole, and reports that about 90% of Qwen3-32B's poles do
-one main job. `src/poles.py` shows the method on three neurons.
+one main job. Those audits are preliminary: the technical paper is not out
+yet, and no outside group has checked the result. `src/poles.py` shows the method on three neurons.
 
 It runs SmolLM2 over the first 999,936 tokens of wikitext-103 (3,906 rows of
 256 tokens) and keeps, for every neuron in layers 4, 16 and 28, the strongest
@@ -343,7 +357,13 @@ lets you browse neurons and features of these models in a browser.
 [ARENA chapter 1](https://learn.arena.education/) (transformer
 interpretability) works through hooks, probes, patching and circuits at length. For the field
 as a whole, read the course's research page
-[Interpretability](../../research/interp.html).
+[Interpretability](../../research/interp.html), and Sharkey et al.,
+[Open Problems in Mechanistic Interpretability](https://arxiv.org/abs/2501.16496)
+(2025), a map of what is still open. One caution before module 12: on sparse
+probing, sparse autoencoders did not reliably beat simple baselines such as a probe on
+the raw activations (Kantamneni et al.,
+[Are Sparse Autoencoders Useful?](https://arxiv.org/abs/2502.16681), 2025),
+which backs this module's "demo, not a measurement" stance.
 
 ## Checkpoint: you should now be able to…
 

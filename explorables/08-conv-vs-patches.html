@@ -214,14 +214,14 @@ padding, as in module 08's <code>conv2d</code>).</p>
   5×5 σ=1.2 Gaussian. The <b>learned 5×5</b> is not hand-designed: it is filter 0 of
   <code>conv1.weight</code> from module 08's <code>TinyCNN</code> after
   <code>train_tiny_cnn()</code> with <code>seed=0</code> (6 epochs on a FashionMNIST subset,
-  79.3% test accuracy). Nobody told it to become a vertical-edge detector.</p>
+  79.3% accuracy on 1,000 held-out FashionMNIST images). Nobody told it to become a vertical-edge detector.</p>
 </div>
 
 <h2><span class="num">2</span>Patchify — the same image as a sequence of tokens</h2>
 <p class="lede">A ViT has no sliding window and no locality prior. It cuts the image into a grid of
 non-overlapping patches in raster order, flattens each one, projects it linearly to a
 <i>d</i>-dimensional vector, adds a learned position embedding, prepends a <code>[CLS]</code>
-token &mdash; and hands the result to exactly the encoder you built for text in module 05. Drag the
+token &mdash; and hands the result to the block you built for text in module 04, run without its causal mask. Drag the
 timeline, or press play.</p>
 
 <div class="panel">
@@ -312,8 +312,9 @@ replace one minute of task-specific fine-tuning?</p>
     3×3 kernel &mdash; and every one of those 2304 positions reuses the <i>same</i> nine weights. That
     reuse is the convolutional inductive bias, and it is why CNNs learn from modest data.</li>
     <li>In panel 2, switch to <b>16 px</b> patches. The sequence gets 4× shorter and each token
-    carries 4× more pixels &mdash; the classic ViT trade: attention cost falls with the square of the
-    patch size, spatial detail falls with it.</li>
+    carries 4× more pixels &mdash; the classic ViT trade: attention cost falls with the <i>fourth</i> power of
+    the patch size (the square of the sequence length), so doubling the patch side cuts it about
+    16×; spatial detail falls with it.</li>
     <li>Once patches are a sequence, nothing downstream knows they came from an image. That is why
     the <b>position embedding</b> is not optional: without it, shuffling the patches would not
     change a single logit.</li>
@@ -407,7 +408,7 @@ var KERNELS = [
   { id:'sharpen', name:'sharpen', k:[[0,-1,0],[-1,5,-1],[0,-1,0]],
     note:'identity plus a laplacian ⇒ boosts local contrast' },
   // Real weights: TinyCNN.conv1.weight[0,0] after train_tiny_cnn(seed=0),
-  // modules/08-vision/python/src/cnn.py. 6 epochs, 79.3% FashionMNIST test acc.
+  // modules/08-vision/python/src/cnn.py. 6 epochs, 79.3% on 1,000 FashionMNIST test images (results/cnn.json).
   { id:'learned', name:'learned 5×5 (real CNN filter)', k:[
       [ 0.0783,  0.1890, -0.1143, -0.2874, -0.1822],
       [ 0.1199,  0.0738,  0.2182, -0.1682, -0.0714],
@@ -947,7 +948,7 @@ function drawVit(){
     c.fillStyle = cssVar('--ink');
     c.font = '600 12px ' + cssVar('--display');
     c.textAlign = 'center'; c.textBaseline = 'middle';
-    c.fillText('transformer encoder — the identical block from module 05', padX + bw/2, encTop + bh/2 - 8);
+    c.fillText('transformer encoder — the module 04 block, no causal mask', padX + bw/2, encTop + bh/2 - 8);
     c.font = '10.5px ' + cssVar('--mono');
     c.fillStyle = cssVar('--muted');
     c.fillText('LN → multi-head self-attention → residual → LN → MLP → residual,  ×12', padX + bw/2, encTop + bh/2 + 9);

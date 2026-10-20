@@ -30,6 +30,29 @@ def accuracy(Xa, y, w):
     return float((np.where(Xa @ w > 0, 1, -1) == y).mean())
 
 
+def best_line_accuracy(Xa, y):
+    """Best accuracy any line reaches on (Xa, y): every direction, every cut.
+
+    The order of the points along a direction changes only where the direction
+    is perpendicular to some xᵢ − xⱼ. One direction between each pair of such
+    neighbouring angles therefore covers every ordering, so the search is exact.
+    """
+    X = Xa[:, :2]
+    i, j = np.triu_indices(len(X), k=1)
+    d = X[i] - X[j]
+    crit = np.arctan2(d[:, 1], d[:, 0]) + np.pi / 2
+    crit = np.sort(np.concatenate([crit, crit + np.pi]) % (2.0 * np.pi))
+    mids = (crit + np.diff(crit, append=crit[0] + 2.0 * np.pi) / 2) % (2.0 * np.pi)
+    best = 0
+    for t in mids:
+        order = np.argsort(X @ np.array([np.cos(t), np.sin(t)]))
+        ys = y[order]
+        neg_below = np.concatenate([[0], np.cumsum(ys == -1)])
+        pos_above = np.concatenate([[0], np.cumsum((ys == 1)[::-1])])[::-1]
+        best = max(best, int((neg_below + pos_above).max()))
+    return best / len(y)
+
+
 def perceptron_epochs(Xa, y, epochs):
     """Plain Rosenblatt, yielding w after every update."""
     w = np.zeros(Xa.shape[1])
@@ -70,6 +93,8 @@ def main():
     print(f"pocket           : accuracy {acc_pocket*100:.1f}%")
     ceiling = 1.0 - len(flipped) / len(y)
     print(f"ceiling (a perfect line on the *clean* labels): {ceiling*100:.1f}%")
+    print(f"best any line achieves on these labels (exhaustive search): "
+          f"{best_line_accuracy(Xa, y)*100:.1f}%")
     print(f"pocket weights   : {np.round(w_pocket, 4).tolist()}")
     assert acc_pocket >= acc_last
     print("\n✓ the pocket is at least as good as the last iterate — "

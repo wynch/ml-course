@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
-<title>FinePhrase: 500B Tokens of Finest Synthetic Data · ML wiki</title>
+<title>FinePhrase: 486B Tokens of Finest Synthetic Data · ML wiki</title>
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
@@ -59,17 +59,17 @@ border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem
 <nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
 <main>
 <h1 id="finephrase-the-synthetic-data-playbook">FinePhrase &amp; The Synthetic Data Playbook</h1>
-<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-04-05</span> <span class="tag">synthetic-data</span> <span class="tag">training-data</span> <span class="tag">pretraining</span> <span class="tag">huggingface</span></div>
-<p><strong>By:</strong> HuggingFace (Leandro von Werra et al.) <strong>Via:</strong> @lvwerra on X</p>
+<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-10-19</span> <span class="tag">synthetic-data</span> <span class="tag">training-data</span> <span class="tag">pretraining</span> <span class="tag">huggingface</span></div>
+<p><strong>By:</strong> HuggingFace (Leandro von Werra et al.) <strong>Via:</strong> @lvwerra on X (2026-03-08) <strong>Paper:</strong> arXiv 2604.13977, Niklaus et al., v1 2026-04-15, "How Can We Synthesize High-Quality Pretraining Data? A Systematic Study of Prompt Design, Generator Model, and Source Data"</p>
 <h2 id="summary">Summary</h2>
-<p>90+ experiments and 1T generated tokens to figure out what makes good synthetic data. Result: FinePhrase — 500B tokens of the finest synthetic data for pretraining.</p>
+<p>90+ experiments and 1T generated tokens to figure out what makes good synthetic data. Result: FinePhrase, released as 486B tokens (the paper's abstract and the dataset card: 486,367,076,933 completion tokens); the earlier "500B" was the X post's round number.</p>
 <h2 id="key-ideas">Key Ideas</h2>
-<ul><li>Systematic study: 90+ experiments, 1T tokens generated</li><li>Empirical playbook for synthetic data generation</li><li>FinePhrase: 500B curated synthetic tokens released</li><li>Practical guide for training data creation</li></ul>
+<ul><li>Systematic study: 90+ experiments, 1T tokens generated</li><li>Empirical playbook for synthetic data generation</li><li>FinePhrase: 486B rephrased tokens released</li><li>Structured formats (tables, math problems, FAQs, tutorials) beat curated web baselines and earlier synthetic methods; generators above about 1B parameters add nothing; the choice of original data mixed in matters (arXiv 2604.13977, abstract)</li><li>Final recipe: SmolLM2-1.7B-Instruct rephrases FineWeb-Edu (<code>sample-350BT</code>) in the four formats above (dataset card)</li><li>Practical guide for training data creation</li></ul>
 <h2 id="connections">Connections</h2>
 <ul><li>Relevant to <a href="concept-model-training.html">concept-model-training</a> — data quality</li><li>Connects to <a href="source-frontier-model-training.html">source-frontier-model-training</a> — data strategy</li><li>Related to <a href="source-lacy-small-language-models.html">source-lacy-small-language-models</a> — what models should learn from</li></ul>
 <h2 id="references">References</h2>
-<ul><li><a href="https://huggingface.co/spaces/HuggingFaceFW/finephrase" rel="noreferrer">HuggingFace Space</a></li></ul>
-<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://huggingface.co/spaces/HuggingFaceFW/finephrase" rel="noreferrer">https://huggingface.co/spaces/HuggingFaceFW/finephrase</a></li><li><a href="https://x.com/lvwerra/status/2030587112253247808" rel="noreferrer">https://x.com/lvwerra/status/2030587112253247808</a></li></ul></details>
+<ul><li><a href="https://huggingface.co/spaces/HuggingFaceFW/finephrase" rel="noreferrer">HuggingFace Space</a></li><li><a href="https://arxiv.org/abs/2604.13977" rel="noreferrer">arXiv 2604.13977</a></li><li><a href="https://huggingface.co/datasets/HuggingFaceFW/finephrase" rel="noreferrer">Dataset card</a></li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://huggingface.co/spaces/HuggingFaceFW/finephrase" rel="noreferrer">https://huggingface.co/spaces/HuggingFaceFW/finephrase</a></li><li><a href="https://x.com/lvwerra/status/2030587112253247808" rel="noreferrer">https://x.com/lvwerra/status/2030587112253247808</a></li><li><a href="https://arxiv.org/abs/2604.13977" rel="noreferrer">https://arxiv.org/abs/2604.13977</a></li><li><a href="https://huggingface.co/datasets/HuggingFaceFW/finephrase" rel="noreferrer">https://huggingface.co/datasets/HuggingFaceFW/finephrase</a></li></ul></details>
 </main>
 </body>
 </html>

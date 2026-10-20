@@ -12,8 +12,8 @@ The heart of DDPM lives here. Two facts:
    where ``acp_t`` (``alpha_bar_t``) is the cumulative product of ``1 - beta``.
 
 2. The *schedule* is just the sequence of ``beta_t`` (how much noise per step).
-   Linear (the original DDPM) and cosine (improved DDPM) are provided; swapping
-   them is exercise (b).
+   Linear (the original DDPM), linear rescaled for fewer steps, and cosine
+   (improved DDPM) are provided; swapping linear and cosine is exercise (b).
 """
 
 from __future__ import annotations
@@ -28,6 +28,17 @@ def linear_beta_schedule(timesteps: int, beta_start: float = 1e-4,
                          beta_end: float = 0.02) -> torch.Tensor:
     """Original DDPM schedule: betas rise linearly from start to end."""
     return torch.linspace(beta_start, beta_end, timesteps)
+
+
+def scaled_linear_beta_schedule(timesteps: int) -> torch.Tensor:
+    """The linear range 1e-4 -> 0.02 rescaled by 1000 / T.
+
+    That range was tuned for T = 1000. With fewer steps it must grow, or x_T
+    keeps part of the data; scaled this way, T steps destroy about as much
+    signal as 1000 did (sqrt(alpha_bar_T) 0.0059 at T = 300, 0.0064 at 1000).
+    """
+    scale = 1000 / timesteps
+    return linear_beta_schedule(timesteps, 1e-4 * scale, 0.02 * scale)
 
 
 def cosine_beta_schedule(timesteps: int, s: float = 0.008) -> torch.Tensor:
@@ -47,9 +58,12 @@ def cosine_beta_schedule(timesteps: int, s: float = 0.008) -> torch.Tensor:
 def make_betas(schedule: str, timesteps: int) -> torch.Tensor:
     if schedule == "linear":
         return linear_beta_schedule(timesteps)
+    if schedule == "scaled_linear":
+        return scaled_linear_beta_schedule(timesteps)
     if schedule == "cosine":
         return cosine_beta_schedule(timesteps)
-    raise ValueError(f"unknown schedule {schedule!r} (use 'linear' or 'cosine')")
+    raise ValueError(f"unknown schedule {schedule!r} "
+                     "(use 'linear', 'scaled_linear' or 'cosine')")
 
 
 @dataclass
@@ -106,8 +120,13 @@ class Diffusion:
 
     @torch.no_grad()
     def p_sample_step(self, model, x_t: torch.Tensor, t: int,
-                      model_kwargs: dict | None = None) -> torch.Tensor:
-        """One reverse (denoising) step of ancestral DDPM sampling."""
+                      model_kwargs: dict | None = None,
+                      generator: torch.Generator | None = None) -> torch.Tensor:
+        """One reverse (denoising) step of ancestral DDPM sampling.
+
+        "Ancestral" means each step draws x_{t-1} from p(x_{t-1} | x_t), fresh
+        noise included, so the whole chain is one random walk from x_T to x0.
+        """
         model_kwargs = model_kwargs or {}
         t_batch = torch.full((x_t.shape[0],), t, device=x_t.device, dtype=torch.long)
         eps = model(x_t, t_batch, **model_kwargs)
@@ -122,21 +141,30 @@ class Diffusion:
         if t == 0:
             return mean
         # add fresh noise scaled by the posterior variance (here: beta_t).
-        noise = torch.randn_like(x_t)
+        noise = torch.randn(x_t.shape, device=x_t.device, dtype=x_t.dtype,
+                            generator=generator)
         return mean + torch.sqrt(beta_t) * noise
 
     @torch.no_grad()
     def p_sample_loop(self, model, shape, device, model_kwargs: dict | None = None,
-                      record_every: int | None = None):
+                      record_every: int | None = None, x_T: torch.Tensor | None = None,
+                      generator: torch.Generator | None = None):
         """Full reverse process from pure noise to a sample.
+
+        Pass ``x_T`` to start from given noise, and ``generator`` to make the
+        noise added at each step repeatable; both are needed for two calls to
+        give the same sample.
 
         Returns ``(x0, trajectory)`` where trajectory is a list of intermediate
         tensors (including start and end) if ``record_every`` is set, else None.
         """
-        x = torch.randn(shape, device=device)
+        if x_T is not None:
+            x = x_T.clone()
+        else:
+            x = torch.randn(shape, device=device, generator=generator)
         traj = [x.clone()] if record_every else None
         for t in reversed(range(self.timesteps)):
-            x = self.p_sample_step(model, x, t, model_kwargs)
+            x = self.p_sample_step(model, x, t, model_kwargs, generator=generator)
             if record_every and (t % record_every == 0 or t == 0):
                 traj.append(x.clone())
         return x, traj

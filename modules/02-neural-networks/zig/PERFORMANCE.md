@@ -30,7 +30,7 @@ Apple M5, Zig 0.16.0 `ReleaseFast`, single thread, best of 20 runs. Shapes:
 | naive (ijk)                    |    31.06  |    3.31 |  1.00x  |
 | reordered (ikj)                |    13.79  |    7.45 |  2.25x  |
 | blocked (tiled)                |    12.88  |    7.98 |  2.41x  |
-| **numpy `@` (Accelerate BLAS)**|   **0.058** | **1773** | **~740x** |
+| **numpy `@` (Accelerate BLAS)**|   **0.058** | **1773** | **~535x** |
 
 (Your absolute numbers will vary; the *ratios* are the lesson. Reproduce with
 `zig build run` here and `uv run python bench_numpy.py` in `../python`.)
@@ -38,16 +38,16 @@ Apple M5, Zig 0.16.0 `ReleaseFast`, single thread, best of 20 runs. Shapes:
 ## What the numbers say
 
 * **Loop order alone is a 2.25x win.** The naive `ijk` inner loop reads
-  `B[k*N + j]` — a jump of `N` floats (a whole cache line, mostly wasted) every
-  iteration. The `ikj` order reads `B` and writes `C` contiguously, so each
-  cache line is fully used and the compiler can auto-vectorize the inner loop.
+  `B[k*N + j]` — a jump of `N` floats (1 KB) every iteration, so each load
+  touches a new cache line and uses only 4 bytes of it. The `ikj` order reads
+  `B` and writes `C` contiguously, so each cache line is fully used and the compiler can auto-vectorize the inner loop.
   Same FLOPs, same result, ~2x faster — purely from respecting the cache.
 
 * **Blocking adds a little more** by keeping tiles resident across reuse. On
   these modest sizes the working set is already small, so the gain over `ikj`
   is minor; it grows with larger matrices.
 
-* **numpy is another ~200–700x beyond our best loop.** Apple's Accelerate BLAS
+* **numpy is another ~220x beyond our best loop (~535x beyond the naive one).** Apple's Accelerate BLAS
   (`sgemm`) uses register blocking, hand-written SIMD/AMX microkernels, prefetch,
   and multithreading — decades of kernel engineering. Our tidy Zig loop cannot
   touch it, and neither could a tidy C or Rust loop.

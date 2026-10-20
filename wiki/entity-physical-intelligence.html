@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Physical Intelligence (π0, π0.5) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="physical-intelligence">Physical Intelligence</h1>
+<div class="meta"><span class="type">entity</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">organization</span> <span class="tag">robotics</span> <span class="tag">vla</span> <span class="tag">flow-matching</span></div>
+<p>A robot-learning company in San Francisco (<code>raw/arxiv-2410-24164-0-a-vision-language-action-flow.md</code>, title note) that builds vision-language-action (VLA) models: one network that takes camera images and a spoken or written task and outputs motor commands. Its papers list Sergey Levine, Chelsea Finn and Karol Hausman among the authors (<code>raw/arxiv-2504-16054-pi-0-5-a-vision-language-action.md</code>, title block; <a href="source-pi-0-5.html">source-pi-0-5</a>).</p>
+<h2 id="models-in-the-wiki">Models in the wiki</h2>
+<div class="tw"><table><thead><tr><th>Model</th><th>Date</th><th>What it added</th><th>Page</th></tr></thead><tbody><tr><td>π0</td><td>2024-10</td><td>a PaliGemma 3B vision-language model plus a ~300M "action expert" trained by flow matching; emits 50-step action chunks, robots run at up to 50 Hz; about 10,000 hours of pretraining data from 7 robot set-ups and 68 tasks</td><td><a href="source-pi-zero.html">source-pi-zero</a> (<code>raw/arxiv-2410-24164-0-a-vision-language-action-flow.md</code>, Fig. 2, §IV, §V-A)</td></tr><tr><td>π0.5</td><td>2025-04</td><td>the training mix: about 400 hours from the target mobile robots, the rest from other robots, subtask labels and web data; the model first writes its next subtask in words, then acts; cleans kitchens and bedrooms in homes it has never seen</td><td><a href="source-pi-0-5.html">source-pi-0-5</a> (<code>raw/arxiv-2504-16054-pi-0-5-a-vision-language-action.md</code>, §I, §IV, §V)</td></tr><tr><td>π*0.6</td><td>2025-11</td><td>learns from the robot's own experience by RL</td><td>arXiv 2511.14759 (not in raw); named in <a href="concept-vla-robot-foundation-models.html">concept-vla-robot-foundation-models</a></td></tr></tbody></table></div>
+<h2 id="findings-that-matter-here">Findings that matter here</h2>
+<ul><li>Training on 104 locations matches training on the test homes themselves; removing other robots' data hurts most; web data helps with unseen objects, not with the four scored tasks (<code>raw/arxiv-2504-16054-pi-0-5-a-vision-language-action.md</code>, §V-B, §V-C).</li><li>Contradiction (partial), carried from <a href="source-pi-0-5.html">source-pi-0-5</a>: OpenVLA found no need to co-train on web data; π0.5 finds other robots' data and web data drive generalisation to new homes and objects (<a href="source-openvla.html">source-openvla</a>).</li></ul>
+<p>Caveat: the company tests its own models on its own robots; no outside group has rerun the comparisons (<code>raw/arxiv-2504-16054-pi-0-5-a-vision-language-action.md</code>; <a href="source-pi-0-5.html">source-pi-0-5</a>, "Caveats").</p>
+<h2 id="links">Links</h2>
+<ul><li><a href="concept-vla-robot-foundation-models.html">concept-vla-robot-foundation-models</a> · <a href="analysis-world-models-vs-vla.html">analysis-world-models-vs-vla</a> (Position 3, direct policy) · <a href="source-bundle-world-models-and-vla.html">source-bundle-world-models-and-vla</a></li><li>Related: <a href="source-openvla.html">source-openvla</a> · <a href="source-rt-2.html">source-rt-2</a> · <a href="source-aloha-act.html">source-aloha-act</a> · <a href="source-dreamer-4.html">source-dreamer-4</a> (its VLA baseline follows the π0.5 recipe)</li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2410-24164-0-a-vision-language-action-flow.md</code> (π0, arXiv 2410.24164)</li><li><code>raw/arxiv-2504-16054-pi-0-5-a-vision-language-action.md</code> (π0.5, arXiv 2504.16054)</li><li>π*0.6: <a href="https://arxiv.org/abs/2511.14759" rel="noreferrer">https://arxiv.org/abs/2511.14759</a> (not in raw)</li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2410-24164-0-a-vision-language-action-flow.md</code></li><li><code>raw/arxiv-2504-16054-pi-0-5-a-vision-language-action.md</code></li><li><a href="https://arxiv.org/abs/2511.14759" rel="noreferrer">https://arxiv.org/abs/2511.14759</a></li></ul></details>
+</main>
+</body>
+</html>

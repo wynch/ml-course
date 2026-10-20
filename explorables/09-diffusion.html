@@ -193,7 +193,7 @@ footer .path{font-family:var(--mono);font-size:.78rem}
 <section>
   <h2><span class="num">1</span> The forward process — given, not learned</h2>
   <p class="sub">
-    Because a sum of Gaussians is Gaussian, you never simulate the noising step by step: one closed
+    Because a sum of independent Gaussian draws is Gaussian, you never simulate the noising step by step: one closed
     form jumps straight to any timestep. Points are coloured by their <em>original</em> distance from
     the centre (viridis), so you can watch that information get destroyed.
   </p>
@@ -311,7 +311,9 @@ footer .path{font-family:var(--mono);font-size:.78rem}
         the spiral plainly visible. Linear's <code>β</code> range (<code>1e-4 → 0.02</code>) was tuned
         for <code>T = 1000</code>; at this module's <code>T = 200</code> it never finishes the job, so
         a sampler starting from <code>N(0, I)</code> would begin somewhere the model never saw. That
-        is why the cosine schedule is the default here — and why swapping it is exercise (b).</li>
+        is why the cosine schedule is the default here — and why swapping it is exercise (b). The
+        image DDPM (<code>T = 300</code>) keeps the linear shape but scales its range by
+        <code>1000 / T</code>.</li>
       <li><strong>The vector field is the whole learned object.</strong> At high <code>t</code> the
         arrows point broadly inward, toward the data's centre of mass — the net only knows "you are
         too far out". Slide <code>t</code> down and the field sharpens into the spiral's shape, arrows
@@ -319,7 +321,8 @@ footer .path{font-family:var(--mono);font-size:.78rem}
       <li><strong>The reverse process is stochastic.</strong> Each <code>Sample again</code> starts
         from different noise and injects fresh noise at every step, so no two runs trace the same
         path — yet they all land on the same spiral. Turn on <code>trails</code> to see the paths.</li>
-      <li><strong>A loss of 0.37 is a success.</strong> The target is unit-variance noise, so
+      <li><strong>A loss of 0.37 is a success.</strong> (0.369 for this CPU export; the MPS run in
+        the module README ends at 0.34.) The target is unit-variance noise, so
         predicting <code>ε</code> perfectly is impossible — much of it is irreducible. What matters
         is that the residual structure the net <em>did</em> learn is enough to reassemble the spiral.</li>
     </ul>
@@ -337,7 +340,7 @@ footer .path{font-family:var(--mono);font-size:.78rem}
 /* ==========================================================================
    REAL trained weights from modules/09-diffusion.
    Produced by run_toy2d.py's own pipeline (cosine schedule, T=200,
-   DenoiseMLP(hidden=128, time_dim=64), train_toy(epochs=2500, batch=256,
+   DenoiseMLP(hidden=128, time_dim=64), train_toy(steps=2500, batch=256,
    lr=2e-3, seed=0)), with the device pinned to CPU so the export is
    reproducible. 50,178 float32 params, base64-encoded little-endian.
    The JS forward pass below matches PyTorch to < 6e-7 on reference inputs.

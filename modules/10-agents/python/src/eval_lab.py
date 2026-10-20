@@ -34,6 +34,8 @@ def _contains(*needles):
 
 
 # Five small tasks, each with a success predicate on the final answer string.
+# The predicates test for a substring, so they are lenient: "299792458**2"
+# would pass kb_light. A stricter check would parse the number.
 # Kept to 1–2 hops so 50 episodes finish in a reasonable time on a laptop.
 SUITE = [
     {"name": "calc_power", "task": "Use the calculator to compute 2 ** 10.",

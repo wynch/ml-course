@@ -266,16 +266,18 @@ const QUESTIONS = [
     options: [
       "On a dataset with 1% positives, a classifier that always answers “negative” is 99% accurate.",
       "<code>classification_metrics</code> returns 0.0 rather than raising when a denominator is zero, so a threshold that predicts no positives at all reports precision 0.0 — not a crash.",
-      "A model can improve on the aggregate metric while regressing badly on a small but important slice.",
+      "The lab's slice table, daylight F1 0.81 on 120 examples against low-light 0.73 on 40, shows that the model is worse in low light.",
       "Picking which slices to report after seeing the final test results is the recommended way to locate a model's weak spots."
     ],
-    answer: [0, 1, 2],
-    explain: "The first three are the module's own claims and code. The fourth inverts it: the README says " +
-             "to define the important slices <i>before</i> looking at the test results, because hunting " +
-             "after the fact finds a flattering subgroup rather than an honest one. The quiet one is the " +
-             "second — <code>_safe_div</code> makes a degenerate threshold look like a score of 0.0 " +
+    answer: [0, 1],
+    explain: "The first two are the module's own claims and code. The third reads noise as a finding: " +
+             "the 95% bootstrap intervals are 0.72–0.87 for daylight and 0.43–0.91 for low-light, and the " +
+             "interval on the gap runs from −0.11 to +0.35, so it includes zero. Forty examples cannot tell " +
+             "0.73 from 0.81; the honest report is “no evidence of a gap yet”. The fourth inverts the README, " +
+             "which says to define the important slices <i>before</i> looking at the test results. The quiet " +
+             "one is the second: <code>_safe_div</code> makes a degenerate threshold look like a score of 0.0 " +
              "instead of an error, so a silent 0.0 in a sweep means “nothing predicted positive”.",
-    source: "modules/05a-data-evaluation/README.md — “The confusion matrix is the primitive”, “Aggregate metrics hide slices” · python/src/metrics.py:49-70 (_safe_div, classification_metrics)"
+    source: "modules/05a-data-evaluation/README.md — “The confusion matrix is the primitive”, “Aggregate metrics hide slices” · python/src/metrics.py (_safe_div, bootstrap_ci) · results/evaluation_lab.json (slices_all_rows, f1_gap_daylight_minus_lowlight)"
   },
   /* ── 5 ───────────────────────────────────────────── real numbers ── */
   {
@@ -347,8 +349,8 @@ const QUESTIONS = [
   /* ── 8 ──────────────────────────────────────────────────── predict ── */
   {
     id: "q8", kind: "single", tag: "predict", topic: "What ECE actually rewards",
-    text: "Exercise C ends by comparing two models on <code>y = [0, 0, 1, 1]</code> with 5 bins: a " +
-          "<b>calibrated</b> one at <code>[0.1, 0.3, 0.7, 0.9]</code> and an <b>overconfident</b> one at " +
+    text: "Exercise C first compares two models on <code>y = [0, 0, 1, 1]</code> with 5 bins: an " +
+          "<b>honest-looking</b> one at <code>[0.1, 0.3, 0.7, 0.9]</code> and a <b>near-certain</b> one at " +
           "<code>[0.01, 0.05, 0.95, 0.99]</code>. Both get every class right. " +
           "<b>Predict</b> which ECE is lower.",
     options: [
@@ -364,7 +366,7 @@ const QUESTIONS = [
              "at this sample size the observed rate is certainty — which is exactly why the README says " +
              "ECE is a diagnostic whose value moves with binning and sample size, and why you must report " +
              "both.",
-    source: "modules/05a-data-evaluation/python/exercises/ex_c_calibration.py:12-17 · solutions/solution_c_calibration.py · README “ECE is a diagnostic, not a complete verdict”"
+    source: "modules/05a-data-evaluation/python/exercises/ex_c_calibration.py (the tiny-set pair; the ten-example pair beside it is where the names hold) · solutions/solution_c_calibration.py · README “ECE is a diagnostic, not a complete verdict”"
   },
   /* ── 9 ────────────────────────────────────── conceptual, multi ── */
   {
@@ -419,7 +421,7 @@ function gradeSingle(q, ans) { return typeof ans === "number" && ans === q.answe
 function gradeMulti(q, ans) { return Array.isArray(ans) && sameSet(ans, q.answer); }
 function gradeNumeric(q, ans) {
   const v = typeof ans === "number" ? ans : parseFloat(String(ans).replace(/[\s,_]/g, ""));
-  return isFinite(v) && Math.abs(v - q.answer) <= q.tol;
+  return isFinite(v) && Math.abs(v - q.answer) <= q.tol + 1e-9;
 }
 function gradeQuestion(q, ans) {
   if (ans === undefined || ans === null) return false;

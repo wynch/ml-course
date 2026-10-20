@@ -9,6 +9,7 @@ Run me:
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 import torch
@@ -16,6 +17,7 @@ import torch
 from common import MODEL_ID, load_model, load_tokenizer
 
 FIG_DIR = Path(__file__).resolve().parents[2] / "figures"
+RESULTS = Path(__file__).resolve().parents[2] / "results" / "anatomy.json"
 
 
 # ---------------------------------------------------------------------------
@@ -63,19 +65,18 @@ def component_params(cfg: dict) -> dict[str, int]:
 
 
 # The three columns of the comparison table.
-# tiny-GPT: a *representative* char-level GPT of the kind you build in module 04
-# (learned positional embeddings + LayerNorm; counted separately below). Its
-# exact size depends on the hyper-parameters you pick there.
+# tiny-GPT: module 04's committed checkpoint
+# (modules/04-attention-transformer/artifacts/tiny_gpt_config.json).
 TINY_GPT = {
     "name": "tiny char-GPT (module 04)",
     "vocab_size": 65,
     "hidden_size": 128,
-    "num_hidden_layers": 4,
+    "num_hidden_layers": 3,
     "num_attention_heads": 4,
     "num_key_value_heads": 4,
     "intermediate_size": 512,
-    "max_position_embeddings": 256,
-    "tie_word_embeddings": False,
+    "max_position_embeddings": 128,
+    "tie_word_embeddings": True,
     "positional": "learned",
 }
 SMOLLM2 = {
@@ -105,15 +106,15 @@ SMOLLM3 = {  # from HuggingFaceTB/SmolLM3-3B config.json (weights NOT downloaded
 
 
 def tiny_gpt_params(cfg: dict) -> int:
-    """Char-GPT param count: SwiGLU-free MLP + learned positional embeddings."""
+    """Module 04's GPT: learned positions, LayerNorm (γ, β), GELU MLP, biases, tied head."""
     V, H, L = cfg["vocab_size"], cfg["hidden_size"], cfg["num_hidden_layers"]
     ctx, inter = cfg["max_position_embeddings"], cfg["intermediate_size"]
     embed = V * H + ctx * H  # token + learned positional
-    attn = (4 * H * H) * L  # q,k,v,o (no GQA in the toy)
-    mlp = (2 * H * inter) * L  # up + down (GELU, no gate)
-    norms = (2 * H) * L + H
-    head = V * H  # untied
-    return embed + attn + mlp + norms + head
+    attn = (3 * H * H + 3 * H + H * H + H) * L  # qkv and out projections, with biases
+    mlp = (H * inter + inter + inter * H + H) * L  # up + down (GELU, no gate), with biases
+    norms = 4 * H * L + 2 * H  # two LayerNorms per block plus the final one, γ and β each
+    head = 0 if cfg["tie_word_embeddings"] else V * H
+    return embed + attn + mlp + norms + head  # 619,776 for module 04
 
 
 def human(n: int) -> str:
@@ -220,7 +221,7 @@ def draw_param_figure(buckets: dict[str, int], out_path: Path) -> None:
     ax_bar.yaxis.set_major_formatter(lambda x, _: human(int(x)))
     ax_bar.spines[["top", "right"]].set_visible(False)
 
-    # --- comparison table: same blocks, bigger numbers ---
+    # --- comparison table: same layout, newer parts, bigger numbers ---
     tiny_total = tiny_gpt_params(TINY_GPT)
     sm2_total = component_params(SMOLLM2)["total"]
     sm3_total = component_params(SMOLLM3)["total"]
@@ -228,13 +229,16 @@ def draw_param_figure(buckets: dict[str, int], out_path: Path) -> None:
     rows = [
         ("parameters", human(tiny_total), human(sm2_total), human(sm3_total)),
         ("hidden size", "128", "960", "2048"),
-        ("layers", "4", "32", "36"),
+        ("layers", "3", "32", "36"),
         ("attn heads", "4", "15", "16"),
         ("kv heads (GQA)", "4", "5", "4"),
         ("mlp intermediate", "512", "2560", "11008"),
         ("vocab size", "65", "49,152", "128,256"),
-        ("context length", "256", "8,192", "65,536"),
+        ("context length", "128", "8,192", "65,536"),
         ("positional", "learned", "RoPE", "RoPE+NoPE"),
+        ("norm", "LayerNorm", "RMSNorm", "RMSNorm"),
+        ("MLP", "GELU", "SwiGLU", "SwiGLU"),
+        ("biases", "yes", "no", "no"),
     ]
     col_labels = ["", "tiny char-GPT\n(module 04)", "SmolLM2-360M", "SmolLM3-3B"]
     table = ax_tab.table(
@@ -250,12 +254,35 @@ def draw_param_figure(buckets: dict[str, int], out_path: Path) -> None:
         if c == 0 and r > 0:
             cell.set_text_props(fontweight="bold", ha="left")
             cell.PAD = 0.03
-    ax_tab.set_title("Same blocks you built in module 04 — bigger numbers", fontsize=11)
+    ax_tab.set_title("Module 04's block layout, newer parts, bigger numbers", fontsize=11)
 
     fig.tight_layout()
     fig.savefig(out_path, dpi=110, bbox_inches="tight")
     plt.close(fig)
     print(f"  wrote {out_path}  ({out_path.stat().st_size // 1024} KB)")
+
+
+def save_results(buckets: dict[str, int], out_path: Path = RESULTS) -> dict:
+    total = sum(buckets.values())
+    data = {
+        "model": MODEL_ID,
+        "smollm2_params_by_component": {k: v for k, v in buckets.items() if v},
+        "smollm2_share_pct": {k: round(100 * v / total, 1) for k, v in buckets.items() if v},
+        "smollm2_total": total,
+        "config_totals": {
+            TINY_GPT["name"]: tiny_gpt_params(TINY_GPT),
+            SMOLLM2["name"]: component_params(SMOLLM2)["total"],
+            SMOLLM3["name"]: component_params(SMOLLM3)["total"],
+        },
+        "smollm3_share_pct": {
+            k: round(100 * v / component_params(SMOLLM3)["total"], 1)
+            for k, v in component_params(SMOLLM3).items() if k != "total" and v
+        },
+    }
+    out_path.parent.mkdir(exist_ok=True)
+    out_path.write_text(json.dumps(data, indent=2) + "\n")
+    print(f"  wrote {out_path}")
+    return data
 
 
 def main() -> None:
@@ -278,6 +305,7 @@ def main() -> None:
     if args.figure:
         FIG_DIR.mkdir(exist_ok=True)
         draw_param_figure(buckets, FIG_DIR / "param_budget.png")
+        save_results(buckets)
 
 
 if __name__ == "__main__":

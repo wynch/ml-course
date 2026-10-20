@@ -59,6 +59,9 @@ def record_neurons(model, ids: torch.Tensor) -> list[torch.Tensor]:
     handles = [b.mlp.fc.register_forward_hook(make_hook(i)) for i, b in enumerate(model.blocks)]
     try:
         with torch.no_grad():
+            # Non-overlapping chunks of BLOCK characters: the first characters
+            # of each chunk see little context. That does not change which
+            # neuron the module picks, but their activations are weaker.
             for s in range(0, len(ids), BLOCK):
                 model(ids[s : s + BLOCK][None])
     finally:

@@ -93,6 +93,19 @@ def zero_shot_beans(split: str = "test", n: int | None = None, seed: int = 0):
     }
 
 
+def record(out: dict) -> None:
+    from utils import save_result
+
+    save_result("clip_zeroshot", {
+        "what": "openai/clip-vit-base-patch32 zero-shot on the beans test split, symptom prompts",
+        "prompts": out["prompts"],
+        "accuracy": round(out["accuracy"], 4),
+        "correct": int((out["y_pred"] == out["y_true"]).sum()),
+        "n": int(len(out["y_true"])),
+    })
+
+
 if __name__ == "__main__":
     out = zero_shot_beans()
+    record(out)
     print(f"CLIP zero-shot beans accuracy: {out['accuracy']:.4f} over {len(out['y_true'])} test images")

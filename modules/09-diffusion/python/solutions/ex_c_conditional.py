@@ -51,7 +51,7 @@ def main():
     model = DenoiseMLP(num_classes=2)
     print("training conditional model (10% label dropout for CFG)...")
     train_toy(model, diffusion, data, labels=labels, cfg_drop=0.1,
-              epochs=3000, device=device, log_every=500)
+              steps=3000, device=device, log_every=500)
 
     scales = [0.0, 1.0, 3.0]
     fig, axes = plt.subplots(len(scales), 2, figsize=(6, 3 * len(scales)))

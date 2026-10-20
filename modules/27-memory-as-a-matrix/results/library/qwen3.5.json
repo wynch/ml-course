@@ -1,0 +1,224 @@
+{
+ "model": "mlx-community/Qwen3.5-0.8B-4bit",
+ "revision": "da28692b5f139cb0ec58a356b437486b7dac7462",
+ "config": {
+  "num_hidden_layers": 24,
+  "hidden_size": 1024,
+  "num_attention_heads": 8,
+  "num_key_value_heads": 2,
+  "head_dim": 256,
+  "linear_num_key_heads": 16,
+  "linear_num_value_heads": 16,
+  "linear_key_head_dim": 128,
+  "linear_value_head_dim": 128,
+  "linear_conv_kernel_dim": 4,
+  "full_attention_interval": 4,
+  "vocab_size": 248320
+ },
+ "layer_types": [
+  "linear_attention",
+  "linear_attention",
+  "linear_attention",
+  "full_attention",
+  "linear_attention",
+  "linear_attention",
+  "linear_attention",
+  "full_attention",
+  "linear_attention",
+  "linear_attention",
+  "linear_attention",
+  "full_attention",
+  "linear_attention",
+  "linear_attention",
+  "linear_attention",
+  "full_attention",
+  "linear_attention",
+  "linear_attention",
+  "linear_attention",
+  "full_attention",
+  "linear_attention",
+  "linear_attention",
+  "linear_attention",
+  "full_attention"
+ ],
+ "contexts": {
+  "512": {
+   "trials": [
+    {
+     "code": "4817",
+     "reply": " 4817.\n\nThe pass code is 4817.\n\nThe pass code is 4",
+     "found": true,
+     "prefill_s": 1.806,
+     "decode_tokens_per_s": 60.0,
+     "cache": {
+      "kv_used": 6291456,
+      "kv_allocated": 6291456,
+      "state": 19537920,
+      "kv_layers": 6,
+      "state_layers": 18,
+      "total_used": 25829376
+     }
+    },
+    {
+     "code": "2093",
+     "reply": " 2093.\n\nThe pass code is 2093.\n\nThe pass code is 2",
+     "found": true,
+     "prefill_s": 0.203,
+     "decode_tokens_per_s": 59.8,
+     "cache": {
+      "kv_used": 6291456,
+      "kv_allocated": 6291456,
+      "state": 19537920,
+      "kv_layers": 6,
+      "state_layers": 18,
+      "total_used": 25829376
+     }
+    },
+    {
+     "code": "7365",
+     "reply": " 7365.\n\nThe pass code is 7365.\n\nThe pass code is 7",
+     "found": true,
+     "prefill_s": 0.189,
+     "decode_tokens_per_s": 59.4,
+     "cache": {
+      "kv_used": 6291456,
+      "kv_allocated": 6291456,
+      "state": 19537920,
+      "kv_layers": 6,
+      "state_layers": 18,
+      "total_used": 25829376
+     }
+    }
+   ],
+   "found": 3,
+   "cache_bytes": 25829376,
+   "prefill_s_median": 0.203,
+   "decode_tokens_per_s_median": 59.8
+  },
+  "4096": {
+   "trials": [
+    {
+     "code": "4817",
+     "reply": " 4817.\n\n<think>\n\n</think>\n\nThe pass code is **4817**.\n\n(Note:",
+     "found": true,
+     "prefill_s": 1.851,
+     "decode_tokens_per_s": 56.4,
+     "cache": {
+      "kv_used": 50331648,
+      "kv_allocated": 50331648,
+      "state": 19537920,
+      "kv_layers": 6,
+      "state_layers": 18,
+      "total_used": 69869568
+     }
+    },
+    {
+     "code": "2093",
+     "reply": " 2093.\n\nThe pass code is 2093.\n\nThe pass code is 2",
+     "found": true,
+     "prefill_s": 1.669,
+     "decode_tokens_per_s": 57.1,
+     "cache": {
+      "kv_used": 50331648,
+      "kv_allocated": 50331648,
+      "state": 19537920,
+      "kv_layers": 6,
+      "state_layers": 18,
+      "total_used": 69869568
+     }
+    },
+    {
+     "code": "7365",
+     "reply": " 7365.\n\nThe pass code is 7365.\n\nThe pass code is 7",
+     "found": true,
+     "prefill_s": 1.661,
+     "decode_tokens_per_s": 56.3,
+     "cache": {
+      "kv_used": 50331648,
+      "kv_allocated": 50331648,
+      "state": 19537920,
+      "kv_layers": 6,
+      "state_layers": 18,
+      "total_used": 69869568
+     }
+    }
+   ],
+   "found": 3,
+   "cache_bytes": 69869568,
+   "prefill_s_median": 1.669,
+   "decode_tokens_per_s_median": 56.4
+  },
+  "16384": {
+   "trials": [
+    {
+     "code": "4817",
+     "reply": " 4817.\n\nThe pass code is 4817.\n\nThe pass code is 4",
+     "found": true,
+     "prefill_s": 7.434,
+     "decode_tokens_per_s": 65.6,
+     "cache": {
+      "kv_used": 201326592,
+      "kv_allocated": 201326592,
+      "state": 19537920,
+      "kv_layers": 6,
+      "state_layers": 18,
+      "total_used": 220864512
+     }
+    },
+    {
+     "code": "2093",
+     "reply": " 2093.\n\nThe prompt is asking for the pass code, but the prompt is in English.\n\n",
+     "found": true,
+     "prefill_s": 7.063,
+     "decode_tokens_per_s": 55.3,
+     "cache": {
+      "kv_used": 201326592,
+      "kv_allocated": 201326592,
+      "state": 19537920,
+      "kv_layers": 6,
+      "state_layers": 18,
+      "total_used": 220864512
+     }
+    },
+    {
+     "code": "7365",
+     "reply": " 7365.\n\nThe pass code is 7365.\n\nThe pass code is 7",
+     "found": true,
+     "prefill_s": 7.163,
+     "decode_tokens_per_s": 70.0,
+     "cache": {
+      "kv_used": 201326592,
+      "kv_allocated": 201326592,
+      "state": 19537920,
+      "kv_layers": 6,
+      "state_layers": 18,
+      "total_used": 220864512
+     }
+    }
+   ],
+   "found": 3,
+   "cache_bytes": 220864512,
+   "prefill_s_median": 7.163,
+   "decode_tokens_per_s_median": 65.6
+  }
+ },
+ "guard": {
+  "script": "library_qwen3.5",
+  "seconds": 34.4,
+  "minutes": 0.57,
+  "peak_rss_gb": 1.22,
+  "peak_mps_driver_gb": 0.4,
+  "stages_seconds": {
+   "load": 1.42,
+   "L512": 3.46,
+   "L4096": 6.54,
+   "L16384": 22.94
+  },
+  "machine": "arm64 26.6.2",
+  "python": "3.12.13",
+  "torch": "2.14.1",
+  "mps_high_watermark_ratio": "0.5",
+  "peak_mlx_gb": 1.41,
+  "mlx": "0.32.4"
+ }
+}

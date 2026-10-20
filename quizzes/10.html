@@ -145,7 +145,7 @@ a.tryit:hover{background:var(--soft)}
 
 <main>
   <section class="intro">
-    <p class="lede">Ten questions on module 10 — the ~100-line ReAct loop, the three local tools,
+    <p class="lede">Ten questions on module 10 — the hand-rolled ReAct loop, the three local tools,
       code-as-action, and the eval run that turned a convincing demo into a 60% agent.</p>
     <p>Answer in any order; each question locks and explains itself the moment you answer it.
       Your answers are kept in this browser only. Every number below comes from this module's own
@@ -190,25 +190,25 @@ var QUESTIONS = [
   {
     id: "q1",
     cat: "conceptual",
-    topic: "the ReAct loop and how it terminates",
+    topic: "what RESULT: OK means",
     kind: "single",
-    prompt: "<code>run_react(task, max_steps=6, ...)</code> drives the hand-rolled agent. What actually ends the loop?",
+    prompt: "In exercise B's third run (default prompt, fixed <code>kb_lookup</code>), the agent looks up <code>Earth's radius km</code> → <code>6371</code>, then calls <code>calculator[6371 / 1737]</code> and the trace ends <code>RESULT: OK  ->  '3.667818077144502'</code>. The task asked how many Earth radii fit in the Earth–Moon distance. Is the agent right?",
     options: [
-      "The model emitting an empty <code>Thought:</code>, which the loop reads as “nothing left to do”.",
-      "A tool returning an error observation — errors are terminal, so the episode stops there.",
-      "Either the model writes a <code>Final Answer:</code> line, or <code>for _ in range(max_steps)</code> exhausts its six iterations — whichever comes first.",
-      "A confidence threshold on the model's logits, checked after every generation."
+      "Yes: <code>RESULT: OK</code> means the loop checked the answer against the task.",
+      "Yes: the calculator computed the division, and every number came from a tool.",
+      "No: the right answer is 384400 / 6371 ≈ 60.3. The model never looked up the Moon's distance and divided by 1737, the Moon's radius, from its own memory. <code>OK</code> means only that it wrote a <code>Final Answer:</code> line.",
+      "No: the run hit <code>max_steps</code>, and the loop reports <code>OK</code> for any run that ends."
     ],
     answer: 2,
-    explain: "There are exactly two exits: <code>_FINAL_RE.search(raw)</code> → <code>break</code>, or the <code>for</code> loop running out. The module's shipped failure task ends the second way — the model keeps re-issuing a rejected KB key and the step cap cuts it off. Option B is the tempting one: an error observation <em>looks</em> terminal, but the loop simply injects it back as the next user turn and asks the model again.",
-    src: "modules/10-agents/python/src/handrolled.py, run_react() lines 98-167"
+    explain: "The loop has two exits: <code>_FINAL_RE.search(raw)</code> sets <code>trace.ok = True</code> and breaks, or <code>for _ in range(max_steps)</code> runs out and <code>ok</code> stays false. Nothing compares the answer with the task, so <code>ok</code> means “wrote a Final Answer”, not “right”. Option B is the tempting one: 1737 never came from a tool; the model typed it. Fixing the tool removed the loop but not the error. A success check, like the one in <code>eval_lab.py</code> or <code>check()</code> in the solution, is what catches it.",
+    src: "modules/10-agents/transcripts/exercise_b_before_after.txt, third run; python/src/handrolled.py run_react() lines 98-172; solutions/solution_b_break_fix.py check()"
   },
   {
     id: "q2",
     cat: "conceptual",
-    topic: "why generation stops at “Observation:”",
+    topic: "why the reply is cut at “Observation:”",
     kind: "single",
-    prompt: "Every turn, the loop calls <code>model_local.generate(messages, ..., max_new_tokens=200, stop=[\"Observation:\"])</code>. Why truncate the model's own output at that string?",
+    prompt: "Every turn, the loop calls <code>model_local.generate(messages, ..., max_new_tokens=200, stop=[\"Observation:\"])</code>. Why cut the model's reply at that string?",
     options: [
       "Because otherwise the model happily writes its <em>own</em> Observation — a plausible, invented tool result — and the loop would go on to reason over a hallucination instead of over what the tool actually returned.",
       "To keep generation inside the 200-token budget, which a long observation would otherwise blow.",
@@ -216,8 +216,8 @@ var QUESTIONS = [
       "To strip the system prompt's two worked examples back out of the reply before parsing."
     ],
     answer: 0,
-    explain: "This one line is what keeps the tool as the source of truth. The system prompt asks for the same behaviour in words — “Stop after writing an Action; do not write the Observation yourself” — and the stop string is what <em>enforces</em> it, because a 1.7B model does not reliably obey the request. Option B is the tempting distractor: <code>max_new_tokens=200</code> is a separate, independent guard that would still apply with no stop string at all.",
-    src: "modules/10-agents/python/src/handrolled.py lines 115-119 and SYSTEM_PROMPT line 50; src/model_local.py generate() lines 74-80"
+    explain: "This one line is what keeps the tool as the source of truth. The system prompt asks for the same behaviour in words — “Stop after writing an Action; do not write the Observation yourself” — and the cut is what makes it hold, because a 1.7B model does not reliably obey the request. Note that the cut comes <em>after</em> generation: <code>generate()</code> still writes all its tokens, then drops everything from the first <code>Observation:</code> on, so the invented part costs time but never reaches the parser. Option B is the tempting distractor: <code>max_new_tokens=200</code> is a separate, independent guard that would still apply with no stop string at all.",
+    src: "modules/10-agents/python/src/handrolled.py lines 117-123 and SYSTEM_PROMPT line 50; src/model_local.py generate() lines 74-80"
   },
   {
     id: "q3",
@@ -229,7 +229,7 @@ var QUESTIONS = [
       "The <code>CodeAgent</code> runs a bigger model; the loop itself is unchanged.",
       "The <code>CodeAgent</code> calls tools over HTTP, so tools can live on another machine.",
       "The <code>CodeAgent</code> emits JSON objects instead of free text, so action parsing can never fail.",
-      "The <code>CodeAgent</code> writes a Python snippet that a sandboxed interpreter runs, so several tool calls plus arithmetic and control flow happen in a single step — at the price of executing model-written code."
+      "The <code>CodeAgent</code> writes a Python snippet that a restricted Python interpreter runs (not a full sandbox), so several tool calls plus arithmetic and control flow happen in a single step — at the price of executing model-written code."
     ],
     answer: 3,
     explain: "Same functions from <code>src/tools.py</code>, re-exposed with smolagents' <code>@tool</code> decorator — one source of truth, two frameworks — and the same local brain. The saved trace shows the payoff: the lookup-then-multiply that costs the hand-rolled loop two full ReAct turns is <b>one</b> <code>CodeAgent</code> step. Option C is the tempting one, because JSON tool-calling is a real third style — but that is <code>ToolCallingAgent</code>, not <code>CodeAgent</code>, and it is closer to the hand-rolled loop than to code-as-action.",
@@ -250,7 +250,7 @@ var QUESTIONS = [
     ],
     answer: [0, 1, 2],
     explain: "The README's “Be honest: how a small model fails here” names exactly those three, and each ships with an artefact: the one-shot format example, the <code>FAILURE_TASK</code> transcript, and the report-only worked example. Option D is the seductive invention — an unknown tool name is real, but the loop answers it with <code>Error: unknown tool ... Tools: ...</code> and never aliases anything. Option E is not a factor here: these transcripts run 2–6 short turns, nowhere near the context limit.",
-    src: "modules/10-agents/README.md § “Be honest: how a small model fails here”; python/src/handrolled.py lines 152-154"
+    src: "modules/10-agents/README.md § “Be honest: how a small model fails here”; python/src/handrolled.py lines 156-158"
   },
   {
     id: "q5",
@@ -291,7 +291,7 @@ var QUESTIONS = [
       "Switches to <code>list_module_files</code>, finds <code>knowledge_base.json</code>, and reads the value out of the file listing."
     ],
     answer: 2,
-    explain: "The fourth trace in <code>handrolled_traces.json</code> ends <code>\"ok\": false, \"answer\": null</code> after six actions, with the same suggestion echoed back at it every time. Option A is what a frontier model does — and that gap <em>is</em> the lesson. The loop is left in on purpose; fixing it from the system prompt alone, with one recovery rule, is exercise B.",
+    explain: "The fourth trace in <code>handrolled_traces.json</code> ends <code>\"ok\": false, \"answer\": null</code> after six actions, with the same suggestion echoed back at it every time. Option A is what a frontier model does — and that gap <em>is</em> the lesson. The tool shares the blame: this run used the first <code>kb_lookup</code> (now <code>kb_lookup_naive</code>), which turned <code>Earth's</code> into <code>earths</code> and listed both keys in one comma-joined string, and the model copied that string whole. The loop is left in on purpose; fixing it from the system prompt, with one recovery rule, is exercise B.",
     src: "modules/10-agents/transcripts/handrolled_traces.json, trace 4; README.md § Exercises (B); solutions/solution_b_break_fix.py",
     tryIt: true
   },
@@ -328,7 +328,7 @@ var QUESTIONS = [
     ],
     answer: 3,
     explain: "<code>n_steps += 1</code> runs at the top of every iteration, before generation, so the nudge costs a step — which is why format drift shows up as <em>cost</em> in the eval's step histogram as well as a correctness problem. Option A is the tempting misread: the pattern is anchored on the literal string <code>Action:</code>, so a call buried in a Thought is invisible to it. The module's fix is a one-shot example of the exact format in the system prompt, not a looser regex.",
-    src: "modules/10-agents/python/src/handrolled.py line 75 and lines 138-146 (one comment trimmed); n_steps += 1 at line 114; README.md § “Format drift”"
+    src: "modules/10-agents/python/src/handrolled.py line 75 and lines 142-150 (one comment trimmed); n_steps += 1 at line 118; README.md § “Format drift”"
   },
   {
     id: "q10",
@@ -346,7 +346,7 @@ var QUESTIONS = [
     ],
     answer: 1,
     explain: "<code>calculator</code> never calls <code>eval</code>. <code>_eval_node</code> walks the AST and whitelists arithmetic nodes plus a fixed function table, so a method call on an imported module falls straight through to <code>ValueError(\"unsupported expression element: Call\")</code>. Option A is the tempting one, but the broad <code>except Exception</code> turning that error into a <em>string</em> is deliberate design: a bad action becomes an observation the agent can read and correct, not a crash. The same two lines at the bottom are why the demo answer is <code>1036</code> and not <code>1036.0</code>.",
-    src: "modules/10-agents/python/src/tools.py lines 99-109 (two comments trimmed); AST walker at lines 66-86 — observation string verified by running calculator() on that expression"
+    src: "modules/10-agents/python/src/tools.py lines 100-110 (two comments trimmed); AST walker at lines 67-87 — observation string verified by running calculator() on that expression"
   }
 ];
 
@@ -370,7 +370,7 @@ function gradeQuestion(q, ans) {
   if (q.kind === "multi") return Array.isArray(ans) && sameSet(ans, q.answer);
   if (q.kind === "numeric") {
     var v = parseNum(ans);
-    return isFinite(v) && Math.abs(v - q.answer.value) <= q.answer.tol;
+    return isFinite(v) && Math.abs(v - q.answer.value) <= q.answer.tol + 1e-9;
   }
   return false;
 }

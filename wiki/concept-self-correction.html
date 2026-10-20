@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Self-Correction · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="self-correction">Self-Correction</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">self-correction</span> <span class="tag">self-refine</span> <span class="tag">reflection</span> <span class="tag">test-time-compute</span> <span class="tag">reasoning</span> <span class="tag">hub</span></div>
+<p>Self-correction: a model checks its own answer and revises it. The question that matters is where the check gets its information. A model that critiques itself with nothing new to go on can only reuse what it already knew; a model that reads a test result, a retrieved passage or a reward has outside feedback.</p>
+<h2 id="kinds-in-the-wiki">Kinds in the wiki</h2>
+<div class="tw"><table><thead><tr><th>Kind</th><th>Outside feedback?</th><th>Example</th></tr></thead><tbody><tr><td>Prompted critique, same attempt</td><td>none</td><td>Self-Refine: generate, critique, refine with one model and three prompts; about +20 points on average over seven tasks (arXiv 2303.17651; not in raw; <a href="source-self-refine.html">source-self-refine</a>)</td></tr><tr><td>Reflection across attempts</td><td>yes: unit tests, environment signal</td><td>Reflexion: written lessons kept in memory; 91% pass@1 on HumanEval with GPT-4, against 80% (arXiv 2303.11366; not in raw; <a href="source-reflexion-verbal-rl.html">source-reflexion-verbal-rl</a>)</td></tr><tr><td>Learned critique tokens</td><td>yes: retrieved passages</td><td>Self-RAG: tokens judge whether a passage is relevant and whether the answer is supported (<code>raw/arxiv-2310-11511-self-rag-learning-to-retrieve-generate.md</code>, §3.1, Table 1; <a href="source-self-rag.html">source-self-rag</a>)</td></tr><tr><td>Grown by RL</td><td>yes: a reward checker, during training</td><td>DeepSeek-R1-Zero learns to stop and rethink mid-answer ("Wait, wait. Wait. That's an aha moment") under RL on checkable answers (<code>raw/arxiv-2501-12948-deepseek-r1-incentivizing-reasoning-capability-in.md</code>, §2.3, Table 2)</td></tr><tr><td>Feedback turned into a teacher</td><td>yes: errors, test results, judge comments</td><td>SDPO: the model given the feedback teaches the model without it (arXiv 2601.20802; not in raw; <a href="source-sdpo-self-distillation-rl.html">source-sdpo-self-distillation-rl</a>)</td></tr></tbody></table></div>
+<h2 id="the-check-without-feedback">The check without feedback</h2>
+<p>Contradiction (open), carried from <a href="source-self-refine.html">source-self-refine</a>: Huang et al., "Large Language Models Cannot Self-Correct Reasoning Yet" (ICLR 2024, arXiv 2310.01798), find that with no outside feedback, self-correction leaves reasoning scores flat or lowers them, and that some reported gains came from oracle labels deciding when to stop (abstract; not in raw). Six of Self-Refine's seven tasks are writing or code tasks (dialogue, code optimisation and readability, sentiment, acronyms, constrained text); one is maths reasoning (<a href="source-self-refine.html">source-self-refine</a>). Reflexion's evaluator brings outside feedback (<a href="source-reflexion-verbal-rl.html">source-reflexion-verbal-rl</a>). Read together: self-correction helps when something outside the model says what went wrong.</p>
+<p>R1-Zero sits apart. Its "rethink" behaviour shows up in the text at test time with no checker, but it was grown by a checker during training (<code>raw/arxiv-2501-12948-deepseek-r1-incentivizing-reasoning-capability-in.md</code>, §2.3). Whether such learned reflection fixes errors, or only adds length, is the sharpening question of <a href="concept-rlvr.html">concept-rlvr</a>.</p>
+<h2 id="open-questions">Open questions</h2>
+<ul><li>Neither Self-Refine, Reflexion nor Huang et al. has a full text in raw; capture them before weighing the contradiction further.</li><li>How much of R1-style reflection corrects real errors? No source here counts revised-and-right against revised-and-wrong.</li></ul>
+<h2 id="key-sources">Key sources</h2>
+<ul><li><a href="source-self-refine.html">source-self-refine</a> · <a href="source-reflexion-verbal-rl.html">source-reflexion-verbal-rl</a> · <a href="source-self-rag.html">source-self-rag</a> · <a href="source-sdpo-self-distillation-rl.html">source-sdpo-self-distillation-rl</a> · <a href="source-deepseek-r1.html">source-deepseek-r1</a></li><li>Related: <a href="concept-test-time-compute.html">concept-test-time-compute</a> · <a href="thread-test-time-compute.html">thread-test-time-compute</a> · <a href="concept-self-improvement.html">concept-self-improvement</a> · <a href="concept-rlvr.html">concept-rlvr</a> · <a href="concept-knowledge-distillation.html">concept-knowledge-distillation</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2310-11511-self-rag-learning-to-retrieve-generate.md</code></li><li><code>raw/arxiv-2501-12948-deepseek-r1-incentivizing-reasoning-capability-in.md</code> (§2.3)</li><li>Madaan et al., 2023, Self-Refine: <a href="https://arxiv.org/abs/2303.17651" rel="noreferrer">https://arxiv.org/abs/2303.17651</a> (not in raw)</li><li>Shinn et al., 2023, Reflexion: <a href="https://arxiv.org/abs/2303.11366" rel="noreferrer">https://arxiv.org/abs/2303.11366</a> (not in raw)</li><li>Huang et al., 2024: <a href="https://arxiv.org/abs/2310.01798" rel="noreferrer">https://arxiv.org/abs/2310.01798</a> (not in raw)</li><li>Hübotter et al., 2026, SDPO: <a href="https://arxiv.org/abs/2601.20802" rel="noreferrer">https://arxiv.org/abs/2601.20802</a> (not in raw)</li></ul>
+<details class="src"><summary>Sources (6)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2310-11511-self-rag-learning-to-retrieve-generate.md</code></li><li><code>raw/arxiv-2501-12948-deepseek-r1-incentivizing-reasoning-capability-in.md</code></li><li><a href="https://arxiv.org/abs/2303.17651" rel="noreferrer">https://arxiv.org/abs/2303.17651</a></li><li><a href="https://arxiv.org/abs/2303.11366" rel="noreferrer">https://arxiv.org/abs/2303.11366</a></li><li><a href="https://arxiv.org/abs/2310.01798" rel="noreferrer">https://arxiv.org/abs/2310.01798</a></li><li><a href="https://arxiv.org/abs/2601.20802" rel="noreferrer">https://arxiv.org/abs/2601.20802</a></li></ul></details>
+</main>
+</body>
+</html>

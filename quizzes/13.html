@@ -208,7 +208,7 @@ const QUESTIONS = [
   {
     id: "q2", kind: "numeric", tag: "numbers", topic: "The rank among neighbours",
     text: "For each of channels 45 to 65 of layer 4e, the gap is the median on Vs minus the larger of the cat " +
-          "and car medians, in units of the pooled spread. Rank 1 is the largest gap. <b>Type the rank of 4e:55</b> " +
+          "and car medians, in pooled standard deviations. Rank 1 is the largest gap. <b>Type the rank of 4e:55</b> " +
           "among the 21.",
     answer: 21, tol: 0, tolLabel: "exact",
     placeholder: "e.g. 3",
@@ -237,7 +237,7 @@ const QUESTIONS = [
   {
     id: "q4", kind: "single", tag: "conceptual", topic: "The random-weight control",
     text: "With random weights, 4e:55 barely moves (medians 0.032 to 0.036 across the six sets), yet its gap is " +
-          "−1.06 pooled SD, outside the ±0.5 the control allowed. What does that show?",
+          "−1.06 pooled standard deviations, outside the ±0.5 the control allowed. What does that show?",
     options: [
       "The random network has learned a weak cat detector.",
       "The gap formula is wrong: it should give 0 for any random network.",
@@ -245,8 +245,8 @@ const QUESTIONS = [
       "Photos and flat drawings differ in plain image statistics, and even a network that learned nothing separates them a little."
     ],
     answer: 3,
-    explain: "A random network cannot have learned anything about cats. The gap divides by the spread, so a " +
-             "tiny but consistent shift (photos slightly above drawings) still shows as about one SD. Drawings " +
+    explain: "A random network cannot have learned anything about cats. The gap divides by the pooled standard deviation, so a " +
+             "tiny but consistent shift (photos slightly above drawings) still shows as about one standard deviation. Drawings " +
              "against photos is a confound the measurement cannot remove.",
     source: "modules/13-inside-vision-and-jepa/results/v_neuron.json → random.median, random.gap_55"
   },

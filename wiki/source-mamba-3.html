@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Mamba-3: Improved Sequence Modeling using State Space Principles (Lahoti, Li, Chen, Wang, Bick, Kolter, Dao, Gu, 2026) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="mamba-3">Mamba-3</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">state-space-models</span> <span class="tag">ssm</span> <span class="tag">mamba</span> <span class="tag">linear-attention</span> <span class="tag">architecture</span> <span class="tag">inference-efficiency</span> <span class="tag">state-tracking</span> <span class="tag">hybrid-models</span> <span class="tag">2026</span></div>
+<p><strong>Authors:</strong> Aakash Lahoti, Kevin Y. Li, Berlin Chen, Caitlin Wang (equal contribution), Aviv Bick, J. Zico Kolter, Tri Dao and Albert Gu (equal advising); Carnegie Mellon, Princeton, Together AI, Cartesia AI <strong>Published:</strong> arXiv 2603.15569, v1 2026-03-16 (the only version); ICLR 2026 (arXiv comment); kernels at github.com/state-spaces/mamba <strong>Raw copy:</strong> <code>raw/arxiv-2603-15569-mamba-3-improved-sequence-modeling-using.md</code> (full text of v1 from the arXiv HTML, captured 2026-10-20)</p>
+<p>Every claim below cites the raw file as R, with its section, table or figure.</p>
+<h2 id="summary">Summary</h2>
+<p>A state space model (SSM) layer reads a sequence by updating a fixed-size state, so memory stays constant and compute grows linearly with length, unlike attention's growing cache (R, §1). The authors design Mamba-3 for inference first: decoding with Mamba-2 leaves the GPU mostly idle, waiting on memory (R, §1). Three changes on top of <a href="source-mamba-2-ssm-duality.html">source-mamba-2-ssm-duality</a> (R, §1, §3):</p>
+<ol><li><strong>Exponential-trapezoidal discretization.</strong> A better rule for turning the continuous-time model into steps. It shows Mamba-1 and -2's step rule was a special case ("exponential-Euler") and adds an implicit short convolution on the input. With new learned biases on B and C, the separate short convolution that recurrent language models carry can go (R, §1, §3.1, §3.4, Table 5a).</li><li><strong>Complex-valued state.</strong> Lets the state rotate, which plain decays cannot do; computed cheaply as a rotary embedding (RoPE) that depends on the data (R, §3.2, Propositions 2–4). This gives state tracking: Mamba-3 solves parity (100%) and modular arithmetic without brackets (98.5%), where Mamba-2 and Mamba-3 without RoPE score near zero (R, §4.2, Table 5b).</li><li><strong>Multi-input, multi-output (MIMO).</strong> The state update becomes a matrix multiplication instead of an outer product, so each decode step does more arithmetic per byte of memory read, with the same state size (R, §3.3). It costs slower training (R, §6).</li></ol>
+<p>The block follows Llama's layout, alternating Mamba-3 and SwiGLU layers, with RMS norm on B and C like QK-norm in transformers (R, §3.4).</p>
+<h2 id="key-results">Key results</h2>
+<p>All models trained on 100B FineWeb-Edu tokens at 2K context, same recipe; sizes 180M to 1.5B (R, §4.1, Appendix D).</p>
+<ul><li><strong>Quality at 1.5B.</strong> Average over eight zero-shot tasks: Transformer 55.4, Gated DeltaNet 55.8, Mamba-2 55.7, Mamba-3 SISO 56.4, Mamba-3 MIMO 57.6. So +0.6 points over Gated DeltaNet for the single-input version, +1.8 with MIMO (R, Table 3, Abstract). Mamba-3 SISO leads at every size (R, Table 3).</li><li><strong>Half the state.</strong> At 440M, Mamba-3 with half the state size beats Mamba-2's perplexity; MIMO shifts the curve further (R, §4.3, Figure 3). The introduction states it as MIMO at state 64 matching Mamba-2 at 128 (R, §1).</li><li><strong>Speed.</strong> One decode step on an H100 (1.5B, bf16, state 128): Mamba-3 SISO 0.156 ms, Mamba-2 0.203, Gated DeltaNet 0.257; MIMO 0.179 (R, §4.4, Table 6). At 16,384 tokens prefilled and 16,384 decoded, batch 128, the table gives 140.61 for Mamba-3 SISO against 976.50 for Llama-3.2-1B on vLLM, with no unit stated; the vLLM figure is estimated from batch 16 times 8, since batch 128 did not fit in memory (R, Table 7, Appendix G.2).</li><li><strong>Retrieval stays the weak spot.</strong> Pure linear models trail the Transformer on extracting facts from semi-structured text (SWDE: Transformer 48.9, Mamba-3 SISO 28.5) (R, §4.1.2, Table 4). Mixed 5:1 with attention layers, the hybrids catch up or pass the Transformer on those tasks (R, Table 4).</li><li><strong>Hybrids need a norm back.</strong> In 5:1 hybrids, restoring a grouped RMS norm before the output gate lifts long needle-in-a-haystack retrieval (to 96.0 and 56.8 on the hardest settings, from 9.4 and 8.8) at a small cost on real-world retrieval (R, §4.1.2, Table 4).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>Scale stops at 1.5B and 100B tokens; context 2K in training (R, §4.1).</li><li>The Transformer baseline uses RoPE and fails needle-in-a-haystack beyond its training length, which the authors say may explain that gap (R, Table 4 caption).</li><li>On modular arithmetic with brackets, the state-tracking version of Gated DeltaNet still leads (93.5 vs 87.75) (R, Table 5b).</li><li>The authors call hybrid behaviour "complex and oftentimes unintuitive"; the best norm placement is open (R, §4.1.2, Appendix E).</li><li>Table 7 gives no units, and its longest vLLM point is extrapolated (R, Table 7, Appendix G.2).</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-mamba-ssm.html">source-mamba-ssm</a>, <a href="source-mamba-2-ssm-duality.html">source-mamba-2-ssm-duality</a> — its two predecessors; Mamba-3 builds on Mamba-2's duality (R, §2.3, §5.1).</li><li><a href="source-gated-deltanet.html">source-gated-deltanet</a> — the strongest baseline here, a linear-attention layer that both decays its memory and overwrites single entries (the gated delta rule).</li><li><a href="entity-tri-dao.html">entity-tri-dao</a> — co-advisor, with Albert Gu.</li><li><a href="concept-transformer-architecture.html">concept-transformer-architecture</a> — the authors expect linear layers to be used "predominantly" in hybrids with attention (R, §4.1.2).</li><li><a href="source-memory-mosaics-at-scale.html">source-memory-mosaics-at-scale</a> — argues fixed-state models fail multi-document QA; Mamba-3's Table 4 shows the same weakness on SWDE and FDA, and hybrids closing it.</li><li><a href="source-topological-trouble-transformers.html">source-topological-trouble-transformers</a> — argues for recurrence on state tracking; Mamba-3's complex state is a recurrent layer that passes parity.</li><li><a href="source-olmo-hybrid-rnn-transformer.html">source-olmo-hybrid-rnn-transformer</a>, <a href="source-m2rnn-matrix-valued-states.html">source-m2rnn-matrix-valued-states</a>, <a href="source-ttt-kv-binding-linear-attention.html">source-ttt-kv-binding-linear-attention</a> — other recurrent and hybrid lines; the paper groups linear attention and test-time training as "associative memory" and sets the SSM view apart (R, §5.4).</li><li><a href="concept-long-context.html">concept-long-context</a> — constant memory per token at decode.</li><li>Hub (2026-10-20): <a href="concept-state-space-models.html">concept-state-space-models</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2603-15569-mamba-3-improved-sequence-modeling-using.md</code></li><li><a href="https://arxiv.org/abs/2603.15569" rel="noreferrer">https://arxiv.org/abs/2603.15569</a></li><li><a href="https://github.com/state-spaces/mamba" rel="noreferrer">https://github.com/state-spaces/mamba</a></li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2603-15569-mamba-3-improved-sequence-modeling-using.md</code></li><li><a href="https://arxiv.org/abs/2603.15569" rel="noreferrer">https://arxiv.org/abs/2603.15569</a></li><li><a href="https://github.com/state-spaces/mamba" rel="noreferrer">https://github.com/state-spaces/mamba</a></li></ul></details>
+</main>
+</body>
+</html>

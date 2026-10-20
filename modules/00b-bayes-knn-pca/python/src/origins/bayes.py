@@ -134,8 +134,9 @@ class GaussianBayes(GaussianNaiveBayes):
     One full covariance matrix per class instead of a diagonal of variances, so
     each class can be a tilted ellipse. Classic quadratic discriminant analysis.
     It costs ``D(D+1)/2`` parameters per class instead of ``D`` — fine in 2-D,
-    hopeless on 784 pixels with a few thousand images, which is the whole reason
-    "naive" survives.
+    workable on 784 pixels only with shrinkage (``var_smoothing`` adds a multiple
+    of the identity); naive Bayes survives because it is cheap and needs no
+    tuning.
     """
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> "GaussianBayes":
@@ -160,7 +161,10 @@ class GaussianBayes(GaussianNaiveBayes):
         out = np.empty((len(X), len(self.classes_)))
         for i in range(len(self.classes_)):
             d = X - self.theta_[i]
-            sign, logdet = np.linalg.slogdet(self.cov_[i])
+            # On 784 pixels the LU product underflows on the way and raises
+            # spurious float warnings; the log-determinant itself is exact.
+            with np.errstate(all="ignore"):
+                sign, logdet = np.linalg.slogdet(self.cov_[i])
             # Mahalanobis distance: solve instead of inverting the matrix
             m = (d * np.linalg.solve(self.cov_[i], d.T).T).sum(axis=1)
             out[:, i] = self.log_prior_[i] - 0.5 * (

@@ -26,7 +26,7 @@ def gru_cell(x, h, w_ih, w_hh, b_ih, b_hh):
     # TODO(you): gi = x W_ih^T + b_ih and gh = h W_hh^T + b_hh, each split in three (r, z, n).
     # TODO(you): r and z are sigmoids of the sums; n = tanh(i_n + r * h_n).
     # TODO(you): return (1 - z) * n + z * h.
-    ...
+    raise NotImplementedError("TODO(you): write gru_cell first")
 
 
 def run_gru(x, gru: torch.nn.GRU):

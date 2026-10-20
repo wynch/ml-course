@@ -59,14 +59,14 @@ border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem
 <nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
 <main>
 <h1 id="patterning-the-dual-of-interpretability">Patterning: The Dual of Interpretability</h1>
-<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-04-05</span> <span class="tag">interpretability</span> <span class="tag">training-data</span> <span class="tag">mechanistic-interpretability</span> <span class="tag">generalization</span></div>
+<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-10-19</span> <span class="tag">interpretability</span> <span class="tag">training-data</span> <span class="tag">mechanistic-interpretability</span> <span class="tag">generalization</span></div>
 <p><strong>Authors:</strong> George Wang, Daniel Murfet <strong>Date:</strong> 2026-01-20 <strong>arXiv:</strong> <a href="https://arxiv.org/abs/2601.13548" rel="noreferrer">2601.13548</a></p>
 <h2 id="summary">Summary</h2>
 <p>Introduces patterning as a complement to mechanistic interpretability. Instead of reverse-engineering networks (interpretability), it addresses the inverse problem: given a desired form of generalization, determine what training data produces it.</p>
 <h2 id="key-ideas">Key Ideas</h2>
-<ul><li>Uses susceptibilities — measurements of how model outputs respond to data distribution shifts</li><li>Steers models toward target configurations by reweighting training data</li><li>Framed as the dual of interpretability: interpretability asks "what did the model learn?", patterning asks "what data makes the model learn X?"</li></ul>
+<ul><li>Uses susceptibilities — measurements of how model outputs respond to data distribution shifts</li><li>Steers models toward target configurations by reweighting training data</li><li>Two results: re-weighting data along susceptibility directions speeds up or slows the induction circuit in a small LM; on parenthesis balancing, targeting each solution's local learning coefficient picks which algorithm the model learns (arXiv 2601.13548, abstract)</li><li>Framed as the dual of interpretability: interpretability asks "what did the model learn?", patterning asks "what data makes the model learn X?"</li></ul>
 <h2 id="connections">Connections</h2>
-<ul><li>Dual of <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a></li><li>Relevant to <a href="concept-model-training.html">concept-model-training</a> — principled data selection</li><li>Connects to data influence / data attribution research</li></ul>
+<ul><li>Dual of <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a></li><li>Relevant to <a href="concept-model-training.html">concept-model-training</a> — principled data selection</li><li>Connects to data influence / data attribution research</li><li><a href="source-steering-generalization-alignment.html">source-steering-generalization-alignment</a> — a one-tweet commentary on this paper's alignment use</li></ul>
 <h2 id="references">References</h2>
 <ul><li><a href="https://arxiv.org/abs/2601.13548" rel="noreferrer">arXiv page</a></li></ul>
 <details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2601.13548" rel="noreferrer">https://arxiv.org/abs/2601.13548</a></li></ul></details>

@@ -265,7 +265,7 @@ const QUESTIONS = [
     ],
     answer: 2,
     explain: "1,064 at k = 8, 697 at k = 16, 274 at k = 32, 5 at k = 64. A latent outside the top k gets no " +
-             "gradient that step, so with few slots a latent that stops winning can stay dead. Gao et al. add an " +
+             "gradient in its encoder row, encoder bias or decoder column that step, so with few slots a latent that stops winning can stay dead. Gao et al. add an " +
              "auxiliary loss (AuxK) for this; the module's script does not.",
     source: "modules/12-features-and-dictionaries/results/sae.json → sweep[].dead · figures/sae_metrics.png"
   },

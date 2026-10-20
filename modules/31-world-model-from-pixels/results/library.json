@@ -1,0 +1,85 @@
+{
+ "package": {
+  "stable-worldmodel": "0.1.1",
+  "opencv": "5.0.0.93"
+ },
+ "world": {
+  "episodes": 50,
+  "steps": 4600,
+  "max_position_diff": 0.0,
+  "frames_compared": 200,
+  "pixel_abs_diff_mean": 0.0181,
+  "pixel_abs_diff_max": 0.5137,
+  "pixel_share_diff_over_0.25": 0.0273
+ },
+ "losses": {
+  "batches": 50,
+  "sigreg_max_rel_diff": 0.0,
+  "vc_std_max_rel_diff": 0.0,
+  "vc_cov_max_rel_diff": 0.0
+ },
+ "plan": {
+  "model": "lewm_s0",
+  "library_cem": {
+   "cross": {
+    "success": 0.22,
+    "n_success": 22
+   },
+   "same": {
+    "success": 0.43,
+    "n_success": 43
+   }
+  },
+  "our_cem": {
+   "cross": {
+    "success": 0.1,
+    "n_success": 10
+   },
+   "same": {
+    "success": 0.26,
+    "n_success": 26
+   }
+  },
+  "same_outcome_tasks": {
+   "cross": 88,
+   "same": 77
+  },
+  "followup_our_cem_noclip": {
+   "cross": {
+    "success": 0.22,
+    "n_success": 22
+   },
+   "same": {
+    "success": 0.43,
+    "n_success": 43
+   }
+  },
+  "same_outcome_tasks_noclip": {
+   "cross": 100,
+   "same": 100
+  }
+ },
+ "guards": {
+  "checks": {
+   "script": "library checks",
+   "seconds": 1.9,
+   "minutes": 0.03,
+   "peak_rss_gb": 0.47,
+   "peak_mps_driver_gb": 0.0,
+   "stages_seconds": {
+    "world": 0.93,
+    "losses": 0.93
+   },
+   "machine": "arm64 26.6.2",
+   "python": "3.12.13",
+   "torch": "2.14.1",
+   "threads": 4,
+   "device": "cpu",
+   "mps_high_watermark_ratio": "0.5"
+  },
+  "plan_chunks": 1,
+  "plan_max_minutes": 2.51,
+  "plan_total_minutes": 2.5,
+  "plan_max_peak_rss_gb": 0.42
+ }
+}

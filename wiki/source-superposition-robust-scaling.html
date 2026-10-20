@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Superposition Yields Robust Neural Scaling (Liu, Liu, Gore, 2025) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="superposition-yields-robust-neural-scaling">Superposition yields robust neural scaling</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">superposition</span> <span class="tag">scaling-laws</span> <span class="tag">toy-models</span> <span class="tag">theory</span> <span class="tag">representation</span> <span class="tag">mechanistic-interpretability</span> <span class="tag">2025</span></div>
+<p><strong>Authors:</strong> Yizhou Liu, Ziming Liu, Jeff Gore (MIT) <strong>Published:</strong> arXiv 2505.10465, v1 2025-05-15, v4 2025-11-29; NeurIPS 2025 best paper runner-up (arXiv comment); code at github.com/liuyz0/SuperpositionScaling <strong>Raw copy:</strong> <code>raw/arxiv-2505-10465-superposition-yields-robust-neural-scaling.md</code> (full text of v4 from the arXiv HTML, captured 2026-10-20)</p>
+<p>Every claim below cites the raw file as R, with its section, table or figure.</p>
+<h2 id="summary">Summary</h2>
+<p>Why does loss fall as a power law in model size? The authors propose one cause: a model must represent more things (tokens, concepts) than it has dimensions, and how it packs them sets the slope (R, Abstract, §1).</p>
+<p>They use Anthropic's toy model of superposition: an autoencoder squeezes n sparse features into m &lt; n dimensions and reads them back through a ReLU (R, §2, Figure 2). Feature i appears with frequency p_i ∝ 1/i^α, so α sets how skewed the features are; α = 1 is Zipf's law (R, §3, footnote 3). Weight decay sets the regime: positive decay leaves about m features represented and drops the rest (weak superposition); negative decay pushes every feature's vector toward unit length, so nearly all are represented, overlapping (strong superposition) (R, §2, Eq. 2, Figure 3).</p>
+<h2 id="key-results">Key results</h2>
+<ul><li><strong>Weak superposition: power law in, power law out.</strong> The loss is the total frequency of the features left out. It follows a power law in width m only if feature frequencies do, with exponent α − 1 (R, §3.1, Result 1, Figure 4).</li><li><strong>Strong superposition: loss ∝ 1/m, whatever the data.</strong> The loss comes from overlaps between feature vectors. Squeezed into m dimensions, the squared overlap between directions is about 1/m, so the loss scales as 1/m across a broad range of frequency distributions; the frequent features settle into near-equal angles (R, §3.2, Result 2, Figure 5). For very skewed data (large α) the exponent rises toward 2(α − 1) (R, §3.2, Figure 5e).</li><li><strong>Real LLMs look like the strong case.</strong> In the output layers of OPT, GPT-2, Qwen2.5 and Pythia (about 100M to 70B parameters), every token's row has non-zero length, so all tokens are represented, and the mean squared overlap of rows falls roughly as 1/m (R, §3.3, Figure 6a, Appendix D.7). Fitting their loss as C/m^α_m plus a constant gives α_m = 0.91 ± 0.04; the Chinchilla models give 0.88 ± 0.06 by the authors' conversion (R, §3.3, Eq. 6).</li><li><strong>What it predicts.</strong> For natural language the width exponent cannot be pushed much past 1; the width part of the loss should stop following a power law once width reaches the number of things to represent, which the vocabulary size only bounds from below (R, §5). Encouraging superposition, as nGPT's unit-sphere weights do, may lower the coefficient but not the exponent (R, §5).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>The toy model is not solved; the strong-regime account mixes guesses and measurements (R, §3.2, §5).</li><li>The mapping to LLMs is "naive": tokens stand in for features, and only the output layer is measured (R, §3.3). Losses from the layers in between, and scaling with data or training steps, are not studied (R, §5).</li><li>"Strong superposition" in LLMs rests on all rows having non-zero norm (R, Appendix D.7); that is the "more features than dimensions" sense, not proof that unrelated things share a neuron.</li><li>The overlap data for LLMs is "quite noisy" and is not fitted (R, Appendix D.7).</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="concept-superposition.html">concept-superposition</a> — this paper uses the first sense in that page's table (more features than dimensions). Contradiction (partial) with <a href="source-goodfire-already-clean.html">source-goodfire-already-clean</a>, recorded there.</li><li><a href="concept-scaling-laws.html">concept-scaling-laws</a> — a mechanism for the size exponent; <a href="source-kaplan-scaling-laws.html">source-kaplan-scaling-laws</a> and <a href="source-chinchilla-compute-optimal.html">source-chinchilla-compute-optimal</a> give the exponents it is checked against.</li><li><a href="source-neural-scaling-laws-from-language-statistics.html">source-neural-scaling-laws-from-language-statistics</a> — another account of the exponents, from statistics of the data; this paper's weak regime is the kind of result where exponents follow the data (R, §4).</li><li><a href="source-anthropic-mi-foundations.html">source-anthropic-mi-foundations</a> — <em>Toy Models of Superposition</em>, whose model this paper reuses.</li><li><a href="source-learning-mechanics.html">source-learning-mechanics</a> — the position paper that says theory cannot yet predict scaling exponents from data; this is a partial attempt from the model side.</li><li><a href="source-nonlinear-feature-representations.html">source-nonlinear-feature-representations</a> — argues magnitude-based packing should be rare; here packing is by direction.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2505-10465-superposition-yields-robust-neural-scaling.md</code></li><li><a href="https://arxiv.org/abs/2505.10465" rel="noreferrer">https://arxiv.org/abs/2505.10465</a></li><li><a href="https://github.com/liuyz0/SuperpositionScaling" rel="noreferrer">https://github.com/liuyz0/SuperpositionScaling</a></li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2505-10465-superposition-yields-robust-neural-scaling.md</code></li><li><a href="https://arxiv.org/abs/2505.10465" rel="noreferrer">https://arxiv.org/abs/2505.10465</a></li><li><a href="https://github.com/liuyz0/SuperpositionScaling" rel="noreferrer">https://github.com/liuyz0/SuperpositionScaling</a></li></ul></details>
+</main>
+</body>
+</html>

@@ -1,0 +1,33 @@
+{
+ "written": "2026-10-20, before any run whose numbers appear in results/ (train runs, plan runs, grid runs, library runs)",
+ "seen_before_writing": [
+  "src/tworoom.py against stable-worldmodel's TwoRoomEnv: 20 episodes, 1,200 noisy-expert steps, largest position difference 0.",
+  "The noise-free expert reached 100 of 100 goals in each test split (at most 58 steps across rooms, 34 within).",
+  "One pilot of the lewm arm, seed 0, 1,000 steps (a third of the planned run), on MPS in 95 s: held-out prediction loss 0.018 after BatchNorm statistics were recomputed (0.26 before: the reason for lewm.recalibrate), probe R2 for (x, y) 0.93, effective rank 29.0 of 32, Spearman(latent distance, walk distance) 0.42, imagined position error 13.4 to 14.9 units over 6 blocks against 13.2 to 13.9 for the probe on real frames.",
+  "Planning with that pilot model on the first 15 tasks of each split: CEM 1 of 15 across rooms and 3 of 15 within; random shooting 6 and 11; gradient planner (10 starts x 100 steps, too slow; cut to 20 x 25 for the real runs) 2 and 9; CEM with the true world and a straight-line cost 5 and 15. On 8 same-room tasks CEM's plans cost about 45 while a straight-line plan cost 1.5 to 69: CEM stalls on a flat cost.",
+  "A smoke test of grid_terms.py on 30 arenas, seed 0, with 200 training steps for the new arms (6,000 for ema): agent-cell probe R2 ema -0.02, pldm 0.51, sigreg_idm 0.00, ema_plain 0.01; plan success 1, 2, 0 and 4 of 30.",
+  "The pilot run, its plans and the smoke test are deleted; none of their numbers is reported as a result."
+ ],
+ "expectations": {
+  "E1": "pred_only (no SIGReg, no EMA, no stop-gradient) collapses in every seed: effective rank under 2 of 32 and probe R2 for (x, y) under 0.2.",
+  "E2": "lewm (D = 32, lambda 0.1): probe R2 for (x, y) at least 0.9 and effective rank at least 20 of 32, in every seed.",
+  "E3": "dim8 and dim192 also reach probe R2 of at least 0.9 in every seed.",
+  "E4": "Spearman between latent distance and walk distance ranks dim8 > lewm > dim192 (mean of 3 seeds), with dim8 at least 0.1 above dim192.",
+  "E5": "lewm: the imagined position after 6 blocks is off by at most 1.5 times the probe's error on the real frame (mean of 3 seeds).",
+  "E6": "CEM with the true world and a straight-line cost: at least 95% within a room, at most 50% across rooms (the cost walks into the wall).",
+  "E7": "lewm with CEM: 10% to 50% within a room, under 20% across rooms (mean of 3 seeds).",
+  "E8": "Random shooting beats CEM on lewm within a room by at least 20 points (mean of 3 seeds).",
+  "E9": "The gradient planner on lewm does worse than random shooting in both splits (mean of 3 seeds).",
+  "E10": "pred_only with CEM does no better than random actions plus 5 points, in both splits.",
+  "E11": "dim8 with CEM beats lewm with CEM across rooms by at least 10 points (mean of 3 seeds).",
+  "E12": "Expert 100% in both splits; random actions at most 10% within a room and 5% across.",
+  "E13": "Grid, arm ema, seed 0, reproduces module 25: 11 of 300 goals (3.7%) and agent-cell R2 -0.015.",
+  "E14": "Grid, ema_idm: agent-cell R2 at least 0.5 and plan success at least 20% (mean of 3 seeds).",
+  "E15": "Grid, ema_plain: agent-cell R2 stays under 0.1; the residual predictor alone is not what drops the agent.",
+  "E16": "Grid, vc and pldm: agent-cell R2 at least 0.5 and plan success at least 20%; pldm at least as good as vc (mean of 3 seeds).",
+  "E17": "Grid, sigreg alone: agent-cell R2 under 0.3; sigreg_idm at least 0.5.",
+  "E18": "Grid: no arm reaches module 25's one-hot planner (75.7%); the best arm stays at or under 60%.",
+  "E19": "Library: our SIGReg equals stable-worldmodel's SIGReg, and our variance and covariance terms equal its VCReg, to 1e-5 relative, given the same random directions.",
+  "E20": "Library: stable-worldmodel's CEMSolver driving the lewm seed-0 model in the library's own TwoRoomEnv lands within 10 points of our CEM on the same tasks, in both splits."
+ }
+}

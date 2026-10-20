@@ -59,8 +59,8 @@ border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem
 <nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
 <main>
 <h1 id="lats-language-agent-tree-search">LATS: Language Agent Tree Search</h1>
-<div class="meta"><span class="type">source</span> <span>created 2026-04-13</span> <span>updated 2026-04-13</span> <span class="tag">agents</span> <span class="tag">mcts</span> <span class="tag">tree-search</span> <span class="tag">planning</span></div>
-<p><strong>Zhou, Yu, Rao, Zhang, Xu — ICML 2024 (arXiv 2310.04406)</strong></p>
+<div class="meta"><span class="type">source</span> <span>created 2026-04-13</span> <span>updated 2026-10-20</span> <span class="tag">agents</span> <span class="tag">mcts</span> <span class="tag">tree-search</span> <span class="tag">planning</span></div>
+<p><strong>Andy Zhou, Kai Yan, Michal Shlapentokh-Rothman, Haohan Wang, Yu-Xiong Wang — ICML 2024 (arXiv 2310.04406)</strong></p>
 <p>Unifies reasoning (CoT), acting (ReAct), and planning by running <strong>MCTS over LM-generated actions</strong>, using the LLM simultaneously as actor, value function, and self-reflector. Environment feedback backs up through the tree.</p>
 <h2 id="neuralsymbolic-bridge">Neural↔symbolic bridge</h2>
 <p>The symbolic substrate is <strong>MCTS itself</strong> — an explicit search tree with UCB scores, backups, and node states. The LLM provides a policy prior and a heuristic value; deliberation lives in the tree structure. Clean instance of classical AI search wrapped around a neural rollout policy. Conceptual sibling of <a href="source-rap-reasoning-planning.html">source-rap-reasoning-planning</a>.</p>

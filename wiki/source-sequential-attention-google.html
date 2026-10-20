@@ -59,17 +59,18 @@ border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem
 <nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
 <main>
 <h1 id="sequential-attention-leaner-and-faster-models">Sequential Attention: Leaner and Faster Models</h1>
-<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-04-05</span> <span class="tag">efficiency</span> <span class="tag">pruning</span> <span class="tag">feature-selection</span> <span class="tag">google-research</span></div>
+<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-10-19</span> <span class="tag">efficiency</span> <span class="tag">pruning</span> <span class="tag">feature-selection</span> <span class="tag">google-research</span></div>
 <p><strong>Authors:</strong> Thomas Fu, Kyriakos Axiotis (Google Research) <strong>Date:</strong> 2026-02-04</p>
 <h2 id="summary">Summary</h2>
+<p>The blog covers two papers: Yasuda, Bateni, Chen, Fahrbach, Fu, Mirrokni, "Sequential Attention for Feature Selection" (ICLR 2023, arXiv 2209.14881), and Yasuda, Axiotis, Fu, Bateni, Mirrokni, "SequentialAttention++ for Block Sparsification" (arXiv 2402.17902).</p>
 <p>Subset selection algorithm for model efficiency. Greedy sequential selection of optimal components integrated directly into training, applicable to feature selection, embedding dimension tuning, and weight pruning.</p>
 <h2 id="key-ideas">Key Ideas</h2>
 <ul><li>Attention weights identify high-order non-linear feature interactions</li><li>Sequential, adaptive selection during training (not post-hoc)</li><li>Applications: feature selection, embedding tuning, weight pruning</li><li>Avoids excessive computational overhead of exhaustive search</li></ul>
 <h2 id="connections">Connections</h2>
-<ul><li>Relevant to <a href="concept-model-training.html">concept-model-training</a> — efficiency during training</li><li>Pruning approach complementary to <a href="source-residual-matrix-transformer.html">source-residual-matrix-transformer</a> — different efficiency strategies</li></ul>
+<ul><li>Relevant to <a href="concept-model-training.html">concept-model-training</a> — efficiency during training</li><li>Pruning approach complementary to <a href="source-residual-matrix-transformer.html">source-residual-matrix-transformer</a>: one removes features or weights, the other enlarges the residual stream at fixed compute; both aim at efficiency</li></ul>
 <h2 id="references">References</h2>
 <ul><li><a href="https://research.google/blog/sequential-attention-making-ai-models-leaner-and-faster-without-sacrificing-accuracy/" rel="noreferrer">Google Research blog</a></li></ul>
-<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://research.google/blog/sequential-attention-making-ai-models-leaner-and-faster-without-sacrificing-accuracy/" rel="noreferrer">https://research.google/blog/sequential-attention-making-ai-models-leaner-and-faster-without-sacrificing-accuracy/</a></li></ul></details>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://research.google/blog/sequential-attention-making-ai-models-leaner-and-faster-without-sacrificing-accuracy/" rel="noreferrer">https://research.google/blog/sequential-attention-making-ai-models-leaner-and-faster-without-sacrificing-accuracy/</a></li><li><a href="https://arxiv.org/abs/2209.14881" rel="noreferrer">https://arxiv.org/abs/2209.14881</a></li><li><a href="https://arxiv.org/abs/2402.17902" rel="noreferrer">https://arxiv.org/abs/2402.17902</a></li></ul></details>
 </main>
 </body>
 </html>

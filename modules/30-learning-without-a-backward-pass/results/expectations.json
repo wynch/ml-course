@@ -1,0 +1,32 @@
+{
+ "written": "2026-10-20, before any run in results/runs/, results/memory.json, results/credit.json or results/library*.json",
+ "seen_before_writing": [
+  "pilots on training images 0-49,999, scored on training images 50,000-59,999 (never the test set), seed 0: backprop 87.2% after 2 epochs; Mono-Forward 85.8% after 2; predictive coding (T 20, step 0.1) 84.1% after 1; forward-forward 83.8% after 8 at Adam rate 3e-3 (1e-2: 83.0%, 1e-3: 66.8% after 3); MeZO 65.7% after 6 at rate 2e-4, 59.1% at 1e-4, and rates 5e-4 and above diverged to chance.",
+  "a check on 32 random images: predictive coding's update for each layer has cosine 1.00 with backprop's the step the error first reaches it, then drifts to about 0.90-0.93 by 200 steps; the lowest layer's update is 0.001 of backprop's size at 3 steps.",
+  "checkpointing gave the same weights as backprop to 0.0 after 3 steps."
+ ],
+ "settings_fixed": "batch 64, 20 epochs on all 60,000 training images, 3 seeds; Adam 1e-3 for backprop, checkpointing (3 segments), Mono-Forward and predictive coding (T 20, step 0.1); Adam 3e-3 and threshold 2 for forward-forward; plain SGD rate 2e-4 and epsilon 1e-3 for MeZO; one extra MeZO run of 100 epochs, seed 0.",
+ "expectations": {
+  "E1": "Test accuracy after 20 epochs, mean of 3 seeds: backprop 88-90%.",
+  "E2": "Checkpointing gives the same test accuracy as backprop to every digit, at 1.0-1.5x its time per epoch.",
+  "E3": "Mono-Forward ends within 2 points of backprop; predictive coding within 1.5 points.",
+  "E4": "Forward-forward ends 3-8 points under backprop, and under Mono-Forward.",
+  "E5": "MeZO ends at 65-80% after 20 epochs, and is still below 85% after 100.",
+  "E6": "Predictive coding takes 4-10x backprop's time per epoch; MeZO 3-10x; Mono-Forward and forward-forward 1-3x.",
+  "E7": "Memory (width 1,024, batch 2,048, measured peak above an inference-only run): at 16 hidden layers, MeZO, forward-forward and Mono-Forward each need at most 60% of backprop's extra memory; MeZO needs the least of all.",
+  "E8": "Checkpointing (sqrt-n segments) saves memory against backprop but stays more than 10% above Mono-Forward at 16 layers, since it still keeps gradients and Adam's two buffers.",
+  "E9": "Predictive coding saves no memory: within 30% of backprop's extra memory at every depth, since it keeps a value and an error for every layer.",
+  "E10": "Not an expectation but a gap: the plan asked for energy per run from powermetrics, which needs root (sudo asks for a password here). Energy is not measured; wall time on the CPU stands in, and the README says so.",
+  "E11": "Library lane (SmolLM2-360M-Instruct, SST-2): MeZO's peak memory is at most 70% of LoRA backprop's; LoRA reaches at least 88% validation accuracy within 300 steps; MeZO gains at least 3 points over the untrained model within 2,000 steps but stays under LoRA.",
+  "E12": "Credit at depth: in a net of 8 hidden layers of 256, predictive coding's update to the layer k steps below the top is exactly zero for the first k inference steps; when it arrives its cosine with backprop's gradient is above 0.95, and for the lowest layer its size stays under 1% of backprop's at 20 steps."
+ },
+ "written_E12": "2026-10-20, after results/memory.json and before any run of src/credit.py",
+ "seen_after_E11_before_library_runs": [
+  "pilots scored on 300 training sentences outside the 1,000 used for training (never the validation split): the untrained model 58.0%; LoRA at rate 3e-4 reached 88.0% after 40 steps and 90.3% after 60; MeZO at rate 1e-6 stayed at 59.3% after 100 steps, at 3e-6 reached 65.7% after 250, at 1e-5 reached 74.7% after 250. MeZO's rate was set to 1e-5 from these. A first LoRA pilot held 4.0 GB in the Metal driver at batch 16, so LoRA now runs each batch as two halves of 8 (same gradient)."
+ ],
+ "followup": {
+  "written": "2026-10-20, after all three 20-epoch MeZO runs diverged to NaN (epochs 15-17) and before any follow-up run",
+  "what": "MeZO at rate 1e-4 (half the registered rate), 3 seeds, 40 epochs, the weights' length logged each epoch. Not part of the registered comparison.",
+  "expectation": "No seed diverges within 40 epochs; each ends between 68% and 76% test accuracy; the weights' length grows every epoch."
+ }
+}

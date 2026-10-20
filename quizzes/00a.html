@@ -160,9 +160,9 @@ pre.snippet{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:v
 <footer>
   <p class="paths">module → <a href="../modules/00a-perceptron/README.md">../modules/00a-perceptron/README.md</a>
     · explorable → <a href="../explorables/00a-perceptron.html">../explorables/00a-perceptron.html</a></p>
-  <p>Where the course picks this up: Hugging Face LLM Course, Chapter 1 —
-    <a href="https://huggingface.co/learn/llm-course/chapter1">Transformer models</a>
-    (module 02 turns this threshold unit into a trainable neuron first).</p>
+  <p>Next in the course: <a href="../modules/00b-bayes-knn-pca/README.md">module 00b</a> —
+    probability, neighbours and eigenvectors (module 02 turns this threshold unit into a
+    trainable neuron).</p>
 </footer>
 
 <div class="scorebar">
@@ -218,7 +218,7 @@ const QUESTIONS = [
     options: [
       "140 mistakes against a bound of 139.57 — the run overshot slightly, which is why the bound is called asymptotic.",
       "12 mistakes against a bound of 12.4 — the bound was nearly exact.",
-      "12 mistakes against a bound of 139.57 — the run used 8.60% of its allowance.",
+      "12 mistakes against a bound of 139.57 — the run used 8.60% of it.",
       "The bound could not be evaluated, because γ is only defined once training has converged."
     ],
     answer: 2,
@@ -295,9 +295,11 @@ const QUESTIONS = [
       "The bound grows by roughly 100× and the mistake count barely moves, since the separator is the same line either way."
     ],
     answer: 1,
-    explain: "The bound is <code>(R/γ)²</code>, so ten times less margin is a hundred times more " +
-             "allowance — the module's sweep measures a log-log slope of −2.11. The mistakes " +
-             "actually made grow far more gently: slope −1.00, i.e. about 1/γ. Both the loose " +
+    explain: "The bound is <code>(R/γ)²</code>, so ten times less margin is a hundred times larger " +
+             "bound — the module's sweep measures a log-log slope of −2.11. The mistakes " +
+             "actually made grow far more gently: slope −1.00, i.e. about 1/γ. That is a rough fit: " +
+             "a tenfold squeeze in the sweep's mean γ multiplies the mean mistakes by 6× to 17×, " +
+             "and the five seeds at one setting differ by up to 8×. Both the loose " +
              "constant <i>and</i> the wrong exponent are what make this a worst-case theorem " +
              "rather than a forecast. The last option is the tempting one: the separator does stay " +
              "in roughly the same place, but the points crowding up against it are exactly the " +
@@ -315,14 +317,14 @@ const QUESTIONS = [
     options: [
       "An exhaustive search over 720 directions × 400 offsets found that the best single line gets 3 of the 4 points right.",
       "The weights return to exactly <code>[0, 0, 0]</code> every four updates, because Σ yᵢxᵢ over the four corners is zero.",
-      "The mistake bound comes out infinite, because no unit separator achieves a positive margin.",
+      "No unit separator achieves a positive margin, so γ = 0 and the mistake bound is infinite: it says nothing.",
       "The perceptron settles on the best available line and then stops, having made its 75% peace with the data."
     ],
     answer: [0, 1, 2],
-    explain: "<code>xor_wall.py</code> measures all three: 75% is the ceiling for any line, the " +
-             "weight trace is <code>[0,0,0] → [0,0,−1] → [0,1,0] → [1,1,1] → [0,0,0]</code>, and " +
-             "since the origin lies inside the convex hull of the <code>yᵢxᵢ</code> the margin is " +
-             "≤ 0 and <code>(R/γ)²</code> is infinite. The false option is the appealing one: the " +
+    explain: "<code>xor_wall.py</code> measures the first two: 75% is the ceiling for any line, " +
+             "and the weight trace is <code>[0,0,0] → [0,0,−1] → [0,1,0] → [1,1,1] → [0,0,0]</code>. " +
+             "The third follows from Σ yᵢxᵢ = 0, which puts the origin in the convex hull of the " +
+             "<code>yᵢxᵢ</code>: γ = 0, so <code>(R/γ)²</code> is infinite and says nothing. The false option is the appealing one: the " +
              "perceptron has no notion of “good enough”. It updates on every mistake regardless, " +
              "which is why the pocket algorithm (exercise 1) has to be bolted on to keep the best " +
              "weights it happened to pass through.",

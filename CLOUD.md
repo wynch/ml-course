@@ -127,8 +127,10 @@ GPU availability) are unpublished and vary, so treat it as best-effort.
 > **Start at $0.** Local M5 for everything, Colab's free T4 when you want a GPU,
 > free Spaces to host a demo. This covers the whole course.
 >
-> **Want cloud GPU runs?** Load about **$5** of credits and use HF Jobs — a full
-> fine-tune on `t4-small` costs **cents**. Always pass `--timeout`.
+> **Want cloud GPU runs?** Load about **$5** of credits and use HF Jobs. Module
+> 06's job runs on `a10g-small` (about $1/h); a `t4-small` (about $0.40/h)
+> suits only its 360M smoke test. No one has run the job yet, so time 10 steps
+> first and set `--timeout` from that. Always pass `--timeout`.
 >
 > **Only go PRO ($9/mo)** if you specifically want ZeroGPU demos with real daily
 > quota and priority. Nothing in the course requires it.

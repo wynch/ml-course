@@ -18,8 +18,8 @@ x += tau x_dot; x_dot += tau x_dd; theta += tau theta_dot; theta_dot += tau thet
 
 Sources: A. G. Barto, R. S. Sutton, C. W. Anderson, "Neuronlike adaptive
 elements that can solve difficult learning control problems", IEEE Trans.
-SMC 13(5), 1983, equations (23) and (24) and their constants; the classic
-gym implementation (gym/envs/classic_control/cartpole.py, CartPole-v1) for
+SMC 13(5), 1983, equations (23) and (24) and their constants; CartPole-v1 in
+Gymnasium (Towers et al., arXiv:2407.17032), the maintained successor of gym, for
 the 500-step limit, the 12-degree and 2.4 m limits, the Euler order and the
 start state drawn uniformly from [-0.05, 0.05]^4.
 """
@@ -38,7 +38,7 @@ HALF_LENGTH = 0.5       # m, half the pole's length
 POLE_MASS_LENGTH = MASS_POLE * HALF_LENGTH
 FORCE_MAG = 10.0        # N, action 1 pushes +x, action 0 pushes -x
 TAU = 0.02              # s per step
-THETA_LIMIT = 12 * 2 * math.pi / 360    # rad, as gym writes it
+THETA_LIMIT = 12 * 2 * math.pi / 360    # rad, as Gymnasium writes it
 X_LIMIT = 2.4           # m
 MAX_STEPS = 500         # CartPole-v1
 

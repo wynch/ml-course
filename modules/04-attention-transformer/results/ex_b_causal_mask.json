@@ -1,0 +1,22 @@
+{
+  "iters": 1500,
+  "lr": 0.001,
+  "batch": 32,
+  "eval_batches": 50,
+  "model": {
+    "n_layer": 2,
+    "n_head": 4,
+    "d_model": 64,
+    "block_size": 128
+  },
+  "device": "mps",
+  "future_leak": {
+    "causal": 0.0,
+    "noncausal": 0.015305617824196815
+  },
+  "val_loss": {
+    "causal": 1.9101,
+    "noncausal_future_visible": 2.3292,
+    "noncausal_mask_put_back": 2.8748
+  }
+}

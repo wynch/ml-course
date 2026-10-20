@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>RL with Verifiable Rewards (RLVR) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="rl-with-verifiable-rewards-rlvr">RL with Verifiable Rewards (RLVR)</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">training-methods</span> <span class="tag">reinforcement-learning</span> <span class="tag">rlvr</span> <span class="tag">grpo</span> <span class="tag">reasoning</span> <span class="tag">post-training</span> <span class="tag">hub</span></div>
+<p>Reinforcement learning with verifiable rewards trains a language model on problems a program can grade: the model gets 1 when a checker says its final answer is right, or its code passes the tests, and 0 otherwise (<code>raw/arxiv-2504-13837-does-reinforcement-learning-really-incentivize-reasoning.md</code>, §2.1). No reward model and no human labels sit in the loop. It is how open reasoning models have been trained since DeepSeek-R1.</p>
+<h2 id="grpo-and-its-family">GRPO and its family</h2>
+<p>GRPO (Group Relative Policy Optimization, from DeepSeekMath) samples a group of answers per problem and scores each against the group's average, so it needs no value network; PPO needs one (<code>raw/arxiv-2501-12948-deepseek-r1-incentivizing-reasoning-capability-in.md</code>, §2.1, Figure 3). A problem the group always or never solves gives no gradient (<code>raw/arxiv-2609-35426-frontier-learning-training-llm-reasoners-at.md</code>, §1, §2).</p>
+<div class="tw"><table><thead><tr><th>Method</th><th>What changes</th><th>In this wiki</th></tr></thead><tbody><tr><td>PPO, GRPO, Reinforce++, RLOO, ReMax, DAPO</td><td>six algorithms Yue et al. re-ran under one framework; each left a gap of over 40 points between its pass@1 and the base model's pass@256</td><td><a href="source-rl-reasoning-boundary-yue.html">source-rl-reasoning-boundary-yue</a> (<code>raw/arxiv-2504-13837-does-reinforcement-learning-really-incentivize-reasoning.md</code>, §4.3)</td></tr><tr><td>DAPO's changes</td><td>a higher upper clip; drop prompts the model always or never solves</td><td><a href="source-prorl.html">source-prorl</a> (<code>raw/arxiv-2505-24864-prorl-prolonged-reinforcement-learning-expands-reasoning.md</code>, §2.2)</td></tr><tr><td>ProRL</td><td>GRPO plus DAPO's changes, a KL penalty, and a periodic reset of the reference model</td><td><a href="source-prorl.html">source-prorl</a> (§2.3)</td></tr><tr><td>Frontier learning</td><td>replace the fixed problem pool with generators kept at the edge of what the model can solve</td><td><a href="source-frontier-learning-edge-of-capability.html">source-frontier-learning-edge-of-capability</a></td></tr><tr><td>Soft tokens</td><td>RL on continuous chains of thought</td><td><a href="source-soft-tokens-hard-truths.html">source-soft-tokens-hard-truths</a></td></tr><tr><td>RLSVR</td><td>turn a task with no checker into a game whose answer is known by construction</td><td><a href="source-rlsvr-spyrl.html">source-rlsvr-spyrl</a></td></tr><tr><td>Intuitor, SDPO</td><td>replace the checker with the model's own confidence, or with self-distillation from feedback</td><td><a href="source-intuitor-reasoning-without-rewards.html">source-intuitor-reasoning-without-rewards</a>, <a href="source-sdpo-self-distillation-rl.html">source-sdpo-self-distillation-rl</a> (abstracts only)</td></tr></tbody></table></div>
+<h2 id="how-it-changed">How it changed</h2>
+<ul><li><strong>2025-01, DeepSeek-R1.</strong> GRPO with rule-based rewards on maths and code, applied straight to a base model (R1-Zero), produced long chains of thought and self-checking with no supervised reasoning data (<code>raw/arxiv-2501-12948-deepseek-r1-incentivizing-reasoning-capability-in.md</code>, §2.1–§2.3; <a href="source-deepseek-r1.html">source-deepseek-r1</a>).</li><li><strong>2025-04, the ceiling.</strong> Yue et al. compared each RL model with its own base at large k (pass@k: solved if any of k samples is right). RL wins at k = 1, the base wins at large k, on every benchmark and model family they tried. On AIME24 at k = 1024, 13.3% of problems are solved by the base only and 0.0% by the RL model only (<code>raw/arxiv-2504-13837-does-reinforcement-learning-really-incentivize-reasoning.md</code>, Abstract, §3, §4.1, Table 2).</li><li><strong>2025-05, the reply.</strong> ProRL ran RL for over 2,000 steps on 136K problems beyond maths. On boxnet, a task never trained on, the start solves nothing and the trained model does (pass@k 0.00 against 7.91); on maths it reports the same narrowing Yue et al. found (<code>raw/arxiv-2505-24864-prorl-prolonged-reinforcement-learning-expands-reasoning.md</code>, §4.2, §4.3, Table 3).</li><li><strong>2025-06, the control.</strong> Random rewards lift Qwen2.5-Math-7B by 21.4 points on MATH-500, against 29.1 for true rewards; on Llama and OLMo they give little or nothing. The cause is GRPO's clipping, which pushes up what the model already prefers; here, writing Python it cannot run (<code>raw/arxiv-2506-10947-spurious-rewards-rethinking-training-signals-in.md</code>, Abstract, §3, §4, §5.1; <a href="source-spurious-rewards.html">source-spurious-rewards</a>).</li><li><strong>2025-09, forgetting.</strong> At equal accuracy on a new task, RL forgets less than supervised fine-tuning, because sampling from the model keeps it close to the base in KL (<code>raw/arxiv-2509-04259-rl-s-razor-why-online-reinforcement.md</code>, §1, §4, §5; <a href="source-rls-razor.html">source-rls-razor</a>).</li><li><strong>2026-01, no training at all.</strong> Sampling the base model from a sharpened distribution, p(answer)^4, with no reward, matches or beats GRPO on HumanEval for two Qwen models; GRPO still leads on MATH500 for all three models tested (<code>raw/arxiv-2601-21590-scalable-power-sampling-unlocking-efficient-training.md</code>, Table 1; <a href="source-distribution-sharpening-power-sampling.html">source-distribution-sharpening-power-sampling</a>).</li></ul>
+<h2 id="the-debate-sharpening-or-new-ability">The debate: sharpening or new ability?</h2>
+<p>Contradiction (open), 2026-10-20: <a href="source-rl-reasoning-boundary-yue.html">source-rl-reasoning-boundary-yue</a> finds RLVR makes right answers more likely on problems the base model could already solve and adds none; <a href="source-prorl.html">source-prorl</a> finds long RL from a distilled 1.5B model reaches problems the start never solved in 256 samples. They differ in the start (a pretrained base against a distilled model), the length (hundreds of steps against over 2,000) and the tasks (maths against puzzles and code). Both agree on maths (<code>raw/arxiv-2504-13837-does-reinforcement-learning-really-incentivize-reasoning.md</code>, §4.4, §4.6, §7; <code>raw/arxiv-2505-24864-prorl-prolonged-reinforcement-learning-expands-reasoning.md</code>, §2.3.1, §4.2). The spurious-reward and power-sampling results lean toward sharpening, for Qwen models on maths. The full argument sits in <a href="analysis-emergence-vs-distribution-sharpening.html">analysis-emergence-vs-distribution-sharpening</a>.</p>
+<p>Two cautions from the sources. Pass@k at k = 1024 measures coverage, not usefulness: nobody samples 1,024 answers without a checker (<code>raw/arxiv-2504-13837-does-reinforcement-learning-really-incentivize-reasoning.md</code>, §2.2). And a claim of RLVR gains should be checked on other model families and against random and format rewards (<code>raw/arxiv-2506-10947-spurious-rewards-rethinking-training-signals-in.md</code>, §1, §7).</p>
+<h2 id="local-result">Local result</h2>
+<p>Course module 26 (<code>course/modules/26-rl-with-a-checker/README.md</code>, §2–§3) trains a small char-GPT on 3-digit sums with a checker. GRPO, Dr. GRPO and RLOO lift pass@1 from 59.1% to 94–95%. There is no crossover, but the base already reaches 99.56% at k = 16, so the test had no room to show one. Coin-flip rewards wreck the model (pass@1 4.6% and 2.4%) instead of leaving it alone, unlike Qwen-Math in the spurious-rewards paper; the module records both of these as missed expectations.</p>
+<h2 id="open-questions">Open questions</h2>
+<ul><li>Does the crossover hold for long RL from a raw pretrained model, not a distilled one? Neither paper tests it.</li><li>Which gains survive on a model family other than Qwen? (<code>raw/arxiv-2506-10947-spurious-rewards-rethinking-training-signals-in.md</code>, §3).</li><li>Can a checker be built for tasks that lack one? RLSVR's answer is a game; its reward is still a proxy (<code>raw/arxiv-2607-23802-from-rlvr-to-rlsvr-task-transformation-fulltext.md</code>, §2, §4.2; <a href="source-rlsvr-spyrl.html">source-rlsvr-spyrl</a>).</li></ul>
+<h2 id="key-sources">Key sources</h2>
+<ul><li><a href="source-deepseek-r1.html">source-deepseek-r1</a> · <a href="source-rl-reasoning-boundary-yue.html">source-rl-reasoning-boundary-yue</a> · <a href="source-prorl.html">source-prorl</a> · <a href="source-spurious-rewards.html">source-spurious-rewards</a> · <a href="source-rls-razor.html">source-rls-razor</a></li><li><a href="source-distribution-sharpening-power-sampling.html">source-distribution-sharpening-power-sampling</a> · <a href="source-frontier-learning-edge-of-capability.html">source-frontier-learning-edge-of-capability</a> · <a href="source-soft-tokens-hard-truths.html">source-soft-tokens-hard-truths</a> · <a href="source-rlsvr-spyrl.html">source-rlsvr-spyrl</a></li><li>Hubs: <a href="concept-rlhf.html">concept-rlhf</a>, <a href="concept-rlhf-alternatives.html">concept-rlhf-alternatives</a>, <a href="concept-llm-reasoning.html">concept-llm-reasoning</a>, <a href="concept-test-time-compute.html">concept-test-time-compute</a>; analysis <a href="analysis-emergence-vs-distribution-sharpening.html">analysis-emergence-vs-distribution-sharpening</a>; thread <a href="thread-test-time-compute.html">thread-test-time-compute</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2501-12948-deepseek-r1-incentivizing-reasoning-capability-in.md</code> (arXiv 2501.12948)</li><li><code>raw/arxiv-2504-13837-does-reinforcement-learning-really-incentivize-reasoning.md</code> (arXiv 2504.13837)</li><li><code>raw/arxiv-2505-24864-prorl-prolonged-reinforcement-learning-expands-reasoning.md</code> (arXiv 2505.24864)</li><li><code>raw/arxiv-2506-10947-spurious-rewards-rethinking-training-signals-in.md</code> (arXiv 2506.10947)</li><li><code>raw/arxiv-2509-04259-rl-s-razor-why-online-reinforcement.md</code> (arXiv 2509.04259)</li><li><code>raw/arxiv-2601-21590-scalable-power-sampling-unlocking-efficient-training.md</code> (arXiv 2601.21590)</li><li><code>raw/arxiv-2609-35426-frontier-learning-training-llm-reasoners-at.md</code> (arXiv 2609.35426)</li><li><code>raw/arxiv-2509-19170-soft-tokens-hard-truths.md</code> (arXiv 2509.19170)</li><li><code>raw/arxiv-2607-23802-from-rlvr-to-rlsvr-task-transformation-fulltext.md</code> (arXiv 2607.23802)</li><li><code>course/modules/26-rl-with-a-checker/README.md</code></li></ul>
+<details class="src"><summary>Sources (10)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2501-12948-deepseek-r1-incentivizing-reasoning-capability-in.md</code></li><li><code>raw/arxiv-2504-13837-does-reinforcement-learning-really-incentivize-reasoning.md</code></li><li><code>raw/arxiv-2505-24864-prorl-prolonged-reinforcement-learning-expands-reasoning.md</code></li><li><code>raw/arxiv-2506-10947-spurious-rewards-rethinking-training-signals-in.md</code></li><li><code>raw/arxiv-2509-04259-rl-s-razor-why-online-reinforcement.md</code></li><li><code>raw/arxiv-2601-21590-scalable-power-sampling-unlocking-efficient-training.md</code></li><li><code>raw/arxiv-2609-35426-frontier-learning-training-llm-reasoners-at.md</code></li><li><code>raw/arxiv-2509-19170-soft-tokens-hard-truths.md</code></li><li><code>raw/arxiv-2607-23802-from-rlvr-to-rlsvr-task-transformation-fulltext.md</code></li><li><code>course/modules/26-rl-with-a-checker/README.md</code></li></ul></details>
+</main>
+</body>
+</html>

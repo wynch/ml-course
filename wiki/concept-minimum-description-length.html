@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Minimum Description Length · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="minimum-description-length">Minimum Description Length</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">mdl</span> <span class="tag">compression</span> <span class="tag">model-selection</span> <span class="tag">learning-theory</span> <span class="tag">program-synthesis</span> <span class="tag">stub</span></div>
+<p>Stub. The minimum description length (MDL) principle picks the model that gives the shortest total code for the data: the bits to write down the model, plus the bits to write down the data with the model's help. A model that is too simple leaves the data costly to encode; one that is too complex costs too much to write down. Fit and simplicity are paid in one currency, bits.</p>
+<p>The wiki holds no primary MDL text (Rissanen 1978; Grünwald, <em>The Minimum Description Length Principle</em>, MIT Press 2007; neither in raw). This page gathers how the idea is used in the sources that are in raw, and in Vincent's local work, where the term appears on 14 wiki pages.</p>
+<h2 id="key-ideas">Key ideas</h2>
+<ul><li><strong>A predictor is a compressor.</strong> A model that gives the next event a probability can encode it in about −log₂ p bits, so likely events cost few bits and unlikely ones many; a good predictor of a history is a short code for it (<code>raw/arxiv-0812-4360-driven-by-compression-progress.md</code>, Appendix A.1). This is the bridge to <a href="concept-prequential-evaluation.html">concept-prequential-evaluation</a>: summing those bits over a stream, each event coded before the model sees it, gives a code length for the data.</li><li><strong>Not the fastest learner.</strong> Schmidhuber notes that MDL-style prediction need not converge to the right predictions as fast as Solomonoff induction, though both converge in the limit (same file, Appendix A.1).</li><li><strong>Deep networks.</strong> Blier and Ollivier (2018) coded datasets with a network trained as it goes, block by block (a prequential code), and got much shorter codes than variational codes for the same networks; they used this to argue that deep networks do compress their data (arXiv 1802.07044; not in raw).</li></ul>
+<h2 id="where-it-appears">Where it appears</h2>
+<div class="tw"><table><thead><tr><th>Use</th><th>What MDL decides</th><th>Source</th></tr></thead><tbody><tr><td>ARC at test time</td><td>CompressARC trains a 76K-parameter network from scratch on one puzzle by minimising the puzzle's description length; 20% on the ARC-AGI-1 evaluation set, about 20 minutes per puzzle on one RTX 4070; third paper award of ARC Prize 2025</td><td><code>raw/arxiv-2601-10904-arc-prize-2025-technical-report.md</code>, §2.3, §3.2.2; <a href="source-arc-prize-2025-report.html">source-arc-prize-2025-report</a></td></tr><tr><td>A gate on scientific revisions</td><td>Builder/Breaker accepts an edit to a symbolic protein model only if model plus evidence get shorter: 25 of 388 proposals pass (6.4%); the final change costs 10.3 bits of model and saves 54.3 bits overall</td><td><code>raw/arxiv-2606-01444-self-revising-discovery-fulltext.md</code>, §2.5, Table 2, Figure 5; <a href="source-self-revising-discovery-systems.html">source-self-revising-discovery-systems</a></td></tr><tr><td>Curiosity</td><td>reward an agent by the bits its compressor saves on its own history (compression progress)</td><td><code>raw/arxiv-0812-4360-driven-by-compression-progress.md</code>, §1.2; <a href="source-schmidhuber-compression-progress.html">source-schmidhuber-compression-progress</a></td></tr><tr><td>Libraries of programs</td><td>keep a sub-program only if it shortens the corpus of solutions</td><td><a href="source-dreamcoder.html">source-dreamcoder</a>, <a href="source-lilo-library-learning.html">source-lilo-library-learning</a>; see <a href="concept-program-synthesis.html">concept-program-synthesis</a></td></tr><tr><td>Text updates</td><td>short, likely text edits are cheap patches to a pretrained prior</td><td><a href="source-text-optimization-yoonho.html">source-text-optimization-yoonho</a> (the post's argument)</td></tr></tbody></table></div>
+<h2 id="local-lines">Local lines</h2>
+<p>MDL was "the main anti-sprawl pressure" across ORCHID, Cortex, CPE, LATTICE and SAIB: an abstraction had to cut total description length or it was not promoted (<span class="dead" title="not published">analysis-local-project-acronyms</span>). The lessons the local pages kept:</p>
+<ul><li>ORCHID-lite: MDL is useful only when computed over normalised, executable forms (<span class="dead" title="not published">experiment-orchid-lite</span>).</li><li>Cortex: e-graphs and MDL are useful control surfaces for symbolic compression (<span class="dead" title="not published">experiment-cortex-archive</span>).</li><li>Edge Organism review: "MDL never charged family search", so the search over model families came free and the score flattered the result (<span class="dead" title="not published">experiment-edge-compression-federation</span>).</li><li>Edge federation: the wiki's gap in MDL sources is "not permission to treat hindsight expert minima as a codelength": the best expert picked after the fact is not a code anyone could have used (<span class="dead" title="not published">experiment-edge-federation</span>).</li></ul>
+<p>None of these lines reached a benchmark result that survived; all were sunset on 2026-10-07 (<span class="dead" title="not published">analysis-experiments-second-chance</span>).</p>
+<h2 id="open-questions">Open questions</h2>
+<ul><li>Overview gap 6 asks for older sources on MDL, prequential codes and online mixtures (<a href="overview.html">overview</a>). Rissanen, Grünwald, and Blier and Ollivier are the natural captures.</li><li>Does CompressARC's 20% come from the MDL objective or from the network's shape? The report gives no ablation (<code>raw/arxiv-2601-10904-arc-prize-2025-technical-report.md</code>, §3.2.2).</li></ul>
+<h2 id="key-sources">Key sources</h2>
+<ul><li><a href="source-schmidhuber-compression-progress.html">source-schmidhuber-compression-progress</a> · <a href="source-arc-prize-2025-report.html">source-arc-prize-2025-report</a> · <a href="source-self-revising-discovery-systems.html">source-self-revising-discovery-systems</a></li><li>Hubs: <a href="concept-prequential-evaluation.html">concept-prequential-evaluation</a>, <a href="concept-program-synthesis.html">concept-program-synthesis</a>, <a href="concept-calibration.html">concept-calibration</a></li><li>Local: <span class="dead" title="not published">experiment-orchid-lite</span>, <span class="dead" title="not published">experiment-cpe</span>, <span class="dead" title="not published">experiment-cortex-archive</span>, <span class="dead" title="not published">experiment-edge-federation</span>, <span class="dead" title="not published">experiment-edge-compression-federation</span>, <span class="dead" title="not published">idea-neural-symbolic-ecology</span></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-0812-4360-driven-by-compression-progress.md</code> (arXiv 0812.4360)</li><li><code>raw/arxiv-2601-10904-arc-prize-2025-technical-report.md</code> (arXiv 2601.10904)</li><li><code>raw/arxiv-2606-01444-self-revising-discovery-fulltext.md</code> (arXiv 2606.01444)</li><li>Blier and Ollivier, "The Description Length of Deep Learning Models", 2018: <a href="https://arxiv.org/abs/1802.07044" rel="noreferrer">https://arxiv.org/abs/1802.07044</a> (not in raw)</li><li>Rissanen, "Modeling by shortest data description", Automatica 14, 1978 (not in raw)</li><li>Grünwald, <em>The Minimum Description Length Principle</em>, MIT Press, 2007 (not in raw)</li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-0812-4360-driven-by-compression-progress.md</code></li><li><code>raw/arxiv-2601-10904-arc-prize-2025-technical-report.md</code></li><li><code>raw/arxiv-2606-01444-self-revising-discovery-fulltext.md</code></li><li><a href="https://arxiv.org/abs/1802.07044" rel="noreferrer">https://arxiv.org/abs/1802.07044</a></li></ul></details>
+</main>
+</body>
+</html>

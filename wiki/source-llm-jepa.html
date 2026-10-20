@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>LLM-JEPA: Large Language Models Meet Joint Embedding Predictive Architectures (Huang, LeCun, Balestriero, 2025) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="llm-jepa">LLM-JEPA</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">jepa</span> <span class="tag">language-models</span> <span class="tag">fine-tuning</span> <span class="tag">self-supervised-learning</span> <span class="tag">representation-learning</span> <span class="tag">auxiliary-loss</span> <span class="tag">2025</span></div>
+<p><strong>Authors:</strong> Hai Huang (Atlassian), Yann LeCun (NYU), Randall Balestriero (Brown University) <strong>Published:</strong> arXiv 2509.14252, v1 2025-09-11, v2 2025-10-07 <strong>Code:</strong> <a href="https://github.com/rbalestr-lab/llm-jepa" rel="noreferrer">https://github.com/rbalestr-lab/llm-jepa</a> <strong>Raw copy:</strong> <code>raw/arxiv-2509-14252-llm-jepa-large-language-models-meet.md</code> (full text of v2 from the arXiv HTML, captured 2026-10-20)</p>
+<p>Every claim below cites the raw file as R, with its section, table or figure.</p>
+<h2 id="summary">Summary</h2>
+<p>The first try at a JEPA loss for language models, and it does not replace next-token prediction: it adds to it (R, §3.1). JEPA needs two views of the same thing. The paper takes datasets that come in pairs: an English description and its regular expression (NL-RX), a database description and its SQL query (Spider) (R, §1, Figure 2). GSM8K is used too; the paper does not spell out its two views (R, §4.1).</p>
+<p>The loss (R, §3.1, Eq. 2): the usual next-token loss, plus λ times the cosine distance between a predicted embedding of the text and the embedding of the code.</p>
+<ul><li><strong>Embedding:</strong> the last layer's hidden state at the last token, as in probing (R, §3.1).</li><li><strong>Predictor:</strong> the same model. k special [PRED] tokens are appended to the text, and the hidden state at the last one is the prediction; k = 0 means no predictor (R, §3.1).</li><li><strong>Two views in one pass:</strong> a block attention mask keeps the text and code from seeing each other, so the two embeddings take one extra forward pass in all (R, §3.1–3.2).</li><li>No EMA teacher, no stop-gradient and no SIGReg are described; the next-token loss stays in the objective throughout (R, §3).</li></ul>
+<h2 id="key-results">Key results</h2>
+<p>Fine-tuning, five seeds each, mean ± standard deviation, best of a (k, λ) grid for LLM-JEPA (R, Tables 12–13, 15):</p>
+<div class="tw"><table><thead><tr><th>Model</th><th>Dataset</th><th>Next-token loss</th><th>LLM-JEPA</th></tr></thead><tbody><tr><td>Llama-3.2-1B-Instruct</td><td>NL-RX-SYNTH</td><td>57.29 ± 5.32</td><td>71.46 ± 1.34</td></tr><tr><td>gemma-2-2b-it</td><td>NL-RX-SYNTH</td><td>33.65 ± 3.24</td><td>43.12 ± 2.61</td></tr><tr><td>OpenELM-1.1B-Instruct</td><td>NL-RX-SYNTH</td><td>12.07 ± 1.81</td><td>25.40 ± 2.40</td></tr><tr><td>OLMo-2-1B-Instruct</td><td>NL-RX-SYNTH</td><td>87.09 ± 0.36</td><td>87.52 ± 0.29</td></tr><tr><td>Llama-3.2-1B-Instruct</td><td>GSM8K</td><td>32.36 ± 0.58</td><td>36.36 ± 0.20</td></tr><tr><td>Llama-3.2-1B-Instruct</td><td>Spider</td><td>47.52 ± 2.44</td><td>50.55 ± 2.08</td></tr><tr><td>Llama-3.2-3B-Instruct</td><td>NL-RX-SYNTH</td><td>74.55 ± 3.58</td><td>77.16 ± 3.66</td></tr></tbody></table></div>
+<ul><li><strong>The next-token loss does not train the JEPA term by itself.</strong> With next-token loss alone, the JEPA distance stays flat; with both, it falls while the next-token loss stays the same (R, §3.3, Figure 3).</li><li><strong>The JEPA term alone produces nothing.</strong> With the next-token weight at 0, the model outputs empty strings; the JEPA term works as a regulariser on top of generation (R, Appendix A.3, Table 10).</li><li><strong>Less overfitting.</strong> Over 6 epochs, plain fine-tuning starts to lose accuracy and LLM-JEPA keeps rising (R, §4.1, Figure 1).</li><li><strong>Structure.</strong> After LLM-JEPA, a near-linear map takes text embeddings to code embeddings: least-squares error 4.04 against 3,035 after plain fine-tuning (R, §4.2, Table 14).</li><li><strong>Pretraining, small.</strong> From random weights on NL-RX-SYNTH: 60.59 ± 1.01 against 54.38 ± 1.70 (R, Table 2). Pretrained on paraphrase groups, then fine-tuned without the JEPA term: Rotten Tomatoes 57.76 against 56.57, Yelp 27.15 against 26.46 (R, Table 9).</li><li><strong>Without paired views.</strong> On NQ-Open (question, answer) and HellaSwag (context, ending): 21.59 against 20.12 and 70.51 against 69.40 (R, §5.1, Table 4).</li><li><strong>Cost.</strong> Training costs up to twice as much; dropping the JEPA term on a random 50–75% of batches cuts that, and at equal compute LLM-JEPA still leads (R, §5.2, Table 6, Figure 5).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>Tuning is uneven. The baseline gets a learning-rate search over 4 values; LLM-JEPA then gets a further 20-point (k, λ) grid at that learning rate, and each table cell is "the best possible accuracy over a set of configurations" (R, §4.1, Tables 12–13 captions). The paper names no held-out split for that choice. The authors find no pattern in where the best setting lies (R, §6 Limitations, Figure 7).</li><li>Most models are 1–3B, fine-tuned on small, paired datasets. "Pretraining" means a 1B model on NL-RX or a paraphrase set, not web-scale text (R, §4.1; Appendix A.7). Some gains are small: OLMo-2-1B 87.09 to 87.52; Qwen3-1.7B on GSM8K 44.32 to 45.00 (R, Tables 12, 5).</li><li>The Llama-3.1-8B result (35.77 to 63.57 ± 16.81) uses a looser "starts with" grading because the model failed to stop generating (R, Appendix A.7, Table 15).</li><li>The ℓ2 distance in place of cosine scores 2.22%, and InfoNCE 34.40%, below the plain baseline (R, §4.3, Table 3). The paper does not say whether collapse is the reason.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="concept-jepa.html">concept-jepa</a> — answers in part the page's "JEPA for text" question: a JEPA term beside next-token loss, not a pure language JEPA.</li><li><a href="thread-predict-in-latent-space.html">thread-predict-in-latent-space</a> — the pure-text JEPA open question.</li><li><a href="source-next-latent-prediction.html">source-next-latent-prediction</a> — the same move, an auxiliary latent-prediction loss on a text model, but predicting its own next hidden state rather than a second view.</li><li><a href="source-lejepa.html">source-lejepa</a> — same two senior authors; LeJEPA fixes collapse with SIGReg, LLM-JEPA leans on the next-token loss and reports no anti-collapse term.</li><li><a href="source-vl-jepa.html">source-vl-jepa</a> — predicts text embeddings from video; here both views are text.</li><li><a href="entity-yann-lecun.html">entity-yann-lecun</a> — co-author.</li><li><a href="source-awesome-jepa.html">source-awesome-jepa</a> — the catalog that listed this paper.</li><li>Hub (2026-10-20): <a href="entity-randall-balestriero.html">entity-randall-balestriero</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2509-14252-llm-jepa-large-language-models-meet.md</code></li><li><a href="https://arxiv.org/abs/2509.14252" rel="noreferrer">https://arxiv.org/abs/2509.14252</a></li><li><a href="https://github.com/rbalestr-lab/llm-jepa" rel="noreferrer">https://github.com/rbalestr-lab/llm-jepa</a></li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2509-14252-llm-jepa-large-language-models-meet.md</code></li><li><a href="https://arxiv.org/abs/2509.14252" rel="noreferrer">https://arxiv.org/abs/2509.14252</a></li><li><a href="https://github.com/rbalestr-lab/llm-jepa" rel="noreferrer">https://github.com/rbalestr-lab/llm-jepa</a></li></ul></details>
+</main>
+</body>
+</html>

@@ -63,16 +63,25 @@ this same Mac.** Measured here (M5, unified memory):
 | Lane                        | Throughput      | Peak memory | Notes                         |
 |-----------------------------|-----------------|-------------|-------------------------------|
 | PyTorch + MPS (`../python`) | **~479 tok/s**  | —           | 200 steps ≈ 12 min            |
-| MLX (`mlx_lm.lora`)         | **~3,500 tok/s**| ~2.8 GB     | 100 iters in well under 1 min |
+| MLX (`mlx_lm.lora`)         | **~3,500 tok/s**| ~3.0 GB     | 100 iters in well under 1 min |
+
+The PyTorch row comes from the trainer's summary
+([`../python/results/sft_lab_summary.json`](../python/results/sft_lab_summary.json):
+about 348,800 tokens in 728 s); the MLX row from a rerun on 2026-10-19
+([`results/lora_run.log`](results/lora_run.log): 3,364–3,575 tok/s after the
+first ten iterations, peak 2.99 GB).
 
 That's roughly a **7× throughput edge** for the Apple-native stack on identical
 hardware and model. The framework built *for* the chip beats the framework
 *ported to* the chip.
 
-**Honest caveats** — it isn't a perfectly controlled benchmark: MLX ran batch-4
-adapting 16 layers while the PyTorch lane ran batch-2 on all-linear targets, and
-the two runtimes count tokens slightly differently. The magnitude of the gap,
-not the exact multiple, is the lesson: on a Mac, reach for MLX when you can.
+**Honest caveats** — it isn't a controlled benchmark. MLX ran batch 4, rank 8,
+scale 20 (mlx-lm multiplies B·A by `scale` directly), on the top 16 blocks.
+PyTorch ran an effective batch of 8 (2 × 4 accumulation steps), rank 16,
+α/r = 2, on all 32 blocks, in fp32. Neither lane masks the prompt
+(`mask_prompt: false` here, TRL's default there). The two runtimes also count
+tokens slightly differently. Tokens/s is still a fair rough gauge, but not the
+exact multiple: on a Mac, reach for MLX when you can.
 
 ## Trade-offs
 

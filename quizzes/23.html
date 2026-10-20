@@ -273,8 +273,8 @@ const QUESTIONS = [
           "<b>Type the rise in percent</b>, to the nearest whole number.",
     answer: 24, tol: 1, tolLabel: "± 1",
     placeholder: "e.g. 10",
-    explain: "19.936 / 16.071 = 1.24, a rise of 24%. int8 per row, at twice the bytes, rose only to 16.12. A 360M model " +
-             "loses a fair share at 4 bits with plain rounding; GPTQ and AWQ aim to lose less.",
+    explain: "19.936 / 16.071 = 1.24, a rise of 24%. int8 per row, at twice the bytes, rose only to 16.12. Small models trained " +
+             "on many tokens for their size, like this 360M one, lose more at low bits (Ouyang et al., 2024); GPTQ and AWQ aim to lose less.",
     source: "modules/23-compression/results/quant.json → rows[*].ppl"
   },
   /* ── 7 ─────────────────────────────────────────────────── conceptual ── */
@@ -350,7 +350,7 @@ function gradeSingle(q, ans) { return typeof ans === "number" && ans === q.answe
 function gradeMulti(q, ans) { return Array.isArray(ans) && sameSet(ans, q.answer); }
 function gradeNumeric(q, ans) {
   const v = typeof ans === "number" ? ans : parseFloat(String(ans).replace(/[\s,_]/g, ""));
-  return isFinite(v) && Math.abs(v - q.answer) <= q.tol;
+  return isFinite(v) && Math.abs(v - q.answer) <= q.tol + 1e-9;
 }
 function gradeQuestion(q, ans) {
   if (ans === undefined || ans === null) return false;

@@ -59,7 +59,7 @@ def fig_curves(path=FIGURES / "loss_curves.png") -> None:
     ax.set_yticks([1.8, 2, 2.5, 3, 4, 5])
     ax.set_yticklabels(["1.8", "2", "2.5", "3", "4", "5"])
     ax.minorticks_off()
-    ax.set_title("Six char-GPTs, one pass over 4M characters (band: two seeds)", fontsize=10)
+    ax.set_title("Six char-GPTs, 4M characters each, none seen twice (band: two seeds)", fontsize=10)
     ax.legend(frameon=False, fontsize=8, ncol=2)
     ax.grid(alpha=0.25)
     fig.tight_layout()

@@ -6,7 +6,7 @@ Both read only the distances from each point to its nearest neighbours.
   neighbour, mu = r2 / r1 follows P(mu > m) = m^(-d) on a d-dimensional set of
   locally even density. Sort the mu, drop the largest 10%, and fit
   -log(1 - F(mu)) = d log(mu) through the origin.
-- MLE (Levina and Bickel, 2005): with T_1 <= ... <= T_k the distances to the k
+- MLE (Levina and Bickel, 2004): with T_1 <= ... <= T_k the distances to the k
   nearest neighbours, 1/d is estimated by the mean of log(T_k / T_j), j < k.
   We average that inverse over all points (MacKay and Ghahramani, 2005), then
   average d over k = 10..20.

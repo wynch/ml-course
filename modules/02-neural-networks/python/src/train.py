@@ -74,8 +74,8 @@ def train(
             model.backward(loss_fn.backward())
             optimizer.step()
 
-        # end-of-epoch metrics
-        tr_logits = model.forward(x_train)
+        # train loss: mean over this epoch's batches, taken while the weights
+        # moved; the other three metrics are measured after the epoch's last step
         val_logits = model.forward(x_val)
         hist.train_loss.append(float(np.mean(batch_losses)))
         hist.val_loss.append(loss_fn.forward(val_logits, y_val))

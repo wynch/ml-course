@@ -7,9 +7,11 @@ probability is pushed up in proportion to the return that followed it
 
     loss = - sum_t log pi(a_t | s_t) * (G_t - mean G) / std G,    G_t = sum_{k>=t} gamma^(k-t) r_k
 
-Subtracting the episode's mean return and dividing by its spread is the
-usual baseline trick; it changes the step's size and sign, not its expected
-direction (up to that scaling).
+Subtracting the episode's mean return and dividing by its spread is a common
+trick that makes the step size steady. It is not a true baseline: the mean
+and spread come from the same episode's actions, so the estimate is biased.
+Since G_t shrinks with t inside an episode, it pushes up the early actions
+and pushes down the late ones, whatever the episode's length.
 
     uv run python src/reinforce.py [--figures]
 """

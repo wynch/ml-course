@@ -51,16 +51,17 @@ def _source_files() -> dict[str, dict]:
     """The measurement's own JSON files, when this module sits in its source repository."""
     found = {}
     repo = ROOT.parents[2]
+    # Later experiments (retests) write the same keys; the first in sorted order is the source.
     for f in sorted(repo.glob("*/experiments/*/metrics.json")):
         d = json.loads(f.read_text())
         if "gap_by_channel" in d.get("trained", {}):
-            found["v_neuron"] = d
+            found.setdefault("v_neuron", d)
         elif "trained_minus_best_random" in d:
-            found["jepa_probe"] = d
+            found.setdefault("jepa_probe", d)
     for f in sorted(repo.glob("*/experiments/*/posthoc.json")):
         d = json.loads(f.read_text())
         if "many_arenas_120k_transitions" in d:
-            found["jepa_many_arenas"] = d
+            found.setdefault("jepa_many_arenas", d)
     return found
 
 

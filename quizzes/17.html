@@ -313,7 +313,8 @@ const QUESTIONS = [
     ],
     answer: 1,
     explain: "Each token adds a negative number. DPO compares log-ratios to the reference, so this pull cancels " +
-             "between π and π<sub>ref</sub>. Per token, the reference's accuracy is 0.53.",
+             "between π and π<sub>ref</sub> at the start of training; once π moves, a change per token is summed over " +
+             "the reply, so length can creep back in. Per token, the reference's accuracy is 0.53.",
     source: "modules/17-learning-from-preferences/results/length_bias.json → dpo.full.reference_logp"
   },
   /* ── 9 ───────────────────────────────────────────────── real numbers ── */

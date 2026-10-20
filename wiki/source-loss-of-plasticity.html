@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Maintaining Plasticity in Deep Continual Learning (Dohare, Hernandez-Garcia, Rahman, Mahmood, Sutton, 2023) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="maintaining-plasticity-in-deep-continual-learning-loss-of-plasticity">Maintaining Plasticity in Deep Continual Learning (loss of plasticity)</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">continual-learning</span> <span class="tag">loss-of-plasticity</span> <span class="tag">backpropagation</span> <span class="tag">continual-backpropagation</span> <span class="tag">optimization</span> <span class="tag">reinforcement-learning</span> <span class="tag">2023</span></div>
+<p><strong>Authors:</strong> Shibhansh Dohare, J. Fernando Hernandez-Garcia, Parash Rahman, A. Rupam Mahmood, Richard S. Sutton; University of Alberta and Amii <strong>Published:</strong> arXiv 2306.13812, v1 2023-06-23, v2 2023-08-18, v3 2024-04-09; code at github.com/shibhansh/loss-of-plasticity <strong>Raw copy:</strong> <code>raw/arxiv-2306-13812-maintaining-plasticity-in-deep-continual-learning.md</code> (full text of v3 from the arXiv HTML, captured 2026-10-20) <strong>Journal version:</strong> the group's Nature paper, "Loss of plasticity in deep continual learning", Nature 632 (2024), <a href="https://www.nature.com/articles/s41586-024-07711-7" rel="noreferrer">https://www.nature.com/articles/s41586-024-07711-7</a>. Not in raw; its text may differ. The wiki's older pages cite that version; this page cites the arXiv v3 text only.</p>
+<p>Every claim below cites the raw file as R, with its section, table or figure.</p>
+<h2 id="summary">Summary</h2>
+<p>Continual learning has two failures. The famous one is forgetting: new data overwrites old skills. The paper studies the other: a network trained on task after task slowly loses the ability to learn at all. The authors call it <strong>loss of plasticity</strong> (R, Abstract, §1).</p>
+<p>They show it in plain supervised learning, so no RL machinery can be blamed (R, §1):</p>
+<ul><li><strong>Continual ImageNet.</strong> 2,000 binary tasks, each a new pair of classes at 32×32. A small convolutional network trained with SGD scores 89% on an early task and 77% on the 2,000th, about what a linear model gets (R, Abstract, §2, Figure 1).</li><li><strong>Online Permuted MNIST.</strong> 800 tasks, each a new shuffle of the pixels, seen once, one image at a time. Accuracy rises over the first tasks, then falls steadily. Small networks lose most; 10,000 units per layer still lose some; slowing the rate of change does not stop it (R, §3, Figure 2b).</li><li><strong>Slowly-Changing Regression.</strong> A tiny problem that runs on one CPU core in 15 minutes; plasticity is lost with sigmoid, tanh, ELU, leaky-ReLU, ReLU and Swish alike (R, §3, Appendix B).</li></ul>
+<h2 id="why-it-happens">Why it happens</h2>
+<p>The only thing that changes over time is the weights. At the start they are small and random; that state is what makes learning easy, and training wears it away (R, §4, §7). Three measured signs, on Permuted MNIST (R, §4, Figure 3):</p>
+<ul><li><strong>Dead units:</strong> ReLU units that output zero for every input; up to 25% of units after 800 tasks at step size 0.01.</li><li><strong>Weight growth:</strong> the mean absolute weight keeps rising.</li><li><strong>Falling effective rank</strong> of the hidden representation: fewer units carry information, so each new task starts from a poorer basis.</li></ul>
+<h2 id="what-helps-and-what-hurts">What helps and what hurts</h2>
+<p>On Permuted MNIST (R, §5, Figure 4):</p>
+<ul><li><strong>Worse:</strong> Adam (a "catastrophic" collapse, with effective rank falling most), dropout (the higher the rate, the worse), and online normalization (better early, worse late).</li><li><strong>Better:</strong> L2 regularization, and more so shrink-and-perturb (shrink the weights and add noise each step), which nearly stops the loss. Both work only in a narrow band of settings. The lesson the authors draw: small weights plus a steady injection of randomness.</li></ul>
+<p><strong>Continual backpropagation</strong> is their fix: ordinary SGD, plus, at every step, reinitializing a small fraction of each layer's least useful hidden units (R, §6). Usefulness is a running average of how much a unit feeds the next layer times how easily it can still change (R, §6, Figure 5, Appendix D). New units start with zero outgoing weights, so the function does not jump, and are protected for a set number of steps (R, §6). A replacement rate of 1e-4 on 2,000-unit layers means one unit per layer every 5 examples (R, §6).</p>
+<ul><li>On Permuted MNIST it holds its accuracy across a wide range of replacement rates, with almost no dead units, no weight growth and a high effective rank (R, §6, Figure 6).</li><li>On Continual ImageNet, run to 5,000 tasks, it does better on the last task than on the first, and beats L2 and shrink-and-perturb (R, §6, Figure 7).</li><li>It fixes Slowly-Changing Regression for every activation, with SGD or Adam (R, §6).</li><li><strong>RL, preliminary.</strong> On Slippery-Ant, where ground friction changes every 10M steps, PPO degrades badly; PPO with continual backpropagation ("Continual PPO") barely drops over 100M steps (R, Appendix C, Figure 11).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>The utility measure is a heuristic, local to each unit (R, §6).</li><li>Results are plotted; the abstract's 89% and 77% are the only accuracy numbers in the text.</li><li>Dropout's harm is not explained by the three signs (R, §5).</li><li>The RL test is one environment, called preliminary by the authors (R, Appendix C).</li><li>Not tested here: large pretrained models or transformers. The networks are small CNNs and MLPs (R, §2, §3, Table 1).</li><li>This is the arXiv text. The Nature version is not in raw.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="concept-continual-learning.html">concept-continual-learning</a> — the other failure besides forgetting; continual backprop is a route the hub lacked.</li><li><a href="entity-richard-sutton.html">entity-richard-sutton</a> — the senior author.</li><li><a href="source-sutton-generative-ai-discovery.html">source-sutton-generative-ai-discovery</a> — Sutton's talk gives the same reason in one line: backprop draws its randomness only once, at initialization; the paper's continual backprop "extends the initialization to all time steps" (R, §1).</li><li><span class="dead" title="not published">experiment-continual-interpretability-layer</span> — Vincent's run reimplemented Slowly-Changing Regression (R, Appendix B) as its public anchor.</li><li><a href="source-rls-razor.html">source-rls-razor</a> — a different question with the same setting: RL's Razor measures forgetting under fine-tuning; this paper measures the loss of the ability to learn.</li><li>Adam (no page here), the default optimizer, makes loss of plasticity worse (R, §5).</li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2306-13812-maintaining-plasticity-in-deep-continual-learning.md</code></li><li><a href="https://arxiv.org/abs/2306.13812" rel="noreferrer">https://arxiv.org/abs/2306.13812</a></li><li><a href="https://github.com/shibhansh/loss-of-plasticity" rel="noreferrer">https://github.com/shibhansh/loss-of-plasticity</a></li><li>Journal version (not in raw): <a href="https://www.nature.com/articles/s41586-024-07711-7" rel="noreferrer">https://www.nature.com/articles/s41586-024-07711-7</a></li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2306-13812-maintaining-plasticity-in-deep-continual-learning.md</code></li><li><a href="https://arxiv.org/abs/2306.13812" rel="noreferrer">https://arxiv.org/abs/2306.13812</a></li><li><a href="https://github.com/shibhansh/loss-of-plasticity" rel="noreferrer">https://github.com/shibhansh/loss-of-plasticity</a></li><li><a href="https://www.nature.com/articles/s41586-024-07711-7" rel="noreferrer">https://www.nature.com/articles/s41586-024-07711-7</a></li></ul></details>
+</main>
+</body>
+</html>

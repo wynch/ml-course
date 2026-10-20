@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import torch
 
-from utils import BEANS, get_device, vit_processor
+from utils import BEANS, get_device, save_result, vit_processor
 
 MODEL_NAME = "WinKawaks/vit-tiny-patch16-224"
 
@@ -130,6 +130,18 @@ def train_beans(epochs: int = 4, batch_size: int = 16, lr: float = 3e-4, seed: i
     )
 
 
+def record(res: FineTuneResult) -> None:
+    save_result("finetune", {
+        "what": f"{MODEL_NAME} fine-tuned on beans, all weights, 4 epochs, seed 0",
+        "val_acc_per_epoch": [round(h["eval_accuracy"], 4) for h in res.history if "eval_accuracy" in h],
+        "train_loss_per_epoch": [round(h["loss"], 4) for h in res.history if "loss" in h],
+        "test_acc": round(res.test_acc, 4),
+        "test_correct": int((res.y_pred == res.y_true).sum()),
+        "test_n": int(len(res.y_true)),
+    })
+
+
 if __name__ == "__main__":
     res = train_beans()
+    record(res)
     print(f"\nbeans test accuracy: {res.test_acc:.4f}")

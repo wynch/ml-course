@@ -59,17 +59,17 @@ border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem
 <nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
 <main>
 <h1 id="memoryllm-plug-n-play-interpretable-feed-forward-memory">MemoryLLM: Plug-n-Play Interpretable Feed-Forward Memory</h1>
-<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-04-05</span> <span class="tag">transformers</span> <span class="tag">interpretability</span> <span class="tag">memory</span> <span class="tag">inference-efficiency</span></div>
+<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-10-20</span> <span class="tag">transformers</span> <span class="tag">interpretability</span> <span class="tag">memory</span> <span class="tag">inference-efficiency</span></div>
 <p><strong>Authors:</strong> Ajay Jaiswal, Lauren Hannah, Han-Byul Kim, Duc Hoang, Arnav Kundu, Mehrdad Farajtabar, Minsik Cho <strong>Date:</strong> 2026-01-30 <strong>arXiv:</strong> <a href="https://arxiv.org/abs/2602.00398" rel="noreferrer">2602.00398</a></p>
 <h2 id="summary">Summary</h2>
 <p>Decouples FFNs from self-attention to examine them as "context-free token-wise neural retrieval memory." Trains FFNs independently using token embeddings, enabling pre-computation as token-wise lookups for improved inference efficiency.</p>
 <h2 id="key-ideas">Key Ideas</h2>
 <ul><li>FFNs reframed as context-free token-wise neural retrieval memory</li><li>Independent FFN training enables pre-computation as lookups</li><li>Flex-MemoryLLM bridges gap between decoupled and conventional approaches</li><li>Improved VRAM management and inference speed</li></ul>
 <h2 id="connections">Connections</h2>
-<ul><li>New perspective on <a href="concept-transformer-architecture.html">concept-transformer-architecture</a> internals</li><li>Relevant to <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a> — understanding what FFNs do</li><li>Inference optimization approach</li></ul>
+<ul><li>New perspective on <a href="concept-transformer-architecture.html">concept-transformer-architecture</a> internals</li><li>Relevant to <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a> — understanding what FFNs do</li><li>Inference optimization approach</li><li><a href="source-sparse-memory-finetuning.html">source-sparse-memory-finetuning</a> — another feed-forward block as memory: a lookup table of 1M slots, of which training touches only the few a new fact uses (<code>raw/arxiv-2510-15103-continual-learning-via-sparse-memory-finetuning.md</code>, §3, §4)</li><li>Hub (2026-10-20): <a href="concept-knowledge-editing.html">concept-knowledge-editing</a></li></ul>
 <h2 id="references">References</h2>
 <ul><li><a href="https://arxiv.org/abs/2602.00398" rel="noreferrer">arXiv page</a></li></ul>
-<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2602.00398" rel="noreferrer">https://arxiv.org/abs/2602.00398</a></li></ul></details>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2602.00398" rel="noreferrer">https://arxiv.org/abs/2602.00398</a></li><li><code>raw/arxiv-2510-15103-continual-learning-via-sparse-memory-finetuning.md</code></li></ul></details>
 </main>
 </body>
 </html>

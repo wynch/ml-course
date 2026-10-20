@@ -198,7 +198,7 @@
   <div class="row">Module: <code>../modules/15-geometry-of-representations/README.md</code></div>
   <div class="row">Data: written into this page by <code>modules/15-geometry-of-representations/python/src/export_explorable.py</code>
     from <code>results/regions.json</code>, <code>intrinsic_dim.json</code>, <code>manifold.json</code> and <code>cka.json</code>.</div>
-  <div class="row">Reading: Hanin and Rolnick, <a href="https://arxiv.org/abs/1906.00904">Deep ReLU Networks Have Surprisingly Few Activation Patterns</a> (2019);
+  <div class="row">Reading: Hanin and Rolnick, <a href="https://arxiv.org/abs/1901.09021">Complexity of Linear Regions in Deep Networks</a> (2019) and <a href="https://arxiv.org/abs/1906.00904">Deep ReLU Networks Have Surprisingly Few Activation Patterns</a> (2019);
     Ansuini et al., <a href="https://arxiv.org/abs/1905.12784">Intrinsic dimension of data representations in deep neural networks</a> (2019);
     Kornblith et al., <a href="https://arxiv.org/abs/1905.00414">Similarity of Neural Network Representations Revisited</a> (2019).</div>
 </footer>
@@ -444,7 +444,7 @@ function drawNotice(){
   $("#notice").innerHTML=[
     "<b>Regions along a line grow with width, roughly in step.</b> From "+D[0].neurons+" to "+D[D.length-1].neurons+" hidden neurons the count along a line "+
       "goes from "+f1(D[0].trained_mean)+" to "+f1(D[D.length-1].trained_mean)+" (ratios per doubling "+DATA.width.ratios_trained.map(f2).join(", ")+"). One seed and "+DATA.width.lines+" lines: a demo.",
-    "<b>Training moves the count little.</b> Trained over init, by width: "+D.map(r=>f2(r.trained_mean/r.init_mean)).join(", ")+". It does move where the boundaries sit: compare the moons net before and after in panel 1.",
+    "<b>On FashionMNIST lines, training moves the count little.</b> Trained over init, by width: "+D.map(r=>f2(r.trained_mean/r.init_mean)).join(", ")+". The 2-D moons net is different: "+DATA.toy.regions_init+" regions before training, "+DATA.toy.regions_trained+" after, and its boundaries move towards the data. Compare it in panel 1.",
     "<b>The data is thin.</b> FashionMNIST's 784 pixels give an intrinsic dimension of "+f1(F.pixels.mle)+" to "+f1(F.pixels.twonn)+
       "; the trained MLP lowers it to "+f1(F.hidden.mle)+"–"+f1(F.hidden.twonn)+" at its hidden layer.",
     "<b>Straight lines can leave the data.</b> The midpoint of two test images of different classes sits "+f2(M.different_class.midpoint_median)+

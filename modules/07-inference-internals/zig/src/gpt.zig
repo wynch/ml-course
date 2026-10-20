@@ -30,6 +30,8 @@
 //! Because the causal attention math is identical either way, both drivers —
 //! and the PyTorch reference in python/ — produce the *same* logits. That is
 //! exactly what python/scripts/parity.py checks (max abs diff < 1e-3).
+//! `forwardFull` is a third, cache-free path that `selfcheck` tests the cache
+//! against.
 
 const std = @import("std");
 
@@ -222,6 +224,87 @@ pub const Model = struct {
         //  so route through s.xn which is free at this point)
         @memcpy(s.xn[0..dm], s.y[0..dm]);
         linear(s.y, s.xn, layer.proj_w, layer.proj_b, dm, dm);
+    }
+
+    /// The whole sequence in one pass, with no KV cache: every position's
+    /// Q, K and V sit in [T * d_model] buffers, and each query scores all T
+    /// keys, with the future masked to -inf as PyTorch does. Shares only the
+    /// kernels (linear, layerNorm, softmax, gelu) with `step`, never its cache
+    /// logic, so `selfcheck` can test the cache against it. Returns logits for
+    /// every position, [T * vocab_size], allocated from `arena`.
+    pub fn forwardFull(self: *const Model, arena: std.mem.Allocator, ids: []const usize) ![]f32 {
+        const cfg = self.cfg;
+        const dm = cfg.d_model;
+        const dh = cfg.d_head;
+        const T = ids.len;
+        if (T == 0 or T > cfg.block_size) return error.BadLength;
+
+        const x = try arena.alloc(f32, T * dm);
+        const xn = try arena.alloc(f32, T * dm);
+        const qkv = try arena.alloc(f32, T * 3 * dm);
+        const att = try arena.alloc(f32, T * dm);
+        const y = try arena.alloc(f32, dm);
+        const ff = try arena.alloc(f32, cfg.d_ff);
+        const scores = try arena.alloc(f32, T);
+        const logits = try arena.alloc(f32, T * cfg.vocab_size);
+
+        for (ids, 0..) |id, t| {
+            for (0..dm) |i| x[t * dm + i] = self.w.wte[id * dm + i] + self.w.wpe[t * dm + i];
+        }
+
+        const scale = 1.0 / @sqrt(@as(f32, @floatFromInt(dh)));
+        for (self.w.layers) |layer| {
+            for (0..T) |t| {
+                layerNorm(xn[t * dm ..][0..dm], x[t * dm ..][0..dm], layer.ln1_w, layer.ln1_b, cfg.eps);
+                linear(qkv[t * 3 * dm ..][0 .. 3 * dm], xn[t * dm ..][0..dm], layer.qkv_w, layer.qkv_b, 3 * dm, dm);
+            }
+            for (0..T) |t| {
+                for (0..cfg.n_head) |h| {
+                    const off = h * dh;
+                    const qh = qkv[t * 3 * dm + off ..][0..dh];
+                    for (0..T) |j| {
+                        if (j > t) {
+                            scores[j] = -std.math.inf(f32);
+                            continue;
+                        }
+                        const kh = qkv[j * 3 * dm + dm + off ..][0..dh];
+                        var dot: f32 = 0;
+                        for (0..dh) |d| dot += qh[d] * kh[d];
+                        scores[j] = dot * scale;
+                    }
+                    softmax(scores);
+                    const oh = att[t * dm + off ..][0..dh];
+                    for (0..dh) |d| oh[d] = 0;
+                    for (0..T) |j| {
+                        const vh = qkv[j * 3 * dm + 2 * dm + off ..][0..dh];
+                        for (0..dh) |d| oh[d] += scores[j] * vh[d];
+                    }
+                }
+            }
+            for (0..T) |t| {
+                const xt = x[t * dm ..][0..dm];
+                linear(y, att[t * dm ..][0..dm], layer.proj_w, layer.proj_b, dm, dm);
+                for (0..dm) |i| xt[i] += y[i];
+                const xnt = xn[t * dm ..][0..dm];
+                layerNorm(xnt, xt, layer.ln2_w, layer.ln2_b, cfg.eps);
+                linear(ff, xnt, layer.fc_w, layer.fc_b, cfg.d_ff, dm);
+                for (ff) |*v| v.* = gelu(v.*);
+                linear(y, ff, layer.mproj_w, layer.mproj_b, dm, cfg.d_ff);
+                for (0..dm) |i| xt[i] += y[i];
+            }
+        }
+
+        for (0..T) |t| {
+            const xnt = xn[t * dm ..][0..dm];
+            layerNorm(xnt, x[t * dm ..][0..dm], self.w.ln_f_w, self.w.ln_f_b, cfg.eps);
+            for (0..cfg.vocab_size) |v| {
+                const row = self.w.wte[v * dm ..][0..dm];
+                var acc: f32 = 0;
+                for (0..dm) |i| acc += xnt[i] * row[i];
+                logits[t * cfg.vocab_size + v] = acc;
+            }
+        }
+        return logits;
     }
 };
 

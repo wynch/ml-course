@@ -4,8 +4,8 @@
     uv run python src/train.py --figures     # redraw the loss curves from results/
 
 Each call trains module 04's GPT (4 layers, 4 heads, width d, dropout 0) for
-977 steps of 32 x 128 characters, one pass over the training part with no
-window seen twice. The learning rate warms up over 100 steps to 3e-4 and then
+977 steps of 32 x 128 characters: 81% of the training windows, none seen
+twice; the seed picks which 81% and their order. The learning rate warms up over 100 steps to 3e-4 and then
 stays there; with no decay, the loss after any number of steps is that of a
 run stopped there. The held-out loss is measured at twelve points. Sizes 32
 and 48 also run seed 1, the noise band. Writes results/train_d<d>.json.

@@ -17,6 +17,9 @@ Run:  uv run scripts/hopfield_capacity.py
 import _bootstrap  # noqa: F401
 from _bootstrap import FIGDIR
 
+import json
+import pathlib
+
 import matplotlib
 
 matplotlib.use("Agg")
@@ -29,6 +32,9 @@ SIZES = [100, 200, 400, 800, 1600]
 ALPHAS = np.round(np.arange(0.04, 0.2801, 0.005), 4)
 TRIALS = 40
 THEORY = 0.138
+
+
+OUT_JSON = pathlib.Path(__file__).resolve().parents[1] / "run_hopfield_capacity.json"
 
 
 def main() -> None:
@@ -81,6 +87,16 @@ def main() -> None:
     # a headline number for the README: how many letters fit in N = 100
     print(f"at N = 100, 0.138·N = {0.138 * 100:.1f} random patterns — "
           f"measured collapse at P = {results[100][3] * 100:.1f}")
+
+    record = {
+        "theory_alpha_c": THEORY, "trials": TRIALS, "seed": 11,
+        "recall_rule": "5% of bits flipped, up to 8 sweeps, recalled if final overlap >= 0.95",
+        "sizes": [{"n": n, "alpha_c_50pct": float(ac), "patterns_at_alpha_c": float(ac * n),
+                   "mean_overlap_at_theory": float(np.interp(THEORY, alphas, mean_m))}
+                  for n, (alphas, mean_m, _frac, ac) in results.items()],
+    }
+    OUT_JSON.write_text(json.dumps(record, indent=1) + "\n")
+    print(f"wrote {OUT_JSON}")
 
 
 if __name__ == "__main__":

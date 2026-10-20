@@ -38,13 +38,13 @@ def loss_at(run: dict, c: float) -> float | None:
     n = run["n_non_embedding"]
     pts = [(6.0 * n * p["tokens"], p["held_loss"]) for p in run["curve"] if p["step"] > WARMUP]
     # TODO(you): logs of both, return None if log c falls outside, else np.interp, then exp.
-    ...
+    raise NotImplementedError("TODO(you): write loss_at first")
 
 
 def best_size(runs: dict[int, dict], c: float) -> tuple[int, float]:
     """(d_model, loss) of the size with the lowest loss at budget c, among those that reach it."""
     # TODO(you): loss_at for each size, drop the Nones, take the minimum.
-    ...
+    raise NotImplementedError("TODO(you): write best_size first")
 
 
 def main() -> None:

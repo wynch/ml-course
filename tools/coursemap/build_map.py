@@ -67,6 +67,14 @@ FIGS: dict[str, tuple[str, str]] = {
     "23": ("23-compression", "quant.png"),
     "24": ("24-reinforcement-learning", "ppo_clip.png"),
     "25": ("25-world-models-and-planning", "plan.png"),
+    "26": ("26-rl-with-a-checker", "training.png"),
+    "27": ("27-memory-as-a-matrix", "capacity.png"),
+    "28": ("28-fewer-bits-trained-in", "matched.png"),
+    "29": ("29-learning-new-keeping-old", "one_number.png"),
+    "30": ("30-learning-without-a-backward-pass", "memory.png"),
+    "31": ("31-world-model-from-pixels", "plan.png"),
+    "32": ("32-is-the-explanation-real", "truth.png"),
+    "33": ("33-text-by-denoising", "steps.png"),
 }
 
 

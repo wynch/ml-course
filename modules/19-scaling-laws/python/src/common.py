@@ -1,8 +1,8 @@
 """Shared helpers for module 19: the laptop guard, paths, the recipe, results I/O.
 
-Import this module before torch. It caps the MPS allocator at half of unified
-memory, so a run that grows too large fails with an error instead of pushing
-the whole Mac into swap.
+Import this module before torch. It caps the MPS allocator at half of Metal's
+recommended working set (5.92 GB on a 16 GB Mac), so a run that grows too
+large fails with an error instead of pushing the whole Mac into swap.
 """
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ SIZES = (32, 48, 64, 96, 160, 256)       # d_model; 4 layers, 4 heads each
 TWO_SEEDS = (32, 48)                     # the two smallest also run seed 1: the noise band
 N_LAYER, N_HEAD, BLOCK = 4, 4, 128
 BATCH = 32                               # 32 windows x 128 characters = 4,096 tokens a step
-STEPS, WARMUP = 977, 100                 # 977 steps = 4,001,792 tokens, one pass
+STEPS, WARMUP = 977, 100                 # 977 steps = 4,001,792 tokens: 81% of the training windows, none twice
 LR, WEIGHT_DECAY = 3e-4, 0.1
 N_CHARS, N_HELD = 5_000_000, 50_000      # the slice; its last 50,000 characters are held out
 MIN_COUNT = 10                           # rarer characters map to one UNK id

@@ -1,6 +1,6 @@
-"""Signature lab: diffusion on a 2D spiral. Trains in ~1 minute on MPS/CPU.
+"""Signature lab: diffusion on a 2D spiral. Seconds to train on an Apple M5.
 
-Produces four artefacts in ../figures/:
+Produces four artefacts in ../figures/, and ../results/toy2d.json:
   forward_process.png   forward noising panel (data dissolving into Gaussian)
   reverse_process.gif   pure noise organising back into the spiral
   vector_field.png      learned denoising field (quiver) at three timesteps
@@ -9,6 +9,7 @@ Produces four artefacts in ../figures/:
 
 from __future__ import annotations
 
+import json
 import pathlib
 import time
 
@@ -25,6 +26,8 @@ from src.toy2d import DenoiseMLP, make_spiral, train_toy, vector_field
 
 FIG = pathlib.Path(__file__).resolve().parents[1] / "figures"
 FIG.mkdir(exist_ok=True)
+RESULTS = pathlib.Path(__file__).resolve().parents[1] / "results"
+RESULTS.mkdir(exist_ok=True)
 SCHEDULE = "cosine"
 TIMESTEPS = 200
 LIM = 2.8
@@ -108,14 +111,24 @@ def main():
     model = DenoiseMLP(hidden=128, time_dim=64)
 
     t0 = time.time()
-    losses = train_toy(model, diffusion, data, epochs=2500, batch=256,
+    losses = train_toy(model, diffusion, data, steps=2500, batch=256,
                        lr=2e-3, device=device, log_every=500)
-    print(f"trained in {time.time() - t0:.1f}s | final loss {losses[-1]:.4f}")
+    train_s = time.time() - t0
+    print(f"trained in {train_s:.1f}s | final loss {losses[-1]:.4f}")
 
     plot_forward(data, diffusion, device)
     plot_loss(losses)
     plot_vector_field(model, diffusion, device)
     make_reverse_gif(model, diffusion, device)
+    total_s = time.time() - t0
+    (RESULTS / "toy2d.json").write_text(json.dumps({
+        "device": str(device), "schedule": SCHEDULE, "timesteps": TIMESTEPS,
+        "steps": 2500, "batch": 256, "train_seconds": round(train_s, 1),
+        "train_and_figures_seconds": round(total_s, 1),
+        "loss_final": losses[-1],
+        "loss_mean_last100": sum(losses[-100:]) / 100,
+    }, indent=1) + "\n")
+    print(f"train + figures in {total_s:.1f}s")
     print("figures written to", FIG)
 
 

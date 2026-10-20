@@ -161,9 +161,8 @@ pre.snippet{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:v
 <footer>
   <p class="paths">module → <a href="../modules/00c-kernels-hopfield/README.md">../modules/00c-kernels-hopfield/README.md</a>
     · explorable → <a href="../explorables/00c-double-descent.html">../explorables/00c-double-descent.html</a></p>
-  <p>Track 0 runs before the Hugging Face course proper; the natural next reading once you have
-    finished Origins is Chapter 1 —
-    <a href="https://huggingface.co/learn/llm-course/chapter1">Transformer models</a>.
+  <p>Next in the course: <a href="../modules/01-autograd/README.md">module 01</a> —
+    autograd from scratch, where Track 0 ends.
     Recommended alongside this track: Anil Ananthaswamy, <i>Why Machines Learn</i> (Dutton, 2024) —
     the chapters on support vector machines and the kernel trick, on Hopfield networks and
     associative memory, and the closing discussion of double descent.</p>
@@ -241,7 +240,8 @@ const QUESTIONS = [
       "118 / 13 / 4 — the RBF is the tightest of the three because its bumps are local."
     ],
     answer: 2,
-    explain: "The measured rows are <code>linear acc 0.5000 SVs 118 margin 0.1854</code>, " +
+    explain: "The measured rows are <code>linear acc 0.5000 SVs 118</code> (its printed " +
+             "0.1854 is <code>2/√Σα</code>, not a margin, since C = 1 makes the fit soft), " +
              "<code>poly acc 1.0000 SVs 4 margin 1.2224</code>, <code>rbf acc 1.0000 SVs 13 " +
              "margin 0.3755</code>. The linear row is the control and it fails twice over: 50% " +
              "accuracy — a coin flip — with 118 of 120 points carrying a vote. When everything is " +
@@ -281,11 +281,11 @@ const QUESTIONS = [
              "<code>kernel_lift.py</code> really does form that 3-vector — <code>w = (−1.2030, " +
              "+0.1131, −1.0677)</code> — but only to <i>draw</i> the plane, and the trick stops " +
              "working the moment you reach for the RBF.",
-    source: "modules/00c-kernels-hopfield/python/src/kernelmem/svm.py:197-218 · README part 1 margin table"
+    source: "modules/00c-kernels-hopfield/python/src/kernelmem/svm.py:198-219 · README part 1 margin table"
   },
   /* ── 4 ─────────────────────────────────────────────────── read-code ── */
   {
-    id: "q4", kind: "single", tag: "code", topic: "Why Hopfield energy can only fall",
+    id: "q4", kind: "single", tag: "code", topic: "Why Hopfield energy never rises",
     text: "Hopfield recall, with the trace bookkeeping removed. The module measures the largest " +
           "single-update <i>increase</i> in energy across all five retrieval runs as " +
           "<b>+0.000e+00</b>. <b>Which change to this code would destroy that guarantee?</b>",
@@ -315,7 +315,7 @@ const QUESTIONS = [
              "Option A is the tempting one: a deterministic order is perfectly monotone too — the " +
              "module randomises to sample trajectories fairly, not for correctness — and B and C " +
              "cannot raise the energy because no individual accepted flip ever does.",
-    source: "modules/00c-kernels-hopfield/python/src/kernelmem/hopfield.py:63-76 · README part 3 · figures/hopfield_energy.png"
+    source: "modules/00c-kernels-hopfield/python/src/kernelmem/hopfield.py:67-80 · README part 3 · figures/hopfield_energy.png"
   },
   /* ── 5 ───────────────────────────────────────────── real numbers ── */
   {
@@ -353,7 +353,7 @@ const QUESTIONS = [
              "/ 0.167 / 0.212) and you retrieve a blur of all five letters; at " +
              "<span class=\"mono\">βN = 16</span> one weight is <b>0.894</b> and the letter comes " +
              "back exactly in a single step, where the classical net needed 200 neuron updates.",
-    source: "modules/00c-kernels-hopfield/README.md part 4 table · python/src/kernelmem/hopfield.py:144-163 · python/scripts/attention_bridge.py · figures/attention_hopfield.png"
+    source: "modules/00c-kernels-hopfield/README.md part 4 table · python/src/kernelmem/hopfield.py:148-167 · python/scripts/attention_bridge.py · figures/attention_hopfield.png"
   },
   /* ── 7 ──────────────────────────────────────────────────── predict ── */
   {
@@ -394,9 +394,10 @@ const QUESTIONS = [
              "‖x‖² = 2.3824, halfway between the inner ring's largest radius² (1.6747) and the " +
              "outer ring's smallest (3.0901). The quadratic map throws the coordinates away and is " +
              "the one hiding inside <span class=\"mono\">(aᵀb)²</span>; pulled back to 2D its plane " +
-             "is the ellipse with semi-axes 1.526 and 1.619 — near-circular but tilted, because the " +
-             "sampled rings are not exactly symmetric.",
-    source: "modules/00c-kernels-hopfield/python/src/kernelmem/lift.py · python/scripts/kernel_lift.py · figures/kernel_lift_3d.png · README part 2",
+             "is the ellipse with semi-axes 1.503 and 1.648 — near-circular but tilted, because the " +
+             "sampled rings are not exactly symmetric. (1.526 and 1.619 are only where it crosses " +
+             "the axes; the x₁x₂ term turns the ellipse about 25°.)",
+    source: "modules/00c-kernels-hopfield/python/src/kernelmem/lift.py · python/scripts/kernel_lift.py · python/run_kernel_lift.json · figures/kernel_lift_3d.png · README part 2",
     tryIt: { href: "../explorables/00c-double-descent.html", label: "try it — panel 2, feature-map radio" }
   },
   /* ── 9 ────────────────────────────────────── conceptual, multi ── */
@@ -441,7 +442,7 @@ const QUESTIONS = [
              "answer. Option A is the trap — it would be right for the <i>underparameterised</i> " +
              "least-squares fit, where the minimiser is unique and basis-independent, and it stops " +
              "being right the moment there are infinitely many exact interpolants to choose between.",
-    source: "modules/00c-kernels-hopfield/python/src/kernelmem/polyreg.py:17-21,29-43 · README part 5 'the honest note'"
+    source: "modules/00c-kernels-hopfield/python/src/kernelmem/polyreg.py:18-22,30-44 · README part 5 'the honest note'"
   }
 ];
 

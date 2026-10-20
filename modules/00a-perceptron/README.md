@@ -2,16 +2,18 @@
 
 > Two ideas from the 1950s that never went away. One asks *which side of the
 > line?* and learns by admitting mistakes. The other asks *how far off?* and
-> learns by minimising a distance. Everything later in this course is a
-> variation on the second, powered by a stack of the first.
+> learns by minimising a distance. Later modules minimise a distance, as least
+> squares does, with many threshold-like units stacked in layers, as the
+> perceptron is.
 
 This is the opening module of **Track 0 · Origins**. It is deliberately small:
 200 points, three weights, arithmetic you can do on paper. What makes it worth
 your time is that both algorithms come with something modern deep learning
 almost never has — a **proof**. You will train a perceptron, count its mistakes,
 compute the bound that says it cannot make more, and watch the two numbers sit
-in the same picture. Then you will hit the wall that stopped the field for
-fifteen years, and step over it with nine parameters.
+in the same picture. Then you will hit XOR, the limit that, with no way yet to
+train hidden layers, helped stall the field until backpropagation in 1986, and
+step over it with nine parameters.
 
 **🕹 Interactive:** [The perceptron, one mistake at a time](../../explorables/00a-perceptron.html) —
 drag the margin, watch the line snap, replay this module's real run, and flip on
@@ -55,14 +57,15 @@ never makes another mistake.
 
 **The guarantee, drawn to scale.** The teal staircase is what actually happened;
 the red line is the maximum Novikoff's theorem allows. The run used **8.6%** of
-its allowance.
+the bound.
 
 ![Cumulative mistakes against the Novikoff bound](figures/mistakes_vs_bound.png)
 
 **How the bound behaves when you squeeze the margin.** Nine margin settings ×
 five seeds, retrained from scratch each time. The bound grows as `1/γ²` — the
-fitted log-log slope is −2.11. The mistakes actually made grow as `1/γ`, slope
-−1.00. A worst-case theorem is a statement about the worst case, not a
+fitted log-log slope is −2.11. The mistakes actually made grow about as `1/γ`,
+slope −1.00 — a rough fit: at one setting the five seeds differ by up to 8×
+(6 to 47 mistakes at margin 0.07). A worst-case theorem is a statement about the worst case, not a
 prediction about your data.
 
 ![Empirical mistakes and the bound versus margin](figures/margin_sweep.png)
@@ -92,8 +95,9 @@ disappears.
 ## Theory in one minute — why the perceptron stops
 
 Append a constant 1 to every point so the bias is just another weight:
-`x = [x₁, x₂, 1]`. Suppose some unit vector `u` separates the data with margin
-`γ`, meaning `yᵢ·(u·xᵢ) ≥ γ` for every point, and let `R = max‖xᵢ‖`. Start at
+`x = [x₁, x₂, 1]`. Suppose some unit vector `u` (length 1) separates the data
+with margin `γ`: the margin is the smallest distance from any point to the
+boundary `u·x = 0`, so `yᵢ·(u·xᵢ) ≥ γ` for every point. Let `R = max‖xᵢ‖`. Start at
 `w = 0` and update only on mistakes.
 
 Each update does two things at once:
@@ -121,13 +125,16 @@ flowchart LR
 Two honest caveats the module makes you confront:
 
 1. **γ is not free.** The largest margin any separator achieves is the distance
-   from the origin to the convex hull of the points `yᵢ·xᵢ` — a genuine
-   optimisation problem. `src/perceptron/rosenblatt.py` solves it with
-   Frank–Wolfe in twenty lines and reports a *bracket*: the achieved margin
-   below γ\*, the hull distance above it. For the headline dataset the bracket
-   is 2.5·10⁻⁴ wide.
-2. **The bound says nothing when no separator exists.** Take γ away and the
-   theorem says nothing at all — which is precisely the XOR situation.
+   from the origin to the convex hull of the points `yᵢ·xᵢ` (the hull is the set
+   of all their weighted averages) — a genuine optimisation problem.
+   `src/perceptron/rosenblatt.py` solves it with Frank–Wolfe in twenty lines:
+   each step moves toward the hull corner that points most steeply downhill
+   from where it stands. It reports a *bracket*, two numbers that trap the true γ\*: the
+   margin its current line achieves, below γ\*, and the hull distance, above
+   it. For the headline dataset the bracket is 2.5·10⁻⁴ wide.
+2. **The bound says nothing when no separator exists.** Then γ = 0, so the
+   bound `(R/γ)²` is infinite: it says nothing — which is precisely the XOR
+   situation.
 
 ## This module's numbers
 
@@ -257,7 +264,9 @@ Skeletons are in `exercises/` (look for `# TODO(you):`), verified answers in
 1. **`ex1_pocket.py`** — flip 6% of the labels and the guarantee is gone: the
    perceptron makes 1959 updates in 60 epochs and never settles. Implement the
    **pocket algorithm** — keep the best weights you have seen — and recover
-   94.0% accuracy, which is the ceiling given the corrupted labels.
+   94.0% accuracy, the best any line achieves on these labels (the script
+   checks this by exhaustive search: every ordering of the points along a
+   direction, and every cut).
 2. **`ex2_ridge.py`** — add a nearly duplicate feature (κ(XᵀX) ≈ 9.3·10⁶) and
    watch the normal equations produce coefficients of `+21.5` and `−19.9` that
    cancel. Implement **ridge**, `(XᵀX + λI)w = Xᵀy`, and watch them collapse to
@@ -293,9 +302,15 @@ here, a hidden layer of two tanh units, is literally module 02's network with
 the width turned down. Least squares supplies the other half: the
 **differentiable loss** whose gradient [module 01](../01-autograd/README.md)
 computes automatically, and whose descent path module 01's explorable lets you
-roll a ball down. The stability edge `2/λ_max` you measured here is the reason
-learning-rate schedules exist at all, in module 02 and in every fine-tuning run
-in [module 06](../06-fine-tuning/README.md). And the margin — the quantity that
+roll a ball down. On a quadratic the stability edge `2/λ_max` you measured here
+is a hard wall, and it is one reason learning rates need care, in module 02 and
+in every fine-tuning run in [module 06](../06-fine-tuning/README.md). Neural
+networks are not quadratics: their curvature changes as they train, and
+full-batch gradient descent settles where the sharpest curvature sits right at
+`2/lr` — the "edge of stability" (Cohen et al., 2021) — instead of blowing up.
+Cohen et al. (2025) model the averaged path of such runs.
+[Module 14](../14-how-training-finds-a-solution/README.md) picks this up. And
+the margin — the quantity that
 made the whole guarantee work — comes back as the object being maximised in
 [module 00c](../00c-kernels-hopfield/README.md), where support-vector machines
 stop treating any separator as good enough.
@@ -323,6 +338,12 @@ autograd from scratch.
   Neural Networks 1(2) — the pocket algorithm of exercise 1.
 - M. Frank and P. Wolfe, *An Algorithm for Quadratic Programming* (1956) — the
   method used here to compute γ honestly.
+- J. Cohen, S. Kaur, Y. Li, J. Z. Kolter and A. Talwalkar, *Gradient Descent on
+  Neural Networks Typically Occurs at the Edge of Stability* (ICLR 2021),
+  arXiv:2103.00065 — <https://arxiv.org/abs/2103.00065>
+- J. Cohen, A. Damian, A. Talwalkar, J. Z. Kolter and J. D. Lee, *Understanding
+  Optimization in Deep Learning with Central Flows* (ICLR 2025),
+  arXiv:2410.24206 — <https://arxiv.org/abs/2410.24206>
 - Recommended reading: Anil Ananthaswamy, *Why Machines Learn: The Elegant Math
   Behind Modern AI* (Dutton, 2024) — the chapters on the perceptron and its
   learning rule, and on least squares and the normal equations, tell the

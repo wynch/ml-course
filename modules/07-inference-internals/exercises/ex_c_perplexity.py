@@ -1,7 +1,8 @@
 """Exercise C harness (PROVIDED — you don't edit this file).
 
 Once you've implemented the perplexity plumbing (ex_c_perplexity.zig, and the
-engine's `perplexity` subcommand it mirrors), this harness runs the full engine
+engine's `perplexity` subcommand it mirrors), this harness runs the prebuilt
+engine's `perplexity` command (not your function; `zig test` checks that)
 over a held-out Shakespeare slice with the f32 weights and again with the int8
 Q8 weights, and reports both perplexities plus the gap.
 
@@ -52,7 +53,7 @@ def main() -> None:
     print(f"cost of int8   : {ppl_int8 - ppl_f32:+.4f}  ({100 * (ppl_int8 - ppl_f32) / ppl_f32:+.2f}%)")
     print(
         "\nTakeaway: per-row int8 is nearly free in quality here — the whole model\n"
-        "is 4x smaller on disk for a perplexity change in the third decimal place."
+        "is 4x smaller on disk for a perplexity change of 0.0006 (4.6574 -> 4.6568)."
     )
 
 

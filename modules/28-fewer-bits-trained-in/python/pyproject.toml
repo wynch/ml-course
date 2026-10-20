@@ -1,0 +1,20 @@
+[project]
+name = "mlcourse-28-fewer-bits-trained-in"
+version = "0.1.0"
+description = "Module 28 — Fewer bits, trained in: ternary BitLinear against rounded floats at matched bytes, and the KV cache in 8 to 2 bits."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "matplotlib>=3.11.1",
+    "mlx-lm>=0.32.2",
+    "numpy>=2.0",
+    "pyarrow>=17",
+    "pytest>=9.1.1",
+    "safetensors>=0.5",
+    "torch>=2.14.0",
+    "transformers>=5.16.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "../solutions"]
+addopts = "-q"

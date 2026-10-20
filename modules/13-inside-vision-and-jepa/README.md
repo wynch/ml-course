@@ -20,9 +20,11 @@ numbers to the last digit, and a test checks that.
 This is the third module of track 4, **Looking inside**, after
 [module 11](../11-inside-a-language-model/README.md) (hooks, probes,
 patching, neuron poles) and [module 12](../12-features-and-dictionaries/README.md)
-(superposition, sparse autoencoders, steering). It is the last module of the
-track. Next, [module 14](../14-how-training-finds-a-solution/README.md) opens
-track 5 and asks how training finds a solution at all.
+(superposition, sparse autoencoders, steering). Next,
+[module 32](../32-is-the-explanation-real/README.md) closes the track by
+testing such findings against controls; then
+[module 14](../14-how-training-finds-a-solution/README.md) opens track 5 and
+asks how training finds a solution at all.
 
 **🕹 Interactive:** [Inside vision and JEPA models](../../explorables/13-inside-vision-and-jepa.html):
 scrub channels 45 to 65 of layer 4e across six image sets, see the renders,
@@ -138,7 +140,8 @@ Vs.
 that have nothing to do with Vs, so the test asks whether 4e:55 does it *more
 than its neighbours*. For each of channels 45 to 65, the **gap** is the median
 on Vs minus the larger of the cat and car medians, divided by the pooled
-spread of the three sets. If 4e:55 were the V channel, it would rank first of
+standard deviation of the three sets (the square root of the mean of their
+three variances). If 4e:55 were the V channel, it would rank first of
 21; a channel picked at random ranks first one time in 21.
 
 | | Gap of 4e:55 | Rank of 21 |
@@ -241,7 +244,7 @@ random weights still mixes patch content into CLS, enough for a line to read
 a little.
 
 **Three neurons drawn at random.** In each block's MLP, a neuron's value is
-the 3,072-wide hidden layer after its activation (quick GELU). We draw one neuron in blocks 3, 7
+the 3,072-wide hidden layer after its activation (quick GELU, x·sigmoid(1.702x), a cheap stand-in for GELU). We draw one neuron in blocks 3, 7
 and 11 with `numpy.random.default_rng(0)`, score each of the 1,500 images by
 the neuron's largest value over the 49 patches, and show the top eight.
 
@@ -265,15 +268,23 @@ from **gridjepa, the author's earlier experiment** ([provenance](artifacts/READM
 a 0.36M-parameter CNN that maps a 15 × 15 window of a tile world (walls,
 blocks, keys, doors, hazards, one goal; the agent at the centre) to 128
 numbers. It was trained only to predict the next latent from the current one
-and the action, with an EMA target encoder and stop-gradient; no label
-entered training. [Module 16](../16-self-supervised-and-jepa/README.md)
-builds JEPAs from scratch.
+and the action, with an EMA target encoder (a second copy of the encoder
+whose weights trail the first as a slow running average) and stop-gradient
+(no gradient flows into that copy); no label entered training.
+[Module 16](../16-self-supervised-and-jepa/README.md) builds JEPAs from
+scratch. Newer JEPAs drop both tricks: LeJEPA ([Balestriero and LeCun,
+2025](https://arxiv.org/abs/2511.08544)) keeps the latents from collapsing
+with one extra loss term, SIGReg, which pushes them towards a round Gaussian
+cloud; module 16 tries it.
 
 `src/jepa_probe.py` freezes the encoder, encodes 10,000 frames from 97
 episodes (one arena each, arenas the model never trained on), splits by whole
 episode (6,905 training frames, 3,095 held out), and asks three linear probes:
 
-- **position**: the agent's (x, y) in the arena, ridge regression, R²;
+- **position**: the agent's (x, y) in the arena, ridge regression (least
+  squares with a small penalty on the weights' size), scored by R² (1 minus
+  the probe's squared error over that of always guessing the mean: 1 is
+  perfect, 0 no better than the mean, below 0 worse);
 - **neighbours**: the tile in each of the 8 cells around the agent, 10-way logistic regression, mean accuracy;
 - **path length**: the fewest moves from the agent to the goal (breadth-first
   search on the arena; walls, blocks, doors and hazards block a move), capped
@@ -394,6 +405,10 @@ explorable against the results.
 - [The Building Blocks of Interpretability](https://distill.pub/2018/building-blocks/) (Distill, 2018) and the [Circuits thread](https://distill.pub/2020/circuits/) (Distill, 2020): InceptionV1 read channel by channel, curve detectors among them.
 - [Multimodal Neurons in Artificial Neural Networks](https://distill.pub/2021/multimodal-neurons/) (Goh et al., Distill, 2021): single CLIP neurons that respond to a concept across photos, drawings and text.
 - I-JEPA ([Assran et al., 2023](https://arxiv.org/abs/2301.08243)) and V-JEPA ([Bardes et al., 2024](https://arxiv.org/abs/2404.08471)): JEPAs on images and video.
+- V-JEPA 2 ([Assran et al., 2025](https://arxiv.org/abs/2506.09985)): a video JEPA trained on over a million hours of video, then given actions and used to plan robot arm moves towards an image goal.
+- LeJEPA ([Balestriero and LeCun, 2025](https://arxiv.org/abs/2511.08544)): a JEPA with no EMA copy and no stop-gradient.
+- Sparse autoencoders on vision models: Stevens et al., [Interpretable and Testable Vision Features via Sparse Autoencoders](https://arxiv.org/abs/2502.06755) (2025). Module 12's tool on a ViT instead of one neuron at a time.
+- [DINOv3](https://arxiv.org/abs/2508.10104) (Siméoni et al., 2025) and V-JEPA 2 are the vision backbones a 2026 learner would probe; CLIP ViT-B/32 remains a fair laptop choice.
 - For the field as a whole, the course's research page [Interpretability](../../research/interp.html).
 
 ## Checkpoint: you should now be able to…

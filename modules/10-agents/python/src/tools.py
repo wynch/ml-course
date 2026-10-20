@@ -24,6 +24,7 @@ import ast
 import json
 import math
 import operator
+import re
 from pathlib import Path
 
 # --- module paths ---------------------------------------------------------
@@ -116,6 +117,35 @@ def _load_kb() -> dict[str, str]:
     return {k: v for k, v in data.items() if not k.startswith("_")}
 
 
+def _norm_naive(s: str) -> str:
+    s = s.strip().lower().replace("-", " ").replace("_", " ").replace("'", "")
+    return " ".join(s.split())
+
+
+def _norm(s: str) -> str:
+    s = s.strip().lower().replace("\u2019", "'")
+    s = re.sub(r"'s\b", "", s).replace("'", "")
+    s = s.replace("-", " ").replace("_", " ")
+    return " ".join(s.split())
+
+
+def _lookup(key: str, norm, quote: bool) -> str:
+    kb = {norm(k): v for k, v in _load_kb().items()}
+    q = norm(key)
+    if q in kb:
+        return kb[q]
+    # Offer a soft fallback: any key that shares a word with the query.
+    query_words = set(q.split())
+    near = sorted(k for k in kb if query_words & set(k.split()))
+    if near:
+        joined = " | ".join(f'"{k}"' for k in near) if quote else ", ".join(near)
+        return f"No exact entry for {key!r}. Did you mean: {joined}?"
+    return (
+        f"No entry for {key!r}. Known keys include: "
+        f"{', '.join(sorted(kb)[:6])}, ..."
+    )
+
+
 def kb_lookup(key: str) -> str:
     """Look up a fact in the local knowledge base by key.
 
@@ -126,26 +156,25 @@ def kb_lookup(key: str) -> str:
     Args:
         key: The fact to look up, e.g. "speed of light".
     """
-    kb = _load_kb()
-    # Be forgiving about how a small model phrases the key: lowercase, turn
-    # hyphens/underscores into spaces, drop apostrophes, and collapse runs of
-    # whitespace. "Seconds-in-a-day" and "seconds in a day" then match.
-    def _norm(s: str) -> str:
-        s = s.strip().lower().replace("-", " ").replace("_", " ").replace("'", "")
-        return " ".join(s.split())
-    norm = _norm(key)
-    kb = {_norm(k): v for k, v in kb.items()}
-    if norm in kb:
-        return kb[norm]
-    # Offer a soft fallback: any key that shares a word with the query.
-    query_words = set(norm.split())
-    near = [k for k in kb if query_words & set(k.split())]
-    if near:
-        return f"No exact entry for {key!r}. Did you mean: {', '.join(sorted(near))}?"
-    return (
-        f"No entry for {key!r}. Known keys include: "
-        f"{', '.join(sorted(kb)[:6])}, ..."
-    )
+    # Forgiving about phrasing: lowercase, hyphens/underscores to spaces, a
+    # possessive "'s" and other apostrophes dropped, whitespace collapsed.
+    # "Seconds-in-a-day" and "Earth's radius km" then match their keys.
+    # Suggestions are quoted one by one: a comma-joined list reads as one key,
+    # and a small model copies it whole.
+    return _lookup(key, _norm, quote=True)
+
+
+def kb_lookup_naive(key: str) -> str:
+    """The first version of kb_lookup, kept to reproduce the shipped loop.
+
+    It turns "Earth's" into "earths", which misses "earth radius km", and it
+    joins its suggestions with commas, so "earth radius km, moon distance km"
+    looks like one key. The README's looping transcript and exercise B use it.
+
+    Args:
+        key: The fact to look up, e.g. "speed of light".
+    """
+    return _lookup(key, _norm_naive, quote=False)
 
 
 # --- file listing ---------------------------------------------------------
@@ -189,4 +218,10 @@ TOOL_REGISTRY = {
         list_module_files,
         'list_module_files(subdir: str) -> list files in the module dir, e.g. list_module_files("figures")',
     ),
+}
+
+# The same tools with the first, faulty kb_lookup (same prompt description).
+NAIVE_TOOL_REGISTRY = {
+    **TOOL_REGISTRY,
+    "kb_lookup": (kb_lookup_naive, TOOL_REGISTRY["kb_lookup"][1]),
 }

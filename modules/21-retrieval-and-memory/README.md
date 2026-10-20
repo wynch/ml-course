@@ -127,7 +127,6 @@ v = v / v.norm(dim=-1, keepdim=True)                        # unit length: cosin
 | Median cosine, question and a random paragraph | 0.01 | 0.69 |
 | Gold paragraph beats the random one | 99.8% of questions | 91.0% |
 | A paragraph's nearest paragraph is from the same article | 95.9% | 89.2% |
-| Gold paragraph (ceiling) | 100% | 100% |
 
 By chance, a paragraph's nearest neighbour would share its article 2.4% of
 the time (48 articles of unequal size).
@@ -197,6 +196,9 @@ top 20, so they change no recall below. `src/retrieval.py` measures it for all 1
 | SmolLM2 mean-pool cosine | 10.6% | 23.2% | 41.0% | 0.175 |
 | Gold paragraph (ceiling) | 100% | 100% | 100% | 1 |
 
+Mean reciprocal rank is the mean of 1 / (rank of the gold paragraph); 1 means
+always first.
+
 At rank 1 the two leaders often disagree: BM25 alone is right on 2,351
 questions, MiniLM alone on 981; both on 5,626, neither on 1,612.
 
@@ -209,13 +211,23 @@ their dense retriever on SQuAD and gave this reason. MiniLM cuts 168 paragraphs 
 sees the rest. And the question "which paragraph" is narrower than "which
 text answers this", the task MiniLM was trained on. Recall against the gold
 paragraph also undercounts: a second paragraph may hold the answer, and
-section 3 finds a few such cases.
+section 3 finds a few such cases. Others have seen the same: across the 18
+datasets of BEIR (Thakur et al., 2021), BM25 was hard to beat, and dense models
+often fell below it outside the data they were trained on. Weller et al.
+(2025) show a limit of the method itself: one vector per text cannot return
+every combination of relevant documents, and the vector's size bounds how many
+it can.
 
 SmolLM2's vectors are a weak search key. Section 1 showed that its gold
 paragraph beats one random paragraph 91% of the time, yet here it comes first
-among 2,067 only 10.6% of the time. A language model's hidden states are
-built to predict the next token, not to measure meaning by angle; an
-embedding model is a language model trained further, on pairs, for that job.
+among 2,067 only 10.6% of the time. A language model's hidden states are built
+to predict the next token, not to measure meaning by angle. They crowd into a
+narrow cone, so every pair looks alike (Ethayarajh, 2019; here a question and
+a random paragraph have a median cosine of 0.69). And in a decoder each token
+sees only the words before it, so the mean pools many states that never saw
+the end of the text. An embedding model is a language model trained further,
+on pairs, for this job; LLM2Vec (BehnamGhader et al., 2024) turns a decoder
+into one by letting every token see the whole text, then training on pairs.
 
 ## 3 · A RAG loop
 
@@ -252,7 +264,9 @@ best.
 | MiniLM top-1 | 26.0% | 37.3% | 129 of 200 | 38.0% | 4.2% | 138 of 200 |
 | **gold paragraph (ceiling)** | **37.0%** | **50.9%** | 200 of 200 | 37.0% | | 200 of 200 |
 
-One standard error on 200 questions is about 3.3 points of EM. BM25 against
+"Answer string in the passage" is a substring match after SQuAD's
+normalising, so a short answer such as "1" can count by accident inside
+"1956". One standard error on 200 questions is about 3.3 points of EM. BM25 against
 MiniLM is 29.0% against 26.0%: they differ on 20 questions, 13 for BM25 and
 7 for MiniLM, too few to rank them. On these 200 questions BM25's top paragraph
 was the gold one 149 times (74.5%), close to its 75.5% on all 10,570.
@@ -284,11 +298,14 @@ itself is the shortest-lived memory; [module 18](../18-beyond-attention/README.m
 counts what keeping it costs (the KV cache). A running summary, written by
 the model and fed back in, trades detail for room; module 10's exercise (c)
 builds one. Writing to the weights, by fine-tuning (module 06), keeps the
-most but is slow, cannot be undone item by item, and cannot cite a source.
+most but is slow, is hard to undo one fact at a time, and cannot cite a
+source. Stores that extract facts from the conversation, merge them and
+update them, such as Mem0 (Chhikara et al., 2025), sit between a running
+summary and a retrieval store.
 
 | Memory | Where it lives | Written by | Read by | Lasts | Main failure |
 |---|---|---|---|---|---|
-| Context window | the prompt, held as a KV cache | the conversation | attention, every token | one session, up to the context length | runs out of room; cost grows with length |
+| Context window | the prompt, held as a KV cache | the conversation | attention, every token | one session, up to the context length | runs out of room; cost grows with length; facts in the middle of a long prompt get used less (Liu et al., 2023) |
 | Running summary | text in the prompt | the model, every few turns | attention | as long as it is carried | detail lost in each rewrite |
 | Retrieval store | a database of passages and their vectors or index | the agent or a pipeline | a retriever, per query (this module) | until deleted | the wrong passage, and the reader trusts it |
 | Weights | the model's parameters | fine-tuning | every forward pass | until retrained | slow, no source to cite, hard to remove one fact |
@@ -378,3 +395,9 @@ the explorable against the results.
 - Wang et al., [MiniLM](https://arxiv.org/abs/2002.10957) (2020); [all-MiniLM-L6-v2 model card](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)
 - Lewis et al., [Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks](https://arxiv.org/abs/2005.11401) (2020)
 - Karpukhin et al., [Dense Passage Retrieval for Open-Domain Question Answering](https://arxiv.org/abs/2004.04906) (2020)
+- Ethayarajh, [How Contextual are Contextualized Word Representations?](https://arxiv.org/abs/1909.00512) (2019)
+- BehnamGhader et al., [LLM2Vec: Large Language Models Are Secretly Powerful Text Encoders](https://arxiv.org/abs/2404.05961) (2024)
+- Thakur et al., [BEIR: A Heterogenous Benchmark for Zero-shot Evaluation of Information Retrieval Models](https://arxiv.org/abs/2104.08663) (2021)
+- Weller et al., [On the Theoretical Limitations of Embedding-Based Retrieval](https://arxiv.org/abs/2508.21038) (2025)
+- Liu et al., [Lost in the Middle: How Language Models Use Long Contexts](https://arxiv.org/abs/2307.03172) (2023)
+- Chhikara et al., [Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory](https://arxiv.org/abs/2504.19413) (2025)

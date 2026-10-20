@@ -69,7 +69,8 @@ GUIDES = [
 ]
 
 # Reading order, not number order: the lesson's Previous and Next buttons
-# follow this list (22 comes before 21).
+# follow this list (each track in turn; 22 comes before 21, and modules 26-33
+# sit inside their tracks).
 MODULES = [
     ("00a-perceptron", "The perceptron & least squares", "Perceptron", "modules/00a-perceptron/README.md", "Origins", 120, "00a-perceptron.html", "amber"),
     ("00b-bayes-knn-pca", "Probability, neighbours & eigenvectors", "Bayes, k-NN & PCA", "modules/00b-bayes-knn-pca/README.md", "Origins", 120, "00b-pca.html", "amber"),
@@ -85,21 +86,29 @@ MODULES = [
     ("08-vision", "Vision: convolutions to ViTs", "Vision", "modules/08-vision/README.md", "Breadth", 180, "08-conv-vs-patches.html", "green"),
     ("09-diffusion", "Diffusion: learning to denoise", "Diffusion", "modules/09-diffusion/README.md", "Breadth", 180, "09-diffusion.html", "green"),
     ("10-agents", "Agents: models that act", "Agents", "modules/10-agents/README.md", "Breadth", 180, "10-agent-loop.html", "green"),
+    ("33-text-by-denoising", "Text by denoising", "Text by denoising", "modules/33-text-by-denoising/README.md", "Breadth", 75, "33-text-by-denoising.html", "green"),
     ("11-inside-a-language-model", "Inside a language model", "Inside an LM", "modules/11-inside-a-language-model/README.md", "Looking inside", 150, "11-inside-a-language-model.html", "rose"),
     ("12-features-and-dictionaries", "Features and dictionaries", "Features", "modules/12-features-and-dictionaries/README.md", "Looking inside", 150, "12-features-and-dictionaries.html", "rose"),
     ("13-inside-vision-and-jepa", "Inside vision and JEPA models", "Inside vision", "modules/13-inside-vision-and-jepa/README.md", "Looking inside", 90, "13-inside-vision-and-jepa.html", "rose"),
+    ("32-is-the-explanation-real", "Is the explanation real?", "Is it real?", "modules/32-is-the-explanation-real/README.md", "Looking inside", 75, "32-is-the-explanation-real.html", "rose"),
     ("14-how-training-finds-a-solution", "How training finds a solution", "Training dynamics", "modules/14-how-training-finds-a-solution/README.md", "How learning works", 90, "14-how-training-finds-a-solution.html", "blue"),
     ("15-geometry-of-representations", "Geometry of representations", "Geometry", "modules/15-geometry-of-representations/README.md", "How learning works", 75, "15-geometry-of-representations.html", "blue"),
     ("16-self-supervised-and-jepa", "Self-supervised learning and JEPA", "SSL and JEPA", "modules/16-self-supervised-and-jepa/README.md", "How learning works", 90, "16-self-supervised-and-jepa.html", "blue"),
+    ("29-learning-new-keeping-old", "Learning something new without losing the old", "Learning without losing", "modules/29-learning-new-keeping-old/README.md", "How learning works", 90, "29-learning-new-keeping-old.html", "blue"),
+    ("30-learning-without-a-backward-pass", "Learning without a backward pass", "Without a backward pass", "modules/30-learning-without-a-backward-pass/README.md", "How learning works", 80, "30-learning-without-a-backward-pass.html", "blue"),
     ("17-learning-from-preferences", "Learning from preferences", "Preferences", "modules/17-learning-from-preferences/README.md", "Other recipes", 90, "17-learning-from-preferences.html", "rust"),
     ("18-beyond-attention", "Beyond attention", "Recurrence and SSMs", "modules/18-beyond-attention/README.md", "Other recipes", 90, "18-beyond-attention.html", "rust"),
+    ("27-memory-as-a-matrix", "Memory as a matrix: the delta rule", "Memory as a matrix", "modules/27-memory-as-a-matrix/README.md", "Other recipes", 75, "27-memory-as-a-matrix.html", "rust"),
     ("19-scaling-laws", "Scaling laws", "Scaling laws", "modules/19-scaling-laws/README.md", "Why they work", 60, "19-scaling-laws.html", "olive"),
     ("20-in-context-learning", "In-context learning", "In-context learning", "modules/20-in-context-learning/README.md", "Why they work", 60, "20-in-context-learning.html", "olive"),
     ("22-reasoning-at-test-time", "Reasoning at test time", "Reasoning at test time", "modules/22-reasoning-at-test-time/README.md", "Using models well", 75, "22-reasoning-at-test-time.html", "ochre"),
     ("21-retrieval-and-memory", "Retrieval and memory", "Retrieval", "modules/21-retrieval-and-memory/README.md", "Using models well", 75, "21-retrieval-and-memory.html", "ochre"),
     ("23-compression", "Compression", "Compression", "modules/23-compression/README.md", "Using models well", 120, "23-compression.html", "ochre"),
+    ("28-fewer-bits-trained-in", "Fewer bits, trained in", "Fewer bits", "modules/28-fewer-bits-trained-in/README.md", "Using models well", 120, "28-fewer-bits-trained-in.html", "ochre"),
     ("24-reinforcement-learning", "Reinforcement learning", "RL", "modules/24-reinforcement-learning/README.md", "Acting and planning", 75, "24-reinforcement-learning.html", "slate"),
     ("25-world-models-and-planning", "World models and planning", "World models", "modules/25-world-models-and-planning/README.md", "Acting and planning", 60, "25-world-models-and-planning.html", "slate"),
+    ("26-rl-with-a-checker", "RL with a checker", "RL with a checker", "modules/26-rl-with-a-checker/README.md", "Acting and planning", 75, "26-rl-with-a-checker.html", "slate"),
+    ("31-world-model-from-pixels", "A world model from pixels", "World model from pixels", "modules/31-world-model-from-pixels/README.md", "Acting and planning", 75, "31-world-model-from-pixels.html", "slate"),
 ]
 
 QUIZZES = {

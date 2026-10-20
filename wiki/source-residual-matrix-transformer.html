@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Residual Matrix Transformers: Scaling the Residual Stream · ML wiki</title>
+<title>Residual Matrix Transformers: Scaling the Size of the Residual Stream · ML wiki</title>
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
@@ -59,14 +59,14 @@ border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem
 <nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
 <main>
 <h1 id="residual-matrix-transformers-rmt">Residual Matrix Transformers (RMT)</h1>
-<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-04-05</span> <span class="tag">transformers</span> <span class="tag">architecture</span> <span class="tag">efficiency</span> <span class="tag">residual-stream</span></div>
-<p><strong>Authors:</strong> Brian Mak, Jeffrey Flanigan <strong>Date:</strong> 2025-05-08 (ICML 2025)</p>
+<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-10-19</span> <span class="tag">transformers</span> <span class="tag">architecture</span> <span class="tag">efficiency</span> <span class="tag">residual-stream</span></div>
+<p><strong>Authors:</strong> Brian Mak, Jeffrey Flanigan <strong>Date:</strong> 2025-05-08 (ICML 2025 poster, "Residual Matrix Transformers: Scaling the Size of the Residual Stream")</p>
 <h2 id="summary">Summary</h2>
 <p>Replaces the transformer's residual stream with an outer product memory matrix. Residual stream size scales independently from compute and model size, achieving transformer-equivalent loss with dramatically fewer resources.</p>
 <h2 id="key-ideas">Key Ideas</h2>
 <ul><li>Outer product memory matrix replaces vector residual stream</li><li>Residual stream size decoupled from model compute</li><li>58% fewer FLOPs, 25% fewer parameters, 41% fewer training tokens for equivalent loss</li><li>Superior variance propagation (theoretical analysis)</li><li>Outperforms transformers on downstream evaluations</li></ul>
 <h2 id="connections">Connections</h2>
-<ul><li>Fundamental rethinking of <a href="concept-transformer-architecture.html">concept-transformer-architecture</a></li><li>Related to <a href="source-attention-sinks-compression-valleys.html">source-attention-sinks-compression-valleys</a> — both study the residual stream</li><li>Efficiency gains relevant to <a href="concept-scaling-laws.html">concept-scaling-laws</a></li></ul>
+<ul><li>Fundamental rethinking of <a href="concept-transformer-architecture.html">concept-transformer-architecture</a></li><li>Related to <a href="source-attention-sinks-compression-valleys.html">source-attention-sinks-compression-valleys</a> — both study the residual stream</li><li>Efficiency gains relevant to <a href="concept-scaling-laws.html">concept-scaling-laws</a></li><li>The wiki's inference, not the paper's: a larger residual stream may relieve <a href="concept-superposition.html">concept-superposition</a></li></ul>
 <h2 id="references">References</h2>
 <ul><li><a href="https://icml.cc/virtual/2025/poster/45278" rel="noreferrer">ICML 2025 poster</a></li></ul>
 <details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://icml.cc/virtual/2025/poster/45278" rel="noreferrer">https://icml.cc/virtual/2025/poster/45278</a></li></ul></details>

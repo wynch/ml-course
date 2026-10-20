@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from solution_a_threshold import best_f1_threshold
 from solution_b_leakage import overlapping_ids
@@ -18,3 +19,9 @@ def test_leakage_solution():
 def test_calibration_solution():
     y = np.array([0, 0, 1, 1])
     assert ece(y, np.array([0.0, 0.0, 1.0, 1.0]), 5) == 0
+
+
+def test_calibration_names_hold_on_ten_examples():
+    y = np.array([0, 0, 0, 0, 1, 0, 1, 1, 1, 1])
+    assert ece(y, np.array([0.2] * 5 + [0.8] * 5)) == pytest.approx(0.0)
+    assert ece(y, np.array([0.02] * 5 + [0.98] * 5)) == pytest.approx(0.18)

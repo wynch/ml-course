@@ -1,0 +1,796 @@
+{
+ "setup": {
+  "budgets_mb": [
+   0.5,
+   1.5
+  ],
+  "tolerance": 0.1,
+  "arms": [
+   "ternary",
+   "4-bit",
+   "2-bit",
+   "16-bit"
+  ],
+  "lr_grid": [
+   0.001,
+   0.003,
+   0.01
+  ],
+  "seeds": [
+   0,
+   1,
+   2
+  ],
+  "steps": 1000,
+  "batch": 32,
+  "block": 128,
+  "chars_seen": 4096000,
+  "group": 32,
+  "ternary_bits": 1.6,
+  "vocab": 317,
+  "tune_chars": 100000,
+  "report_chars": 100000,
+  "device": "mps"
+ },
+ "cells": [
+  {
+   "budget_mb": 0.5,
+   "arm": "ternary",
+   "shapes": [
+    [
+     128,
+     10
+    ],
+    [
+     160,
+     5
+    ],
+    [
+     288,
+     1
+    ]
+   ],
+   "best": {
+    "d": 288,
+    "n_layer": 1,
+    "lr": 0.01
+   },
+   "bytes": 464034,
+   "params": 1127808,
+   "linear_weights": 995328,
+   "chars_per_param": 3.63,
+   "report_by_seed": [
+    1.6881,
+    1.76779,
+    1.71298
+   ],
+   "report_mean": 1.723,
+   "report_sd": 0.0408,
+   "tried": [
+    {
+     "d": 288,
+     "n_layer": 1,
+     "lr": 0.01,
+     "bytes": 464034,
+     "tune": 1.65433,
+     "report": 1.6881
+    },
+    {
+     "d": 160,
+     "n_layer": 5,
+     "lr": 0.001,
+     "bytes": 471080,
+     "tune": 2.16116,
+     "report": 2.17317
+    },
+    {
+     "d": 160,
+     "n_layer": 5,
+     "lr": 0.003,
+     "bytes": 471080,
+     "tune": 1.9202,
+     "report": 1.93509
+    },
+    {
+     "d": 160,
+     "n_layer": 5,
+     "lr": 0.01,
+     "bytes": 471080,
+     "tune": 1.8053,
+     "report": 1.82714
+    },
+    {
+     "d": 160,
+     "n_layer": 5,
+     "lr": 0.03,
+     "bytes": 471080,
+     "tune": 1.99044,
+     "report": 2.00287
+    },
+    {
+     "d": 128,
+     "n_layer": 10,
+     "lr": 0.01,
+     "bytes": 541008,
+     "tune": 1.9019,
+     "report": 1.91873
+    }
+   ],
+   "bf16_export_report": [
+    1.6888,
+    1.76764,
+    1.71235
+   ],
+   "export": [
+    {
+     "codes": 995328,
+     "flipped_by_bf16_cast": 1255,
+     "on_threshold_in_bf16": 2897
+    },
+    {
+     "codes": 995328,
+     "flipped_by_bf16_cast": 1327,
+     "on_threshold_in_bf16": 2530
+    },
+    {
+     "codes": 995328,
+     "flipped_by_bf16_cast": 1566,
+     "on_threshold_in_bf16": 3051
+    }
+   ]
+  },
+  {
+   "budget_mb": 0.5,
+   "arm": "4-bit",
+   "shapes": [
+    [
+     96,
+     6
+    ],
+    [
+     128,
+     3
+    ],
+    [
+     192,
+     1
+    ]
+   ],
+   "best": {
+    "d": 128,
+    "n_layer": 3,
+    "lr": 0.01
+   },
+   "bytes": 493056,
+   "params": 652032,
+   "linear_weights": 589824,
+   "chars_per_param": 6.28,
+   "report_by_seed": [
+    1.71766,
+    1.72029,
+    1.74586
+   ],
+   "report_mean": 1.7279,
+   "report_sd": 0.0156,
+   "tried": [
+    {
+     "d": 192,
+     "n_layer": 1,
+     "lr": 0.01,
+     "bytes": 453120,
+     "tune": 2.1099,
+     "report": 2.12604
+    },
+    {
+     "d": 128,
+     "n_layer": 3,
+     "lr": 0.001,
+     "bytes": 493056,
+     "tune": 2.03963,
+     "report": 2.0537
+    },
+    {
+     "d": 128,
+     "n_layer": 3,
+     "lr": 0.003,
+     "bytes": 493056,
+     "tune": 1.77901,
+     "report": 1.8142
+    },
+    {
+     "d": 128,
+     "n_layer": 3,
+     "lr": 0.01,
+     "bytes": 493056,
+     "tune": 1.68913,
+     "report": 1.71766
+    },
+    {
+     "d": 128,
+     "n_layer": 3,
+     "lr": 0.03,
+     "bytes": 493056,
+     "tune": 1.76763,
+     "report": 1.79867
+    },
+    {
+     "d": 96,
+     "n_layer": 6,
+     "lr": 0.003,
+     "bytes": 515520,
+     "tune": 1.93712,
+     "report": 1.94755
+    },
+    {
+     "d": 96,
+     "n_layer": 6,
+     "lr": 0.01,
+     "bytes": 515520,
+     "tune": 1.82129,
+     "report": 1.83422
+    }
+   ],
+   "before_rounding_report": [
+    1.70955,
+    1.71277,
+    1.73959
+   ]
+  },
+  {
+   "budget_mb": 0.5,
+   "arm": "2-bit",
+   "shapes": [
+    [
+     96,
+     10
+    ],
+    [
+     128,
+     5
+    ],
+    [
+     256,
+     1
+    ]
+   ],
+   "best": {
+    "d": 128,
+    "n_layer": 5,
+    "lr": 0.01
+   },
+   "bytes": 499712,
+   "params": 1048576,
+   "linear_weights": 983040,
+   "chars_per_param": 3.91,
+   "report_by_seed": [
+    1.96497,
+    1.91444,
+    1.96693
+   ],
+   "report_mean": 1.9488,
+   "report_sd": 0.0298,
+   "tried": [
+    {
+     "d": 256,
+     "n_layer": 1,
+     "lr": 0.01,
+     "bytes": 530432,
+     "tune": 2.20415,
+     "report": 2.21245
+    },
+    {
+     "d": 128,
+     "n_layer": 5,
+     "lr": 0.001,
+     "bytes": 499712,
+     "tune": 2.10939,
+     "report": 2.12059
+    },
+    {
+     "d": 128,
+     "n_layer": 5,
+     "lr": 0.003,
+     "bytes": 499712,
+     "tune": 1.97688,
+     "report": 1.9957
+    },
+    {
+     "d": 128,
+     "n_layer": 5,
+     "lr": 0.01,
+     "bytes": 499712,
+     "tune": 1.94888,
+     "report": 1.96497
+    },
+    {
+     "d": 128,
+     "n_layer": 5,
+     "lr": 0.03,
+     "bytes": 499712,
+     "tune": 2.17601,
+     "report": 2.18114
+    },
+    {
+     "d": 96,
+     "n_layer": 10,
+     "lr": 0.01,
+     "bytes": 525504,
+     "tune": 2.04924,
+     "report": 2.05841
+    }
+   ],
+   "before_rounding_report": [
+    1.78557,
+    1.73046,
+    1.75603
+   ]
+  },
+  {
+   "budget_mb": 0.5,
+   "arm": "16-bit",
+   "shapes": [
+    [
+     64,
+     4
+    ],
+    [
+     96,
+     2
+    ],
+    [
+     128,
+     1
+    ]
+   ],
+   "best": {
+    "d": 96,
+    "n_layer": 2,
+    "lr": 0.01
+   },
+   "bytes": 533184,
+   "params": 266592,
+   "linear_weights": 221184,
+   "chars_per_param": 15.36,
+   "report_by_seed": [
+    1.77171,
+    1.7873,
+    1.779
+   ],
+   "report_mean": 1.7793,
+   "report_sd": 0.0078,
+   "tried": [
+    {
+     "d": 128,
+     "n_layer": 1,
+     "lr": 0.01,
+     "bytes": 510976,
+     "tune": 1.96687,
+     "report": 1.975
+    },
+    {
+     "d": 96,
+     "n_layer": 2,
+     "lr": 0.001,
+     "bytes": 533184,
+     "tune": 2.17921,
+     "report": 2.19336
+    },
+    {
+     "d": 96,
+     "n_layer": 2,
+     "lr": 0.003,
+     "bytes": 533184,
+     "tune": 1.89572,
+     "report": 1.91188
+    },
+    {
+     "d": 96,
+     "n_layer": 2,
+     "lr": 0.01,
+     "bytes": 533184,
+     "tune": 1.74966,
+     "report": 1.77171
+    },
+    {
+     "d": 96,
+     "n_layer": 2,
+     "lr": 0.03,
+     "bytes": 533184,
+     "tune": 2.41168,
+     "report": 2.41934
+    },
+    {
+     "d": 64,
+     "n_layer": 4,
+     "lr": 0.01,
+     "bytes": 457088,
+     "tune": 1.86814,
+     "report": 1.89045
+    }
+   ],
+   "before_rounding_report": [
+    1.77171,
+    1.78734,
+    1.77895
+   ]
+  },
+  {
+   "budget_mb": 1.5,
+   "arm": "ternary",
+   "shapes": [
+    [
+     224,
+     11
+    ],
+    [
+     288,
+     6
+    ],
+    [
+     608,
+     1
+    ]
+   ],
+   "best": {
+    "d": 608,
+    "n_layer": 1,
+    "lr": 0.003
+   },
+   "bytes": 1446562,
+   "params": 4715648,
+   "linear_weights": 4435968,
+   "chars_per_param": 0.87,
+   "report_by_seed": [
+    1.62145,
+    1.62026,
+    1.6094
+   ],
+   "report_mean": 1.617,
+   "report_sd": 0.0066,
+   "tried": [
+    {
+     "d": 608,
+     "n_layer": 1,
+     "lr": 0.003,
+     "bytes": 1446562,
+     "tune": 1.58086,
+     "report": 1.62145
+    },
+    {
+     "d": 288,
+     "n_layer": 6,
+     "lr": 0.001,
+     "bytes": 1496842,
+     "tune": 1.90503,
+     "report": 1.92278
+    },
+    {
+     "d": 288,
+     "n_layer": 6,
+     "lr": 0.003,
+     "bytes": 1496842,
+     "tune": 1.70798,
+     "report": 1.73504
+    },
+    {
+     "d": 288,
+     "n_layer": 6,
+     "lr": 0.01,
+     "bytes": 1496842,
+     "tune": 1.86887,
+     "report": 1.89018
+    },
+    {
+     "d": 224,
+     "n_layer": 11,
+     "lr": 0.003,
+     "bytes": 1589054,
+     "tune": 1.81305,
+     "report": 1.83628
+    }
+   ],
+   "bf16_export_report": [
+    1.62173,
+    1.62012,
+    1.60937
+   ],
+   "export": [
+    {
+     "codes": 4435968,
+     "flipped_by_bf16_cast": 5420,
+     "on_threshold_in_bf16": 10422
+    },
+    {
+     "codes": 4435968,
+     "flipped_by_bf16_cast": 5942,
+     "on_threshold_in_bf16": 10318
+    },
+    {
+     "codes": 4435968,
+     "flipped_by_bf16_cast": 6028,
+     "on_threshold_in_bf16": 10365
+    }
+   ]
+  },
+  {
+   "budget_mb": 1.5,
+   "arm": "4-bit",
+   "shapes": [
+    [
+     128,
+     12
+    ],
+    [
+     160,
+     7
+    ],
+    [
+     384,
+     1
+    ]
+   ],
+   "best": {
+    "d": 160,
+    "n_layer": 7,
+    "lr": 0.01
+   },
+   "bytes": 1516160,
+   "params": 2236480,
+   "linear_weights": 2150400,
+   "chars_per_param": 1.83,
+   "report_by_seed": [
+    1.75121,
+    1.77773,
+    1.8249
+   ],
+   "report_mean": 1.7846,
+   "report_sd": 0.0373,
+   "tried": [
+    {
+     "d": 384,
+     "n_layer": 1,
+     "lr": 0.01,
+     "bytes": 1459200,
+     "tune": 2.39117,
+     "report": 2.39853
+    },
+    {
+     "d": 160,
+     "n_layer": 7,
+     "lr": 0.001,
+     "bytes": 1516160,
+     "tune": 1.91837,
+     "report": 1.93512
+    },
+    {
+     "d": 160,
+     "n_layer": 7,
+     "lr": 0.003,
+     "bytes": 1516160,
+     "tune": 1.73975,
+     "report": 1.76963
+    },
+    {
+     "d": 160,
+     "n_layer": 7,
+     "lr": 0.01,
+     "bytes": 1516160,
+     "tune": 1.72136,
+     "report": 1.75121
+    },
+    {
+     "d": 160,
+     "n_layer": 7,
+     "lr": 0.03,
+     "bytes": 1516160,
+     "tune": 2.3307,
+     "report": 2.33563
+    },
+    {
+     "d": 128,
+     "n_layer": 12,
+     "lr": 0.01,
+     "bytes": 1628928,
+     "tune": 1.84653,
+     "report": 1.86514
+    }
+   ],
+   "before_rounding_report": [
+    1.74638,
+    1.77427,
+    1.82207
+   ]
+  },
+  {
+   "budget_mb": 1.5,
+   "arm": "2-bit",
+   "shapes": [
+    [
+     160,
+     12
+    ],
+    [
+     224,
+     6
+    ],
+    [
+     480,
+     1
+    ]
+   ],
+   "best": {
+    "d": 480,
+    "n_layer": 1,
+    "lr": 0.003
+   },
+   "bytes": 1478400,
+   "params": 2985600,
+   "linear_weights": 2764800,
+   "chars_per_param": 1.37,
+   "report_by_seed": [
+    1.68904,
+    1.67834,
+    1.70789
+   ],
+   "report_mean": 1.6918,
+   "report_sd": 0.015,
+   "tried": [
+    {
+     "d": 480,
+     "n_layer": 1,
+     "lr": 0.003,
+     "bytes": 1478400,
+     "tune": 1.66186,
+     "report": 1.68904
+    },
+    {
+     "d": 224,
+     "n_layer": 6,
+     "lr": 0.001,
+     "bytes": 1589952,
+     "tune": 1.89048,
+     "report": 1.913
+    },
+    {
+     "d": 224,
+     "n_layer": 6,
+     "lr": 0.003,
+     "bytes": 1589952,
+     "tune": 1.70031,
+     "report": 1.73698
+    },
+    {
+     "d": 224,
+     "n_layer": 6,
+     "lr": 0.01,
+     "bytes": 1589952,
+     "tune": 1.90924,
+     "report": 1.92634
+    },
+    {
+     "d": 160,
+     "n_layer": 12,
+     "lr": 0.003,
+     "bytes": 1575360,
+     "tune": 1.84111,
+     "report": 1.86724
+    }
+   ],
+   "before_rounding_report": [
+    1.65353,
+    1.64591,
+    1.67387
+   ]
+  },
+  {
+   "budget_mb": 1.5,
+   "arm": "16-bit",
+   "shapes": [
+    [
+     96,
+     6
+    ],
+    [
+     160,
+     2
+    ],
+    [
+     224,
+     1
+    ]
+   ],
+   "best": {
+    "d": 224,
+    "n_layer": 1,
+    "lr": 0.003
+   },
+   "bytes": 1410304,
+   "params": 705152,
+   "linear_weights": 602112,
+   "chars_per_param": 5.81,
+   "report_by_seed": [
+    1.67211,
+    1.67731,
+    1.66538
+   ],
+   "report_mean": 1.6716,
+   "report_sd": 0.006,
+   "tried": [
+    {
+     "d": 224,
+     "n_layer": 1,
+     "lr": 0.003,
+     "bytes": 1410304,
+     "tune": 1.63569,
+     "report": 1.67211
+    },
+    {
+     "d": 160,
+     "n_layer": 2,
+     "lr": 0.001,
+     "bytes": 1380160,
+     "tune": 1.92972,
+     "report": 1.9412
+    },
+    {
+     "d": 160,
+     "n_layer": 2,
+     "lr": 0.003,
+     "bytes": 1380160,
+     "tune": 1.7282,
+     "report": 1.7614
+    },
+    {
+     "d": 160,
+     "n_layer": 2,
+     "lr": 0.01,
+     "bytes": 1380160,
+     "tune": 1.87135,
+     "report": 1.88914
+    },
+    {
+     "d": 96,
+     "n_layer": 6,
+     "lr": 0.003,
+     "bytes": 1427904,
+     "tune": 1.93065,
+     "report": 1.94204
+    },
+    {
+     "d": 96,
+     "n_layer": 6,
+     "lr": 0.01,
+     "bytes": 1427904,
+     "tune": 1.8149,
+     "report": 1.82863
+    }
+   ],
+   "before_rounding_report": [
+    1.67212,
+    1.67734,
+    1.66534
+   ]
+  }
+ ],
+ "chunks": {
+  "count": 17,
+  "longest_minutes": 4.22,
+  "total_minutes": 65.8,
+  "peak_rss_gb": 0.69,
+  "peak_mps_driver_gb": 2.21
+ },
+ "guard": {
+  "script": "matched.py",
+  "seconds": 12.7,
+  "minutes": 0.21,
+  "peak_rss_gb": 0.62,
+  "peak_mps_driver_gb": 1.07,
+  "stages_seconds": {
+   "float-d224-L1-lr0.003-s2": 12.62
+  },
+  "machine": "arm64 26.6.2",
+  "torch": "2.14.1",
+  "mps_high_watermark_ratio": "0.5",
+  "mps_cap_gb": 5.92
+ }
+}

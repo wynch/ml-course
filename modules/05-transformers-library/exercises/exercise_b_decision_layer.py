@@ -6,11 +6,11 @@ final answer and stays there. Different prompts "decide" at different depths.
 
 Fill in the ``# TODO(you):`` and run:
 
-    uv run python exercises/exercise_b_decision_layer.py
+    uv run python ../exercises/exercise_b_decision_layer.py      # from python/
 
-Check against the reference solution:
+Check your version (the tests import it instead of the reference solution):
 
-    uv run pytest tests/test_solutions.py -k decision -v
+    CHECK=exercises uv run pytest tests/test_solutions.py -k decision -v
 """
 
 from __future__ import annotations

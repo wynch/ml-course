@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
-<title>LaCy: What Small Language Models Can and Should Learn · ML wiki</title>
+<title>LaCy: What Small Language Models Can and Should Learn is Not Just a Question of Loss · ML wiki</title>
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
@@ -58,13 +58,13 @@ border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem
 <body>
 <nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
 <main>
-<h1 id="lacy-what-small-language-models-can-and-should-learn">LaCy: What Small Language Models Can and Should Learn</h1>
-<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-04-05</span> <span class="tag">small-models</span> <span class="tag">training</span> <span class="tag">token-selection</span> <span class="tag">cascading</span></div>
-<p><strong>Authors:</strong> Szilvia Ujvary, Louis Bethune, Pierre Ablin, Joao Monteiro, Marco Cuturi, Michael Kirchhof <strong>Date:</strong> 2026-02-12 (revised 2026-02-13) <strong>arXiv:</strong> <a href="https://arxiv.org/abs/2602.12005" rel="noreferrer">2602.12005</a></p>
+<h1 id="lacy-what-small-language-models-can-and-should-learn-is-not-just-a-question-of-loss">LaCy: What Small Language Models Can and Should Learn is Not Just a Question of Loss</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-10-19</span> <span class="tag">small-models</span> <span class="tag">training</span> <span class="tag">token-selection</span> <span class="tag">cascading</span></div>
+<p><strong>Authors:</strong> Szilvia Ujvary, Louis Bethune, Pierre Ablin, Joao Monteiro, Marco Cuturi, Michael Kirchhof <strong>Date:</strong> 2026-02-12 (v4 2026-05-29) <strong>arXiv:</strong> <a href="https://arxiv.org/abs/2602.12005" rel="noreferrer">2602.12005</a></p>
 <h2 id="summary">Summary</h2>
-<p>Addresses how small language models should allocate limited capacity during pretraining. Uses grammar parsing (spaCy) to guide which tokens to learn vs delegate to larger models via a CALL mechanism.</p>
+<p>Addresses how small language models should allocate limited capacity during pretraining. Adds spaCy grammar signals to the loss to decide which tokens to learn and which to hand off through a <code>&lt;CALL&gt;</code> token; shown in Wikipedia-like domains (abstract).</p>
 <h2 id="key-ideas">Key Ideas</h2>
-<ul><li>Not all tokens deserve equal training attention in small models</li><li>High-loss tokens may represent acceptable alternative continuations</li><li>LaCy uses spaCy grammar parsing to guide token selection</li><li>CALL mechanism for delegating to larger models when needed</li><li>Improved FactScores in cascaded generation</li></ul>
+<ul><li>Not all tokens deserve equal training attention in small models</li><li>High-loss tokens may represent acceptable alternative continuations</li><li>LaCy adds spaCy grammar signals to the loss to decide which tokens to hand off through <code>&lt;CALL&gt;</code>, shown in Wikipedia-like domains</li><li>CALL mechanism for delegating to larger models when needed</li><li>Higher FactScores when generating in a cascade with a bigger model; beats Rho-1 and LLM-judge-trained small models while being simpler and cheaper (abstract)</li></ul>
 <h2 id="connections">Connections</h2>
 <ul><li>Relevant to efficient training and <a href="concept-model-training.html">concept-model-training</a></li><li>Cascading approach related to <a href="concept-scaling-laws.html">concept-scaling-laws</a> — using model size efficiently</li><li>Practical for deploying small models with large-model fallback</li></ul>
 <h2 id="references">References</h2>

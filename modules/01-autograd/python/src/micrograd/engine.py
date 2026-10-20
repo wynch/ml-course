@@ -27,7 +27,7 @@ class Value:
     ) -> None:
         self.data: float = float(data)
         self.grad: float = 0.0
-        # internal: the function that pushes our grad into our parents' grads
+        # internal: the function that pushes our grad into our inputs' (children's) grads
         self._backward: Callable[[], None] = lambda: None
         self._prev: set["Value"] = set(_children)
         self._op: str = _op

@@ -2,9 +2,10 @@
 
 Where the hand-rolled loop parsed ``Action: tool[arg]`` text, smolagents uses
 **code as action**: the model writes a small Python snippet that *calls* the
-tools, and a sandboxed interpreter runs it. One snippet can call several tools,
-loop, and do arithmetic — often collapsing our multi-step ReAct dance into a
-single step.
+tools, and a restricted Python interpreter runs it (not a full sandbox: for
+untrusted code smolagents recommends Docker, E2B or its Wasm executor). One
+snippet can call several tools, loop, and do arithmetic — often collapsing our
+multi-step ReAct dance into a single step.
 
 Everything stays local: ``TransformersModel`` runs SmolLM2-1.7B-Instruct on MPS,
 and the tools are the very same functions from ``tools.py``, wrapped with

@@ -19,7 +19,7 @@ There are three moving parts:
 
 **Python** — a node is an object. How to differentiate it is a *closure*
 (`_backward`) captured at construction time. The closure holds references to the
-parent objects; Python's garbage collector keeps everything alive.
+input objects; Python's garbage collector keeps everything alive.
 
 ```python
 class Value:
@@ -117,7 +117,8 @@ of accumulators.
 Gradient must flow from the output back toward the leaves, and a node may only
 be processed once **all** of its consumers have contributed. The fix is a
 topological sort: order nodes so every child comes before its parents, then walk
-it in reverse.
+it in reverse. Here a node's *children* are its inputs and its *parents* are the
+nodes that consume it.
 
 **Python** — recursion builds the order; a `set` tracks visited nodes; the GC
 handles all the temporary structures.
@@ -178,8 +179,8 @@ fn buildTopo(self: *Engine, v: V, visited: []bool, topo: *std.ArrayList(V)) !voi
 **What the compiled language makes explicit:** *allocation and ownership*. The
 Python version silently allocates a list and a set that the GC later reclaims.
 The Zig version names the allocator, states that `visited` and `topo` are
-temporary (`defer`-freed), and — crucially — reuses one big node arena across
-training steps via `clearRetainingCapacity()`. Backprop's memory cost (one
+temporary (`defer`-freed), and — crucially — reuses one node arena across
+training steps via `step_arena.reset(.retain_capacity)` in `main.zig`. Backprop's memory cost (one
 gradient accumulator and one topo slot per node) is invisible in Python and
 right there in Zig.
 

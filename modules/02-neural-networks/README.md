@@ -33,7 +33,9 @@ By the end you will be able to:
 ## What you'll see
 
 The signature visual — an MLP bending its decision boundary around `make_moons`
-as training proceeds (each frame is a training epoch):
+as training proceeds (one frame every four epochs; an **epoch** is one pass over
+the training set). The run uses `SGD(lr=0.1, momentum=0.9)`, as the explorable
+does, and ends at 97.5% on all 600 points (`results/toy.json`):
 
 ![decision boundary animation](./figures/decision_boundary_moons.gif)
 
@@ -72,18 +74,23 @@ For our MLP the forward pass is:
 x → [Linear W1,b1] → h1 → [ReLU] → a1 → [Linear W2,b2] → logits → [softmax+CE] → loss
 ```
 
+The **logits** are the raw scores the last layer gives each of the 10 classes;
+softmax turns them into probabilities that sum to 1.
+
 Each layer caches what it needs, then backprop walks the same chain in reverse,
 handing each layer `dL/d(its output)` and asking for `dL/d(its input)` plus its
 parameter gradients:
 
 - **Linear** `y = xW + b` → `dL/dW = xᵀg`, `dL/db = Σ g`, `dL/dx = g Wᵀ`
 - **ReLU** `y = max(0,x)` → `dL/dx = g · [x > 0]`
-- **Softmax + cross-entropy** (fused) → `dL/d(logits) = (softmax − onehot)/N`
+- **Softmax + cross-entropy** (fused) → `dL/d(logits) = (softmax − onehot)/N`,
+  where `onehot` is the label as a vector: 1 at the true class, 0 elsewhere,
+  and `N` is the batch size
 
 That last gradient is famously clean *because* we fuse the softmax and the loss;
-you derive it yourself in exercise (a). All three are checked against finite
-differences in the library's gradient check (see below), so you never have to
-wonder whether the math is right.
+you derive it yourself in exercise (a), which checks it against finite
+differences. `python/gradcheck.py` runs the same check on all three layers at
+once, in a small `5→7→6→3` MLP (max relative error 5e-10).
 
 ### The training loop
 
@@ -104,7 +111,9 @@ flowchart TD
 ```
 
 The code mirrors this diagram one-to-one — read `python/src/train.py` alongside
-it.
+it. **He init** draws each weight from a Gaussian with variance `2/fan_in`, where
+fan-in is the number of inputs to the layer; this keeps the size of the signal
+steady from one ReLU layer to the next.
 
 ## Hands-on
 
@@ -123,7 +132,7 @@ uv sync
 Sanity-check the manual backward pass with a numerical gradient check:
 
 ```bash
-uv run python solutions/ex_a_softmax_backward.py
+uv run python gradcheck.py   # GRADCHECK: PASS
 ```
 
 Train on the 2D toy data and render the decision-boundary GIF:
@@ -147,6 +156,21 @@ epoch  25/25 | train loss 0.216 acc 0.921 | val loss 0.411 acc 0.865
 FINAL TEST ACCURACY (full 10k set): 0.8646
 ```
 
+The script also writes every epoch's numbers to `results/fashion.json`. The
+train loss is the mean over the epoch's batches, taken while the weights were
+still moving; the three other numbers are measured after the epoch's last step.
+
+### It overfits
+
+Read that last line again: train loss 0.216, validation loss 0.411. The net fits
+the 18,000 training images much better than images it has not seen. Validation
+loss was lowest at epoch 17 (0.360, accuracy 0.877) and then swung between 0.36
+and 0.45 over epochs 21–25 while the train loss kept falling. That is
+**overfitting**: the extra epochs teach the net details of the training images
+that do not carry over. The simplest cure is **early stopping**: keep the
+weights from the epoch with the best validation loss and stop there. This
+module does not; the test accuracy (0.8646) comes from the epoch-25 weights.
+
 ## The library at a glance (`python/src/`)
 
 | file        | contents                                                        |
@@ -154,6 +178,7 @@ FINAL TEST ACCURACY (full 10k set): 0.8646
 | `nn.py`     | `Linear`, `ReLU`, `softmax`, fused `SoftmaxCrossEntropy`, `MLP` |
 | `optim.py`  | `SGD` (with momentum) and `Adam`, both from scratch             |
 | `train.py`  | train/val split, mini-batch iterator, the training loop         |
+| `../gradcheck.py` | finite-difference check of Linear, ReLU and the loss      |
 | `data.py`   | toy datasets + FashionMNIST via Hugging Face `datasets`         |
 | `plots.py`  | every figure helper (curves, tiles, confusion, boundary)        |
 
@@ -203,14 +228,19 @@ Representative results on an Apple M5 (Zig 0.16, `ReleaseFast`, single thread):
 | naive (ijk)                    |    31.06  |    3.31 |  1.00x  |
 | reordered (ikj)                |    13.79  |    7.45 |  2.25x  |
 | blocked (tiled)                |    12.88  |    7.98 |  2.41x  |
-| **numpy `@` (Accelerate BLAS)**|   **0.058** | **1773** | **~740x** |
+| **numpy `@` (Accelerate BLAS)**|   **0.058** | **1773** | **~535x** |
 
 Reordering the loops alone is a 2.25x win — same FLOPs, same result, just
-cache-friendly access. And numpy is *another* two-plus orders of magnitude
-beyond our best hand-written loop, because it dispatches to a hand-tuned BLAS
-`sgemm`. That gap is the whole reason deep-learning frameworks are a thin layer
+cache-friendly access. And numpy is *another* ~220x beyond our best
+hand-written loop, because it dispatches to `sgemm`, the single-precision
+matrix multiply of a hand-tuned **BLAS** (Basic Linear Algebra Subprograms,
+the standard library of matrix kernels). That gap is the whole reason deep-learning frameworks are a thin layer
 over compiled kernels. Full write-up and the numpy measurement:
 [`zig/PERFORMANCE.md`](./zig/PERFORMANCE.md).
+
+One mismatch to know: the benchmark times float32, but our training runs in
+float64, because `Linear` draws its weights as float64 and NumPy promotes the
+float32 images to match. The lesson about kernels holds either way.
 
 ## Exercises
 
@@ -247,6 +277,15 @@ Check your work against the solutions:
 uv run python solutions/ex_c_adam.py
 ```
 
+**After Adam.** Adam dates from 2014. Two later optimizers are worth knowing
+by name. **AdamW** applies weight decay (shrinking every weight a little each
+step) apart from the adaptive scaling, instead of folding it into the
+gradient; it is the default for training transformers. **Muon** replaces the
+update of each weight matrix with the nearest orthogonal matrix; Liu et al.
+report about twice AdamW's compute efficiency when training language models
+([arXiv 2502.16982](https://arxiv.org/abs/2502.16982)). Both fit in a few lines
+of `optim.py`.
+
 ## Checkpoint — you should now be able to…
 
 - [ ] Derive the backward pass of Linear, ReLU, and softmax+cross-entropy, and
@@ -260,8 +299,10 @@ uv run python solutions/ex_c_adam.py
 - [ ] Implement and contrast SGD(+momentum) and Adam.
 - [ ] Load a dataset with `datasets.load_dataset` and fetch a snapshot with
       `hf download`.
-- [ ] Explain why `x @ W` in numpy is ~100–700x faster than a tidy hand-written
+- [ ] Explain why `x @ W` in numpy is ~200–500x faster than a tidy hand-written
       loop, and why frameworks depend on BLAS-class kernels.
+- [ ] Spot overfitting in a train/validation curve and say what early stopping
+      would keep.
 
 ## Links
 

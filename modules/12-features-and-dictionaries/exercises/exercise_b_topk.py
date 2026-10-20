@@ -3,9 +3,11 @@
 1. ``topk_encode``: ReLU of the encoder output, keep the k largest per row,
    zero the rest.
 2. ``fve``: fraction of variance explained.
-3. ``project_grad``: the decoder's columns must keep norm 1. Before each
-   optimiser step, remove from each column's gradient its part along the
-   column itself (src/sae.py does this in ``train_sae``).
+3. ``project_grad``: remove from each column's gradient its part along the
+   column, so the step does not try to grow or shrink it (src/sae.py does
+   this in ``train_sae``). After the step, src/sae.py also divides each column
+   by its norm (``renorm``): the projection alone keeps the norm only to first
+   order, and not at all once Adam rescales the step.
 
 Predict before you run: what is the L0 of a TopK SAE with k = 4, before any
 training? Fill in the ``# TODO(you):`` lines, then:

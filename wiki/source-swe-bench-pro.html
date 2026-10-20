@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>SWE-Bench Pro: Can AI Agents Solve Long-Horizon Software Engineering Tasks? (Deng, Da et al., Scale AI, 2025) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="swe-bench-pro">SWE-Bench Pro</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">benchmarks</span> <span class="tag">coding-agents</span> <span class="tag">evaluation</span> <span class="tag">contamination</span> <span class="tag">swe-bench</span> <span class="tag">scale-ai</span> <span class="tag">2025</span></div>
+<p><strong>Authors:</strong> Xiang Deng and Jeff Da (co-first), with 20 co-authors; Scale AI <strong>Published:</strong> arXiv 2509.16941, v1 2025-09-21, v2 2025-11-14 (raw holds v2); data on Hugging Face (ScaleAI/SWE-bench_Pro), code at github.com/scaleapi/SWE-bench_Pro-os <strong>Raw copy:</strong> <code>raw/arxiv-2509-16941-swe-bench-pro-can-ai-agents.md</code> (captured 2026-10-19, full text of v2)</p>
+<p>Every claim below cites the raw file as R, with its section or table.</p>
+<h2 id="summary">Summary</h2>
+<p>SWE-Bench Pro is a harder SWE-bench: an agent gets a repository and a task, writes a patch, and passes if hidden tests pass (R, §3.2). It answers two complaints about SWE-bench Verified: public repositories leak into training data, and 161 of Verified's 500 tasks need only one- or two-line edits (R, §1).</p>
+<div class="tw"><table><thead><tr><th>Split</th><th>Tasks</th><th>Repositories</th><th>Access</th></tr></thead><tbody><tr><td>Public</td><td>731</td><td>11, copyleft (GPL and similar)</td><td>released</td></tr><tr><td>Commercial</td><td>276</td><td>18, bought from start-ups</td><td>results only</td></tr><tr><td>Held-out</td><td>858</td><td>12, copyleft</td><td>private, kept to check overfitting later</td></tr></tbody></table></div>
+<p>(R, §3.3, Abstract.) Each repository gives 50 to 100 tasks. Every task changes at least 10 lines; reference fixes average 107.4 lines over 4.1 files (R, §1). Languages: Python, Go, JavaScript and TypeScript (R, §7.1).</p>
+<p>People rewrite each task as a problem statement, add a list of requirements and, where needed, the class and function names the tests expect, so a correct fix with other names is not failed (R, §3.2, §4.2). Engineers build each Docker environment and check each test (R, §4.3).</p>
+<h2 id="key-results">Key results</h2>
+<ul><li><strong>Public set</strong>, SWE-agent scaffold, 50 turns, pass@1: Claude Sonnet 4.5 43.6%, Claude Sonnet 4 42.7%, GPT-5 (high) 41.8%, Claude Haiku 4.5 39.5%, Kimi K2 Instruct 27.7%, GPT-OSS 120B 16.2% (R, §5, Table 1).</li><li><strong>Commercial set:</strong> best is Claude Opus 4.1 at 17.8%, then GPT-5 (high) 15.7%; GPT-4o 3.6% (R, §5, Table 2).</li><li><strong>Human additions matter.</strong> With a $2 cost cap, GPT-5 drops from 25.9% to 8.4% and Opus 4.1 from 22.7% to 8.2% when given the problem statement alone (R, §6.2, Table 3). The authors read the drop as test false negatives: unit tests accept a narrow set of solutions.</li><li><strong>More files, fewer fixes.</strong> Resolve rates fall sharply past three files; open models near zero on 10+ file tasks (R, §6.1).</li><li><strong>How agents fail</strong>, judged by GPT-5 on the last 20 turns: Opus 4.1 mostly writes wrong solutions; Sonnet 4 runs out of context (35.6%); Qwen3 32B misuses tools most (42.0%) (R, §6.3, Table 4).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li><strong>Contamination resistance is argued, not tested.</strong> It rests on the view that GPL code is legally awkward to train on, and on private start-up code (R, §3.1). The held-out set that would test it is not yet used (R, §3.3).</li><li><strong>Pass means passing the tests.</strong> The authors say valid fixes may fail them (R, §7.1). Requirements and interfaces shrink the task towards "implement this spec" (R, §5, "Issue Ambiguity").</li><li><strong>The text lags its tables.</strong> The conclusion says Opus 4.1 and GPT-5 score "23%" against "over 70%" on Verified, a figure from the cost-capped analysis, not Table 1; the results paragraph calls Table 1 "Table 2" (R, §5, §8).</li><li>Scale AI builds and sells evaluation data; the commercial set cannot be checked by others.</li><li>Reported, not confirmed: secondary reports say OpenAI audited the 731 public tasks, judged about 30% broken (overly strict tests, hidden requirements, misleading text) and on 2026-07-08 withdrew its February recommendation of SWE-bench Pro (https://tech-insider.org/openai-swe-bench-pro-retraction-2026/; <a href="https://ai-tldr.dev/releases/openai-swe-bench-pro-audit-jul8/" rel="noreferrer">https://ai-tldr.dev/releases/openai-swe-bench-pro-audit-jul8/</a>; OpenAI's post was not reachable on 2026-10-20; not in raw). Capture the primary post before relying on these numbers. The February post itself, as archived on 2026-10-15, still recommends Pro's public split and carries no note of a change; it found contamination there "significantly rarer and less egregious" than on Verified, and no model reproduced a full gold patch (<a href="source-openai-swe-bench-verified-retired.html">source-openai-swe-bench-verified-retired</a>; <code>raw/web-2026-openai-no-longer-swe-bench-verified.md</code>, "Discussion").</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="concept-swe-bench.html">concept-swe-bench</a>, <a href="source-swe-bench-paper.html">source-swe-bench-paper</a>: the benchmark family; Pro is the successor OpenAI named in February 2026 when it stopped reporting Verified (<a href="source-openai-swe-bench-verified-retired.html">source-openai-swe-bench-verified-retired</a>).</li><li><a href="source-frontiercode-cognition-eval.html">source-frontiercode-cognition-eval</a>, <a href="entity-cognition.html">entity-cognition</a>: another successor, scored on whether a human would merge the code.</li><li><span class="dead" title="not published">idea-benchmark-honest-epistemic-loop</span>: outside support for testing on held-out, uncontaminated tasks.</li><li><a href="source-agyn-multi-agent-swe.html">source-agyn-multi-agent-swe</a>, <a href="source-cursor-scaling-agents.html">source-cursor-scaling-agents</a>: coding-agent results scored on the older sets.</li><li><a href="concept-ai-agents.html">concept-ai-agents</a>, <a href="concept-developer-tools.html">concept-developer-tools</a>.</li><li>Hub (2026-10-20): <a href="concept-evaluation-methodology.html">concept-evaluation-methodology</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2509-16941-swe-bench-pro-can-ai-agents.md</code></li><li><a href="https://arxiv.org/abs/2509.16941" rel="noreferrer">https://arxiv.org/abs/2509.16941</a></li><li><a href="https://tech-insider.org/openai-swe-bench-pro-retraction-2026/" rel="noreferrer">https://tech-insider.org/openai-swe-bench-pro-retraction-2026/</a> (secondary report)</li><li><code>raw/web-2026-openai-no-longer-swe-bench-verified.md</code></li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2509-16941-swe-bench-pro-can-ai-agents.md</code></li><li><a href="https://arxiv.org/abs/2509.16941" rel="noreferrer">https://arxiv.org/abs/2509.16941</a></li><li><code>raw/web-2026-openai-no-longer-swe-bench-verified.md</code></li></ul></details>
+</main>
+</body>
+</html>

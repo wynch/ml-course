@@ -7,7 +7,9 @@ sign() update with a softmax one:
 
 X holds the stored patterns as rows. Line it up against scaled dot-product
 attention, softmax(QKᵀ/√d)·V, and the correspondence is exact: the query ξ is
-Q, the stored patterns are both K and V, and β plays the part of 1/√d. A
+Q, the stored patterns are both K and V, and β plays the part of 1/√d. In a
+transformer, K and V are two different learned projections of the tokens,
+XW_K and XW_V; Ramsauer et al. keep those, and the identity still holds. A
 transformer's attention layer is doing associative retrieval from the patterns
 in its own context window, once per token, on every forward pass.
 

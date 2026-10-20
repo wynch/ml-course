@@ -230,9 +230,11 @@ const QUESTIONS = [
     answer: 0.5957, tol: 0.02, tolLabel: "±0.02 (0.5757 – 0.6157)",
     placeholder: "e.g. 0.62",
     explain: "1.2516 → 0.5957 over 200 steps, roughly 12 minutes on the M5's MPS backend. Note the shape: " +
-             "most of the drop happens in the first ~30 steps (1.25 → 0.68) and the rest is a slow grind — " +
-             "with a few hundred examples the model is matching a register, not learning content.",
-    source: "modules/06-fine-tuning/python/outputs/sft-lab/loss_history.json (40 entries, step 5 → step 200) · figures/loss_curve.png"
+             "most of the drop happens in the first ~30 steps (1.25 → 0.68) and the rest is a slow grind. " +
+             "And note what it is: <i>training</i> loss over about three passes through the same 512 examples. " +
+             "On the 119 held-out test conversations the loss falls from 1.29 to 0.67, so the gain is real, " +
+             "but on the assistant's replies alone it moves only from 0.83 to 0.79.",
+    source: "modules/06-fine-tuning/python/results/sft-lab_loss_history.json (40 entries, step 5 → step 200) · python/results/heldout.json · figures/loss_curve.png"
   },
   /* ── 4 ─────────────────────────────────────────────────── read-code ── */
   {
@@ -289,44 +291,47 @@ const QUESTIONS = [
              "loss 1.2516</code>, last <code>step 200, loss 0.5957</code>. The “25” distractor conflates two " +
              "different knobs: <code>gradient_accumulation_steps</code> controls how many micro-batches make " +
              "up one <i>step</i>, it does not change how many steps there are or how often they are logged.",
-    source: "modules/06-fine-tuning/python/sft_train.py:89-106 and :126-132 · python/outputs/sft-lab/loss_history.json"
+    source: "modules/06-fine-tuning/python/sft_train.py:89-106 and :126-132 · python/results/sft-lab_loss_history.json"
   },
   /* ── 6 ───────────────────────────────────────────────── conceptual ── */
   {
     id: "q6", kind: "single", tag: "conceptual", topic: "The SFT objective",
-    text: "What loss does supervised fine-tuning actually minimise, and over which tokens?",
+    text: "<code>sft_train.py</code> hands TRL's <code>SFTTrainer</code> a <code>messages</code> dataset and " +
+          "never sets <code>assistant_only_loss</code>. What loss does <i>this lab</i> minimise, and over which tokens?",
     options: [
       "A contrastive loss that pulls each response's embedding toward its instruction's embedding.",
-      "Ordinary next-token cross-entropy, computed on the assistant's response tokens with the prompt masked out.",
+      "Next-token cross-entropy on the assistant's reply tokens only; TRL masks the prompt by default.",
       "A ranking loss over a preferred and a rejected response for the same prompt.",
-      "Next-token cross-entropy over every token of the conversation, prompt included — identical to pretraining."
+      "Next-token cross-entropy over every token of the conversation, prompt included; masking is an option you turn on."
     ],
-    answer: 1,
-    explain: "SFT is the <i>same</i> objective as pretraining pointed at different data: curated " +
-             "(instruction, response) pairs, with the loss masked on the prompt so the model learns to " +
-             "<i>produce</i> answers rather than to predict questions. Option C is DPO, the preference method " +
-             "the module names as what comes next; option D is the near-miss — drop the mask and you spend " +
-             "capacity modelling the user's turns.",
-    source: "modules/06-fine-tuning/README.md “The SFT objective” · the mermaid data-flow diagram (mask prompt tokens → loss on response tokens)"
+    answer: 3,
+    explain: "SFT is the <i>same</i> objective as pretraining pointed at curated conversations. Many recipes " +
+             "mask the prompt so the model learns to produce answers rather than predict questions, but TRL " +
+             "does that for a <code>messages</code> dataset only when you set <code>assistant_only_loss=True</code>, " +
+             "and this lab does not (the MLX lane has <code>mask_prompt: false</code> too). Option B is the " +
+             "near-miss. The held-out numbers show the cost: loss on all tokens falls 1.29 → 0.67, on the " +
+             "replies only 0.83 → 0.79. Option C is DPO, the preference method the module names as what comes next.",
+    source: "modules/06-fine-tuning/README.md “The SFT objective” · python/sft_train.py · python/results/heldout.json"
   },
   /* ── 7 ──────────────────────────────────────────────────── predict ── */
   {
     id: "q7", kind: "single", tag: "predict", topic: "The low intrinsic rank of ΔW",
     text: "In the explorable, set the matrix selector to <b>ΔW — real trained LoRA update</b> (read out of " +
-          "the exercise-(a) r=32 adapter file, sliced to 48×48) and drag the rank slider to <b>r = 32</b> of 48. " +
-          "<b>Predict</b> the reconstruction error.",
+          "the exercise-(a) r=32 adapter file, sliced to 48×48) and drag the rank slider to <b>r = 8</b> of 48. " +
+          "<b>Predict</b> how much of ΔW's energy (squared Frobenius norm) those 8 directions keep.",
     options: [
-      "About 41% — a real 960×960 projection is simply not low rank, trained or not.",
-      "About 17%, the same as at r=8: the spectrum has already flattened by then.",
-      "Slightly worse than at r=24 — the extra directions start fitting numerical noise.",
-      "Exactly 0 — that ΔW was produced by a rank-32 adapter, so it has at most 32 nonzero singular values."
+      "About 35% — a trained update is no more concentrated than the weight it changes.",
+      "About 97% — the update's singular values fall fast, so a few directions carry almost all of it.",
+      "Exactly 25% — 8 of the adapter's 32 directions, each carrying an equal share.",
+      "100% — the adapter was trained at rank 32, so any rank already captures it exactly."
     ],
-    answer: 3,
-    explain: "ΔW = (α/r)·B·A is a product squeezed through an r=32 bottleneck, so numpy reports its rank as " +
-             "exactly 32 and a truncated SVD at r=32 is lossless. The 41% figure is real but belongs to the " +
-             "other matrix in the panel — the <i>frozen</i> W₀ at r=16, which stays stubbornly bright. " +
-             "That contrast is LoRA's entire premise, reproduced from files on disk.",
-    source: "explorables/06-lora-rank.html — SVD source note and “What to notice” · modules/06-fine-tuning/python/outputs/ex-a-r32/adapter/adapter_model.safetensors",
+    answer: 1,
+    explain: "r = 8 keeps <b>97.3%</b> of ΔW's energy (error 17%), and its top direction alone holds 57%. The frozen " +
+             "W₀ of the same <code>q_proj</code> keeps 88% at r = 8 (error 35%). That faster fall is the real " +
+             "evidence for low rank. The tempting “exact” answer confuses two things: at r = 32 the error is " +
+             "exactly 0, but only because <code>B·A</code> passes through 32 dimensions, so the adapter's shape " +
+             "caps the rank; that cap proves nothing about the task.",
+    source: "explorables/06-lora-rank.html — SVD source note and “What to notice” · modules/06-fine-tuning/python/results/svd_explorable.json",
     tryIt: { href: "../explorables/06-lora-rank.html", label: "try it — drag the rank slider in panel 1" }
   },
   /* ── 8 ──────────────────────────────────────────────────── predict ── */
@@ -361,9 +366,9 @@ const QUESTIONS = [
       "The base weights are untouched; only the LoRA A and B tensors differ between the two runs."
     ],
     answer: [0, 2, 3],
-    explain: "A few hundred examples move <b>register, length and format</b> — not knowledge, which is why the " +
-             "prompt set deliberately includes out-of-domain probes (a suspension bridge, a haiku) where nothing " +
-             "much changes. The load path proves the last claim: the same " +
+    explain: "A few hundred examples move the <b>register</b>, here the warmer openings, not knowledge: both " +
+             "models still make up a book on prompt 4 and give wrong stain advice on prompt 6, and the " +
+             "prompt set includes out-of-domain probes (a suspension bridge, a haiku) where nothing much changes. The load path proves the last claim: the same " +
              "<code>AutoModelForCausalLM.from_pretrained(MODEL_ID)</code> is loaded both times and " +
              "<code>PeftModel.from_pretrained</code> only wraps it.",
     source: "modules/06-fine-tuning/python/generate_compare.py:34-73 · README.md “The signature deliverable” · sample_generations.md"
@@ -373,11 +378,11 @@ const QUESTIONS = [
     id: "q10", kind: "single", tag: "conceptual", topic: "MLX vs PyTorch/MPS",
     text: "<code>mlx/README.md</code> measures <b>~3,500 tok/s for MLX against ~479 tok/s for PyTorch/MPS</b> " +
           "on the same M5, same model, same data — a ~7× gap — and then calls the comparison " +
-          "“not a perfectly controlled benchmark”. What is the caveat about?",
+          "“not a controlled benchmark”. What is the caveat about?",
     options: [
       "MLX ran on the Neural Engine while PyTorch ran on the GPU, so different silicon did the work.",
       "The MLX lane fine-tuned SmolLM2-135M while the PyTorch lane fine-tuned the 360M model.",
-      "The two runs differ in more than the framework: MLX used batch-4 adapting the top 16 blocks, PyTorch used batch-2 on all-linear targets in every block, and the runtimes count tokens differently.",
+      "The two runs differ in more than the framework: MLX used batch 4, rank 8 and scale 20 on the top 16 blocks; PyTorch used an effective batch of 8, rank 16 and α/r = 2 on all 32 blocks; and the runtimes count tokens differently.",
       "The MLX number is extrapolated from a 100-iteration run rather than measured directly."
     ],
     answer: 2,

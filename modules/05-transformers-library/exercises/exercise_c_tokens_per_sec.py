@@ -7,11 +7,11 @@ lengths, and plot tokens/sec. You implement the timing core.
 Fill in the ``# TODO(you):`` and run (this loads the model twice — once per
 device — so give it a minute):
 
-    uv run python exercises/exercise_c_tokens_per_sec.py
+    uv run python ../exercises/exercise_c_tokens_per_sec.py      # from python/
 
-Check against the reference solution:
+Check your version (the tests import it instead of the reference solution):
 
-    uv run pytest tests/test_solutions.py -k tokens_per_sec -v
+    CHECK=exercises uv run pytest tests/test_solutions.py -k tokens_per_sec -v
 """
 
 from __future__ import annotations
@@ -44,8 +44,11 @@ def time_generation(model, tokenizer, prompt: str, new_tokens: int) -> float:
     Steps:
       1. tokenize `prompt` to the model's device,
       2. warm up with a tiny generate (first call includes lazy kernel compile),
-      3. time a `model.generate(..., max_new_tokens=new_tokens, do_sample=False)`,
-      4. return new_tokens / elapsed_seconds.
+      3. time a `model.generate(..., max_new_tokens=new_tokens, do_sample=False)`;
+         on MPS, call `torch.mps.synchronize()` before each clock read, since GPU
+         work runs after the Python call returns,
+      4. count the tokens actually generated (generation may stop at EOS) and
+         return generated / elapsed_seconds.
     """
     ids = tokenizer(prompt, return_tensors="pt").to(model.device)
 
@@ -55,13 +58,15 @@ def time_generation(model, tokenizer, prompt: str, new_tokens: int) -> float:
                         pad_token_id=tokenizer.eos_token_id)
 
     # TODO(you): time a real generation of `new_tokens` tokens and compute
-    # tokens-per-second. Use time.perf_counter().
+    # tokens-per-second. Use time.perf_counter(), synchronize MPS around it, and
+    # count out.shape[1] - ids.input_ids.shape[1] generated tokens.
     start = ...  # replace
     with torch.no_grad():
-        ...  # replace: the timed generate call
+        out = ...  # replace: the timed generate call
     elapsed = ...  # replace
 
-    return new_tokens / elapsed
+    generated = ...  # replace
+    return generated / elapsed
 
 
 def benchmark() -> dict[str, list[float]]:

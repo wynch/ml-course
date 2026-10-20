@@ -331,7 +331,7 @@ function table(a,b,guess){
   else if(guess){
     let s=0,c=0; GRID.forEach((u,i)=>{ if(Math.abs(u)<=2){ s+=(guess[i]-(a*u+b))**2; c++; } });
     msg="<b>"+n+"</b> point"+(n>1?"s":"")+" · gap between the net and least squares over −2 ≤ u ≤ 2 (root mean square): <b>"+f3(Math.sqrt(s/c))+"</b>";
-    if(n===1) msg+=" · one point fixes no line; least squares picks the smallest (slope, intercept) through it";
+    if(n===1) msg+=" · one point fixes no line; least squares picks the line through it whose slope² + intercept² is smallest";
   }
   $("#planeread").innerHTML=msg;
 }
@@ -476,7 +476,7 @@ segButtons($("#exseg"),FS.examples.map((_,i)=>"#"+(i+1)),i=>{fex=i; drawFS();});
 const c=FS.conditions;
 $("#notice").innerHTML=[
   "Click “new random line”: five points on a line, and the net's dashed guess lies close to the least-squares line. Drag one point off the line: both bend toward it.",
-  "Remove points until one is left. A whole family of lines passes through one point; least squares picks the one with the smallest slope and intercept. Nobody told the net that rule, yet check the table: its pick lies close to it.",
+  "Remove points until one is left. A whole family of lines passes through one point; least squares picks the one whose slope² + intercept² is smallest. Nobody told the net that rule, yet check the table: its pick lies close to it.",
   "Drag a point far up to make a slope steeper than about 3. The net trained on slopes and intercepts drawn from N(0, 1), so this is far outside what it saw, and its guess falls short of the least-squares line.",
   "Press “shuffle the y values” on a clean line. The net still answers with a confident guess: it has no way to say that the prompt holds no rule.",
   "In five dimensions the net tracks least squares at 1 and 2 pairs, then falls behind: at n = 10 its error is "+f3(I.net[10])+" where least squares' is 0. It still beats one gradient step ("+f3(I.one_gd_step[10])+") and 3 nearest neighbours ("+f3(I.knn_3[10])+").",

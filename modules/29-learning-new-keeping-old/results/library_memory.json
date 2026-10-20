@@ -1,0 +1,44 @@
+{
+ "model": "HuggingFaceTB/SmolLM2-360M-Instruct",
+ "revision": "a10cc1512eabd3dde888204e902eca88bddb4951",
+ "device": "mps",
+ "batch": 2,
+ "tokens_per_sequence": 132,
+ "base_parameters": 361821120,
+ "base_weight_bytes": 723642240,
+ "runs": {
+  "plain": {
+   "saved_for_backward_bytes": 765078272,
+   "lora_grad_bytes": 17367040,
+   "adam_state_bytes": 34734080,
+   "step_seconds": 0.39
+  },
+  "checkpointing": {
+   "saved_for_backward_bytes": 44714240,
+   "lora_grad_bytes": 17367040,
+   "adam_state_bytes": 34734080,
+   "step_seconds": 0.525
+  }
+ },
+ "lora_r8_parameters": 4341760,
+ "lora_r8_weight_bytes": 17367040,
+ "full_finetune_on_paper": {
+  "note": "not run: over the module's 4 GB guard",
+  "float32_weights_grads_adam_bytes": 5789137920,
+  "bfloat16_weights_grads_float32_adam_bytes": 4341853440
+ },
+ "guard": {
+  "script": "library.py memory",
+  "seconds": 8.1,
+  "minutes": 0.13,
+  "peak_rss_gb": 0.63,
+  "peak_mps_driver_gb": 2.54,
+  "stages_seconds": {},
+  "machine": "arm64 26.6.2",
+  "python": "3.12.13",
+  "torch": "2.14.1",
+  "threads": 4,
+  "device": "mps",
+  "mps_high_watermark_ratio": "0.5"
+ }
+}

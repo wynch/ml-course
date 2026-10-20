@@ -270,7 +270,7 @@ var QUESTIONS = [
       "About 15% slower, and perplexity climbs from 4.657 to about 5.2."
     ],
     answer: 2,
-    explain: "<code>quant.dequantizeToBlob</code> reconstructs the full f32 blob at load time (<code>main.zig</code> lines 84–90), so the hot loop never sees an int8 value; the win is 3.91× on disk and in RAM at essentially zero quality cost — perplexity on the held-out Shakespeare slice is <b>4.657 for both</b> f32 and int8, with a max logit shift of 0.06. The '4× faster' answer is the tempting one and is right for real engines, but only on large memory-bandwidth-bound models with true int8 kernels; at 619,776 parameters these matmuls are compute-bound, so there is no bandwidth to save.",
+    explain: "<code>quant.dequantizeToBlob</code> reconstructs the full f32 blob at load time (<code>main.zig</code> lines 84–90), so the hot loop never sees an int8 value; the win is 3.91× on disk and in RAM at essentially zero quality cost — perplexity on the held-out Shakespeare slice moves from <b>4.6574</b> (f32) to <b>4.6568</b> (int8), with a max logit shift of 0.06. The '4× faster' answer is the tempting one and is right for real engines, but only on large memory-bandwidth-bound models with true int8 kernels; at 619,776 parameters these matmuls are compute-bound, so there is no bandwidth to save.",
     tryIt: true
   },
   {
@@ -295,15 +295,15 @@ var QUESTIONS = [
     type: "real",
     topic: "The measured KV-cache speedup",
     hint: "<code>figures/bench.csv</code> and the README's KV-cache table.",
-    prompt: "<code>figures/bench.csv</code> records <b>490.0 tok/s</b> with the cache on and <b>7.8 tok/s</b> with it off at a 128-token context. What speedup is that, next to the cell counter's prediction of (t+1)/2 = 64.5×?",
+    prompt: "<code>figures/bench.csv</code> records <b>490.0 tok/s</b> with the cache on and <b>7.8 tok/s</b> with it off at a 128-token context. What speedup is that, next to the cost model's 61.9× (weight and attention multiply-adds of the loops <code>bench</code> runs)?",
     options: [
-      "≈ 62.8× — within about 3% of the prediction.",
+      "≈ 62.8× — within about 2% of the cost model.",
       "≈ 6.3× — far under the prediction, because the cache itself costs memory bandwidth.",
       "≈ 628× — the prediction badly understates the win.",
       "No measurable speedup at 128 tokens; the cache only starts paying off past 1,000."
     ],
     answer: 0,
-    explain: "490.0 / 7.8 = 62.8×, against a predicted 64.5× — every row of the bench table lands within roughly 7–8% of (t+1)/2, which is how you know the cell counter and the wall clock are describing the same thing. Note that the speedup is <i>not</i> a constant: the same CSV gives 582.4/71.6 = 8× at ctx 16 and 506.6/16.7 = 30× at ctx 64."
+    explain: "490.0 / 7.8 = 62.8×, against 61.9× from the cost model. The cause is weight work, not attention: without a cache each new token re-runs every earlier token through QKV, the output projection, the MLP and the head (598,144 multiply-adds per token here), so an n-token generation costs about n²/2 token-passes against n, a ratio near n/2. Attention scores (768·t per token) are the smaller part at this size. The speedup is <i>not</i> a constant: the same CSV gives 582.4/71.6 = 8× at ctx 16 and 506.6/16.7 = 30× at ctx 64."
   },
   {
     id: "q7",
@@ -315,7 +315,7 @@ var QUESTIONS = [
     unit: "cells",
     answer: 8256,
     tol: 16,
-    explain: "128 × 129 / 2 = <b>8,256</b> cells with the cache, against 128 × 129 × 130 / 6 = <b>357,760</b> without — a 43× difference over the whole generation. These are exact closed forms, not estimates. The <i>per-step</i> gap is bigger and keeps widening ((t+1)/2), which is why the measured throughput ratio at ctx 128 is 62.8× rather than 43×.",
+    explain: "128 × 129 / 2 = <b>8,256</b> cells with the cache, against 128 × 129 × 130 / 6 = <b>357,760</b> without — a 43× difference over the whole generation. These are exact closed forms, not estimates. The measured throughput ratio at ctx 128 is 62.8×, not 43×, because cells count only attention: without a cache the engine also re-runs every earlier token through all the weight matrices, and at this size that weight work is most of the cost.",
     tryIt: true
   },
   {
@@ -323,16 +323,16 @@ var QUESTIONS = [
     kind: "single",
     type: "predict",
     topic: "How the speedup scales with context",
-    hint: "Explorable panel 2 — measured vs predicted (t+1)/2.",
-    prompt: "Suppose you retrained the checkpoint with <code>block_size = 512</code> and re-ran <code>bench</code>. Per decode step, cache-off does t(t+1)/2 cells where cache-on does t. Roughly what speedup should you see at t = 512?",
+    hint: "Explorable panel 2 — measured speedup vs the cost model.",
+    prompt: "Suppose you retrained the checkpoint with <code>block_size = 512</code> (same widths) and re-ran <code>bench</code> for a whole 512-token generation. Per token the weight matrices cost about 598,000 multiply-adds and attention about 768·t. Roughly what speedup should cache-on show over cache-off?",
     options: [
       "Still ~63× — the ratio saturates once the cache is warm.",
-      "~1,024× — the ratio is 2t.",
-      "~256× — the ratio is (t+1)/2, so it keeps growing linearly with context.",
-      "~131,000× — the ratio is quadratic in t."
+      "~1,024× — the ratio is 2n.",
+      "~235× — weight work dominates, so the ratio keeps growing roughly as n/2, a little under it.",
+      "~131,000× — the ratio is quadratic in n."
     ],
     answer: 2,
-    explain: "Per step the uncached path recomputes the whole triangular score block, t(t+1)/2 cells, where the cached path does t — so the ratio is (t+1)/2 ≈ 256.5× at t = 512. That is exactly the curve the module measures at small t: 8× at 16, 30× at 64, 62.8× at 128. 'It saturates' is the intuition to unlearn — nothing saturates, the wasted work grows without bound, which is why long-context inference without a cache is simply not a thing.",
+    explain: "Without a cache the engine re-runs about n²/2 token-passes through the weights, against n with it, so the ratio grows about as n/2: the cost model gives 234× at n = 512 (attention, which grows faster, is still the smaller term at this length and pulls the ratio a little under n/2 = 256). The same model gives 7.5×, 31× and 62× at 16, 64 and 128, where the engine measures 8×, 30× and 62.8×. 'It saturates' is the intuition to unlearn: the wasted work grows without bound, which is why no one runs long contexts without a cache.",
     tryIt: true
   },
   {
@@ -353,7 +353,7 @@ var QUESTIONS = [
       "The parity check against PyTorch fails: <code>torch.nn.LayerNorm</code> uses the <i>biased</i> variance (divide by N), so every activation is scaled slightly wrong and the error compounds through all three blocks."
     ],
     answer: 3,
-    explain: "ALGORITHM.md §1 names <code>eps = 1e-5</code> and the biased variance as the two details that, if you get them wrong, blow the parity check — they are the usual suspects when a from-scratch transformer 'almost' matches its reference. 'Nothing measurable' is the trap: with n = 128 the ÷127-vs-÷128 change looks like rounding, but the resulting ~0.4% scale error is over a thousand times the 2.86e-06 parity margin. The <code>selfcheck</code> option is backwards — that command compares the engine against <i>itself</i>, so it would still pass happily."
+    explain: "ALGORITHM.md §1 names <code>eps = 1e-5</code> and the biased variance as the two details that, if you get them wrong, blow the parity check — they are the usual suspects when a from-scratch transformer 'almost' matches its reference. 'Nothing measurable' is the trap: with n = 128 the ÷127-vs-÷128 change looks like rounding, but the resulting ~0.4% scale error is over a thousand times the 2.86e-06 parity margin. The <code>selfcheck</code> option is backwards: that command compares the cached decode against a full recompute that uses the same <code>layerNorm</code> kernel, so both paths go wrong together and it still passes. It tests the cache, not the kernels; only the parity check against PyTorch catches this."
   },
   {
     id: "q10",

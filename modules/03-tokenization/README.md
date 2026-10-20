@@ -27,7 +27,8 @@ By the end you will be able to:
 - train a real BPE with the `tokenizers` library and load SmolLM3's tokenizer
   (files only, no model weights);
 - **see** tokenization: compression curves, token-length distributions, colored
-  token spans, and the cross-language "fertility" unfairness across languages.
+  token spans, and how unfair tokenizers are across languages, measured as
+  "fertility" (tokens spent per word).
 
 ## Why subwords? (the theory)
 
@@ -52,6 +53,22 @@ frequent adjacent pair** of tokens. Start from bytes; the pair `('t','h')` is
 everywhere in English, so merge it into a new token `th`; now `('th','e')` is
 common, merge into `the`; and so on. The ordered list of merges *is* the model.
 
+Production tokenizers add one step before BPE: **pre-tokenization**. A regex
+first splits the text into words, numbers and punctuation, keeping each word's
+leading space, and merges never cross those pieces. That is why GPT-2 and
+SmolLM3 learn `" the"` but never `"e "`. Our trainer skips this step, so its
+merges run across word edges; you will see the effect below.
+
+Subwords are today's default, not the last word. SuperBPE lets the merges
+cross spaces on purpose, in a second stage of training; with a 200k vocabulary
+it uses up to 33% fewer tokens for the same text
+([arXiv 2503.13423](https://arxiv.org/abs/2503.13423)). The Byte Latent
+Transformer drops the fixed vocabulary and groups bytes into patches by how
+hard the next byte is to predict
+([arXiv 2412.09871](https://arxiv.org/abs/2412.09871)). H-Net learns its own
+chunking from raw bytes, end to end
+([arXiv 2507.07955](https://arxiv.org/abs/2507.07955)).
+
 ## What you'll see
 
 **Diminishing returns.** Each merge shrinks the corpus, but the payoff tapers —
@@ -60,8 +77,9 @@ the first 100 merges buy far more compression than the next 400.
 ![compression curve](figures/compression_curve.png)
 
 **Tokens get longer as you merge.** At 100 merges most tokens are still 1–2
-bytes; by 500 merges a fat tail of 4–7 byte tokens appears (whole words like
-`the`, `and`, `ing`).
+bytes; by 500 merges a tail of 4–7 byte tokens appears. Because our trainer
+never splits the text into words first, many of them span spaces and
+punctuation: `'to the '`, `',\nAnd '`, even `'LOUCESTER:\n'`.
 
 ![token length histogram](figures/token_length_hist.png)
 
@@ -71,9 +89,24 @@ and watch every tokenizer struggle more with French accents and code.
 
 ![colored tokenization](figures/colored_tokens.png)
 
+Look at the numbers row. SmolLM3 splits `4096` into `409` + `6` and `2026`
+into `202` + `6`: it groups digits in threes from the left, so the same digit
+place lands in different tokens in different numbers. That is how a tokenizer
+shapes arithmetic. Writing numbers with commas forces groups of three from the
+right; Singh and Strouse found this largely improved GPT-3.5 and GPT-4 at
+arithmetic ([arXiv 2402.14903](https://arxiv.org/abs/2402.14903)).
+
 **Tokenizers are unfair across languages.** "Fertility" = tokens spent per word.
 English is cheap; French and code cost more. SmolLM3 (trained on far more data)
 is uniformly more efficient than our toy, but the *cross-language gap* persists.
+Tokens per word is a rough measure, since languages use different numbers of
+words for the same content. Petrov et al. compare total tokens for the same text
+in translation and find gaps of up to 15× between languages
+([arXiv 2305.15425](https://arxiv.org/abs/2305.15425)). The gap can be
+narrowed at training time: parity-aware BPE picks each merge to help the
+language that is worst compressed so far, and cuts the inequality between
+languages by up to 89% at almost no cost in overall compression
+([arXiv 2508.04796](https://arxiv.org/abs/2508.04796)).
 
 ![fertility comparison](figures/fertility.png)
 
@@ -178,8 +211,11 @@ uv run pytest tests/test_solutions.py -v
 - **(b) `exercise_b_specials.py`** — add `<|endoftext|>` handling so a special
   token round-trips as one atomic id instead of its literal characters.
 - **(c) `exercise_c_fertility.py`** — measure and plot SmolLM3's fertility on a
-  language of your choice versus English (the reference solution uses Spanish
-  and finds a ~1.7× tax).
+  language of your choice versus English. The reference solution uses Spanish
+  pangrams and finds 1.72× the tokens per word. Pangrams pile up rare words, so
+  it also counts total tokens on five ordinary sentences and their
+  translations: Spanish costs 1.36× (`results/fertility.json`). Choose your
+  sentences with care.
 
 ## Run all the tests
 
@@ -204,3 +240,9 @@ uv run pytest
 
 - [Hugging Face LLM Course — Chapter 6: The Tokenizers library](https://huggingface.co/learn/llm-course/chapter6)
 - [`tokenizers` documentation](https://huggingface.co/docs/tokenizers)
+- Petrov et al., *Language Model Tokenizers Introduce Unfairness Between Languages*, [arXiv 2305.15425](https://arxiv.org/abs/2305.15425)
+- Foroutan et al., *Parity-Aware Byte-Pair Encoding*, [arXiv 2508.04796](https://arxiv.org/abs/2508.04796)
+- Singh and Strouse, *Tokenization counts: the impact of tokenization on arithmetic in frontier LLMs*, [arXiv 2402.14903](https://arxiv.org/abs/2402.14903)
+- Liu et al., *SuperBPE: Space Travel for Language Models*, [arXiv 2503.13423](https://arxiv.org/abs/2503.13423)
+- Pagnoni et al., *Byte Latent Transformer: Patches Scale Better Than Tokens*, [arXiv 2412.09871](https://arxiv.org/abs/2412.09871)
+- Hwang, Wang and Gu, *Dynamic Chunking for End-to-End Hierarchical Sequence Modeling* (H-Net), [arXiv 2507.07955](https://arxiv.org/abs/2507.07955)

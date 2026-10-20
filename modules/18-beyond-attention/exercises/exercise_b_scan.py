@@ -37,7 +37,7 @@ def selective_loop(block: SelectiveBlock, xs: torch.Tensor, extra: torch.Tensor)
         # TODO(you): a = exp(log_a[:, t]), shaped to broadcast over (B, H, P, N).
         # TODO(you): S = a * S + (dt_t * x_t) outer B_t, per head.
         # TODO(you): y_t = S C_t (sum over N), reshaped to (B, E); append it to ys.
-        ...
+        raise NotImplementedError("TODO(you): write selective_loop first")
     return torch.stack(ys, 1), S
 
 

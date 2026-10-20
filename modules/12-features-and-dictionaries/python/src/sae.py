@@ -149,7 +149,8 @@ def train_sae(acts: torch.Tensor, k: int, seed: int = SEED, steps: int = STEPS) 
         loss = ((x - xh) ** 2).sum(-1).mean() / var          # normalised MSE
         opt.zero_grad()
         loss.backward()
-        # Keep decoder columns unit-norm: drop the gradient part along each column.
+        # Drop the gradient part along each decoder column; renorm() below holds the
+        # norm at 1 (Adam rescales coordinates, so the projection alone cannot).
         with torch.no_grad():
             g = sae.W_dec.grad
             g -= sae.W_dec * (g * sae.W_dec).sum(0, keepdim=True)

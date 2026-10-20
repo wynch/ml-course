@@ -1,4 +1,4 @@
-=== BEFORE ===
+=== BEFORE (default prompt, naive tool) ===
 TASK: Look up the Earth's radius and the Moon's distance in the knowledge base, then compute how many Earth radii fit in the Earth-Moon distance.
 ============================================================
 Thought: I will look up the Earth's radius and the Moon's distance in the knowledge base.
@@ -27,23 +27,46 @@ Action: kb_lookup[Earth's radius km, moon distance km]
 Observation: No exact entry for "Earth's radius km, moon distance km". Did you mean: earth radius km, moon distance km?
 ============================================================
 RESULT: NO ANSWER  ->  None
+CHECK: WRONG (no number)
 
-=== AFTER ===
+=== AFTER (recovery rule, naive tool) ===
 TASK: Look up the Earth's radius and the Moon's distance in the knowledge base, then compute how many Earth radii fit in the Earth-Moon distance.
 ============================================================
 Thought: I will look up the Earth's radius and the Moon's distance in the knowledge base.
+Action: kb_lookup[earth's radius]
+Observation: No exact entry for "earth's radius". Did you mean: earth radius km?
+Thought: I will look up the Earth's radius in the knowledge base using the suggested key.
 Action: kb_lookup[earth radius km]
 Observation: 6371
-Thought: Now I will look up the Moon's distance in the knowledge base.
+Thought: I have the Earth's radius. Now I will look up the Moon's distance in the knowledge base.
+Action: kb_lookup[moon's distance]
+Observation: No exact entry for "moon's distance". Did you mean: moon distance km?
+Thought: I will look up the Moon's distance in the knowledge base using the suggested key.
 Action: kb_lookup[moon distance km]
 Observation: 384400
-Thought: Now I will compute how many Earth radii fit in the Earth-Moon distance.
-Action: calculator[6371 / 384400]
-Observation: 0.0165738813735692
-Thought: The result is 0.0165738813735692.
-Action: calculator[0.0165738813735692]
-Observation: 0.0165738813735692
-Thought: I have the result.
-Final Answer: 0.0165738813735692
+Thought: I have the Moon's distance. Now I will compute how many Earth radii fit in the Earth-Moon distance.
+Action: calculator[384400 / 6371]
+Observation: 60.335897033432744
+Thought: I have the result of the calculation.
+Final Answer: 60.335897033432744
 ============================================================
-RESULT: OK  ->  '0.0165738813735692'
+RESULT: OK  ->  '60.335897033432744'
+CHECK: RIGHT
+
+=== TOOL FIXED (default prompt, fixed tool) ===
+TASK: Look up the Earth's radius and the Moon's distance in the knowledge base, then compute how many Earth radii fit in the Earth-Moon distance.
+============================================================
+Thought: I will look up the Earth's radius and the Moon's distance in the knowledge base.
+Action: kb_lookup[Earth's radius]
+Observation: No exact entry for "Earth's radius". Did you mean: "earth radius km"?
+Thought: I will look up the Earth's radius in kilometers in the knowledge base.
+Action: kb_lookup[Earth's radius km]
+Observation: 6371
+Thought: I will compute how many Earth radii fit in the Earth-Moon distance using the result from the knowledge base.
+Action: calculator[6371 / 1737]
+Observation: 3.667818077144502
+Thought: I have the result.
+Final Answer: 3.667818077144502
+============================================================
+RESULT: OK  ->  '3.667818077144502'
+CHECK: WRONG (want ≈ 60.3)

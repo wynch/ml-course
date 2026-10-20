@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>State Space Models and Linear Attention · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="state-space-models-and-linear-attention">State Space Models and Linear Attention</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">architecture</span> <span class="tag">state-space-models</span> <span class="tag">linear-attention</span> <span class="tag">recurrence</span> <span class="tag">hybrids</span> <span class="tag">long-context</span> <span class="tag">hub</span></div>
+<p>A state space model (SSM) layer reads a sequence by updating a fixed-size state, so memory stays constant and compute grows linearly with length, unlike attention, whose cache grows with every token (<code>raw/arxiv-2603-15569-mamba-3-improved-sequence-modeling-using.md</code>, §1). Linear attention is the same idea seen from the attention side: the layer keeps a matrix as memory and writes each key-value pair into it (<code>raw/arxiv-2412-06464-gated-delta-networks-improving-mamba2-with.md</code>, §1). Mamba-2 showed the two are one family (<a href="source-mamba-2-ssm-duality.html">source-mamba-2-ssm-duality</a>).</p>
+<h2 id="key-ideas">Key ideas</h2>
+<div class="tw"><table><thead><tr><th>Idea</th><th>What it says</th><th>Source</th></tr></thead><tbody><tr><td>Selection</td><td>Make the state update depend on the input, so the layer can choose what to keep or drop</td><td><a href="source-mamba-ssm.html">source-mamba-ssm</a> (arXiv 2312.00752; not in raw)</td></tr><tr><td>Duality</td><td>An SSM with a scalar decay per step is a masked, structured linear attention; train in the matmul form, decode in the recurrent form</td><td><a href="source-mamba-2-ssm-duality.html">source-mamba-2-ssm-duality</a> (<code>raw/arxiv-2405-21060-transformers-are-ssms-generalized-models-and.md</code>, §2.4, §3, §5, §6)</td></tr><tr><td>Delta rule</td><td>Instead of fading every stored pair, read what memory holds for a key and overwrite that one value; Gated DeltaNet adds Mamba-2's decay on top</td><td><a href="source-gated-deltanet.html">source-gated-deltanet</a> (<code>raw/arxiv-2412-06464-gated-delta-networks-improving-mamba2-with.md</code>, §1, §3.1, Eq. 10)</td></tr><tr><td>Rotating state</td><td>A complex-valued state can rotate, which plain decay cannot; this gives state tracking (parity 100%)</td><td><a href="source-mamba-3.html">source-mamba-3</a> (<code>raw/arxiv-2603-15569-mamba-3-improved-sequence-modeling-using.md</code>, §3.2, §4.2, Table 5b)</td></tr><tr><td>Hybrids</td><td>Mix a few attention layers among many linear ones</td><td><a href="source-mamba-2-ssm-duality.html">source-mamba-2-ssm-duality</a>, <a href="source-gated-deltanet.html">source-gated-deltanet</a>, <a href="source-mamba-3.html">source-mamba-3</a>, <a href="source-olmo-hybrid-rnn-transformer.html">source-olmo-hybrid-rnn-transformer</a></td></tr><tr><td>Sparse state</td><td>Split the state by position so each input touches only part of it</td><td><a href="source-ssla-event-detection.html">source-ssla-event-detection</a></td></tr></tbody></table></div>
+<p>The delta rule has a second reading: one step of gradient descent on ‖S k − v‖² at test time, with the gate acting as weight decay on that step (<code>raw/arxiv-2412-06464-gated-delta-networks-improving-mamba2-with.md</code>, §3.1, Table 1). That is where this family meets <a href="concept-test-time-training.html">concept-test-time-training</a>.</p>
+<h2 id="how-it-changed">How it changed</h2>
+<ul><li><strong>2023, Mamba.</strong> Input-dependent state updates made an SSM competitive with transformers at 125M to 2.8B parameters on the Pile (<a href="source-mamba-ssm.html">source-mamba-ssm</a>; arXiv 2312.00752, not in raw).</li><li><strong>2024, Mamba-2.</strong> The duality, a kernel "2-8× faster" than Mamba's scan, and states 8× larger. In a 350M, 48-layer model, about 10% attention layers gave the best perplexity: 8.26 against 8.60 for pure Mamba-2 and 8.68 for Transformer++ (<code>raw/arxiv-2405-21060-transformers-are-ssms-generalized-models-and.md</code>, §1, §9.2, Table 2).</li><li><strong>2024–25, Gated DeltaNet.</strong> At 1.3B and 100B tokens, an eight-task average of 55.32 against Mamba-2's 54.89; the hybrids with sliding-window attention reach 56.40 and 56.18 (<code>raw/arxiv-2412-06464-gated-delta-networks-improving-mamba2-with.md</code>, Table 3).</li><li><strong>2026, Mamba-3.</strong> At 1.5B: Transformer 55.4, Gated DeltaNet 55.8, Mamba-2 55.7, Mamba-3 56.4, Mamba-3 MIMO 57.6. One decode step on an H100 takes 0.156 ms against Mamba-2's 0.203 (<code>raw/arxiv-2603-15569-mamba-3-improved-sequence-modeling-using.md</code>, Table 3, §4.4, Table 6).</li><li><strong>2026, at 7B.</strong> OLMo Hybrid puts three Gated DeltaNet sublayers to each attention sublayer and matches Olmo 3 7B on MMLU with 49% fewer tokens, per Allen AI's blog (allenai.org/blog/olmohybrid; not in raw). M²RNN adds non-linear transitions on a matrix state (arXiv 2603.14360; not in raw).</li></ul>
+<h2 id="where-it-fails-retrieval">Where it fails: retrieval</h2>
+<p>Every recent paper here reports the same weak spot. Pure linear models trail the transformer at pulling facts from semi-structured text: SWDE 48.9 for the Transformer against 28.5 for Mamba-3 (<code>raw/arxiv-2603-15569-mamba-3-improved-sequence-modeling-using.md</code>, §4.1.2, Table 4). On real-world retrieval Gated DeltaNet averages 30.6 against the Transformer's 37.0; both hybrids pass it, at 39.0 and 40.1 (<code>raw/arxiv-2412-06464-gated-delta-networks-improving-mamba2-with.md</code>, Table 4). Mixed 5:1 with attention, Mamba-3 hybrids catch up or pass the Transformer on those tasks (<code>raw/arxiv-2603-15569-mamba-3-improved-sequence-modeling-using.md</code>, Table 4).</p>
+<p>Contradiction (partial), carried from <a href="source-mamba-ssm.html">source-mamba-ssm</a>: Memory Mosaics argue that any model with a fixed-size state fails multi-document question answering by design, since it must squeeze the documents before it sees the question. Their tables, copied from other papers: on RULER at 2k, Mamba-2.8B 52.6 against Llama2-7B's 91.6; on Tacred in context, Mamba-2.8B scores 0 at every shot count (<code>raw/arxiv-2507-03285-memory-mosaics-at-scale.md</code>, §5.2, Appendix D, Tables 7–8; <a href="source-memory-mosaics-at-scale.html">source-memory-mosaics-at-scale</a>). The hybrid results above fit the claim for pure models and soften it for mixed ones. The Mosaics paper trained no SSM itself and compares unmatched sizes (same file, Appendix D).</p>
+<h2 id="test-time-training-is-linear-attention">Test-time training is linear attention</h2>
+<p>A test-time-training (TTT) layer keeps a small network as its state and takes gradient steps on it as tokens arrive. Liu et al. prove that, with a linear, bias-free last layer, a broad class of TTT layers can be rewritten as linear attention, and they argue against reading the inner loop as memorising key-value pairs: gradient <em>ascent</em> in the inner loop does as well (perplexity 16.19 against 16.43) (<code>raw/arxiv-2602-21204-test-time-training-with-kv-binding.md</code>, §4.2, §5, Table 1; <a href="source-ttt-kv-binding-linear-attention.html">source-ttt-kv-binding-linear-attention</a>). See <a href="concept-test-time-training.html">concept-test-time-training</a>.</p>
+<h2 id="open-questions">Open questions</h2>
+<ul><li>Does the retrieval gap close with scale, or only with attention layers? The evidence here stops at 1.5B for pure models (<code>raw/arxiv-2603-15569-mamba-3-improved-sequence-modeling-using.md</code>, §4.1).</li><li>Where should the attention layers go in a hybrid? The Mamba-3 authors call hybrid behaviour "complex and oftentimes unintuitive" (same file, §4.1.2).</li><li>At the edge, which matters more: state size, or how much of the state each input touches? SSLA buys 380× fewer operations by touching little of a large state (<code>raw/arxiv-2603-06228-low-latency-event-based-object-detection-fulltext.md</code>, §4.4; <a href="source-ssla-event-detection.html">source-ssla-event-detection</a>).</li></ul>
+<h2 id="local-link">Local link</h2>
+<p>Course module 18 (<code>course/modules/18-beyond-attention</code>) builds a GRU, a diagonal linear recurrence and a selective one in the style of Mamba, and sets them against the tiny GPT at equal budget (its README, sections 1–3). The delta rule of <a href="source-gated-deltanet.html">source-gated-deltanet</a> is the next step it does not take.</p>
+<h2 id="key-sources">Key sources</h2>
+<ul><li>Lineage: <a href="source-mamba-ssm.html">source-mamba-ssm</a> → <a href="source-mamba-2-ssm-duality.html">source-mamba-2-ssm-duality</a> → <a href="source-gated-deltanet.html">source-gated-deltanet</a> → <a href="source-mamba-3.html">source-mamba-3</a></li><li>Hybrids and relatives: <a href="source-olmo-hybrid-rnn-transformer.html">source-olmo-hybrid-rnn-transformer</a>, <a href="source-m2rnn-matrix-valued-states.html">source-m2rnn-matrix-valued-states</a>, <a href="source-ttt-kv-binding-linear-attention.html">source-ttt-kv-binding-linear-attention</a>, <a href="source-ssla-event-detection.html">source-ssla-event-detection</a></li><li>Critic: <a href="source-memory-mosaics-at-scale.html">source-memory-mosaics-at-scale</a></li><li>People: <a href="entity-tri-dao.html">entity-tri-dao</a></li><li>Hubs: <a href="concept-transformer-architecture.html">concept-transformer-architecture</a>, <a href="concept-long-context.html">concept-long-context</a>, <a href="concept-test-time-training.html">concept-test-time-training</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2405-21060-transformers-are-ssms-generalized-models-and.md</code> (arXiv 2405.21060)</li><li><code>raw/arxiv-2412-06464-gated-delta-networks-improving-mamba2-with.md</code> (arXiv 2412.06464)</li><li><code>raw/arxiv-2603-15569-mamba-3-improved-sequence-modeling-using.md</code> (arXiv 2603.15569)</li><li><code>raw/arxiv-2602-21204-test-time-training-with-kv-binding.md</code> (arXiv 2602.21204)</li><li><code>raw/arxiv-2507-03285-memory-mosaics-at-scale.md</code> (arXiv 2507.03285)</li><li><code>raw/arxiv-2603-06228-low-latency-event-based-object-detection-fulltext.md</code> (arXiv 2603.06228)</li><li>Mamba: <a href="https://arxiv.org/abs/2312.00752" rel="noreferrer">https://arxiv.org/abs/2312.00752</a> · M²RNN: <a href="https://arxiv.org/abs/2603.14360" rel="noreferrer">https://arxiv.org/abs/2603.14360</a> · OLMo Hybrid: <a href="https://allenai.org/blog/olmohybrid" rel="noreferrer">https://allenai.org/blog/olmohybrid</a></li></ul>
+<details class="src"><summary>Sources (9)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2405-21060-transformers-are-ssms-generalized-models-and.md</code></li><li><code>raw/arxiv-2603-15569-mamba-3-improved-sequence-modeling-using.md</code></li><li><code>raw/arxiv-2412-06464-gated-delta-networks-improving-mamba2-with.md</code></li><li><code>raw/arxiv-2602-21204-test-time-training-with-kv-binding.md</code></li><li><code>raw/arxiv-2507-03285-memory-mosaics-at-scale.md</code></li><li><code>raw/arxiv-2603-06228-low-latency-event-based-object-detection-fulltext.md</code></li><li><a href="https://arxiv.org/abs/2312.00752" rel="noreferrer">https://arxiv.org/abs/2312.00752</a></li><li><a href="https://arxiv.org/abs/2603.14360" rel="noreferrer">https://arxiv.org/abs/2603.14360</a></li><li><a href="https://allenai.org/blog/olmohybrid" rel="noreferrer">https://allenai.org/blog/olmohybrid</a></li></ul></details>
+</main>
+</body>
+</html>

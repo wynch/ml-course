@@ -59,9 +59,9 @@ border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem
 <nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
 <main>
 <h1 id="dspy">DSPy</h1>
-<div class="meta"><span class="type">source</span> <span>created 2026-04-13</span> <span>updated 2026-04-13</span> <span class="tag">agents</span> <span class="tag">lm-programs</span> <span class="tag">compiler</span> <span class="tag">harness</span></div>
+<div class="meta"><span class="type">source</span> <span>created 2026-04-13</span> <span>updated 2026-10-20</span> <span class="tag">agents</span> <span class="tag">lm-programs</span> <span class="tag">compiler</span> <span class="tag">harness</span></div>
 <p><strong>Khattab, Singhvi, Maheshwari, Zhang, Santhanam, Vardhamanan, Haq, Sharma, Joshi, Moazam, Miller, Zaharia, Potts — ICLR 2024</strong></p>
-<p>Reframes LM programs as <strong>typed modules (Signatures)</strong> composed via Python control flow and optimized by a "teleprompter" that tunes prompts/weights against a metric. Replaces hand-written prompts with declarative specifications and learned demonstrations.</p>
+<p>Reframes LM programs as <strong>typed modules (Signatures)</strong> composed via Python control flow and optimized by a "teleprompter" that tunes prompts/weights against a metric. DSPy later renamed teleprompters "optimizers"; current ones include MIPROv2 (Opsahl-Ong et al., arXiv 2406.11695) and GEPA (Agrawal et al., arXiv 2507.19457), both not in raw. Replaces hand-written prompts with declarative specifications and learned demonstrations.</p>
 <h2 id="neuralsymbolic-bridge">Neural↔symbolic bridge</h2>
 <p>Makes the "LLMs are a new kind of computer" view engineering-real. The Python program + Signatures + compiler IS a <strong>symbolic programming language over the neural primitive</strong> <code>forward(signature, inputs) -&gt; outputs</code>. Seam = the Signature I/O contract; the compiler treats prompts as learnable parameters of the symbolic program. Closest thing to a general-purpose programming language for the harness layer.</p>
 <h2 id="references">References</h2>

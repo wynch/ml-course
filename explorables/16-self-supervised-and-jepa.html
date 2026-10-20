@@ -413,8 +413,8 @@ function drawNotice(){
       " but the effective rank at "+vv.final.erank.toFixed(2)+": one direction. VICReg itself adds a covariance term for that.",
     "<b>Not collapsing is not the same as learning.</b> After "+CO.budget+" seconds only the EMA run ends above the random-encoder "+
       "floor on the class probe ("+pct(em.class_acc_10k)+" against "+pct(CO.floor_10k)+"). SIGReg spreads the latents most (std "+
-      sr.final.std_norm.toFixed(2)+", rank "+sr.final.erank.toFixed(1)+") yet probes at "+pct(sr.class_acc_10k)+
-      ". Two minutes, one seed: a demo, not a measurement.",
+      sr.final.std_norm.toFixed(2)+") and has the highest rank of the four guards ("+sr.final.erank.toFixed(1)+"), yet probes at "+pct(sr.class_acc_10k)+
+      "; with λ = 0.1 and the statistic scaled by the batch size, that term is most of the loss. Two minutes, one seed: a demo, not a measurement.",
     "<b>Each objective keeps what its task needs.</b> SimCLR, trained to ignore colour jitter, has the lowest colour R² of the "+
       "self-supervised encoders ("+K("simclr").p.colour_r2.toFixed(2)+") and the best class probe ("+pct(K("simclr").p.class_acc)+
       "). Masked reconstruction must redraw pixels and keeps colour best ("+K("mae").p.colour_r2.toFixed(2)+"). No small encoder "+

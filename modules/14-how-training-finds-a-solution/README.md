@@ -53,9 +53,10 @@ uv sync
 No model is downloaded. Every network here is trained from scratch.
 
 **The laptop guard.** Every script imports `src/common.py` before torch. It sets
-`PYTORCH_MPS_HIGH_WATERMARK_RATIO=0.5` and `PYTORCH_MPS_LOW_WATERMARK_RATIO=0.4`:
-the Apple GPU may take at most 5.92 GB on this 16 GB Mac, and a run that grows
-past that stops with an error instead of pushing the Mac into swap. Each script
+`PYTORCH_MPS_HIGH_WATERMARK_RATIO=0.5` (the Apple GPU may take at most half of
+the working set Metal recommends, 5.92 GB on this 16 GB Mac) and
+`PYTORCH_MPS_LOW_WATERMARK_RATIO=0.4`. A run that grows past the cap stops
+with an error instead of pushing the Mac into swap. Each script
 logs its time and peak memory (process RSS from `getrusage`, and
 `torch.mps.driver_allocated_memory()`) into its results file:
 
@@ -84,8 +85,8 @@ Three update rules, for a parameter vector p and its gradient g:
 ```
 SGD        p ← p − lr·g
 momentum   v ← 0.9·v + g;            p ← p − lr·v
-Adam       m ← 0.9·m + 0.1·g;        s ← 0.999·s + 0.001·g²
-           p ← p − lr · m̂ / (√ŝ + 10⁻⁸)      # m̂, ŝ: m and s divided by (1 − βᵗ)
+Adam       m ← β₁·m + (1 − β₁)·g;    s ← β₂·s + (1 − β₂)·g²     # β₁ = 0.9, β₂ = 0.999
+           p ← p − lr · m̂ / (√ŝ + 10⁻⁸)   # m̂ = m / (1 − β₁ᵗ), ŝ = s / (1 − β₂ᵗ), t = step count
 ```
 
 Momentum keeps a running sum of past gradients, so steps that agree add up and
@@ -120,10 +121,11 @@ of 2.5. Read the bowl numbers with care: near its best rate, momentum's count
 jumps from 76 to 18 to 56 over three neighbouring rates (the lower plot), so
 18 is one lucky rate, not a trend. Two other facts hold across the whole
 sweep. Gradient descent reaches the target at the fewest rates: from 0.1 up it
-diverges on the bowl, as expected for a quadratic whose steepest curvature is
+diverges on the bowl, as expected for a quadratic whose largest curvature is
 25 (the limit is 2/25 = 0.08). Adam reaches the target at the most rates, 32
 and 29 of 37, and diverges at none of the 37 on either loss: dividing by the
-gradient's size caps each step at about the rate, whatever the gradient.
+gradient's size keeps each coordinate's step near the rate (at most a few
+times it), whatever the gradient.
 
 What this shows, and what it does not: two losses with two dimensions, a
 fixed start, and no noise. Real losses have millions of dimensions and noisy
@@ -193,6 +195,15 @@ base for most of the run, the net simply moves less in 10 epochs.
 
 This is three seeds, one net and one dataset: a demo, not a measurement.
 
+**Since 2024.** Two newer choices a learner will meet in 2026. The
+**warmup-stable-decay** schedule ([Wen et al.,
+2024](https://arxiv.org/abs/2410.05192)) holds the rate constant and drops it
+fast only at the end, so a run need not fix its length in advance; it is now
+common in language-model pretraining. **Muon** updates each weight matrix
+along an orthogonalised version of its momentum; Liu et al. ([2025](https://arxiv.org/abs/2502.16982)), who
+scaled it up, report about twice AdamW's compute efficiency in their scaling
+runs. This module tests neither.
+
 ### The Hugging Face way
 
 `transformers` ships the same schedule and sets the optimiser by name.
@@ -219,9 +230,9 @@ plain Adam.
 
 | `optim=` | `optim_args=` | Rate | torch class | Test accuracy | Hand loop, seeds 0, 1, 2 |
 |---|---|---|---|---|---|
-| `"sgd"` | none | 0.3 | `SGD` | 85.7% | 85.8%, 86.0%, 85.7% |
-| `"sgd"` | `"momentum=0.9"` | 0.03 | `SGD` | 85.5% | 85.9%, 85.9%, 85.8% |
-| `"adamw_torch"` | none | 3 × 10⁻³ | `AdamW` | 87.3% | 87.2%, 87.3%, 87.3% |
+| `"sgd"` | none | 0.3 | `SGD` | 85.65% | 85.82%, 85.96%, 85.70% |
+| `"sgd"` | `"momentum=0.9"` | 0.03 | `SGD` | 85.54% | 85.86%, 85.92%, 85.81% |
+| `"adamw_torch"` | none | 3 × 10⁻³ | `AdamW` | 87.26% | 87.21%, 87.33%, 87.32% |
 
 `Trainer` shuffles its batches its own way, so compare against the seed
 spread, not one run. Adam lands inside the hand loop's range; SGD lands 0.05
@@ -234,8 +245,10 @@ so a run that shuffles differently can fall just outside it; we did not run
 Where does training stop? A common picture: small batches find wide, flat
 valleys and large batches find narrow, sharp ones, and the wide ones
 generalise better (Keskar et al., [On Large-Batch Training for Deep
-Learning](https://arxiv.org/abs/1609.04836), 2016). `src/landscape.py` looks
-at one case.
+Learning](https://arxiv.org/abs/1609.04836), 2016). A newer result bears on
+the same knob: Marek et al. ([2025](https://arxiv.org/abs/2507.07101)) trained
+language models stably at batch sizes down to 1, once Adam's β₂ was scaled
+with the batch size. `src/landscape.py` looks at one case.
 
 Two copies of the MLP, same initial weights, SGD with momentum 0.9 at rate
 0.05: one with batch 32, one with batch 2,048. Each trains until its loss on
@@ -249,10 +262,13 @@ epoch, so both stop at about the same training loss. Then, for each net:
   Nets](https://arxiv.org/abs/1712.09913), 2018). Without the rescaling, a net
   with larger weights would look flatter for that reason alone;
 - **a 2-D slice**: θ + a·d₁ + b·d₂, on a 31 × 31 grid;
-- **the top eigenvalue of the Hessian**, the curvature of the loss in its
-  steepest direction. The Hessian of 203,530 parameters has 4 × 10¹⁰ entries,
+- **the top eigenvalue of the Hessian** (the matrix of second derivatives of
+  the loss): the curvature along the direction in which the loss bends most.
+  Power iteration returns the eigenvalue of largest size; near a minimum that
+  is the top one. The Hessian of 203,530 parameters has 4 × 10¹⁰ entries,
   too many to build. Power iteration needs only Hessian-vector products, and
-  each costs two backward passes. 100 iterations; the estimate changed by
+  each costs about two gradient computations: one backward pass that keeps
+  its graph, then a second through it. 100 iterations; the estimate changed by
   less than 10⁻⁵ over the last ten.
 
 Losses are measured on the same 5,000 training and 5,000 test images for
@@ -305,8 +321,15 @@ The task is (a + b) mod 97 over all 9,409 pairs; a fixed 30% (2,823, split
 seed 0) is the training set, and the other 6,586 are the test set. The model is
 a one-layer transformer with no LayerNorm: d_model 128, 4 heads, MLP width
 512, ReLU, learned positions; 222,208 parameters. It reads a and b as two
-tokens and answers at the last position. Full-batch AdamW, rate 10⁻³, betas
-(0.9, 0.98), the same split and initial weights in both runs. The only
+tokens and answers at the last position.
+
+**Weight decay** shrinks every weight a little at each step, by
+lr × wd × w, so weights the loss does not need fade away. AdamW applies this
+shrink apart from Adam's gradient step (Loshchilov and Hutter, [Decoupled
+Weight Decay Regularization](https://arxiv.org/abs/1711.05101), 2017); at
+rate 10⁻³ and weight decay 1.0, each weight loses 0.1% per step.
+
+Full-batch AdamW, rate 10⁻³, β₁ = 0.9 and β₂ = 0.98 (see section 1), the same split and initial weights in both runs. The only
 difference: weight decay 1.0 or 0.
 
 **The rule, written before the first run.** A run has *grokked* when test
@@ -354,6 +377,19 @@ weight decay keeps pushing towards smaller ones, which here are the ones that
 compute the sum. Two runs cannot prove that reading. They show that, in this
 setup and within 20,000 steps, weight decay decided whether the model
 generalised at all.
+
+That reading is no longer the whole story. Prieto et al. ([Grokking at the
+Edge of Numerical Stability](https://arxiv.org/abs/2501.04697), 2025) traced
+the failure without weight decay to the logits: once the training set is
+fitted, the cheapest way to lower the loss is to scale every logit up, until
+float32 softmax rounds to exact 0s and 1s and the gradient stops carrying
+information ("softmax collapse"). With a softmax that cannot collapse, or a
+gradient with that scaling part removed, their models grokked with no weight
+decay. This run fits the picture: at weight decay 0 the final logits span
+−2,198 to −366, against −115.2 to 11.5 with weight decay 1.0. The logged
+training loss cannot tell the two runs apart: it reads 0.0 to five decimals
+at 157 of 246 evaluated steps without weight decay, and at 102 with it. We
+did not test the fix.
 
 One seed per run, and the GPU's arithmetic is not bit-identical from run to
 run, so treat the step numbers as approximate. A second run of the weight
@@ -447,6 +483,7 @@ explorable against the results.
 ## Links
 
 - Kingma and Ba, [Adam: A Method for Stochastic Optimization](https://arxiv.org/abs/1412.6980) (2014)
+- Loshchilov and Hutter, [Decoupled Weight Decay Regularization](https://arxiv.org/abs/1711.05101) (2017), AdamW
 - Loshchilov and Hutter, [SGDR: Stochastic Gradient Descent with Warm Restarts](https://arxiv.org/abs/1608.03983) (2016), cosine schedules
 - Keskar et al., [On Large-Batch Training for Deep Learning: Generalization Gap and Sharp Minima](https://arxiv.org/abs/1609.04836) (2016)
 - Dinh et al., [Sharp Minima Can Generalize For Deep Nets](https://arxiv.org/abs/1703.04933) (2017)
@@ -454,4 +491,8 @@ explorable against the results.
 - Cohen et al., [Gradient Descent on Neural Networks Typically Occurs at the Edge of Stability](https://arxiv.org/abs/2103.00065) (2021)
 - Power et al., [Grokking: Generalization Beyond Overfitting on Small Algorithmic Datasets](https://arxiv.org/abs/2201.02177) (2022)
 - Nanda et al., [Progress measures for grokking via mechanistic interpretability](https://arxiv.org/abs/2301.05217) (2023)
+- Wen et al., [Understanding Warmup-Stable-Decay Learning Rates](https://arxiv.org/abs/2410.05192) (2024)
+- Liu et al., [Muon is Scalable for LLM Training](https://arxiv.org/abs/2502.16982) (2025)
+- Prieto et al., [Grokking at the Edge of Numerical Stability](https://arxiv.org/abs/2501.04697) (2025)
+- Marek et al., [Small Batch Size Training for Language Models](https://arxiv.org/abs/2507.07101) (2025)
 - [`transformers` optimisers and schedules](https://huggingface.co/docs/transformers/main_classes/optimizer_schedules)

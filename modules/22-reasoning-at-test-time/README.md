@@ -118,8 +118,8 @@ assistant: <think>
 
 ```
 
-Qwen3 can write a hidden reasoning block between `<think>` and `</think>`
-before it answers. We turn that off: `apply_chat_template(...,
+Qwen3 can write a reasoning block, which chat apps fold away, between
+`<think>` and `</think>` before it answers. We turn that off: `apply_chat_template(...,
 enable_thinking=False)` closes the block empty, so all reasoning in this
 module is in plain sight. The examples run through the model once; every
 problem reuses their keys and values (module 07's KV cache).
@@ -189,8 +189,9 @@ all C(8, n) ways to pick them.
 Greedy scores 61.5%. One sample at temperature 0.7 scores 61.1% on average,
 with the 8 draws ranging from 58.5% to 65.0%: sampling alone costs little
 here. Two samples vote no better than one, because a 1–1 tie goes to the
-first. From three on, each sample adds less than the last: +3.2 points from
-2 to 3, +1.1 from 7 to 8.
+first. From three on the gains shrink, though not evenly: +3.2 points from 2
+to 3, +1.9 from 3 to 4, then about one point or less per sample (+0.2 from 6
+to 7, +1.1 from 7 to 8).
 
 **A test fixed before the run.** We wrote down, before any generation, that a
 vote over the first 5 samples should beat greedy by 3 to 10 points. It scores
@@ -204,7 +205,9 @@ elsewhere.
 **The ceiling.** A vote can only pick an answer some sample gave. On 80% of
 problems at least one of the 8 samples is right; the vote finds 69.5%. The
 gap, 10.5 points, is right answers that lost the vote. On the other 20%, no
-amount of voting helps.
+amount of voting helps. Brown et al. (2024) call this ceiling **coverage**:
+over four orders of magnitude of samples it kept growing, while majority
+votes and reward models levelled off.
 
 **Agreement as confidence.** The share of samples behind the winning answer
 says how far to trust it:
@@ -220,8 +223,11 @@ says how far to trust it:
 
 A **verifier** scores each sample, and best-of-n keeps the top one. Strong
 results use a separate trained verifier (Cobbe et al., 2021) or a reward
-model that grades each step (Lightman et al., 2023). We use the cheapest
-kind: the same model, asked in a fresh chat whether a sample is correct.
+model that grades each step (Lightman et al., 2023). We use a cheap kind:
+the same model, asked in a fresh chat whether a sample is correct. A cheaper
+signal needs no second prompt at all: the model's own token probabilities
+while it writes the sample (Kang et al., 2025; Fu et al., 2025). Our cached
+samples do not store them, so this module cannot test it.
 
 ```
 Here is a math word problem and a proposed solution.
@@ -231,13 +237,16 @@ Is the proposed solution correct, including its final answer? Reply with only Ye
 ```
 
 We read no reply; we read the next-token probabilities of "Yes" and "No" and
-take the log-odds, log P(Yes) − log P(No). (P(Yes) / (P(Yes) + P(No)) gives
+take the **log-odds**, log P(Yes) − log P(No): how many times likelier Yes
+is than No, on a log scale. (P(Yes) / (P(Yes) + P(No)) gives
 the same order, but rounds to 1.0 for 602 of the 1,600 samples.)
 
 The grader says Yes to almost everything: "Yes" is its top token for 1,587
 samples, "No" for 4. As a judge it is useless. As a ranking it holds some
 signal: right samples get a median log-odds of 14.6, wrong ones 10.9, and a
-random right sample outranks a random wrong one 82% of the time (AUC 0.82).
+random right sample outranks a random wrong one 82% of the time. That share is
+the **AUC** (area under the ROC curve): 0.5 is chance, 1 a perfect ranking;
+here 0.82.
 
 ![Accuracy against tokens written; the grader's log-odds for right and wrong samples](figures/cost.png)
 
@@ -264,9 +273,9 @@ leaves it out.
 problems, more tokens at test time bought accuracy, with returns that fall as
 n grows. It does not show the ordering of the three methods holds elsewhere:
 the gaps between vote, weighted vote and best-of-n at n = 8 are 0.5 to 1
-point, 1 to 2 problems of 200. A self-grader that says Yes to 99.8% of
-samples would mislead anyone who read its answer instead of its
-probabilities.
+point, 1 to 2 problems of 200. A self-grader whose top token is "Yes" for
+1,587 of 1,600 samples (and which puts Yes above No for 1,596) would mislead
+anyone who read its answer instead of its probabilities.
 
 ## 4 · What o1-style training adds
 
@@ -275,18 +284,31 @@ pre-training and instruction tuning left it, and we sample around that.
 Reasoning models train the reasoning itself. DeepSeek-R1 (2025) publishes its
 recipe: the model writes long chains, a rule checks the final answer (right or
 wrong, as our regex does) and that the reasoning sits between think tags, and
-reinforcement learning makes chains that end right more likely (module 17
-covers learning from preferences). In R1-Zero, the version trained by
-reinforcement learning alone, the chains grow longer during training and
-start to revisit earlier steps, though no reward or prompt asks for either.
-R1 itself adds a few thousand written examples before that training and
-preference rewards after it. OpenAI describes o1 (2024) as trained with
-large-scale reinforcement learning, and gives few details. Our sampling can
-only pick among chains the model already writes; training changes which
-chains it writes. Qwen3's thinking mode, which we turned off, comes from such
-training in its larger models; its report says the small ones, 1.7B among
-them, learned it by distillation from the large. The two combine: a model
-trained to reason can still gain from votes and verifiers.
+reinforcement learning makes chains that end right more likely (module 24
+builds reinforcement learning from scratch; module 17 covers learning from
+preferences). In R1-Zero, the version trained by reinforcement learning alone,
+the chains grow longer during training and start to revisit earlier steps,
+though no reward or prompt asks for either. R1 itself adds a few thousand
+written examples before that training. It then fine-tunes the base model
+afresh on about 800,000 examples, three in four of them chains its trained
+model wrote and kept because they ended right, and adds preference rewards in
+a last round of reinforcement learning. OpenAI describes o1 (2024) as trained
+with large-scale reinforcement learning, and gives few details.
+
+How much such training adds is debated. Yue et al. (2025) find that a model
+trained this way solves more problems in one try, yet its untrained base
+solves more when allowed many tries: pass@k at large k, the "any of n right"
+ceiling of section 2. On that reading the training mostly makes the base
+model's good chains more likely rather than teaching new ones. Liu et al.
+(2025) find the self-checking already present in the base model before
+training, and longer chains partly an artefact of the training rule. Shao et
+al. (2025) lift a Qwen2.5 math model by 21.4 points on MATH-500 with random
+rewards, against 29.1 with true ones; other model families did not gain this
+way, and this module uses a Qwen model. Nor is a written chain always what
+drove the answer (Chen et al., 2025). Qwen3's thinking mode, which we turned
+off, comes from such training in its larger models; its report says the small
+ones, 1.7B among them, learned it by distillation from the large. The two
+combine: a model trained to reason can still gain from votes and verifiers.
 
 ## Run it
 
@@ -365,6 +387,9 @@ explorable against the results.
   replies get much longer, and the accuracy should move. Keep each chunk
   under five minutes.
 - Swap the grader for a separate model, or ask it to grade step by step.
+- Budget forcing (s1, Muennighoff et al., 2025): with thinking on, cut the
+  block off at a fixed length, or append "Wait" when the model tries to stop,
+  and watch accuracy against tokens.
 - Run the same pipeline on `mlx-community/Qwen3-4B-Instruct-2507-4bit`, to
   see whether the vote gains less on a stronger model.
 
@@ -375,7 +400,7 @@ explorable against the results.
 - say why a grader that answers Yes to everything can still rank samples;
 - compare test-time methods at equal tokens;
 - say what a fixed token cap does to a chatty model's score;
-- say what reinforcement-learned reasoning changes that sampling cannot.
+- say what reinforcement-learned reasoning changes that sampling cannot, and why how much it adds is debated.
 
 ## Links
 
@@ -386,5 +411,13 @@ explorable against the results.
 - Snell et al., [Scaling LLM Test-Time Compute Optimally can be More Effective than Scaling Model Parameters](https://arxiv.org/abs/2408.03314) (2024)
 - OpenAI, [Learning to Reason with LLMs](https://openai.com/index/learning-to-reason-with-llms/) (2024)
 - DeepSeek-AI, [DeepSeek-R1](https://arxiv.org/abs/2501.12948) (2025)
+- Brown et al., [Large Language Monkeys: Scaling Inference Compute with Repeated Sampling](https://arxiv.org/abs/2407.21787) (2024)
+- Kang et al., [Scalable Best-of-N Selection for Large Language Models via Self-Certainty](https://arxiv.org/abs/2502.18581) (2025)
+- Fu et al., [Deep Think with Confidence](https://arxiv.org/abs/2508.15260) (2025)
+- Muennighoff et al., [s1: Simple test-time scaling](https://arxiv.org/abs/2501.19393) (2025)
+- Yue et al., [Does Reinforcement Learning Really Incentivize Reasoning Capacity in LLMs Beyond the Base Model?](https://arxiv.org/abs/2504.13837) (2025)
+- Liu et al., [Understanding R1-Zero-Like Training: A Critical Perspective](https://arxiv.org/abs/2503.20783) (2025)
+- Shao et al., [Spurious Rewards: Rethinking Training Signals in RLVR](https://arxiv.org/abs/2506.10947) (2025)
+- Chen et al., [Reasoning Models Don't Always Say What They Think](https://arxiv.org/abs/2505.05410) (2025)
 - Qwen Team, [Qwen3 Technical Report](https://arxiv.org/abs/2505.09388) (2025)
 - [openai/gsm8k](https://huggingface.co/datasets/openai/gsm8k) · [mlx-community/Qwen3-1.7B-4bit](https://huggingface.co/mlx-community/Qwen3-1.7B-4bit) · [mlx-lm](https://github.com/ml-explore/mlx-lm)

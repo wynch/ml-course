@@ -1,6 +1,6 @@
 # Compass page, published copy
 
-`index.html` here is a copy of the private project's `compass/index.html`, version 0.20, taken 2026-10-18 by `scripts/build_pack.py`.
+`index.html` here is a copy of the private project's `compass/index.html`, version 0.20, taken 2026-10-20 by `scripts/build_pack.py`.
 
 It is identical after six added header lines and two scrubs. Three lines (doctype, charset, viewport) make a phone render it at its own width; three link the course icon. The first makes home paths relative to the project root (`compass/index.html`, `../ml-lab/crystallizer`); the second replaces the title of a private Obsidian note with "an Obsidian note".
 

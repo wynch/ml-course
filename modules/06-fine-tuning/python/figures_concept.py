@@ -131,11 +131,11 @@ def fig_lora_schematic():
     box(0.3, 2.6, 1.1, 0.9, "#334155", "x\n(hidden)", fs=10)
 
     # frozen projection W0 (top path)
-    box(3.0, 4.3, 2.4, 1.0, C_FROZEN, "W₀  (frozen)\nq/k/v/o proj", tc="#1e293b")
+    box(2.9, 4.15, 2.6, 1.3, C_FROZEN, "W₀  (frozen)\nany linear: q/k/v/o,\ngate/up/down", tc="#1e293b")
     # LoRA path (bottom)
-    box(2.7, 0.9, 1.3, 0.9, C_A, "A\n(d×r)")
-    box(4.6, 0.9, 1.3, 0.9, C_B, "B\n(r×d)")
-    ax.text(3.35, 0.35, "r ≪ d", ha="center", fontsize=9, color=C_A, style="italic")
+    box(2.7, 0.9, 1.3, 0.9, C_A, "A\n(r×d_in)")
+    box(4.6, 0.9, 1.3, 0.9, C_B, "B\n(d_out×r)")
+    ax.text(3.35, 0.62, "r ≪ d_in, d_out", ha="center", fontsize=9, color=C_A, style="italic")
 
     # sum node
     ax.add_patch(mpatches.Circle((7.2, 2.9), 0.35, facecolor="#0f172a"))

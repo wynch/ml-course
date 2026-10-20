@@ -113,7 +113,7 @@ footer p{margin:.3rem 0;max-width:74ch}
 <body>
 <header class="topbar">
   <h1>ML course quizzes</h1>
-  <span class="count" id="stat">29 quizzes · 290 questions</span>
+  <span class="count" id="stat">37 quizzes · 370 questions</span>
   <span class="spacer"></span>
   <a class="back" href="../explorables/index.html">Explorables</a>
   <a class="back" href="../index.html">← Course home</a>
@@ -121,7 +121,7 @@ footer p{margin:.3rem 0;max-width:74ch}
 
 <main>
   <section class="intro">
-    <p class="lede">Twenty-nine self-graded quizzes — one per module, including the optional Origins
+    <p class="lede">Thirty-seven self-graded quizzes — one per module, including the optional Origins
       prologue and the 05½ evaluation bridge lab —
       ten questions each, every one grounded in that module's own code, figures and measured numbers.</p>
     <p>Answer in any order; a question locks as soon as you answer it and reveals why the right answer
@@ -212,7 +212,8 @@ footer p{margin:.3rem 0;max-width:74ch}
         <div class="meta"><span class="pill t2">Module 05</span><span class="file">05.html</span></div>
         <h3>The transformers library</h3>
         <p class="hook">SmolLM2-360M taken apart: grouped-query heads, where the parameters sit, chat
-          templates, the logit lens, and measured CPU-versus-MPS decode speed.</p>
+          templates and their hidden system prompt, the logit lens, min-p, and measured CPU-versus-MPS
+          decode speed.</p>
         <div class="score" data-quiz="05"></div>
       </a>
 
@@ -220,7 +221,8 @@ footer p{margin:.3rem 0;max-width:74ch}
         <div class="meta"><span class="pill t2">Lab 05½</span><span class="file">05a.html</span></div>
         <h3>Data &amp; evaluation: know whether the model improved</h3>
         <p class="hook">The <span class="file">&gt;=</span> in the confusion matrix, ECE by hand, what
-          split_indices does and does not guarantee, and what leakage does to an honest 85%.</p>
+          split_indices does and does not guarantee, what leakage does to an honest 85%, and why 40
+          examples cannot tell 0.73 from 0.81.</p>
         <div class="score" data-quiz="05a"></div>
       </a>
 
@@ -244,8 +246,8 @@ footer p{margin:.3rem 0;max-width:74ch}
   </section>
 
   <section class="track t3">
-    <h2><span class="dot"></span>Breadth<span class="rng">modules 08–10</span></h2>
-    <p class="sub">The same machinery pointed at pixels, at noise, and at tools.</p>
+    <h2><span class="dot"></span>Breadth<span class="rng">modules 08–10, 33</span></h2>
+    <p class="sub">The same machinery pointed at pixels, at noise, at tools, and at text written by unmasking.</p>
     <div class="grid">
 
       <a class="card" href="08.html">
@@ -272,12 +274,20 @@ footer p{margin:.3rem 0;max-width:74ch}
         <div class="score" data-quiz="10"></div>
       </a>
 
+      <a class="card" href="33.html">
+        <div class="meta"><span class="pill t3">Module 33</span><span class="file">33.html</span></div>
+        <h3>Text by denoising</h3>
+        <p class="hook">One Euler step on the spiral, dividing by t, the diffusion bound against the twin, the order of reveals,
+          one-step samples, block diffusion's cache, filling a gap, and repeated data.</p>
+        <div class="score" data-quiz="33"></div>
+      </a>
+
     </div>
   </section>
 
   <section class="track t4">
-    <h2><span class="dot"></span>Looking inside<span class="rng">modules 11–13</span></h2>
-    <p class="sub">Open a trained model while it runs: read one neuron, probe each layer, patch one cell, read features through a sparse dictionary, then do the same to vision and JEPA models.</p>
+    <h2><span class="dot"></span>Looking inside<span class="rng">modules 11–13, 32</span></h2>
+    <p class="sub">Open a trained model while it runs: read one neuron, probe each layer, patch one cell, read features through a sparse dictionary, then do the same to vision and JEPA models, and test the findings against a random-weight copy, a second seed and a known truth.</p>
     <div class="grid">
 
       <a class="card" href="11.html">
@@ -304,12 +314,20 @@ footer p{margin:.3rem 0;max-width:74ch}
         <div class="score" data-quiz="13"></div>
       </a>
 
+      <a class="card" href="32.html">
+        <div class="meta"><span class="pill t4">Module 32</span><span class="file">32.html</span></div>
+        <h3>Is the explanation real?</h3>
+        <p class="hook">SAEs against transcoders, the random-weight control, attribution's two hooks, attribution against ablation,
+          what a second seed keeps, detection scores, and SAELens on GPT-2.</p>
+        <div class="score" data-quiz="32"></div>
+      </a>
+
     </div>
   </section>
 
   <section class="track t5">
-    <h2><span class="dot"></span>How learning works<span class="rng">modules 14–16</span></h2>
-    <p class="sub">Watch training find a solution, measure the shape it leaves behind, and learn without labels.</p>
+    <h2><span class="dot"></span>How learning works<span class="rng">modules 14–16, 29–30</span></h2>
+    <p class="sub">Watch training find a solution, measure the shape it leaves behind, learn without labels, keep the old while learning the new, and learn without a backward pass.</p>
     <div class="grid">
 
       <a class="card" href="14.html">
@@ -336,12 +354,28 @@ footer p{margin:.3rem 0;max-width:74ch}
         <div class="score" data-quiz="16"></div>
       </a>
 
+      <a class="card" href="29.html">
+        <div class="meta"><span class="pill t5">Module 29</span><span class="file">29.html</span></div>
+        <h3>Learning something new without losing the old</h3>
+        <p class="hook">What full fine-tuning forgets, replay, what KL on the new text measures, self-distillation, LoRA's zero
+          start, 800 shuffled-pixel tasks, dead units, and where a LoRA step's memory goes.</p>
+        <div class="score" data-quiz="29"></div>
+      </a>
+
+      <a class="card" href="30.html">
+        <div class="meta"><span class="pill t5">Module 30</span><span class="file">30.html</span></div>
+        <h3>Learning without a backward pass</h3>
+        <p class="hook">MeZO's memory, its three nudges, Adam's buffers, predictive coding's bill, why checkpointing matches
+          backprop, when the lowest layer learns, Mono-Forward, and forward-forward's guess.</p>
+        <div class="score" data-quiz="30"></div>
+      </a>
+
     </div>
   </section>
 
   <section class="track t6">
-    <h2><span class="dot"></span>Other recipes<span class="rng">modules 17–18</span></h2>
-    <p class="sub">Train from preferences instead of labels, and carry a fixed state from token to token instead of attention.</p>
+    <h2><span class="dot"></span>Other recipes<span class="rng">modules 17–18, 27</span></h2>
+    <p class="sub">Train from preferences instead of labels, carry a fixed state from token to token instead of attention, and write to that state with the delta rule.</p>
     <div class="grid">
 
       <a class="card" href="17.html">
@@ -358,6 +392,14 @@ footer p{margin:.3rem 0;max-width:74ch}
         <p class="hook">KV cache against state, the GRU's update gate, a fixed recurrence as a convolution, equal
           training time, selective against fixed, and Mamba without its kernels.</p>
         <div class="score" data-quiz="18"></div>
+      </a>
+
+      <a class="card" href="27.html">
+        <div class="meta"><span class="pill t6">Module 27</span><span class="file">27.html</span></div>
+        <h3>Memory as a matrix</h3>
+        <p class="hook">Overwriting a key, the delta rule as a gradient step, 64 pairs in a 32 × 32 state, which pairs each rule
+          keeps, the state's bytes, the triangular solve, head size, and two Qwen caches.</p>
+        <div class="score" data-quiz="27"></div>
       </a>
 
     </div>
@@ -388,8 +430,8 @@ footer p{margin:.3rem 0;max-width:74ch}
   </section>
 
   <section class="track t8">
-    <h2><span class="dot"></span>Using models well<span class="rng">modules 21–23</span></h2>
-    <p class="sub">Fetch the right passage, spend more tokens on each question, and make a model smaller.</p>
+    <h2><span class="dot"></span>Using models well<span class="rng">modules 21–23, 28</span></h2>
+    <p class="sub">Fetch the right passage, spend more tokens on each question, make a model smaller, and train one with fewer bits.</p>
     <div class="grid">
 
       <a class="card" href="21.html">
@@ -416,12 +458,20 @@ footer p{margin:.3rem 0;max-width:74ch}
         <div class="score" data-quiz="23"></div>
       </a>
 
+      <a class="card" href="28.html">
+        <div class="meta"><span class="pill t8">Module 28</span><span class="file">28.html</span></div>
+        <h3>Fewer bits, trained in</h3>
+        <p class="hook">Ternary rounding after training, the straight-through gradient, bits per weight with groups, the tuned
+          follow-up, the bf16 cast at export, a 2-bit cache, rotated keys, and mlx-lm's cache size.</p>
+        <div class="score" data-quiz="28"></div>
+      </a>
+
     </div>
   </section>
 
   <section class="track t9">
-    <h2><span class="dot"></span>Acting and planning<span class="rng">modules 24–25</span></h2>
-    <p class="sub">Learn from reward instead of labels, then plan inside a model of the world.</p>
+    <h2><span class="dot"></span>Acting and planning<span class="rng">modules 24–26, 31</span></h2>
+    <p class="sub">Learn from reward instead of labels, plan inside a model of the world, train a language model against a checker, and learn a world model from pixels.</p>
     <div class="grid">
 
       <a class="card" href="24.html">
@@ -438,6 +488,22 @@ footer p{margin:.3rem 0;max-width:74ch}
         <p class="hook">A JEPA's loss, the one-hot planner, why a random-weight planner, reading the shooting step, a
           perfect model, meters that miss, and what the grid says about JEPAs.</p>
         <div class="score" data-quiz="25"></div>
+      </a>
+
+      <a class="card" href="26.html">
+        <div class="meta"><span class="pill t9">Module 26</span><span class="file">26.html</span></div>
+        <h3>RL with a checker</h3>
+        <p class="hook">The worked style, Dr. GRPO's pass@1, a group with all eight right, RLOO's baseline, coin-flip rewards,
+          pass@k at large k, the push per character, and what the README stands behind.</p>
+        <div class="score" data-quiz="26"></div>
+      </a>
+
+      <a class="card" href="31.html">
+        <div class="meta"><span class="pill t9">Module 31</span><span class="file">31.html</span></div>
+        <h3>A world model from pixels</h3>
+        <p class="hook">Training without SIGReg, a meter that misses collapse, embedding size, random shooting against CEM, a
+          perfect model across a wall, PLDM's inverse dynamics, and a test-mode bug.</p>
+        <div class="score" data-quiz="31"></div>
       </a>
 
     </div>

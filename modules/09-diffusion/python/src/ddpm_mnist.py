@@ -2,8 +2,8 @@
 
 A compact UNet (~a few hundred K params) with a sinusoidal time embedding,
 trained with the same noise-prediction MSE objective as the 2D lab — only the
-network changes. Kept deliberately small and readable so it trains in a
-~10-20 minute budget on Apple MPS and you can read every layer.
+network changes. Kept deliberately small and readable so it trains in about
+3 minutes on an Apple M5 (MPS) and you can read every layer.
 """
 
 from __future__ import annotations
@@ -86,7 +86,11 @@ def load_fashion(n: int, seed: int = 0):
 
 def train_ddpm(model, diffusion, data, *, epochs=30, batch=128, lr=2e-4,
                device="cpu", log_every=1, snapshot_epochs=None, seed=0):
-    """Train and optionally snapshot a fixed-noise sample grid at given epochs."""
+    """Train and optionally snapshot a fixed-noise sample grid at given epochs.
+
+    Every snapshot starts from ``fixed_noise`` and replays the same per-step
+    noise, so the snapshots show the same 16 seeds as training goes on.
+    """
     torch.manual_seed(seed)
     model.to(device).train()
     data = data.to(device)
@@ -116,7 +120,11 @@ def train_ddpm(model, diffusion, data, *, epochs=30, batch=128, lr=2e-4,
             print(f"epoch {epoch:3d}/{epochs} | loss {ep_loss:.4f}")
         if (epoch + 1) in snapshot_epochs:
             model.eval()
-            grid, _ = diffusion.p_sample_loop(model, (16, 1, 28, 28), device)
+            # Same start noise and same per-step noise at every snapshot, so the
+            # rows differ only by training.
+            gen = torch.Generator(device=device).manual_seed(0)
+            grid, _ = diffusion.p_sample_loop(model, (16, 1, 28, 28), device,
+                                              x_T=fixed_noise, generator=gen)
             snapshots[epoch + 1] = grid.cpu()
             model.train()
     model.eval()

@@ -238,7 +238,10 @@ const QUESTIONS = [
     answer: 0,
     explain: "Unrolled, the fixed recurrence gives y_t = Σ_k K[k] x_{t−k} with K[k] = Σ_n C B Δ exp(k Δ A): one " +
              "kernel for every position. Once the decay at step t depends on x_t, the weight from s to t depends on " +
-             "every token in between, and no single kernel fits. Exercise (c) shows this: the error is about 1.08.",
+             "every token in between, and no single kernel fits. Exercise (c) shows this: the fixed kernel misses the " +
+             "selective output by about 1.08, and the best kernel shared by its two sequences, fitted by least squares, " +
+             "still misses by 0.15, " +
+             "against 10⁻⁷ on the fixed recurrence.",
     source: "modules/18-beyond-attention/README.md §2 · solutions/solution_c_lti_kernel.py"
   },
   /* ── 4 ───────────────────────────────────────────────── real numbers ── */

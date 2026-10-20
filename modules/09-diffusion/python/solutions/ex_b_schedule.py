@@ -1,5 +1,9 @@
 """Solution (b) — cosine schedule implemented; compares reverse GIFs.
 
+At T = 200 the linear range 1e-4 -> 0.02 never reaches pure noise
+(sqrt(alpha_bar_T) = 0.364), so its GIF shows the train/sample mismatch
+more than any gentleness of the cosine curve.
+
     uv run python solutions/ex_b_schedule.py
 
 Outputs: figures/ex_b_linear.gif, ex_b_cosine.gif, ex_b_schedules.png
@@ -69,7 +73,7 @@ def main():
         diffusion = build_diffusion(sched, T, device)
         diffs[sched] = diffusion
         model = DenoiseMLP()
-        train_toy(model, diffusion, data, epochs=2000, device=device, log_every=0)
+        train_toy(model, diffusion, data, steps=2000, device=device, log_every=0)
         reverse_gif(model, diffusion, device, FIG / f"ex_b_{sched}.gif")
         print(f"  wrote ex_b_{sched}.gif")
 

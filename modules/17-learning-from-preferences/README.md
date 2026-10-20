@@ -166,8 +166,11 @@ pairs: loss = −log σ(r(chosen) − r(rejected)).
 `src/reward_head.py` keeps SmolLM2-360M-Instruct frozen. Each (prompt,
 reply), in the chat template, runs through the first 18 of the model's 32
 blocks; the residual stream there at the reply's last token is a vector h of
-960 numbers. The reward is linear, r = w · h (after each of the 960 numbers is
-standardised). Only w is trained: L-BFGS on the Bradley-Terry loss with an L2
+960 numbers. "Last token" means the last token of the templated turn, the
+newline after `<|im_end|>`; by then the model has read the whole reply. The reward is linear, r = w · h (after each of the 960 numbers is
+standardised). Only w is trained: L-BFGS (an optimiser that uses the last few
+gradients to estimate the curvature; on a small convex problem like this one
+it converges in a few hundred steps) on the Bradley-Terry loss with an L2
 penalty, whose weight 5-fold cross-validation on the training pairs picked
 from 10⁻³ to 10³ (it chose 1.0). The first run used a narrower grid and
 picked its edge, so we widened the grid once and ran again: a choice made
@@ -185,8 +188,8 @@ before the run; the mean over the reply's tokens is reported beside it.
 
 A linear readout of a frozen 360M model's middle layer, trained on 2,000
 pairs, picks GPT-4's choice on about two pairs in three. It beats "the longer
-reply wins" by 8 points; with 500 held-out pairs, one standard error is about
-2 points. Its scores also track length: across the 1,000 held-out replies,
+reply wins" by 8 points; with 500 held-out pairs, each accuracy has a standard
+error of about 2 points. Its scores also track length: across the 1,000 held-out replies,
 the reward correlates 0.30 with the log of the reply's length, and on the
 pairs where the two replies differ in length, the head agrees with "the
 longer one wins" 66% of the time. Section 4 splits this further.
@@ -196,7 +199,8 @@ forward pass's `hidden_states[18]` to the last digit on a test reply.
 
 ## 2 · DPO, derived and computed by hand
 
-RLHF (Ouyang et al., 2022) trains a reward model as in section 1, then trains
+RLHF (Christiano et al., [2017](https://arxiv.org/abs/1706.03741); Ouyang et
+al., 2022, made it the InstructGPT recipe) trains a reward model as in section 1, then trains
 the language model π to get high reward without drifting far from a frozen
 reference π_ref, usually the model before this step:
 
@@ -204,8 +208,11 @@ reference π_ref, usually the model before this step:
 maximise over π:   E_{y ~ π(·|x)} [ r(x, y) ]  −  β · KL( π(·|x) ‖ π_ref(·|x) )
 ```
 
-β sets how far π may move. This objective has an exact best answer (Rafailov
-et al., 2023):
+KL(π ‖ π_ref), the Kullback-Leibler divergence, is the average over replies
+drawn from π of log π(y|x) − log π_ref(y|x): zero when the two models agree,
+larger the more π moves. β sets how far π may move. This objective has an
+exact best answer, known before DPO; DPO's step (Rafailov et al., 2023) is to
+use it to cancel Z(x):
 
 ```
 π*(y|x) = π_ref(y|x) · exp(r(x, y) / β) / Z(x)
@@ -306,8 +313,10 @@ apart from chance. The training loss, logged every 5 steps, sat below log 2 at
 34 of 40 points, between 0.638 and 0.727, and averaged 0.677 over the last
 100 steps. In the full run, the model got there mostly by
 making rejected replies less likely: their log-probability fell by 0.48 nats
-on average, the chosen ones' by 0.05. Both falling is often reported for DPO;
-the loss only asks that the gap grow.
+on average, the chosen ones' by 0.05. Both falling is common; Razin et al.
+([2024](https://arxiv.org/abs/2410.08847)) call it likelihood displacement and
+show it can move probability to replies of the opposite meaning. The loss only
+asks that the gap grow.
 
 **The replies.** On 32 held-out prompts, greedy, at most 160 new tokens,
 before and after the full run:
@@ -319,10 +328,11 @@ before and after the full run:
 | cut off at 160 tokens | 15 | 15 |
 | perplexity under the reference (median) | 1.946 | 1.899 |
 | perplexity under the reference (mean) | 1.949 | 1.980 |
-| section 1's reward head prefers this one | 39% of prompts (ties half) | |
 
-Seven replies are identical before and after; three got longer and nine
-shorter. Perplexity under the reference says how likely the old model finds
+Section 1's reward head prefers the new reply on 39% of the 32 prompts (ties
+count half). Seven replies are identical before and after; three got longer
+and nine shorter. The other 13 changed but hit the 160-token limit both times,
+so their length cannot show a change (`results/dpo_full.json`, `samples`). Perplexity under the reference says how likely the old model finds
 the new replies, not how fluent they are; a reply can drift from the
 reference and read just as well. It barely moved: the median fell a little,
 the mean rose a little. Section 1's reward
@@ -387,10 +397,14 @@ may be length, or things that come with length.
 The reference model's log-probability leans the other way, hard: a sum of
 log-probabilities falls with every token, so the shorter reply nearly always
 gets the higher one. That is why its overall accuracy (0.47) sits near chance.
-DPO compares log-ratios, so this pull cancels between π and π_ref. After
-training, the implicit reward does better on pairs where the chosen reply is
-longer (0.613 against 0.545), but with 111 and 88 pairs the gap is within the
-noise. Section 3's cut to pairs under 384 tokens also matters here: in those
+DPO compares log-ratios, so this pull cancels between π and π_ref at the
+start of training, and only there. Once π moves, a change
+in log-ratio per token is summed over the reply's tokens, so a longer reply
+gets a larger implicit reward of the same sign; this is why SimPO divides by
+length. The 40-step preview shows the lean clearly: its implicit reward picks
+the chosen reply on 0.745 of the 55 pairs where the chosen reply is longer, and
+on 0.333 of the 45 where it is shorter. After the full run the gap is smaller
+(0.613 against 0.545), and with 111 and 88 pairs it is within the noise. Section 3's cut to pairs under 384 tokens also matters here: in those
 training pairs the chosen reply is longer only 50.7% of the time, so this run
 had little length signal to learn.
 
@@ -480,16 +494,34 @@ budget, and the explorable against the results. No test loads a model.
 
 ## To go further
 
-- **Reward models at scale.** [RewardBench](https://huggingface.co/spaces/allenai/reward-bench)
-  ranks published reward models; TRL's `RewardTrainer` trains one on a whole
+- **Reward models at scale.** [RewardBench 2](https://arxiv.org/abs/2506.01937)
+  (Malik et al., 2025) ranks published reward models; they score about 20
+  points lower on it than on the first RewardBench, and its scores track
+  best-of-N and PPO results. TRL's `RewardTrainer` trains one on a whole
   model, not a frozen head.
+- **Bradley-Terry is one choice.** Sun, Shen and Ton
+  ([2024](https://arxiv.org/abs/2411.04991)) show that a reward model only
+  needs to keep the order of replies right, and that a plain binary
+  classifier serves as well.
+- **Reward hacking.** Train a policy hard against a proxy reward, like the
+  head of section 1, and the proxy keeps rising while the score of a stronger
+  judge first rises, then falls: Gao, Schulman and Hilton,
+  [Scaling Laws for Reward Model Overoptimization](https://arxiv.org/abs/2210.10760) (2022).
 - **Other losses.** TRL's `DPOConfig(loss_type=…)` holds IPO, which caps how
   far the margin is pushed, and others; [KTO](https://arxiv.org/abs/2402.01306)
   needs only "good" or "bad" per reply, not pairs;
   [ORPO](https://arxiv.org/abs/2403.07691) and [SimPO](https://arxiv.org/abs/2405.14734)
   drop the reference model.
-- **Online methods.** PPO, as in RLHF, and GRPO sample replies during training
-  and score them; TRL has `GRPOTrainer`. Module 06 points at both.
+- **Online methods.** DPO trains on fixed pairs, here written by other models.
+  PPO, as in RLHF, and GRPO instead sample replies from the current model
+  during training and score them; TRL has `GRPOTrainer`. Tajwar et al.
+  ([2024](https://arxiv.org/abs/2404.14367)) find that sampling from the
+  current model, and pushing down the likelihood of bad replies, beat offline
+  objectives. Since DeepSeek-R1 ([2025](https://arxiv.org/abs/2501.12948)),
+  where a program can check the answer (maths, code), reinforcement learning
+  against that checker has largely replaced preference pairs for training
+  reasoning. [Module 24](../24-reinforcement-learning/README.md) builds the
+  policy gradient these methods rest on; module 06 points at both.
 
 ## Checkpoint: you should now be able to…
 
@@ -504,8 +536,10 @@ budget, and the explorable against the results. No test loads a model.
 ## Links
 
 - Bradley and Terry, *Rank analysis of incomplete block designs* (Biometrika, 1952)
-- Ouyang et al., [Training language models to follow instructions with human feedback](https://arxiv.org/abs/2203.02155) (2022), RLHF
+- Christiano et al., [Deep reinforcement learning from human preferences](https://arxiv.org/abs/1706.03741) (2017), RLHF's origin
+- Ouyang et al., [Training language models to follow instructions with human feedback](https://arxiv.org/abs/2203.02155) (2022), the InstructGPT recipe
 - Rafailov et al., [Direct Preference Optimization](https://arxiv.org/abs/2305.18290) (2023)
 - Cui et al., [UltraFeedback](https://arxiv.org/abs/2310.01377) (2023)
 - Park et al., [Disentangling Length from Quality in Direct Preference Optimization](https://arxiv.org/abs/2403.19159) (2024)
+- Razin et al., [Unintentional Unalignment: Likelihood Displacement in Direct Preference Optimization](https://arxiv.org/abs/2410.08847) (2024)
 - [TRL DPOTrainer](https://huggingface.co/docs/trl/dpo_trainer) · [PEFT](https://huggingface.co/docs/peft)

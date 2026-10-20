@@ -59,7 +59,7 @@ border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem
 <nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
 <main>
 <h1 id="wavelet-convolutions-for-large-receptive-fields">Wavelet Convolutions For Large Receptive Fields</h1>
-<div class="meta"><span class="type">source</span> <span>created 2026-05-14</span> <span>updated 2026-05-14</span> <span class="tag">wavelets</span> <span class="tag">convolutional-networks</span> <span class="tag">computer-vision</span> <span class="tag">receptive-fields</span> <span class="tag">robustness</span> <span class="tag">efficient-architecture</span></div>
+<div class="meta"><span class="type">source</span> <span>created 2026-05-14</span> <span>updated 2026-10-20</span> <span class="tag">wavelets</span> <span class="tag">convolutional-networks</span> <span class="tag">computer-vision</span> <span class="tag">receptive-fields</span> <span class="tag">robustness</span> <span class="tag">efficient-architecture</span></div>
 <p><strong>Finder, Amoyal, Treister, Freifeld — ECCV 2024 / arXiv 2024</strong></p>
 <p>This is not a Mallat-authored paper, but it is a recent wavelet-neural architecture paper that fits the same broad direction: use multiscale wavelet structure to give convolutional networks larger effective receptive fields without a large parameter increase.</p>
 <h2 id="main-claim">Main Claim</h2>
@@ -68,10 +68,11 @@ border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem
 <p>This paper is a useful counterpoint to pure scattering:</p>
 <ul><li>scattering uses mostly fixed wavelet filters</li><li>wavelet convolution keeps a learned network but changes its multiscale operator</li><li>both challenge the idea that early perception must be learned from unconstrained local kernels</li></ul>
 <p>For the wavelet-substrate experiment, this suggests a later comparison: fixed scattering front-end versus lightly trainable wavelet convolution.</p>
+<p>Superseded: the wavelet-substrate line was sunset on 2026-10-07 (M2 negative, Experiment 2 never started). The comparison stays an open idea, not a plan.</p>
 <h2 id="caveat">Caveat</h2>
 <p>This is closer to an efficient convolutional-network layer than to a fixed substrate. It should not be mixed into the first benchmark unless the simpler scattering-versus-tiny-network comparison is already working.</p>
 <h2 id="connections">Connections</h2>
-<ul><li><a href="concept-wavelet-scattering.html">concept-wavelet-scattering</a></li><li><span class="dead" title="not published">experiment-wavelet-substrate-network</span></li><li><a href="concept-transformer-architecture.html">concept-transformer-architecture</a></li></ul>
+<ul><li><a href="concept-wavelet-scattering.html">concept-wavelet-scattering</a></li><li><span class="dead" title="not published">experiment-wavelet-substrate-network</span></li><li><a href="source-bundle-wavelet-scattering-and-substrate.html">source-bundle-wavelet-scattering-and-substrate</a></li></ul>
 <h2 id="references">References</h2>
 <ul><li>arXiv: <a href="https://arxiv.org/abs/2407.05848" rel="noreferrer">https://arxiv.org/abs/2407.05848</a></li></ul>
 <details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2407.05848" rel="noreferrer">https://arxiv.org/abs/2407.05848</a></li></ul></details>

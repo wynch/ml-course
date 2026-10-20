@@ -20,8 +20,8 @@ point cloud around and watch power iteration hunt for its principal axis.
 
 By the end you can:
 
-- turn Bayes' rule into **odds × likelihood ratio** and explain why a 96%-accurate
-  test can leave you 95% likely to be healthy;
+- turn Bayes' rule into **odds × likelihood ratio** and explain why a test with
+  96% sensitivity can leave you 95% likely to be healthy;
 - fit **Gaussian naive Bayes** in closed form and say precisely which assumption
   the word "naive" refers to — and what it costs;
 - write **k-NN** as four lines of numpy and read the accuracy-vs-k curve as a
@@ -29,7 +29,8 @@ By the end you can:
 - state the **Cover-Hart** bound and *measure* it: 1-NN error caught between the
   Bayes error and twice it;
 - find eigenvectors by **power iteration with deflation**, and check them against
-  `numpy.linalg.eigh` to fourteen decimal places;
+  `numpy.linalg.eigh`: eigenvalues to fourteen significant figures, directions to
+  about eight;
 - read a **scree plot**, and connect reconstruction error to discarded variance.
 
 ## What you'll see
@@ -183,17 +184,19 @@ model and the same model with full per-class covariances:
 | model | parameters (2 features, 2 classes) | test accuracy (2,000 points) |
 |---|---|---|
 | naive Bayes, diagonal | 8 | **0.8320** |
-| full covariance | 12 | **0.8930** |
+| full covariance | 10 | **0.8930** |
 
-Six points of accuracy for four extra numbers. The naive model is not broken —
+Six points of accuracy for two extra numbers, one covariance per class (a 2×2
+covariance matrix is symmetric, so it holds three free numbers, not four). The naive model is not broken —
 it is *misspecified*, and the middle panel of the figure shows exactly how: the
 axis-aligned boundary cannot follow the tilt of the clouds.
 
 ### What it buys, in 784D
 
 Full covariance costs `D(D+1)/2` parameters per class. At `D = 784` that is
-**307,720 per class** and a covariance matrix you cannot reliably estimate from
-6,000 images, let alone invert. Naive Bayes costs `2D = 1,568` per class. On
+**307,720 per class**, estimated from about 3,000 images each. That only works
+with shrinkage: add a small multiple of the identity before inverting. Naive
+Bayes costs `2D = 1,568` per class and needs no such care. On
 FashionMNIST (loaded from the local Hugging Face cache, 6,012 training / 2,000
 test images per pair, `var_smoothing = 1e-2`):
 
@@ -208,6 +211,12 @@ occupy the *same* pixels and differ in texture and edge placement — exactly th
 information that lives in pixel-to-pixel *correlations*, which is exactly what
 naive Bayes throws away. Look at the mean-difference panels: the easy pair's is
 loud, the hard pair's is a faint outline.
+
+With the same smoothing (`1e-2`), the full-covariance `GaussianBayes` in the same
+file scores **0.8590** on Pullover vs Coat, against naive Bayes' 0.7225. The
+correlations naive Bayes throws away are worth 13.7 points, and with shrinkage
+the fit takes seconds on a laptop. `scripts/naive_bayes.py` writes both numbers
+to `python/naive_bayes_results.json`.
 
 ## Part 3 — k-nearest neighbours, and a guarantee
 
@@ -278,8 +287,10 @@ And the measurement (20,000 fixed test points, 3 training draws averaged):
 | k≈√n error | 0.1723 | 0.1791 | 0.1643 | 0.1652 | 0.1617 | 0.1613 | 0.1606 | 0.1589 | 0.1591 | **0.1591** |
 
 The 1-NN row settles at ≈ 0.222–0.225, against a predicted limit of 0.224758,
-and never once exceeds the 0.266968 ceiling. **Half the information in an
-infinite labelled dataset is in the label of the single nearest point.**
+and never once exceeds the 0.266968 ceiling. Cover and Hart put it as: half the
+classification information in an infinite sample is in the nearest neighbour.
+Read it as a statement about error: **1-NN is at most about twice the Bayes
+error.**
 
 The second row is the other half of the story: let k grow with n (here k ≈ √n)
 and k-NN becomes *consistent* — 0.1591 at n = 50,000, which is 1.003 × R\*. The
@@ -304,7 +315,9 @@ Write any starting vector in the eigenbasis: `v = Σ cᵢ uᵢ`. Then
 `Cᵏv = Σ cᵢ λᵢᵏ uᵢ`. Every component is amplified, but the largest `λ` is
 amplified fastest, so after renormalising, everything except `u₁` has shrunk by
 `(λᵢ/λ₁)ᵏ`. That is the whole algorithm, and it also tells you the convergence
-rate: **the gap ratio `λ₂/λ₁` is the factor the error shrinks by per iteration.**
+rate: **the gap ratio `λ₂/λ₁` is the factor the vector's error (the tangent of
+its angle to `u₁`) shrinks by per iteration.** The eigenvalue's error shrinks
+faster, by `(λ₂/λ₁)²`.
 
 On the 2-D demo cloud (400 points, built by stretching by `(3.0, 0.8)` and
 rotating 30°):
@@ -331,11 +344,17 @@ Running that for 40 components on the FashionMNIST covariance (10,000 images,
 | eigenvalue relative error vs `eigh` | max **4.98e-15**, mean 9.81e-16 |
 | eigenvector angle vs `eigh` | max **2.7e-06°**, mean 8.2e-07° |
 
-Fourteen significant figures, from an algorithm that is a `for` loop around a
-matrix-vector product. The iteration counts are the interesting column: the
+Fourteen significant figures for the eigenvalues, from an algorithm that is a
+`for` loop around a matrix-vector product. The directions are good to about
+eight (2.7e-06° is 4.7e-08 radians). That gap is expected: the eigenvalue is a
+Rayleigh quotient, whose error is about the square of the vector's error,
+(4.7e-08)² ≈ 2e-15. The iteration counts are the interesting column: the
 components with well-separated eigenvalues converge in tens of iterations, the
-ones with near-ties need thousands. That is `(λ₂/λ₁)ᵏ` again, and it is why real
-libraries use QR/Lanczos rather than this.
+ones with near-ties need thousands. That is `(λ₂/λ₁)ᵏ` again. For a full
+decomposition `eigh` calls LAPACK, which reduces the matrix to tridiagonal form
+first. For the top k of a large matrix, the usual tool is randomized SVD, which
+is power iteration on a block of vectors at once (Halko, Martinsson & Tropp);
+scikit-learn's `PCA(svd_solver="randomized")` uses it.
 
 ### What the components are
 
@@ -367,8 +386,10 @@ Project to k dimensions and come back. Held-out test MSE per pixel:
 | test MSE | 0.0614 | 0.0461 | 0.0333 | 0.0244 | 0.0187 | 0.0121 | 0.0078 | 0.0042 | 0.0014 | 6.7e-31 |
 
 and the dashed line in the error-vs-k figure is the sum of the *discarded* eigenvalues
-divided by 784 — it lies on top of the measured curve, because that identity is
-what PCA optimises. At k = 50 (6.4% of the dimensions) the images in the reconstruction grid
+divided by 784. It lies exactly on the *training* curve, because that identity is
+what PCA optimises. On held-out images it is close, not exact: the test curve
+sits slightly below it at small k and slightly above at large k (0.00142 test
+against 0.00119 train at k = 400; both in `python/pca_results.json`). At k = 50 (6.4% of the dimensions) the images in the reconstruction grid
 are already unmistakable; at k = 100 the fine texture starts coming back.
 
 ## Hands-on
@@ -437,9 +458,10 @@ Skeletons are in `exercises/` (look for `# TODO(you):`), full answers in
    weighting is *worse* here at every k > 1 (0.1611 vs 0.1596 at k = 101), and
    identical at k = 1. Why?
 3. **`ex3_power_iteration.py`** — write power iteration and deflation, then let
-   the check hold them against `numpy.linalg.eigh` on a 6×6 matrix and on a real
-   784×784 covariance. Leave out the sign-alignment step and watch a negative
-   dominant eigenvalue never converge.
+   the check hold them against `numpy.linalg.eigh` on a 6×6 matrix, on a 784×784
+   covariance built from seeded random data, and on `diag(−5, 1, 0.5)`. Leave
+   out the sign-alignment step and the last check never converges: it runs to
+   the 20,000-iteration limit and fails.
 
 ## Checkpoint — you should now be able to…
 
@@ -452,7 +474,7 @@ Skeletons are in `exercises/` (look for `# TODO(you):`), full answers in
 - [ ] state the Cover-Hart bound and describe an experiment that measures it;
 - [ ] run power iteration by hand on a 2×2 matrix, and say what `λ₂/λ₁` controls;
 - [ ] explain deflation, and why 40 stacked deflations still agree with LAPACK to
-      1e-15;
+      1e-15 in the eigenvalues, and why the directions agree to fewer digits;
 - [ ] read a scree plot and predict reconstruction error from it.
 
 ## Where this shows up later
@@ -471,7 +493,8 @@ scores every key by similarity and takes a weighted average of values — same
 computation, softmax instead of a top-k majority. The
 `||a−b||² = ||a||² − 2a·b + ||b||²` trick you used for the distance matrix is the
 same `QKᵀ` matmul, and CLIP's zero-shot classification in
-[module 08](../08-vision/README.md) is 1-NN in embedding space.
+[module 08](../08-vision/README.md) is 1-NN in embedding space against one
+prototype per class (the text embedding of each class name).
 
 **Eigenvectors** are the low-rank idea that
 [module 06](../06-fine-tuning/README.md) turns into money: LoRA freezes a weight
@@ -501,6 +524,10 @@ networks. If you are heading straight for neural networks,
   and the covariance-eigenvector formulation come from.
 - **von Mises, R. & Pollaczek-Geiringer, H. (1929), *Praktische Verfahren der
   Gleichungsauflösung*** — the power method.
+- **Halko, N., Martinsson, P.-G. & Tropp, J. A. (2011), *Finding Structure with
+  Randomness: Probabilistic Algorithms for Constructing Approximate Matrix
+  Decompositions***, SIAM Review 53(2), arXiv:0909.4061 — randomized SVD, power
+  iteration on a block: <https://arxiv.org/abs/0909.4061>
 - **Anil Ananthaswamy, *Why Machines Learn: The Elegant Math Behind Modern AI*
   (Dutton, 2024)** — recommended reading alongside this track. Its chapters on
   Bayesian reasoning, on nearest neighbours and the curse of dimensionality, and

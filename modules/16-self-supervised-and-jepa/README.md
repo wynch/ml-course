@@ -13,9 +13,9 @@ beside it:
 Every number in this README comes from a JSON file in [`results/`](results/),
 written by the script that measured it.
 
-This is the third and last module of track 5, **How learning works**. Next,
-[module 17](../17-learning-from-preferences/README.md) opens track 6 and
-trains a model from preferences instead of labels.
+This is the third module of track 5, **How learning works**. Next,
+[module 29](../29-learning-new-keeping-old/README.md) asks what a model
+forgets when it learns something new.
 
 **🕹 Interactive:** [Self-supervised learning and JEPA](../../explorables/16-self-supervised-and-jepa.html):
 train a two-dimensional JEPA in the browser, switch stop-grad, the EMA target
@@ -108,11 +108,17 @@ families, one of each:
 **One encoder.** All five runs train the same CNN (`ssl_core.Encoder`, 295,104
 parameters): five 3 × 3 convolutions with GroupNorm and ReLU, two of stride 2,
 then a 1 × 1 convolution to 128 numbers per cell of an 8 × 8 map. The pooled
-mean of that map, 128 numbers, is what the probes read. GroupNorm, not
-BatchNorm: BatchNorm mixes statistics across the batch, and that alone can stop
+mean of that map, 128 numbers, is what the probes read. GroupNorm normalises
+each image's channels in groups (here 8), using that image's numbers only. It
+is used here, not BatchNorm: BatchNorm mixes statistics across the batch, and that alone can stop
 a JEPA from collapsing, which would hide section 2. The heads differ (SimCLR's
 projection 65,920 parameters, the decoder 198,723, the predictor 313,344) and
 are thrown away.
+
+**What each objective sees.** SimCLR gets its two strong views. The other
+objectives, the supervised ceiling included, get one light view per image: a
+random crop of 60–100% of the area, and a flip (`ssl_core.light_view`). No
+colour jitter and no rotation, which matters for section 3.
 
 **One budget.** Each objective trains for 250 seconds of wall time on MPS:
 AdamW, learning rate 10⁻³ × batch / 256, weight decay 0.05, warmup over the
@@ -152,7 +158,7 @@ I-JEPA-lite 8.3, SimCLR 18.0.
 **What this shows, and what it does not.** It shows how far each objective
 gets in four minutes on a laptop, with one seed and settings we did not tune.
 It does not rank the methods. Published runs train for hundreds of epochs; ours
-saw 17 to 36 epochs' worth of images, and I-JEPA in particular is known to need
+saw about 17 to 36 epochs' worth of images, and I-JEPA in particular is known to need
 long training. The supervised run had the labels and four times SimCLR's
 optimiser steps. Read the gaps to the floor, and hold them loosely.
 
@@ -178,7 +184,12 @@ Two meters, on the pooled latents of 2,048 test images:
 - **effective rank**: the eigenvalues of the latents' covariance, normalised to
   sum to 1; then exp(entropy). 128 when all directions carry the same
   variance, 1 when one does. It ignores size too, but in a different way: a
-  cloud shrunk to a dot still has a rank.
+  cloud shrunk to a dot still has a rank. RankMe (Garrido et al.,
+  [2022](https://arxiv.org/abs/2210.02885)) is the same idea, taken from the
+  singular values of the latents rather than the covariance's eigenvalues,
+  and its authors use it to pick settings without labels: across runs of one
+  method, a higher rank went with a better probe. The runs below show where
+  that fails.
 
 `src/collapse.py` trains the I-JEPA-lite objective of section 1 five ways,
 120 seconds each, same encoder, predictor, masks, optimiser and seed:
@@ -226,9 +237,22 @@ What the runs show:
   one line: effective rank 1.0 from the first log, six seconds in. The hinge
   wants each number to vary; it does not care that all 128 vary together.
   VICReg adds a covariance term for that; this run leaves it out on purpose.
-- **SIGReg** gives the widest spread and the most directions (0.968, 7.8), and
-  its prediction loss is the highest. Its probe, 22.1%, is far below the floor:
-  spread is not the same as useful.
+- **SIGReg** gives the widest spread (0.968) and, of the four guards, the most
+  directions (7.8); its prediction loss is the highest. Its probe, 22.1%, is
+  far below the floor: spread is not the same as useful. At the last logged
+  step (1,300 of 1,375) the SIGReg term is about 5.7 times the prediction term
+  in the loss (0.1 × SIGReg ≈ 1.46 against 0.9 × 0.285 ≈ 0.26), so this run
+  mostly trains the pooled latents to look Gaussian. The loss multiplies the
+  SIGReg statistic by the batch size (`ssl_core.sigreg`), so λ = 0.1 is a
+  heavy weight here. A smaller λ may well probe higher; we did not sweep it.
+
+**The meters cannot pick the run.** Choose by the meters alone and you would
+pick wrong: the run with the highest effective rank (no stop-grad, 17.8) has
+collapsed, and the run with the widest spread among the guards (SIGReg, 0.968)
+probes at 22.1%. The one run above the floor, EMA, has neither. RankMe's
+authors compare runs of one method, trained to the end, that differ in their
+settings; two-minute runs with different guards are another setting. Here
+only the labelled probe tells the runs apart.
 
 **This is a demo, not a measurement.** One seed, 120 seconds, one weight per
 term, and settings borrowed from ViT recipes, not tuned for this CNN. The
@@ -258,7 +282,13 @@ A class probe asks one question. Two more, on the same frozen latents:
 | DINOv2-small (section 4) | 96.6% | 0.845 | 82.6% |
 
 - **Colour.** A random CNN keeps the mean colour well (0.921). Masked
-  reconstruction, which must redraw pixels, keeps it best (0.987). SimCLR,
+  reconstruction, which must redraw pixels, keeps it best (0.987). Balestriero
+  and LeCun ([2024](https://arxiv.org/abs/2402.11337)) explain why: a loss on
+  pixels spends the model's capacity on the directions where pixels vary most,
+  and the mean colour is among them; those directions help little to name the
+  object. Littwin et al. ([2024](https://arxiv.org/abs/2407.03475)) show, in
+  deep linear networks, that a JEPA instead favours the features that best
+  predict the rest of the input. SimCLR,
   trained to give the same answer under colour jitter, keeps less (0.775), and
   the supervised encoder, which needs colour only as far as it helps name the
   class, keeps least (0.665). Each objective keeps what its task rewards.
@@ -303,6 +333,12 @@ two differ in every way that matters (75 times the parameters, 7 times the
 image side, 142M training images), so this is a reference, not a contest. It shows what the same probe reads from a self-supervised encoder
 trained at scale.
 
+[DINOv3](https://arxiv.org/abs/2508.10104) (Siméoni et al., 2025) scales
+DINOv2 up in data and model size and adds **Gram anchoring**, a loss that keeps
+the per-patch features from degrading during long training. It is the version
+a reader meets first in 2026. This module keeps DINOv2-small: it is small, and
+its revision is pinned.
+
 **LeJEPA, LeVJEPA and V-JEPA.** [V-JEPA](https://arxiv.org/abs/2404.08471)
 (Bardes et al., 2024) and [V-JEPA 2](https://arxiv.org/abs/2506.09985) (Assran
 et al., 2025) carry I-JEPA to video: hide blocks of a clip in space and time,
@@ -312,7 +348,7 @@ section 1. [LeJEPA](https://arxiv.org/abs/2511.08544) (Balestriero and LeCun,
 alone, as in section 2's last variant. [LeVJEPA](https://arxiv.org/abs/2608.27395)
 (Kuhn et al., 2026) applies LeJEPA's objective to video, with one encoder,
 a projector and SIGReg, and reports matching or beating V-JEPA 2 with 5.6 to
-20.8 times less pretraining compute. That last claim is the authors' own, from
+20.8 times less pretraining compute, at matched epochs on the same data. That last claim is the authors' own, from
 a preprint. This module runs no video model: their weights are large, and an
 API we have not tested would be untested code.
 
@@ -397,7 +433,11 @@ the random floor is there; and the explorable against the results.
 - Add VICReg's covariance term to the `VICReg var` variant, and watch the
   effective rank.
 - Probe the 8 × 8 map instead of its mean, for rotation: the pooled average
-  throws away layout.
+  throws away layout. Per-patch features are what DINOv3's Gram anchoring
+  protects.
+- Sweep SIGReg's λ (0.005, 0.02, 0.05, 0.1), and see whether the effective
+  rank picks the λ that the probe picks.
+- Balestriero and LeCun, [Learning by Reconstruction Produces Uninformative Features for Perception](https://arxiv.org/abs/2402.11337) (2024), and Littwin et al., [How JEPA Avoids Noisy Features](https://arxiv.org/abs/2407.03475) (2024): why pixel and latent targets keep different things.
 - [solo-learn](https://github.com/vturrisi/solo-learn) and
   [lightly](https://github.com/lightly-ai/lightly) implement many
   self-supervised methods; lightly's documentation has a LeJEPA example.
@@ -420,6 +460,7 @@ the random floor is there; and the explorable against the results.
 - Chen and He, [Exploring Simple Siamese Representation Learning](https://arxiv.org/abs/2011.10566) (SimSiam, 2020), stop-grad and the normalised-std meter
 - Bardes et al., [VICReg](https://arxiv.org/abs/2105.04906) (2021)
 - Balestriero and LeCun, [LeJEPA](https://arxiv.org/abs/2511.08544) (2025), SIGReg
-- Oquab et al., [DINOv2](https://arxiv.org/abs/2304.07193) (2023)
+- Garrido et al., [RankMe](https://arxiv.org/abs/2210.02885) (2022), the effective rank as a label-free score
+- Oquab et al., [DINOv2](https://arxiv.org/abs/2304.07193) (2023); Siméoni et al., [DINOv3](https://arxiv.org/abs/2508.10104) (2025)
 - Bardes et al., [V-JEPA](https://arxiv.org/abs/2404.08471) (2024); Assran et al., [V-JEPA 2](https://arxiv.org/abs/2506.09985) (2025)
 - Kuhn et al., [LeVJEPA](https://arxiv.org/abs/2608.27395) (2026)

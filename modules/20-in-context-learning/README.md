@@ -118,9 +118,9 @@ Four rules see the same n pairs (X, n × 5, and y) and guess y for the new x:
 
 | Rule | Its weight vector | Notes |
 |---|---|---|
-| least squares | the minimum-norm w with Xw closest to y | exact from n = 5, since the task has no noise |
+| least squares | the minimum-norm w with Xw closest to y | exact from n = 5, since the task has no noise: its w is then the true w |
 | ridge, λ 0.1 | (XᵀX + 0.1 I)⁻¹ Xᵀ y | shrinks w a little |
-| 3 nearest neighbours | none: the mean y of the 3 closest x | ignores that the rule is linear |
+| 3 nearest neighbours | none: the mean y of the 3 closest x | ignores that the rule is linear; with fewer than 3 pairs, the mean of all of them |
 | one gradient step | Xᵀy / (n + d + 1) | one step from w = 0 on ½ Σ (w · xᵢ − yᵢ)², with the step that is best on average for Gaussian x |
 
 **Three bars, written before the run.** The net's MSE/d at 10 pairs (2d) at
@@ -218,11 +218,16 @@ the CPU:
 
 What we read, hedged:
 
+- From n = 5 on, least squares' w is the true w, so there the first cosine
+  measures how well the net recovered the task.
 - From n = 2 on, the net's implied weights point closer to least squares' w
-  than to one step's. From n = 9 on they are further from one step's w than
-  least squares' own w is (0.800 against 0.834 at n = 10). By this measure the
-  net does not act like one gradient step; it acts more like a rough least
-  squares.
+  than to one step's. At n = 2 and 3, and again from n = 9 on, they are further
+  from one step's w than least squares' own w is (0.800 against 0.834 at
+  n = 10). By this measure the net does not act like one gradient step; it acts
+  more like a rough least squares. Fu et al. (2023) find that trained
+  transformers act like a few steps of Newton's method toward least squares,
+  each middle layer worth about three, not like gradient descent; our cosines
+  allow that reading, though they cannot show it.
 - After block 1, no linear probe reads either weight vector at the query
   (R² near 0). After block 2 both read at about half (0.49 and 0.56). At
   n = 10 the two vectors point fairly alike (cosine 0.834), so the probes
@@ -282,16 +287,20 @@ against 38; 8-shot against coin-flip labels, 82 against 41.
 
 What the numbers show:
 
-- One example lifts accuracy by 9 points, from 79.4% to 88.6%; four and eight
-  add nothing we can tell from one (88.6%, 87.7%, 88.9%, intervals overlapping;
-  48 against 38 for 8 over 4).
+- One example lifts accuracy by 9.3 points (81 more of 872 sentences), from
+  79.4% to 88.6%; four and eight add nothing we can tell from one (88.6%,
+  87.7%, 88.9%, intervals overlapping; 48 against 38 for 8 over 4).
 - With no example the model says "negative" two times in three, on a set that
   is half positive. With examples, its answers split about evenly. Part of what
   one example gives may be this: the format and the label words, not the task.
 - Coin-flip labels on the same 8 examples cost 4.7 points (84.2% against
   88.9%), yet still beat no examples by 4.8: about half the 8-shot gain
   survives wrong labels. Min et al. (2022), on 12 larger models up to GPT-3,
-  found that random labels barely hurt; here they cost more. Part of the half
+  found that random labels barely hurt; here they cost more. Wei et al.
+  (2023) found that small models lean on what they already know and largely
+  ignore labels that contradict it, while large ones follow such labels;
+  instruction tuning strengthens that lean. A 360M instruct model sits at the
+  small end, so the labels mattering at all is the surprise. Part of the half
   that survives may be the end of the "negative" lean seen at 0 examples, not
   sentiment. Our run covers one model, one prompt format and one draw of
   examples.
@@ -383,6 +392,10 @@ net's error; changing the y being guessed does not change the guess.
 - Raventós et al. (2023) vary the number of distinct tasks in training: with
   few, the net memorises them; past a threshold, it learns ridge regression.
   Exercise: train the module's net with w drawn from a fixed pool of 16 tasks.
+- In-context learning can fade with training. Singh et al. (2023) saw it
+  appear, then give way to memorised answers while the loss kept falling;
+  Wurgaft et al. (2025) give a Bayesian account of when a net switches between
+  memorising and generalising. Both bear on the fixed-pool exercise above.
 - Induction heads (Olsson et al., 2022) are the mechanism usually named for
   in-context copying in language models; module 11's tools can look for them.
 
@@ -401,6 +414,10 @@ net's error; changing the y being guessed does not change the guess.
 - Akyürek et al., [What learning algorithm is in-context learning? Investigations with linear models](https://arxiv.org/abs/2211.15661) (2023)
 - von Oswald et al., [Transformers learn in-context by gradient descent](https://arxiv.org/abs/2212.07677) (2023)
 - Raventós et al., [Pretraining task diversity and the emergence of non-Bayesian in-context learning for regression](https://arxiv.org/abs/2306.15063) (2023)
+- Wei et al., [Larger language models do in-context learning differently](https://arxiv.org/abs/2303.03846) (2023)
+- Fu et al., [Transformers Learn to Achieve Second-Order Convergence Rates for In-Context Linear Regression](https://arxiv.org/abs/2310.17086) (2023)
+- Singh et al., [The Transient Nature of Emergent In-Context Learning in Transformers](https://arxiv.org/abs/2311.08360) (2023)
+- Wurgaft et al., [In-Context Learning Strategies Emerge Rationally](https://arxiv.org/abs/2506.17859) (2025)
 - Min et al., [Rethinking the Role of Demonstrations: What Makes In-Context Learning Work?](https://arxiv.org/abs/2202.12837) (2022)
 - Olsson et al., [In-context Learning and Induction Heads](https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html) (2022)
 - Socher et al., [SST](https://nlp.stanford.edu/sentiment/) (2013); [`stanfordnlp/sst2`](https://huggingface.co/datasets/stanfordnlp/sst2)

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Continual Learning via Sparse Memory Finetuning (Lin et al., 2025) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="sparse-memory-finetuning">Sparse memory finetuning</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">continual-learning</span> <span class="tag">catastrophic-forgetting</span> <span class="tag">memory-layers</span> <span class="tag">sparse-updates</span> <span class="tag">fine-tuning</span> <span class="tag">knowledge-editing</span> <span class="tag">meta-fair</span> <span class="tag">2025</span></div>
+<p><strong>Authors:</strong> Jessy Lin, Luke Zettlemoyer, Gargi Ghosh, Wen-Tau Yih, Aram Markosyan, Vincent-Pierre Berges, Barlas Oğuz; FAIR at Meta, UC Berkeley <strong>Published:</strong> arXiv 2510.15103v1, 2025-10-16 <strong>Raw copy:</strong> <code>raw/arxiv-2510-15103-continual-learning-via-sparse-memory-finetuning.md</code> (full text of v1 from the arXiv HTML, captured 2026-10-20)</p>
+<p>Every claim below cites the raw file as R, with its section, table or figure.</p>
+<h2 id="summary">Summary</h2>
+<p>Fine-tuning on new facts makes a model forget old ones because every fact shares the same weights (R, §1). The authors' bet: store knowledge where each input touches only a few weights, and train only those.</p>
+<p>The store is a memory layer. One feed-forward block in the middle of the transformer is replaced by a lookup into a table of 1M learned keys and values; each token picks its top 32 keys per head and blends their values (R, §3, Figure 1). Each token so touches a tiny share of the table (R, §3).</p>
+<p>Sparse memory finetuning trains only some of the slots a batch touched: those it touched often that ordinary text rarely touches. The ranking is TF-IDF, the old search-engine score, with 1,000 batches of pretraining text (DCLM) as the "ordinary" side. Only the top t slots get gradients; everything else stays frozen (R, §4).</p>
+<h2 id="key-results">Key results</h2>
+<p>The base model has 1.3B parameters; the memory layer sits at layer 12 of 22 (R, §5).</p>
+<ul><li><strong>Learning facts one at a time.</strong> Trained in sequence on 1,000 TriviaQA facts, each as a batch of paraphrases: NaturalQuestions F1 drops 89% with full fine-tuning, 71% with LoRA, 11% with sparse memory finetuning, for "the same level of new knowledge" (R, Abstract, §1). The scores themselves are in a chart only (R, §5.1, Figure 3). Here t = 500 slots per step was enough (R, §5.1).</li><li><strong>Learning from documents.</strong> On 1,824 Wikipedia chunks behind 100 SimpleQA questions, one chunk per step: full fine-tuning and LoRA reach the same target score but forget more on held-out tasks (R, §5.2, Figure 4).</li><li><strong>The trade-off curve.</strong> Across sweeps of learning rate, rank and t, sparse memory finetuning learns as much while forgetting less on HellaSwag than any setting of the others (R, §6, Figure 5).</li><li><strong>Both parts are needed.</strong> Tuning every slot the batch touched, or ranking slots by count alone, forgets more; full fine-tuning of the memory model forgets badly (R, §6, Figure 6). Ranking against the training facts themselves, instead of ordinary text, forgets much more (R, §6, Figure 7).</li><li><strong>Facts are spread thin.</strong> About 100–500 slots carry what a fact's paraphrases and its question share; 25–100 trained slots were enough to answer the examples shown (R, §6, Table 1).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li><strong>The optimizers differ.</strong> Baselines use AdamW; sparse memory finetuning uses SGD, which cut its forgetting further. With SGD the baselines forget less but learn less: their best TriviaQA F1 is 0.58–0.65 at NQ F1 0.01–0.09; the caption gives sparse memory TriviaQA F1 "&gt; 0.7", NQ F1 "&lt; 0.15" (sic) and GSM8K NLL "&lt; 1.5" (R, §5, Appendix A, Table 2). So part of the gap is the optimizer.</li><li>The memory model starts with more knowledge than the plain model (R, §5.1, footnote 1).</li><li>Only fact learning on one 1.3B model; the authors name harder tasks, bigger models and retrieval (RAG) as the obvious rival they did not test against (R, §7).</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="concept-continual-learning.html">concept-continual-learning</a> — a fifth route beside small updates, distillation, gating and keeping knowledge outside the weights: keep it in weights only it uses.</li><li><a href="source-lora-low-rank-adaptation.html">source-lora-low-rank-adaptation</a> — the baseline that forgets 71%.</li><li><a href="source-local-support-learning.html">source-local-support-learning</a> — another way to limit an update to its own inputs: there a gate on the adapter, here a choice of slots.</li><li><a href="source-sdft-self-distillation-continual.html">source-sdft-self-distillation-continual</a>, <a href="source-rls-razor.html">source-rls-razor</a> — other ways to forget less, by the source of the training text rather than by where it lands.</li><li><a href="source-rome-memit-factual-editing.html">source-rome-memit-factual-editing</a> — rank-one edits to a middle-layer MLP treated as a key-value store; here the key-value store is built in, and edits are gradient steps on a few slots.</li><li><a href="source-memoryllm-plug-n-play-ffn.html">source-memoryllm-plug-n-play-ffn</a>, <a href="concept-mixture-of-experts.html">concept-mixture-of-experts</a> — the feed-forward block as memory; the authors call a memory layer a mixture of experts with one tiny expert per slot (R, §3).</li><li><span class="dead" title="not published">experiment-weights-vs-context</span> — Vincent's stopped race between weights, retrieval and context.</li><li>Hub (2026-10-20): <a href="concept-knowledge-editing.html">concept-knowledge-editing</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2510-15103-continual-learning-via-sparse-memory-finetuning.md</code></li><li><a href="https://arxiv.org/abs/2510.15103" rel="noreferrer">https://arxiv.org/abs/2510.15103</a></li><li>Memory layers: Berges et al., "Memory layers at scale", arXiv 2412.09764 (not in raw)</li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2510-15103-continual-learning-via-sparse-memory-finetuning.md</code></li><li><a href="https://arxiv.org/abs/2510.15103" rel="noreferrer">https://arxiv.org/abs/2510.15103</a></li></ul></details>
+</main>
+</body>
+</html>

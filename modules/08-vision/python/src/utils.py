@@ -21,6 +21,17 @@ PY_DIR = Path(__file__).resolve().parent.parent          # .../python
 MODULE_DIR = PY_DIR.parent                               # .../08-vision
 FIGURES = MODULE_DIR / "figures"
 FIGURES.mkdir(exist_ok=True)
+RESULTS = MODULE_DIR / "results"
+
+
+def save_result(name: str, data: dict) -> Path:
+    """Write one run's numbers to results/<name>.json, the file the README quotes."""
+    import json
+
+    RESULTS.mkdir(exist_ok=True)
+    p = RESULTS / f"{name}.json"
+    p.write_text(json.dumps(data, indent=2) + "\n")
+    return p
 
 # Canonical dataset id (the bare "beans" alias trips a hub-uri bug in
 # datasets 5.x / huggingface_hub, so we always use the namespaced repo).

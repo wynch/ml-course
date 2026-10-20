@@ -48,14 +48,17 @@ spiral by a small MLP applied ~200 times:
 ![reverse process](./figures/reverse_process.gif)
 
 What the network actually learned: the **denoising vector field** (`−ε`, which
-is proportional to the score of the noised data). At high `t` it points broadly
+is proportional to the score of the noised data). The *score* is
+`∇ₓ log p(x_t)`, the direction in which the noised data gets more likely;
+`−ε/√(1−ᾱ_t)` estimates it. At high `t` it points broadly
 toward the data's centre of mass; at low `t` it sharpens toward the spiral
 manifold:
 
 ![vector field](./figures/vector_field.png)
 
 Same idea, on **images**. A from-scratch UNet trained on FashionMNIST — the same
-16 seeds sampled at successive training checkpoints, learning to *dream better*:
+16 starting noises, and the same noise at every reverse step, sampled at
+successive training checkpoints, learning to *dream better*:
 
 ![dreaming better](./figures/ddpm_dreaming.png)
 
@@ -81,17 +84,20 @@ and note the wall-clock cost:
 Take a data point `x0`. Add a little Gaussian noise, repeatedly, for `T` steps.
 Each step is `x_t = sqrt(1-β_t)·x_{t-1} + sqrt(β_t)·ε`. The `β_t` values are the
 **noise schedule**. After enough steps the data is indistinguishable from
-`N(0, I)` — all structure gone.
+`N(0, I)` — all structure gone. "Enough" depends on the schedule: the linear
+range `1e-4 → 0.02` was tuned for `T = 1000`; with fewer steps it must be scaled
+up, or `x_T` keeps part of the data. At `T = 300` it leaves `√ᾱ_T = 0.22`, so
+this module's image DDPM scales the range by `1000 / T`.
 
-The magic is that you never simulate those steps. Because a sum of Gaussians is
-Gaussian, there is a **closed form** to jump straight to any `t`:
+The magic is that you never simulate those steps. Because a sum of independent
+Gaussian draws is Gaussian, there is a **closed form** to jump straight to any `t`:
 
 ```
 x_t = sqrt(ᾱ_t)·x0 + sqrt(1 − ᾱ_t)·ε,     ε ~ N(0, I)
 ```
 
-where `ᾱ_t = Π_{s≤t}(1 − β_s)` is the fraction of the original signal that
-survives. You implement this one line in exercise (a) — it is the entire forward
+where `ᾱ_t = Π_{s≤t}(1 − β_s)`. The data is scaled by `√ᾱ_t`, so `ᾱ_t` is the
+share of the signal's variance that survives. You implement this one line in exercise (a) — it is the entire forward
 process.
 
 ### The reverse process (learned)
@@ -109,7 +115,8 @@ noise the point with the closed form; ask the network for the noise back; MSE.
 The 2D lab and the image DDPM use the *identical* objective — only the network
 differs (MLP vs UNet). To **sample**, start from `x_T ~ N(0, I)` and walk the
 chain down, at each step subtracting the predicted noise and adding a little
-back (the stochastic term):
+back (the stochastic term). Drawing each `x_{t−1}` this way, fresh noise
+included, is called *ancestral sampling*:
 
 ```mermaid
 flowchart LR
@@ -136,33 +143,45 @@ cd modules/09-diffusion/python
 uv sync
 ```
 
-**1 — Diffusion in 2D (the whole idea, in ~1 minute).** Trains the spiral model
-and renders the forward panel, the reverse GIF, the vector field, and the loss.
+**1 — Diffusion in 2D (the whole idea, in seconds).** Trains the spiral model
+for 2,500 steps, one random batch each, and renders the forward panel, the
+reverse GIF, the vector field, and the loss.
 
 ```bash
-uv run python run_toy2d.py     # ~15s train + figures on M5
+uv run python run_toy2d.py     # 7 s train + figures on M5
 ```
 
 ```
 device: mps
-epoch  2499/2500 | loss 0.3422
-trained in 5.2s | final loss 0.3422
+step  2499/2500 | loss 0.3366
+trained in 6.1s | final loss 0.3366
 ```
 
+The numbers are in [`results/toy2d.json`](results/toy2d.json). The explorable
+runs a CPU rerun of the same script, which ends at a loss of 0.369.
+
 **2 — Mini-DDPM on FashionMNIST (from scratch).** A ~377K-param UNet, 10k
-images, 40 epochs. Downloads ~30MB of FashionMNIST the first time (cached under
-`~/.cache/huggingface`; nothing committed).
+images, 40 epochs, `T = 300` steps on the linear schedule rescaled by
+`1000 / T` (betas `3.3e-4 → 0.0667`, so `√ᾱ_T = 0.006`). Downloads ~30MB of
+FashionMNIST the first time (cached under `~/.cache/huggingface`; nothing
+committed).
 
 ```bash
-uv run python run_ddpm.py      # ~4.2 min on M5
+uv run python run_ddpm.py      # 3.2 min on M5, figures included
 ```
 
 ```
 params: 376,833
-epoch   0/40 | loss 0.3217
-epoch  39/40 | loss 0.0817
-trained in 4.2 min | final loss 0.0817
+epoch   0/40 | loss 0.2678
+epoch  39/40 | loss 0.0480
+trained in 3.1 min | final loss 0.0480
 ```
+
+The numbers are in [`results/ddpm.json`](results/ddpm.json). The schedule
+changes what the loss measures, so compare losses only within one schedule. We
+tried the cosine schedule here too ([`results/ddpm_cosine.json`](results/ddpm_cosine.json)):
+its last betas reach 0.999, our sampler does not clip the predicted image, and
+the samples came out saturated black and white.
 
 **3 — The Hugging Face way (`diffusers`).** Loads pretrained
 `google/ddpm-cifar10-32`, generates, then swaps DDPM→DDIM and times 10/50/200
@@ -204,6 +223,12 @@ Because the scheduler is a separate object, you can train with DDPM and *sample*
 with DDIM — a deterministic solver that reaches similar quality in far fewer
 steps — without retraining anything. That swap is the `run_diffusers.py` figure.
 
+The schedule flaw you meet in exercise (b), a last step that still holds part
+of the data, has a name: Lin et al.,
+[Common Diffusion Noise Schedules and Sample Steps are Flawed](https://arxiv.org/abs/2305.08891).
+`diffusers` schedulers take `rescale_betas_zero_snr=True` to fix it, so that
+`ᾱ_T` reaches exactly zero.
+
 ## The road to Stable Diffusion
 
 The from-scratch DDPM denoises **pixels** and is **unconditional**. Three ideas
@@ -220,8 +245,9 @@ instead of a `512×512×3` image.
 ![latent diffusion](./figures/latent_diffusion.png)
 
 **Text conditioning.** A prompt is encoded by a **CLIP** text encoder into a
-sequence of embeddings, and the UNet's **cross-attention** layers let each image
-patch attend to those word embeddings at every block. The denoiser becomes
+sequence of embeddings, and the UNet's **cross-attention** layers let each
+spatial position of the feature map attend to those word embeddings, at most
+resolutions of the UNet. The denoiser becomes
 `ε_θ(x_t, t, text)` — same objective, one extra input.
 
 ![text conditioning](./figures/text_conditioning.png)
@@ -234,6 +260,18 @@ exercise (c).
 
 ![classifier-free guidance](./figures/cfg.png)
 
+**Since 2023.** Stable Diffusion 1.x is where this section stops, but image
+models have moved on four points:
+
+| This module (SD 1.x) | Newer models | Source |
+| --- | --- | --- |
+| UNet denoiser | a transformer denoiser | common by 2024 |
+| DDPM noise process | *flow matching*: a straight path from noise to data, and the network predicts the velocity along it | Lipman et al., [Flow Matching Guide and Code](https://arxiv.org/abs/2412.06264) |
+| predict the noise `ε` | predict the clean image; in high dimensions ε-prediction can fail to train | Li & He, [Back to Basics: Let Denoising Generative Models Denoise](https://arxiv.org/abs/2511.13720) |
+| tens of sampling steps | one to four, by distillation or by training on mean velocity | Geng et al., [Mean Flows](https://arxiv.org/abs/2505.13447); Chen et al., [SANA-Sprint](https://arxiv.org/abs/2503.09641) |
+
+The DDPM you built is still the base all four start from.
+
 ## Exercises
 
 Skeletons in [`python/exercises/`](./python/exercises) with `# TODO(you):`
@@ -242,7 +280,8 @@ standalone and self-checks. Run from `python/`.
 
 **(a) Implement the forward process `q_sample`.** Fill in the closed-form
 `x_t = sqrt(ᾱ_t)·x0 + sqrt(1−ᾱ_t)·ε`. Two checks: exact match against the
-reference, and unit variance at `t=T`.
+reference, and data placed at `(5, 5)`, which must stay put at `t = 0` and
+become zero-mean, unit-variance noise at `t = T−1`.
 
 ```bash
 uv run python exercises/ex_a_q_sample.py   # raises until you fill it in
@@ -254,7 +293,7 @@ schedule, then compare the two reverse-process GIFs and the `ᾱ_t` decay curves
 Produces `figures/ex_b_linear.gif`, `ex_b_cosine.gif`, `ex_b_schedules.png`.
 
 ```bash
-uv run python solutions/ex_b_schedule.py   # ~20s
+uv run python solutions/ex_b_schedule.py   # ~11 s
 ```
 
 **(c) Conditional generation with classifier-free guidance (2D).** Train one
@@ -263,7 +302,7 @@ guidance scale `w ∈ {0, 1, 3}`. `w=0` ignores the label (both moons), `w=1`
 selects the moon, `w=3` tightens onto it. Produces `figures/ex_c_conditional.png`.
 
 ```bash
-uv run python solutions/ex_c_conditional.py   # ~15s
+uv run python solutions/ex_c_conditional.py   # ~11 s
 ```
 
 ## Checkpoint — you should now be able to…
@@ -293,3 +332,7 @@ uv run python solutions/ex_c_conditional.py   # ~15s
   <https://arxiv.org/abs/2010.02502>
 - Improved DDPM (cosine schedule) — Nichol & Dhariwal 2021:
   <https://arxiv.org/abs/2102.09672>
+- Diffusion is not only for images. Masked diffusion language models write text
+  by unmasking many tokens at once: LLaDA 8B, Nie et al. 2025, *Large Language
+  Diffusion Models*: <https://arxiv.org/abs/2502.09992>; Dream 7B, Ye et al.
+  2025: <https://arxiv.org/abs/2508.15487>.

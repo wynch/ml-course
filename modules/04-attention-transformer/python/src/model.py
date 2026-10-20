@@ -167,7 +167,7 @@ class GPT(nn.Module):
         return logits, loss
 
     def num_params(self) -> int:
-        # subtract the tied head (it shares wte.weight)
+        # parameters() yields the tied matrix once, so the head adds nothing
         return sum(p.numel() for p in self.parameters())
 
     @torch.no_grad()

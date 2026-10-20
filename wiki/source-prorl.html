@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>ProRL: Prolonged Reinforcement Learning Expands Reasoning Boundaries in Large Language Models (Liu et al., 2025) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="prorl-prolonged-rl-expands-reasoning-boundaries">ProRL: Prolonged RL Expands Reasoning Boundaries</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-19</span> <span>updated 2026-10-20</span> <span class="tag">rlvr</span> <span class="tag">reinforcement-learning</span> <span class="tag">reasoning</span> <span class="tag">pass-at-k</span> <span class="tag">grpo</span> <span class="tag">small-models</span> <span class="tag">nvidia</span> <span class="tag">2025</span></div>
+<p><strong>Authors:</strong> Mingjie Liu, Shizhe Diao, Ximing Lu, Jian Hu, Xin Dong, Yejin Choi, Jan Kautz, Yi Dong (NVIDIA) <strong>Published:</strong> arXiv 2505.24864, v1 2025-05-30 (the only version) <strong>Raw copy:</strong> <code>raw/arxiv-2505-24864-prorl-prolonged-reinforcement-learning-expands-reasoning.md</code> (captured 2026-10-19, full text of v1) <strong>Model:</strong> <a href="https://huggingface.co/nvidia/Nemotron-Research-Reasoning-Qwen-1.5B" rel="noreferrer">https://huggingface.co/nvidia/Nemotron-Research-Reasoning-Qwen-1.5B</a> (named in the paper; not captured)</p>
+<p>Every claim below cites the raw file as R, with its section, table or figure.</p>
+<h2 id="summary">Summary</h2>
+<p>The reply to <a href="source-rl-reasoning-boundary-yue.html">source-rl-reasoning-boundary-yue</a>. That paper found that RL with checkable rewards makes a model more reliable at one try but no better, and often worse, at many tries. ProRL says the finding comes from how RL was run, not from RL itself: the runs were short ("no more than hundreds of steps") and mostly on maths, where models are already heavily trained (R, §1).</p>
+<p>So the authors train for longer and on more kinds of task. Their recipe is GRPO with DAPO's changes (a higher upper clip, and dropping prompts the model always or never solves), a KL penalty toward a reference policy, and a periodic <strong>reset</strong> of that reference to a recent copy of the model, with fresh optimizer state, whenever validation stalls (R, §2.2, §2.3, §2.3.1). Training runs past 2,000 steps on 136K problems in maths, code, STEM, logic puzzles and instruction following, about 16,000 H100 hours (R, §1, §3.1, §3.2).</p>
+<p>The result is Nemotron-Research-Reasoning-Qwen-1.5B, and a pass@k analysis at k up to 256 that splits tasks into three kinds: some where RL narrows reach, as Yue et al. found; some where gains come early and stop; and some, often coding and new puzzles, where reach keeps growing with training (R, §4, Figure 4).</p>
+<h2 id="key-results">Key results</h2>
+<ul><li><strong>Starting point.</strong> The "base model" here is DeepSeek-R1-Distill-Qwen-1.5B, a model already distilled from a stronger reasoner, not a raw pretrained model (R, §2.3.1, §4).</li><li><strong>One-try accuracy.</strong> Against that start: maths average pass@1 60.14 against 44.45, code 37.49 against 23.08, GPQA Diamond 41.78 against 15.86, IFEval 66.02 against 44.05, Reasoning Gym puzzles 59.06 against 4.24. The 7B distilled model scores higher on maths (63.19) and code (41.39) (R, Tables 1–3).</li><li><strong>Reach grows most where the start is weak.</strong> The gain in pass@128 after RL falls as the starting model's pass@128 rises; tasks with little gain show more overlap with the Dolma pretraining corpus (R, §4.1, Figure 3).</li><li><strong>Three regimes.</strong> "Diminish": on some benchmarks, mostly maths, pass@1 rises while pass@128 falls, which the authors call agreeing with Yue et al. "Plateau": both rise, early. "Sustained": reach keeps growing with training, for example in code (R, §4.2, Figure 4).</li><li><strong>A task never trained on.</strong> On boxnet, a Reasoning Gym task outside training, the starting model solves nothing; the trained model does, and the longer-trained checkpoint beats the intermediate one at every k (R, §4.3, Figure 5; Table 3: 0.00 against 7.91).</li><li><strong>Harder instances.</strong> On graph colouring, trained on graphs of 10 nodes, the final model stays ahead of both the start and the intermediate checkpoint on larger graphs (R, §4.3, Figure 6).</li><li><strong>Whole problems flip.</strong> On family_relationships, per-problem accuracy moves from mostly zero to mostly one (R, §4.4, Figure 7).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>The start is a distilled model. Yue et al. found that distillation already widens reach (<code>raw/arxiv-2504-13837-does-reinforcement-learning-really-incentivize-reasoning.md</code>, §4.2), and ProRL keeps the KL term because its start already writes coherent chains of thought (R, §2.3.1). So this is "long RL after distillation", not "long RL on a pretrained model".</li><li>On maths, the domain Yue et al. tested most, ProRL itself reports the same narrowing (R, §4.2, "Diminished Reasoning Boundary").</li><li>Where the start "fails entirely", part of the failure may be format: on Reasoning Gym "the base model struggles with formatting and challenging subtasks" (R, §3.4). The paper's "regardless of the number of attempts" (R, Abstract) was tested at k up to 256, on 18 of 96 Reasoning Gym tasks (R, §4).</li><li>The validation blend that decided when to reset is drawn from the evaluation benchmarks (AIME2024, Codeforces, GPQA Diamond, IFEval, graph_color) (R, Appendix E).</li><li>The recipe changed between its eight runs: data added, a length penalty, 16 then 32 rollouts, then a 16k context (R, Appendix E). The gains cannot be split between "longer" and "changed".</li><li>The paper's own numbers differ between sections: the introduction gives pass@1 gains of 14.7% (maths), 13.9% (code), 25.1% (STEM) and 18.1% (instruction following); §3 gives 15.7%, 14.4%, 25.9% and 22.0% (R, §1, §3).</li><li>One model size, 1.5B; the authors say scaling up is unclear (R, Appendix A).</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-rl-reasoning-boundary-yue.html">source-rl-reasoning-boundary-yue</a>: the claim this paper answers; the two read best as a pair.</li><li><a href="analysis-emergence-vs-distribution-sharpening.html">analysis-emergence-vs-distribution-sharpening</a>: the open Contradiction between the two lives there.</li><li><a href="source-frontier-learning-edge-of-capability.html">source-frontier-learning-edge-of-capability</a>: uses ProRL's small KL term and clip-higher for its 500-step runs (<code>raw/arxiv-2609-35426-frontier-learning-training-llm-reasoners-at.md</code>, Table 5 note), and shares its finding that RL works best near the edge of what the model can do.</li><li><a href="source-text-optimization-yoonho.html">source-text-optimization-yoonho</a>: cites ProRL as the contested side of "RL only sharpens" (<code>raw/tweet-text-optimization-yoonho.md</code>, footnote 2).</li><li><a href="source-deepseek-r1.html">source-deepseek-r1</a>: source of the distilled starting model and of GRPO's use at scale.</li><li><a href="concept-rlhf-alternatives.html">concept-rlhf-alternatives</a>, <a href="concept-rlhf.html">concept-rlhf</a>, <a href="thread-test-time-compute.html">thread-test-time-compute</a>, <a href="source-distribution-sharpening-power-sampling.html">source-distribution-sharpening-power-sampling</a>.</li><li>Hub (2026-10-20): <a href="concept-rlvr.html">concept-rlvr</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2505-24864-prorl-prolonged-reinforcement-learning-expands-reasoning.md</code></li><li><code>raw/arxiv-2504-13837-does-reinforcement-learning-really-incentivize-reasoning.md</code> (for the comparison)</li><li><a href="https://arxiv.org/abs/2505.24864" rel="noreferrer">https://arxiv.org/abs/2505.24864</a></li></ul>
+<details class="src"><summary>Sources (5)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2505-24864-prorl-prolonged-reinforcement-learning-expands-reasoning.md</code></li><li><code>raw/arxiv-2504-13837-does-reinforcement-learning-really-incentivize-reasoning.md</code></li><li><a href="https://arxiv.org/abs/2505.24864" rel="noreferrer">https://arxiv.org/abs/2505.24864</a></li><li><code>raw/arxiv-2609-35426-frontier-learning-training-llm-reasoners-at.md</code></li><li><code>raw/tweet-text-optimization-yoonho.md</code></li></ul></details>
+</main>
+</body>
+</html>

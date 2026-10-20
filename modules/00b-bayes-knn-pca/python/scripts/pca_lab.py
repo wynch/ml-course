@@ -291,7 +291,7 @@ def part2() -> dict:
             fontsize=8, color=MUTED)
     ax.set_xlabel("components kept, k  (log)")
     ax.set_ylabel("mean squared error per pixel  (log)")
-    ax.set_title("Reconstruction error is exactly the variance you threw away")
+    ax.set_title("Training reconstruction error is exactly the variance you threw away")
     ax.legend(fontsize=8)
     fig.tight_layout()
     finish(fig, FIGDIR / "pca_recon_error.png")

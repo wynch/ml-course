@@ -241,15 +241,22 @@ footer a:hover{text-decoration:underline}
   <section class="panel notice">
     <h2>What to notice</h2>
     <ul>
-      <li><b>The gradient only knows the slope under the ball.</b> Drop it in the upper-left basin at
+      <li><b>The gradient only knows the slope under the ball.</b> Start it from the default point in the upper left at
         <code>lr = 0.08</code>, <code>momentum = 0</code> and it settles into the <em>local</em> minimum at
         <code>f = −0.750</code> — never learning that <code>f = −1.097</code> exists two ridges away.</li>
       <li><b>Momentum is a velocity, not a bigger step.</b> With <code>momentum = 0.9</code> the same run
         carries speed over the ridge and lands somewhere else entirely. It is the same
         <code>v ← μv − lr·g; p ← p + v</code> rule as module 02's <code>SGD(momentum=0.9)</code>.</li>
       <li><b>Too-high learning rates fail in two distinct ways.</b> Around <code>lr ≈ 0.35–1.2</code> the ball
-        oscillates across a basin forever (the step overshoots the curvature, <code>|1 − lr·λ| &gt; 1</code>);
-        above <code>lr ≈ 1.3</code> it leaves the chart and the loss runs away to infinity.</li>
+        oscillates across a basin forever (the step is too large for the narrow well, <code>lr·λ &gt; 2</code>, so the
+        ball cannot sit at its bottom; the gentler bowl around it keeps it from escaping). The wells here have a
+        curvature λ of about 5–8, so the edge <code>2/λ</code> sits between 0.25 and 0.38. Above <code>lr ≈ 1.3</code>
+        it leaves the chart and the loss runs away to infinity.</li>
+      <li><b>Real networks live near that edge.</b> In full-batch training the sharpest curvature tends to
+        rise until it sits near <code>2/lr</code>, and stays there: the loss wobbles from step to step but still
+        falls over time (Cohen et al., <a href="https://arxiv.org/abs/2103.00065">arXiv 2103.00065</a>). The
+        bouncing band above is a two-dimensional cousin: here the curvature is fixed, so the ball bounces
+        but the loss stops falling.</li>
       <li><b>The decay schedule buys you both.</b> Module 01 starts at <code>lr = 1.0</code> and ends at
         <code>0.1</code>: big early steps to travel, small late steps to settle. Turn the checkbox on with a
         high starting rate and watch the trail tighten as k grows.</li>
@@ -267,8 +274,10 @@ footer a:hover{text-decoration:underline}
 <footer>
   <p class="paths">module → <a href="../modules/01-autograd/README.md">../modules/01-autograd/README.md</a>
     · engine → <a href="../modules/01-autograd/python/src/micrograd/engine.py">../modules/01-autograd/python/src/micrograd/engine.py</a></p>
-  <p>Next in the course: Hugging Face LLM Course, Chapter 1 —
-    <a href="https://huggingface.co/learn/llm-course/chapter1">huggingface.co/learn/llm-course/chapter1</a></p>
+  <p>Next in the course: module 02, Neural networks —
+    <a href="../modules/02-neural-networks/README.md">README</a> ·
+    <a href="02-nn-playground.html">explorable</a>. A wider companion: the
+    <a href="https://huggingface.co/learn/llm-course/chapter1">Hugging Face LLM Course, Chapter 1</a>.</p>
 </footer>
 
 <script>

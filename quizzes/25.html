@@ -317,8 +317,8 @@ const QUESTIONS = [
       "No gradient reaches the target encoder; it changes only as a slow moving average (EMA) of the encoder."
     ],
     answer: 3,
-    explain: "The target follows the encoder through <code>ema_update</code>, momentum 0.996 rising to 1.0, as in " +
-             "module 16. That blocks the plainest collapse, but not the one seen here: a latent that keeps only what " +
+    explain: "The target follows the encoder through <code>ema_update</code>, momentum 0.996 rising to 1.0 " +
+             "(module 16's values; here on a cosine ramp). That blocks the plainest collapse, but not the one seen here: a latent that keeps only what " +
              "a step leaves unchanged.",
     source: "modules/25-world-models-and-planning/python/src/models.py (jepa_loss, ema_update) · exercises/exercise_c_jepa.py"
   },
@@ -366,7 +366,7 @@ function gradeSingle(q, ans) { return typeof ans === "number" && ans === q.answe
 function gradeMulti(q, ans) { return Array.isArray(ans) && sameSet(ans, q.answer); }
 function gradeNumeric(q, ans) {
   const v = typeof ans === "number" ? ans : parseFloat(String(ans).replace(/[\s,_]/g, ""));
-  return isFinite(v) && Math.abs(v - q.answer) <= q.tol;
+  return isFinite(v) && Math.abs(v - q.answer) <= q.tol + 1e-9;
 }
 function gradeQuestion(q, ans) {
   if (ans === undefined || ans === null) return false;

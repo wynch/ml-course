@@ -67,8 +67,8 @@ def fig_text():
     arrow(ax, (0.14, 0.55), (0.14, 0.43), "tokenize")
     arrow(ax, (0.26, 0.30), (0.40, 0.42), "text embeddings")
     arrow(ax, (0.62, 0.5), (0.72, 0.5), "Q from image,\nK,V from text")
-    ax.text(0.5, 0.06, "Text conditions the denoiser: image patches attend to word "
-            "embeddings at every UNet block.", ha="center", fontsize=9, style="italic")
+    ax.text(0.5, 0.06, "Text conditions the denoiser: feature-map positions attend to word "
+            "embeddings, at most UNet resolutions.", ha="center", fontsize=9, style="italic")
     ax.set_xlim(0, 0.96); ax.set_ylim(0, 0.9); ax.axis("off")
     ax.set_title("Text conditioning via CLIP + cross-attention", fontsize=12)
     fig.tight_layout(); fig.savefig(FIG / "text_conditioning.png", dpi=90); plt.close(fig)

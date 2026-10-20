@@ -4,6 +4,10 @@ A 1943-style unit fires when a weighted sum of binary inputs reaches a
 threshold. The weights are *chosen by hand* — that is the whole point. This
 file is what the perceptron replaces: the same architecture, plus a rule for
 finding the weights yourself.
+
+One liberty with history: NAND, NOR and NOT below use negative weights. The
+1943 unit had no negative weights; an active inhibitory input simply stopped
+the neuron from firing. The gates compute the same truth tables either way.
 """
 
 from __future__ import annotations

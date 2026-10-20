@@ -8,7 +8,7 @@ the tiny GPT on the same data. It has four sections, each with a figure and the
 numbers beside it:
 
 1. **A GRU**, a gated recurrent network, at the tiny GPT's size.
-2. **A diagonal linear recurrence, then a selective one** (Mamba-style), in plain PyTorch.
+2. **A diagonal linear recurrence, then a selective one**, in plain PyTorch. Both are state-space models (SSMs) in the style of Mamba: a layer that carries a fixed-size state and updates it by a linear rule at each token.
 3. **GPT, GRU and SSM at equal budget**: validation loss after the same training time, then memory and speed per generated token up to 4,096 tokens.
 4. **The library way**: Mamba-130M against GPT-2 small through transformers, and a paragraph on RWKV, Hyena and hybrids.
 
@@ -16,8 +16,8 @@ Every number in this README comes from a JSON file in [`results/`](results/),
 written by the script that measured it.
 
 This is the second module of track 6, **Other recipes**. Next,
-[module 19](../19-scaling-laws/README.md) opens track 7 and asks how the loss
-falls as a model and its data grow.
+[module 27](../27-memory-as-a-matrix/README.md) asks how much a fixed-size
+state can recall, and why the field moved from decay to the delta rule.
 
 **🕹 Interactive:** [Beyond attention](../../explorables/18-beyond-attention.html):
 step a KV cache and two recurrent states token by token, and drive a recurrence
@@ -58,7 +58,8 @@ and the [Mamba code](https://github.com/state-spaces/mamba) are Apache-2.0.
 
 **The laptop guard.** Every script imports `src/common.py` before torch. It sets
 `PYTORCH_MPS_HIGH_WATERMARK_RATIO=0.5` and `PYTORCH_MPS_LOW_WATERMARK_RATIO=0.4`,
-so a run that grows past half of the Mac's GPU memory stops with an error
+so the Apple GPU may take at most half of Metal's recommended working set,
+5.92 GB on this 16 GB Mac, and a run that grows past that stops with an error
 instead of pushing the Mac into swap. Each script logs its time and peak memory
 (process RSS from `getrusage`, and `torch.mps.driver_allocated_memory()`) into
 its results file:
@@ -137,6 +138,10 @@ h_t = exp(Δ·A) ⊙ h_{t−1} + Δ·B·x_t      A < 0, so every decay is in (0,
 y_t = Σ_n C ⊙ h_t
 ```
 
+Δ > 0 is a learned step size: a large Δ forgets fast and writes much of the
+input, a small Δ holds. The input term Δ·B·x is Mamba's simple choice; S4D
+itself uses a slightly different one (zero-order hold).
+
 Δ, A, B and C are learned, but they are the same at every step. Unroll the
 loop and y is a fixed weighted sum of past inputs: y_t = Σ_k K[k]·x_{t−k} with
 K[k] = Σ_n C·B·Δ·exp(k·Δ·A). That is a convolution, so training computes it
@@ -148,18 +153,20 @@ derives the kernel and checks both forms.
 depends on x_t, so the layer can decide, token by token, whether to write the
 input into its state or to hold what it has. No single kernel describes it any
 more, and the convolution is gone. Mamba-1 gives every channel and state its
-own decay; in plain PyTorch that needs a loop over t, far too slow to train
-here. We use Mamba-2's form
-instead (Dao and Gu, 2024): one decay per head and step, with E channels in 8
-heads. Unrolled, the output is a (T × T) matrix applied to the inputs,
-causal and decaying:
+own decay. Its matrix form then needs one (T × T) matrix per channel and
+state, 4,480 of them here, and the fast alternative, a parallel scan, needs a
+custom kernel; in plain PyTorch a loop over t is all that is left, far too
+slow to train here. We use Mamba-2's form instead (Dao and Gu, 2024): one
+decay per head and step, with E channels in 8 heads. Unrolled, the output is
+a (T × T) matrix applied to the inputs, causal and decaying:
 
 ```
 y_t = Σ_{s ≤ t} (C_t · B_s) · exp(Σ_{r=s+1..t} log a_r) · Δ_s x_s
 ```
 
 Training computes that matrix; generation runs the loop with a (P × N) state
-per head. Exercise (b) writes the loop and checks it against the matrix.
+per head, where P = E / 8 = 35 channels per head. Exercise (b) writes the
+loop and checks it against the matrix.
 
 `src/ssm.py` trains both models for 1,000 steps, as the GRU. For each, the
 one-token loop gives the same logits as the parallel form, to 7.3 × 10⁻⁶
@@ -289,9 +296,11 @@ not depend on the kernels, and they hold.
 
 GPT-2 keeps 2 × 12 layers × 768 floats = 73,728 B per token. Mamba keeps 24
 layers × 1,536 channels × (16 states + 4 convolution inputs) floats, 2.9 MB,
-whatever the context. The context is 960, not 1,024, because GPT-2 has only
-1,024 positions and the script generates 33 more tokens. GPT-2's cache passes
-Mamba's state after 40 tokens. Reading the context shows the fallback's cost:
+whatever the context (transformers keeps the whole convolution window of 4;
+our blocks keep only the 3 earlier inputs). The context is 960, not 1,024,
+because GPT-2 has only 1,024 positions and the script generates 33 more
+tokens. GPT-2's cache equals Mamba's state at 40 tokens and passes it at 41.
+Reading the context shows the fallback's cost:
 GPT-2 reads 960 tokens in one parallel pass, the loop reads them one by one.
 
 The two greedy replies to "The old castle on the hill was" (48 tokens, cut):
@@ -305,8 +314,8 @@ Both are fluent at this size; GPT-2 repeats itself, and Mamba states a false
 date with confidence. Two replies show nothing about which model is better.
 
 **RWKV, Hyena and hybrids.** Other designs reach the same trade by other
-routes. [RWKV](https://arxiv.org/abs/2305.13048) (Peng et al., 2023) rewrites
-attention as a weighted running sum with a learned decay per channel, so it
+routes. [RWKV](https://arxiv.org/abs/2305.13048) (Peng et al., 2023; this is
+RWKV-4) rewrites attention as a weighted running sum with a learned decay per channel, so it
 trains in parallel like a transformer and generates like an RNN with a fixed
 state. [Hyena](https://arxiv.org/abs/2302.10866) (Poli et al., 2023) replaces
 attention with long convolutions, whose filters a small network generates,
@@ -317,8 +326,46 @@ alternates a gated linear recurrence with attention over a local window, and
 attention layer among every few Mamba layers. The reason is the last line of
 the explorable's "What to notice": a fixed state is a summary, and a few
 attention layers give back the exact look-up that copying or recall needs.
-Mamba-2's paper makes the link formal: a selective recurrence with one decay
-per head is a form of masked attention, the matrix of section 2.
+Jelassi et al. prove it for copying ([Repeat After
+Me](https://arxiv.org/abs/2402.01032), 2024): a two-layer transformer can copy
+strings of exponential length, a model with a fixed state cannot. Mamba-2's
+paper makes the link formal: a selective recurrence with one decay per head
+is a form of masked attention, the matrix of section 2.
+
+**State tracking** is the other side: following a count, or a sequence of
+swaps, through the text; parity is the simplest case. A recurrence looks made
+for it, yet Merrill et al. ([The Illusion of
+State](https://arxiv.org/abs/2404.08819), 2024) show that SSMs like Mamba,
+like transformers, cannot compose permutations, and Grazzi et al. ([Negative
+Eigenvalues](https://arxiv.org/abs/2411.12537), 2024) that a linear recurrence
+whose decays all lie in (0, 1), as ours do, cannot solve parity; allowing
+negative values fixes it.
+
+**Since 2024: the delta rule.** Mamba-2's state decays everything it holds at
+once. Gated DeltaNet (Yang, Kautz and Hatamizadeh,
+[arXiv 2412.06464](https://arxiv.org/abs/2412.06464), 2024) treats the state
+as a memory from keys to values and adds a targeted edit: before it writes
+value v under key k, it subtracts what the state already returns for k. RWKV-7
+"Goose" (Peng et al., [arXiv 2503.14456](https://arxiv.org/abs/2503.14456),
+2025) generalises the same rule with gates per channel and learned write
+rates; its authors show it can track state and recognise all regular
+languages, which a transformer of fixed depth is not believed to do. Mamba-3
+(Lahoti et al., [arXiv 2603.15569](https://arxiv.org/abs/2603.15569), 2026)
+stays with decays but makes the state complex-valued, for state tracking, and
+reports Mamba-2's perplexity with half its state.
+
+**Hybrids in production.** In 2025 the hybrid became a production design.
+Nemotron-H ([arXiv 2504.03624](https://arxiv.org/abs/2504.03624)) replaces
+most attention layers with Mamba layers and reports up to 3× faster inference
+than transformers of similar size. Falcon-H1
+([arXiv 2507.22448](https://arxiv.org/abs/2507.22448)) runs attention and an
+SSM side by side in each layer. Kimi Linear
+([arXiv 2510.26692](https://arxiv.org/abs/2510.26692)) mixes Kimi Delta
+Attention, a gated delta rule, with attention and reports up to 75% less KV
+cache and up to 6× the decoding speed at a context of 1M tokens. LFM2
+([arXiv 2511.23404](https://arxiv.org/abs/2511.23404)) pairs short gated
+convolutions with a few attention layers for phones and laptops, and reports
+up to 2× faster prefill and decode on CPUs than models of similar size.
 
 ## Run it
 
@@ -375,8 +422,11 @@ you run. All three run on the CPU in a second or two.
   test checks it against the matrix form in `src/models.py`.
 - **(c) `exercise_c_lti_kernel.py`**: the kernel of a fixed diagonal
   recurrence and its causal convolution; the test checks both against the
-  recurrence. Then give the decays a new value at every step and see that no
-  kernel fits.
+  recurrence. Then give the decays a new value at every step: the fixed
+  kernel misses, and even the best kernel that the two sequences share,
+  fitted by least squares, misses by far more than the fixed case's rounding
+  error. (One sequence alone always has a kernel that fits it exactly; it is
+  sharing one kernel across inputs that fails.)
 
 ## Tests
 
@@ -409,4 +459,11 @@ laptop budget, and the explorable against the results.
 - Poli et al., [Hyena Hierarchy](https://arxiv.org/abs/2302.10866) (2023)
 - De et al., [Griffin](https://arxiv.org/abs/2402.19427) (2024)
 - Lieber et al., [Jamba](https://arxiv.org/abs/2403.19887) (2024)
+- Jelassi et al., [Repeat After Me: Transformers are Better than State Space Models at Copying](https://arxiv.org/abs/2402.01032) (2024)
+- Merrill et al., [The Illusion of State in State-Space Models](https://arxiv.org/abs/2404.08819) (2024)
+- Grazzi et al., [Unlocking State-Tracking in Linear RNNs Through Negative Eigenvalues](https://arxiv.org/abs/2411.12537) (2024)
+- Yang, Kautz and Hatamizadeh, [Gated Delta Networks](https://arxiv.org/abs/2412.06464) (2024)
+- Peng et al., [RWKV-7 "Goose"](https://arxiv.org/abs/2503.14456) (2025)
+- Lahoti et al., [Mamba-3](https://arxiv.org/abs/2603.15569) (2026)
+- NVIDIA, [Nemotron-H](https://arxiv.org/abs/2504.03624) (2025) · Zuo et al., [Falcon-H1](https://arxiv.org/abs/2507.22448) (2025) · Kimi Team, [Kimi Linear](https://arxiv.org/abs/2510.26692) (2025) · Amini et al., [LFM2](https://arxiv.org/abs/2511.23404) (2025)
 - [`state-spaces/mamba-130m-hf`](https://huggingface.co/state-spaces/mamba-130m-hf) · [transformers' Mamba docs](https://huggingface.co/docs/transformers/model_doc/mamba)

@@ -212,7 +212,7 @@ const QUESTIONS = [
     placeholder: "e.g. 12",
     explain: "29 of 37, against 13 for momentum and 4 for gradient descent. The 8 rates where Adam misses are the " +
              "smallest ones, where 10,000 steps are not enough; it diverges at none. Dividing each step by the " +
-             "gradient's recent size keeps the step near the rate, whatever the gradient.",
+             "gradient's recent size keeps each coordinate's step near the rate (at most a few times it), whatever the gradient.",
     source: "modules/14-how-training-finds-a-solution/results/optim_toy.json → losses.rosenbrock.optimisers.adam.lrs_that_reach"
   },
   /* ── 3 ─────────────────────────────────────────────────── read-code ── */
@@ -249,7 +249,7 @@ const QUESTIONS = [
     ],
     answer: 2,
     explain: "Adam's best cell, rate 3 × 10<sup>−3</sup> with warmup + cosine, gives 87.2%, the best of the grid. " +
-             "Adam's step is about the rate per coordinate, whatever the gradient; SGD's is rate × gradient. No run " +
+             "Adam's step stays near the rate per coordinate, whatever the gradient; SGD's is rate × gradient. No run " +
              "returned NaN: Adam at 0.3 just bounces around.",
     source: "modules/14-how-training-finds-a-solution/results/optim_mlp.json → runs"
   },
@@ -282,7 +282,7 @@ const QUESTIONS = [
           "    return 0.5 * (1 + math.cos(math.pi * progress))",
     file: "modules/14-how-training-finds-a-solution/python/src/optim_mlp.py",
     options: [
-      "Nothing for SGD: the rate is 0. (Adam's and momentum's running averages still take in that gradient.)",
+      "Nothing to the weights, for all three: the rate is 0. (Momentum's and Adam's running averages still take in that gradient, so later steps differ.)",
       "A full step at the base rate.",
       "A step at 1/157 of the base rate.",
       "A step at half the base rate, the cosine's midpoint."

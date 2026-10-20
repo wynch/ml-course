@@ -1,14 +1,23 @@
-"""Mini-DDPM on FashionMNIST, from scratch. ~7 min on Apple MPS.
+"""Mini-DDPM on FashionMNIST, from scratch. About 3 min on an Apple M5 (MPS).
 
 Produces in ../figures/:
   ddpm_loss.png            training loss per epoch
   ddpm_dreaming.png        sample grids at training checkpoints (dreaming better)
   ddpm_trajectory.png      one sample's denoising trajectory, t=T -> 0
   ddpm_samples.png         final 8x8 sample grid
+and ../results/ddpm.json (the numbers the README quotes).
+
+The schedule is linear, rescaled by 1000 / T. The plain range 1e-4 -> 0.02 was
+tuned for T = 1000; at T = 300 it leaves sqrt(alpha_bar_T) = 0.22, so sampling
+from pure N(0, I) would start somewhere training never went. The cosine
+schedule failed another way here (results/ddpm_cosine.json): its last betas
+reach 0.999, this sampler does not clip the predicted image, and the samples
+came out saturated black and white.
 """
 
 from __future__ import annotations
 
+import json
 import pathlib
 import time
 
@@ -24,6 +33,9 @@ from src.ddpm_mnist import TinyUNet, load_fashion, train_ddpm
 
 FIG = pathlib.Path(__file__).resolve().parents[1] / "figures"
 FIG.mkdir(exist_ok=True)
+RESULTS = pathlib.Path(__file__).resolve().parents[1] / "results"
+RESULTS.mkdir(exist_ok=True)
+SCHEDULE = "scaled_linear"
 TIMESTEPS = 300
 N_IMAGES = 10000
 EPOCHS = 40
@@ -55,7 +67,7 @@ def plot_dreaming(snapshots):
             ax.set_xticks([]); ax.set_yticks([])
             if c == 0:
                 ax.set_ylabel(f"epoch {ep}", fontsize=10)
-    fig.suptitle("Watching the model dream better (same seed, more training)",
+    fig.suptitle("Watching the model dream better (same noise, more training)",
                  fontsize=12)
     fig.tight_layout(); fig.savefig(FIG / "ddpm_dreaming.png", dpi=90); plt.close(fig)
 
@@ -95,20 +107,35 @@ def main():
     print(f"device: {device}")
     print(f"loading {N_IMAGES} FashionMNIST images...")
     data = load_fashion(N_IMAGES)
-    diffusion = Diffusion.from_schedule("linear", TIMESTEPS, device=device)
+    diffusion = Diffusion.from_schedule(SCHEDULE, TIMESTEPS, device=device)
     model = TinyUNet(ch=32)
-    print(f"params: {sum(p.numel() for p in model.parameters()):,}")
+    n_params = sum(p.numel() for p in model.parameters())
+    print(f"params: {n_params:,}")
 
     t0 = time.time()
     losses, snapshots, _ = train_ddpm(
         model, diffusion, data, epochs=EPOCHS, batch=128, lr=2e-4,
         device=device, snapshot_epochs=SNAPSHOTS)
-    print(f"trained in {(time.time() - t0) / 60:.1f} min | final loss {losses[-1]:.4f}")
+    train_min = (time.time() - t0) / 60
+    print(f"trained in {train_min:.1f} min | final loss {losses[-1]:.4f}")
 
     plot_loss(losses)
     plot_dreaming(snapshots)
     plot_trajectory(model, diffusion, device)
     plot_final_grid(model, diffusion, device)
+    total_min = (time.time() - t0) / 60
+    lin = Diffusion.from_schedule("linear", TIMESTEPS)
+    out = {
+        "device": str(device), "schedule": SCHEDULE, "timesteps": TIMESTEPS,
+        "n_images": N_IMAGES, "epochs": EPOCHS, "n_params": n_params,
+        "train_minutes": round(train_min, 2),
+        "train_and_figures_minutes": round(total_min, 2),
+        "loss_first_epoch": losses[0], "loss_final": losses[-1], "losses": losses,
+        "sqrt_alpha_bar_T": {SCHEDULE: diffusion.sqrt_alphas_cumprod[-1].item(),
+                             "linear": lin.sqrt_alphas_cumprod[-1].item()},
+    }
+    (RESULTS / "ddpm.json").write_text(json.dumps(out, indent=1) + "\n")
+    print(f"train + figures in {total_min:.1f} min")
     print("figures written to", FIG)
 
 

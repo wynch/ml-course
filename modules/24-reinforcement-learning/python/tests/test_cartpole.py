@@ -16,7 +16,7 @@ import cartpole as cp  # noqa: E402
 
 
 def test_constants_match_the_source():
-    """Barto, Sutton and Anderson (1983) and the classic gym CartPole-v1."""
+    """Barto, Sutton and Anderson (1983) and CartPole-v1 in Gymnasium."""
     assert (cp.GRAVITY, cp.MASS_CART, cp.MASS_POLE, cp.HALF_LENGTH) == (9.8, 1.0, 0.1, 0.5)
     assert (cp.FORCE_MAG, cp.TAU, cp.X_LIMIT, cp.MAX_STEPS) == (10.0, 0.02, 2.4, 500)
     assert cp.THETA_LIMIT == pytest.approx(math.radians(12))

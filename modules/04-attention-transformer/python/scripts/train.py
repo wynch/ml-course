@@ -7,7 +7,7 @@ Records everything the figure scripts need into `models/` (git-ignored):
                              per-checkpoint attention snapshot for one head
 
 Run:  uv run python scripts/train.py
-Expected on an Apple M5: ~5-10 min for 5000 iters.
+Expected on an Apple M5: about 4 min for 5000 iters (239 s in results/train_summary.json).
 """
 
 from __future__ import annotations

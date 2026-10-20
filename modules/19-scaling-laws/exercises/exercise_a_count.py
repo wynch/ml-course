@@ -29,19 +29,19 @@ TOKENS = 4_001_792                      # 977 steps of 32 x 128 characters
 def block_params(d: int) -> int:
     """One block: qkv (d -> 3d), attention out (d -> d), MLP (d -> 4d -> d), two LayerNorms; biases included."""
     # TODO(you): add up the four parts. Check: d = 32 gives 12,704.
-    ...
+    raise NotImplementedError("TODO(you): write block_params first")
 
 
 def non_embedding_params(d: int, n_layer: int = N_LAYER) -> int:
     """N: every block plus the final LayerNorm."""
     # TODO(you): one line.
-    ...
+    raise NotImplementedError("TODO(you): write non_embedding_params first")
 
 
 def compute(n: int, tokens: int) -> float:
     """C = 6 N D: about 2 N FLOPs per token forward, 4 N backward."""
     # TODO(you): one line.
-    ...
+    raise NotImplementedError("TODO(you): write compute first")
 
 
 def main() -> None:

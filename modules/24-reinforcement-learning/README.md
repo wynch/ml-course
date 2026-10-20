@@ -92,7 +92,8 @@ Thompson   draw p̃ ~ Beta(1 + wins, 1 + losses) for each arm; pull the largest 
 ```
 
 UCB1 (Auer, Cesa-Bianchi and Fischer, 2002) adds a bonus that is large for
-an arm pulled n times out of many and shrinks as n grows. Thompson sampling
+an arm pulled only a few times (small n) out of t pulls so far, and shrinks
+as n grows. Thompson sampling
 (Thompson, 1933) keeps a belief about each arm's probability and acts on one
 draw from it, so an arm it is unsure about wins the draw now and then.
 
@@ -117,9 +118,10 @@ What the numbers say:
   (5,000 × 0.022 = 110).
 - **UCB1 explores less and less**: over the last 5,000 pulls its regret rose
   47. Yet it spends a lot early. Its largest cost is the 0.6 arm, only 0.1
-  behind the best: 957 pulls, about 96 of its 228. After the first 8 pulls,
-  its median over 20 seeds passes ε-greedy's only at pull 9,350 (we stored
-  every 25th pull), and at 10,000 the two ranges overlap. From
+  behind the best: 957 pulls, about 96 of its 228. From pull 10 to pull
+  9,325, UCB1's median regret over 20 seeds sits above ε-greedy's; from
+  pull 9,350 on, it sits below (we stored every pull up to 100, then every
+  25th). At 10,000 the two ranges overlap. From
   the slopes, UCB1 should pull further ahead; we did not run longer to check.
 - **Thompson** has the lowest median regret at every count we stored from
   pull 75 on, and its 20-seed range, 24–89, sits below the other two's.
@@ -173,7 +175,9 @@ shortest path: the 10% random moves still cost a few detours an episode.
 Following the table greedily, with no random moves, takes the shortest path
 in 20 of 20 seeds, and the greedy move is a best move in every free cell
 in every seed. Along the greedy path, max Q is within 0.083 of minus the BFS
-distance: with α 0.5 the table keeps a small error.
+distance. Every move here is certain, and with α 0.5 each update moves Q
+only halfway to its target, so after 300 episodes a small error remains.
+More episodes should shrink it; we did not run them.
 
 One grid and one ε: a demo, not a measurement.
 
@@ -211,9 +215,10 @@ x ← x + τ·ẋ,   ẋ ← ẋ + τ·ẍ,   θ ← θ + τ·θ̇,   θ̇ ← �
 | limits | 12° (0.2094 rad), 2.4 m, 500 steps |
 | start | each of the four numbers uniform in [−0.05, 0.05] |
 
-The constants, limits, Euler order and start state are those of the classic
-gym implementation (`gym/envs/classic_control/cartpole.py`, CartPole-v1),
-which took the dynamics from Sutton's C code of the 1983 paper. Florian
+The constants, limits, Euler order and start state are those of CartPole-v1
+in Gymnasium (Towers et al., [arXiv:2407.17032](https://arxiv.org/abs/2407.17032),
+2024), the maintained successor of OpenAI's gym, which took the dynamics from
+Sutton's C code of the 1983 paper. Florian
 ([Correct equations for the dynamics of the cart-pole
 system](https://coneural.org/florian/papers/05_cart_pole.pdf), 2007) points
 out an error in the paper's friction term; with friction 0, as here, it does
@@ -225,7 +230,7 @@ Three tests in `tests/test_cartpole.py` check the code:
   100/11, θ̈ = −600/41, ẍ = 400/41, so after one step ẋ = 8/41 = 0.19512 m/s
   and θ̇ = −12/41 = −0.29268 rad/s, with x and θ still 0. The code gives
   these to 10⁻¹⁵. Pushing the cart right tips the pole left. The fractions
-  follow from the equations alone; we did not run gym to compare, since the
+  follow from the equations alone; we did not run Gymnasium to compare, since the
   module uses no RL library.
 - **An independent derivation.** The two Euler–Lagrange equations of a cart
   with a uniform rod, solved as a 2 × 2 linear system at 200 random states,
@@ -245,8 +250,16 @@ loss = − Σ_t log π(a_t | s_t) · (G_t − mean G) / std G
 ```
 
 Subtracting the episode's mean return and dividing by its spread is a common
-trick: actions after which the episode ran on longer than average get
-pushed up, the rest down. `src/reinforce.py` uses Adam at rate 0.01 and runs
+trick that keeps the step size steady. It is not the textbook baseline,
+which must not depend on the action it scores; here the mean and spread
+come from the same episode's actions, so the estimate is biased. It also changes
+what is learned. With reward 1 per step, G_t falls along every episode, so
+the early actions are pushed up and the last ones, those just before the
+end, are pushed down, whatever the episode's length. An episode cut at 500
+steps gets the same treatment, though nothing failed. Liu et al. ([Dr.
+GRPO](https://arxiv.org/abs/2503.20783), 2025) found that GRPO's division
+by its group's spread biases its updates too, and removed it.
+`src/reinforce.py` uses Adam at rate 0.01 and runs
 200,000 environment steps per seed. We picked the rate from common practice
 and did not tune it.
 
@@ -265,6 +278,8 @@ fell, and its final greedy policy lasts about 121 steps. Seed 2's
 20-episode mean too dropped, to 75 at one point, then partly came back. REINFORCE's step
 follows one episode's noisy returns, and nothing stops one bad step from
 undoing a good policy. That is the problem PPO's clip is meant to fix.
+Whether the push-down of the last steps of cut episodes feeds seed 0's fall,
+we did not test; one run that skips those steps would tell.
 
 The greedy test (always the likelier push, 20 episodes per seed) measures
 the final policy; the training curve measures the sampling policy as it
@@ -288,7 +303,9 @@ L = mean( min( ρ·A,  clip(ρ, 1 − 0.2, 1 + 0.2)·A ) )
 When A > 0, raising ρ past 1.2 gains nothing, so the gradient stops pushing
 it up; when A < 0, lowering ρ below 0.8 gains nothing. A sample that moved
 the wrong way keeps its gradient. The **clip fraction** is the share of
-samples whose ratio left [0.8, 1.2] during an update.
+samples whose ratio left [0.8, 1.2] during an update. A sample can count
+here and still keep its gradient: with A > 0 and ρ = 0.7, the unclipped
+term is the smaller one.
 
 `src/ppo.py` follows the defaults of CleanRL's `ppo.py` for CartPole
 (Huang et al., [CleanRL](https://github.com/vwxyzjn/cleanrl), 2022): 4
@@ -340,12 +357,27 @@ samples that would have been clipped.)
 
 At the higher rate, the clip was the only difference between the two
 settings: with it, all three seeds ended at 500; without it, all three
-collapsed. One rate and three seeds: that fits the reason PPO was built,
+collapsed. The no-clip runs still cut the gradient norm at 0.5 and still
+let the rate fall to 0; both limit the step size too. One rate and three
+seeds: that fits the reason PPO was built,
 but does not prove it in general.
 
 Three seeds and one budget per setting, and REINFORCE's rate not tuned:
 this section shows what each method does on one task, not which is better. A
 demo, not a measurement.
+
+**Where this goes next.** Language models are now tuned with the same
+policy gradient. Each prompt is a state, each reply an action, and a checker
+or a reward model gives the reward. GRPO (Shao et al.,
+[arXiv:2402.03300](https://arxiv.org/abs/2402.03300), 2024) drops PPO's
+critic: it samples several replies to one prompt and uses the group's mean
+reward as the baseline. It keeps PPO's clip; the rest is REINFORCE with a
+baseline built from samples. RLOO (Ahmadian et al.,
+[arXiv:2402.14740](https://arxiv.org/abs/2402.14740), 2024) leaves each
+reply out of its own mean, which keeps the baseline from depending on the
+action it scores; in their tests it beat PPO.
+Module 17 trains from preferences; module 22 asks what this kind of training
+adds to reasoning.
 
 ## Run it
 
@@ -437,4 +469,8 @@ the results.
 - Williams, Simple statistical gradient-following algorithms for connectionist reinforcement learning, Machine Learning (1992)
 - Schulman et al., [High-Dimensional Continuous Control Using Generalized Advantage Estimation](https://arxiv.org/abs/1506.02438) (2015)
 - Schulman et al., [Proximal Policy Optimization Algorithms](https://arxiv.org/abs/1707.06347) (2017)
+- Towers et al., [Gymnasium: A Standard Interface for Reinforcement Learning Environments](https://arxiv.org/abs/2407.17032) (2024)
+- Shao et al., [DeepSeekMath](https://arxiv.org/abs/2402.03300) (2024): GRPO
+- Ahmadian et al., [Back to Basics: Revisiting REINFORCE Style Optimization for Learning from Human Feedback in LLMs](https://arxiv.org/abs/2402.14740) (2024): RLOO
+- Liu et al., [Understanding R1-Zero-Like Training: A Critical Perspective](https://arxiv.org/abs/2503.20783) (2025): Dr. GRPO
 - Huang et al., [CleanRL](https://github.com/vwxyzjn/cleanrl) (2022), and [The 37 Implementation Details of PPO](https://iclr-blog-track.github.io/2022/03/25/ppo-implementation-details/) (2022)

@@ -121,6 +121,39 @@ def duplicate_overlap(train_ids, test_ids) -> list[str]:
     return sorted(set(map(str, train_ids)) & set(map(str, test_ids)))
 
 
+def bootstrap_ci(
+    y_true,
+    probability,
+    metric: str = "f1",
+    threshold: float = 0.5,
+    *,
+    n_resamples: int = 2000,
+    level: float = 0.95,
+    seed: int = 0,
+) -> tuple[float, float, float]:
+    """Return (point estimate, low, high) for one metric by resampling examples.
+
+    Each resample draws len(y_true) examples with replacement and recomputes the
+    metric; the interval is the central ``level`` share of those values.
+    """
+    if n_resamples < 1:
+        raise ValueError("n_resamples must be positive")
+    if not 0 < level < 1:
+        raise ValueError("level must be in (0, 1)")
+    truth, prob = _as_arrays(y_true, probability)
+    if len(truth) == 0:
+        raise ValueError("need at least one example")
+    rng = np.random.default_rng(seed)
+    values = np.empty(n_resamples)
+    for i in range(n_resamples):
+        rows = rng.integers(0, len(truth), len(truth))
+        values[i] = classification_metrics(truth[rows], prob[rows], threshold)[metric]
+    tail = (1 - level) / 2
+    low, high = np.quantile(values, [tail, 1 - tail])
+    point = classification_metrics(truth, prob, threshold)[metric]
+    return float(point), float(low), float(high)
+
+
 def metrics_by_slice(
     y_true, probability, slices, threshold: float = 0.5
 ) -> dict[str, dict[str, float]]:

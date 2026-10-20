@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Evaluation Methodology · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="evaluation-methodology">Evaluation Methodology</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">evaluation</span> <span class="tag">benchmarks</span> <span class="tag">contamination</span> <span class="tag">saturation</span> <span class="tag">noise</span> <span class="tag">methodology</span> <span class="tag">hub</span></div>
+<p>How far to trust a benchmark score. The overview names this as a gap; the wiki's sources raise four separate problems, and each has its own check.</p>
+<div class="tw"><table><thead><tr><th>Problem</th><th>What goes wrong</th><th>Check</th></tr></thead><tbody><tr><td>Contamination</td><td>the model has seen the test, or tasks close to it</td><td>private held-out sets; probe whether the model can recite answers</td></tr><tr><td>Broken tests</td><td>the checker fails right answers or passes wrong ones</td><td>audit failed tasks by hand</td></tr><tr><td>Saturation</td><td>top scores bunch near the ceiling, so the benchmark no longer separates systems</td><td>retire it; move to a harder set</td></tr><tr><td>Noise and model choice</td><td>a gain sits inside run-to-run spread, or holds on one model family only</td><td>measure the noise band; run several families; add dummy baselines</td></tr></tbody></table></div>
+<h2 id="contamination">Contamination</h2>
+<ul><li><strong>SWE-bench Verified.</strong> Every frontier model OpenAI tested could, for some tasks, reproduce the human-written fix or the task text word for word (<code>raw/web-2026-openai-no-longer-swe-bench-verified.md</code>, opening, "Contamination"; <a href="source-openai-swe-bench-verified-retired.html">source-openai-swe-bench-verified-retired</a>). The probe: GPT-5 questioned each model over 15 turns per task, a judge rated the answers, a second judge checked for leaks from the questioner, and people read the strong cases (same file, "Contamination").</li><li><strong>ARC-AGI.</strong> In ARC Prize's own check, Gemini 3 used the right ARC colour names in its reasoning when the prompt never mentioned ARC or colours; the Foundation reads this as ARC data being well represented in training, an "overfitting" it "cannot precisely quantify" (<code>raw/arxiv-2601-10904-arc-prize-2025-technical-report.md</code>, §4.1, §4.2; <a href="entity-arc-prize.html">entity-arc-prize</a>). Its answer is to report state-of-the-art scores only on the semi-private and private sets (same file, §1.1).</li><li><strong>Retrieval.</strong> A retrieval model can score by finding the test text in its store; RETRO's authors measure how much of their gain comes from such overlap (<code>raw/arxiv-2112-04426-improving-language-models-by-retrieving-from.md</code>, §2.6, §4.4; <a href="concept-retrieval-augmented-generation.html">concept-retrieval-augmented-generation</a>).</li></ul>
+<h2 id="broken-tests">Broken tests</h2>
+<p>OpenAI audited the 138 Verified tasks o3 failed to solve consistently over 64 runs; at least 59.4% had material problems in tests or task text: 35.5% "narrow" tests that demand one implementation detail, 18.8% "wide" tests that check behaviour the task never asked for (<code>raw/web-2026-openai-no-longer-swe-bench-verified.md</code>, "Too narrow and too wide tests"). SWE-Bench Pro tries to fix this by giving agents written requirements and the names the tests expect. Without those additions GPT-5's score drops from 25.9% to 8.4% under a $2 cap, which its authors read as tests accepting only a narrow set of fixes (<code>raw/arxiv-2509-16941-swe-bench-pro-can-ai-agents.md</code>, §3.2, §6.2, Table 3; <a href="source-swe-bench-pro.html">source-swe-bench-pro</a>).</p>
+<h2 id="saturation">Saturation</h2>
+<p>The top Verified score rose from 74.9% to 80.9% in the six months before OpenAI stopped reporting it (<code>raw/web-2026-openai-no-longer-swe-bench-verified.md</code>, opening). Harder successors leave room: SWE-Bench Pro's best public score is 43.6% (<code>raw/arxiv-2509-16941-swe-bench-pro-can-ai-agents.md</code>, §5, Table 1); Cognition's FrontierCode Diamond split tops out at 13.4%, a figure transcribed from an announcement chart (<code>raw/frontiercode-cognition-eval.md</code>; <a href="source-frontiercode-cognition-eval.html">source-frontiercode-cognition-eval</a>). AIRS-Bench scores research agents against published results; agents beat the human best on 4 tasks and fail on 16 (arXiv 2602.06855; not in raw; <a href="source-airs-bench-research-agents.html">source-airs-bench-research-agents</a>). See <a href="concept-swe-bench.html">concept-swe-bench</a> for the dated scores.</p>
+<h2 id="noise-and-model-choice">Noise and model choice</h2>
+<ul><li><strong>Measure the noise band first.</strong> RRSI reruns its base harness to get a band δ and accepts a candidate only above best-so-far minus δ; on its agentic task δ is 0.4 points, and one reported evolve gain, 1.1 points, is under three times δ (<code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code>, §3.3, Appendix D.1, Table 5; <a href="source-rrsi-regularized-harness-evolution.html">source-rrsi-regularized-harness-evolution</a>).</li><li><strong>Use more than one model family, and a dummy baseline.</strong> On Qwen2.5-Math-7B, RLVR with random rewards gives +21.4 of the +29.1 MATH-500 points that true rewards give; on Llama and OLMo the same rewards give little or nothing. Two published methods show the same Qwen-only pattern. The authors ask that RLVR claims be tested on other families and against random and format rewards (<code>raw/arxiv-2506-10947-spurious-rewards-rethinking-training-signals-in.md</code>, Abstract, §2.2, §3, §7; <a href="source-spurious-rewards.html">source-spurious-rewards</a>).</li></ul>
+<h2 id="vincents-rule">Vincent's rule</h2>
+<p><span class="dead" title="not published">idea-benchmark-honest-epistemic-loop</span> states the same discipline for the local lines: keep truth, heuristics and exploration apart; report simple baselines first; hold out a suite the search never sees. Every local line was sunset under it (<span class="dead" title="not published">analysis-experiments-second-chance</span>).</p>
+<h2 id="open-questions">Open questions</h2>
+<ul><li>No source here gives a general way to detect contamination; each check above is built for one benchmark.</li><li>Private held-out sets protect the score but stop outsiders from checking the tasks themselves.</li></ul>
+<h2 id="key-sources">Key sources</h2>
+<ul><li><a href="source-openai-swe-bench-verified-retired.html">source-openai-swe-bench-verified-retired</a> · <a href="source-swe-bench-pro.html">source-swe-bench-pro</a> · <a href="entity-arc-prize.html">entity-arc-prize</a> · <a href="source-spurious-rewards.html">source-spurious-rewards</a> · <a href="source-rrsi-regularized-harness-evolution.html">source-rrsi-regularized-harness-evolution</a> · <a href="source-frontiercode-cognition-eval.html">source-frontiercode-cognition-eval</a> · <a href="source-airs-bench-research-agents.html">source-airs-bench-research-agents</a></li><li>Related: <a href="concept-swe-bench.html">concept-swe-bench</a> · <a href="concept-arc-agi.html">concept-arc-agi</a> · <span class="dead" title="not published">idea-benchmark-honest-epistemic-loop</span> · <a href="concept-calibration.html">concept-calibration</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/web-2026-openai-no-longer-swe-bench-verified.md</code></li><li><code>raw/arxiv-2509-16941-swe-bench-pro-can-ai-agents.md</code> (arXiv 2509.16941)</li><li><code>raw/arxiv-2601-10904-arc-prize-2025-technical-report.md</code> (arXiv 2601.10904)</li><li><code>raw/arxiv-2506-10947-spurious-rewards-rethinking-training-signals-in.md</code> (arXiv 2506.10947)</li><li><code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code></li><li><code>raw/arxiv-2112-04426-improving-language-models-by-retrieving-from.md</code></li><li><code>raw/frontiercode-cognition-eval.md</code></li><li>AIRS-Bench: <a href="https://arxiv.org/abs/2602.06855" rel="noreferrer">https://arxiv.org/abs/2602.06855</a> (not in raw)</li></ul>
+<details class="src"><summary>Sources (8)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/web-2026-openai-no-longer-swe-bench-verified.md</code></li><li><code>raw/arxiv-2509-16941-swe-bench-pro-can-ai-agents.md</code></li><li><code>raw/arxiv-2601-10904-arc-prize-2025-technical-report.md</code></li><li><code>raw/arxiv-2506-10947-spurious-rewards-rethinking-training-signals-in.md</code></li><li><code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code></li><li><code>raw/arxiv-2112-04426-improving-language-models-by-retrieving-from.md</code></li><li><code>raw/frontiercode-cognition-eval.md</code></li><li><a href="https://arxiv.org/abs/2602.06855" rel="noreferrer">https://arxiv.org/abs/2602.06855</a></li></ul></details>
+</main>
+</body>
+</html>

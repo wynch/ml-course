@@ -51,7 +51,7 @@ uv sync
 | GPT-2 SAE, layer 8 only (`jbloom/GPT2-Small-SAEs-Reformatted`) | 151 MB, plus a 98 KB sparsity file | Hugging Face cache, on first run of `gpt2_sae.py` |
 | wikitext-103, first 2 row groups | 0.37 MB read from a 157 MB file | `~/.cache/huggingface/mlcourse/`, on first run of `gpt2_sae.py` |
 | SmolLM2-360M-Instruct | ~700 MB | Hugging Face cache; module 05 already fetched it |
-| distilbert fine-tuned on SST-2 | ~260 MB | Hugging Face cache; module 05 already fetched it |
+| distilbert fine-tuned on SST-2 (movie-review sentences labelled positive or negative) | ~260 MB | Hugging Face cache; module 05 already fetched it |
 
 `src/corpus.py` reads wikitext the way module 11 does: it opens the Parquet
 file over HTTP and reads only the row groups it needs. Two row groups hold
@@ -59,9 +59,10 @@ file over HTTP and reads only the row groups it needs. Two row groups hold
 uses.
 
 **The laptop guard.** Every script imports `src/common.py` before torch. It sets
-`PYTORCH_MPS_HIGH_WATERMARK_RATIO=0.5` and `PYTORCH_MPS_LOW_WATERMARK_RATIO=0.4`:
-the Apple GPU may take at most 5.92 GB on this 16 GB Mac, and a run that grows
-past that stops with an error instead of pushing the Mac into swap. Each script
+`PYTORCH_MPS_HIGH_WATERMARK_RATIO=0.5` (the Apple GPU may take at most half of
+the working set Metal recommends, 5.92 GB on this 16 GB Mac) and
+`PYTORCH_MPS_LOW_WATERMARK_RATIO=0.4`. A run that grows past the cap stops
+with an error instead of pushing the Mac into swap. Each script
 logs its time and peak memory (process RSS from `getrusage`, and
 `torch.mps.driver_allocated_memory()`) into its results file:
 
@@ -160,6 +161,13 @@ x' = W_dec z + b_pre                         # each column of W_dec has norm 1
 Each column of W_dec is a dictionary entry. A **latent** is one entry of z:
 the hope is that each latent fires for one thing.
 
+The dictionary is not a fixed fact about the model. Paulo and Belrose
+([2025](https://arxiv.org/abs/2501.16615)) trained SAEs that differed only in
+their random seed: on one layer of Llama 3 8B, two 131K-latent SAEs shared
+only about 30% of their features, and TopK SAEs depended on the seed more
+than L1 ones. Read a dictionary as one useful way to split the layer, not as
+the model's own list.
+
 **TopK, not L1.** The older recipe adds an L1 penalty on z to the loss. TopK
 (Gao et al., [Scaling and evaluating sparse
 autoencoders](https://arxiv.org/abs/2406.04093), 2024) keeps the k largest
@@ -198,6 +206,23 @@ at k = 8 more than half never fire. Gao et al. add an auxiliary loss (AuxK)
 that trains dead latents on the error the live ones leave; this script does
 not, so the dead counts are what plain TopK gives.
 
+Why measure the gap against the mean and not against zeros? Papers use both.
+The choice moves the score a little: zeros hurt less here (2.015 against 2.042
+nats), so the gap is smaller and harder to close. Against zeros the k = 32 SAE
+closes 98.3% of the gap, not 98.4%.
+
+**Since 2024.** Plain TopK is no longer the newest recipe. BatchTopK
+([Bussmann et al., 2024](https://arxiv.org/abs/2412.06410)) keeps the k × batch
+largest values across a whole batch, so one input can use more latents than
+another. Matryoshka SAEs ([Bussmann et al.,
+2025](https://arxiv.org/abs/2503.17547)) train nested dictionaries at once,
+so the small ones must rebuild the input alone; they gave better sparse
+probing and less "feature absorption" (a broad feature swallowed by narrower
+ones), at a small cost in rebuild. SAEBench ([Karvonen et al.,
+2025](https://arxiv.org/abs/2503.09532)) found that gains in variance
+explained or L0, the numbers in the table above, do not reliably mean better
+use in practice.
+
 The rest of this section reads the k = 32 SAE. Of its latents, 1,505 fire on
 at least 0.1% of validation characters. We call those **alive**.
 
@@ -235,6 +260,14 @@ validation characters and ask what share are the same character. Over all
 Over all 512 neurons the median is 0.72, and 31.2% score at least 0.9. This
 measures one narrow kind of "one thing" (the same letter), not meaning.
 
+**The control this section lacks.** Module 13 tests each unit against the same
+network with random weights. This section does not. Heap et al.
+([2025](https://arxiv.org/abs/2501.17727)) trained SAEs on transformers with
+random weights and found that, in many settings, their latents scored about as
+well on automatic interpretability checks and on rebuild as those of trained
+models. So a purity median of 1.0 against 0.72 may not need training at all;
+we did not run that control.
+
 ## 3 · A published SAE, the library way
 
 SAEs for real models train on hundreds of millions of tokens, and teams
@@ -255,7 +288,7 @@ trained with an L1 penalty, on 300M tokens of OpenWebText. SAELens warns that
 GPT-2 should be loaded the way the SAE was trained: no weight processing
 except what the SAE's metadata asks for (`center_writing_weights=True`). We do.
 
-`src/gpt2_sae.py` runs 512 rows of wikitext (a BOS token plus 127 tokens each)
+`src/gpt2_sae.py` runs 512 rows of wikitext (a BOS, beginning-of-sequence, token plus 127 tokens each)
 through GPT-2 and encodes every position after BOS: 65,024 tokens.
 
 | | Value |
@@ -389,6 +422,10 @@ control over several seeds, and an expectation written down before the run.
 That is a separate experiment, outside this course; this module does not run
 it. For published comparisons, see [AxBench](https://arxiv.org/abs/2501.17148)
 (2025), which found prompting ahead of steering on its benchmark.
+Persona vectors ([Chen et al., 2025](https://arxiv.org/abs/2507.21509)) build
+the same kind of difference vector automatically from a plain description of
+a trait (sycophancy, say), and use it to watch for, and prevent, shifts in
+that trait during fine-tuning.
 
 ## Run it
 
@@ -433,10 +470,12 @@ you run.
   one model, and the "kept" count; train 5 features in 2 dimensions, dense and
   sparse. Runs on the CPU in a few seconds.
 - **(b) `exercise_b_topk.py`**: write the TopK encoder, the fraction of
-  variance explained, and the gradient projection that keeps decoder columns
-  at norm 1. The test checks your encoder against `src/sae.py`.
+  variance explained, and the gradient projection that removes each decoder
+  column's radial part before the step; `renorm()` after the step is what
+  holds every column at norm 1. The test checks your encoder against
+  `src/sae.py`.
 - **(c) `exercise_c_sae_by_hand.py`**: load GPT-2's layer-8 SAE from its
-  safetensors file with no SAELens, and write encode and decode. The test
+  safetensors file (a plain file format for tensors) with no SAELens, and write encode and decode. The test
   checks both against SAELens.
 
 ## Tests
@@ -465,6 +504,18 @@ and [Llama Scope](https://huggingface.co/fnlp/Llama-Scope); browse them on
 whole, including why some teams stepped back from SAEs in 2025, read the
 course's research page [Interpretability](../../research/interp.html).
 
+Gemma Scope 2 covers Gemma 3 from 270M to 27B parameters; the 270M model is
+the cheapest place to start on a laptop.
+
+Two 2025 papers to read next. **Transcoders** ([Paulo, Shabalin and Belrose,
+2025](https://arxiv.org/abs/2501.18823)) rebuild an MLP's *output* from its
+input, instead of rebuilding one activation; on the same model and data their
+latents read as clearly more interpretable than an SAE's, and they are the
+first step towards tracing how latents connect. Kantamneni et al. ([Are Sparse
+Autoencoders Useful?](https://arxiv.org/abs/2502.16681), 2025) tried SAE
+latents as probes in four hard settings and could not beat plain baselines
+consistently, the same lesson AxBench gave for steering.
+
 ## Checkpoint: you should now be able to…
 
 - say what sparsity does in the toy model, and why that is not evidence about real networks;
@@ -482,5 +533,13 @@ course's research page [Interpretability](../../research/interp.html).
 - Turner et al., [Steering Language Models With Activation Engineering](https://arxiv.org/abs/2308.10248) (2023)
 - Rimsky et al., [Steering Llama 2 via Contrastive Activation Addition](https://arxiv.org/abs/2312.06681) (2023)
 - Wu et al., [AxBench](https://arxiv.org/abs/2501.17148) (2025)
+- Bussmann, Leask and Nanda, [BatchTopK Sparse Autoencoders](https://arxiv.org/abs/2412.06410) (2024)
+- Bussmann et al., [Learning Multi-Level Features with Matryoshka Sparse Autoencoders](https://arxiv.org/abs/2503.17547) (2025)
+- Karvonen et al., [SAEBench](https://arxiv.org/abs/2503.09532) (2025)
+- Paulo and Belrose, [Sparse Autoencoders Trained on the Same Data Learn Different Features](https://arxiv.org/abs/2501.16615) (2025)
+- Heap et al., [Automated Interpretability Metrics Do Not Distinguish Trained and Random Transformers](https://arxiv.org/abs/2501.17727) (2025)
+- Paulo, Shabalin and Belrose, [Transcoders Beat Sparse Autoencoders for Interpretability](https://arxiv.org/abs/2501.18823) (2025)
+- Kantamneni et al., [Are Sparse Autoencoders Useful? A Case Study in Sparse Probing](https://arxiv.org/abs/2502.16681) (2025)
+- Chen et al., [Persona Vectors](https://arxiv.org/abs/2507.21509) (2025)
 - Cammarata, [Neural networks are already clean](https://already-clean.goodfire.com/) (Goodfire, 2026)
 - [SAELens](https://github.com/jbloomAus/SAELens) · [TransformerLens](https://github.com/TransformerLensOrg/TransformerLens) · [Neuronpedia, GPT-2 small 8-res-jb](https://www.neuronpedia.org/gpt2-small/8-res-jb)

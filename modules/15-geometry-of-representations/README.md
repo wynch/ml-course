@@ -101,7 +101,11 @@ moons (2,000 Adam steps at 0.01).
 
 Training added regions and, by eye, moved boundaries towards the data: thin
 slivers gather where the two moons meet. One net and one seed; the explorable
-lets you draw others.
+lets you draw others. Humayun, Balestriero and Baraniuk
+([2024](https://arxiv.org/abs/2402.15555)) track this through long training:
+after a phase change, regions leave the training points and gather at the
+decision boundary, and late generalisation (grokking) follows. This module
+counts only two snapshots, so it cannot show that change.
 
 **Regions along a line, against width.** In 784 dimensions we cannot draw the
 regions, but we can count those a straight line crosses. Along
@@ -121,9 +125,10 @@ the regions along 30 lines, each between two test images:
 
 Doubling the width multiplies the count by 1.53, 2.09 and 1.87 on the trained
 nets (2.01, 1.89, 2.14 at init): roughly in step with the neuron count. This is
-what Hanin and Rolnick
-([2019](https://arxiv.org/abs/1906.00904)) predict at init and early in
-training. A region count that grew with the *product* of the layer widths, as
+what Hanin and Rolnick ([2019](https://arxiv.org/abs/1901.09021)) predict at
+init and early in training for the density of regions along a line; their
+companion paper ([2019](https://arxiv.org/abs/1906.00904)) makes the same point
+for regions in the full input space. A region count that grew with the *product* of the layer widths, as
 the most a network could hold, would multiply by about 4 per doubling here.
 Training changes the count by about 15% or less at these widths (trained over
 init: 1.15, 0.87, 0.97, 0.85). It does change who does the cutting: from width
@@ -156,8 +161,9 @@ estimators read it from distances to nearest neighbours alone:
 **First, sets of known dimension.** An estimator is only worth its numbers on
 real data if it gets the answer right where we know it. `src/idest.py` makes a
 **curved cube**: points uniform in [0, 1]ᵈ, bent into 784 dimensions by
-x = sin(zW + b) with a random W. The set has dimension d by construction, but no
-flat subspace much smaller than 784 holds it. 10,000 points each:
+x = sin(zW + b) with a random W. The set has dimension d by construction, but a
+flat subspace needs far more: for d = 10, 87 of the 784 dimensions hold 95% of
+its variance, and 216 hold 99% (section 3). 10,000 points each:
 
 | True dimension | TwoNN | MLE |
 |---|---|---|
@@ -194,6 +200,8 @@ pair as a range.
 `google/vit-base-patch16-224` after each of its 12 blocks, on 5,000 imagenette
 training photos (numpy seed 0, all ten classes). Before block 1 the CLS token
 is the same vector for every photo, so there is nothing to estimate there.
+ViT-base was fine-tuned on ImageNet-1k, and imagenette's photos are drawn from
+ImageNet: the model has seen these images in training.
 
 | | TwoNN | MLE |
 |---|---|---|
@@ -212,7 +220,16 @@ towards the output. This run cannot be set beside that: it reads one token,
 not a whole layer; no block rises above the pixels' estimate; and with TwoNN,
 their estimator, the last block shows no fall. The CLS token at block 1 has
 seen little of the image yet, which may explain its low value; this run does
-not test that. One model, one set of photos. Photos and FashionMNIST differ,
+not test that. The closer comparison is transformers: Valeriani et al.
+([2023](https://arxiv.org/abs/2302.00294)) find that the ID rises over the
+first layers, falls sharply in the middle ones, then stays flat or forms a
+second, smaller peak. This run shows the rise and the flat part, not the
+middle fall. As for the MLE drop in block 12: before the final norm, a few
+dimensions of a transformer's residual stream can be far larger than the rest
+(Darcet et al., [2023](https://arxiv.org/abs/2309.16588); Sun et al.,
+[2024](https://arxiv.org/abs/2402.17762)), and nearest-neighbour distances
+then follow those few dimensions. This run does not check that either. One
+model, one set of photos. Photos and FashionMNIST differ,
 so do not compare the levels.
 
 ## 3 · The manifold picture
@@ -248,7 +265,9 @@ Within a class, the midpoint stays about as close to real images as a real
 image does. Across classes it sits a third farther away, and 29% of those
 midpoints are farther from any training image than 90% of real test images
 are (6% for same-class pairs). The figure shows why: a sandal-dress midpoint is
-a ghost of both, and its nearest real image is a dress. **This is a demo, not
+a ghost of both, and its nearest real image is a dress. Across classes, the
+nearest training image still shares a class with one of the two ends 73% of
+the time (79% within a class). **This is a demo, not
 a measurement**: Euclidean distance in pixels is a crude ruler, and 300 pairs
 of each kind is a small sample.
 
@@ -299,7 +318,20 @@ starting point (0.51). Only at the logits, where the untrained pair scores
 CKA is a claim only next to the right baseline.** Linear CKA weighs
 directions by their variance, so a few large shared directions can dominate
 it, and Davari et al. ([2022](https://arxiv.org/abs/2210.16156)) show it can be
-pushed up or down by changes that leave a network's behaviour alone.
+pushed up or down by changes that leave a network's behaviour alone. The
+"near 0" for unrelated layers also needs care: when the number of inputs n is
+small next to the width, the CKA written above gives high scores even to pairs
+of random matrices, and a debiased version corrects that (Murphy et al.,
+[2024](https://arxiv.org/abs/2405.01012)). At n = 5,000 and 256 units the bias
+here is small: the noise check gives 0.01.
+
+**Do different models hold the same shape?** Huh et al.
+([2024](https://arxiv.org/abs/2405.07987)), the "Platonic Representation
+Hypothesis", argue that as vision and language models grow, they measure
+distances between the same data points in more and more alike ways. They
+compare models with a mutual-nearest-neighbour score, not CKA, but the lesson of
+this section carries over: a high alignment score means something only next to
+the score of the right random or untrained baseline.
 
 ## Run it
 
@@ -367,6 +399,10 @@ explorable.
 - Ansuini et al., [Intrinsic dimension of data representations in deep neural networks](https://arxiv.org/abs/1905.12784) (2019): TwoNN across the layers of trained CNNs.
 - Pope et al., [The Intrinsic Dimension of Images and Its Impact on Learning](https://arxiv.org/abs/2104.08894) (2021): MLE on ImageNet and others, and how ID relates to how many samples a network needs.
 - Kornblith et al., [Similarity of Neural Network Representations Revisited](https://arxiv.org/abs/1905.00414) (2019): CKA and its baselines.
+- Valeriani et al., [The geometry of hidden representations of large transformer models](https://arxiv.org/abs/2302.00294) (2023): ID across the layers of transformers.
+- Humayun, Balestriero and Baraniuk, [Deep Networks Always Grok and Here is Why](https://arxiv.org/abs/2402.15555) (2024): how linear regions move during training. The exact tiler of section 1 can count regions near the data and near the boundary through a long run.
+- Murphy, Zylberberg and Fyshe, [Correcting Biased Centered Kernel Alignment Measures](https://arxiv.org/abs/2405.01012) (2024): when CKA scores random matrices high.
+- Huh et al., [The Platonic Representation Hypothesis](https://arxiv.org/abs/2405.07987) (2024): do models trained on different data and senses converge?
 
 ## Checkpoint: you should now be able to…
 
@@ -379,6 +415,7 @@ explorable.
 
 ## Links
 
+- Hanin and Rolnick, [Complexity of Linear Regions in Deep Networks](https://arxiv.org/abs/1901.09021) (2019)
 - Hanin and Rolnick, [Deep ReLU Networks Have Surprisingly Few Activation Patterns](https://arxiv.org/abs/1906.00904) (2019)
 - Facco et al., [Estimating the intrinsic dimension of datasets by a minimal neighborhood information](https://www.nature.com/articles/s41598-017-11873-y) (2017), TwoNN
 - Levina and Bickel, [Maximum Likelihood Estimation of Intrinsic Dimension](https://papers.nips.cc/paper_files/paper/2004/hash/74934548253bcab8490ebd74afed7031-Abstract.html) (2004)

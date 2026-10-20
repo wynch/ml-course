@@ -2,8 +2,8 @@
 
 Demonstrates that the fine-tune recipe is dataset-agnostic. Cats and dogs are
 heavily represented in ImageNet, so ViT-tiny transfers almost instantly: ~2
-epochs on an 800-image subset reaches >97% validation accuracy in well under a
-minute on an M-series Mac.
+epochs on an 800-image subset reach about 96% test accuracy in under a minute on
+an M-series Mac (results/swap_dataset.json).
 """
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ import torch
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "python" / "src"))
 
 from finetune import _build_transform, _collate, MODEL_NAME
-from utils import vit_processor
+from utils import save_result, vit_processor
 
 DATASET = "Bingsu/Cat_and_Dog"
 N_TRAIN, N_VAL, N_TEST = 800, 200, 400
@@ -40,7 +40,7 @@ def build_splits(processor, seed: int = 0):
     return train.with_transform(tf), val.with_transform(tf), test.with_transform(tf), class_names
 
 
-def main(epochs: int = 2, seed: int = 0, max_steps: int | None = None):
+def main(epochs: int = 2, seed: int = 0, max_steps: int | None = None, record: bool = False):
     import tempfile
 
     from sklearn.metrics import accuracy_score
@@ -76,10 +76,19 @@ def main(epochs: int = 2, seed: int = 0, max_steps: int | None = None):
                           eval_dataset=val, data_collator=_collate,
                           compute_metrics=compute_metrics)
         trainer.train()
+        val_acc = [h["eval_accuracy"] for h in trainer.state.log_history if "eval_accuracy" in h]
+        runtime = next(h["train_runtime"] for h in trainer.state.log_history if "train_runtime" in h)
         test_metrics = trainer.evaluate(test)
     print(f"{DATASET}: test accuracy {test_metrics['eval_accuracy']:.4f}")
+    if record:
+        save_result("swap_dataset", {
+            "what": f"{MODEL_NAME} on {DATASET}: {N_TRAIN} train, {N_VAL} val, {N_TEST} test, {epochs} epochs, seed {seed}",
+            "val_acc_per_epoch": [round(a, 4) for a in val_acc],
+            "test_acc": round(test_metrics["eval_accuracy"], 4),
+            "train_runtime_s": round(runtime, 1),
+        })
     return test_metrics["eval_accuracy"]
 
 
 if __name__ == "__main__":
-    main()
+    main(record=True)

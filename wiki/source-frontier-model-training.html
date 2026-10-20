@@ -59,13 +59,13 @@ border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem
 <nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
 <main>
 <h1 id="frontier-model-training-methodologies">Frontier Model Training Methodologies</h1>
-<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-04-05</span> <span class="tag">training</span> <span class="tag">architecture</span> <span class="tag">model-training</span> <span class="tag">practical-guide</span></div>
+<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-10-19</span> <span class="tag">training</span> <span class="tag">architecture</span> <span class="tag">model-training</span> <span class="tag">practical-guide</span></div>
 <p><strong>Author:</strong> Alex Wa <strong>Date:</strong> 2026-01-31</p>
 <h2 id="summary">Summary</h2>
-<p>Comprehensive guide distilling training techniques from seven open-weight frontier models (SmolLM3, DeepSeek-R1, Kimi K2, etc.). Key thesis: data mixture, architecture, and stability choices dominate most algorithmic tweaks.</p>
+<p>Comprehensive guide distilling training techniques from seven open-weight frontier models: SmolLM3, Intellect 3, Hermes 4, gpt-oss-120b, Kimi K2, DeepSeek-R1 and the Arcee Trinity series (<code>raw/web-2026-djdumpling-frontier-training.md</code>, opening paragraph). Key thesis: data mixture, architecture, and stability choices dominate most algorithmic tweaks.</p>
 <h2 id="key-ideas">Key Ideas</h2>
 <h3 id="architecture">Architecture</h3>
-<ul><li>Dense models with GQA (2-8 groups) as robust default</li><li>Document masking + RNoPE/YaRN for long contexts</li><li>MoE requires careful load balancing (auxiliary losses or bias-based)</li></ul>
+<ul><li>GQA with 2, 4 or 8 groups beat MHA in Hugging Face's ablations; MHA beat MQA and 16-group GQA (raw, "attention"). The post's default: dense + GQA + RoPE/RNoPE unless MoE is essential (raw, "a minimal training playbook").</li><li>Document masking + RNoPE/YaRN for long contexts</li><li>MoE requires careful load balancing (auxiliary losses or bias-based)</li></ul>
 <h3 id="stability">Stability</h3>
 <ul><li>Logit softcapping preferred over z-loss</li><li>Proper initialization and normalization critical</li><li>Most failures from: high LR, bad data batches, load imbalance</li></ul>
 <h3 id="data">Data</h3>
@@ -75,8 +75,8 @@ border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem
 <h2 id="connections">Connections</h2>
 <ul><li>Practical guide for <a href="concept-model-training.html">concept-model-training</a></li><li>Relevant to <a href="concept-transformer-architecture.html">concept-transformer-architecture</a> choices</li><li>MoE discussion connects to scaling approaches</li></ul>
 <h2 id="references">References</h2>
-<ul><li><a href="https://djdumpling.github.io/2026/01/31/frontier_training.html" rel="noreferrer">Blog post</a></li></ul>
-<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://djdumpling.github.io/2026/01/31/frontier_training.html" rel="noreferrer">https://djdumpling.github.io/2026/01/31/frontier_training.html</a></li></ul></details>
+<ul><li><a href="https://djdumpling.github.io/2026/01/31/frontier_training.html" rel="noreferrer">Blog post</a></li><li>Capture: <code>raw/web-2026-djdumpling-frontier-training.md</code> (2026-10-19)</li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://djdumpling.github.io/2026/01/31/frontier_training.html" rel="noreferrer">https://djdumpling.github.io/2026/01/31/frontier_training.html</a></li><li><code>raw/web-2026-djdumpling-frontier-training.md</code></li></ul></details>
 </main>
 </body>
 </html>

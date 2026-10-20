@@ -1,0 +1,20 @@
+[project]
+name = "mlcourse-30-learning-without-a-backward-pass"
+version = "0.1.0"
+description = "Module 30 — Learning without a backward pass: one MLP on FashionMNIST trained by backprop, gradient checkpointing, zeroth-order SPSA (MeZO), forward-forward, Mono-Forward and predictive coding; what each stores; then MeZO against LoRA backprop on SmolLM2-360M-Instruct for SST-2."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "datasets>=5.0.0",
+    "matplotlib>=3.11.1",
+    "numpy>=2.0",
+    "peft==0.21.2",
+    "pillow>=12.0",
+    "pytest>=9.1.1",
+    "torch>=2.14.1",
+    "transformers>=5.20.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "../solutions"]
+addopts = "-q"

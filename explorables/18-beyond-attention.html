@@ -154,8 +154,9 @@
 <section>
   <h2>2 · A recurrence with two states: decay and gate</h2>
   <p class="sub">Each step: <code>h<sub>i</sub> ← a<sub>i</sub>·h<sub>i</sub> + (1 − a<sub>i</sub>)·x</code>, with
-    <code>a<sub>i</sub> = exp(−Δ·λ<sub>i</sub>)</code>. λ<sub>i</sub> sets how fast state i forgets. Δ is the
-    step size. With the gate at 0, Δ is the same at every step: the layer is linear and time-invariant, like the
+    <code>a<sub>i</sub> = exp(−Δ·λ<sub>i</sub>)</code>. λ<sub>i</sub> sets how fast state i forgets; it is −A
+    of the module's README. Δ is the step size. The input weight (1 − a<sub>i</sub>) stands in for the README's
+    Δ·B, so the state stays on the scale of x. With the gate at 0, Δ is the same at every step: the layer is linear and time-invariant, like the
     first model of section 2. With the gate at 1, Δ comes from the input: large on the marked tokens (write
     and forget fast), near zero on the others (hold). That is what "selective" means. The task: the input is
     a run of noise with a few marked digits; the reader wants the last digit.</p>

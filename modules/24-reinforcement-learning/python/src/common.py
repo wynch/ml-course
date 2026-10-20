@@ -1,8 +1,8 @@
 """Shared helpers for module 24: the laptop guard, paths, results.
 
-Import this module before torch. It caps the MPS allocator at half of unified
-memory, so a run that grows too large fails with an error instead of pushing
-the whole Mac into swap. Every network in this module runs on the CPU, so the
+Import this module before torch. It caps the MPS allocator at half of Metal's
+recommended working set (5.92 GB on a 16 GB Mac), so a run that grows too
+large fails with an error instead of pushing the whole Mac into swap. Every network in this module runs on the CPU, so the
 cap is only a guard.
 """
 

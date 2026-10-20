@@ -196,7 +196,7 @@ const QUESTIONS = [
     ],
     answer: 1,
     explain: "Thompson 43 (range 24–89), UCB1 228 (185–279), ε-greedy 237 (213–439). UCB1 and ε-greedy overlap; " +
-             "After the first 8 pulls, UCB1's median passes ε-greedy's only at pull 9,350. Pulling at random loses 2,207.",
+             "from pull 10 to pull 9,325 UCB1's median sits above ε-greedy's, and below from pull 9,350 on. Pulling at random loses 2,207.",
     source: "modules/24-reinforcement-learning/results/bandits.json → rules.*.final_median",
     tryIt: { href: "../explorables/24-reinforcement-learning.html", label: "try it — panel 2" }
   },
@@ -369,7 +369,7 @@ function gradeSingle(q, ans) { return typeof ans === "number" && ans === q.answe
 function gradeMulti(q, ans) { return Array.isArray(ans) && sameSet(ans, q.answer); }
 function gradeNumeric(q, ans) {
   const v = typeof ans === "number" ? ans : parseFloat(String(ans).replace(/[\s,_]/g, ""));
-  return isFinite(v) && Math.abs(v - q.answer) <= q.tol;
+  return isFinite(v) && Math.abs(v - q.answer) <= q.tol + 1e-9;
 }
 function gradeQuestion(q, ans) {
   if (ans === undefined || ans === null) return false;

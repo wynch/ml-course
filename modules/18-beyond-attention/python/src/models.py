@@ -171,8 +171,9 @@ class SelectiveBlock(_Block):
     Unrolled, y_t = sum_{s<=t} (C_t . B_s) * exp(sum_{r=s+1..t} log a_r) * dt_s x_s:
     a (T, T) matrix, causal and decaying, applied to the inputs. Training uses
     that matrix form; generation uses the recurrence. (Mamba-1 gives every
-    channel and state its own decay, which rules out the matrix form; in plain
-    PyTorch it needs a loop over t, and a step of this module took seconds.)
+    channel and state its own decay, so its matrix form needs one (T, T) matrix
+    per channel and state, E * N of them; a parallel scan needs a custom kernel,
+    so plain PyTorch is left with a loop over t, and a step took seconds.)
     """
 
     def __init__(self, d: int, expand: int = 2, n_state: int = 16, n_head: int = 8):

@@ -1,0 +1,38 @@
+{
+ "note": "First full run of section 5, discarded: GPU blocks were never handed back and the model passed through the CPU, so the process went over the 4 GB guard (peak RSS + peak MPS driver). The replay arm crashed on a smoltalk chat that ends on a user turn. These are kept for the record; the README quotes the rerun.",
+ "arms": {
+  "lora8_gentle": {
+   "final": {
+    "new_gain": 0.34497,
+    "forgetting": 0.03973,
+    "kl_new": 0.34232,
+    "kl_probe": 0.05627
+   },
+   "peak_mps_driver_gb": 3.4,
+   "peak_rss_gb": 1.45,
+   "seconds": 1735.4
+  },
+  "lora8": {
+   "final": {
+    "new_gain": 0.37324,
+    "forgetting": 0.48933,
+    "kl_new": 0.47504,
+    "kl_probe": 0.27356
+   },
+   "peak_mps_driver_gb": 3.43,
+   "peak_rss_gb": 1.88,
+   "seconds": 1408.8
+  },
+  "lora64": {
+   "final": {
+    "new_gain": 0.30291,
+    "forgetting": 1.24983,
+    "kl_new": 0.61227,
+    "kl_probe": 0.85601
+   },
+   "peak_mps_driver_gb": 3.94,
+   "peak_rss_gb": 2.16,
+   "seconds": 931.3
+  }
+ }
+}

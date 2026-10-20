@@ -25,13 +25,13 @@ def fit_power(x, y) -> tuple[float, float, float]:
     Returns (alpha, a, R^2), R^2 measured in log space."""
     # TODO(you): take logs, np.polyfit(..., 1), alpha is minus the slope;
     # R^2 = 1 - (sum of squared residuals) / (sum of squared deviations of log y from its mean).
-    ...
+    raise NotImplementedError("TODO(you): write fit_power first")
 
 
 def synthetic(alpha: float, noise: float, seed: int) -> np.ndarray:
     """Losses that follow log L = log 2 - alpha log N exactly, plus Gaussian noise on log L."""
     # TODO(you): np.random.default_rng(seed).normal(0, noise, len(N)) added to log L, then exp.
-    ...
+    raise NotImplementedError("TODO(you): write synthetic first")
 
 
 def main() -> None:

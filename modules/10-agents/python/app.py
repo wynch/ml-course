@@ -58,7 +58,11 @@ def respond(message, history):
     except Exception as exc:  # noqa: BLE001
         answer = f"(agent error: {exc})"
     trace = _format_trace(agent)
-    history = history + [(message, str(answer))]
+    # Gradio 6 Chatbot takes only role/content dicts (the tuple format is gone).
+    history = (history or []) + [
+        {"role": "user", "content": message},
+        {"role": "assistant", "content": str(answer)},
+    ]
     return history, "", trace
 
 

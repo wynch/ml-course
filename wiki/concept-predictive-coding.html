@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Predictive Coding · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="predictive-coding">Predictive Coding</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">predictive-coding</span> <span class="tag">local-learning</span> <span class="tag">backpropagation</span> <span class="tag">credit-assignment</span> <span class="tag">neuroai</span> <span class="tag">hub</span></div>
+<p>Predictive coding (PC) began as a model of cortex: each level predicts the activity of the level below and passes up only the error (Rao and Ballard, 1999; Friston and Kiebel, 2009; cited in <code>raw/arxiv-2605-31022-augmented-lagrangian-predictive-coding.md</code>, §2). In machine learning it is a learning rule. Each layer nudges its activation to shrink the prediction error with its neighbours; the weights then follow the errors that remain. Every step uses only adjacent layers, so no backward pass runs through the whole network (same file, §3).</p>
+<p>The wiki uses the term in three senses. Keep them apart.</p>
+<div class="tw"><table><thead><tr><th>Sense</th><th>What it means</th><th>Page</th></tr></thead><tbody><tr><td>A model of the brain</td><td>cortex sends prediction errors up and predictions down</td><td><a href="concept-active-inference.html">concept-active-inference</a>, <a href="source-active-inference-foundations.html">source-active-inference-foundations</a></td></tr><tr><td>A learning rule</td><td>train a network by local error-shrinking steps in place of backprop</td><td><a href="source-pc-alm-augmented-lagrangian-predictive-coding.html">source-pc-alm-augmented-lagrangian-predictive-coding</a> (this page's core)</td></tr><tr><td>A training goal</td><td>learn features by predicting other features, as in JEPA or CPC</td><td><a href="thread-predict-in-latent-space.html">thread-predict-in-latent-space</a>, <a href="source-infoldm-predictive-ssl-identifiability.html">source-infoldm-predictive-ssl-identifiability</a></td></tr></tbody></table></div>
+<p>The third sense borrows the name. V-JEPA's authors trace their "predictive feature principle" to Rao and Ballard (<code>raw/arxiv-2404-08471-revisiting-feature-prediction-for-learning-visual.md</code>, §1), and InfoNCE comes from "contrastive predictive coding" (<code>raw/arxiv-2609-37789-predictive-ssl-identifies-stochastic-signals-under-nuisance.md</code>, §3). Both train with backprop.</p>
+<h2 id="as-a-learning-rule">As a learning rule</h2>
+<p>PC is gradient flow on one scalar energy, the sum of squared prediction errors between layers (<a href="concept-energy-based-models.html">concept-energy-based-models</a>; <code>raw/arxiv-2605-31022-augmented-lagrangian-predictive-coding.md</code>, Abstract, §3).</p>
+<ul><li><strong>Where it stands.</strong> PC can match backprop on small and medium image classification but lags well behind on deep networks; the paper credits Pinchetti et al. (2025) for this summary of the field (<code>raw/arxiv-2605-31022-augmented-lagrangian-predictive-coding.md</code>, §2).</li><li><strong>Why it lags.</strong> Credit from the output spreads like heat: in T inference steps it reaches on the order of √(ρη_hT) layers, so it fades before the early layers of a deep, narrow network (same file, §1, §5.5; the √ rate is Appendix D, Eq. 23).</li><li><strong>One fix: PC-ALM.</strong> Add a Lagrange multiplier per layer that sums that layer's errors over the inference steps. Credit then travels as a wave, about T·√(αη_h) layers in T steps. On residual MLPs up to depth and width 128, on MNIST and Fashion-MNIST for one epoch, PC-ALM matches backprop at T = 2L steps, where plain PC falls behind with depth (same file, §4, §5.3, §5.5; the T·√(αη_h) rate is Appendix D, Eq. 23). In linear networks it converges to backprop's exact gradients (same file, §5.1, Appendix C).</li><li><strong>The price.</strong> Twice PC's activation memory, and the steps needed grow with depth (same file, §5.7, Appendix G).</li><li><strong>What the blog adds.</strong> 1,000-layer residual MLPs on MNIST within about 2 points of backprop, and gains over PC on ResNet-18 for CIFAR-10 and Tiny ImageNet. These appear only as figures in the blog, not in the paper (<code>raw/web-2026-sakana-pc-alm-blog.md</code>, "PC-ALM: a local learning method for training 1000-layer neural networks", "Image classification benchmarks").</li></ul>
+<h2 id="not-the-same-as-active-inference">Not the same as active inference</h2>
+<p>Active inference uses a generative model to choose actions by minimising expected free energy. PC as a learning rule chooses no actions; PC-ALM's authors frame it as a penalty method from constrained optimisation, not as a probabilistic model (<code>raw/arxiv-2605-31022-augmented-lagrangian-predictive-coding.md</code>, Appendix H). The two share a history and the word "prediction error", not a method.</p>
+<h2 id="open-questions">Open questions</h2>
+<ul><li>Does PC-ALM hold beyond one epoch of MNIST-scale data and residual MLPs? Its authors list larger data, longer training and other architectures as future work (<code>raw/arxiv-2605-31022-augmented-lagrangian-predictive-coding.md</code>, Appendix G).</li><li>No proof covers nonlinear networks (same file, Appendix G).</li><li>PC's settled activations differ from the forward pass ("prospective configuration"), which may help learn from few samples; PC-ALM gives that up at convergence (<code>raw/web-2026-sakana-pc-alm-blog.md</code>, "Prospective-configuration tradeoff"). Which matters more is untested here.</li></ul>
+<h2 id="key-sources">Key sources</h2>
+<ul><li><a href="source-pc-alm-augmented-lagrangian-predictive-coding.html">source-pc-alm-augmented-lagrangian-predictive-coding</a> · <a href="entity-sakana-ai.html">entity-sakana-ai</a></li><li>Related: <a href="concept-active-inference.html">concept-active-inference</a> · <a href="concept-energy-based-models.html">concept-energy-based-models</a> · <a href="source-infoldm-predictive-ssl-identifiability.html">source-infoldm-predictive-ssl-identifiability</a> · <a href="thread-predict-in-latent-space.html">thread-predict-in-latent-space</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2605-31022-augmented-lagrangian-predictive-coding.md</code> (arXiv 2605.31022)</li><li><code>raw/web-2026-sakana-pc-alm-blog.md</code></li><li><code>raw/arxiv-2404-08471-revisiting-feature-prediction-for-learning-visual.md</code> (V-JEPA, §1)</li><li><code>raw/arxiv-2609-37789-predictive-ssl-identifies-stochastic-signals-under-nuisance.md</code> (§3)</li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2605-31022-augmented-lagrangian-predictive-coding.md</code></li><li><code>raw/web-2026-sakana-pc-alm-blog.md</code></li><li><code>raw/arxiv-2404-08471-revisiting-feature-prediction-for-learning-visual.md</code></li><li><code>raw/arxiv-2609-37789-predictive-ssl-identifies-stochastic-signals-under-nuisance.md</code></li></ul></details>
+</main>
+</body>
+</html>

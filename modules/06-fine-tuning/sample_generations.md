@@ -3,7 +3,7 @@
 Greedy decoding (`do_sample=False`), 160 new tokens max. The adapter was
 trained for 200 steps on ~512 everyday-conversations examples. Read this
 with honest eyes: the base model is *already* instruction-tuned, so SFT on a
-tiny slice nudges **register and length**, not raw capability. See the
+tiny slice nudges **register**, not raw capability. See the
 commentary at the bottom.
 
 ## Prompt 1: Hi there!
@@ -201,14 +201,16 @@ commentary at the bottom.
 
 ## Honest commentary
 
-- **What changed:** on the everyday-conversation prompts (1-5) the fine-tuned
-  model tends to answer more concisely and in the friendly, practical register
-  of the training data — shorter, less list-heavy, more conversational.
-- **What barely changed:** prompts 6-8 sit outside the fine-tuning domain.
-  Stain removal, bridge physics and haiku were already within the base model's
-  reach, and 200 steps of small-talk SFT neither teaches new facts nor removes
-  existing ones. This is expected.
-- **Why small-scale SFT is limited:** LoRA on a few hundred examples *steers*
-  an already-capable model; it does not inject knowledge or reasoning. To move
-  capability you need much more data, or a different objective (preference
-  optimisation / RL — see the What's next section).
+- **What changed:** the opening register. The adapter starts warmer
+  ("Hey there! I'm happy to help…", "Hello! How can I help you today?").
+  Length did not change: most answers on both sides run into the 160-token
+  cap, and both mostly answer with numbered lists (on prompts 3 and 6 the
+  adapter answers in prose instead).
+- **What did not change:** facts. Both models make up a book and repeat it
+  three times (prompt 4: a real title, "The Silent Patient", given a false
+  author and plot; a Steinbeck novel that does not exist), and both give wrong stain advice
+  (prompt 6; the base model suggests a wine-soaked cloth). 200 steps of
+  small-talk SFT neither adds nor removes knowledge.
+- **Why:** LoRA on ~500 examples steers tone. It does not add knowledge or
+  reasoning. To move capability you need much more data, or a different
+  objective (preference optimisation / RL — see the What's next section).

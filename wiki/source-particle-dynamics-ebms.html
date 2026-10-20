@@ -59,12 +59,12 @@ border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem
 <nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
 <main>
 <h1 id="particle-dynamics-for-learning-energy-based-models">Particle Dynamics for Learning Energy-Based Models</h1>
-<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-04-05</span> <span class="tag">energy-based-models</span> <span class="tag">sampling</span> <span class="tag">particle-methods</span> <span class="tag">generative-models</span></div>
+<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-10-19</span> <span class="tag">energy-based-models</span> <span class="tag">sampling</span> <span class="tag">particle-methods</span> <span class="tag">generative-models</span></div>
 <p><strong>Authors:</strong> Kirill Neklyudov, Priyank Jaini, Max Welling <strong>Date:</strong> 2021-11-26 <strong>arXiv:</strong> <a href="https://arxiv.org/abs/2111.13772" rel="noreferrer">2111.13772</a></p>
 <h2 id="summary">Summary</h2>
 <p>Addresses sampling challenges in energy-based model learning by modeling the evolution of both the energy function and sample distributions along a computed vector field, rather than relying on infinitely long MCMC chains.</p>
 <h2 id="key-ideas">Key Ideas</h2>
-<ul><li>Models joint evolution of energy function and sample distribution</li><li>Computed vector field ensures particles approximate current density in finite time</li><li>Avoids the need for infinitely long MCMC chains during training</li><li>More efficient than conventional Monte Carlo-based EBM learning</li></ul>
+<ul><li>Models joint evolution of energy function and sample distribution</li><li>Computed vector field ensures particles approximate current density in finite time</li><li>Avoids the need for infinitely long MCMC chains during training</li><li>The authors show it works well against MCMC-based learning in their experiments (abstract: "effectiveness empirically compared to MCMC-based learning methods")</li></ul>
 <h2 id="connections">Connections</h2>
 <ul><li>Related to <a href="source-ai-sampler-adversarial-mcmc.html">source-ai-sampler-adversarial-mcmc</a> — both tackle EBM sampling</li><li>Relevant to <a href="concept-energy-based-models.html">concept-energy-based-models</a></li></ul>
 <h2 id="references">References</h2>

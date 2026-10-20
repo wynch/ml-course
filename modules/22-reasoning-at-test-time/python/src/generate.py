@@ -7,15 +7,15 @@
     sample   same prompt, 8 samples at temperature 0.7          -> samples.jsonl
     verify   the model grades each sample, P(Yes) vs P(No)      -> verify.jsonl
 
-The committed caches took about 45 minutes in all on an M5. A stage picks up
-where its file stops and exits once --budget seconds (default 270) have
-passed, so you can run it in chunks; run it again until it prints
+The committed caches took 31.9 minutes in all on an M5, in 11 chunks. A stage
+picks up where its file stops and exits once --budget seconds (default 270)
+have passed, so you can run it in chunks; run it again until it prints
 "remaining": 0. To start a stage over, delete its file first. analyse.py
 reads only these files; it never loads the model.
 
-Qwen3 can "think" (write a hidden reasoning block) before it answers. We turn
-that off: the chat template is rendered with enable_thinking=False, which ends
-the prompt with an empty <think></think> block.
+Qwen3 can "think" (write a reasoning block that chat apps fold away) before it
+answers. We turn that off: the chat template is rendered with
+enable_thinking=False, which ends the prompt with an empty <think></think> block.
 """
 
 from __future__ import annotations

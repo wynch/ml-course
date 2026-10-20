@@ -34,7 +34,7 @@ By the end you can:
 - write down the feature map behind a kernel when it is small enough
   (φ(x) = (x₁², √2·x₁x₂, x₂²)) and say why you would never want to for an RBF;
 - store patterns in a **Hopfield network**, prove to yourself that asynchronous
-  updates can only lower the energy, and repair a corrupted input;
+  updates never raise the energy, and repair a corrupted input;
 - measure the **0.138·N capacity** rather than quoting it, and explain the
   finite-size gap between your number and the theoretical one;
 - line up `Xᵀ softmax(βXξ)` against `softmax(QKᵀ/√d)V` term by term;
@@ -97,10 +97,13 @@ training points. There the error explodes, and then falls again.
 ## Part 1 — the widest gap
 
 A perceptron stops at the first line that works. There are infinitely many, and
-they are not equally good: a line that skims one class will misclassify the next
-sample drawn from it. The **max-margin** principle picks the one whose distance
-to the nearest point on either side is largest. Fix the scale by demanding
-`yᵢ(wᵀxᵢ + b) ≥ 1` and that distance is `2/‖w‖`, so the problem is
+they are not equally good: a line that skims one class is more likely to
+misclassify the next sample drawn from it. The **max-margin** principle picks
+the line whose distance to the nearest point is largest. Fix the scale by
+demanding `yᵢ(wᵀxᵢ + b) ≥ 1`; then the nearest points sit at distance `1/‖w‖`
+from the line, and the empty band between the classes is `2/‖w‖` wide. This
+module reports the band width; module 00a's γ is the half-width. Maximising
+either means minimising ‖w‖, so the problem is
 
 ```
 minimise  ½‖w‖²    subject to  yᵢ(wᵀxᵢ + b) ≥ 1  for all i.
@@ -126,6 +129,15 @@ could be deleted and the boundary would not move by a float.
 appearance of x in the whole problem, including in the prediction
 `f(z) = Σᵢ αᵢyᵢ⟨xᵢ, z⟩ + b`. Hold that thought for part 2.
 
+A third reason the margin matters today: train a linear classifier with
+logistic loss by plain gradient descent on separable data, never mention a
+margin, and its direction drifts, slowly, to the max-margin direction (Soudry et
+al., 2018; their model has no offset b, or treats it as one more weight). For a
+multiclass classifier, whose weights form a matrix, which margin you get
+depends on the optimizer: the usual Euclidean one for gradient descent, a
+margin under the spectral norm for Muon, and one under the max-norm for Adam
+(Fan, Schmidt & Thrampoulidis, 2025).
+
 ### Solving it by climbing
 
 `∇W(α) = 1 − Qα` with `Q = (yyᵀ) ⊙ K`. Gradient ascent would leave the feasible
@@ -139,8 +151,9 @@ not a heuristic — the KKT conditions of the projection problem say the answer 
 for a single scalar μ, and since y ∈ {−1,+1} the function `μ ↦ α(μ)ᵀy` is
 non-increasing, so a bisection finds μ exactly.
 [`svm.py:project_feasible`](python/src/kernelmem/svm.py) is fifteen lines and
-that is the entire constraint machinery. The step size is `1/λ_max(Q)`, the
-largest step that cannot overshoot a quadratic.
+that is the entire constraint machinery. The step size is `1/λ_max(Q)`: a safe
+choice that never overshoots along any direction. Steps up to `2/λ_max` still
+climb, which is the edge module 00a measured.
 
 4,000 steps on 24 points gives:
 
@@ -149,13 +162,13 @@ largest step that cannot overshoot a quadratic.
 | support vectors | **3** of 24 |
 | w | (1.294725, 0.439761) |
 | b | −0.065263 |
-| margin `2/‖w‖` | **1.462661** |
-| margin `2/√(Σαᵢ)` | 1.462661 |
+| band width `2/‖w‖` | **1.462661** |
+| band width `2/√(Σαᵢ)` | 1.462661 |
 | smallest `yᵢf(xᵢ)` | 1.000000 |
 | `Σαᵢyᵢ` | 1.1e−16 |
 
-The two margin formulas agreeing is not a coincidence: at the optimum
-`‖w‖² = Σαᵢ`, so the second one measures the margin *without ever forming w* —
+The two formulas agreeing is not a coincidence: at the optimum
+`‖w‖² = Σαᵢ`, so the second one measures the band *without ever forming w* —
 which is what you need once w lives in a space you cannot write down.
 
 `sklearn.svm.SVC(kernel="linear", C=1e6, tol=1e-12)` on the same data returns
@@ -192,9 +205,13 @@ to 2D:
 −1.2030·x₁²  +0.1599·x₁x₂  −1.0677·x₂²  +2.8000 = 0
 ```
 
-an ellipse with semi-axes 1.526 and 1.619. A near-circle, not exactly one,
-because the sampled rings are not exactly symmetric — and the plane really does
-tilt to match. Evaluating the fit both ways, through the kernel and through the
+an ellipse with semi-axes 1.503 and 1.648. The x₁x₂ term turns its axes about
+25° off x₁ and x₂ (the long axis lies 65° from x₁), so the semi-axes are not the
+intercepts 1.526 and 1.619 you would read off by setting one coordinate to zero;
+they come from the eigenvalues of the quadratic form. A near-circle, not exactly
+one, because the sampled rings are not exactly symmetric — and the plane really
+does tilt to match. `scripts/kernel_lift.py` writes these numbers to
+`python/run_kernel_lift.json`. Evaluating the fit both ways, through the kernel and through the
 explicit φ, agrees to **7.1e−15**.
 
 The third panel of the lift figure shows the map most textbooks draw,
@@ -210,6 +227,8 @@ The linear panel is the control. The rings are not linearly separable, so the
 *hard*-margin dual has no finite optimum at all; with a box constraint C = 1 it
 returns a soft-margin answer of **50.0% accuracy with 118 of 120 points as
 support vectors**. When everything is a support vector, nothing was learned.
+The script still prints `2/√(Σαᵢ) = 0.1854` for this row, but that is not a
+margin: the identity `‖w‖² = Σαᵢ` holds only at a hard-margin optimum.
 
 ## Part 3 — memory as a landscape
 
@@ -229,8 +248,10 @@ E(s) = −½ sᵀWs
 
 update one neuron at a time: `sᵢ ← sign((Ws)ᵢ)`. If that flips sᵢ, the energy
 change is `ΔE = −Δsᵢ·(Ws)ᵢ`, and the rule picked the sign that makes
-`Δsᵢ·(Ws)ᵢ` positive — so **E can only go down**. It is bounded below, the state
-space is finite, so the process stops. The measured largest single-update energy
+`Δsᵢ·(Ws)ᵢ` positive, or zero when `(Ws)ᵢ = 0` — so **E never goes up**. A flip
+that leaves E flat can only turn a −1 into a +1 (the rule sends `(Ws)ᵢ = 0` to
++1), so E cannot stay flat for long. E is bounded below and the state space is
+finite, so the run reaches a state that a full sweep leaves unchanged. The measured largest single-update energy
 increase across all five recall runs is **+0.000e+00**.
 
 Where it stops is a local minimum, and the stored patterns are (nearly) exactly
@@ -255,8 +276,12 @@ Sompolinsky, 1985) is `α_c ≈ 0.138` as N → ∞. Measuring it:
 | 1600 | **0.1528** | 244.4 |
 
 Higher than 0.138, and walking towards it. That gap is the honest part: 0.138 is
-an N → ∞ result, and a 100-neuron network is nowhere near infinity. The mean
-overlap *at* α = 0.138 stays between 0.94 and 0.97 at every size, which is the
+an N → ∞ result, and a 100-neuron network is nowhere near infinity. The number
+also depends on how "recall" is measured: here, flip 5% of a pattern's bits, run
+at most 8 sweeps, and count it recalled if the overlap ends at 0.95 or more. A
+different threshold gives a different α_c. The script writes the table to
+`python/run_hopfield_capacity.json`. The mean
+overlap *at* α = 0.138 stays between 0.943 and 0.972 at every size, which is the
 other half of the theory's prediction — retrieval states at the critical load
 still carry a few percent of wrong bits.
 
@@ -265,6 +290,13 @@ The five letters in the demo are α = 0.05, comfortably under. They are also
 they are not; at 25% corruption, 42 of 50 runs recover cleanly rather than 50.
 
 ## Part 4 — the bridge to attention
+
+The classical net breaks at about 0.138·N patterns because its energy is a sum
+of squared overlaps. Krotov and Hopfield (2016) made the energy sharper, a
+higher power of each overlap, and the capacity grew far past N: the "dense
+associative memory". Push that to an exponential and you reach the version
+below. Hopfield shared the 2024 Nobel Prize in Physics with Geoffrey Hinton for
+this line of work.
 
 Replace `sign` with `softmax` and the Hopfield update becomes
 (Ramsauer et al., 2020):
@@ -283,16 +315,18 @@ with the stored patterns as the rows of X. Now line it up:
 | values V | the stored patterns X |
 | `1/√d` | β |
 
-They are the same expression. **An attention layer is doing associative
-retrieval**: each token's query pulls a weighted blend out of the patterns
+With keys = values = X they are the same expression. In a transformer, keys
+and values are two different learned projections of the tokens, `XW_K` and
+`XW_V`; Ramsauer et al. keep those, and the identity still holds. **An attention
+layer is doing associative retrieval**: each token's query pulls a weighted blend out of the patterns
 sitting in its context window, once per token, on every forward pass. Module 04's
 attention heatmap and the softmax bars in the bridge figure are the same object.
 
 β is the temperature and it decides what kind of memory you have. At `βN = 1`
 the softmax is nearly flat and the "retrieved" pattern is a blur of all five
 letters — a metastable mixture. At `βN = 16` one weight is **0.894** and the
-letter comes back exactly, **in a single step**, where the classical net needed a
-hundred neuron updates.
+letter comes back exactly, **in a single step**, where the classical net needed
+200 neuron updates (two sweeps; `python/run_hopfield_demo.json`).
 
 Capacity changes too, and not by a little. At N = 100 neurons and 20% corruption:
 
@@ -324,8 +358,9 @@ more parameters are worse.
 Now keep going. Past degree 19 there are more coefficients than data points and
 infinitely many polynomials interpolate the training set exactly. `np.linalg.pinv`
 picks the one with the smallest ‖β‖₂ — the **minimum-norm** interpolant. That
-choice is doing real work, and it is the same kind of implicit bias gradient
-descent brings to an overparameterised network.
+choice is doing real work. Gradient descent on the same least-squares loss,
+started at β = 0, lands on exactly this solution: it never leaves the span of
+the data, and the minimum-norm interpolant is the only one inside it.
 
 | degree | p = d+1 | test MSE (one dataset) |
 |---|---|---|
@@ -430,7 +465,7 @@ Skeletons are in `exercises/` (look for `# TODO(you):`), full answers in
 1. **`ex1_dual_solver.py`** — write `dual_gradient` and `project_feasible`, the
    two functions the whole SVM stands on. The checker verifies the KKT
    conditions: support vectors exactly on the margin, nothing inside it, and
-   `‖w‖² = Σαᵢ`. Get it right and you reproduce the margin 1.4627 above.
+   `‖w‖² = Σαᵢ`. Get it right and you reproduce the band width 1.4627 above.
 2. **`ex2_hopfield.py`** — write the Hebbian rule, the asynchronous update and
    the capacity sweep. Repair three corrupted letters, then measure α_c at
    N = 100, 400 and 1600 and watch it drift towards 0.138.
@@ -444,8 +479,8 @@ Skeletons are in `exercises/` (look for `# TODO(you):`), full answers in
       implies about points outside the margin;
 - [ ] project a vector onto {α ≥ 0, αᵀy = 0} and explain why a bisection on one
       scalar is enough;
-- [ ] compute a margin two ways — `2/‖w‖` and `2/√(Σαᵢ)` — and say which one
-      survives kernelisation;
+- [ ] compute the band width two ways — `2/‖w‖` and `2/√(Σαᵢ)` — and say which
+      one survives kernelisation;
 - [ ] expand `(aᵀb)²` into an explicit feature map and point at the √2;
 - [ ] argue that asynchronous Hopfield updates terminate, from the sign of ΔE;
 - [ ] state the 0.138 capacity, and explain why your own measurement is higher;
@@ -462,7 +497,8 @@ to the query and sums — which is what one row of
 learned similarity in place of a fixed kernel and softmax weights in place of α.
 The Gram matrix you built here is `QKᵀ` with the labels stripped out.
 
-**Hopfield is attention's other parent.** The equivalence in part 4 is exact, and
+**Hopfield is attention's other parent.** The equivalence in part 4 is exact
+(with learned projections for keys and values), and
 it is why module 04's attention map reads as retrieval rather than as arithmetic.
 Every time a token in module 05 pulls information from a token 300 positions back,
 that is a probe finding a valley.
@@ -473,15 +509,18 @@ most of the data, most of the weights, most of the rank does not matter.
 coordinate system — the useful part of a weight update lives in a few directions,
 the way the useful part of a dataset lives in a few points.
 
-**Double descent is why the training curves in
-[module 02](../02-neural-networks/README.md) and
-[module 06](../06-fine-tuning/README.md) behave the way they do.** A modern
-network is enormously past its interpolation threshold, which is the regime on
-the *right* of the spike — the reason a 3-billion-parameter model fine-tuned on a
-few thousand examples is not automatically garbage, and the reason "reduce
-capacity to reduce overfitting" is no longer reliable advice. The minimum-norm
-solution you computed with `pinv` is the closest thing in this course to what
-SGD's implicit bias does at scale.
+**Double descent explains one fact:** past the interpolation threshold, more
+parameters need not hurt, because the solver picks a small-norm interpolant.
+That is why "reduce capacity to reduce overfitting" is no longer reliable advice
+for the networks of [module 02](../02-neural-networks/README.md) onwards. It
+does not by itself explain why a 3-billion-parameter model fine-tuned on a few
+thousand examples in [module 06](../06-fine-tuning/README.md) works; pretraining
+does most of that. And the shape depends on what you count as a parameter:
+measured by effective parameters, the classical curves fold back into a U
+(Curth, Jeffares & van der Schaar, 2023). The `pinv` solution is exactly where
+gradient descent from zero lands on least squares; for deep networks the
+implicit bias is of the same kind but is not an ℓ₂ norm (see part 1's note on
+the margin).
 
 ## What's next
 
@@ -512,6 +551,21 @@ just warned about start appearing for real. If you want the attention side first
 - **Ramsauer, H. et al. (2020), *Hopfield Networks is All You Need***,
   arXiv:2008.02217 — the continuous update of part 4 and its identity with
   transformer attention: <https://arxiv.org/abs/2008.02217>
+- **Krotov, D. & Hopfield, J. J. (2016), *Dense Associative Memory for Pattern
+  Recognition***, NIPS 2016, arXiv:1606.01164 — sharper energies, capacity far
+  past N: <https://arxiv.org/abs/1606.01164>
+- **Krotov, D., Hoover, B., Ram, P. & Pham, B. (2025), *Modern Methods in
+  Associative Memory***, ICML 2025 tutorial, arXiv:2507.06211 — associative
+  memory tied to transformers and diffusion models, with notebooks:
+  <https://arxiv.org/abs/2507.06211>
+- **Soudry, D., Hoffer, E., Nacson, M. S., Gunasekar, S. & Srebro, N. (2018),
+  *The Implicit Bias of Gradient Descent on Separable Data***, arXiv:1710.10345
+  — gradient descent on logistic loss drifts to the hard-margin SVM:
+  <https://arxiv.org/abs/1710.10345>
+- **Fan, C., Schmidt, M. & Thrampoulidis, C. (2025), *Implicit Bias of Spectral
+  Descent and Muon on Multiclass Separable Data***, NeurIPS 2025,
+  arXiv:2502.04664 — Muon reaches the spectral-norm max margin, Adam the
+  max-norm one: <https://arxiv.org/abs/2502.04664>
 - **Belkin, M., Hsu, D., Ma, S. & Mandal, S. (2019), *Reconciling Modern
   Machine-Learning Practice and the Classical Bias–Variance Trade-off***,
   PNAS 116(32), 15849–15854 — double descent, named:
@@ -519,6 +573,10 @@ just warned about start appearing for real. If you want the attention side first
 - **Nakkiran, P. et al. (2019), *Deep Double Descent: Where Bigger Models and
   More Data Hurt***, arXiv:1912.02292 — the same shape in deep networks, plus
   epoch-wise double descent: <https://arxiv.org/abs/1912.02292>
+- **Curth, A., Jeffares, A. & van der Schaar, M. (2023), *A U-turn on Double
+  Descent: Rethinking Parameter Counting in Statistical Learning***, NeurIPS
+  2023, arXiv:2310.18988 — counted in effective parameters, the classical
+  curves fold back into a U: <https://arxiv.org/abs/2310.18988>
 - Recommended reading: Anil Ananthaswamy, *Why Machines Learn: The Elegant Math
   Behind Modern AI* (Dutton, 2024) — the chapters on support vector machines and
   the kernel trick, on Hopfield networks and associative memory, and the closing

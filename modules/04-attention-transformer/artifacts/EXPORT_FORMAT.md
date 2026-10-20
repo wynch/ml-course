@@ -114,8 +114,10 @@ y = (x - mean) / sqrt(var + eps) * gamma + beta    # eps = 1e-5
 
 ### GELU
 
-The MLP uses GELU. Any standard GELU (exact erf form or the tanh
-approximation) reproduces the samples to within sampling noise.
+The MLP uses PyTorch's default `F.gelu`, the exact erf form:
+`0.5 · x · (1 + erf(x / √2))`. Use that form to match PyTorch exactly. The tanh
+approximation differs by up to 5e-4 per activation; the logits stay close,
+but with a fixed seed a sampled character can change.
 
 ## Round-trip check
 

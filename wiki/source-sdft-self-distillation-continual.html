@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Self-Distillation Enables Continual Learning (SDFT; Shenfeld, Damani, Hübotter, Agrawal, 2026) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="self-distillation-enables-continual-learning-sdft">Self-Distillation Enables Continual Learning (SDFT)</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">continual-learning</span> <span class="tag">catastrophic-forgetting</span> <span class="tag">self-distillation</span> <span class="tag">on-policy</span> <span class="tag">fine-tuning</span> <span class="tag">imitation-learning</span> <span class="tag">knowledge-injection</span> <span class="tag">2026</span></div>
+<p><strong>Authors:</strong> Idan Shenfeld, Mehul Damani, Jonas Hübotter, Pulkit Agrawal; MIT Improbable AI Lab and ETH Zurich <strong>Published:</strong> arXiv 2601.19897, v1 2026-01-27, v2 2026-08-07; code and data at idanshenfeld.com/SDFT <strong>Raw copy:</strong> <code>raw/arxiv-2601-19897-self-distillation-enables-continual-learning.md</code> (full text of v2 from the arXiv HTML, captured 2026-10-20)</p>
+<p>Every claim below cites the raw file as R, with its section, table or figure.</p>
+<h2 id="summary">Summary</h2>
+<p>Fine-tuning on demonstrations (supervised fine-tuning, SFT) trains on text the model did not write, and the model forgets old skills. On-policy RL, which trains on the model's own samples, forgets less, but needs a reward (R, §1). SDFT gets on-policy training from demonstrations alone.</p>
+<p>The same model plays two roles. The <strong>teacher</strong> sees the question and one expert demonstration, with a prompt asking it to answer in its own words; the <strong>student</strong> sees only the question. The student writes an answer; training pulls the student's token probabilities on that answer towards the teacher's (R, §3, Eq. 1–2). The teacher is a slow moving average (EMA) of the student: a frozen teacher learns less, and the student as its own teacher diverges (R, §3, Appendix A.3). Theory says reverse KL; in practice forward KL per token worked best (R, §3, Appendix A.1).</p>
+<p>The authors also read SDFT as inverse RL: if the demonstration-conditioned model approximates the best next policy, the gap in log-probability between teacher and student is a reward, and the update is a policy-gradient step on it (R, §3.1, Eq. 3–6). The check: on ToolAlpaca, Qwen2.5-7B-Instruct alone solves 42% of tasks, and 100% with a demonstration in context; the teacher sits 0.68 nats from the base model, against 1.26 for an SFT model (R, §3.2, Figure 2).</p>
+<h2 id="key-results">Key results</h2>
+<p>All on Qwen2.5-7B-Instruct unless named; three seeds (R, §4.1, Appendix B.2).</p>
+<ul><li><strong>Learns more, forgets less, one task.</strong> On science Q&amp;A, tool use and medical questions, SDFT beats SFT on the new task (70.2 vs 66.2, 70.6 vs 63.2, 40.2 vs 35.5) and keeps the base model's average on six old benchmarks (64.5, 65.4, 65.4 against a base of 65.5), where SFT falls to 53.4, 56.0 and 60.2 (R, Table 5, §4.3).</li><li><strong>Against a repair.</strong> "Re-invoke", SFT followed by on-policy distillation from the base model, the Thinking Machines recipe, recovers part of the loss (60.2, 63.7, 62.6), not all of it (R, §4.1, Table 5).</li><li><strong>Three tasks in turn.</strong> One model trained on the three skills in sequence keeps each earlier skill; SFT's earlier skills drop as soon as the next task starts (R, §4.3, Figure 3).</li><li><strong>New facts.</strong> On about 200K tokens of Wikipedia articles on 2025 disasters, turned into question-answer pairs: strict accuracy 89% for SDFT, 80% for SFT, 9% for training on the raw text (continual pretraining), 91% for retrieval handed the right article. On indirect questions the facts imply, 98% against 80% for SFT (R, Table 1, §4.2). A teacher shown the article and the answer beats one shown the article only, 89% to 75% (R, Appendix A.2).</li><li><strong>Not just sharpening.</strong> The gain over base and SFT holds at every pass@k up to 128 (R, §4.2, Figure 5 right).</li><li><strong>Size matters.</strong> At 3B the teacher is too weak and SDFT trails SFT on science Q&amp;A; it leads by 4 points at 7B and 7 at 14B (R, §4.4, Figure 5 left).</li><li><strong>Answer-only data for a reasoning model.</strong> Olmo-3-7B-Think on the medical task: SFT on short answers drops accuracy from 31.2% to 23.5% and shortens responses (4,612 to 3,273 tokens); SDFT reaches 43.7% at 4,180 tokens (R, §4.5, Table 2).</li><li><strong>On-policy is the active part.</strong> SFT or offline distillation on the same teacher's outputs beats plain SFT but trails SDFT (R, §4.6, Figure 6).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>Cost: about 2.5× the FLOPs and 4× the wall-clock time of SFT, since every step samples a rollout (R, §5).</li><li>The student copies teacher tics such as "Based on the text…"; masking the loss on the first tokens hides them, which the authors call a heuristic (R, §5).</li><li>It needs in-context learning strong enough for a good teacher; it failed to turn a non-reasoning model into one that writes chains of thought (R, §5).</li><li>Forgetting is reduced, not removed (R, §5, Future work). Old skills are measured on six benchmarks only.</li><li>Each method's run was chosen by best validation score on the new task (R, §4.1). One H200 per run, full fine-tuning (R, Appendix B.1). Graders for the medical and knowledge tasks are GPT-5-mini (R, Appendix B.3).</li><li>Inside the paper: §5 calls the scaling plot "Figure 4a"; it is Figure 5 left.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-rls-razor.html">source-rls-razor</a> — same first author, a year earlier: on-policy RL forgets less than SFT. SDFT brings that to demonstrations without a reward (R, §1, §2).</li><li><a href="source-sdpo-self-distillation-rl.html">source-sdpo-self-distillation-rl</a> — the concurrent sister method (Hübotter, a co-author here): the teacher sees feedback instead of a demonstration (R, §2).</li><li><a href="source-inkling-thinking-machines.html">source-inkling-thinking-machines</a> — on-policy distillation as a forgetting repair after SFT; SDFT's "Re-invoke" baseline (R, §4.1). The post itself: <a href="source-on-policy-distillation.html">source-on-policy-distillation</a>.</li><li><a href="analysis-self-distillation-as-universal-lever.html">analysis-self-distillation-as-universal-lever</a> — another member: the teacher is the model plus a demonstration in context.</li><li><a href="concept-continual-learning.html">concept-continual-learning</a>, <a href="source-local-support-learning.html">source-local-support-learning</a> (gates the adapter instead; it names SDFT as complementary, <code>raw/arxiv-2610-02126-local-support-learning.md</code>, Appendix A), <span class="dead" title="not published">experiment-weights-vs-context</span>.</li><li><a href="source-hinton-knowledge-distillation.html">source-hinton-knowledge-distillation</a> — the cross-model origin of distillation (R, §3).</li><li><a href="analysis-emergence-vs-distribution-sharpening.html">analysis-emergence-vs-distribution-sharpening</a> — the pass@k check against "only sharpening".</li><li>Hub (2026-10-20): <a href="concept-knowledge-distillation.html">concept-knowledge-distillation</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2601-19897-self-distillation-enables-continual-learning.md</code></li><li><a href="https://arxiv.org/abs/2601.19897" rel="noreferrer">https://arxiv.org/abs/2601.19897</a></li><li><a href="http://idanshenfeld.com/SDFT" rel="noreferrer">http://idanshenfeld.com/SDFT</a></li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2601-19897-self-distillation-enables-continual-learning.md</code></li><li><a href="https://arxiv.org/abs/2601.19897" rel="noreferrer">https://arxiv.org/abs/2601.19897</a></li><li><a href="http://idanshenfeld.com/SDFT" rel="noreferrer">http://idanshenfeld.com/SDFT</a></li><li><code>raw/arxiv-2610-02126-local-support-learning.md</code></li></ul></details>
+</main>
+</body>
+</html>

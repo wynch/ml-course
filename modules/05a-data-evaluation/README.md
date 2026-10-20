@@ -32,6 +32,15 @@ By the end of this lab, you will:
 - detect exact duplicate leakage before reporting a result; and
 - write a compact evaluation card that makes a result reproducible.
 
+## Objective versus metric
+
+Training minimises a **training objective**: a smooth number the optimiser can
+follow, such as cross-entropy on the predicted probabilities. You report an
+**evaluation metric**: the number the user cares about, such as F1 at a chosen
+threshold. The two often disagree. Cross-entropy rewards every small shift in
+probability; F1 changes only when a prediction crosses the threshold. A run can
+lower its loss and leave F1 flat, or worse.
+
 ## Why this comes before fine-tuning
 
 A fine-tuning run can lower loss while making the behavior you care about worse.
@@ -102,7 +111,8 @@ that frozen rule on the **test** set.
 A model can rank examples correctly while being overconfident. Calibration asks:
 among predictions near confidence `p`, is the observed frequency also near `p`?
 
-The lab implements expected calibration error (ECE):
+Expected calibration error (ECE) is the average gap between how sure the model
+says it is and how often it is right. The lab computes it in three steps:
 
 1. bucket probabilities into equal-width bins;
 2. compute mean confidence and empirical positive rate per non-empty bin;
@@ -120,6 +130,25 @@ while regressing badly on a small but important group.
 Do not use slice analysis to hunt for a flattering subgroup. Define important
 slices before looking at the final test results.
 
+A slice is also a smaller sample, so its score is noisier. Put an interval on
+it before you read a gap. The lab resamples each slice's examples 2,000 times
+with replacement (a bootstrap) and keeps the middle 95% of the F1 values
+(`bootstrap_ci` in `src/metrics.py`):
+
+| Slice | Examples | Positives | F1 at 0.5 | 95% interval |
+|---|---:|---:|---:|---|
+| daylight | 120 | 71 | 0.806 | 0.722 – 0.872 |
+| low-light | 40 | 11 | 0.727 | 0.428 – 0.909 |
+
+The gap, 0.078, has an interval from −0.111 to +0.347: it includes zero. Forty
+low-light examples cannot tell 0.73 from 0.81. The honest report is "no
+evidence of a gap yet; collect more low-light data", not "the model fails in
+low light". Miller's [*Adding Error Bars to Evals*](https://arxiv.org/abs/2411.00640)
+(2024) gives the same advice for language-model benchmarks: treat the questions
+as a sample, report a standard error, and compare models on paired differences.
+
+![Left: precision, recall and F1 against the threshold. Right: slice F1 with 95% bootstrap intervals.](figures/evaluation_scorecard.png)
+
 ## Leakage: the fastest route to a fake breakthrough
 
 Exact duplicates are the easy case. Near-duplicates, multiple samples from the
@@ -127,7 +156,11 @@ same person, and temporal leakage are harder. Split by the unit that could leak:
 patient, customer, document, conversation, or time window—not blindly by row.
 
 The included helper checks exact ID overlap. In a real project, also hash
-normalized content and investigate semantic near-duplicates.
+normalized content and look for near-duplicates. Lee et al.,
+[*Deduplicating Training Data Makes Language Models Better*](https://arxiv.org/abs/2107.06499)
+(2021), find them with MinHash, a cheap estimate of how many word n-grams two
+texts share, and report that some standard validation sets overlapped their
+training sets.
 
 ## Hands-on
 
@@ -144,8 +177,12 @@ Run the deterministic experiment:
 uv run python evaluation_lab.py
 ```
 
-It writes `../figures/evaluation_scorecard.png` and prints aggregate and slice
-metrics at three thresholds.
+It writes `../figures/evaluation_scorecard.png` and `../results/evaluation_lab.json`.
+It prints three things: metrics on all 160 rows at three thresholds, to show the
+trade-off; the honest protocol, a 112/24/24 split with the threshold chosen on
+validation (0.43) and reported once on test (F1 0.692, 95% interval 0.444 –
+0.867); and the slice table above. Every number in this README comes from that
+JSON file.
 
 Run the tests:
 
@@ -159,11 +196,12 @@ Skeletons live in [`python/exercises/`](python/exercises); verified answers live
 in [`python/solutions/`](python/solutions).
 
 1. **Threshold selection** — choose the validation threshold that maximizes F1,
-   then report its untouched test performance.
+   then report its performance on an untouched test set.
 2. **Leakage detector** — find overlapping example IDs and explain why removing
    them can make a good-looking score fall.
-3. **Calibration** — implement ECE and compare a calibrated model with an
-   overconfident one that has identical class predictions.
+3. **Calibration** — implement ECE. Compare two models with the same class
+   predictions, first on four examples, where ECE rewards near-certainty, then
+   on ten, where it punishes overconfidence. Say why.
 
 ## The evaluation card
 
@@ -188,7 +226,7 @@ one experiment.
 - [ ] choose a threshold using validation data without touching the test set;
 - [ ] explain discrimination versus calibration;
 - [ ] identify the real unit that must remain on one side of a split;
-- [ ] report both aggregate and important slice metrics; and
+- [ ] report both aggregate and important slice metrics, with intervals; and
 - [ ] produce an evaluation card another learner can reproduce.
 
 ## Sources

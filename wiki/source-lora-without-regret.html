@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>LoRA Without Regret (Schulman, Thinking Machines Lab, 2025) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="lora-without-regret">LoRA Without Regret</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">lora</span> <span class="tag">fine-tuning</span> <span class="tag">peft</span> <span class="tag">reinforcement-learning</span> <span class="tag">learning-rate</span> <span class="tag">thinking-machines</span> <span class="tag">2025</span></div>
+<p><strong>Author:</strong> John Schulman and Thinking Machines Lab <strong>Published:</strong> 2025-09-29, Thinking Machines' "Connectionism" blog, <a href="https://thinkingmachines.ai/blog/lora/" rel="noreferrer">https://thinkingmachines.ai/blog/lora/</a> (DOI 10.64434/tml.20250929) <strong>Raw copy:</strong> <code>raw/web-2025-thinkingmachines-lora-without-regret.md</code> (captured 2026-10-20; charts as captions only)</p>
+<p>Every claim below cites the raw file as R, with its section.</p>
+<h2 id="summary">Summary</h2>
+<p>LoRA trains a small low-rank update beside each frozen weight matrix in place of the matrix itself (<a href="source-lora-low-rank-adaptation.html">source-lora-low-rank-adaptation</a>). The post asks when that matches full fine-tuning (FullFT). Setup: ranks 1 to 512, a learning-rate sweep for every condition, constant schedule; Llama 3 and Qwen3 models, one of them a mixture of experts; supervised runs on Tulu3 (instruction following) and OpenThoughts3 (reasoning), scored by log loss; RL runs on maths with answer correctness as reward (R, "Methods and results").</p>
+<p>It finds a "low-regret regime" covering most post-training: LoRA matches FullFT when it is on all layers and has more trainable parameters than the information it must learn (R, "What matters for LoRA", "Discussion").</p>
+<h2 id="key-results">Key results</h2>
+<ul><li><strong>Capacity.</strong> High-rank LoRA and FullFT follow the same curve, loss falling linearly in the log of steps; lower ranks leave that curve at a point that depends on rank, when the adapter runs out of room (R, "LoRA rank").</li><li><strong>Learning rate.</strong> The best learning rate for LoRA is about 10× that of FullFT, in supervised learning and RL alike; across ranks 4 to 512 it changes by less than 2× (R, "LoRA rank", "Optimal learning rates for LoRA vs. FullFT"). For runs under about 100 steps, about 15× (R, "Learning rates in short and long runs").</li><li><strong>Batch size.</strong> In some settings LoRA pays more than FullFT as the batch grows, whatever the rank; the gap is smaller at batch 32. Both do best at small batches (R, "Batch size effects").</li><li><strong>Which layers.</strong> Attention-only LoRA underperforms MLP-only LoRA, even at equal parameter count (attention rank 256, 0.25B, against MLP rank 128, 0.24B, on Llama-3.1-8B); this holds for a dense model and an MoE (R, "Layers Where LoRA Is Applied").</li><li><strong>RL needs little capacity.</strong> LoRA matches FullFT for policy-gradient RL "even with ranks as low as 1" (R, "Reinforcement learning"). The argument: an episode with one reward at the end teaches about 1 bit, so 10,000 MATH problems × 32 samples is about 320,000 bits, against 3M parameters in a rank-1 LoRA on Llama-3.1-8B (same section). Larger runs on DeepMath with Qwen3-8B-Base agree (same).</li><li><strong>Compute.</strong> A LoRA forward-backward pass costs slightly more than two-thirds of FullFT's FLOPs (R, "Compute efficiency advantage of LoRA").</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>A company blog, not peer-reviewed; the company sells LoRA fine-tuning through Tinker.</li><li>Supervised results are log loss, not task scores; the authors chose this for clean curves (R, "What matters for LoRA").</li><li>The RL bits argument is an estimate; the authors say they cannot yet forecast exactly when LoRA matches FullFT (R, "Open questions").</li><li>LoRA can still lose to FullFT on datasets larger than its capacity, which is the pretraining-like regime (R, opening, "What matters for LoRA").</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-lora-low-rank-adaptation.html">source-lora-low-rank-adaptation</a>: the method; Hu et al. put LoRA on attention only, which this post finds weaker.</li><li><a href="source-on-policy-distillation.html">source-on-policy-distillation</a>: the companion post, which cites this one's bits-per-episode argument.</li><li><a href="source-inkling-thinking-machines.html">source-inkling-thinking-machines</a>: the wiki's older summary of both posts as Tinker recipes.</li><li><a href="concept-continual-learning.html">concept-continual-learning</a>: LoRA forgets less than FullFT but still forgets (<a href="source-on-policy-distillation.html">source-on-policy-distillation</a>).</li><li><span class="dead" title="not published">experiment-weights-vs-context</span>: the local run's weights channel used these settings.</li><li>Hub (2026-10-20): <a href="entity-thinking-machines.html">entity-thinking-machines</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/web-2025-thinkingmachines-lora-without-regret.md</code></li><li><a href="https://thinkingmachines.ai/blog/lora/" rel="noreferrer">https://thinkingmachines.ai/blog/lora/</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/web-2025-thinkingmachines-lora-without-regret.md</code></li><li><a href="https://thinkingmachines.ai/blog/lora/" rel="noreferrer">https://thinkingmachines.ai/blog/lora/</a></li></ul></details>
+</main>
+</body>
+</html>

@@ -160,9 +160,8 @@ pre.snippet{font-family:var(--mono);font-size:.8rem;line-height:1.5;background:v
 <footer>
   <p class="paths">module → <a href="../modules/00b-bayes-knn-pca/README.md">../modules/00b-bayes-knn-pca/README.md</a>
     · explorable → <a href="../explorables/00b-pca.html">../explorables/00b-pca.html</a></p>
-  <p>Track 0 runs before the Hugging Face course proper; the natural next reading once you have
-    finished Origins is Chapter 1 —
-    <a href="https://huggingface.co/learn/llm-course/chapter1">Transformer models</a>.
+  <p>Next in the course: <a href="../modules/00c-kernels-hopfield/README.md">module 00c</a> —
+    kernels, memory and the bridge to attention.
     Recommended alongside this track: Anil Ananthaswamy, <i>Why Machines Learn</i> (Dutton, 2024).</p>
 </footer>
 
@@ -297,7 +296,7 @@ const QUESTIONS = [
              "<code>test_power_iteration_handles_a_negative_dominant_eigenvalue</code> pins exactly this " +
              "case on <code>diag(−5, 1, 0.5)</code>. Option A is the near-miss: the sign really is " +
              "arbitrary, which is why the <i>comparison</i> has to be sign-blind rather than the iterate.",
-    source: "modules/00b-bayes-knn-pca/python/src/origins/pca.py:44-53 · python/tests/test_origins.py — test_power_iteration_handles_a_negative_dominant_eigenvalue"
+    source: "modules/00b-bayes-knn-pca/python/src/origins/pca.py:46-55 · python/tests/test_origins.py — test_power_iteration_handles_a_negative_dominant_eigenvalue"
   },
   /* ── 6 ───────────────────────────────────────────────── conceptual ── */
   {
@@ -369,16 +368,17 @@ const QUESTIONS = [
     options: [
       "The 40 components found by power iteration with deflation agree with <code>numpy.linalg.eigh</code> to a maximum eigenvector angle of 2.7e-06 degrees.",
       "The axes in the 2-D projection figure were found without using a single class label.",
-      "Truncating to k components loses exactly the sum of the discarded eigenvalues — which is why the measured reconstruction error lies on top of the eigenvalue-tail curve.",
+      "Truncating to k components loses exactly the sum of the discarded eigenvalues — which is why the measured <i>training</i> reconstruction error lies on top of the eigenvalue-tail curve.",
       "Deflation accumulates error, so by the 40th component the disagreement with <code>eigh</code> has grown to several degrees."
     ],
     answer: [0, 1, 2],
     explain: "The first three are measured or provable. The last is the plausible-sounding one and it is " +
              "false <i>here</i>: the maximum relative eigenvalue error over all 40 was 4.98e-15 and the " +
-             "worst angle 2.7e-06°. Deflation error does accumulate in principle — which is why " +
-             "production libraries use QR or Lanczos — but on 40 well-conditioned components of a " +
-             "784×784 covariance it stays at float noise.",
-    source: "modules/00b-bayes-knn-pca/python/scripts/pca_lab.py — part2() eigh cross-check · python/tests/test_origins.py — test_pca_power_matches_eigh_on_real_shaped_data · figures/pca_projection.png"
+             "worst angle 2.7e-06°. Deflation error does accumulate in principle, but on 40 components " +
+             "of a 784×784 covariance it stays tiny, even for the near-tied ones that took 3,390 " +
+             "iterations. On held-out images the error is close to the tail curve, not on it " +
+             "(0.00142 against 0.00119 at k = 400).",
+    source: "modules/00b-bayes-knn-pca/python/scripts/pca_lab.py — part2() eigh cross-check · python/pca_results.json · python/tests/test_origins.py — test_pca_power_matches_eigh_on_real_shaped_data · figures/pca_projection.png"
   },
   /* ── 10 ──────────────────────────────────────────────── conceptual ── */
   {

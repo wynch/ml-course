@@ -1,0 +1,448 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memory as a matrix — ml-course explorable</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+  :root{
+    --paper:#f6f8f7; --ink:#1c2422; --panel:#ffffff; --panel-2:#eef2f0;
+    --line:#d5ddda; --muted:#5d6b67; --accent:#1f918d;
+    --t6:#b7410e;
+    --attn:#453781; --lin:#7d8590; --decay:#b7410e; --delta:#1f918d; --gdelta:#c98a2e;
+    --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
+    --mono:"SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    --display:"Avenir Next","Helvetica Neue",sans-serif;
+    --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --panel-2:#222d29;
+      --line:#31403b; --muted:#9dada8; --accent:#37b3ae; --t6:#e7764a;
+      --attn:#9a8be0; --lin:#a3abb5; --decay:#e7764a; --delta:#37b3ae; --gdelta:#e0b25e;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink)}
+  body{font-family:var(--body);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 16px 64px}
+
+  header.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    padding:16px 0 14px;border-bottom:1px solid var(--line);margin-bottom:22px}
+  header.top h1{font-family:var(--display);font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .pill{font-family:var(--display);font-size:11.5px;font-weight:600;letter-spacing:.02em;
+    padding:3px 10px;border-radius:999px;color:#fff;background:var(--t6);white-space:nowrap}
+  .top .spacer{flex:1}
+  .backlink{font-size:13px;color:var(--muted);text-decoration:none;border-bottom:1px solid transparent}
+  .backlink:hover{color:var(--accent);border-bottom-color:var(--accent)}
+
+  .intro{max-width:78ch;font-size:15.5px;margin:0 0 26px}
+  .intro em{color:var(--accent);font-style:normal;font-weight:600}
+
+  section{margin:0 0 30px}
+  h2{font-family:var(--display);font-size:15px;font-weight:600;margin:0 0 4px;letter-spacing:.01em}
+  .sub{font-size:13px;color:var(--muted);margin:0 0 14px;max-width:80ch}
+  .sub code,.readout code{font-family:var(--mono);font-size:12px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    box-shadow:var(--shadow);padding:16px}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 12px;
+    padding:0 0 12px;border-bottom:1px solid var(--line)}
+  .seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;overflow:hidden;flex-wrap:wrap}
+  .seg button{font-family:var(--display);font-size:12px;font-weight:600;border:0;background:transparent;
+    color:var(--muted);padding:5px 11px;cursor:pointer}
+  .seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+  .seg button:focus-visible,.btn:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  .btn{font-family:var(--display);font-size:12px;font-weight:600;border:1.5px solid var(--line);
+    background:transparent;color:var(--ink);border-radius:999px;padding:4px 11px;cursor:pointer}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .hint{font-size:11.5px;color:var(--muted)}
+  .chip{font-family:var(--mono);font-size:11.5px;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:999px;padding:3px 10px;color:var(--muted)}
+  .chip b{color:var(--ink)}
+
+  .two{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:18px}
+  @media (max-width:820px){ .two{grid-template-columns:minmax(0,1fr)} }
+  svg{display:block;max-width:100%;height:auto}
+  svg text{font-family:var(--body);fill:var(--muted)}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:var(--muted);margin-top:6px}
+  .legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+  .panel-title{font-size:12px;color:var(--muted);margin:0 0 6px;font-family:var(--display);font-weight:600}
+
+  table.st{border-collapse:collapse;width:100%;font-size:13px}
+  table.st td,table.st th{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
+  table.st th{font-family:var(--display);font-size:12px;color:var(--muted);font-weight:600}
+  table.st td.num,table.st th.num{font-family:var(--mono);white-space:nowrap;text-align:right}
+  .tablewrap{overflow-x:auto}
+
+  .slider{display:grid;grid-template-columns:10em minmax(0,1fr) 5em;gap:8px;align-items:center;font-size:12.5px}
+  .slider span.v{font-family:var(--mono);font-size:12px;color:var(--ink)}
+  .sliders{display:flex;flex-direction:column;gap:6px;margin:0 0 12px}
+  input[type=range]{accent-color:var(--accent);width:100%}
+  label.tog{font-size:12.5px;display:inline-flex;gap:6px;align-items:center}
+  .readout{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:8px;min-height:19px}
+  .readout b{color:var(--ink)}
+
+  ul.notice-list{margin:0;padding-left:20px;font-size:14px}
+  ul.notice-list li{margin:6px 0}
+
+  footer.bot{border-top:1px solid var(--line);padding-top:14px;font-size:12.5px;color:var(--muted)}
+  footer.bot a{color:var(--accent)}
+  footer.bot .row{margin:4px 0}
+  footer.bot code{font-family:var(--mono);overflow-wrap:anywhere}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <h1>Memory as a matrix</h1>
+  <span class="pill">Module 27 · Other recipes</span>
+  <span class="spacer"></span>
+  <a class="backlink" href="index.html">← All explorables</a>
+</header>
+
+<p class="intro">
+  A recurrent layer can keep its state as a <em>matrix</em> S that stores values under keys: write a value v under a
+  key k, and later <code>S·k</code> returns it. How it writes decides what survives. <em>Linear attention</em> adds
+  <code>v kᵀ</code> on top of what is there. <em>Decay</em> first shrinks everything. The <em>delta rule</em> first
+  removes what S already returns for k, then writes v. Below: a memory small enough to see, then one of the
+  module's size, then what trained models and two real ones did.
+</p>
+
+<section>
+  <h2>1 · A memory you can see: keys of two numbers, values of one</h2>
+  <p class="sub">The state is a 1 × 2 matrix, drawn as an arrow. A key is a direction (an angle), a value is a
+    number from −1 to 1. Reading key k gives <code>S·k</code>: the curve shows what S returns for every direction.
+    Two numbers can hold two independent keys exactly, never three. Click the chart to write a pair at that angle
+    and height, or step through the preset list.</p>
+  <div class="card">
+    <div class="controls">
+      <span class="hint">rule</span>
+      <span class="seg" id="ruleseg">
+        <button aria-pressed="false">linear</button>
+        <button aria-pressed="false">decay</button>
+        <button aria-pressed="true">delta</button>
+        <button aria-pressed="false">gated delta</button>
+      </span>
+      <button class="btn" id="nextb">write next preset pair</button>
+      <button class="btn" id="resetb">reset</button>
+    </div>
+    <div class="sliders">
+      <label class="slider"><span>write strength β</span><input type="range" id="beta" min="0" max="100" value="100"><span class="v" id="betav"></span></label>
+      <label class="slider"><span>decay α (decay rules)</span><input type="range" id="alpha" min="50" max="100" value="80"><span class="v" id="alphav"></span></label>
+    </div>
+    <div class="two">
+      <div>
+        <p class="panel-title">What the state returns for each key direction (curve), against what was written (dots)</p>
+        <svg id="wave" viewBox="0 0 560 260" role="img" aria-label="Read value against key angle"></svg>
+      </div>
+      <div>
+        <p class="panel-title">The state S as an arrow; the keys written so far</p>
+        <svg id="arrow" viewBox="0 0 260 260" role="img" aria-label="State vector and keys"></svg>
+      </div>
+    </div>
+    <div class="tablewrap"><table class="st" id="pairtab"></table></div>
+    <div class="readout" id="pairread"></div>
+  </div>
+</section>
+
+<section>
+  <h2>2 · Many pairs in 32 dimensions: which ones survive</h2>
+  <p class="sub" id="capsub"></p>
+  <div class="card">
+    <div class="controls">
+      <span class="hint">rule</span>
+      <span class="seg" id="capseg">
+        <button aria-pressed="true">linear</button>
+        <button aria-pressed="false">decay</button>
+        <button aria-pressed="false">delta</button>
+        <button aria-pressed="false">gated delta</button>
+      </span>
+      <label class="tog"><input type="checkbox" id="corr"> correlated keys (cosine near 0.5)</label>
+    </div>
+    <div class="sliders">
+      <label class="slider"><span>pairs written n</span><input type="range" id="capn" min="1" max="128" value="64"><span class="v" id="capnv"></span></label>
+      <label class="slider"><span>write strength β</span><input type="range" id="capbeta" min="5" max="100" value="100"><span class="v" id="capbetav"></span></label>
+      <label class="slider"><span>decay α (decay rules)</span><input type="range" id="capalpha" min="80" max="100" value="95"><span class="v" id="capalphav"></span></label>
+    </div>
+    <p class="panel-title">Share of draws in which each pair is read back right, oldest on the left</p>
+    <svg id="age" viewBox="0 0 640 220" role="img" aria-label="Recall by age of the pair"></svg>
+    <div class="readout" id="capread"></div>
+  </div>
+</section>
+
+<section>
+  <h2>3 · Trained models: recall against the size of the state</h2>
+  <p class="sub" id="mqsub"></p>
+  <div class="card">
+    <div class="controls">
+      <span class="hint">head size d<sub>k</sub></span>
+      <span class="seg" id="dkseg"></span>
+    </div>
+    <div class="two">
+      <div>
+        <p class="panel-title">Query accuracy against pairs in the sequence (mean of seeds)</p>
+        <svg id="mqar" viewBox="0 0 520 280" role="img" aria-label="MQAR accuracy"></svg>
+        <div class="legend" id="mqlegend"></div>
+      </div>
+      <div>
+        <p class="panel-title">Four layers, heads of 8: where the one attention layer goes (hardest pair count)</p>
+        <svg id="hyb" viewBox="0 0 360 280" role="img" aria-label="Hybrid placement"></svg>
+      </div>
+    </div>
+    <div class="tablewrap"><table class="st" id="mqtab"></table></div>
+  </div>
+</section>
+
+<section>
+  <h2>4 · Two real models: what each keeps as the context grows</h2>
+  <p class="sub" id="libsub"></p>
+  <div class="card">
+    <div class="controls" style="border:0;padding:0;margin:0 0 10px">
+      <span class="hint">context</span>
+      <input type="range" id="ctx" min="0" max="1000" value="600" aria-label="context length" style="width:min(420px,100%)">
+      <span class="chip" id="ctxv"></span>
+    </div>
+    <svg id="libbars" viewBox="0 0 640 130" role="img" aria-label="Cache bytes"></svg>
+    <div class="tablewrap"><table class="st" id="libtab"></table></div>
+  </div>
+</section>
+
+<section>
+  <h2>What to notice</h2>
+  <div class="card"><ul class="notice-list" id="notice"></ul></div>
+</section>
+
+<footer class="bot">
+  <div class="row">Module: <code>../modules/27-memory-as-a-matrix/README.md</code></div>
+  <div class="row">Data: written into this page by <code>modules/27-memory-as-a-matrix/python/src/export_explorable.py</code>
+    from <code>results/capacity.json</code>, <code>mqar.json</code> and <code>library.json</code>. Sections 1 and 2 compute in
+    the page with the module's write rules.</div>
+  <div class="row">The state against the KV cache, token by token: <a href="18-beyond-attention.html">Beyond attention</a> (module 18).</div>
+</footer>
+</div>
+
+<script>
+/* BEGIN DATA: written by modules/27-memory-as-a-matrix/python/src/export_explorable.py; do not edit */
+const DATA = {"capacity":{"d_k":32,"rho":0.5,"alpha":0.95,"ns":[1,2,4,8,12,16,24,32,48,64,96,128],"curves":{"linear":{"recall":[1.0,1.0,1.0,1.0,1.0,1.0,0.9979,0.9891,0.9208,0.8297,0.6172,0.4566]},"decay, a = 0.95":{"recall":[1.0,1.0,1.0,1.0,1.0,0.9969,0.9104,0.7516,0.5427,0.4023,0.2734,0.1969]},"delta":{"recall":[1.0,1.0,1.0,0.9938,1.0,0.9781,0.9125,0.8094,0.5938,0.4672,0.2932,0.2215]},"gated delta, a = 0.95":{"recall":[1.0,1.0,1.0,0.9938,0.9667,0.9062,0.7208,0.5563,0.3698,0.2828,0.1859,0.1367]},"delta, 10 passes":{"recall":[1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.9922,0.7875,0.5406,0.3099,0.2313]}},"curves_correlated":{"linear":{"recall":[1.0,1.0,0.9875,0.7438,0.4875,0.3344,0.2875,0.1344,0.1,0.0609,0.0354,0.0289]},"decay, a = 0.95":{"recall":[1.0,1.0,0.9625,0.725,0.4542,0.3406,0.2292,0.1656,0.1135,0.0758,0.0547,0.0395]},"delta":{"recall":[1.0,0.95,0.7625,0.6188,0.5042,0.3719,0.3833,0.3063,0.2406,0.1938,0.1151,0.1035]},"gated delta, a = 0.95":{"recall":[1.0,0.9,0.65,0.4,0.3458,0.2156,0.1896,0.1328,0.0917,0.0727,0.0406,0.0332]},"delta, 10 passes":{"recall":[1.0,1.0,1.0,1.0,1.0,1.0,0.9938,0.9297,0.6677,0.4148,0.1776,0.127]}}},"mqar":{"pairs":[4,8,16,32,48],"T":128,"d_model":64,"steps":4000,"seeds":2,"grid":[{"rule":"linear","d_head":8,"state_bytes":4096,"mean":{"4":1.0,"8":0.997,"16":0.9411,"32":0.6678,"48":0.4293},"spread":{"4":0.0,"8":0.004,"16":0.0413,"32":0.1134,"48":0.1009}},{"rule":"decay","d_head":8,"state_bytes":4096,"mean":{"4":0.9992,"8":0.9931,"16":0.9122,"32":0.5901,"48":0.3677},"spread":{"4":0.0005,"8":0.0,"16":0.0285,"32":0.073,"48":0.0618}},{"rule":"delta","d_head":8,"state_bytes":4096,"mean":{"4":0.9995,"8":0.9925,"16":0.8985,"32":0.5782,"48":0.363},"spread":{"4":0.001,"8":0.0112,"16":0.0981,"32":0.1908,"48":0.1404}},{"rule":"gated_delta","d_head":8,"state_bytes":4096,"mean":{"4":0.9955,"8":0.9652,"16":0.7741,"32":0.3927,"48":0.2203},"spread":{"4":0.001,"8":0.0335,"16":0.1091,"32":0.1057,"48":0.0625}},{"rule":"linear","d_head":16,"state_bytes":8192,"mean":{"4":1.0,"8":0.9999,"16":0.9971,"32":0.9579,"48":0.8619},"spread":{"4":0.0,"8":0.0002,"16":0.0045,"32":0.0372,"48":0.1035}},{"rule":"decay","d_head":16,"state_bytes":8192,"mean":{"4":1.0,"8":1.0,"16":0.9978,"32":0.9649,"48":0.8657},"spread":{"4":0.0,"8":0.0001,"16":0.0029,"32":0.0354,"48":0.0728}},{"rule":"delta","d_head":16,"state_bytes":8192,"mean":{"4":1.0,"8":1.0,"16":0.9993,"32":0.975,"48":0.8842},"spread":{"4":0.0,"8":0.0,"16":0.0005,"32":0.0116,"48":0.0409}},{"rule":"gated_delta","d_head":16,"state_bytes":8192,"mean":{"4":1.0,"8":1.0,"16":0.9989,"32":0.9667,"48":0.8628},"spread":{"4":0.0,"8":0.0,"16":0.0008,"32":0.0123,"48":0.0252}},{"rule":"linear","d_head":32,"state_bytes":16384,"mean":{"4":1.0,"8":0.9999,"16":1.0,"32":0.9988,"48":0.9853},"spread":{"4":0.0,"8":0.0003,"16":0.0001,"32":0.0011,"48":0.0007}},{"rule":"decay","d_head":32,"state_bytes":16384,"mean":{"4":1.0,"8":1.0,"16":1.0,"32":0.9987,"48":0.9852},"spread":{"4":0.0,"8":0.0,"16":0.0,"32":0.0002,"48":0.0001}},{"rule":"delta","d_head":32,"state_bytes":16384,"mean":{"4":1.0,"8":1.0,"16":1.0,"32":0.9981,"48":0.9816},"spread":{"4":0.0,"8":0.0,"16":0.0,"32":0.0002,"48":0.0022}},{"rule":"gated_delta","d_head":32,"state_bytes":16384,"mean":{"4":1.0,"8":1.0,"16":1.0,"32":0.9987,"48":0.9857},"spread":{"4":0.0,"8":0.0,"16":0.0001,"32":0.0007,"48":0.0056}},{"rule":"attention","d_head":16,"state_bytes":131072,"mean":{"4":0.9999,"8":0.9999,"16":0.9999,"32":1.0,"48":1.0},"spread":{"4":0.0003,"8":0.0002,"16":0.0002,"32":0.0001,"48":0.0001}}],"hybrid":{"all_gated_delta":{"mean":{"4":0.0053,"8":0.0051,"16":0.0039,"32":0.0043,"48":0.0036},"spread":{"4":0.0017,"8":0.0002,"16":0.0014,"32":0.0014,"48":0.0004}},"all_attention":{"mean":{"4":0.9999,"8":0.9999,"16":1.0,"32":1.0,"48":1.0},"spread":{"4":0.0003,"8":0.0002,"16":0.0001,"32":0.0001,"48":0.0}},"attention_at_1":{"mean":{"4":0.9576,"8":0.7501,"16":0.4667,"32":0.2167,"48":0.127},"spread":{"4":0.082,"8":0.4512,"16":0.601,"32":0.316,"48":0.1833}},"attention_at_3":{"mean":{"4":0.4857,"8":0.3696,"16":0.1561,"32":0.0536,"48":0.0331},"spread":{"4":0.948,"8":0.7174,"16":0.291,"32":0.0931,"48":0.0543}}}},"library":{"contexts":[512,4096,16384],"models":{"qwen3":{"layers":"28 attention layers","bytes_per_token":114688.0,"fixed_bytes":0,"rows":{"512":{"cache_bytes":58720256,"prefill":0.122,"decode":62.7,"found":3,"trials":3},"4096":{"cache_bytes":469762048,"prefill":1.256,"decode":44.4,"found":3,"trials":3},"16384":{"cache_bytes":1879048192,"prefill":9.544,"decode":20.6,"found":3,"trials":3}}},"qwen3.5":{"layers":"18 Gated DeltaNet layers and 6 attention layers","bytes_per_token":12288.0,"fixed_bytes":19537920,"rows":{"512":{"cache_bytes":25829376,"prefill":0.203,"decode":59.8,"found":3,"trials":3},"4096":{"cache_bytes":69869568,"prefill":1.669,"decode":56.4,"found":3,"trials":3},"16384":{"cache_bytes":220864512,"prefill":7.163,"decode":65.6,"found":3,"trials":3}}}}},"notice":["In section 1, pick the delta rule with β = 1 and write pair #4 (0° again, a new value): the curve passes through the new value at 0°, and pair #1 is gone. Switch to linear: the read at 0° adds the old and new values, plus a share of pair #3 at 45°.","Still in section 1, write a third direction with the delta rule: one of the older pairs must blur. Two numbers hold two independent keys, never three.","In section 2, linear attention keeps every pair about equally well; the delta rule and decay keep the newest and lose the oldest. With random keys, linear attention reads more pairs back right at large n (module: 0.83 against 0.47 at 64 pairs).","Overwrite one key with a new value: the delta rule's read matches the new value (cosine 1.00); linear attention returns a blend (cosine 0.66 with the new value, 0.66 with the old).","In section 3, at heads of 32 and 48 pairs: linear 0.99, delta 0.98, gated delta 0.99. Compare the seed spreads in the table before reading anything into small gaps.","In section 4, slide the context: Qwen3-0.6B's cache grows by 114,688 bytes a token, Qwen3.5-0.8B's by 12,288 on top of a fixed 18.6 MB. At 16,384 tokens: 1.75 GB against 211 MB."]};
+/* END DATA */
+</script>
+<script>
+"use strict";
+(function(){
+const $=s=>document.querySelector(s);
+const NS="http://www.w3.org/2000/svg";
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);
+  for(const k in attrs) e.setAttribute(k,attrs[k]); if(parent) parent.appendChild(e); return e;}
+const fmt=n=>Math.round(n).toLocaleString("en-US");
+function bytes(b){ if(b<1024) return fmt(b)+" B"; if(b<1048576) return (b/1024).toFixed(1)+" KB";
+  if(b<1073741824) return (b/1048576).toFixed(1)+" MB"; return (b/1073741824).toFixed(2)+" GB"; }
+function segButtons(box,onPick){
+  box.querySelectorAll("button").forEach((b,i)=>b.addEventListener("click",()=>{
+    box.querySelectorAll("button").forEach((x,j)=>x.setAttribute("aria-pressed",j===i?"true":"false")); onPick(i); }));
+}
+const D=DATA;
+const RULES=[{key:"linear",name:"linear attention",delta:false,gated:false,color:"var(--lin)"},
+  {key:"decay",name:"decay",delta:false,gated:true,color:"var(--decay)"},
+  {key:"delta",name:"delta rule",delta:true,gated:false,color:"var(--delta)"},
+  {key:"gated_delta",name:"gated delta rule",delta:true,gated:true,color:"var(--gdelta)"}];
+const COLOR={attention:"var(--attn)",linear:"var(--lin)",decay:"var(--decay)",delta:"var(--delta)",gated_delta:"var(--gdelta)"};
+const NAME={attention:"softmax attention",linear:"linear attention",decay:"decay",delta:"delta rule",gated_delta:"gated delta rule"};
+
+/* ------------------------------------------------------------ 1 · two-number keys */
+const PRESET=[[0,0.8],[90,-0.6],[45,0.5],[0,-0.7],[135,0.9],[90,0.3]];
+let rule1=2, pairs=[], presetAt=0;
+function write(S,k,v,r,beta,alpha){
+  // S, k: arrays of length d; v: number (d_v = 1). Returns the new S.
+  const a=r.gated?alpha:1;
+  let s=S.map(x=>a*x);
+  let w=v;
+  if(r.delta){ w=v-s.reduce((t,x,i)=>t+x*k[i],0); }
+  return s.map((x,i)=>x+beta*w*k[i]);
+}
+function state1(){
+  const r=RULES[rule1], beta=+$("#beta").value/100, alpha=+$("#alpha").value/100;
+  let S=[0,0]; pairs.forEach(p=>{ S=write(S,p.k,p.v,r,beta,alpha); }); return S;
+}
+const keyOf=deg=>[Math.cos(deg*Math.PI/180),Math.sin(deg*Math.PI/180)];
+function draw1(){
+  $("#betav").textContent=(+$("#beta").value/100).toFixed(2);
+  $("#alphav").textContent=(+$("#alpha").value/100).toFixed(2);
+  const S=state1(), read=k=>S[0]*k[0]+S[1]*k[1];
+  const svg=$("#wave"); svg.innerHTML="";
+  const W=560,H=260,L=40,R=12,T=12,B=30;
+  const X=d=>L+(W-L-R)*d/180, Y=v=>T+(H-T-B)*(1-(v+1.25)/2.5);
+  [-1,-0.5,0,0.5,1].forEach(v=>{el("line",{x1:L,x2:W-R,y1:Y(v),y2:Y(v),stroke:"var(--line)"},svg);
+    el("text",{x:6,y:Y(v)+4,"font-size":10},svg).textContent=v;});
+  [0,45,90,135,180].forEach(d=>{el("text",{x:X(d)-8,y:H-10,"font-size":10},svg).textContent=d+"°";});
+  let path=""; for(let d=0;d<=180;d+=2){ const v=Math.max(-1.25,Math.min(1.25,read(keyOf(d)))); path+=(d?"L":"M")+X(d).toFixed(1)+" "+Y(v).toFixed(1); }
+  el("path",{d:path,fill:"none",stroke:RULES[rule1].color,"stroke-width":2.4},svg);
+  // only the latest pair under each angle is "current"
+  const latest={}; pairs.forEach((p,i)=>latest[p.deg]=i);
+  pairs.forEach((p,i)=>{
+    const cur=latest[p.deg]===i, rv=read(p.k);
+    el("line",{x1:X(p.deg),x2:X(p.deg),y1:Y(p.v),y2:Y(Math.max(-1.25,Math.min(1.25,rv))),stroke:"var(--muted)","stroke-dasharray":"3 3"},svg);
+    el("circle",{cx:X(p.deg),cy:Y(p.v),r:cur?5:3.5,fill:cur?"var(--ink)":"none",stroke:"var(--ink)","stroke-width":1.2,opacity:cur?1:0.5},svg);
+    el("text",{x:X(p.deg)+6,y:Y(p.v)-6,"font-size":10},svg).textContent="#"+(i+1);
+  });
+  el("text",{x:L,y:H-10+0,"font-size":10},svg);
+  const svg2=$("#arrow"); svg2.innerHTML="";
+  const c=130, rad=100;
+  el("circle",{cx:c,cy:c,r:rad,fill:"none",stroke:"var(--line)"},svg2);
+  el("line",{x1:c-rad,x2:c+rad,y1:c,y2:c,stroke:"var(--line)"},svg2); el("line",{x1:c,x2:c,y1:c-rad,y2:c+rad,stroke:"var(--line)"},svg2);
+  pairs.forEach((p,i)=>{ el("line",{x1:c,y1:c,x2:c+rad*p.k[0],y2:c-rad*p.k[1],stroke:"var(--muted)","stroke-width":1,"stroke-dasharray":"2 3"},svg2);
+    el("text",{x:c+(rad+8)*p.k[0]-6,y:c-(rad+8)*p.k[1]+4,"font-size":10},svg2).textContent="#"+(i+1); });
+  const sx=Math.max(-1.25,Math.min(1.25,S[0])), sy=Math.max(-1.25,Math.min(1.25,S[1]));
+  el("line",{x1:c,y1:c,x2:c+rad*sx,y2:c-rad*sy,stroke:RULES[rule1].color,"stroke-width":3},svg2);
+  el("circle",{cx:c+rad*sx,cy:c-rad*sy,r:4,fill:RULES[rule1].color},svg2);
+  let h="<thead><tr><th>pair</th><th class='num'>angle</th><th class='num'>value written</th><th class='num'>read now</th><th>status</th></tr></thead><tbody>";
+  pairs.forEach((p,i)=>{ const rv=read(p.k), cur=latest[p.deg]===i, ok=Math.abs(rv-p.v)<0.1;
+    h+="<tr><td>#"+(i+1)+"</td><td class='num'>"+p.deg+"°</td><td class='num'>"+p.v.toFixed(2)+"</td><td class='num'>"+rv.toFixed(2)+"</td><td>"+
+      (cur?(ok?"kept":"lost or blurred"):"replaced by a later pair at this angle")+"</td></tr>"; });
+  $("#pairtab").innerHTML=h+"</tbody>";
+  $("#pairread").innerHTML="S = [<b>"+S[0].toFixed(2)+"</b>, <b>"+S[1].toFixed(2)+"</b>] · rule: <b>"+RULES[rule1].name+"</b>"+
+    (pairs.length?" · the newest pair reads back "+read(pairs[pairs.length-1].k).toFixed(2)+" (written "+pairs[pairs.length-1].v.toFixed(2)+")":"");
+}
+segButtons($("#ruleseg"),i=>{rule1=i; draw1();});
+["beta","alpha"].forEach(id=>$("#"+id).addEventListener("input",draw1));
+$("#nextb").addEventListener("click",()=>{ const p=PRESET[presetAt%PRESET.length]; presetAt++;
+  pairs.push({deg:p[0],k:keyOf(p[0]),v:p[1]}); draw1(); });
+$("#resetb").addEventListener("click",()=>{pairs=[]; presetAt=0; draw1();});
+$("#wave").addEventListener("click",e=>{
+  const svg=$("#wave"), r=svg.getBoundingClientRect();
+  const x=(e.clientX-r.left)/r.width*560, y=(e.clientY-r.top)/r.height*260;
+  const deg=Math.round(Math.max(0,Math.min(180,(x-40)/(560-52)*180))/5)*5;
+  const v=Math.max(-1,Math.min(1,(1-(y-12)/(260-42))*2.5-1.25));
+  pairs.push({deg:deg,k:keyOf(deg),v:+v.toFixed(2)}); draw1();
+});
+
+/* ------------------------------------------------------------ 2 · 32 dimensions */
+const C=D.capacity, DK=C.d_k;
+let rule2=0;
+function rng(seed){ let s=seed>>>0||1; return ()=>{ s^=s<<13; s>>>=0; s^=s>>17; s^=s<<5; s>>>=0; return s/4294967296; }; }
+function gauss(r){ const u=Math.max(1e-12,r()), v=r(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+function unitv(a){ const n=Math.hypot(...a)||1; return a.map(x=>x/n); }
+function capRun(n,r,beta,alpha,corr,draws){
+  const hits=new Float64Array(n); const rand=rng(12345);
+  for(let t=0;t<draws;t++){
+    const c=unitv(Array.from({length:DK},()=>gauss(rand)));
+    const rho=corr?C.rho:0;
+    const K=[],V=[];
+    for(let i=0;i<n;i++){ const z=unitv(Array.from({length:DK},()=>gauss(rand)));
+      K.push(unitv(z.map((x,j)=>Math.sqrt(1-rho)*x+Math.sqrt(rho)*c[j]))); V.push(unitv(Array.from({length:DK},()=>gauss(rand)))); }
+    const S=Array.from({length:DK},()=>new Float64Array(DK));      // S[row = value dim][col = key dim]
+    const a=r.gated?alpha:1;
+    for(let i=0;i<n;i++){
+      const k=K[i];
+      for(let p=0;p<DK;p++) for(let q=0;q<DK;q++) S[p][q]*=a;
+      const w=V[i].slice();
+      if(r.delta) for(let p=0;p<DK;p++){ let s=0; for(let q=0;q<DK;q++) s+=S[p][q]*k[q]; w[p]-=s; }
+      for(let p=0;p<DK;p++) for(let q=0;q<DK;q++) S[p][q]+=beta*w[p]*k[q];
+    }
+    for(let i=0;i<n;i++){
+      const out=new Float64Array(DK); for(let p=0;p<DK;p++){ let s=0; for(let q=0;q<DK;q++) s+=S[p][q]*K[i][q]; out[p]=s; }
+      let best=-1,bv=-Infinity; for(let j=0;j<n;j++){ let s=0; for(let p=0;p<DK;p++) s+=out[p]*V[j][p]; if(s>bv){bv=s;best=j;} }
+      if(best===i) hits[i]+=1;
+    }
+  }
+  return Array.from(hits,h=>h/draws);
+}
+function draw2(){
+  const n=+$("#capn").value, beta=+$("#capbeta").value/100, alpha=+$("#capalpha").value/100, corr=$("#corr").checked;
+  $("#capnv").textContent=n; $("#capbetav").textContent=beta.toFixed(2); $("#capalphav").textContent=alpha.toFixed(2);
+  const r=RULES[rule2], draws=n>64?10:20, ys=capRun(n,r,beta,alpha,corr,draws);
+  const svg=$("#age"); svg.innerHTML="";
+  const W=640,H=220,L=34,R=8,T=10,B=26, bw=(W-L-R)/n;
+  [0,0.5,1].forEach(v=>{ const y=T+(H-T-B)*(1-v); el("line",{x1:L,x2:W-R,y1:y,y2:y,stroke:"var(--line)"},svg);
+    el("text",{x:4,y:y+4,"font-size":10},svg).textContent=v; });
+  ys.forEach((v,i)=>el("rect",{x:L+i*bw+0.5,y:T+(H-T-B)*(1-v),width:Math.max(0.8,bw-1),height:(H-T-B)*v,fill:r.color},svg));
+  el("text",{x:L,y:H-6,"font-size":10},svg).textContent="oldest pair";
+  el("text",{x:W-R-64,y:H-6,"font-size":10},svg).textContent="newest pair";
+  const mean=ys.reduce((s,v)=>s+v,0)/n;
+  // the module's own number, when the settings match capacity.py
+  const lab={linear:"linear",decay:"decay, a = 0.95",delta:"delta",gated_delta:"gated delta, a = 0.95"}[r.key];
+  const curves=corr?C.curves_correlated:C.curves, idx=C.ns.indexOf(n);
+  let py="";
+  if(idx>=0 && beta===1 && (!r.gated || Math.abs(alpha-C.alpha)<1e-9)) py=" · capacity.py, 20 draws, same settings: <b>"+curves[lab].recall[idx].toFixed(2)+"</b>";
+  $("#capread").innerHTML="share read back right, all "+n+" pairs ("+draws+" draws in the page): <b>"+mean.toFixed(2)+"</b>"+py;
+}
+$("#capsub").innerHTML="The size of the module's section 1: keys and values are random unit vectors of "+DK+" numbers, so the state holds "+
+  fmt(DK*DK)+" numbers. A pair counts as read back right when what the state returns lies closer to its own value than to any "+
+  "other value written. Computed here, in the page, with fewer draws than <code>capacity.py</code>; the readout gives the module's own number when the settings match one of its points.";
+segButtons($("#capseg"),i=>{rule2=i; draw2();});
+["capn","capbeta","capalpha"].forEach(id=>$("#"+id).addEventListener("change",draw2));
+["capn","capbeta","capalpha"].forEach(id=>$("#"+id).addEventListener("input",()=>{
+  $("#capnv").textContent=$("#capn").value; $("#capbetav").textContent=(+$("#capbeta").value/100).toFixed(2);
+  $("#capalphav").textContent=(+$("#capalpha").value/100).toFixed(2); }));
+$("#corr").addEventListener("change",draw2);
+
+/* ------------------------------------------------------------ 3 · MQAR */
+const Q=D.mqar, DKS=[...new Set(Q.grid.filter(g=>g.rule!=="attention").map(g=>g.d_head))].sort((a,b)=>a-b);
+let dk=DKS[Math.min(1,DKS.length-1)];
+$("#dkseg").innerHTML=DKS.map(d=>"<button aria-pressed='"+(d===dk?"true":"false")+"'>"+d+"</button>").join("");
+segButtons($("#dkseg"),i=>{dk=DKS[i]; draw3();});
+$("#mqsub").innerHTML="Each model trained from scratch on multi-query associative recall: "+Q.T+"-token sequences holding "+
+  Q.pairs[0]+" to "+Q.pairs[Q.pairs.length-1]+" key-value pairs, then queries; two layers of width "+Q.d_model+", "+fmt(Q.steps)+
+  " steps, "+Q.seeds+" seeds each. Pick the head size: a larger head is a larger state. Softmax attention keeps every key and value (its cache), so it does not depend on this choice; it is drawn for comparison.";
+function draw3(){
+  const svg=$("#mqar"); svg.innerHTML="";
+  const W=520,H=280,L=40,R=12,T=10,B=34, P=Q.pairs;
+  const X=i=>L+(W-L-R)*i/(P.length-1), Y=v=>T+(H-T-B)*(1-v);
+  [0,0.25,0.5,0.75,1].forEach(v=>{ el("line",{x1:L,x2:W-R,y1:Y(v),y2:Y(v),stroke:"var(--line)"},svg);
+    el("text",{x:6,y:Y(v)+4,"font-size":10},svg).textContent=v; });
+  P.forEach((p,i)=>el("text",{x:X(i)-6,y:H-14,"font-size":10},svg).textContent=p);
+  el("text",{x:L,y:H-2,"font-size":10},svg).textContent="key-value pairs in the sequence";
+  const rows=Q.grid.filter(g=>g.d_head===dk||g.rule==="attention");
+  rows.forEach(g=>{
+    const d=P.map((p,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(g.mean[p]).toFixed(1)).join(" ");
+    el("path",{d:d,fill:"none",stroke:COLOR[g.rule],"stroke-width":2.2,"stroke-dasharray":g.rule==="attention"?"5 3":""},svg);
+    P.forEach((p,i)=>el("circle",{cx:X(i),cy:Y(g.mean[p]),r:3,fill:COLOR[g.rule]},svg));
+  });
+  $("#mqlegend").innerHTML=rows.map(g=>"<span><i style='background:"+COLOR[g.rule]+"'></i>"+NAME[g.rule]+"</span>").join("");
+  const last=P[P.length-1];
+  let h="<thead><tr><th>mixer</th><th class='num'>head size</th><th class='num'>bytes kept between tokens</th><th class='num'>accuracy at "+last+" pairs</th><th class='num'>seed spread</th></tr></thead><tbody>";
+  rows.forEach(g=>{ h+="<tr><td>"+NAME[g.rule]+"</td><td class='num'>"+g.d_head+"</td><td class='num'>"+fmt(g.state_bytes)+(g.rule==="attention"?" (at "+Q.T+" tokens)":"")+
+    "</td><td class='num'>"+g.mean[last].toFixed(3)+"</td><td class='num'>"+g.spread[last].toFixed(3)+"</td></tr>"; });
+  $("#mqtab").innerHTML=h+"</tbody>";
+  const hs=$("#hyb"); hs.innerHTML="";
+  const HB=Q.hybrid, order=["all_gated_delta","attention_at_1","attention_at_3","all_attention"];
+  const lab=["4 × gated delta","attention 2nd","attention 4th","4 × attention"];
+  const HL=8,HT=20,HH=280-40, bw=(360-HL-8)/order.length;
+  [0,0.5,1].forEach(v=>{ const y=HT+(HH-HT)*(1-v); el("line",{x1:HL,x2:352,y1:y,y2:y,stroke:"var(--line)"},hs); });
+  order.forEach((k,i)=>{ if(!HB[k]) return; const v=HB[k].mean[last], y=HT+(HH-HT)*(1-v);
+    el("rect",{x:HL+i*bw+6,y:y,width:bw-12,height:HH-y,fill:k==="all_attention"?COLOR.attention:k==="all_gated_delta"?COLOR.gated_delta:"var(--accent)"},hs);
+    el("text",{x:HL+i*bw+6,y:y-4,"font-size":10},hs).textContent=v.toFixed(2);
+    const t=el("text",{x:HL+i*bw+bw/2,y:HH+12,"font-size":9,"text-anchor":"middle"},hs); t.textContent=lab[i];
+  });
+}
+
+/* ------------------------------------------------------------ 4 · library */
+const LB=D.library;
+function cacheAt(m,T){ return m.fixed_bytes+m.bytes_per_token*T; }
+$("#libsub").innerHTML="Qwen3.5-0.8B: "+LB.models["qwen3.5"].layers+". Qwen3-0.6B: "+LB.models.qwen3.layers+
+  ". Both with 4-bit weights on MLX. The bars come from each model's measured bytes per token and fixed part; the table gives what the module measured.";
+function draw4(){
+  const T=Math.round(Math.exp(Math.log(16)+(+$("#ctx").value/1000)*(Math.log(131072)-Math.log(16))));
+  $("#ctxv").innerHTML="T = <b>"+fmt(T)+"</b> tokens";
+  const svg=$("#libbars"); svg.innerHTML="";
+  const ms=[["qwen3","Qwen3-0.6B",COLOR.attention],["qwen3.5","Qwen3.5-0.8B",COLOR.gated_delta]];
+  const vals=ms.map(m=>cacheAt(LB.models[m[0]],T)), mx=Math.max(...vals);
+  ms.forEach((m,i)=>{ const y=10+i*56, w=Math.max(1.5,(640-170)*vals[i]/mx);
+    el("text",{x:0,y:y+12,"font-size":11},svg).textContent=m[1];
+    el("rect",{x:0,y:y+18,width:640-170,height:18,rx:3,fill:"var(--panel-2)"},svg);
+    el("rect",{x:0,y:y+18,width:w,height:18,rx:3,fill:m[2]},svg);
+    const t=el("text",{x:640-164,y:y+32,"font-size":11},svg); t.textContent=bytes(vals[i]); t.style.fill="var(--ink)"; });
+  let h="<thead><tr><th>model</th><th class='num'>context</th><th class='num'>cache measured</th><th class='num'>prefill s (median)</th><th class='num'>new tokens per s (median)</th><th class='num'>pass code found</th></tr></thead><tbody>";
+  ms.forEach(m=>{ const M=LB.models[m[0]];
+    LB.contexts.forEach(c=>{ const r=M.rows[c]; h+="<tr><td>"+m[1]+"</td><td class='num'>"+fmt(c)+"</td><td class='num'>"+bytes(r.cache_bytes)+
+      "</td><td class='num'>"+r.prefill.toFixed(2)+"</td><td class='num'>"+r.decode.toFixed(1)+"</td><td class='num'>"+r.found+" of "+r.trials+"</td></tr>"; }); });
+  $("#libtab").innerHTML=h+"</tbody>";
+}
+$("#ctx").addEventListener("input",draw4);
+
+$("#notice").innerHTML=D.notice.map(s=>"<li>"+s+"</li>").join("");
+
+for(let i=0;i<3;i++){ const p=PRESET[i]; pairs.push({deg:p[0],k:keyOf(p[0]),v:p[1]}); } presetAt=3;
+draw1(); draw2(); draw3(); draw4();
+})();
+</script>

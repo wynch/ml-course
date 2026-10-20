@@ -198,7 +198,8 @@ const QUESTIONS = [
     answer: 0,
     explain: "At n = 3: least squares 0.417, net 0.488, one gradient step 0.732, 3-NN 1.538. Three pairs still pin " +
              "down part of w, so the error is well below 1. With w drawn from N(0, I), the minimum-norm least-squares " +
-             "guess is the best possible here, and the net comes close to it; 3-NN, which ignores that the rule is " +
+             "guess is the best possible here (it is the average of every w that fits the pairs, weighted by the " +
+             "prior), and the net comes close to it; 3-NN, which ignores that the rule is " +
              "linear, does worse than guessing 0.",
     source: "modules/20-in-context-learning/results/icl.json → mse_over_d · figures/icl.png",
     tryIt: { href: "../explorables/20-in-context-learning.html", label: "try it — panel 2, set n to 3" }
@@ -244,7 +245,7 @@ const QUESTIONS = [
     ],
     answer: 2,
     explain: "1.83. The net has only ever seen prompts that hold a rule, so it fits one to whatever pairs it gets and " +
-             "guesses with confidence. The control net, trained on such prompts, learned to guess 0 instead.",
+             "guesses with confidence. The control net, trained on shuffled prompts, learned to guess 0 instead.",
     source: "modules/20-in-context-learning/results/icl.json → mse_over_d.main_net_on_shuffled",
     tryIt: { href: "../explorables/20-in-context-learning.html", label: "try it — panel 1, “shuffle the y values”" }
   },
@@ -329,9 +330,10 @@ const QUESTIONS = [
     id: "q9", kind: "numeric", tag: "numbers", topic: "What one example buys",
     text: "SmolLM2-360M-Instruct scores 79.4% on the 872 SST-2 sentences with no example and 88.6% with one. " +
           "<b>Type the gain in points</b>, to one decimal.",
-    answer: 9.2, tol: 0.1, tolLabel: "± 0.1",
+    answer: 9.3, tol: 0.15, tolLabel: "± 0.15",
     placeholder: "e.g. 5.0",
-    explain: "88.6 − 79.4 = 9.2. Four and eight examples add nothing the intervals can tell apart (87.7%, 88.9%). " +
+    explain: "773 − 692 = 81 of 872 sentences, 9.3 points (88.6 − 79.4 = 9.2 from the rounded figures). " +
+             "Four and eight examples add nothing the intervals can tell apart (87.7%, 88.9%). " +
              "With no example the model says “negative” two times in three; with one, its answers split about evenly.",
     source: "modules/20-in-context-learning/results/fewshot.json → conditions · figures/fewshot.png"
   },
@@ -365,7 +367,7 @@ function gradeSingle(q, ans) { return typeof ans === "number" && ans === q.answe
 function gradeMulti(q, ans) { return Array.isArray(ans) && sameSet(ans, q.answer); }
 function gradeNumeric(q, ans) {
   const v = typeof ans === "number" ? ans : parseFloat(String(ans).replace(/[\s,_]/g, ""));
-  return isFinite(v) && Math.abs(v - q.answer) <= q.tol;
+  return isFinite(v) && Math.abs(v - q.answer) <= q.tol + 1e-9;
 }
 function gradeQuestion(q, ans) {
   if (ans === undefined || ans === null) return false;

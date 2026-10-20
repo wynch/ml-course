@@ -197,7 +197,7 @@ var QUESTIONS = [
     prompt: "The forward process noises <code>x0</code> one small step at a time, yet module 09 never simulates those steps — <code>Diffusion.q_sample</code> jumps straight to any timestep <code>t</code>. What makes that shortcut <em>exact</em> rather than an approximation?",
     options: [
       "The <code>β_t</code> are tiny, so the drift from skipping the intermediate steps stays below float32 precision.",
-      "A sum of Gaussians is Gaussian, so composing <code>t</code> noising steps collapses into one draw: <code>x_t = √ᾱ_t·x0 + √(1−ᾱ_t)·ε</code>.",
+      "A sum of independent Gaussian draws is Gaussian, so composing <code>t</code> noising steps collapses into one draw: <code>x_t = √ᾱ_t·x0 + √(1−ᾱ_t)·ε</code>.",
       "The denoiser memorises <code>x_t</code> for every <code>t</code> during training, so later timesteps can be looked up instead of simulated.",
       "<code>ᾱ_t</code> is a learned parameter, fitted during training to match the true multi-step marginal."
     ],
@@ -219,7 +219,7 @@ var QUESTIONS = [
     ],
     answer: 0,
     explain: "Three lines above the loss: <code>noise = torch.randn_like(x0)</code> then <code>x_t = diffusion.q_sample(x0, t, noise)</code> — the very same tensor is the target. Option B is the tempting distractor because <code>x0</code>-prediction is a genuine alternative parameterisation, but this module trains ε-prediction, identically in 2D and in <code>ddpm_mnist.py</code>. Option D would carry no signal at all.",
-    src: "modules/09-diffusion/python/src/toy2d.py, train_toy() lines 103-115"
+    src: "modules/09-diffusion/python/src/toy2d.py, train_toy() lines 103-116"
   },
   {
     id: "q3",
@@ -235,7 +235,7 @@ var QUESTIONS = [
     ],
     answer: 2,
     explain: "<code>src/toy2d.py</code> is explicit: <code>vec = -eps  # denoising direction</code>, and the README calls it “proportional to the score of the noised data”. Option B is tempting because the schedule really is fixed — but this field is the <em>only</em> learned object in the whole 2D pipeline; a network that had learned nothing would produce arrows that mean nothing.",
-    src: "modules/09-diffusion/python/src/toy2d.py, vector_field() line 141; figures/vector_field.png"
+    src: "modules/09-diffusion/python/src/toy2d.py, vector_field() line 142; figures/vector_field.png"
   },
   {
     id: "q4",
@@ -248,11 +248,11 @@ var QUESTIONS = [
       "<code>DenoiseMLP.time_mlp</code> — the two <code>nn.Linear(64, 64)</code> layers sitting on top of the time embedding.",
       "<code>SinusoidalTimeEmbedding</code> — the sin/cos features of the timestep <code>t</code>.",
       "<code>betas</code> / <code>alphas_cumprod</code> — the cosine noise schedule.",
-      "The fresh noise <code>torch.randn_like(x_t)</code> injected at each reverse step."
+      "The fresh noise <code>torch.randn(x_t.shape, …)</code> injected at each reverse step."
     ],
     answer: [0, 1],
     explain: "<code>SinusoidalTimeEmbedding.__init__</code> stores only <code>self.dim</code> — it is pure arithmetic, exactly like transformer positional encodings, which is why all 50,178 parameters live in <code>time_mlp</code> (8,320) and <code>net</code> (41,858). The schedule is precomputed once in <code>Diffusion.from_schedule</code> and never sees a gradient; the sampling noise is drawn, not fitted. The time embedding is the seductive wrong pick — it <em>feeds</em> the network but holds nothing.",
-    src: "modules/09-diffusion/python/src/embeddings.py lines 16-32; src/toy2d.py DenoiseMLP lines 54-72; src/schedules.py from_schedule() lines 71-84"
+    src: "modules/09-diffusion/python/src/embeddings.py lines 16-32; src/toy2d.py DenoiseMLP lines 54-72; src/schedules.py from_schedule() lines 85-98"
   },
   {
     id: "q5",
@@ -267,7 +267,7 @@ var QUESTIONS = [
       "cosine <code>0.05</code>, linear <code>0.02</code> — the two <code>β</code> endpoints"
     ],
     answer: 0,
-    explain: "Linear's <code>β</code> range (<code>1e-4 → 0.02</code>) was tuned for <code>T = 1000</code>; at <code>T = 200</code> it stalls at <code>√ᾱ = 0.364</code> — still ~36% signal, the spiral plainly visible — while cosine reaches <code>2.5e-4</code>. Option C is the tempting one (“<code>t = 199</code> is the end, so it must be pure noise”), but the endpoint depends on the schedule <em>and</em> on <code>T</code>. That mismatch is exactly why sampling from <code>N(0, I)</code> under the linear schedule starts somewhere the model never saw.",
+    explain: "Linear's <code>β</code> range (<code>1e-4 → 0.02</code>) was tuned for <code>T = 1000</code>; at <code>T = 200</code> it stalls at <code>√ᾱ = 0.364</code> — the data still at ~36% of its scale, the spiral plainly visible — while cosine reaches <code>2.5e-4</code>. Option C is the tempting one (“<code>t = 199</code> is the end, so it must be pure noise”), but the endpoint depends on the schedule <em>and</em> on <code>T</code>. That mismatch is exactly why sampling from <code>N(0, I)</code> under the linear schedule starts somewhere the model never saw.",
     src: "explorables/09-diffusion.html § “What to notice”, bullet 2; python/src/schedules.py linear/cosine_beta_schedule",
     tryIt: true
   },
@@ -294,7 +294,7 @@ var QUESTIONS = [
       "Degraded samples: at <code>t = 199</code> the linear forward process still leaves the spiral visible, so pure <code>N(0, I)</code> is a starting point the denoiser was never trained on."
     ],
     answer: 3,
-    explain: "The bug is a <em>train/sample mismatch</em> at the top of the chain: the model has only ever seen <code>x_199</code> that still contains 36% signal, and you hand it something with none. Option B is the tempting one — extra signal during training is harmless, even helpful; the damage is done at the <em>start of sampling</em>. Nothing diverges (C): training stays perfectly stable, the samples just come out wrong. Swapping the schedule and comparing the two reverse GIFs is exercise (b).",
+    explain: "The bug is a <em>train/sample mismatch</em> at the top of the chain: the model has only ever seen <code>x_199</code> with the data still at 36% of its scale, and you hand it pure noise. Option B is the tempting one — extra signal during training is harmless, even helpful; the damage is done at the <em>start of sampling</em>. Nothing diverges (C): training stays perfectly stable, the samples just come out wrong. Swapping the schedule and comparing the two reverse GIFs is exercise (b). The image DDPM in <code>run_ddpm.py</code> had the same flaw at <code>T = 300</code> (<code>√ᾱ_T = 0.22</code>) until its linear range was scaled by <code>1000 / T</code>.",
     src: "modules/09-diffusion/README.md § Exercises (b); explorables/09-diffusion.html § “What to notice”, bullet 2; figures/ex_b_linear.gif vs ex_b_cosine.gif",
     tryIt: true
   },
@@ -312,7 +312,7 @@ var QUESTIONS = [
     ],
     answer: 2,
     explain: "Two independent sources of randomness — the initial draw and the noise re-injected at every one of the 199 non-final steps. Option A is the tempting misconception: the <em>network</em> is deterministic, but the network is only half the model; ancestral sampling is stochastic by construction, which is what makes it a sampler and not a decoder. Option D overshoots: the runs differ but the distribution they draw from does not. Turn on <code>trails</code> in the explorable to see the divergent paths converge on one spiral.",
-    src: "modules/09-diffusion/python/src/schedules.py p_sample_step/p_sample_loop lines 107-142; explorables/09-diffusion.html § “What to notice”, bullet 4",
+    src: "modules/09-diffusion/python/src/schedules.py p_sample_step/p_sample_loop lines 121-170; explorables/09-diffusion.html § “What to notice”, bullet 4",
     tryIt: true
   },
   {
@@ -321,7 +321,7 @@ var QUESTIONS = [
     topic: "the reverse (ancestral) sampling step",
     kind: "single",
     file: "src/schedules.py  ·  Diffusion.p_sample_step",
-    code: "beta_t  = self.betas[t]\nalpha_t = self.alphas[t]\nsqrt_om = self.sqrt_one_minus_alphas_cumprod[t]\n\n# mean of p(x_{t-1} | x_t): subtract the predicted noise, rescale.\nmean = (x_t - beta_t / sqrt_om * eps) / torch.sqrt(alpha_t)\nif t == 0:\n    return mean\nnoise = torch.randn_like(x_t)\nreturn mean + torch.sqrt(beta_t) * noise",
+    code: "beta_t  = self.betas[t]\nalpha_t = self.alphas[t]\nsqrt_om = self.sqrt_one_minus_alphas_cumprod[t]\n\n# mean of p(x_{t-1} | x_t): subtract the predicted noise, rescale.\nmean = (x_t - beta_t / sqrt_om * eps) / torch.sqrt(alpha_t)\nif t == 0:\n    return mean\nnoise = torch.randn(x_t.shape, device=x_t.device, dtype=x_t.dtype,\n                    generator=generator)\nreturn mean + torch.sqrt(beta_t) * noise",
     prompt: "What breaks if the two-line <code>if t == 0: return mean</code> guard is deleted?",
     options: [
       "Nothing measurable — <code>β_0</code> is so small that the extra noise vanishes in rounding.",
@@ -331,7 +331,7 @@ var QUESTIONS = [
     ],
     answer: 1,
     explain: "That guard is what makes the last step a <em>pure</em> denoise. Option A is the tempting one and it is quantitatively wrong here: for the cosine schedule at <code>T = 200</code>, <code>β_0 ≈ 2.55e-4</code>, so <code>√β_0 ≈ 0.016</code> — small, but permanent, on data normalised to unit scale. Option C confuses the guard with the loop bound: termination comes from <code>for t in reversed(range(self.timesteps))</code>, nothing else.",
-    src: "modules/09-diffusion/python/src/schedules.py lines 115-126 (unused acp_t line and one comment trimmed)"
+    src: "modules/09-diffusion/python/src/schedules.py lines 134-146 (unused acp_t line and one comment trimmed)"
   },
   {
     id: "q10",
@@ -343,8 +343,8 @@ var QUESTIONS = [
     prompt: "The model is built with <code>ch = 32</code>. How many channels does <code>torch.cat([u, h2], dim=1)</code> hand to <code>self.u2</code>?",
     options: ["32", "64", "128", "256"],
     answer: 2,
-    explain: "<code>u</code> arrives from the bottleneck with <code>ch*2 = 64</code> channels and <code>h2</code> is the encoder skip at <code>ch*2 = 64</code>, so the concatenation is 128 — which is precisely why the layer is declared <code>ResBlock(ch*2 + ch*2, ch*2, time_dim)</code>. 64 is the tempting answer if you read <code>cat</code> as an add rather than a concat; the whole point of the skip is that the decoder sees the coarse features <em>and</em> the matching-resolution encoder features side by side. This is the 376,833-parameter net that reaches recognizable FashionMNIST samples in 4.2 min on an M5.",
-    src: "modules/09-diffusion/python/src/ddpm_mnist.py lines 64-69 (re-aligned) and the u2 declaration on line 56; README.md “params: 376,833 … trained in 4.2 min”"
+    explain: "<code>u</code> arrives from the bottleneck with <code>ch*2 = 64</code> channels and <code>h2</code> is the encoder skip at <code>ch*2 = 64</code>, so the concatenation is 128 — which is precisely why the layer is declared <code>ResBlock(ch*2 + ch*2, ch*2, time_dim)</code>. 64 is the tempting answer if you read <code>cat</code> as an add rather than a concat; the whole point of the skip is that the decoder sees the coarse features <em>and</em> the matching-resolution encoder features side by side. This is the 376,833-parameter net that reaches recognizable FashionMNIST samples in 3.1 min of training on an M5.",
+    src: "modules/09-diffusion/python/src/ddpm_mnist.py lines 64-69 (re-aligned) and the u2 declaration on line 56; README.md “params: 376,833 … trained in 3.1 min”; results/ddpm.json"
   }
 ];
 
@@ -368,7 +368,7 @@ function gradeQuestion(q, ans) {
   if (q.kind === "multi") return Array.isArray(ans) && sameSet(ans, q.answer);
   if (q.kind === "numeric") {
     var v = parseNum(ans);
-    return isFinite(v) && Math.abs(v - q.answer.value) <= q.answer.tol;
+    return isFinite(v) && Math.abs(v - q.answer.value) <= q.answer.tol + 1e-9;
   }
   return false;
 }

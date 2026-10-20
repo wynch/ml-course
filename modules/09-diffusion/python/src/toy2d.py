@@ -86,8 +86,9 @@ class DenoiseMLP(nn.Module):
 # --------------------------------------------------------------------------- #
 # Training: the DDPM objective is just MSE between true and predicted noise.
 # --------------------------------------------------------------------------- #
-def train_toy(model, diffusion, data, *, epochs=2000, batch=256, lr=2e-3,
+def train_toy(model, diffusion, data, *, steps=2000, batch=256, lr=2e-3,
               device="cpu", labels=None, cfg_drop=0.0, log_every=200, seed=0):
+    """Train for ``steps`` optimizer steps, each on one random batch."""
     torch.manual_seed(seed)
     model.to(device).train()
     data = torch.as_tensor(data, device=device)
@@ -96,7 +97,7 @@ def train_toy(model, diffusion, data, *, epochs=2000, batch=256, lr=2e-3,
     opt = torch.optim.Adam(model.parameters(), lr=lr)
     n = data.shape[0]
     losses = []
-    for epoch in range(epochs):
+    for step in range(steps):
         idx = torch.randint(0, n, (batch,), device=device)
         x0 = data[idx]
         t = torch.randint(0, diffusion.timesteps, (batch,), device=device)
@@ -117,8 +118,8 @@ def train_toy(model, diffusion, data, *, epochs=2000, batch=256, lr=2e-3,
         loss.backward()
         opt.step()
         losses.append(loss.item())
-        if log_every and (epoch % log_every == 0 or epoch == epochs - 1):
-            print(f"epoch {epoch:5d}/{epochs} | loss {loss.item():.4f}")
+        if log_every and (step % log_every == 0 or step == steps - 1):
+            print(f"step {step:5d}/{steps} | loss {loss.item():.4f}")
     model.eval()
     return losses
 

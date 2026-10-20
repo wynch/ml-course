@@ -12,8 +12,8 @@ validation set out of train.
 
     uv run python ../exercises/exercise_c_swap_dataset.py
 
-Fill in the marked lines. Expected: >97% val accuracy in well under a minute on
-an M-series Mac with the small subset below.
+Fill in the marked lines. Expected: about 96% validation and test accuracy in
+under a minute on an M-series Mac with the small subset below.
 """
 from __future__ import annotations
 

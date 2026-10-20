@@ -10,9 +10,10 @@ Recall is a physics problem. Define the energy
 
     E(s) = −½ sᵀWs
 
-and update one neuron at a time, sᵢ ← sign((Ws)ᵢ). Each such flip can only
-*lower* E — the change is ΔE = −Δsᵢ·(Ws)ᵢ, and the update chooses the sign of
-sᵢ that makes that product positive — so the state slides downhill and stops.
+and update one neuron at a time, sᵢ ← sign((Ws)ᵢ). No such flip can *raise*
+E — the change is ΔE = −Δsᵢ·(Ws)ᵢ, and the update chooses the sign of sᵢ that
+makes that product positive, or zero when (Ws)ᵢ = 0 — so the state slides
+downhill and stops.
 Stored patterns are (nearly) the local minima, which is why a corrupted input
 rolls into the clean original. That is content-addressable memory: you address
 the store with a piece of the content rather than an index.
@@ -42,7 +43,10 @@ def hebbian_weights(patterns: np.ndarray) -> np.ndarray:
 
 
 def energy(W: np.ndarray, s: np.ndarray) -> float:
-    """E(s) = −½ sᵀWs. Every accepted asynchronous flip strictly decreases it."""
+    """E(s) = −½ sᵀWs. No asynchronous update ever increases it.
+
+    A flip at (Ws)ᵢ = 0 (−1 → +1, since the rule uses h >= 0) leaves E unchanged.
+    """
     s = np.asarray(s, dtype=float)
     return float(-0.5 * s @ W @ s)
 

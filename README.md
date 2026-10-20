@@ -67,37 +67,45 @@ flowchart TD
     subgraph T["Transformers & LLMs · 04–07"]
         M04["04 · attention & transformer"] --> M05["05 · transformers library"] --> M05A["05½ · data & evaluation"] --> M06["06 · fine-tuning"] --> M07["07 · inference internals"]
     end
-    subgraph B["Breadth · 08–10"]
+    subgraph B["Breadth · 08–10, 33"]
         M08["08 · vision"]
         M09["09 · diffusion"]
         M10["10 · agents"]
+        M33["33 · text by denoising"]
     end
-    subgraph L["Looking inside · 11–13"]
+    subgraph L["Looking inside · 11–13, 32"]
         M11["11 · inside a language model"]
         M12["12 · features and dictionaries"]
         M13["13 · inside vision and JEPA models"]
+        M32["32 · is the explanation real?"]
     end
-    subgraph H["How learning works · 14–16"]
+    subgraph H["How learning works · 14–16, 29–30"]
         M14["14 · how training finds a solution"]
         M15["15 · geometry of representations"]
         M16["16 · self-supervised learning and JEPA"]
+        M29["29 · learning new, keeping old"]
+        M30["30 · without a backward pass"]
     end
-    subgraph R["Other recipes · 17–18"]
+    subgraph R["Other recipes · 17–18, 27"]
         M17["17 · learning from preferences"]
         M18["18 · beyond attention"]
+        M27["27 · memory as a matrix"]
     end
     subgraph W["Why they work · 19–20"]
         M19["19 · scaling laws"]
         M20["20 · in-context learning"]
     end
-    subgraph U["Using models well · 21–23"]
+    subgraph U["Using models well · 21–23, 28"]
         M22["22 · reasoning at test time"]
         M21["21 · retrieval and memory"]
         M23["23 · compression"]
+        M28["28 · fewer bits, trained in"]
     end
-    subgraph A["Acting and planning · 24–25"]
+    subgraph A["Acting and planning · 24–26, 31"]
         M24["24 · reinforcement learning"]
         M25["25 · world models and planning"]
+        M26["26 · RL with a checker"]
+        M31["31 · a world model from pixels"]
     end
     O -.-> F
     F --> T --> B
@@ -107,13 +115,13 @@ flowchart TD
     T --> W
     T --> U
     F --> A
-    M08 -.-> M09 -.-> M10
-    M11 --> M12 --> M13
-    M14 --> M15 --> M16
-    M17 -.-> M18
+    M08 -.-> M09 -.-> M10 -.-> M33
+    M11 --> M12 --> M13 -.-> M32
+    M14 --> M15 --> M16 -.-> M29 --> M30
+    M17 -.-> M18 --> M27
     M19 --> M20
-    M22 -.-> M21 -.-> M23
-    M24 --> M25
+    M22 -.-> M21 -.-> M23 --> M28
+    M24 --> M25 --> M26 -.-> M31
 
     classDef track fill:#eef,stroke:#88a,color:#113;
     classDef origins fill:#fdf2df,stroke:#a86b0e,color:#4a2f05;
@@ -127,23 +135,33 @@ it; nothing later depends on it, and everything later rhymes with it. Tracks 1
 to 3 then build on each other. **Foundations** gives you autograd, a
 network, and a tokenizer written by hand. **Transformers & LLMs** turns those
 into attention, a real model library, fine-tuning, and fast inference.
-**Breadth** takes the same ideas sideways into vision, diffusion, and agents.
+**Breadth** takes the same ideas sideways into vision, diffusion, and agents,
+then writes text by denoising instead of left to right.
 **Looking inside** opens a trained model while it runs: hooks, probes,
 activation patching, neurons read on both signs, then sparse autoencoders and
-steering, then the same tools on vision models and a JEPA encoder. It needs
-track 2, not track 3. **How learning works** asks what training does:
+steering, then the same tools on vision models and a JEPA encoder, then the
+controls that tell a real finding from an artefact. It needs track 2, not
+track 3. **How learning works** asks what training does:
 optimisers, schedules and grokking, the shape a trained network leaves in its
-data, and learning without labels. It needs track 1. **Other recipes** trains
-a model from preferences instead of labels, and swaps attention for a state
-carried from token to token. It needs track 2. **Why they work** fits the
+data, learning without labels, what a model forgets when it learns something
+new, and learning without a backward pass. It needs track 1; module 29 also
+uses module 04's char-GPT and module 06's LoRA. **Other recipes** trains a
+model from preferences instead of labels, swaps attention for a state carried
+from token to token, and writes to that state with the delta rule. It needs
+track 2. **Why they work** fits the
 curves that plan big models, then trains a small transformer that learns a
 task from the examples in its prompt. It needs track 2. **Using models well**
 spends more tokens on each question, fetches the right passage for the model
-to read, and makes a model smaller; read 22, then 21, then 23. It needs
-track 2. **Acting and planning** learns from reward instead of labels, then
-plans inside a learned model of the world. It needs track 1; module 25 also
-uses module 16's JEPA. The suggested order after module 18 is 19, 20, 22, 21,
-23, 24, 25.
+to read, makes a model smaller, then trains one with ternary weights; read
+22, then 21, then 23, then 28. It needs track 2. **Acting and planning**
+learns from reward instead of labels, plans inside a learned model of the
+world, trains a language model against a program that checks its answers,
+and learns a world model from pixels. It needs track 1; module 25 also uses
+module 16's JEPA, and module 26 uses modules 17 and 22.
+
+The suggested order runs track by track: after module 10 comes 33; after 13,
+32; after 16, 29 and 30; after 18, 27; then 19, 20, 22, 21, 23, 28, 24, 25,
+26, 31.
 
 ---
 
@@ -195,12 +213,20 @@ want to know where an idea came from.
 | 23 | [compression](modules/23-compression) | **Distillation** into a half-size student, **magnitude pruning**, **int8 and 4-bit quantisation** by hand, then MLX's own 4-bit copy. |
 | 24 | [reinforcement-learning](modules/24-reinforcement-learning) | **Bandits**, tabular **Q-learning**, then **REINFORCE** and **PPO** on a CartPole written by hand from its equations. |
 | 25 | [world-models-and-planning](modules/25-world-models-and-planning) | An 8 × 8 **grid world**, a one-hot model and a **JEPA** of it, and **planning by random shooting** in each. |
+| 26 | [rl-with-a-checker](modules/26-rl-with-a-checker) | **GRPO**, **Dr. GRPO** and **RLOO** by hand on a char-GPT that adds numbers, graded by a program; then TRL's **GRPOTrainer** with LoRA on SmolLM2-360M. |
+| 27 | [memory-as-a-matrix](modules/27-memory-as-a-matrix) | Linear attention, decay, the **delta rule** and the **gated delta rule** as writes into a matrix; recall against state size; a **Gated DeltaNet** hybrid on MLX. |
+| 28 | [fewer-bits-trained-in](modules/28-fewer-bits-trained-in) | The char-GPT trained with **ternary weights** against float models rounded to 4 and 2 bits at the same file size; then a **KV cache** rounded to 8–2 bits. |
+| 29 | [learning-new-keeping-old](modules/29-learning-new-keeping-old) | **Forgetting** under full fine-tuning, LoRA, **replay** and self-distillation; **loss of plasticity** and continual backprop; a forgetting probe on SmolLM2-360M. |
+| 30 | [learning-without-a-backward-pass](modules/30-learning-without-a-backward-pass) | One MLP trained by backprop, checkpointing, **MeZO**, **forward-forward**, **Mono-Forward** and **predictive coding**: memory and accuracy of each. |
+| 31 | [world-model-from-pixels](modules/31-world-model-from-pixels) | A small **JEPA world model** trained end to end on frames with **SIGReg**; planning by random shooting and **CEM**; PLDM's terms on module 25's grid. |
+| 32 | [is-the-explanation-real](modules/32-is-the-explanation-real) | **SAEs** and **transcoders** on a model whose true neurons are known, against a **random-weight copy** and a second seed; an **attribution graph** checked by ablation. |
+| 33 | [text-by-denoising](modules/33-text-by-denoising) | The char-GPT without its causal mask, trained as a **masked diffusion** model beside an autoregressive twin; **block diffusion** with a KV cache; **flow matching** on the spiral. |
 
 ---
 
 ## Explorables
 
-All twenty-nine modules — the three Origins modules, the twenty-five numbered ones and the
+All thirty-seven modules — the three Origins modules, the thirty-three numbered ones and the
 evaluation bridge — ship an **interactive, in-browser
 explainer**: a single HTML file with no dependencies, no build step and no
 network calls. Where a module
@@ -246,14 +272,22 @@ python3 -m http.server        # then browse to
 | [Compression](explorables/23-compression.html) | 23 | Quantise a block of real weights at the bits and group size you pick and watch the error histogram; see what pruning removes. |
 | [Reinforcement learning](explorables/24-reinforcement-learning.html) | 24 | Play the bandit by hand against the three rules, replay a trained CartPole episode, browse the curves and the clip. |
 | [World models and planning](explorables/25-world-models-and-planning.html) | 25 | Draw walls, drop the agent and the goal, and watch both planners choose their moves, with the path each one imagines. |
+| [RL with a checker](explorables/26-rl-with-a-checker.html) | 26 | Flip the rewards in a group and watch GRPO's, Dr. GRPO's and RLOO's advantages; replay training; slide k and compare pass@k before and after. |
+| [Memory as a matrix](explorables/27-memory-as-a-matrix.html) | 27 | Write key-value pairs into a state you can see and read them back under each rule; see which pairs survive, recall against state size, and two real models' memory as the context grows. |
+| [Fewer bits, trained in](explorables/28-fewer-bits-trained-in.html) | 28 | Compare ternary weights trained in with float weights rounded after, at the same file size; round the keys a real model cached and see what mlx-lm's quantised cache keeps. |
+| [Learning something new without losing the old](explorables/29-learning-new-keeping-old.html) | 29 | Every run on one scatter: forgetting against the new-text gain or the KL from the start model; plain backprop losing the ability to learn; where a LoRA step's memory goes. |
+| [Learning without a backward pass](explorables/30-learning-without-a-backward-pass.html) | 30 | Train five small networks live, one rule each, side by side; read what each adds to memory as the network deepens and how predictive coding's error fades layer by layer. |
+| [A world model from pixels](explorables/31-world-model-from-pixels.html) | 31 | Drop the agent and the goal, see the planner's cost over the rooms, and watch CEM's imagined paths narrow round by round; switch PLDM's terms on module 25's grid. |
+| [Is the explanation real?](explorables/32-is-the-explanation-real.html) | 32 | Browse SAE and transcoder latents with the true neuron beside each, on a trained and a random model; click through an attribution graph and compare it with real ablations. |
+| [Text by denoising](explorables/33-text-by-denoising.html) | 33 | Watch a line of Shakespeare unmask step by step, slide from 1 to 128 steps, play a block-diffusion line, and see when repeated data lets diffusion pass a left-to-right model. |
 
 ### Quizzes
 
-Each of the twenty-five numbered modules — plus the three Origins modules and the 05½
+Each of the thirty-three numbered modules — plus the three Origins modules and the 05½
 bridge lab — ships a
 **10-question quiz**, every question grounded in that module's own code, figures
 and measured numbers, with an explanation revealed as soon as you answer. Start at
-[`quizzes/index.html`](quizzes/index.html), which lists all twenty-nine and shows your
+[`quizzes/index.html`](quizzes/index.html), which lists all thirty-seven and shows your
 score for each. Nothing is uploaded: answers and scores stay in your browser's
 `localStorage`, and every quiz has a Reset button.
 
@@ -281,8 +315,8 @@ published here on GitHub Pages is now the maintained home.
 
 ### Research companion
 
-[`research/`](research/) holds three interactive pages that connect the course
-to current research, all built around one question: *why* does this work?
+[`research/`](research/) holds four pages that connect the course to current
+research, all built around one question: *why* does this work?
 
 - **Hidden Patch** ([`research/index.html`](research/index.html)): eighteen
   chapters on predictive learning and JEPA, collapse, implicit bias,
@@ -292,6 +326,10 @@ to current research, all built around one question: *why* does this work?
   about 85 people and papers linked to fourteen "why" questions.
 - **JEPA field map** ([`research/jepa-field-map.html`](research/jepa-field-map.html)):
   the JEPA literature, filterable by theme.
+- **Edge research agenda** ([`research/agenda.html`](research/agenda.html)):
+  eleven open questions one person can work on with a laptop or a phone, each
+  with a first experiment written down before any code and the papers behind
+  it.
 
 They are plain HTML with self-hosted fonts and no runtime network calls, and the
 reader bundles them, so they work offline at `reader/research/`.

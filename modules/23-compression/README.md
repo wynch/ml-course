@@ -14,8 +14,8 @@ written by the script that measured it. In every table, row one is the
 untouched model.
 
 This is the third module of track 8, **Using models well**. Next,
-[module 24](../24-reinforcement-learning/README.md) starts track 9 with
-reinforcement learning.
+[module 28](../28-fewer-bits-trained-in/README.md) trains the bits in instead
+of rounding afterwards, and rounds the KV cache.
 
 **🕹 Interactive:** [Compression](../../explorables/23-compression.html):
 quantise a block of SmolLM2's real weights at the bits and group size you
@@ -207,7 +207,10 @@ and nudges s so that zero falls exactly on a level. Two details of MLX's
 kernel matter for an exact copy: its running maximum starts at 0, and it
 rounds halves away from zero (`torch.round` sends them to the even neighbour).
 On SmolLM2 only the rounding changes any weight: no group of 64 is all
-negative, so the first detail never fires here.
+negative, so the first detail never fires here. Putting zero exactly on a
+level costs a little: on the tiny GPT's `blocks[1].mlp.fc.weight` in
+exercise (c), at 4 bits with groups of 64, plain min/max errs 0.0905 and
+MLX's rule 0.0921.
 
 `src/quant.py` puts the rebuilt weights w' back into the float32 model and
 measures it. This is **fake quantisation**: it measures the damage rounding
@@ -232,8 +235,14 @@ Relative error is ‖w' − w‖ / ‖w‖ for one matrix, averaged over the 225
   deviation) of 0.18. That stretches the 16 levels and leaves few for the
   weights near zero.
 - Groups of 64 cost 21 MB more and bring the perplexity back to 19.94. It is
-  still 24% above the untouched 16.07: a 360M model loses more at 4 bits than
-  this rule can hide.
+  still 24% above the untouched 16.07. Small models trained on many tokens
+  for their size, like this one, lose more at low bits than large or lightly
+  trained ones (Ouyang et al.,
+  [arXiv:2411.17691](https://arxiv.org/abs/2411.17691), 2024).
+
+This section rounds weights only. The KV cache and the activations can be
+rounded too, and for long contexts on a laptop they matter as much; module
+07 measured what the cache costs.
 
 ## 4 · The library way: MLX
 
@@ -354,6 +363,25 @@ results against the laptop budget, and the explorable against the results.
   of a 4-bit model; module 06 trained LoRA adapters.
 - [DistilBERT](https://arxiv.org/abs/1910.01108) (2019) distilled BERT into a
   model 40% smaller; module 05's sentiment model is a fine-tuned DistilBERT.
+- [QuaRot](https://arxiv.org/abs/2404.00456) (2024) and
+  [SpinQuant](https://arxiv.org/abs/2405.16406) (2024) rotate the weights
+  and activations before rounding, so that no single value, like section 3's 3.98 against a
+  spread of 0.18, stretches the levels.
+- Microscaling formats ([arXiv:2310.10537](https://arxiv.org/abs/2310.10537),
+  2023) give each group of 32 values one shared power-of-two scale, in
+  hardware: section 3's groups as a shipped format. gpt-oss stores its
+  mixture-of-experts weights in one of them, MXFP4
+  ([model card](https://arxiv.org/abs/2508.10925), 2025).
+- [BitNet b1.58 2B4T](https://arxiv.org/abs/2504.12285) (2025) takes the
+  other road: a 2B model trained from the start with weights of −1, 0 or 1,
+  on 4 trillion tokens, not rounded after training.
+- [Minitron](https://arxiv.org/abs/2407.14679) (2024) prunes whole widths and
+  layers, then distils from the large model. Unlike section 2's zeros, this
+  shrinks the matrices, so it saves bytes; it joins sections 1 and 2.
+- Section 1 uses the forward KL on fixed training text. LLM practice also
+  distils on the student's own samples, often with the reverse KL:
+  [GKD](https://arxiv.org/abs/2306.13649) (2023) and
+  [MiniLLM](https://arxiv.org/abs/2306.08543) (2023).
 - The [Hugging Face quantization docs](https://huggingface.co/docs/transformers/quantization)
   list the formats transformers can load.
 
@@ -373,4 +401,10 @@ results against the laptop budget, and the explorable against the results.
 - Frantar and Alistarh, [SparseGPT](https://arxiv.org/abs/2301.00774) (2023) · Sun et al., [Wanda](https://arxiv.org/abs/2306.11695) (2023)
 - Frantar et al., [GPTQ](https://arxiv.org/abs/2210.17323) (2022) · Lin et al., [AWQ](https://arxiv.org/abs/2306.00978) (2023)
 - Dettmers et al., [LLM.int8()](https://arxiv.org/abs/2208.07339) (2022) · [QLoRA](https://arxiv.org/abs/2305.14314) (2023)
+- Ouyang et al., [Low-Bit Quantization Favors Undertrained LLMs](https://arxiv.org/abs/2411.17691) (2024)
+- Ashkboos et al., [QuaRot](https://arxiv.org/abs/2404.00456) (2024) · Liu et al., [SpinQuant](https://arxiv.org/abs/2405.16406) (2024)
+- Rouhani et al., [Microscaling Data Formats for Deep Learning](https://arxiv.org/abs/2310.10537) (2023) · OpenAI, [gpt-oss-120b & gpt-oss-20b Model Card](https://arxiv.org/abs/2508.10925) (2025)
+- Ma et al., [BitNet b1.58 2B4T Technical Report](https://arxiv.org/abs/2504.12285) (2025)
+- Muralidharan et al., [Compact Language Models via Pruning and Knowledge Distillation](https://arxiv.org/abs/2407.14679) (2024)
+- Agarwal et al., [On-Policy Distillation of Language Models](https://arxiv.org/abs/2306.13649) (2023) · Gu et al., [MiniLLM](https://arxiv.org/abs/2306.08543) (2023)
 - [MLX](https://github.com/ml-explore/mlx) · [mlx-lm](https://github.com/ml-explore/mlx-lm) · [SmolLM2-360M-Instruct](https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct)

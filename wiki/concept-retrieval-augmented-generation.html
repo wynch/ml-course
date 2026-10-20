@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Retrieval-Augmented Generation · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="retrieval-augmented-generation">Retrieval-Augmented Generation</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">retrieval</span> <span class="tag">rag</span> <span class="tag">embeddings</span> <span class="tag">memory</span> <span class="tag">late-interaction</span> <span class="tag">hub</span></div>
+<p>Retrieval-augmented generation (RAG): before or while it writes, a language model fetches passages from a store outside its weights and reads them. The store can change without retraining, and the passages can be cited. <a href="source-bundle-retrieval-and-rag.html">source-bundle-retrieval-and-rag</a> holds the lineage; this page holds the ideas and the one limit the wiki has found.</p>
+<h2 id="four-ways-to-do-it">Four ways to do it</h2>
+<div class="tw"><table><thead><tr><th>Way</th><th>How</th><th>Example</th></tr></thead><tbody><tr><td>Retrieve, then prompt</td><td>embed the query, find the nearest passages, paste them into the prompt</td><td>DPR's two encoders (arXiv 2004.04906; not in raw; <a href="source-dpr-dense-passage-retrieval.html">source-dpr-dense-passage-retrieval</a>)</td></tr><tr><td>Late interaction</td><td>keep one vector per token; score a passage by summing, over query tokens, the best match among its tokens</td><td>ColBERT (<code>raw/arxiv-2004-12832-colbert-efficient-and-effective-passage-search.md</code>, §3.3; <a href="source-colbert.html">source-colbert</a>)</td></tr><tr><td>Retrieval inside the model</td><td>a layer attends to neighbours fetched for the previous chunk</td><td>RETRO, with a 2T-token store (<code>raw/arxiv-2112-04426-improving-language-models-by-retrieving-from.md</code>, §2.2–§2.4; <a href="source-retro-deepmind.html">source-retro-deepmind</a>)</td></tr><tr><td>The model decides</td><td>special tokens say whether to retrieve, whether a passage is relevant and whether the answer is supported</td><td>Self-RAG (<code>raw/arxiv-2310-11511-self-rag-learning-to-retrieve-generate.md</code>, §3.1, Table 1; <a href="source-self-rag.html">source-self-rag</a>)</td></tr></tbody></table></div>
+<p>Two newer variants: BGE-M3 serves dense, sparse and multi-vector retrieval from one model (<code>raw/arxiv-2402-03216-m3-embedding-multi-linguality-multi-functionality.md</code>, Abstract, §3.2; <a href="source-bge-m3-embeddings.html">source-bge-m3-embeddings</a>); PixelRAG retrieves web pages as screenshots and reads them with a vision-language model, reporting up to +18.1% over text RAG (arXiv 2606.28344, as the authors' post gives it in <code>raw/tweet-pixelrag.md</code>; <a href="source-pixelrag.html">source-pixelrag</a>).</p>
+<h2 id="the-single-vector-limit">The single-vector limit</h2>
+<p>Contradiction (open), carried from <a href="source-bundle-retrieval-and-rag.html">source-bundle-retrieval-and-rag</a>: Weller et al. prove that the number of distinct top-k sets one embedding per document can return is bounded by the embedding's dimension, and their LIMIT dataset defeats strong single-vector models while multi-vector models do better (arXiv 2508.21038; not in raw). This bears on DPR and on BGE-M3's dense mode, and favours late interaction. The proof is not in raw; capture it before building on it.</p>
+<p>Late interaction has its own cost. AdaptiveEmbed measures it: as MetaEmbed grows from 2/4 to 16/64 tokens, the share of query tokens that match distinct document tokens falls from 100.0% to 80.8%, so extra vectors pile onto the same targets (<code>raw/arxiv-2608-25412-adaptiveembed-sample-adaptive-multi-vector-representation-fulltext.md</code>, §4.4, Figure 4c; <a href="source-adaptiveembed-samvr.html">source-adaptiveembed-samvr</a>). Its SetSim score pairs tokens one to one to rule this out.</p>
+<h2 id="leakage">Leakage</h2>
+<p>Retrieval can score well by finding the test text. RETRO's authors measure this: it exploits overlap between store and test set more than its baselines do, yet still beats them on chunks that share fewer than 8 contiguous tokens with the training data (<code>raw/arxiv-2112-04426-improving-language-models-by-retrieving-from.md</code>, §2.6, §4.4). Norlund et al. find most of RETRO's gain comes from such overlap (arXiv 2302.12128; not in raw). See <a href="concept-evaluation-methodology.html">concept-evaluation-methodology</a>.</p>
+<h2 id="open-questions">Open questions</h2>
+<ul><li>Single vector or many, at what store size? The proof and LIMIT say many; the cost of many grows with the store.</li><li>When should a model retrieve at all? Self-RAG learns it; most products always retrieve.</li><li>Retrieval or weights for new facts: the race <span class="dead" title="not published">experiment-weights-vs-context</span> set up, and that <a href="concept-continual-learning.html">concept-continual-learning</a> and <a href="concept-knowledge-editing.html">concept-knowledge-editing</a> approach from the weights side.</li></ul>
+<h2 id="key-sources">Key sources</h2>
+<ul><li><a href="source-bundle-retrieval-and-rag.html">source-bundle-retrieval-and-rag</a> and its members: <a href="source-dpr-dense-passage-retrieval.html">source-dpr-dense-passage-retrieval</a> · <a href="source-colbert.html">source-colbert</a> · <a href="source-retro-deepmind.html">source-retro-deepmind</a> · <a href="source-self-rag.html">source-self-rag</a> · <a href="source-bge-m3-embeddings.html">source-bge-m3-embeddings</a></li><li>2026: <a href="source-adaptiveembed-samvr.html">source-adaptiveembed-samvr</a> · <a href="source-pixelrag.html">source-pixelrag</a></li><li>Related: <a href="concept-long-context.html">concept-long-context</a> · <a href="concept-in-context-learning.html">concept-in-context-learning</a> · <a href="concept-representation-learning.html">concept-representation-learning</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2004-12832-colbert-efficient-and-effective-passage-search.md</code></li><li><code>raw/arxiv-2112-04426-improving-language-models-by-retrieving-from.md</code></li><li><code>raw/arxiv-2310-11511-self-rag-learning-to-retrieve-generate.md</code></li><li><code>raw/arxiv-2402-03216-m3-embedding-multi-linguality-multi-functionality.md</code></li><li><code>raw/arxiv-2608-25412-adaptiveembed-sample-adaptive-multi-vector-representation-fulltext.md</code></li><li><code>raw/tweet-pixelrag.md</code></li><li>Karpukhin et al., 2020, DPR: <a href="https://arxiv.org/abs/2004.04906" rel="noreferrer">https://arxiv.org/abs/2004.04906</a> (not in raw)</li><li>Weller et al., 2025: <a href="https://arxiv.org/abs/2508.21038" rel="noreferrer">https://arxiv.org/abs/2508.21038</a> (not in raw)</li><li>Norlund et al., 2023: <a href="https://arxiv.org/abs/2302.12128" rel="noreferrer">https://arxiv.org/abs/2302.12128</a> (not in raw)</li></ul>
+<details class="src"><summary>Sources (9)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2004-12832-colbert-efficient-and-effective-passage-search.md</code></li><li><code>raw/arxiv-2112-04426-improving-language-models-by-retrieving-from.md</code></li><li><code>raw/arxiv-2310-11511-self-rag-learning-to-retrieve-generate.md</code></li><li><code>raw/arxiv-2402-03216-m3-embedding-multi-linguality-multi-functionality.md</code></li><li><code>raw/arxiv-2608-25412-adaptiveembed-sample-adaptive-multi-vector-representation-fulltext.md</code></li><li><code>raw/tweet-pixelrag.md</code></li><li><a href="https://arxiv.org/abs/2004.04906" rel="noreferrer">https://arxiv.org/abs/2004.04906</a></li><li><a href="https://arxiv.org/abs/2508.21038" rel="noreferrer">https://arxiv.org/abs/2508.21038</a></li><li><a href="https://arxiv.org/abs/2606.28344" rel="noreferrer">https://arxiv.org/abs/2606.28344</a></li></ul></details>
+</main>
+</body>
+</html>

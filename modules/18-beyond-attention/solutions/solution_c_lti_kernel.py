@@ -4,8 +4,9 @@ LTIBlock's recurrence, per channel e and state n:
     h_t = a h_{t-1} + dt B x_t,   y_t = sum_n C h_t,   a = exp(dt A), A < 0
 Unroll it: y_t = sum_{k>=0} K[k] x_{t-k} with K[k] = sum_n C B dt a^k.
 Write the kernel, then the causal convolution, and check both against the
-recurrence. Then make a selective version (a different a at every step) and
-see that no single kernel fits.
+recurrence. Then make a selective version (a different a at every step): the
+fixed kernel misses it, and so does the best kernel a least-squares fit can
+find on the same inputs.
 
 Predict before you run: with dt = 0.05 and A = -1, the slowest of a channel's
 decays, how much of an input is left in the state 100 steps later?
@@ -51,6 +52,22 @@ def recurrence(x, a, B, C, dt):
     return torch.stack(ys, 1)
 
 
+def best_kernel_miss(x: torch.Tensor, y: torch.Tensor) -> float:
+    """Fit, per channel, the one kernel that best maps x to y (least squares
+    over both sequences and all positions); return its largest miss."""
+    T = x.shape[1]
+    idx = torch.arange(T)
+    lag = idx[:, None] - idx[None, :]                                  # lag[t, k] = t - k
+    miss = 0.0
+    for e in range(x.shape[2]):
+        xe = x[:, :, e].double()
+        design = (xe[:, lag.clamp(min=0)] * (lag >= 0)).reshape(-1, T)  # row (b, t), column k: x[b, t - k]
+        target = y[:, :, e].double().reshape(-1, 1)
+        k = torch.linalg.lstsq(design, target).solution
+        miss = max(miss, float((design @ k - target).abs().max()))
+    return miss
+
+
 def main() -> None:
     torch.manual_seed(0)
     E, N, T = 8, 16, 64
@@ -66,8 +83,9 @@ def main() -> None:
 
     a_sel = a * torch.rand(2, T, E, N).clamp(min=0.5)       # a different decay at every step
     y_sel = recurrence(x, a_sel, B, C, dt)
-    print(f"selective: max |convolution with the fixed kernel - recurrence| = "
-          f"{(causal_conv(x, K) - y_sel).abs().max():.2f}: no single kernel")
+    print(f"selective: the fixed kernel misses by {(causal_conv(x, K) - y_sel).abs().max():.2f}")
+    print(f"selective: the best kernel for these inputs misses by {best_kernel_miss(x, y_sel):.2f}; "
+          f"on the fixed recurrence it misses by {best_kernel_miss(x, recurrence(x, a, B, C, dt)):.0e}")
 
 
 if __name__ == "__main__":

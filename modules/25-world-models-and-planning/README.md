@@ -14,10 +14,13 @@ sections, each with a figure and the numbers beside it:
 Every number in this README comes from a JSON file in [`results/`](results/),
 written by the script that measured it.
 
-This is the second and last module of track 9, **Acting and planning**. It
+This is the second module of track 9, **Acting and planning**. It
 comes after [module 24](../24-reinforcement-learning/README.md), and uses
 [module 16](../16-self-supervised-and-jepa/README.md)'s JEPA objective and
-collapse meters. It is the last module of the course.
+collapse meters. Next, [module 26](../26-rl-with-a-checker/README.md) applies
+module 24's policy gradient to a language model;
+[module 31](../31-world-model-from-pixels/README.md) then returns to this
+module's failure.
 
 **🕹 Interactive:** [World models and planning](../../explorables/25-world-models-and-planning.html):
 draw walls, drop the agent and the goal, and watch both planners choose
@@ -113,13 +116,14 @@ steps of 256 transitions, rate 10⁻³, on the CPU, in seconds
 - **One-hot model** (49,984 parameters): an MLP from the 192 numbers plus a
   one-hot action to a score for each of the 64 cells; cross-entropy against
   the agent's real next cell. Walls and goal never move, so the predicted
-  next observation is the old one with the agent moved to the top cell. It
+  next observation is the old one with the agent moved to the cell with the
+  highest score. It
   can be fed back to itself to imagine several steps.
 - **JEPA** (encoder 28,832 parameters, predictor 8,864): an encoder maps the
   192 numbers to a 32-number latent z; a predictor maps (z, action) to
   z + a learned change. The target for the next latent comes from a second
   encoder, a slow moving average (EMA) of the first, momentum 0.996 rising
-  to 1.0, with no gradient: module 16's I-JEPA-lite objective, applied to
+  to 1.0 on a cosine ramp, with no gradient: module 16's I-JEPA-lite objective, applied to
   time instead of hidden patches. The loss is the squared error between
   latents. Nothing asks the model to rebuild a cell.
 
@@ -171,8 +175,10 @@ spreads well over the wrong things. Only a probe for the right label shows it.
 on a one-hot input where the agent is 1 number in 192. It shows that the JEPA
 objective, with an EMA target and nothing else, *can* settle on a latent that
 ignores the agent. It does not show that every JEPA does: a bigger latent, a
-variance-and-covariance term, an input centred on the agent, or longer-range
-targets might change the outcome; none was tried here. For a contrast,
+variance-and-covariance term or module 16's SIGReg, an input centred on the
+agent, longer-range targets, or a predictor that does not start from "no
+change" might change the outcome; none was tried here. (This predictor
+outputs z plus a learned change, so "nothing moves" is its easy default.) For a contrast,
 section 4 of [module 13](../13-inside-vision-and-jepa/README.md)
 read a JEPA trained on a larger tile world through a window centred on the
 agent, where every step changes most of the input; its latent held the
@@ -261,7 +267,10 @@ here because the state is 64 cells; for camera images there is no list of
 cells to predict, and that is the case the argument is about. Nothing here
 says a pixel or one-hot model would win on video. The grid has nothing
 unpredictable to drop, so the JEPA's main promised gain never comes into
-play. And one seed of one small setting is a demo, not a law.
+play. And one seed of one small setting is a demo, not a law. On the pixel
+side, [Navigation World Models](https://arxiv.org/abs/2412.03572) (Bar et
+al., 2024) predict the next camera frame with a 1B-parameter diffusion model
+and plan by imagining routes.
 
 **How larger systems keep the latent useful.** Each published system that
 plans in a learned latent adds something that stops the encoder from
@@ -273,13 +282,17 @@ dropping what matters:
 | [PlaNet](https://arxiv.org/abs/1811.04551) (Hafner et al., 2019) | rebuilding the frames, plus reward | CEM, a refined version of random shooting |
 | [MuZero](https://arxiv.org/abs/1911.08265) (Schrittwieser et al., 2020) | predicting reward, value and the policy; no frames | tree search |
 | [TD-MPC2](https://arxiv.org/abs/2310.16828) (Hansen et al., 2024) | latent prediction plus reward and value | MPPI, another sampling planner |
+| [DreamerV3](https://arxiv.org/abs/2301.04104) (Hafner et al., 2023; Nature 2025) | rebuilding frames, plus reward and continuation | an actor-critic trained inside the model |
+| [PLDM](https://arxiv.org/abs/2502.14819) (Sobal et al., 2025) | latent prediction, plus variance, covariance, temporal smoothness and inverse-dynamics terms | MPPI towards a goal |
 | [DINO-WM](https://arxiv.org/abs/2411.04983) (Zhou et al., 2024) | a frozen, pretrained DINOv2 encoder; only the predictor trains | CEM towards a goal image |
 | [V-JEPA 2-AC](https://arxiv.org/abs/2506.09985) (Assran et al., 2025) | a frozen V-JEPA 2 video encoder; an action-conditioned predictor trained on robot video | CEM towards a goal image |
 
 The last two are the JEPA argument put into practice, and both freeze an
 encoder trained first on another task, so the planning loss cannot shrink
 it. Section 2 is a small picture of why a frozen or otherwise anchored
-encoder helps; it does not measure how much.
+encoder helps; it does not measure how much. PLDM's inverse-dynamics term,
+which asks the latent to say which action was taken, is one direct answer to
+the failure of section 2.
 
 ## Run it
 
@@ -342,7 +355,9 @@ budget and each other, and the explorable against the results.
 
 - Replace random shooting with CEM: keep the best 8 of 64 sequences, refit a
   distribution over actions to them, sample again. Does the one-hot planner
-  close the gap to the perfect model?
+  close the gap to the perfect model? MPPI, used by TD-MPC2 and PLDM, averages
+  the sequences with weights that grow exponentially with their score,
+  instead of keeping the best 8 as equals.
 - Give the JEPA something that forces the agent into its latent, for example
   an input centred on the agent, or a term that predicts the action from two
   successive latents, and probe again. Write down what you expect first.
@@ -366,6 +381,9 @@ budget and each other, and the explorable against the results.
 - Hafner et al., [PlaNet](https://arxiv.org/abs/1811.04551) (2019)
 - Schrittwieser et al., [MuZero](https://arxiv.org/abs/1911.08265) (2020)
 - Hansen et al., [TD-MPC2](https://arxiv.org/abs/2310.16828) (2024)
+- Hafner et al., [Mastering Diverse Domains through World Models](https://arxiv.org/abs/2301.04104) (2023): DreamerV3
+- Sobal et al., [Learning from Reward-Free Offline Data: A Case for Planning with Latent Dynamics Models](https://arxiv.org/abs/2502.14819) (2025): PLDM
+- Bar et al., [Navigation World Models](https://arxiv.org/abs/2412.03572) (2024)
 - Zhou et al., [DINO-WM](https://arxiv.org/abs/2411.04983) (2024)
 - Assran et al., [V-JEPA 2](https://arxiv.org/abs/2506.09985) (2025)
 - Grill et al., [BYOL](https://arxiv.org/abs/2006.07733) (2020), the EMA target and predictor this JEPA borrows

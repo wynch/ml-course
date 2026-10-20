@@ -2,8 +2,8 @@
 distribution live.
 
 Left: a chat UI with temperature / top-k / top-p sliders. Right: a bar panel of
-the model's probability distribution over the *very next token* given the
-current conversation — the raw material every sampling knob acts on.
+the model's probability distribution over the first token of its reply, after
+all three filters. Moving a slider redraws the panel for the last message.
 
     uv run python app.py
 
@@ -26,12 +26,33 @@ import torch.nn.functional as F
 from common import load_model_and_tokenizer
 
 
-def next_token_dist(model, tokenizer, prompt: str, temperature: float, k: int = 15) -> pd.DataFrame:
-    """Top-k next-token probabilities (after temperature) as a tidy DataFrame."""
+def filtered_probs(logits: torch.Tensor, temperature: float, top_k: int | None = None,
+                   top_p: float | None = None) -> torch.Tensor:
+    """Apply temperature, then top-k, then top-p, and renormalize, in generate()'s order."""
+    probs = F.softmax(logits / max(temperature, 1e-2), dim=-1)
+    vals, idx = probs.sort(descending=True)
+    keep = torch.ones_like(vals, dtype=torch.bool)
+    if top_k is not None:
+        keep[int(top_k):] = False
+    if top_p is not None:
+        # generate() measures top-p on the distribution left after top-k, renormalized.
+        # Keep the smallest prefix whose mass reaches top_p (the first token always stays).
+        kept = vals * keep
+        kept = kept / kept.sum()
+        before = torch.cumsum(kept, dim=0) - kept
+        keep &= before < top_p
+    out = torch.zeros_like(probs)
+    out[idx[keep]] = vals[keep]
+    return out / out.sum()
+
+
+def next_token_dist(model, tokenizer, prompt: str, temperature: float, k: int = 15,
+                    top_k: int | None = None, top_p: float | None = None) -> pd.DataFrame:
+    """The k likeliest next tokens after the filters, as a tidy DataFrame."""
     ids = tokenizer(prompt, return_tensors="pt").to(model.device)
     with torch.no_grad():
         logits = model(**ids).logits[0, -1].float().cpu()
-    probs = F.softmax(logits / max(temperature, 1e-2), dim=-1)
+    probs = filtered_probs(logits, temperature, top_k, top_p)
     vals, idx = probs.topk(k)
     tokens, ps = [], []
     for i, v in zip(idx.tolist(), vals.tolist()):
@@ -57,18 +78,20 @@ def build_demo():
             messages, tokenize=False, add_generation_prompt=True
         )
         # Distribution over the next token BEFORE we sample the reply.
-        dist = next_token_dist(model, tokenizer, prompt, temperature)
+        dist = next_token_dist(model, tokenizer, prompt, temperature,
+                               top_k=int(top_k), top_p=float(top_p))
 
         ids = tokenizer(prompt, return_tensors="pt").to(model.device)
+        # Pass the sampling knobs only when sampling; greedy ignores them (and warns).
+        knobs = ({"do_sample": True, "temperature": float(temperature),
+                  "top_k": int(top_k), "top_p": float(top_p)}
+                 if temperature > 0 else {"do_sample": False})
         with torch.no_grad():
             out = model.generate(
                 **ids,
                 max_new_tokens=200,
-                do_sample=temperature > 0,
-                temperature=max(temperature, 1e-2),
-                top_k=int(top_k),
-                top_p=float(top_p),
                 pad_token_id=tokenizer.eos_token_id,
+                **knobs,
             )
         reply = tokenizer.decode(out[0][ids.input_ids.shape[1]:], skip_special_tokens=True)
         new_history = history + [
@@ -77,12 +100,26 @@ def build_demo():
         ]
         return new_history, dist, ""
 
+    def refresh_dist(history, temperature, top_k, top_p):
+        """Redraw the panel for the last user message at the current sliders."""
+        history = history or []
+        users = [i for i, t in enumerate(history) if t["role"] == "user"]
+        if not users:
+            return pd.DataFrame({"token": [], "prob": []})
+        messages = [{"role": t["role"], "content": t["content"]}
+                    for t in history[: users[-1] + 1]]
+        prompt = tokenizer.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True
+        )
+        return next_token_dist(model, tokenizer, prompt, temperature,
+                               top_k=int(top_k), top_p=float(top_p))
+
     with gr.Blocks(title="SmolLM2 sampling playground") as demo:
         gr.Markdown(
             "# SmolLM2-360M sampling playground\n"
-            "Chat on the left; the **next-token distribution** (after your last "
-            "message, before the model answers) on the right. Move the sliders "
-            "and watch the distribution sharpen or flatten."
+            "Chat on the left; on the right, the distribution of the **first token "
+            "of the reply** to your last message, after temperature, top-k and "
+            "top-p. Move a slider and the panel redraws."
         )
         with gr.Row():
             with gr.Column(scale=3):
@@ -94,7 +131,7 @@ def build_demo():
                     top_p = gr.Slider(0.1, 1.0, value=0.9, step=0.05, label="top-p")
                 clear = gr.Button("clear")
             with gr.Column(scale=2):
-                gr.Markdown("### Next-token distribution (top 15, at current temperature)")
+                gr.Markdown("### First reply token (top 15, after all three filters)")
                 dist_plot = gr.BarPlot(
                     value=pd.DataFrame({"token": [], "prob": []}),
                     x="token", y="prob", height=440, sort=None, label=None,
@@ -105,9 +142,16 @@ def build_demo():
             inputs=[msg, chatbot, temperature, top_k, top_p],
             outputs=[chatbot, dist_plot, msg],
         )
+        for slider in (temperature, top_k, top_p):
+            slider.change(
+                refresh_dist,
+                inputs=[chatbot, temperature, top_k, top_p],
+                outputs=dist_plot,
+            )
         clear.click(lambda: ([], pd.DataFrame({"token": [], "prob": []}), ""),
                     outputs=[chatbot, dist_plot, msg])
 
+    demo.refresh_dist = refresh_dist  # exposed for tests
     return demo, generate
 
 

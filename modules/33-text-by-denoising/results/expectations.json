@@ -1,0 +1,53 @@
+{
+ "written": "2026-10-20, before any run whose numbers appear in results/ (flow2d, train, evaluate, sample, block, library)",
+ "seen_before_writing": [
+  "A smoke test on untrained networks (CPU): block-diffusion sampling with and without the KV cache gave the same characters at L = 4 and 16; block diffusion with L = 128 gave the same logits as plain masked diffusion; AR sampling with and without its cache agreed.",
+  "A pilot of 200 steps each at rate 1e-3 on MPS: ar 2.44 loss, val NLL 2.43; mdm loss 3.38, val ELBO 3.36, left-to-right exact 3.37; bd16 loss 3.14, val ELBO 3.29. About 35-60 ms a step for ar and mdm and 140-180 ms for bd16, with other jobs on the machine.",
+  "The pilot models are deleted; none of their numbers is reported as a result."
+ ],
+ "expectations": {
+  "E1": "Flow matching and DDIM with 1 step both collapse the cloud toward the centre: spread (mean std per axis) under 0.3, against 1 for the data, and sliced W1 above 0.3.",
+  "E2": "Flow matching at 16 steps reaches sliced W1 under 0.05, and at 64 steps under 0.04.",
+  "E3": "At 4 steps flow matching beats DDIM (lower sliced W1).",
+  "E4": "Flow matching's 64-step paths are straighter than DDIM's (path length over end-to-end distance, lower), and under 1.2.",
+  "E5": "The AR twin, retrained with module 04's recipe, scores a held-out NLL within 0.08 nats of module 04's 1.725.",
+  "E6": "The masked diffusion model's held-out ELBO sits 0.15 to 0.6 nats above the AR twin's exact NLL.",
+  "E7": "The diffusion model scored exactly left to right lands below its ELBO; right to left lands within 0.1 nats of left to right.",
+  "E8": "The diffusion model scored exactly in a random order per line lands within 0.05 nats of its ELBO (the ELBO is that score's average over orders).",
+  "E9": "Filling a masked 16-character span in the middle of a held-out line (greedy): the diffusion model, seeing both sides, beats the AR twin, seeing the left only, by at least 10 points of character accuracy; with the right side hidden too it lands within 5 points of the AR twin.",
+  "E10": "One step (all 128 characters at once) gives non-words: word score under 0.3 and AR-judge NLL above 3.0.",
+  "E11": "Word score rises with the number of steps for both rules; at 128 steps the random-order sampler lands within 0.1 of the AR twin's own samples.",
+  "E12": "At 4 to 16 steps the low-confidence rule beats the random rule on word score by at least 0.1.",
+  "E13": "At 128 steps the low-confidence rule is less varied than the random rule: lower share of distinct 4-grams.",
+  "E14": "Held-out bound per character orders AR NLL < bd4 < bd16 < mdm.",
+  "E15": "Block-diffusion sampling with the KV cache gives the same characters as without it at 99% of positions or more.",
+  "E16": "bd16 with the cache, one character per step, is at least twice as fast in wall time as mdm at 128 steps.",
+  "E17": "At one character per step, bd16's samples score at least the word score of mdm's (same rule).",
+  "E18": "On 100,000 characters, the AR twin's held-out NLL is lowest before epoch 32 and rises by at least 0.2 nats by epoch 200 (mean of 3 seeds).",
+  "E19": "On 100,000 characters, the diffusion model's held-out ELBO stays within 0.03 nats of its lowest value until at least epoch 64 (mean of 3 seeds).",
+  "E20": "On 100,000 characters at epoch 200, the diffusion model's ELBO is below the AR twin's NLL (mean of 3 seeds): a crossover at equal epochs.",
+  "E21": "On 100,000 characters, the AR twin's best NLL over all epochs stays below the diffusion model's best ELBO by at least 0.05 nats (mean of 3 seeds): early stopping keeps AR ahead.",
+  "E22": "AR with dropout 0.3 on 100,000 characters: a lower best NLL than with dropout 0.1, and a smaller rise by epoch 200.",
+  "E23": "On the whole split (1.0 M characters), no crossover by epoch 64: AR below the diffusion model at every mark.",
+  "E24": "flow_matching's MixturePathGeneralizedKL equals our diffusion loss to 1e-5 (relative) on the same masks when the prediction copies unmasked characters through; without that copy it differs.",
+  "E25": "flow_matching's MixtureDiscreteEulerSolver driving our diffusion model with 128 steps gives a word score within 0.05 of our random-order sampler at 128 steps.",
+  "E26": "LLaDA's generate(), re-typed from its repository, gives our low-confidence sampler's characters exactly, given the same random draws.",
+  "E27": "LLaDA's semi-autoregressive sampling (block length 16) of the plain diffusion model scores a lower word score than the bd16 model trained for blocks, at 128 steps, by at least 0.03.",
+  "E28": "flow_matching's affine path with the CondOT scheduler gives our x_t and velocity target to 1e-6, and its Euler ODE solver our 16-step samples to 1e-5."
+ },
+ "added_later": {
+  "written": "2026-10-20, after the ar and mdm runs and the first sampling sweep (mdm held-out ELBO 2.555 against ar's 1.748; random-order samples at 128 steps scored a word score of 0.16), before the mdm6x run",
+  "why": "the masked diffusion model trained at the AR twin's compute writes no words; a longer run tests how much of the gap is compute",
+  "expectations": {
+   "E29": "mdm6x, the same model and recipe at 30,000 steps (6 times the compute), closes at least half of mdm's held-out gap to the AR twin: ELBO at most 2.15.",
+   "E30": "mdm6x's random-order samples at 128 steps reach a word score of at least 0.4."
+  }
+ },
+ "added_later_2": {
+  "written": "2026-10-20, after the nine 100,000-character runs (AR best 2.287 nats at epoch 64; diffusion bound 2.498 at epoch 200 and still falling), before the r100k_mdmlong_s0 run",
+  "why": "the diffusion model was still improving at the last mark, so 200 epochs cannot say whether it ever beats AR's best",
+  "expectations": {
+   "E31": "The diffusion model on 100,000 characters, seed 0, run on to 800 epochs: its bound goes below the AR twin's best NLL (2.287, mean of 3 seeds) by epoch 800, and stays within 0.03 of its lowest value from then on."
+  }
+ }
+}

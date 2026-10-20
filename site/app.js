@@ -7,13 +7,13 @@
     { name: "Origins", blurb: "An optional prologue: the classic math still running inside every model here." },
     { name: "Foundations", blurb: "Gradients, networks, and the tokenizer that feeds them." },
     { name: "Transformers & LLMs", blurb: "Build the block, evaluate it, adapt it, and run it fast." },
-    { name: "Breadth", blurb: "Carry the same ideas into pixels, denoising, and action." },
-    { name: "Looking inside", blurb: "Open a trained model while it runs: hooks, probes, patching, neurons, sparse dictionaries, vision and JEPA encoders." },
-    { name: "How learning works", blurb: "Watch training find a solution, measure the shape it leaves, and learn without labels." },
-    { name: "Other recipes", blurb: "Train from preferences instead of labels, and carry a state instead of attention." },
+    { name: "Breadth", blurb: "Carry the same ideas into pixels, denoising, and action, then write text by denoising." },
+    { name: "Looking inside", blurb: "Open a trained model while it runs: hooks, probes, patching, neurons, sparse dictionaries, vision and JEPA encoders, and the controls that test them." },
+    { name: "How learning works", blurb: "Watch training find a solution, measure the shape it leaves, learn without labels, keep the old while learning the new, and learn without a backward pass." },
+    { name: "Other recipes", blurb: "Train from preferences instead of labels, carry a state instead of attention, and write to it with the delta rule." },
     { name: "Why they work", blurb: "Fit the curves that plan big models, and watch a model learn from its prompt." },
-    { name: "Using models well", blurb: "Spend tokens on reasoning, fetch the right passage, and make a model smaller." },
-    { name: "Acting and planning", blurb: "Learn from reward, then plan inside a model of the world." },
+    { name: "Using models well", blurb: "Spend tokens on reasoning, fetch the right passage, make a model smaller, and train one with fewer bits." },
+    { name: "Acting and planning", blurb: "Learn from reward, plan inside a model of the world, train a language model against a checker, and learn a world model from pixels." },
   ];
   const ASSET_ROOTS = ["explorables", "quizzes", "research"];
   // Pages serves source files as application/octet-stream, so a direct link

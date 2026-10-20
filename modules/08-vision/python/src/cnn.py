@@ -12,7 +12,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from utils import get_device
+from utils import get_device, save_result
 
 FASHION = "zalando-datasets/fashion_mnist"
 FASHION_CLASSES = [
@@ -67,7 +67,12 @@ def load_fashion_subset(n_train: int = 6000, n_test: int = 1000, seed: int = 0):
 
 
 def train_tiny_cnn(epochs: int = 6, batch_size: int = 128, lr: float = 1e-3, seed: int = 0):
-    """Train TinyCNN on the subset; return (model, history, test_acc)."""
+    """Train TinyCNN on the subset; return (model, history, final accuracy).
+
+    Accuracy is measured on 1,000 FashionMNIST *test* images after every epoch,
+    so those images guide the reading of the run: they act as a validation set,
+    not an untouched test set. The history key keeps the name "test_acc".
+    """
     torch.manual_seed(seed)
     device = get_device()
     (xtr, ytr), (xte, yte) = load_fashion_subset(seed=seed)
@@ -96,11 +101,22 @@ def train_tiny_cnn(epochs: int = 6, batch_size: int = 128, lr: float = 1e-3, see
             acc = (model(xte).argmax(1) == yte).float().mean().item()
         history["loss"].append(running / n)
         history["test_acc"].append(acc)
-        print(f"epoch {ep + 1}/{epochs}  loss {running / n:.4f}  test_acc {acc:.4f}")
+        print(f"epoch {ep + 1}/{epochs}  loss {running / n:.4f}  val_acc {acc:.4f}")
 
     return model, history, history["test_acc"][-1]
 
 
+def record(hist: dict) -> None:
+    save_result("cnn", {
+        "what": "TinyCNN, 6 epochs on 6,000 FashionMNIST train images, seed 0; "
+                "accuracy on 1,000 test images checked every epoch (a validation set)",
+        "val_acc_per_epoch": [round(a, 4) for a in hist["test_acc"]],
+        "loss_per_epoch": [round(l, 4) for l in hist["loss"]],
+        "final_val_acc": round(hist["test_acc"][-1], 4),
+    })
+
+
 if __name__ == "__main__":
     model, hist, acc = train_tiny_cnn()
-    print(f"final test accuracy: {acc:.4f}")
+    record(hist)
+    print(f"final validation accuracy: {acc:.4f}")

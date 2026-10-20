@@ -1,0 +1,17 @@
+{
+ "written": "2026-10-19, before any of the 15 runs in results/runs/ (arms x seeds)",
+ "seen_before_writing": [
+  "results/sft.json and results/runs/base_eval.json (the base model)",
+  "two trial runs of grpo seed 0, learning rate 3e-4 then 5e-5, used to pick 5e-5; both deleted. The second ended at pass@1 94.2%, worked share 99%, base-level coverage at large k."
+ ],
+ "expectations": {
+  "E1": "Each true-reward arm (grpo, drgrpo, rloo) lifts test pass@1 from the base's 59.1% to at least 85% at step 300, in every seed.",
+  "E2": "rloo and drgrpo end within 2 points of each other in pass@1 (mean of 3 seeds): their advantages differ by the factor 8/7, which Adam's step size removes.",
+  "E3": "Length bias: over log steps 100-290, wrong replies are longer under grpo than under drgrpo, by at least 1 character on the mean of 3 seeds.",
+  "E4": "In every true-reward arm the share of worked replies rises above 90% by step 300 (base 24.7%), so mean reply length about triples.",
+  "E5": "No pass@k crossover: at every k from 1 to 128 the RL models match or beat the base within 0.5 points; per seed, at most 5 of 500 test problems are solved at least once in 128 base samples and never by the RL model.",
+  "E6": "random (coin-flip rewards, one step per batch): pass@1 stays within 5 points of 59.1% and the worked share between 15% and 35%; KL to the base stays under 0.3 nats per reply.",
+  "E7": "random_clip (coin-flip rewards, 4 clipped steps per batch): if Shao et al.'s clip mechanism carries over, the model's more likely style (direct, 75%) grows: worked share falls below 24.7% and pass@1 drops by 0 to 10 points.",
+  "E8": "Every true-reward arm ends with KL to the base above 1 nat per reply."
+ }
+}

@@ -3,7 +3,11 @@
 Everything here operates on the *raw logits* of a single forward pass: the
 960-dim hidden state at the last position, projected through the tied output
 head into 49,152 vocabulary scores. We then show the knobs that turn those
-scores into a choice: temperature, top-k, top-p.
+scores into a choice: temperature, top-k, top-p, min-p.
+
+The prompts are raw text with no chat template, as one would feed a base model:
+we read the Instruct model's plain completion here; the chat template comes in
+chat_template.py.
 
 Run me:
     uv run python src/sampling_lab.py            # print top tokens for a prompt
@@ -13,6 +17,7 @@ Run me:
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 import torch
@@ -21,6 +26,8 @@ import torch.nn.functional as F
 from common import build_chat_prompt, load_model, load_tokenizer
 
 FIG_DIR = Path(__file__).resolve().parents[2] / "figures"
+RESULTS = Path(__file__).resolve().parents[2] / "results" / "sampling.json"
+TOP_K, TOP_P, MIN_P = 5, 0.8, 0.1
 
 # A confident prompt (one answer dominates) — good for the temperature sweep.
 PROMPT = "The capital of France is"
@@ -107,6 +114,20 @@ def fig_temperature_sweep(model, tokenizer, out_path: Path) -> None:
     print(f"  wrote {out_path}  ({out_path.stat().st_size // 1024} KB)")
 
 
+def kept_counts(probs: torch.Tensor, k: int = TOP_K, p: float = TOP_P,
+                min_p: float = MIN_P) -> dict[str, int]:
+    """How many tokens each filter keeps from one next-token distribution."""
+    vals = probs.sort(descending=True).values
+    cumsum = torch.cumsum(vals, dim=0)
+    return {
+        "top_k": k,
+        # nucleus: smallest set whose cumulative prob >= p
+        "top_p": int((cumsum < p).sum().item()) + 1,
+        # min-p: every token with prob >= min_p x the top token's prob
+        "min_p": int((vals >= min_p * vals[0]).sum().item()),
+    }
+
+
 def fig_topk_topp(model, tokenizer, out_path: Path) -> None:
     import matplotlib
 
@@ -120,13 +141,11 @@ def fig_topk_topp(model, tokenizer, out_path: Path) -> None:
     vals = vals[:n]
     labels = [_clean(tokenizer.decode([i])) for i in idx[:n].tolist()]
 
-    k = 5
-    p_thresh = 0.8
-    cumsum = torch.cumsum(vals, dim=0)
-    # nucleus: smallest set whose cumulative prob >= p_thresh
-    nucleus_cut = int((cumsum < p_thresh).sum().item()) + 1
+    k, p_thresh = TOP_K, TOP_P
+    counts = kept_counts(probs)
+    nucleus_cut, minp_cut = counts["top_p"], counts["min_p"]
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 7), sharex=True)
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 9.5), sharex=True)
 
     # top-k
     colors_k = ["#55A868" if i < k else "#cccccc" for i in range(n)]
@@ -146,18 +165,46 @@ def fig_topk_topp(model, tokenizer, out_path: Path) -> None:
         fontsize=11,
     )
     ax2.set_ylabel("probability")
-    ax2.set_xticks(range(n))
-    ax2.set_xticklabels(labels, rotation=60, ha="right", fontfamily="monospace", fontsize=8)
     ax2.spines[["top", "right"]].set_visible(False)
 
+    # min-p
+    colors_m = ["#C44E52" if i < minp_cut else "#cccccc" for i in range(n)]
+    ax3.bar(range(n), vals.tolist(), color=colors_m)
+    ax3.axhline(MIN_P * float(vals[0]), color="#C44E52", ls="--", lw=1.5)
+    ax3.set_title(
+        f"min-p (min_p={MIN_P}): keep every token with at least {MIN_P:.0%} of the top "
+        f"token's probability → {minp_cut} tokens here",
+        fontsize=11,
+    )
+    ax3.set_ylabel("probability")
+    ax3.set_xticks(range(n))
+    ax3.set_xticklabels(labels, rotation=60, ha="right", fontfamily="monospace", fontsize=8)
+    ax3.spines[["top", "right"]].set_visible(False)
+
     fig.suptitle(
-        f'top-k is a fixed count, top-p adapts to the distribution\nprompt: "{OPEN_PROMPT}"',
+        f'top-k is a fixed count; top-p and min-p adapt to the distribution\nprompt: "{OPEN_PROMPT}"',
         fontsize=12,
     )
     fig.tight_layout(rect=(0, 0, 1, 0.95))
     fig.savefig(out_path, dpi=110)
     plt.close(fig)
     print(f"  wrote {out_path}  ({out_path.stat().st_size // 1024} KB)")
+
+
+def save_results(model, tokenizer, out_path: Path = RESULTS) -> dict:
+    """Write the numbers the README quotes: top tokens and kept counts."""
+    data = {"filters": {"top_k": TOP_K, "top_p": TOP_P, "min_p": MIN_P}, "prompts": {}}
+    for prompt in (PROMPT, OPEN_PROMPT):
+        probs = F.softmax(next_token_logits(model, tokenizer, prompt), dim=-1)
+        toks, vals, _ = top_tokens(probs.log(), tokenizer, k=5)
+        data["prompts"][prompt] = {
+            "top5": [[t, round(v, 4)] for t, v in zip(toks, vals)],
+            "kept": kept_counts(probs),
+        }
+    out_path.parent.mkdir(exist_ok=True)
+    out_path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+    print(f"  wrote {out_path}")
+    return data
 
 
 def main() -> None:
@@ -179,6 +226,7 @@ def main() -> None:
         fig_next_token_bar(model, tok, FIG_DIR / "next_token_dist.png")
         fig_temperature_sweep(model, tok, FIG_DIR / "temperature_sweep.png")
         fig_topk_topp(model, tok, FIG_DIR / "topk_topp.png")
+        save_results(model, tok)
 
 
 if __name__ == "__main__":

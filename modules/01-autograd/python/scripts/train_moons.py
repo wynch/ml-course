@@ -22,7 +22,7 @@ from micrograd.nn import MLP
 
 
 def make_loss(model, X, y):
-    """Mean squared-margin (SVM-ish) loss + L2 regularization, over the batch."""
+    """Mean hinge (max-margin) loss relu(1 - y*score) + L2 regularization, over the batch."""
     inputs = [[Value(xi) for xi in row] for row in X]
     scores = [model(x) for x in inputs]
     # svm "max-margin" loss: relu(1 - y*score)

@@ -59,7 +59,7 @@ border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem
 <nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
 <main>
 <h1 id="thermodynamics-learning-memory-and-selection">Thermodynamics: Learning, Memory and Selection</h1>
-<div class="meta"><span class="type">analysis</span> <span>created 2026-10-01</span> <span>updated 2026-10-01</span> <span class="tag">thermodynamics</span> <span class="tag">evolution</span> <span class="tag">learning</span> <span class="tag">memory</span> <span class="tag">resource-budgets</span></div>
+<div class="meta"><span class="type">analysis</span> <span>created 2026-10-01</span> <span>updated 2026-10-19</span> <span class="tag">analysis</span> <span class="tag">thermodynamics</span> <span class="tag">evolution</span> <span class="tag">learning</span> <span class="tag">memory</span> <span class="tag">resource-budgets</span></div>
 <p>The useful opening is to ask what lets a learning system keep working, what it should retain, and when change earns its cost. These are our deductions from <a href="source-roddier-thermodynamics-evolution.html">source-roddier-thermodynamics-evolution</a>, not ML results reported in the talk.</p>
 <p>R below means <code>raw/youtube-6lNz5vmkefa-roddier-thermodynamics-evolution.md</code>, §Transcript plus timestamps. Captions are automatic.</p>
 <h2 id="1-what-selects-the-target">1. What selects the target?</h2>
@@ -74,10 +74,11 @@ border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem
 <h2 id="4-when-does-sharing-beat-learning-alone">4. When does sharing beat learning alone?</h2>
 <p>Roddier notes that giving information does not make the giver lose it (R, 52:09–52:32). Our deduction: a shared rule could save repeated discovery. Its benefit must cover communication, verification and the cost of wrong or stale advice. Compare shared and separate learners at the same total budget. This is a question, not evidence for the project's old federation designs.</p>
 <h2 id="one-question-worth-keeping-open">One question worth keeping open</h2>
-<p><strong>Under the same total budget, when should a learner update, reuse a memory, or forget it?</strong></p>
+<p><strong>Under the same total budget, when should a learner update, reuse a memory, or forget it?</strong> (The ML side of this question: <a href="concept-continual-learning.html">concept-continual-learning</a>.)</p>
 <p>A possible later test would compare a fixed predictor, an always-updating predictor and one that chooses when to update, on the same changing stream. Count the choice mechanism's cost too. Score predictions before revealing their answers; compare later unseen data, recovery after changes and retention of earlier skills. Lower error at the same cost, or lower cost at the same error, would be a useful result.</p>
 <p>Expectation to examine: choosing when to update may save work during stable periods while still recovering after a change. If the gain vanishes once overhead and easier inputs are controlled, that expectation fails. When attributing a gain to an update, also compare old and new predictors on the same data: the existing compression-progress source makes this distinction explicit (<code>raw/arxiv-0812-4360-driven-by-compression-progress.md</code>, §A.5–A.6).</p>
 <p>This is a question sketch, not a registered experiment. Experiments remain parked.</p>
+<p>Superseded, 2026-10-17: experiments un-parked (<code>AGENTS.md</code>); this sketch is not yet pre-registered. Related: <a href="concept-continual-learning.html">concept-continual-learning</a>.</p>
 <h2 id="keep-the-quantities-separate">Keep the quantities separate</h2>
 <p>Physical entropy, uncertainty over outcomes, prediction loss and energy in joules are different quantities. Calling an ML objective “energy” or “free energy” does not equate it with heat. Roddier's proposed maximization principle is stronger than the second law; he acknowledges debate over its claimed proof (R, 34:06–34:23). None of these project questions requires accepting that principle as a universal law.</p>
 <h2 id="references">References</h2>

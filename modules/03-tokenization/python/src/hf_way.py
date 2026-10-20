@@ -59,9 +59,43 @@ def load_smollm3():
     return AutoTokenizer.from_pretrained(SMOLLM3)
 
 
+def _byte_decoder() -> dict[str, int]:
+    """GPT-2's byte-to-character map, inverted.
+
+    Byte-level tokenizers store each byte as a printable character: the 188
+    printable bytes stand for themselves and the other 68 (space, newline,
+    control bytes, half of every accented letter) move to code points 256 and
+    up. So a space shows as Ġ, a newline as Ċ, and "à" (bytes C3 A0) as Ãł.
+    """
+    keep = list(range(ord("!"), ord("~") + 1)) + list(range(0xA1, 0xAD)) + list(range(0xAE, 0x100))
+    chars = keep[:]
+    extra = 0
+    for b in range(256):
+        if b not in keep:
+            keep.append(b)
+            chars.append(256 + extra)
+            extra += 1
+    return {chr(c): b for b, c in zip(keep, chars)}
+
+
+_BYTE_DECODER = _byte_decoder()
+
+
 def _clean(pieces: list[str]) -> list[str]:
-    """Make byte-level artifacts (Ġ for space, Ċ for newline) human-readable."""
-    return [p.replace("Ġ", "·").replace("Ċ", "\\n") for p in pieces]
+    """Turn byte-level token strings back into readable text.
+
+    Each piece is mapped back to its bytes and decoded; a space shows as ·
+    and a newline as \\n. A piece that holds only part of a multi-byte
+    character shows the replacement mark.
+    """
+    out = []
+    for p in pieces:
+        if all(ch in _BYTE_DECODER for ch in p):
+            text = bytes(_BYTE_DECODER[ch] for ch in p).decode("utf-8", errors="replace")
+        else:
+            text = p
+        out.append(text.replace(" ", "·").replace("\n", "\\n"))
+    return out
 
 
 def scratch_pieces(bpe, text: str) -> list[str]:

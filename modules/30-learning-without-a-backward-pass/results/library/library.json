@@ -1,0 +1,137 @@
+{
+ "model": "HuggingFaceTB/SmolLM2-360M-Instruct",
+ "revision": "a10cc1512eabd3dde888204e902eca88bddb4951",
+ "data": "stanfordnlp/sst2@8d51e7e4",
+ "prompt": "{s} It was [terrible|great]",
+ "n_train": 1000,
+ "n_val": 872,
+ "batch": 16,
+ "params": 361821120,
+ "base_val_acc": 0.5229,
+ "base_memory": {
+  "mps_live_peak_gb": 1.364,
+  "mps_driver_peak_gb": 2.477
+ },
+ "lora": {
+  "config": {
+   "steps": 300,
+   "lr": 0.0003,
+   "micro_batches": 2,
+   "r": 8,
+   "alpha": 16,
+   "targets": [
+    "q_proj",
+    "v_proj"
+   ],
+   "eval_every": 50
+  },
+  "steps": 300,
+  "evals": [
+   {
+    "step": 0,
+    "val_acc": 0.5229
+   },
+   {
+    "step": 50,
+    "val_acc": 0.883
+   },
+   {
+    "step": 100,
+    "val_acc": 0.9106
+   },
+   {
+    "step": 150,
+    "val_acc": 0.9106
+   },
+   {
+    "step": 200,
+    "val_acc": 0.9083
+   },
+   {
+    "step": 250,
+    "val_acc": 0.9117
+   },
+   {
+    "step": 300,
+    "val_acc": 0.9151
+   }
+  ],
+  "final_val_acc": 0.9151,
+  "best_val_acc": 0.9151,
+  "loss_first_50": 0.5089,
+  "loss_last_50": 0.0238,
+  "seconds_per_step": 0.708,
+  "mps_live_peak_gb": 2.612,
+  "mps_driver_peak_gb": 3.019,
+  "peak_rss_gb": 2.4,
+  "chunks": 1,
+  "longest_chunk_minutes": 3.58
+ },
+ "mezo": {
+  "config": {
+   "steps": 2000,
+   "lr": 1e-05,
+   "eps": 0.001,
+   "eval_every": 250
+  },
+  "steps": 2000,
+  "evals": [
+   {
+    "step": 0,
+    "val_acc": 0.5229
+   },
+   {
+    "step": 250,
+    "val_acc": 0.6812
+   },
+   {
+    "step": 500,
+    "val_acc": 0.7018
+   },
+   {
+    "step": 750,
+    "val_acc": 0.7144
+   },
+   {
+    "step": 1000,
+    "val_acc": 0.7156
+   },
+   {
+    "step": 1250,
+    "val_acc": 0.7202
+   },
+   {
+    "step": 1500,
+    "val_acc": 0.7362
+   },
+   {
+    "step": 1750,
+    "val_acc": 0.7431
+   },
+   {
+    "step": 2000,
+    "val_acc": 0.7569
+   }
+  ],
+  "final_val_acc": 0.7569,
+  "best_val_acc": 0.7569,
+  "loss_first_50": 0.7372,
+  "loss_last_50": 0.4759,
+  "seconds_per_step": 0.993,
+  "mps_live_peak_gb": 1.364,
+  "mps_driver_peak_gb": 2.518,
+  "peak_rss_gb": 2.39,
+  "chunks": 15,
+  "longest_chunk_minutes": 4.01
+ },
+ "mezo_trajectory_bytes": 170237,
+ "steps_to_lora_final": {
+  "lora": 300,
+  "mezo": null
+ },
+ "mezo_memory_share_of_lora": {
+  "driver": 0.834,
+  "live_polled": 0.522
+ },
+ "replay_seconds_last_chunk": 132.1
+}

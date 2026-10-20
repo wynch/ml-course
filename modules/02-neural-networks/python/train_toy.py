@@ -10,6 +10,7 @@ Writes figures/decision_boundary_moons.gif and figures/toy_circles.png.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import matplotlib
@@ -26,6 +27,7 @@ from src.plots import decision_boundary_frame, make_mesh
 from src.train import train, train_val_split
 
 FIG = Path(__file__).resolve().parents[1] / "figures"
+RESULTS = Path(__file__).resolve().parents[1] / "results"
 
 
 def train_and_animate(kind: str, gif_path: Path, epochs: int = 120, seed: int = 0):
@@ -35,7 +37,9 @@ def train_and_animate(kind: str, gif_path: Path, epochs: int = 120, seed: int = 
 
     # 2 -> 16 -> 16 -> 2 : enough capacity for a curvy boundary
     model = MLP([2, 16, 16, 2], rng)
-    opt = SGD(model.params_and_grads, lr=0.3, momentum=0.9)
+    # lr 0.1, as in the explorable: at 0.3 this run spikes (val acc fell to 0.56
+    # at epoch 71 and train loss jumped to 0.88 at epoch 83)
+    opt = SGD(model.params_and_grads, lr=0.1, momentum=0.9)
 
     # a coarser mesh keeps the GIF small without changing the visible boundary
     mesh = make_mesh(X, step=0.04)
@@ -80,12 +84,13 @@ def train_and_animate(kind: str, gif_path: Path, epochs: int = 120, seed: int = 
     final_acc = accuracy(model, X, y)
     print(f"[{kind}] frames={len(snapshots)} final full-set acc={final_acc:.3f} "
           f"val acc={hist.val_acc[-1]:.3f} -> {gif_path.name}")
-    return final_acc
+    return final_acc, hist
 
 
 def main():
     FIG.mkdir(parents=True, exist_ok=True)
-    train_and_animate("moons", FIG / "decision_boundary_moons.gif", epochs=120)
+    RESULTS.mkdir(parents=True, exist_ok=True)
+    moons_acc, moons_hist = train_and_animate("moons", FIG / "decision_boundary_moons.gif", epochs=120)
 
     # a static companion figure for circles (final boundary only)
     rng = np.random.default_rng(1)
@@ -100,7 +105,20 @@ def main():
     ax.set_title("circles — final boundary")
     fig.savefig(FIG / "toy_circles.png")
     plt.close(fig)
-    print(f"[circles] final full-set acc={accuracy(model, X, y):.3f} -> toy_circles.png")
+    circles_acc = accuracy(model, X, y)
+    print(f"[circles] final full-set acc={circles_acc:.3f} -> toy_circles.png")
+
+    out = {
+        "moons": {"n": 600, "noise": 0.2, "seed": 0, "sizes": [2, 16, 16, 2],
+                  "lr": 0.1, "momentum": 0.9, "batch_size": 32, "epochs": 120,
+                  "final_full_set_acc": moons_acc,
+                  "train_loss": [round(v, 4) for v in moons_hist.train_loss],
+                  "val_acc": [round(v, 4) for v in moons_hist.val_acc]},
+        "circles": {"n": 600, "noise": 0.15, "seed": 1, "lr": 0.1, "momentum": 0.9,
+                    "final_full_set_acc": circles_acc},
+    }
+    (RESULTS / "toy.json").write_text(json.dumps(out, indent=1) + "\n")
+    print(f"wrote {RESULTS / 'toy.json'}")
 
 
 if __name__ == "__main__":

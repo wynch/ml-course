@@ -1,0 +1,233 @@
+{
+ "blocks": {
+  "n": 256,
+  "length": 128,
+  "chars": 32768
+ },
+ "likelihood_nats_per_char": {
+  "ar_exact": 1.7476,
+  "mdm_elbo": 2.5624,
+  "mdm_elbo_seed1": 2.5584,
+  "bd4_elbo": 2.1476,
+  "bd16_elbo": 2.3728,
+  "mdm6x_elbo": 2.06,
+  "unigram": 3.3581,
+  "mdm_exact_l2r": 2.5207,
+  "mdm_exact_r2l": 2.493,
+  "mdm_exact_random": 2.5574,
+  "mdm6x_exact_l2r": 2.0608,
+  "mdm6x_exact_r2l": 2.0334,
+  "mdm6x_exact_random": 2.0544
+ },
+ "module04_val_loss": {
+  "value": 1.7253,
+  "source": "modules/04-attention-transformer/results/train_summary.json, final val (random windows)"
+ },
+ "infill": {
+  "span": [
+   56,
+   72
+  ],
+  "results": {
+   "mdm_both_sides": {
+    "char_accuracy": 0.1167,
+    "span_exact": 0.0,
+    "by_position": [
+     0.293,
+     0.164,
+     0.07,
+     0.055,
+     0.086,
+     0.086,
+     0.066,
+     0.055,
+     0.102,
+     0.102,
+     0.082,
+     0.074,
+     0.086,
+     0.113,
+     0.152,
+     0.281
+    ]
+   },
+   "mdm_left_only": {
+    "char_accuracy": 0.0952,
+    "span_exact": 0.0,
+    "by_position": [
+     0.301,
+     0.188,
+     0.09,
+     0.066,
+     0.074,
+     0.09,
+     0.066,
+     0.059,
+     0.078,
+     0.102,
+     0.055,
+     0.078,
+     0.051,
+     0.07,
+     0.066,
+     0.09
+    ]
+   },
+   "mdm6x_both_sides": {
+    "char_accuracy": 0.1436,
+    "span_exact": 0.0,
+    "by_position": [
+     0.418,
+     0.215,
+     0.102,
+     0.105,
+     0.094,
+     0.066,
+     0.066,
+     0.082,
+     0.094,
+     0.059,
+     0.086,
+     0.066,
+     0.113,
+     0.129,
+     0.227,
+     0.375
+    ]
+   },
+   "mdm6x_left_only": {
+    "char_accuracy": 0.1072,
+    "span_exact": 0.0,
+    "by_position": [
+     0.414,
+     0.219,
+     0.109,
+     0.109,
+     0.094,
+     0.07,
+     0.062,
+     0.074,
+     0.094,
+     0.062,
+     0.082,
+     0.082,
+     0.074,
+     0.043,
+     0.062,
+     0.062
+    ]
+   },
+   "ar_left_only": {
+    "char_accuracy": 0.1438,
+    "span_exact": 0.0,
+    "by_position": [
+     0.543,
+     0.359,
+     0.203,
+     0.141,
+     0.121,
+     0.102,
+     0.102,
+     0.098,
+     0.098,
+     0.098,
+     0.074,
+     0.066,
+     0.078,
+     0.07,
+     0.078,
+     0.07
+    ]
+   }
+  },
+  "examples": [
+   {
+    "left": " Baptista.\n\nBAPTISTA:\nGo",
+    "truth": "od morrow, neigh",
+    "right": "bour Gremio.\nGod save yo",
+    "mdm_both_sides": "u athe yout you ",
+    "mdm_left_only": " athe the you th",
+    "mdm6x_both_sides": "d you you yould ",
+    "mdm6x_left_only": "d you you you yo",
+    "ar_left_only": "od the so so the"
+   },
+   {
+    "left": "esty,\nHer wondrous quali",
+    "truth": "ties and mild be",
+    "right": "havior,\nAm bold to show ",
+    "mdm_both_sides": "n tou thee the t",
+    "mdm_left_only": "n tou the he ath",
+    "mdm6x_both_sides": "ng you you your ",
+    "mdm6x_left_only": "ng you your your",
+    "ar_left_only": "ng the see the s"
+   },
+   {
+    "left": " Mantua.\n\nBAPTISTA:\nYou'",
+    "truth": "re welcome, sir;",
+    "right": " and he, for your good s",
+    "mdm_both_sides": "s the tou tou at",
+    "mdm_left_only": "s he the tou you",
+    "mdm6x_both_sides": "s you you you to",
+    "mdm6x_left_only": "s you you you yo",
+    "ar_left_only": "ll the so so the"
+   },
+   {
+    "left": "ISTA:\nI know him well: y",
+    "truth": "ou are welcome f",
+    "right": "or his sake.\n\nGREMIO:\nSa",
+    "mdm_both_sides": " the the me he t",
+    "mdm_left_only": "ou the tou tou t",
+    "mdm6x_both_sides": "ou you you you f",
+    "mdm6x_left_only": "ou you you you y",
+    "ar_left_only": "ou have the so s"
+   },
+   {
+    "left": "ding to you than\nany, fr",
+    "truth": "eely give unto y",
+    "right": "ou this young scholar,\nt",
+    "mdm_both_sides": "e the the fout y",
+    "mdm_left_only": "e he athe the at",
+    "mdm6x_both_sides": "om the you you y",
+    "mdm6x_left_only": "om the you you y",
+    "ar_left_only": "om the shall the"
+   },
+   {
+    "left": "boldness is mine own,\nTh",
+    "truth": "at, being a stra",
+    "right": "nger in this city here,\n",
+    "mdm_both_sides": "e he tour the hi",
+    "mdm_left_only": "e tou he me tour",
+    "mdm6x_both_sides": "e you not the ki",
+    "mdm6x_left_only": "e you you you yo",
+    "ar_left_only": "e shall be the s"
+   }
+  ]
+ },
+ "one_character": {
+  "position": 63,
+  "written_after_the_span_results": true,
+  "accuracy": {
+   "ar_left_only": 0.5391,
+   "mdm_both_sides": 0.4219,
+   "mdm6x_both_sides": 0.7344
+  }
+ },
+ "guard": {
+  "script": "evaluate",
+  "seconds": 30.2,
+  "minutes": 0.5,
+  "peak_rss_gb": 0.45,
+  "peak_mps_driver_gb": 3.06,
+  "stages_seconds": {
+   "elbo": 6.51,
+   "ordered": 19.27,
+   "infill": 4.44
+  },
+  "machine": "arm64 26.6.2",
+  "python": "3.12.13",
+  "torch": "2.14.1",
+  "threads": 4,
+  "device": "mps",
+  "mps_high_watermark_ratio": "0.3"
+ }
+}

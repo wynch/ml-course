@@ -247,13 +247,13 @@ var QUESTIONS = [
     hint: "README's ViT-vs-text table; <code>architecture_table()</code> in <code>src/vit_anatomy.py</code>.",
     prompt: "<b>Select all that apply.</b> Which rows of module 08's ViT-vs-text-transformer table are stated correctly?",
     options: [
-      "Encoder block: MHSA + MLP + LayerNorm — <b>identical</b> to the text transformer's.",
+      "Encoder block: the same parts as module 04's GPT block (MHSA + MLP + norm), but with <b>no causal mask</b>: every patch sees every patch.",
       "Embedding: exactly as with BPE tokens, each patch indexes into a learned lookup table.",
       "Readout: the <code>[CLS]</code> token feeds a class head, where the text model uses a next-token head.",
-      "Position info: a <i>learned</i> position embedding, where the text model uses a positional encoding."
+      "Position info: a <i>learned</i> position embedding, where every text transformer in this course uses a fixed sinusoidal encoding instead."
     ],
-    answer: [0, 2, 3],
-    explain: "README's table and <code>architecture_table()</code> in <code>vit_anatomy.py</code> build exactly these rows. The one false row is the embedding: there is no vocabulary and no lookup table for images — each flattened patch goes through a single linear projection, which is what <code>patch_sequence()</code>'s (196, 768) tensor is fed into. That is precisely why a ViT needs no tokenizer at all."
+    answer: [0, 2],
+    explain: "README's table and <code>architecture_table()</code> in <code>vit_anatomy.py</code> build these rows. Two are false. The embedding: there is no vocabulary and no lookup table for images — each flattened patch goes through a single linear projection, which is what <code>patch_sequence()</code>'s (196, 768) tensor is fed into; that is why a ViT needs no tokenizer at all. And position: module 04's tiny GPT also learns a position table (<code>wpe</code>), just as a ViT does, and SmolLM2 in module 05 uses RoPE; no text model in the course uses a fixed sinusoidal encoding. The block itself is the same, except that text models are causal decoders and a ViT is a bidirectional encoder."
   },
   {
     id: "q4",

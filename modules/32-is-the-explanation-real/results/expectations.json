@@ -1,0 +1,31 @@
+{
+ "written": "2026-10-20, before any training run, dictionary or score in this module; seen before writing: only a 60-step speed test of the two models (0.11 s and 0.06 s per step on MPS)",
+ "definitions": {
+  "truth": "for each neuron i of block 1's sparse MLP, its value vector (column i of W_out) and its key (row i of W_in); alive = fires on at least 1e-5 of held-out tokens",
+  "MMCS": "mean over alive true neurons of the highest cosine between the neuron's value vector and any decoder column of a dictionary (Korznikov et al. 2026)",
+  "recovered": "an alive true neuron whose best decoder cosine is at least 0.9",
+  "dictionaries": "SAE: rebuilds block 1's MLP output from itself; transcoder: maps block 1's MLP input (after LayerNorm) to its output; both 2,048 latents, TopK k = 8, the model's own width and k",
+  "detection": "a rule stands in for the LLM of auto-interp: the explanation of a unit is the 3 tokens most common among its 50 strongest activations on the first half of the held-out tokens; on the second half it predicts 'strongly active' (at least 20% of the unit's first-half maximum) iff the current token is one of the 3; score = balanced accuracy, 0.5 is chance",
+  "token_r2": "share of a unit's activation variance on the second half explained by the mean activation of the current token, fitted on the first half",
+  "attribution": "activation x gradient of the target logit, with attention patterns, LayerNorm scales and the TopK choice of every neuron frozen at their values on the prompt",
+  "ablation_effect": "drop in the target logit when one active neuron is set to zero and the model reruns with nothing frozen"
+ },
+ "expectations": {
+  "T1": "The sparse model's held-out loss is within 0.10 nats per token of the dense GELU baseline trained for the same steps, and at least 90% of each layer's 2,048 neurons are alive.",
+  "T2": "Detection score: the sparse model's alive neurons score higher than the dense model's 512 neurons by at least 0.05 (median over units).",
+  "G1": "Ground truth: the transcoder's MMCS beats the SAE's by at least 0.10 on the trained model (mean of 3 seeds).",
+  "G2": "The spread over 3 seeds (max minus min MMCS) of each method is smaller than the gap between methods.",
+  "G3": "The transcoder recovers at least half of the alive true neurons; the SAE recovers fewer.",
+  "R1": "Random-weight copy: the detection score of its SAE latents is within 0.05 of the trained model's SAE latents (median over alive latents), as Heap et al. report for Pythia.",
+  "R2": "Dictionaries on the random copy recover the random copy's own true neurons about as well: MMCS within 0.10 of the trained model's, for each method.",
+  "R3": "Token R2 separates the two: the median token R2 of the random copy's SAE latents exceeds the trained model's by at least 0.10.",
+  "S1": "Two SAE seeds share under 80% of their latents (Hungarian matching on decoder cosine, matched at cosine >= 0.7); two transcoder seeds share more than two SAE seeds.",
+  "S2": "Of the latents that match a true neuron (cosine >= 0.9), at least 90% are also matched across seeds; of those that match no neuron better than 0.5, under 50% are.",
+  "A1": "On 20 held-out prompts, over every active neuron of both layers, attribution and the real single-neuron ablation effect on the target logit correlate at Pearson r >= 0.8 (trained model).",
+  "A2": "Zeroing the 10 neurons of highest |attribution| lowers the target logit more than zeroing 10 random active neurons on every prompt, with a median drop at least 5 times larger.",
+  "A3": "Keeping only the 20 neurons of highest |attribution| (all other active neurons zeroed) keeps the target token's probability at a median of at least 0.8 of the full model's (faithfulness).",
+  "A4": "The random-weight copy passes A1 too (r >= 0.8): a graph can be faithful to a model that learned nothing.",
+  "L1": "Library way, GPT-2 small layer 8, SAELens TopK SAEs with one recipe: the random-weight GPT-2's SAE latents score within 0.05 of the trained GPT-2's on detection (median).",
+  "L2": "Token R2 is higher for the random GPT-2's SAE latents than for the trained one's by at least 0.10 (median)."
+ }
+}

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Neural Depth Scaling: Loss~1/depth in LLMs · ML wiki</title>
+<title>Inverse Depth Scaling From Most Layers Being Similar · ML wiki</title>
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
@@ -58,18 +58,21 @@ border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem
 <body>
 <nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
 <main>
-<h1 id="neural-depth-scaling">Neural Depth Scaling</h1>
-<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-04-05</span> <span class="tag">transformers</span> <span class="tag">scaling-laws</span> <span class="tag">depth</span> <span class="tag">architecture</span></div>
-<p><strong>arXiv:</strong> <a href="https://arxiv.org/abs/2602.05970" rel="noreferrer">2602.05970</a> <strong>Via:</strong> @yizhouliu0 on X</p>
+<h1 id="inverse-depth-scaling-from-most-layers-being-similar">Inverse Depth Scaling From Most Layers Being Similar</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-10-20</span> <span class="tag">transformers</span> <span class="tag">scaling-laws</span> <span class="tag">depth</span> <span class="tag">architecture</span></div>
+<p><strong>Authors:</strong> Yizhou Liu, Sara Kangaslahti, Ziming Liu, Jeff Gore · v1 2026-02-05, v2 2026-05-31 (ICML 2026 camera-ready) <strong>arXiv:</strong> <a href="https://arxiv.org/abs/2602.05970" rel="noreferrer">2602.05970</a> (Title corrected 2026-10-19; the page had a made-up one.) <strong>Via:</strong> @yizhouliu0 on X <strong>Full text:</strong> <code>raw/arxiv-2602-05970-inverse-depth-scaling-from-most-layers.md</code> (v2, captured 2026-10-20), cited below by section.</p>
 <h2 id="summary">Summary</h2>
-<p>Reveals that LLM loss scales as ~1/depth. Models employ an "ensemble average" of updates rather than compositional layer usage or smooth dynamics approximation.</p>
+<p>Reports that LLM loss falls in inverse proportion to depth. The authors say the 1/depth law <em>probably</em> comes from ensemble averaging over functionally similar layers, rather than from composing computations or approximating smooth dynamics. They call the ensemble regime "inefficient yet robust" and suggest efficiency may need architectures that "encourage compositional use of depth" (arXiv 2602.05970, abstract). (Corrected 2026-10-19: the page stated the ensemble reading as fact.)</p>
+<p>Contradiction (partial): <a href="source-neural-depth-scaling.html">source-neural-depth-scaling</a> finds LLM layers probably act as an averaging ensemble (arXiv 2602.05970); <a href="source-neural-low-degree-filtering.html">source-neural-low-degree-filtering</a> models depth as composition in a stylised limit (<code>raw/arxiv-2605-13612-neural-low-degree-filtering.md</code>). The settings differ (trained LLMs vs a theory limit), so both can hold.</p>
 <h2 id="key-ideas">Key Ideas</h2>
-<ul><li>Loss scales inversely with depth: Loss ~ 1/depth</li><li>Layers act as ensemble average of updates, not sequential composition</li><li>Challenges the assumption that deeper = more compositional reasoning</li><li>Implications for architecture design and depth vs width trade-offs</li></ul>
+<ul><li>Loss scales inversely with depth: Loss ~ 1/depth</li><li>Layers probably act as an ensemble average of updates, not sequential composition (the authors' hedge)</li><li>Challenges the assumption that deeper = more compositional reasoning</li><li>Implications for architecture design and depth vs width trade-offs</li></ul>
+<p>Added 2026-10-20, from the full text:</p>
+<ul><li><strong>The fit.</strong> A loss law with separate width, depth and data terms, fitted to about 200 points reconstructed from the Chinchilla models, gives a depth exponent of 1.2 ± 0.3 (width 0.98 ± 0.08, data 0.30 ± 0.01) (§2, Eq. 3).</li><li><strong>The hidden-state evidence.</strong> In Pythia models on FineWeb, most tokens are updated by small, even steps through the middle layers; the step shrinks as models get deeper; neighbouring updates are weakly correlated, which argues against smooth dynamics, though the authors call this "not definitive" (§2, Figure 2).</li><li><strong>Not pure averaging either.</strong> First and last layers act differently; causal tracing on Pythia-12b shows two functional groups of layers, with averaging inside each group (§6, Figure 6).</li><li><strong>Limits, the authors' own:</strong> the loss decomposition is proposed, not derived; other mechanisms cannot be ruled out (§6).</li></ul>
 <h2 id="connections">Connections</h2>
-<ul><li>Fundamental insight about <a href="concept-transformer-architecture.html">concept-transformer-architecture</a></li><li>Related to <a href="concept-scaling-laws.html">concept-scaling-laws</a> — depth dimension</li><li>Connects to <a href="source-attention-sinks-compression-valleys.html">source-attention-sinks-compression-valleys</a> — how layers organize computation</li></ul>
+<ul><li>Fundamental insight about <a href="concept-transformer-architecture.html">concept-transformer-architecture</a></li><li>Related to <a href="concept-scaling-laws.html">concept-scaling-laws</a> — depth dimension</li><li>Connects to <a href="source-attention-sinks-compression-valleys.html">source-attention-sinks-compression-valleys</a> — how layers organize computation</li><li>Depth as recurrence instead: <a href="source-recurrent-depth-latent-reasoning.html">source-recurrent-depth-latent-reasoning</a></li></ul>
 <h2 id="references">References</h2>
-<ul><li><a href="https://arxiv.org/abs/2602.05970" rel="noreferrer">arXiv page</a></li></ul>
-<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2602.05970" rel="noreferrer">https://arxiv.org/abs/2602.05970</a></li><li><a href="https://x.com/yizhouliu0/status/2019950168242811275" rel="noreferrer">https://x.com/yizhouliu0/status/2019950168242811275</a></li></ul></details>
+<ul><li><a href="https://arxiv.org/abs/2602.05970" rel="noreferrer">arXiv page</a></li><li>Full text (v2): <code>raw/arxiv-2602-05970-inverse-depth-scaling-from-most-layers.md</code></li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://arxiv.org/abs/2602.05970" rel="noreferrer">https://arxiv.org/abs/2602.05970</a></li><li><a href="https://x.com/yizhouliu0/status/2019950168242811275" rel="noreferrer">https://x.com/yizhouliu0/status/2019950168242811275</a></li><li><code>raw/arxiv-2602-05970-inverse-depth-scaling-from-most-layers.md</code></li><li><code>raw/arxiv-2605-13612-neural-low-degree-filtering.md</code></li></ul></details>
 </main>
 </body>
 </html>

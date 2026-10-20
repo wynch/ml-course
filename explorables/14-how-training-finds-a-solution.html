@@ -450,7 +450,7 @@ $("#landchips").innerHTML=NETS.map(([k])=>{ const n=LD.nets[k];
     '<span class="chip">batch '+fmt(n.batch)+': test accuracy <b>'+pct(n.test_acc)+'</b></span>'; }).join("")+
   '<span class="chip">at init: top eigenvalue <b>'+LD.init_eig.toFixed(1)+'</b></span>'+
   '<span class="chip">2(1 + 0.9) / lr = <b>'+LD.limit+'</b></span>';
-$("#landnote").innerHTML="The top eigenvalue of the Hessian measures how sharply the loss curves in its steepest direction. "+
+$("#landnote").innerHTML="The top eigenvalue of the Hessian measures how sharply the loss curves along the direction in which it bends most. "+
   "Plain gradient descent with momentum 0.9 is unstable on a quadratic whose curvature exceeds 2(1 + 0.9) / lr. "+
   "One run per batch size, one pair of directions: a demo, not a measurement.";
 drawLand();
@@ -513,6 +513,8 @@ $("#notice").innerHTML=[
   "Move one rate a notch at a time near its best value on the bowl: the step count jumps around. The best numbers in panel 1 are the luckiest point of a ragged curve.",
   "On the MLP each optimiser has its own good range: the best cell is lr "+M.best["sgd/warmup_cosine"].lr+" for SGD (the top of the grid, so a higher rate might do better), "+M.best["momentum/warmup_cosine"].lr+
     " for momentum and "+M.best["adam/warmup_cosine"].lr+" for Adam. Compare a gap between two cells with the seed spread in the chips before reading anything into it.",
+  "In panel 3 the large-batch net sits in the sharper spot (top eigenvalue "+LD.nets.large.top_eig.toFixed(1)+" against "+LD.nets.small.top_eig.toFixed(1)+
+    "), yet it tests better: "+pct(LD.nets.large.test_acc)+" against "+pct(LD.nets.small.test_acc)+".",
   "In panel 4, with weight decay 1.0, watch the weight norm fall while test accuracy climbs. Without weight decay, does it fall?"
 ].map(s=>"<li>"+s+"</li>").join("");
 })();

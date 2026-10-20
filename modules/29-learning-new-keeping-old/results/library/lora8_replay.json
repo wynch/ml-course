@@ -1,0 +1,113 @@
+{
+ "model": "HuggingFaceTB/SmolLM2-360M-Instruct",
+ "revision": "a10cc1512eabd3dde888204e902eca88bddb4951",
+ "arm": "lora8_replay",
+ "spec": {
+  "r": 8,
+  "lr": 0.001,
+  "replay": 1,
+  "alpha": 16
+ },
+ "targets": [
+  "q_proj",
+  "k_proj",
+  "v_proj",
+  "o_proj",
+  "gate_proj",
+  "up_proj",
+  "down_proj"
+ ],
+ "steps": 300,
+ "batch": 4,
+ "micro_batch": 2,
+ "max_len": 512,
+ "dtype": "bfloat16",
+ "gradient_checkpointing": true,
+ "trainable_parameters": 4341760,
+ "sets": {
+  "new": "200 GSM8K test solutions",
+  "probe_qa": "250 SQuAD validation answers",
+  "probe_chat": "250 smoltalk everyday-conversations test replies"
+ },
+ "log": [
+  {
+   "step": 0,
+   "new_nll": 0.92793,
+   "kl_new": 0.0,
+   "new_tokens": 25054,
+   "probe_qa_nll": 1.31324,
+   "kl_probe_qa": 0.0,
+   "probe_qa_tokens": 1747,
+   "probe_chat_nll": 0.81774,
+   "kl_probe_chat": 0.0,
+   "probe_chat_tokens": 7327,
+   "probe_nll": 1.06549,
+   "kl_probe": 0.0
+  },
+  {
+   "step": 50,
+   "new_nll": 0.61418,
+   "kl_new": 0.34326,
+   "new_tokens": 25054,
+   "probe_qa_nll": 1.49104,
+   "kl_probe_qa": 0.1156,
+   "probe_qa_tokens": 1747,
+   "probe_chat_nll": 0.80332,
+   "kl_probe_chat": 0.04294,
+   "probe_chat_tokens": 7327,
+   "probe_nll": 1.14718,
+   "kl_probe": 0.07927
+  },
+  {
+   "step": 100,
+   "new_nll": 0.58798,
+   "kl_new": 0.36656,
+   "new_tokens": 25054,
+   "probe_qa_nll": 1.65214,
+   "kl_probe_qa": 0.155,
+   "probe_qa_tokens": 1747,
+   "probe_chat_nll": 0.8042,
+   "kl_probe_chat": 0.0448,
+   "probe_chat_tokens": 7327,
+   "probe_nll": 1.22817,
+   "kl_probe": 0.0999
+  },
+  {
+   "step": 200,
+   "new_nll": 0.58361,
+   "kl_new": 0.45218,
+   "new_tokens": 25054,
+   "probe_qa_nll": 1.63717,
+   "kl_probe_qa": 0.16485,
+   "probe_qa_tokens": 1747,
+   "probe_chat_nll": 0.81568,
+   "kl_probe_chat": 0.05318,
+   "probe_chat_tokens": 7327,
+   "probe_nll": 1.22642,
+   "kl_probe": 0.10902
+  },
+  {
+   "step": 300,
+   "new_nll": 0.56725,
+   "kl_new": 0.46537,
+   "new_tokens": 25054,
+   "probe_qa_nll": 1.81126,
+   "kl_probe_qa": 0.21429,
+   "probe_qa_tokens": 1747,
+   "probe_chat_nll": 0.81608,
+   "kl_probe_chat": 0.07823,
+   "probe_chat_tokens": 7327,
+   "probe_nll": 1.31367,
+   "kl_probe": 0.14626
+  }
+ ],
+ "final": {
+  "new_gain": 0.36068,
+  "forgetting": 0.24818,
+  "kl_new": 0.46537,
+  "kl_probe": 0.14626
+ },
+ "seconds": 623.5,
+ "peak_mps_driver_gb": 2.45,
+ "peak_rss_gb": 0.79
+}

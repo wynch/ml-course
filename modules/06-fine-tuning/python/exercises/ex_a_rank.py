@@ -3,7 +3,8 @@
 Fine-tune the SAME model on the SAME data slice twice, changing only the LoRA
 rank, then plot the two loss curves together and print the trainable-parameter
 counts. Question to answer in your head: does 8x the rank buy you 8x lower loss?
-(Spoiler: no — everyday-conversations has low intrinsic rank.)
+(Spoiler: no. Then ask what else differs: both runs keep lora_alpha=32, so the
+update scale alpha/r is 8 at r=4 and 1 at r=32.)
 
 Runtime on the M5: ~2 short runs, roughly 6-10 min total for 120 steps each.
 

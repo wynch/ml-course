@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Knowledge Editing · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="knowledge-editing">Knowledge Editing</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">knowledge-editing</span> <span class="tag">factual-memory</span> <span class="tag">rome</span> <span class="tag">memit</span> <span class="tag">memory-layers</span> <span class="tag">continual-learning</span> <span class="tag">hub</span></div>
+<p>Knowledge editing changes one fact a model holds ("the Eiffel Tower is in Rome") without retraining it and without disturbing the rest. It sits between three neighbours: fine-tuning, which changes much more than one fact; <a href="concept-machine-unlearning.html">concept-machine-unlearning</a>, which removes rather than rewrites; and <a href="concept-retrieval-augmented-generation.html">concept-retrieval-augmented-generation</a>, which leaves the weights alone and puts the fact in the prompt.</p>
+<h2 id="two-routes">Two routes</h2>
+<p><strong>Find the fact, then edit it.</strong> ROME adds noise to the subject's tokens, then restores single hidden states from a clean run to see which one brings the answer back ("causal tracing"). The answer: middle-layer MLPs reading the subject's tokens. It then rewrites the fact with a rank-one change to one MLP's weights, treating the MLP as a key-value store; MEMIT spreads many such edits over several layers (arXiv 2202.05262, §2.1; arXiv 2210.07229; neither in raw; <a href="source-rome-memit-factual-editing.html">source-rome-memit-factual-editing</a>).</p>
+<p><strong>Build a store that is easy to edit.</strong> Put facts where each input touches only a few weights, and train only those.</p>
+<ul><li>Sparse memory finetuning replaces one middle MLP of a 1.3B model with a lookup table of 1M slots; each token reads its top 32 per head. To learn a fact it trains only the slots that fact's batch uses far more than ordinary text does (<code>raw/arxiv-2510-15103-continual-learning-via-sparse-memory-finetuning.md</code>, §3, §4, §5). Learning 1,000 facts in sequence, NaturalQuestions F1 drops 11%, against 89% for full fine-tuning and 71% for LoRA (same file, Abstract, §1). About 25–100 trained slots were enough for the examples shown (same file, §6, Table 1). <a href="source-sparse-memory-finetuning.html">source-sparse-memory-finetuning</a></li><li>Engram adds a table of n-gram embeddings, found by hash lookup, beside the network (<code>raw/arxiv-2601-07372-conditional-memory-via-scalable-lookup-a.md</code>, §1, §2); a 100B-parameter table kept in host memory costs under 3% at inference (<code>raw/arxiv-2601-07372-conditional-memory-via-scalable-lookup-a.md</code>, §1; <a href="source-engram-deepseek.html">source-engram-deepseek</a>). It is built for capacity, not editing; whether one entry can be rewritten cleanly is untested here.</li><li>MemoryLLM makes the feed-forward blocks an interpretable memory that can be plugged in and out (arXiv 2602.00398; not in raw; <a href="source-memoryllm-plug-n-play-ffn.html">source-memoryllm-plug-n-play-ffn</a>).</li><li>For removal, NULLs route each source's knowledge to its own sparse "sinks" that can be switched off at deployment (<code>raw/arxiv-2606-13873-natively-unlearnable-llms.md</code>; <a href="source-natively-unlearnable-llms.html">source-natively-unlearnable-llms</a>; <a href="concept-machine-unlearning.html">concept-machine-unlearning</a>).</li></ul>
+<h2 id="does-finding-the-fact-help-edit-it">Does finding the fact help edit it?</h2>
+<p>Contradiction (open), carried from <a href="source-rome-memit-factual-editing.html">source-rome-memit-factual-editing</a>: Hase, Bansal, Kim and Ghandeharioun ("Does Localization Inform Editing?", NeurIPS 2023, arXiv 2301.04213) find that where causal tracing places a fact does not predict which layer edits it best (not in raw). If so, ROME's edit works, but not for the reason its trace gives. The built-in stores above sidestep the question: they choose where facts go before training.</p>
+<h2 id="open-questions">Open questions</h2>
+<ul><li>None of ROME, MEMIT or Hase et al. is in raw. Capture them before weighing the contradiction.</li><li>Sparse memory finetuning was tested only on facts, at 1.3B; its authors name reasoning and coding as harder (<code>raw/arxiv-2510-15103-continual-learning-via-sparse-memory-finetuning.md</code>, §7).</li><li>Edits to a fact's consequences ("so the Eiffel Tower is in Italy") are not measured by any source here.</li></ul>
+<h2 id="key-sources">Key sources</h2>
+<ul><li><a href="source-rome-memit-factual-editing.html">source-rome-memit-factual-editing</a> · <a href="source-sparse-memory-finetuning.html">source-sparse-memory-finetuning</a> · <a href="source-engram-deepseek.html">source-engram-deepseek</a> · <a href="source-memoryllm-plug-n-play-ffn.html">source-memoryllm-plug-n-play-ffn</a> · <a href="source-natively-unlearnable-llms.html">source-natively-unlearnable-llms</a></li><li>Related: <a href="concept-machine-unlearning.html">concept-machine-unlearning</a> · <a href="concept-continual-learning.html">concept-continual-learning</a> · <a href="concept-retrieval-augmented-generation.html">concept-retrieval-augmented-generation</a> · <a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a> · <a href="source-geva-ffn-key-value-memories.html">source-geva-ffn-key-value-memories</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2510-15103-continual-learning-via-sparse-memory-finetuning.md</code> (arXiv 2510.15103)</li><li><code>raw/arxiv-2601-07372-conditional-memory-via-scalable-lookup-a.md</code> (Abstract, §1)</li><li><code>raw/arxiv-2606-13873-natively-unlearnable-llms.md</code></li><li>Meng et al., 2022, ROME: <a href="https://arxiv.org/abs/2202.05262" rel="noreferrer">https://arxiv.org/abs/2202.05262</a> (not in raw)</li><li>Meng et al., 2023, MEMIT: <a href="https://arxiv.org/abs/2210.07229" rel="noreferrer">https://arxiv.org/abs/2210.07229</a> (not in raw)</li><li>Hase et al., 2023: <a href="https://arxiv.org/abs/2301.04213" rel="noreferrer">https://arxiv.org/abs/2301.04213</a> (not in raw)</li><li>MemoryLLM: <a href="https://arxiv.org/abs/2602.00398" rel="noreferrer">https://arxiv.org/abs/2602.00398</a> (not in raw)</li></ul>
+<details class="src"><summary>Sources (7)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2510-15103-continual-learning-via-sparse-memory-finetuning.md</code></li><li><code>raw/arxiv-2601-07372-conditional-memory-via-scalable-lookup-a.md</code></li><li><code>raw/arxiv-2606-13873-natively-unlearnable-llms.md</code></li><li><a href="https://arxiv.org/abs/2202.05262" rel="noreferrer">https://arxiv.org/abs/2202.05262</a></li><li><a href="https://arxiv.org/abs/2210.07229" rel="noreferrer">https://arxiv.org/abs/2210.07229</a></li><li><a href="https://arxiv.org/abs/2301.04213" rel="noreferrer">https://arxiv.org/abs/2301.04213</a></li><li><a href="https://arxiv.org/abs/2602.00398" rel="noreferrer">https://arxiv.org/abs/2602.00398</a></li></ul></details>
+</main>
+</body>
+</html>

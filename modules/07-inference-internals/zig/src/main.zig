@@ -3,7 +3,7 @@
 //! Subcommands:
 //!   generate   sample text from a prompt (temperature / top-k / top-p; KV cache on/off; f32 or int8)
 //!   logits     dump the last-position logits for a prompt to a raw-f32 file (used by the parity check)
-//!   selfcheck  assert the KV-cache-ON and KV-cache-OFF paths produce identical logits
+//!   selfcheck  assert the cached decode matches a full recompute with no cache
 //!   bench      measure tokens/sec vs sequence length, cache on vs off (the quadratic-vs-linear curve)
 //!   quantize   convert the f32 weight blob to the int8 Q8 file
 //!
@@ -207,7 +207,7 @@ fn cmdGenerate(io: Io, arena: std.mem.Allocator, args: Args) !void {
     }
 
     var buf: [4096]u8 = undefined;
-    var w = Io.File.stdout().writer(io, &buf);
+    var w = Io.File.stdout().writerStreaming(io, &buf);
     const stdout = &w.interface;
     try stdout.print("{s}\n", .{out.items});
     try stdout.flush();
@@ -240,7 +240,7 @@ fn cmdLogits(io: Io, arena: std.mem.Allocator, args: Args) !void {
     try Io.Dir.cwd().writeFile(io, .{ .sub_path = out_path, .data = std.mem.sliceAsBytes(logits) });
 
     var buf: [256]u8 = undefined;
-    var w = Io.File.stdout().writer(io, &buf);
+    var w = Io.File.stdout().writerStreaming(io, &buf);
     const stdout = &w.interface;
     try stdout.print("wrote {d} logits for prompt \"{s}\" -> {s}\n", .{ cfg.vocab_size, prompt, out_path });
     try stdout.flush();
@@ -248,42 +248,36 @@ fn cmdLogits(io: Io, arena: std.mem.Allocator, args: Args) !void {
 
 // ------------------------------------------------------------ selfcheck ------
 
-/// Prove the two attention paths agree: run the prompt through the cached
-/// decode and through the recompute-everything path, compare final logits.
+/// Test the KV cache against an independent full recompute: the cached
+/// `step` loop and `forwardFull` (T x T masked scores, no cache) must give the
+/// same logits at every position of the prompt. A wrong cache slot, a missed
+/// write or an off-by-one in `pos` shows up here.
 fn cmdSelfCheck(io: Io, arena: std.mem.Allocator, args: Args) !void {
     var b = try buildBundle(io, arena, args);
     const model = &b.model;
-    const cfg = model.cfg;
+    const V = model.cfg.vocab_size;
     const prompt = args.get("prompt", "ROMEO: But soft, what light");
     const ids = try b.tok.encode(arena, prompt);
+    if (ids.len > model.cfg.block_size) return error.PromptTooLong;
 
-    // cached path
-    var pos: usize = 0;
-    var lc: []f32 = undefined;
-    for (ids) |id| {
-        lc = model.step(id, pos);
-        pos += 1;
-    }
-    const cached = try arena.dupe(f32, lc);
+    // cached decode, one position at a time
+    const cached = try arena.alloc(f32, ids.len * V);
+    for (ids, 0..) |id, pos| @memcpy(cached[pos * V ..][0..V], model.step(id, pos));
 
-    // recompute path (identical math, fresh replay)
-    pos = 0;
-    var lr: []f32 = undefined;
-    for (ids) |id| {
-        lr = model.step(id, pos);
-        pos += 1;
-    }
+    // full recompute, all positions in one pass
+    const full = try model.forwardFull(arena, ids);
 
     var maxdiff: f32 = 0;
-    for (cached, lr) |a, c| maxdiff = @max(maxdiff, @abs(a - c));
+    for (cached, full) |a, c| maxdiff = @max(maxdiff, @abs(a - c));
 
     var buf: [256]u8 = undefined;
-    var w = Io.File.stdout().writer(io, &buf);
+    var w = Io.File.stdout().writerStreaming(io, &buf);
     const stdout = &w.interface;
-    try stdout.print("selfcheck cache on-vs-off: max|diff| = {e}\n", .{maxdiff});
+    try stdout.print("selfcheck cached decode vs full recompute, {d} positions: max|diff| = {e}\n", .{ ids.len, maxdiff });
     try stdout.flush();
-    _ = cfg;
-    if (maxdiff > 1e-5) return error.SelfCheckFailed;
+    // Both paths add in the same order today, so the diff is 0; the bound
+    // leaves room for f32 rounding if a kernel's order ever changes.
+    if (maxdiff > 1e-4) return error.SelfCheckFailed;
 }
 
 // ---------------------------------------------------------------- bench ------
@@ -334,7 +328,7 @@ fn cmdBench(io: Io, arena: std.mem.Allocator, args: Args) !void {
     try csv.appendSlice(arena, "seq_len,cache_on_tok_s,cache_off_tok_s\n");
 
     var buf: [4096]u8 = undefined;
-    var w = Io.File.stdout().writer(io, &buf);
+    var w = Io.File.stdout().writerStreaming(io, &buf);
     const stdout = &w.interface;
     try stdout.print("{s:>8} {s:>16} {s:>16} {s:>10}\n", .{ "seq_len", "cache ON tok/s", "cache OFF tok/s", "speedup" });
     try stdout.print("{s}\n", .{"-" ** 54});
@@ -415,7 +409,7 @@ fn cmdPerplexity(io: Io, arena: std.mem.Allocator, args: Args) !void {
     const ppl = @exp(mean_nll);
 
     var buf: [256]u8 = undefined;
-    var w = Io.File.stdout().writer(io, &buf);
+    var w = Io.File.stdout().writerStreaming(io, &buf);
     const stdout = &w.interface;
     const kind = if (args.has("q8")) "int8" else "f32 ";
     try stdout.print("PERPLEXITY kind={s} tokens={d} mean_nll={d:.4} perplexity={d:.4}\n", .{ kind, count, mean_nll, ppl });
@@ -441,7 +435,7 @@ fn cmdQuantize(io: Io, arena: std.mem.Allocator, args: Args) !void {
     try cwd.writeFile(io, .{ .sub_path = out_path, .data = q8 });
 
     var buf: [256]u8 = undefined;
-    var w = Io.File.stdout().writer(io, &buf);
+    var w = Io.File.stdout().writerStreaming(io, &buf);
     const stdout = &w.interface;
     const f32_mb = @as(f64, @floatFromInt(blob.len)) / 1e6;
     const q8_mb = @as(f64, @floatFromInt(q8.len)) / 1e6;

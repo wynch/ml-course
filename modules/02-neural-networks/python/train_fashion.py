@@ -13,6 +13,7 @@ subsample the training set for speed.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import numpy as np
@@ -29,6 +30,7 @@ from src.plots import (
 from src.train import train, train_val_split
 
 FIG = Path(__file__).resolve().parents[1] / "figures"
+RESULTS = Path(__file__).resolve().parents[1] / "results"
 
 
 def main(seed: int = 0):
@@ -67,6 +69,17 @@ def main(seed: int = 0):
 
     print("wrote: fashion_samples.png, fashion_curves.png, "
           "fashion_weights.png, fashion_confusion.png")
+
+    RESULTS.mkdir(parents=True, exist_ok=True)
+    out = {"sizes": [784, 256, 10], "lr": 0.1, "momentum": 0.9, "batch_size": 128,
+           "epochs": 25, "train_subsample": 20000, "seed": seed,
+           "test_acc": test_acc,
+           "train_loss": [round(v, 4) for v in hist.train_loss],
+           "train_acc": [round(v, 4) for v in hist.train_acc],
+           "val_loss": [round(v, 4) for v in hist.val_loss],
+           "val_acc": [round(v, 4) for v in hist.val_acc]}
+    (RESULTS / "fashion.json").write_text(json.dumps(out, indent=1) + "\n")
+    print(f"wrote {RESULTS / 'fashion.json'}")
     return test_acc
 
 

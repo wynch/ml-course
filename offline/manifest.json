@@ -47,7 +47,15 @@
         "modules/22-reasoning-at-test-time/python",
         "modules/23-compression/python",
         "modules/24-reinforcement-learning/python",
-        "modules/25-world-models-and-planning/python"
+        "modules/25-world-models-and-planning/python",
+        "modules/26-rl-with-a-checker/python",
+        "modules/27-memory-as-a-matrix/python",
+        "modules/28-fewer-bits-trained-in/python",
+        "modules/29-learning-new-keeping-old/python",
+        "modules/30-learning-without-a-backward-pass/python",
+        "modules/31-world-model-from-pixels/python",
+        "modules/32-is-the-explanation-real/python",
+        "modules/33-text-by-denoising/python"
       ]
     }
   },
@@ -69,7 +77,7 @@
       "project": "modules/02-neural-networks/python",
       "split": "",
       "include": ["fashion_mnist/*.parquet"],
-      "purpose": "Modules 02, 09, 14 and 15 image data.",
+      "purpose": "Modules 02, 09, 14, 15, 29 and 30 image data.",
       "license": "MIT"
     },
     {
@@ -77,7 +85,7 @@
       "kind": "model",
       "pack": "full",
       "revision": "a10cc1512eabd3dde888204e902eca88bddb4951",
-      "purpose": "Modules 05, 06, 11, 12, 17, 20, 21 and 23 local model.",
+      "purpose": "Modules 05, 06, 11, 12, 17, 20, 21, 23, 26, 29 and 30 local model; module 28 reads its tokenizer.",
       "license": "see upstream model card"
     },
     {
@@ -93,7 +101,7 @@
       "kind": "model",
       "pack": "full",
       "revision": "5d5e6fee5beb5d4d4d85e2203ef23e1230a9aac7",
-      "purpose": "Module 06 MLX lane; module 23 MLX copy and its local 4-bit conversion (724 MB).",
+      "purpose": "Module 06 MLX lane; module 23 MLX copy and its local 4-bit conversion; module 28 KV cache (724 MB).",
       "license": "see upstream model card"
     },
     {
@@ -110,7 +118,7 @@
       "pack": "full",
       "revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
       "include": ["config.json", "generation_config.json", "tokenizer.json", "tokenizer_config.json", "vocab.json", "merges.txt", "model.safetensors"],
-      "purpose": "Module 12 GPT-2 small, read through TransformerLens; module 18 comparison (548 MB).",
+      "purpose": "Module 12 GPT-2 small, read through TransformerLens; module 18 comparison; module 32 SAELens runs (548 MB).",
       "license": "see upstream model card"
     },
     {
@@ -119,7 +127,7 @@
       "pack": "full",
       "revision": "57d08a4fd333fbf18caf3fbea63ceeb88e2f50d9",
       "include": ["blocks.8.hook_resid_pre/*"],
-      "purpose": "Module 12 sparse autoencoder for GPT-2 small, layer 8 only (151 MB).",
+      "purpose": "Module 12 sparse autoencoder for GPT-2 small, layer 8 only, also read by module 32 (151 MB).",
       "license": "see upstream model card"
     },
     {
@@ -157,6 +165,24 @@
       "include": ["*.json", "*.txt", "model.safetensors"],
       "purpose": "Module 22 replies (923 MB); needed only to regenerate them, as the module ships its cached replies.",
       "license": "Apache-2.0"
+    },
+    {
+      "id": "mlx-community/Qwen3-0.6B-4bit",
+      "kind": "model",
+      "pack": "full",
+      "revision": "73e3e38d981303bc594367cd910ea6eb48349da8",
+      "include": ["*.json", "*.txt", "*.jinja", "model.safetensors"],
+      "purpose": "Module 27 attention-only model on MLX (351 MB).",
+      "license": "see upstream model card"
+    },
+    {
+      "id": "mlx-community/Qwen3.5-0.8B-4bit",
+      "kind": "model",
+      "pack": "full",
+      "revision": "da28692b5f139cb0ec58a356b437486b7dac7462",
+      "include": ["*.json", "*.txt", "*.jinja", "model.safetensors"],
+      "purpose": "Module 27 Gated DeltaNet hybrid on MLX (652 MB, with a vision encoder mlx-lm drops).",
+      "license": "see upstream model card"
     },
     {
       "id": "facebook/bart-large-mnli",
@@ -206,8 +232,9 @@
       "project": "modules/06-fine-tuning/python",
       "config": "everyday-conversations",
       "split": "train[:512]",
-      "purpose": "Module 06 local SFT subset.",
-      "license": "see upstream dataset card"
+      "purpose": "Module 06 local SFT subset; module 29 forgetting probe, raw train and test files.",
+      "license": "see upstream dataset card",
+      "include": ["data/everyday-conversations/train-00000-of-00001.parquet", "data/everyday-conversations/test-00000-of-00001.parquet"]
     },
     {
       "id": "stanfordnlp/sst2",
@@ -217,7 +244,7 @@
       "project": "modules/11-inside-a-language-model/python",
       "split": "",
       "include": ["data/train-00000-of-00001.parquet", "data/validation-00000-of-00001.parquet"],
-      "purpose": "Module 11 linear probe; module 20 few-shot prompts, raw train and validation files (about 3 MB).",
+      "purpose": "Module 11 linear probe; module 20 few-shot prompts; module 30 MeZO and LoRA runs; raw train and validation files (about 3 MB).",
       "license": "see upstream dataset card"
     },
     {
@@ -244,7 +271,7 @@
       "pack": "full",
       "revision": "7b6d24c440a36b6815f21b70d25016731768db1f",
       "include": ["plain_text/validation-00000-of-00001.parquet"],
-      "purpose": "Module 21 questions and paragraphs, validation file (1.8 MB).",
+      "purpose": "Module 21 questions and paragraphs; module 29 forgetting probe; validation file (1.8 MB).",
       "license": "CC BY-SA 4.0"
     },
     {
@@ -253,8 +280,17 @@
       "pack": "full",
       "revision": "740312add88f781978c0658806c59bc2815b9866",
       "include": ["main/test-00000-of-00001.parquet", "main/train-00000-of-00001.parquet"],
-      "purpose": "Module 22 problems and few-shot examples (2.7 MB).",
+      "purpose": "Module 22 problems and few-shot examples; module 29 new text and probe (2.7 MB).",
       "license": "MIT"
+    },
+    {
+      "id": "roneneldan/TinyStories",
+      "kind": "dataset",
+      "pack": "full",
+      "revision": "f54c09fd23315a6f9c86f9dc80f725de7d8f9c64",
+      "include": ["TinyStories-valid.txt"],
+      "purpose": "Module 32 training and test text, validation file (19.4 MB).",
+      "license": "see upstream dataset card"
     },
     {
       "id": "AI-Lab-Makerere/beans",

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Quantization · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="quantization">Quantization</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">efficiency</span> <span class="tag">quantization</span> <span class="tag">inference</span> <span class="tag">on-device</span> <span class="tag">edge-ai</span> <span class="tag">compression</span> <span class="tag">hub</span></div>
+<p>Quantization stores a model's numbers in fewer bits: weights, and sometimes activations and the KV cache, moved from 16-bit floats to 8, 4, 2 bits or three levels. The model gets smaller, and decoding often gets faster, because each decode step reads every weight to make one token, so it waits on memory more than on arithmetic (<code>raw/web-2025-aleksagordic-inside-vllm.md</code>, "Scheduler"; <a href="concept-llm-serving.html">concept-llm-serving</a>).</p>
+<p>There are two routes. Round a trained model after the fact (post-training quantization, PTQ), or let training see the rounding so the weights adapt to it: quantization-aware training (QAT), or low-bit training from the start.</p>
+<h2 id="the-routes-with-numbers">The routes, with numbers</h2>
+<div class="tw"><table><thead><tr><th>Route</th><th>Case</th><th>Result</th><th>Source</th></tr></thead><tbody><tr><td>Round after training</td><td>Qwen3.5 9B, 8, 4 and 2 bits</td><td>8-bit nearly free (perplexity 8.186 to 8.193); 4-bit adds 4.6–6.4% perplexity; 2-bit collapses (66.1). 8-bit decodes 1.66× faster on an M1 Max</td><td><a href="source-quantization-ground-up-ngrok.html">source-quantization-ground-up-ngrok</a> (ngrok.com/blog/quantization, read 2026-10-19; not in raw)</td></tr><tr><td>Round after training</td><td>OpenVLA 7B, 4-bit serving</td><td>matches bfloat16 on its tasks (71.9% against 71.3%) in 7.0 GB of VRAM instead of 16.8 GB</td><td><a href="source-openvla.html">source-openvla</a> (<code>raw/arxiv-2406-09246-openvla-an-open-source-vision-language.md</code>, §5.4, Table 2)</td></tr><tr><td>Trained in from the start</td><td>BitNet b1.58: every linear weight −1, 0 or +1, activations at 8 bits</td><td>at 3B, perplexity 9.91 against the authors' FP16 LLaMA's 10.04, with 3.55× less memory and 2.71× less latency</td><td><a href="source-bitnet-b158.html">source-bitnet-b158</a> (<code>raw/arxiv-2402-17764-the-era-of-1-bit-llms.md</code>, §2, §3, Tables 1–2)</td></tr><tr><td>QAT after full-precision training</td><td>Apple's 3B on-device model at 2 bits per weight; LoRA adapters repair quality</td><td>MMLU 67.8 to 64.4, IFEval 85.1 to 82.3</td><td><a href="source-apple-foundation-models-2025.html">source-apple-foundation-models-2025</a> (<code>raw/arxiv-2507-13575-apple-intelligence-foundation-language-models-tech.md</code>, §6, Table 3)</td></tr><tr><td>Hardware-decoded format</td><td>Apple's server model at 3.56 bits per weight, in a texture format Apple GPUs decode for free</td><td>MMLU 80.0 to 79.2</td><td>same file, §6, Table 3</td></tr><tr><td>Frozen low-bit base, trained adapters</td><td>MeBP fine-tunes LoRA adapters on an iPhone over 4-bit base weights</td><td>0.5B–4B models in about 0.3–1 GB; decompressing weights takes 32–43% of forward time</td><td><a href="source-mebp-on-device-backprop.html">source-mebp-on-device-backprop</a> (<code>raw/arxiv-2510-03425-memory-efficient-backpropagation-for-fine-tuning.md</code>, §3, §4.2, Tables 1–2)</td></tr></tbody></table></div>
+<p>Two notes on these rows. The 2-bit cliff in the ngrok post is a cliff for rounding after training; it says nothing about training at low precision, so BitNet and Apple do not contradict it. And BitNet values its 0 level, while Apple's 2-bit set {−1.5, −0.5, 0.5, 1.5} has no 0 and trained more smoothly than one with a 0: four levels against three, different models, so neither settles the other (<code>raw/arxiv-2507-13575-apple-intelligence-foundation-language-models-tech.md</code>, §6; <a href="source-bitnet-b158.html">source-bitnet-b158</a>).</p>
+<h2 id="what-makes-2-bit-training-stable-per-apple">What makes 2-bit training stable, per Apple</h2>
+<p>A learned scale per weight tensor, started from a clipping value fitted to the bulk of the weights; AdamW; low learning rates; a moving average of the weights; weight decay 0, so the weights use all four levels (<code>raw/arxiv-2507-13575-apple-intelligence-foundation-language-models-tech.md</code>, §6). The report gives no ablation, so the worth of each trick is not known.</p>
+<h2 id="local-results">Local results</h2>
+<ul><li>Course module 07: an int8 lab with per-row symmetric weights gives a 3.9× smaller file and unchanged perplexity, and no speed-up at 620K parameters, where the engine is compute-bound (<code>course/modules/07-inference-internals/README.md</code>, "The quantization lab"; as cited on <a href="guide-mit-efficient-ml-6-5940.html">guide-mit-efficient-ml-6-5940</a>).</li><li>Course module 23 rounds SmolLM2-360M-Instruct to 8 and 4 bits by hand, then to 4 bits with MLX (<code>course/modules/23-compression/README.md</code>, §3–4).</li><li>Course module 28 trains a ternary char-GPT against floats rounded to 4 and 2 bits at the same file size. At 1.5 MB the ternary model wins by 0.031 nats over the best rounded float; at 0.5 MB ternary and 4-bit tie. Rounding to 4 bits after training cost 0.002 to 0.007 nats, rounding to 2 bits 0.03 to 0.19. On SmolLM2-360M's KV cache, 8 bits cost nothing and the cliff falls between 3 and 2 bits in every layout (<code>course/modules/28-fewer-bits-trained-in/README.md</code>, §1, §3). Its models see far fewer characters per parameter than real ones.</li><li>In the levjepa-mobile port, int8 bought no speed on an attention-bound video encoder (<code>../ml-lab/levjepa-mobile/REPORT.md</code>, as cited on <a href="source-ssla-event-detection.html">source-ssla-event-detection</a> and <a href="source-levjepa.html">source-levjepa</a>).</li></ul>
+<h2 id="open-questions">Open questions</h2>
+<ul><li>Does the 2-bit cliff move with model size and training length? Module 28 cites outside work saying low bits hurt more the longer a model trains (arXiv 2411.17691; not in raw).</li><li>What do the speed gains look like on a phone? Apple gives no on-device speed numbers (<code>raw/arxiv-2507-13575-apple-intelligence-foundation-language-models-tech.md</code>, §8).</li><li>BitNet's speed and energy figures come from GPUs with a 2-bit kernel and an energy model, not hardware built for ternary weights (<code>raw/arxiv-2402-17764-the-era-of-1-bit-llms.md</code>, §3).</li></ul>
+<h2 id="key-sources">Key sources</h2>
+<ul><li><a href="source-quantization-ground-up-ngrok.html">source-quantization-ground-up-ngrok</a> · <a href="source-bitnet-b158.html">source-bitnet-b158</a> · <a href="source-apple-foundation-models-2025.html">source-apple-foundation-models-2025</a> · <a href="source-mebp-on-device-backprop.html">source-mebp-on-device-backprop</a> · <a href="source-openvla.html">source-openvla</a></li><li>Serving: <a href="source-inside-vllm-gordic.html">source-inside-vllm-gordic</a>, <a href="source-apple-mlx-m5-neural-accelerators.html">source-apple-mlx-m5-neural-accelerators</a></li><li>Hubs: <a href="concept-llm-serving.html">concept-llm-serving</a>, <a href="concept-inference-economics.html">concept-inference-economics</a>; reading path <a href="guide-mit-efficient-ml-6-5940.html">guide-mit-efficient-ml-6-5940</a> (Stops 2 and 7); local line <span class="dead" title="not published">experiment-edge-autoresearch-and-ane</span></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2402-17764-the-era-of-1-bit-llms.md</code> (arXiv 2402.17764)</li><li><code>raw/arxiv-2507-13575-apple-intelligence-foundation-language-models-tech.md</code> (arXiv 2507.13575)</li><li><code>raw/arxiv-2510-03425-memory-efficient-backpropagation-for-fine-tuning.md</code> (arXiv 2510.03425)</li><li><code>raw/arxiv-2406-09246-openvla-an-open-source-vision-language.md</code> (arXiv 2406.09246)</li><li><code>raw/web-2025-aleksagordic-inside-vllm.md</code></li><li><code>raw/web-2025-apple-mlx-m5-neural-accelerators.md</code></li><li>Sam Rose, "Quantization from the Ground Up": <a href="https://ngrok.com/blog/quantization" rel="noreferrer">https://ngrok.com/blog/quantization</a></li><li><code>course/modules/07-inference-internals/README.md</code>, <code>course/modules/23-compression/README.md</code>, <code>course/modules/28-fewer-bits-trained-in/README.md</code></li></ul>
+<details class="src"><summary>Sources (10)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2402-17764-the-era-of-1-bit-llms.md</code></li><li><code>raw/arxiv-2507-13575-apple-intelligence-foundation-language-models-tech.md</code></li><li><code>raw/arxiv-2510-03425-memory-efficient-backpropagation-for-fine-tuning.md</code></li><li><code>raw/arxiv-2406-09246-openvla-an-open-source-vision-language.md</code></li><li><code>raw/web-2025-aleksagordic-inside-vllm.md</code></li><li><code>raw/web-2025-apple-mlx-m5-neural-accelerators.md</code></li><li><a href="https://ngrok.com/blog/quantization" rel="noreferrer">https://ngrok.com/blog/quantization</a></li><li><code>course/modules/07-inference-internals/README.md</code></li><li><code>course/modules/23-compression/README.md</code></li><li><code>course/modules/28-fewer-bits-trained-in/README.md</code></li></ul></details>
+</main>
+</body>
+</html>

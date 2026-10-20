@@ -9,14 +9,16 @@ one level up: [`../README.md`](../README.md).
 - `src/pipelines.py` — first contact: `pipeline()` for text-gen, sentiment, zero-shot
 - `src/anatomy.py` — walk the module tree, count parameters, draw the budget +
   tiny-GPT/SmolLM2/SmolLM3 comparison table
-- `src/sampling_lab.py` — next-token distribution, temperature sweep, top-k vs top-p
+- `src/sampling_lab.py` — next-token distribution, temperature sweep, top-k vs top-p vs min-p
 - `src/logit_lens.py` — project each layer's hidden state through the output head;
   reusable `layerwise_predictions` / `decision_layer`
 - `src/chat_template.py` — dissect the applied chat template to token boundaries
 - `src/embeddings.py` — PCA projection of token embeddings + nearest neighbours
 - `src/figures.py` — regenerate every figure embedded in the module README
 - `app.py` — Gradio chat playground with a live next-token-distribution panel
-- `tests/` — solution checks against the real model, and the app launch/close test
+- `tests/` — solution checks against the real model (`CHECK=exercises` checks your
+  files instead), and the app launch/close test
+- `../results/` — the JSON files behind every number in the module README
 
 ## Quickstart
 

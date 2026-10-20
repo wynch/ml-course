@@ -4,8 +4,9 @@
 > decade of language models. It is nothing more than a **soft dictionary
 > lookup**: every position asks a question, every position offers a key and a
 > value, and the answer is the values weighted by how well the keys match the
-> question. Stack that with an MLP, a residual stream and LayerNorm, mask out the
-> future, and you have a GPT.
+> question. Stack that with an MLP, a residual stream (the running vector each
+> block reads from and adds to) and LayerNorm, mask out the future, and you have
+> a GPT.
 
 In this module you build a **decoder-only transformer** from `nn.Module`
 primitives — you write `MultiHeadAttention`, the `MLP` block, and the
@@ -32,7 +33,7 @@ attention heads of the tiny GPT you are about to train.
 By the end you can:
 
 - derive and implement **scaled dot-product attention** and explain the `√d_head`;
-- explain the **causal mask** and prove why removing it lets the model cheat;
+- explain the **causal mask** and show what breaks without it;
 - build **multi-head** attention, an MLP block, and the **pre-norm residual**
   transformer block, by hand;
 - train a small GPT to a clear loss descent and legible samples on MPS;
@@ -100,7 +101,11 @@ concatenates and projects the results.
 
 The transformer **block** wraps attention and a position-wise MLP in *pre-norm
 residual* connections — normalize, transform, add back — so gradients flow
-cleanly through the residual stream and depth is cheap:
+cleanly through the residual stream and depth is cheap. **LayerNorm** rescales
+each position's vector to mean 0 and variance 1, then applies a learned scale
+and shift. *Pre-norm* puts it at the start of each sub-layer, off the skip path,
+so the residual stream itself is never normalized. **GELU** is a smooth ReLU:
+it multiplies `x` by the chance that a standard normal falls below `x`.
 
 ```mermaid
 flowchart TB
@@ -116,9 +121,45 @@ flowchart TB
 ```
 
 The full model is: token embedding + positional embedding → `n_layer` of these
-blocks → final LayerNorm → project to vocabulary logits (the output projection is
-*tied* to the token embedding). Train it to predict the next character; sample it
-autoregressively to generate.
+blocks → final LayerNorm → project to vocabulary **logits**, the raw scores, one
+per character, that the softmax turns into probabilities. The output projection
+is *tied* to the token embedding: one matrix serves both, so a character's
+score is the dot product of the final vector with that character's own
+embedding, and the model saves `vocab × d_model` parameters. Train it to predict
+the next character; sample it autoregressively to generate.
+
+### What changed since GPT-2
+
+This block is the 2019 GPT-2 design. It is the right one to build first, and
+every part of it is still in use, but a 2026 model swaps most of the parts. The
+layout (norm, attention, add, norm, MLP, add) stays.
+
+| Here (GPT-2) | In most 2025–2026 models | What it buys |
+|---|---|---|
+| learned position table | rotary positions, RoPE ([Su et al., 2104.09864](https://arxiv.org/abs/2104.09864)): rotate each query and key by an angle set by its position | the score depends on the distance between tokens; no table to outgrow |
+| LayerNorm (γ, β) | RMSNorm ([Zhang & Sennrich, 1910.07467](https://arxiv.org/abs/1910.07467)): divide by the root mean square, no mean, no shift | fewer operations, same stability |
+| Linear → GELU → Linear | SwiGLU ([Shazeer, 2002.05202](https://arxiv.org/abs/2002.05202)): `down(silu(gate(x)) * up(x))` | better loss at equal compute |
+| one key and value per head | grouped-query attention, GQA ([Ainslie et al., 2305.13245](https://arxiv.org/abs/2305.13245)): several query heads share one key/value head | a smaller KV cache at inference (module 07) |
+| raw `q·k` | QK-norm ([Henry et al., 2010.04245](https://arxiv.org/abs/2010.04245)): normalize queries and keys before the dot product | scores cannot blow up, so training is steadier |
+| biases everywhere | no biases | fewer parameters; quality holds |
+
+Two 2025 results go further. Gated attention puts a sigmoid gate on each head's
+output; it steadies training and removes attention sinks, heads that dump
+their weight on the first token ([Qiu et al., 2505.06708](https://arxiv.org/abs/2505.06708)).
+Dynamic Tanh, `tanh(αx)` with a learned `α`, can replace the norm layers
+altogether ([Zhu et al., 2503.10622](https://arxiv.org/abs/2503.10622)).
+Module 05 opens SmolLM2, which uses every row of the table but QK-norm.
+
+**The optimizer.** `train.py` uses AdamW with weight decay 0.1 on every
+tensor, the LayerNorm gains and biases included. nanoGPT exempts those 1-D
+tensors, since pulling a gain towards 0 shrinks a signal rather than limits a
+weight. We keep one optimizer group so the code stays short, and did not
+measure the difference; splitting the groups is a ten-line extra exercise.
+Since late 2024 many small-model speed runs train the 2-D weight matrices
+with Muon, which orthogonalises each update
+([Liu et al., 2502.16982](https://arxiv.org/abs/2502.16982), about twice the
+compute efficiency of AdamW in their runs). Swapping it in here is a good extra
+exercise.
 
 ## Hands-on
 
@@ -144,9 +185,9 @@ land in `../models/` (git-ignored):
 uv run python scripts/train.py
 ```
 
-Expected on an **Apple M5**: about **4–8 minutes** for 5000 iterations. You
-should see train loss fall from ~4.2 to ~1.55 and val to ~1.73, with the sample
-at the end looking like:
+Expected on an **Apple M5**: about **4 minutes** for 5000 iterations (239 s in
+our run). You should see train loss fall from 4.22 to 1.54 and val to 1.73
+(`results/train_summary.json`), with the sample at the end looking like:
 
 ```
 ROMEO:
@@ -188,9 +229,22 @@ answers in [`solutions/`](solutions/). Run from `python/`, e.g.
 - **(b) Ablate the causal mask** — implement `make_noncausal`, then a
   deterministic *future-leak probe* proves the point: changing a token at `t+1`
   moves the causal model's prediction at `t` by exactly `0`, but moves the
-  non-causal model's. That leak is the "cheating" — the label is visible through
-  attention, and the model is useless for generation, where the future does not
-  exist.
+  non-causal model's. The label is visible through attention. The harness then
+  trains a small causal and a small non-causal model for 1,500 steps each and
+  scores both on validation (`results/ex_b_causal_mask.json`, about 75 s on an
+  M5):
+
+  | Model | Val loss |
+  |---|---:|
+  | causal | 1.910 |
+  | non-causal, future visible | 2.329 |
+  | non-causal, mask put back, as at generation | 2.875 |
+
+  Exploiting the leak takes a copy circuit, which this small model has not
+  formed in 1,500 steps, so seeing the future does not lower its loss. The
+  damage shows at generation, where the future does not exist: put the mask
+  back and the non-causal model is almost a full nat worse. Training and
+  generation must see the same mask.
 - **(c) Top-k sampling and temperature** — implement temperature + top-k logit
   filtering and produce a comparison figure sampling the trained model under four
   settings (see `figures/ex_c_sampling_comparison.png`). Watch low temperature go
@@ -210,6 +264,7 @@ answers in [`solutions/`](solutions/). Run from `python/`, e.g.
 
 - Hugging Face LLM Course, chapter 1 — [How do Transformers work?](https://huggingface.co/learn/llm-course/chapter1)
 - Andrej Karpathy — [nanoGPT](https://github.com/karpathy/nanoGPT) (this module is a graphical-first, smaller cousin)
+- Andrej Karpathy — [nanochat](https://github.com/karpathy/nanochat) (October 2025): the whole pipeline in one small repo, from tokenizer and pretraining to chat fine-tuning, evaluation and a web UI
 
 > **Next:** module 07 reimplements the *inference* of this exact model in **Zig**,
 > reading the weights you exported here straight from `artifacts/` — no Python at

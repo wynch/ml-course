@@ -57,7 +57,8 @@ def fig_learned_filters(model=None):
     import cnn
 
     if model is None:
-        model, _, acc = cnn.train_tiny_cnn()
+        model, hist, acc = cnn.train_tiny_cnn()
+        cnn.record(hist)
     model = model.to("cpu").eval()
 
     # first-layer filters (8 x 1 x 5 x 5)
@@ -311,7 +312,11 @@ def fig_clip(res_ft_acc=None):
         j = int(sim[i].argmax())
         ax.add_patch(plt.Rectangle((j - 0.5, i - 0.5), 1, 1, fill=False, edgecolor="red", lw=2))
     fig.colorbar(im, ax=ax, fraction=0.046, label="cosine similarity")
-    full = zero_shot_beans(seed=0)["accuracy"]
+    from clip_zeroshot import record
+
+    full_out = zero_shot_beans(seed=0)
+    record(full_out)
+    full = full_out["accuracy"]
     title = f"CLIP zero-shot similarity (red = model's pick)\nfull test acc {full:.1%}"
     if res_ft_acc is not None:
         title += f"  vs fine-tuned {res_ft_acc:.1%}"
@@ -347,6 +352,7 @@ def main(which):
     if needs_ft:
         import finetune
         ft_res = finetune.train_beans()
+        finetune.record(ft_res)
         ft_acc = ft_res.test_acc
         if "curves" in which or "confusion" in which:
             c, m = fig_training_and_eval(ft_res)

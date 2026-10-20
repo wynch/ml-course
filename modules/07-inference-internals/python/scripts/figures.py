@@ -7,6 +7,8 @@ scripts/parity.py owns):
   quant_filesize.png       2.48 MB f32  ->  ~0.63 MB int8
   quant_parity_hist.png    int8-vs-f32 logit error histogram
   quant_tokens_per_sec.png f32 vs int8 decode speed
+  results.json             the numbers the README quotes: perplexity, file sizes,
+                           int8 logit shift, selfcheck, and the KV-cache cost model
 
 Run:  uv run python scripts/figures.py
 (Reads zig/figures... no — reads the bench CSV produced by `tiny-gpt bench`;
@@ -296,8 +298,61 @@ def fig_quant_speed():
     print("wrote", p.name, f"(f32={f32:.0f}, int8={q8:.0f} tok/s)")
 
 
+def cost_model(n: int, cfg: dict) -> float:
+    """Multiply-add ratio cache-off / cache-on for the loops `bench` runs.
+
+    Per token at position p (0-based): weight work C plus attention work
+    A*(p+1). Cache on steps positions 0..n-1 once; cache off replays
+    positions 0..m-1 for every m in 1..n-1 (main.zig genLen).
+    """
+    d, L, ff, V = cfg["d_model"], cfg["n_layer"], cfg["d_ff"], cfg["vocab_size"]
+    C = L * (4 * d * d + 2 * d * ff) + d * V
+    A = 2 * d * L
+    on = sum(C + A * (p + 1) for p in range(n))
+    off = sum(C + A * (p + 1) for m in range(1, n) for p in range(m))
+    return off / on
+
+
+def write_results():
+    """Numbers the README, quiz and explorable quote, in one committed file."""
+    def ppl(q8: bool) -> dict:
+        args = [str(ZIG_BIN), "perplexity", "--artifacts", str(ARTIFACTS),
+                "--text", str(MODULE / "corpus" / "heldout.txt")]
+        if q8:
+            args += ["--q8", str(Q8)]
+        line = next(l for l in sh(args, cwd=ZIG_DIR).stdout.splitlines() if l.startswith("PERPLEXITY"))
+        kv = dict(f.split("=") for f in line.split()[1:])
+        return {"tokens": int(kv["tokens"]), "mean_nll": float(kv["mean_nll"]),
+                "perplexity": float(kv["perplexity"])}
+
+    cfg = load_config()
+    selfcheck = sh([str(ZIG_BIN), "selfcheck", "--artifacts", str(ARTIFACTS)], cwd=ZIG_DIR).stdout.strip()
+    ref = zig_logits(PROMPT, q8=False)
+    q8 = zig_logits(PROMPT, q8=True)
+    d, L, ff, V = cfg["d_model"], cfg["n_layer"], cfg["d_ff"], cfg["vocab_size"]
+    res = {
+        "perplexity_f32": ppl(False),
+        "perplexity_int8": ppl(True),
+        "bytes_f32": (ARTIFACTS / "tiny_gpt_weights.bin").stat().st_size,
+        "bytes_int8": Q8.stat().st_size,
+        "int8_max_abs_logit_diff": float(np.max(np.abs(q8 - ref))),
+        "selfcheck": selfcheck,
+        "cost_model": {
+            "weight_macs_per_token": L * (4 * d * d + 2 * d * ff) + d * V,
+            "attention_macs_per_token_per_position": 2 * d * L,
+            "ratio_off_over_on": {str(n): round(cost_model(n, cfg), 1) for n in (16, 32, 64, 128, 512)},
+            "attention_cells_ratio_n128": round((128 * 129 * 130 / 6) / (128 * 129 / 2), 1),
+        },
+        "bench_csv": BENCH_CSV.name,
+    }
+    p = FIGURES / "results.json"
+    p.write_text(json.dumps(res, indent=2) + "\n")
+    print("wrote", p.name)
+
+
 def main():
     ensure_setup()
+    write_results()
     fig_cache_schematic()
     fig_cache_timing()
     fig_quant_weights()

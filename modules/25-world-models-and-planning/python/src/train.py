@@ -5,7 +5,7 @@ Data: 4,000 training arenas x 25 random actions = 100,000 transitions (seed 1);
 Both models: 6,000 Adam steps of 256 transitions, rate 1e-3, on the CPU.
 
 Then, on held-out data:
-  - one-hot model: is the top cell the true next cell? (one step)
+  - one-hot model: is the cell with the highest score the true next cell? (one step)
   - JEPA: prediction loss; the probe's R^2 for the goal offset; module 16's
     collapse meters; the same for the untrained JEPA (the control);
   - both: imagine 8 random actions from 2,000 held-out states and check the

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>RL&#x27;s Razor: Why Online Reinforcement Learning Forgets Less (Shenfeld, Pari, Agrawal, 2025) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="rls-razor-why-online-reinforcement-learning-forgets-less">RL's Razor: Why Online Reinforcement Learning Forgets Less</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">continual-learning</span> <span class="tag">catastrophic-forgetting</span> <span class="tag">reinforcement-learning</span> <span class="tag">on-policy</span> <span class="tag">kl-divergence</span> <span class="tag">fine-tuning</span> <span class="tag">grpo</span> <span class="tag">2025</span></div>
+<p><strong>Authors:</strong> Idan Shenfeld and Jyothish Pari (equal contribution), Pulkit Agrawal; Improbable AI Lab, MIT <strong>Published:</strong> arXiv 2509.04259, v1 2025-09-04 (the only version); project post jyopari.github.io/posts/rl_razor <strong>Raw copy:</strong> <code>raw/arxiv-2509-04259-rl-s-razor-why-online-reinforcement.md</code> (full text of v1 from the arXiv HTML, captured 2026-10-20)</p>
+<p>Every claim below cites the raw file as R, with its section, table or figure.</p>
+<h2 id="summary">Summary</h2>
+<p>Fine-tune a model on a new task with supervised fine-tuning (SFT) or with RL, until both score the same on that task. The RL model keeps its old skills; the SFT model loses them (R, §1, §3).</p>
+<p>The paper's account, in three steps:</p>
+<ol><li><strong>A forgetting law.</strong> How much a model forgets is predicted by one number measured on the new task alone: the forward KL from the base model to the tuned one, E over new-task inputs of KL(π₀ ‖ π) (R, §1, §4). No old data is needed to measure it.</li><li><strong>RL's Razor.</strong> Many policies solve a new task. RL samples from the model itself and reweights what it already finds likely, so it lands on the solution nearest the base model in KL; SFT is pulled towards whatever labels it is given, which can be far away (R, §1, §5).</li><li><strong>On-policy data is the cause, not negative examples.</strong> On-policy training without negatives (1–0 Reinforce, which is SFT on the model's own correct answers) forgets as little as GRPO; offline training with negatives (SimPO) forgets as much as SFT (R, §5.1, Figure 4).</li></ol>
+<p>A theorem backs step 2 in a simple setting: with a binary reward and a convex family of policies, policy gradient converges to the optimal policy closest in KL to the start (R, §5.2, Theorem 5.2, Appendix A). The authors note that a neural network's policy family is not of that kind, so the result explains a bias rather than proves it (R, Appendix A, "Practical considerations").</p>
+<h2 id="key-results">Key results</h2>
+<ul><li><strong>The gap.</strong> Qwen2.5-3B-Instruct on maths, science Q&amp;A and tool use, and OpenVLA-7B on a simulated pick-and-place: across dozens of runs per method, RL's best trade-offs keep old-benchmark scores nearly flat as new-task accuracy rises; SFT's fall, most sharply on maths (R, §3.1, Figure 2). Old skills are six LLM benchmarks (HellaSwag, TruthfulQA, MMLU, IFEval, Winogrande, HumanEval) or a drawer task for the robot (R, §3.1).</li><li><strong>The law, in a toy.</strong> ParityMNIST: a 3-layer MLP pretrained on parity of digits and on FashionMNIST, then tuned on parity only. Forgetting of FashionMNIST against forward KL lies on one curve for RL and SFT, quadratic fit R² = 0.96; on the LLMs, R² = 0.71 (R, §4, Figure 3, Figure 11).</li><li><strong>Other candidates lose.</strong> Reverse KL R² 0.93, total variation 0.80, weight change 0.34–0.58, activation change 0.52–0.55 (R, §6, Table 1).</li><li><strong>The oracle test.</strong> SFT on labels chosen to be correct and as close as possible to the base model in KL forgets less than RL. SFT on an RL model's outputs matches RL. What matters is where the model ends up, not the algorithm (R, §4, Figure 3 left, Figure 9).</li><li><strong>Sparse RL updates are a float artefact.</strong> RL's weight updates look sparse in bfloat16 because small steps round to zero; in float32 the same training gives dense updates and the same results. All methods gave full-rank updates (R, §6).</li><li><strong>Size does not remove it.</strong> SFT on Qwen2.5 at 3B, 7B and 14B shows the same trade-off (R, Appendix C.2, Figure 8).</li><li><strong>Representations.</strong> On unrelated Wikipedia text, an RL model keeps CKNNA 0.94 to the base model, an SFT model of equal task accuracy 0.56 (R, Appendix C.1, Figure 7).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>The law is shown on a toy MLP and 3B-to-7B models; frontier scale is untested (R, §7). On LLMs the fit is weaker (R² 0.71), which the authors put down to noisy estimates (R, §4).</li><li>No mechanism yet for why a large KL shift on the new task damages old skills (R, §7).</li><li>Off-policy RL algorithms were not studied (R, §7).</li><li>RL ran without a KL penalty, as GRPO with a binary reward (R, §3.1, Table 2). The SFT data for maths and science came from DeepSeek R1 and GPT-4o answers (R, Appendix B.1).</li><li>Results are Pareto fronts over sweeps, with curves fitted to points near the front (R, Appendix B.1); the numbers live in plots.</li><li>Concurrent work (Lai et al., 2025) credits negative examples; this paper's §5.1 argues against that (R, §2).</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-sdft-self-distillation-continual.html">source-sdft-self-distillation-continual</a> — the same group's follow-up: on-policy training from demonstrations, no reward needed.</li><li><a href="concept-continual-learning.html">concept-continual-learning</a> — a law for forgetting that needs only new-task data.</li><li><a href="concept-rlhf-alternatives.html">concept-rlhf-alternatives</a>, <a href="concept-rlhf.html">concept-rlhf</a> — RL post-training as the conservative option on forgetting.</li><li><a href="source-rl-reasoning-boundary-yue.html">source-rl-reasoning-boundary-yue</a> — the same bias seen from the other side: RL stays near what the base model already does, which caps its reach (the wiki's reading).</li><li><a href="source-lora-low-rank-adaptation.html">source-lora-low-rank-adaptation</a> — weight-change size and rank do not predict forgetting here (R, §6); LoRA itself is not tested.</li><li><a href="source-inkling-thinking-machines.html">source-inkling-thinking-machines</a> — on-policy distillation as a repair; both rest on training from the model's own samples. The post (<a href="source-on-policy-distillation.html">source-on-policy-distillation</a>) cites this paper and adds that RL alone cannot teach new knowledge.</li><li><a href="source-local-support-learning.html">source-local-support-learning</a> — names this paper among on-policy fixes it calls complementary (<code>raw/arxiv-2610-02126-local-support-learning.md</code>, Appendix A).</li><li><a href="source-openvla.html">source-openvla</a> — the robot base model.</li><li>Hub (2026-10-20): <a href="concept-rlvr.html">concept-rlvr</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2509-04259-rl-s-razor-why-online-reinforcement.md</code></li><li><a href="https://arxiv.org/abs/2509.04259" rel="noreferrer">https://arxiv.org/abs/2509.04259</a></li><li><a href="http://jyopari.github.io/posts/rl_razor" rel="noreferrer">http://jyopari.github.io/posts/rl_razor</a></li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2509-04259-rl-s-razor-why-online-reinforcement.md</code></li><li><a href="https://arxiv.org/abs/2509.04259" rel="noreferrer">https://arxiv.org/abs/2509.04259</a></li><li><a href="http://jyopari.github.io/posts/rl_razor" rel="noreferrer">http://jyopari.github.io/posts/rl_razor</a></li><li><code>raw/arxiv-2610-02126-local-support-learning.md</code></li></ul></details>
+</main>
+</body>
+</html>

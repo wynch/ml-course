@@ -35,7 +35,8 @@ OUT = ROOT / "wiki"
 SKIP = {"log.md"}
 PRIVATE_TYPES = {"experiment", "idea"}
 # Analysis pages whose subject is the local projects, not papers.
-PRIVATE_PAGES = {"analysis-experiments-second-chance", "analysis-local-project-acronyms"}
+PRIVATE_PAGES = {"analysis-experiments-second-chance", "analysis-local-project-acronyms",
+                 "analysis-edge-research-agenda"}
 # Index labels such as "**16 experiment pages**", recounted after pruning.
 COUNT_LABELS = {
     "source pages": "source", "source bundles": "source-bundle", "concept pages": "concept",

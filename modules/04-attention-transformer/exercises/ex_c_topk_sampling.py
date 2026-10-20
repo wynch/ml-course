@@ -12,7 +12,7 @@ Implement `filter_logits` (temperature + optional top-k). The harness then loads
 the trained model and samples the same prompt under several settings, writing a
 comparison figure so you can see the effect.
 
-Run:  uv run python exercises/ex_c_topk_sampling.py   (needs a trained model)
+Run (from python/):  uv run python ../exercises/ex_c_topk_sampling.py   (needs a trained model)
 """
 
 from __future__ import annotations

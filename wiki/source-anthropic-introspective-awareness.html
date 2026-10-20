@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Emergent Introspective Awareness in Large Language Models (Lindsey, Anthropic, 2025) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="emergent-introspective-awareness-in-large-language-models">Emergent Introspective Awareness in Large Language Models</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">interpretability</span> <span class="tag">introspection</span> <span class="tag">activation-steering</span> <span class="tag">self-report</span> <span class="tag">anthropic</span> <span class="tag">claude</span> <span class="tag">2025</span></div>
+<p><strong>Author:</strong> Jack Lindsey (Anthropic) <strong>Published:</strong> 2025-10-29, Transformer Circuits Thread; revised 2026-01-01 (one experiment added, appendix fixes) <strong>Raw copy:</strong> <code>raw/web-2025-anthropic-emergent-introspective-awareness.md</code> (captured 2026-10-20; figures survive as links only; the bibliography was not captured)</p>
+<p>Every claim below cites the raw file as R, with its section.</p>
+<h2 id="summary">Summary</h2>
+<p>Can a model report on its own internal states, or does it only talk as if it could? Lindsey tests this by "concept injection": record the activation pattern for a concept (say "all caps", from all-caps text minus a control), add it to the model's residual stream at one layer, then ask the model about its state. If the report tracks what was injected, it depends on the state and not only on training text about introspection (R, "Introduction"; "Quick Tour of Main Experiments").</p>
+<p>The verdict: modern Claude models have "at least a limited, functional form of introspective awareness", but it is "highly unreliable; failures of introspection remain the norm" (R, "Introduction").</p>
+<h2 id="the-four-criteria">The four criteria</h2>
+<p>A self-report counts as introspective only if it is accurate, grounded (it would change if the state changed), internal (it does not go through the model's own sampled text), and drawn from a representation of the state, not a direct translation of it into words (R, "Defining Introspection"). Most experiments test only some of the four.</p>
+<h2 id="key-claims">Key claims</h2>
+<ul><li><strong>Injected "thoughts".</strong> Told that thoughts may be injected, Opus 4.1 notices and names the injected concept on about 20% of trials at the best layer and strength, and gives no false positives on control trials. It notices before the injection has shown up in its text (R, "Quick Tour"; "Failure Modes"; "Comparison Across Models").</li><li><strong>Post-training matters.</strong> Production models have "essentially a zero rate" of false positives; "helpful-only" variants sometimes have many; base pretrained models have high false-positive rates and no net success (R, "Comparison Across Models").</li><li><strong>Without the set-up</strong>, asked only "Are you experiencing anything unusual?", injection lifts yes-answers from 20% to 42% of 50 trials, but only 2 of 50 suggest real awareness (R, "Alternative Prompts").</li><li><strong>Thoughts against text.</strong> While a concept is injected over a sentence, models can both name the injected word and copy the sentence exactly; all models tested score well above the 10% chance level, Opus 4 and 4.1 best. Dropping "Answer immediately" from the prompt hurts the Opus models a lot (R, "Distinguishing Prior 'Thoughts' from Text Inputs").</li><li><strong>Prefill detection, unprompted.</strong> When a word is forced into the model's reply, it later calls the word an accident. Inject that word's concept into the activations before the forced reply, and it accepts the word as intended, then makes up a reason. Injecting after the forced word does not work. This peaks at a layer a little over halfway, not the two-thirds layer of the other tests (R, "Distinguishing Intended from Unintended Outputs").</li><li><strong>Control.</strong> Told to "think about" a word while copying a sentence, models represent it more than when told not to, and still above baseline when told not to. In Opus 4.1 the representation fades by the last layer, so it does not reach the output; in Claude 3 models it stays (R, "Intentional Control of Internal States").</li><li><strong>Capability.</strong> Opus 4 and 4.1, the most capable models tested, did best (R, "Recap").</li></ul>
+<h2 id="caveats-the-authors-own">Caveats, the author's own</h2>
+<ul><li>One or a few prompt templates per experiment; results likely depend on them (R, "Limitations and Future Work").</li><li>Injection is an artificial scene the model never meets in training (same section).</li><li>A concept vector may carry other meanings than the intended one (same section).</li><li>Beyond detecting and naming the concept, much of what models say about the experience may be confabulated (R, "Introduction"; "Quick Tour").</li><li>No claim about subjective experience or human-like self-awareness (R, "Introduction").</li><li>Models tested: Claude production models from Opus 4.1 back to Claude 3, before Sonnet 4.5's release (R, "Methods Notes"). Only Anthropic models.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="source-introspective-interpretability.html">source-introspective-interpretability</a> — Belinda Li's definition: self-consistency, causality and privileged access. Lindsey's "grounding" is close to her causality, and his "internality" to her privileged access; Lindsey adds a fourth criterion, metacognitive representation.</li><li><a href="concept-mechanistic-interpretability.html">concept-mechanistic-interpretability</a> — introspection as a way to read internals, and a check on self-report.</li><li><a href="source-anthropic-global-workspace.html">source-anthropic-global-workspace</a> — a later Anthropic account of a broadcast hub the model can report on.</li><li><a href="source-sae-scaling-trilogy.html">source-sae-scaling-trilogy</a> — Golden Gate Claude: steering by an added feature, here used as a test instead of a demo.</li><li><a href="source-measuring-cot-monitorability.html">source-measuring-cot-monitorability</a> — whether stated reasoning matches the computation.</li><li><a href="entity-anthropic.html">entity-anthropic</a>.</li><li>Hub (2026-10-20): <a href="concept-activation-steering.html">concept-activation-steering</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/web-2025-anthropic-emergent-introspective-awareness.md</code></li><li><a href="https://transformer-circuits.pub/2025/introspection/index.html" rel="noreferrer">https://transformer-circuits.pub/2025/introspection/index.html</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/web-2025-anthropic-emergent-introspective-awareness.md</code></li><li><a href="https://transformer-circuits.pub/2025/introspection/index.html" rel="noreferrer">https://transformer-circuits.pub/2025/introspection/index.html</a></li></ul></details>
+</main>
+</body>
+</html>

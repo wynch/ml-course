@@ -59,17 +59,17 @@ border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem
 <nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
 <main>
 <h1 id="lcm-lossless-context-management">LCM: Lossless Context Management</h1>
-<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-04-05</span> <span class="tag">context-management</span> <span class="tag">memory</span> <span class="tag">long-context</span> <span class="tag">coding-agents</span></div>
+<div class="meta"><span class="type">source</span> <span>created 2026-04-05</span> <span>updated 2026-10-19</span> <span class="tag">context-management</span> <span class="tag">memory</span> <span class="tag">long-context</span> <span class="tag">coding-agents</span></div>
 <p><strong>Authors:</strong> Clint Ehrlich, Theodore Blackman (Voltropy PBC) <strong>Date:</strong> 2026-02-14</p>
 <h2 id="summary">Summary</h2>
 <p>Deterministic architecture for LLM memory. Their LCM-augmented coding agent (Volt) outperforms Claude Code on the OOLONG long-context eval when using Opus 4.6, at every context length from 32K to 1M tokens.</p>
 <h2 id="key-ideas">Key Ideas</h2>
-<ul><li>Deterministic (not lossy) context management — lossless by design</li><li>Outperforms Claude Code on OOLONG benchmark at all context lengths</li><li>Extension of the recursive paradigm from <a href="source-recursive-language-models.html">source-recursive-language-models</a></li><li>Demonstrates recursive context manipulation &gt; native file-system access for coding agents</li></ul>
+<ul><li>Deterministic (not lossy) context management — lossless by design</li><li>Outperforms Claude Code on OOLONG benchmark at all context lengths</li><li>Extension of the recursive paradigm from <a href="source-recursive-language-models.html">source-recursive-language-models</a></li><li>Swaps model-written recursion loops for two engine-run mechanisms: a summary DAG that keeps lossless pointers to the originals, and parallel primitives such as LLM-Map (arXiv 2605.04050, abstract)</li></ul>
 <h2 id="connections">Connections</h2>
 <ul><li>Direct extension of <a href="source-recursive-language-models.html">source-recursive-language-models</a> (RLMs)</li><li>Related to <a href="source-language-models-as-scaffolds.html">source-language-models-as-scaffolds</a> — scaffolding approach</li><li>Relevant to <a href="concept-long-context.html">concept-long-context</a> and <a href="concept-ai-agents.html">concept-ai-agents</a></li><li>Benchmarked against Claude Code — practical coding agent comparison</li></ul>
 <h2 id="references">References</h2>
-<ul><li><a href="https://papers.voltropy.com/LCM" rel="noreferrer">Voltropy paper</a></li></ul>
-<details class="src"><summary>Sources (1)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://papers.voltropy.com/LCM" rel="noreferrer">https://papers.voltropy.com/LCM</a></li></ul></details>
+<ul><li><a href="https://papers.voltropy.com/LCM" rel="noreferrer">Voltropy paper</a></li><li>arXiv: <a href="https://arxiv.org/abs/2605.04050" rel="noreferrer">https://arxiv.org/abs/2605.04050</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><a href="https://papers.voltropy.com/LCM" rel="noreferrer">https://papers.voltropy.com/LCM</a></li><li><a href="https://arxiv.org/abs/2605.04050" rel="noreferrer">https://arxiv.org/abs/2605.04050</a></li></ul></details>
 </main>
 </body>
 </html>

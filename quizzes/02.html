@@ -294,7 +294,7 @@ def backward(self, grad_out: np.ndarray) -> np.ndarray:
       (<code>train loss 0.216 acc 0.921 | val loss 0.411 acc 0.865</code>) — but that is the
       <em>train</em> accuracy at epoch 25. The ~5.6-point train/val gap is the mild overfitting you can
       see opening up in <span class="mono">figures/fashion_curves.png</span>.`,
-    src: `modules/02-neural-networks/README.md lines 143-146`
+    src: `modules/02-neural-networks/README.md — representative output; results/fashion.json`
   },
   {
     id: "q5",
@@ -307,14 +307,14 @@ def backward(self, grad_out: np.ndarray) -> np.ndarray:
       <code>ReleaseFast</code>, single thread). Relative to the naive <code>ijk</code> triple loop,
       roughly what speedups did the blocked (tiled) kernel and numpy's Accelerate BLAS reach?`,
     options: [
-      `≈2.4× for blocked, ≈740× for numpy`,
+      `≈2.4× for blocked, ≈540× for numpy`,
       `≈2.4× for blocked, ≈7.4× for numpy`,
-      `≈24× for blocked, ≈740× for numpy`,
+      `≈24× for blocked, ≈540× for numpy`,
       `≈1.0× for blocked (identical) and ≈100× for numpy`
     ],
     answer: 0,
     explain: `31.06 ms naive → 12.88 ms blocked (<b>2.41×</b>) → 0.058 ms for <code>x @ W</code> in
-      numpy (<b>~740×</b>, 1773 GFLOP/s). The 7.4 answer is the trap: 7.45 and 7.98 are the
+      numpy (<b>~535×</b>, 1773 GFLOP/s). The 7.4 answer is the trap: 7.45 and 7.98 are the
       <em>GFLOP/s</em> figures for the reordered and blocked kernels, not speedups. Note also that
       simply reordering the loops to <code>ikj</code> already buys 2.25× of the blocked kernel's 2.41×
       — almost the whole win is cache-friendly access order, not tiling.`,
@@ -337,7 +337,7 @@ def backward(self, grad_out: np.ndarray) -> np.ndarray:
       <code>self.b = np.zeros(out_features)</code> for every layer, and
       <code>params_and_grads</code> yields it. <code>ReLU</code> contributes nothing: its
       <code>params_and_grads</code> returns an empty iterator.`,
-    src: `python/train_toy.py line 37; python/src/nn.py lines 42-64; explorables/02-nn-playground.html metric m-np`
+    src: `python/train_toy.py line 39; python/src/nn.py lines 42-64; explorables/02-nn-playground.html metric m-np`
   },
   {
     id: "q7",
@@ -367,26 +367,28 @@ def backward(self, grad_out: np.ndarray) -> np.ndarray:
     id: "q8",
     kind: "single",
     style: "predict-the-behavior",
-    topic: "momentum multiplies the effective step",
+    topic: "what momentum does to the step",
     hint: "the velocity is a geometric series in mu",
-    prompt: `<span class="mono">python/train_toy.py</span> runs
-      <code>SGD(lr=0.3, momentum=0.9)</code>, while the playground defaults to <code>lr = 0.1</code>
-      at the same <code>μ = 0.9</code>. What does <code>lr = 0.3</code> at <code>μ = 0.9</code>
-      actually step like, and what do you see if you move the slider there?`,
+    prompt: `<span class="mono">python/train_toy.py</span> and the playground both run
+      <code>SGD(lr=0.1, momentum=0.9)</code>. An earlier version of the script used
+      <code>lr = 0.3</code>. Along a steady slope, what does <code>lr = 0.3</code> at
+      <code>μ = 0.9</code> step like, and what do you see if you move the slider there?`,
     options: [
       `About <code>lr·μ</code> = 0.27 — indistinguishable from 0.3, so nothing changes.`,
-      `About <code>lr/(1 − μ)</code> = 3.0 — right on the edge of stability, and the loss curve picks up the same spikes as the real Python run.`,
-      `About <code>lr·(1 + μ)</code> = 0.57 — a bit faster, still comfortably stable.`,
+      `About <code>lr/(1 − μ)</code> = 3.0 along a steady slope — large enough that the run spikes, as the earlier Python run did.`,
+      `About <code>lr²/(1 − μ)</code> = 0.9 — a bit faster, still comfortably stable.`,
       `Momentum changes only the direction of the step, never its size.`
     ],
     answer: 1,
-    explain: `With a persistent gradient the velocity
+    explain: `With a steady gradient the velocity
       <code>v ← μ·v − lr·g</code> converges to a geometric series, <code>−lr·g/(1 − μ)</code>, so
-      μ = 0.9 multiplies the effective step by ten. That is why the real Python curve inlined in the
-      explorable is spiky — its epoch-83 blow-out jumps the training loss from 0.2126 to 0.8811 — and
-      why the calmer 0.1 default is smooth. The <code>lr·μ</code> answer is the intuitive-but-wrong
-      one: momentum <em>accumulates</em> gradient, it does not attenuate it.`,
-    src: `python/src/optim.py lines 27-37; python/train_toy.py line 38; explorable PY_TRAIN_LOSS[82] = 0.8811`,
+      μ = 0.9 multiplies the step by ten along a steady slope. Across a steep valley the stability
+      edge only moves from <code>lr·λ &lt; 2</code> to <code>lr·λ &lt; 2(1+μ)</code>, where λ is
+      the valley's curvature. At 0.3 this net sits close enough to that edge to spike: the earlier
+      Python run at 0.3 saw its training loss jump to 0.88 at epoch 83. The <code>lr·μ</code> answer
+      is the intuitive-but-wrong one: momentum <em>accumulates</em> gradient, it does not
+      attenuate it.`,
+    src: `python/src/optim.py lines 27-37; python/train_toy.py; explorables/02-nn-playground.html — "What to notice", fourth bullet`,
     tryIt: `try it — set lr to 0.300 with momentum 0.90 and watch the loss curve`
   },
   {
@@ -407,7 +409,8 @@ def backward(self, grad_out: np.ndarray) -> np.ndarray:
     answer: 2,
     explain: `This is He (Kaiming) initialization. <code>y = xW</code> sums
       <code>in_features</code> terms, so <code>Var(y) ≈ in_features · Var(W) · Var(x)</code> —
-      dividing by fan-in cancels the depth dependence, and ReLU killing roughly half the units halves
+      dividing by fan-in cancels the dependence on layer width, so the variance stays the same from
+      layer to layer, and ReLU killing roughly half the units halves
       the variance again, hence <code>2/fan_in</code>. Row normalization is the tempting misreading,
       but nothing here constrains a row's sum: these are plain Gaussian samples, not a normalized
       distribution. And there is no factor 2 anywhere in <code>(p − onehot)/N</code>.`,
@@ -455,7 +458,7 @@ function gradeMulti(q, resp) {
 function gradeNumeric(q, resp) {
   const v = typeof resp === "number" ? resp : parseFloat(resp);
   if (!isFinite(v)) return false;
-  return Math.abs(v - q.answer) <= (q.tol || 0);
+  return Math.abs(v - q.answer) <= (q.tol || 0) + 1e-9;
 }
 function gradeOne(q, resp) {
   if (resp === undefined || resp === null) return false;

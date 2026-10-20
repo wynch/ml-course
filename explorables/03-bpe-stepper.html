@@ -194,11 +194,13 @@ footer .path{font-family:var(--mono)}
   <ul class="notice">
     <li><b>Merge 0 is <code>"e" + " " → "e "</code></b>, not a word. Byte-level BPE learns
       <em>trailing spaces</em> first because English is full of words ending in <code>e</code>.
-      Space-prefixed pieces (<code>" th"</code>, merge&nbsp;17) show up soon after — that's why real
-      tokenizers give you <code>"&nbsp;the"</code> rather than <code>"the"</code>.</li>
+      Space-prefixed pieces (<code>" th"</code>, merge&nbsp;17) show up soon after. Real tokenizers
+      first split text into words with a regex that keeps the leading space, so they learn
+      <code>"&nbsp;the"</code> and never <code>"e&nbsp;"</code>. Ours skips that step, so its merges run
+      across word edges.</li>
     <li><b>Merges compose.</b> Merge 39 glues token 257 (<code>"th"</code>) to token 256
       (<code>"e "</code>) to make <code>"the "</code>, and merge 48 glues <code>" th"</code>+<code>"e "</code>
-      into <code>"&nbsp;the&nbsp;"</code> — four bytes in one token. Later merges can only fire because
+      into <code>"&nbsp;the&nbsp;"</code> — five bytes in one token. Later merges can only fire because
       earlier ones already ran, so <b>order is the model</b>.</li>
     <li><b>Watch bytes/token climb</b> while the byte count never changes. That ratio is the whole
       economic argument for subwords: fewer positions for the same text means shorter context and
@@ -210,7 +212,7 @@ footer .path{font-family:var(--mono)}
       across languages. Some merges will report <span class="mono">no occurrence</span> — those
       merges are dead weight for your text.</li>
     <li><b>Colours are token length</b> (viridis). Purple chips are single bytes; yellow chips are
-      the 4–7 byte whole-word tokens that only appear once the vocabulary gets big.</li>
+      the longer tokens, which often span a space, and only appear once the vocabulary gets big.</li>
   </ul>
 </div>
 

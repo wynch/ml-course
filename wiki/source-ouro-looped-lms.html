@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Scaling Latent Reasoning via Looped Language Models (Ouro; Zhu et al., 2025) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="ouro-looped-language-models-pretrained-at-scale">Ouro: looped language models pretrained at scale</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-20</span> <span>updated 2026-10-20</span> <span class="tag">latent-reasoning</span> <span class="tag">looped-transformers</span> <span class="tag">recurrence</span> <span class="tag">adaptive-compute</span> <span class="tag">early-exit</span> <span class="tag">parameter-efficiency</span> <span class="tag">small-models</span> <span class="tag">bytedance-seed</span> <span class="tag">2025</span></div>
+<p><strong>Authors:</strong> Rui-Jie Zhu, Zixuan Wang, Kai Hua, Tianyu Zhang, Ziniu Li, Haoran Que and 23 others, with Ge Zhang, Wenhao Huang, Yoshua Bengio and Jason Eshraghian as supervisors; ByteDance Seed, UC Santa Cruz, Princeton, Mila and others (R, title block of the v6 PDF; "Contributions") <strong>Published:</strong> arXiv 2510.25741, v1 2025-10-29, v6 2026-10-11 <strong>Models:</strong> Ouro 1.4B and 2.6B, base and "Thinking" versions, released (http://ouro-llm.github.io) <strong>Raw copy:</strong> <code>raw/arxiv-2510-25741-scaling-latent-reasoning-via-looped-language.md</code> (full text of v5 from the arXiv HTML, captured 2026-10-20; v6 has no HTML render; every number in v5 also appears in the v6 PDF)</p>
+<p>Every claim below cites the raw file as R, with its section or table.</p>
+<h2 id="summary">Summary</h2>
+<p>A looped language model runs the same stack of layers several times per token: Ouro 1.4B is 24 layers run 4 times, Ouro 2.6B is 48 layers run 4 times (R, §3.1, §4.3.1, Table 2). The extra depth costs compute, not parameters. The authors pretrain these models on 7.7T tokens, far beyond earlier looped models, and ask whether looping pays at that scale (R, §1, §4).</p>
+<ul><li><strong>An exit gate per loop.</strong> After each loop a small gate gives the chance of stopping. Training weights each loop's loss by that chance and adds an entropy bonus, so the gate neither always stops late nor always early (R, §3.2–3.3). A second stage, with the model frozen, trains the gate to stop when one more loop no longer lowers the loss by more than 0.005 (R, §3.4). At inference, a threshold on the summed stopping chance sets the trade between compute and accuracy (R, §3.2).</li><li><strong>Training.</strong> Eight loops at first caused loss spikes; they cut to four. The 2.6B model was made from the 1.4B by duplicating its 24 layers (R, §4.3). Data are open datasets only (R, §4.2).</li><li><strong>RL failed.</strong> RL with checkable rewards (DAPO, GRPO) gave no gain over the fine-tuned model, partly because fast rollout engines assume a fixed depth (R, §4.5).</li></ul>
+<h2 id="key-results">Key results</h2>
+<p>Base models at four loops, against dense models (R, Tables 7–8):</p>
+<div class="tw"><table><thead><tr><th>Benchmark</th><th>Ouro 1.4B</th><th>Qwen3 4B</th><th>Ouro 2.6B</th><th>Qwen3 8B</th></tr></thead><tbody><tr><td>MMLU</td><td>67.35</td><td>73.19</td><td>74.60</td><td>76.63</td></tr><tr><td>MMLU-Pro</td><td>48.62</td><td>51.40</td><td>55.73</td><td>53.72</td></tr><tr><td>BBH</td><td>71.02</td><td>70.95</td><td>80.46</td><td>77.65</td></tr><tr><td>GSM8K</td><td>78.92</td><td>72.86</td><td>81.58</td><td>83.09</td></tr><tr><td>MATH500</td><td>82.40</td><td>59.60</td><td>90.85</td><td>62.30</td></tr></tbody></table></div>
+<p>The gains sit on reasoning-heavy benchmarks; on MMLU, which leans on stored knowledge, both trail Qwen3 (R, §5.1, Appendix B.4).</p>
+<ul><li><strong>Loops past training hurt.</strong> Trained at four loops, benchmark scores peak at four and fall at five to eight; at one loop the 1.4B scores 41.21 on MMLU against 67.45 at four (R, §5.3, Table 10). The Thinking models score near zero at one loop (AIME 2024: 0.00 and 3.00) and decline past five (R, Tables 12–13). Only the safety score keeps improving past four loops (R, §7.1, Figure 8a).</li><li><strong>Looping adds no storage.</strong> In synthetic biography tests, looped and plain GPT-2-style models from 1M to 40M parameters both hold about 2 bits of facts per parameter (R, §6.1, Figure 6). On a modular-arithmetic task that composes facts, looped models beat plain models with the same parameters and often those with the same compute: at expression length 24, 3 layers looped 4 times score 92.2% against 34.8% for 12 plain layers (R, §6.2, Figure 6). The authors' reading: looping helps use knowledge, not store it.</li><li><strong>Early exit.</strong> On MMLU, the trained gate gives about 66% at an average of 2.5 loops, against about 64% for the gate from pretraining alone; a simple rule (stop when the hidden state changes little) comes within 1–2 points (R, §5.4.1, Figure 5; read from a plot).</li><li><strong>KV cache.</strong> Keeping only the last loop's cache during decoding cuts cache memory 4× for 78.85 against 78.92 on GSM8K; keeping only the first loop's drops it to 18.73. Prefill needs all four caches (R, §5.4.2, Table 14).</li><li><strong>Answers change across loops.</strong> On 1,000 Quora question pairs, only 36.1% of loop-2 answers match loop 4; a probe predicts Qwen3-4B-Thinking's final answer from before its written reasoning with ROC AUC 0.99 (R, §7.2, Figure 9). The authors read this as faithful latent reasoning.</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>Ouro runs 4 passes through its layers per token, so "1.4B matches 4B" compares parameters, not compute (R, §1). In the authors' own small-scale runs (53M to 1.36B, 20B tokens), a plain model with the same depth, and so more parameters, always scores higher than the looped one (R, Appendix D.1, Table 18).</li><li>Contradiction, 2026-10-20: an independent harness scores the released Thinking models lower than this paper does. <a href="source-loopcd-decoding-looped-transformers.html">source-loopcd-decoding-looped-transformers</a> gets AIME 2024 pass@1 of 50.83 (1.4B) and 61.88 (2.6B), OlympiadBench 61.27 and 64.05 (<code>raw/arxiv-2610-02185-decoding-looped-transformers-better-for-almost.md</code>, Table 1a); this paper reports 65.0 and 64.7, and 71.6 and 76.4 (R, Table 9). This paper grades with an LLM judge at temperature 1.0 (R, §5.2); LoopCD uses 16 samples, integer matching for AIME and symbolic equivalence on the 674-problem English maths subset of OlympiadBench (same LoopCD file, Appendix B.2).</li><li>Comparisons are against other labs' base models trained on different data and token counts, from 2T to 36T (R, Tables 7–8).</li><li>The faithfulness claim rests on answers changing between loops and on probes, not on an intervention; the authors say they cannot manipulate the latent process (R, §7.2).</li><li>"Up to 12B" (R, Abstract) holds on some benchmarks: on Table 8, Gemma3 12B leads on ARC-C, HellaSwag and Winogrande.</li></ul>
+<h2 id="connections">Connections</h2>
+<ul><li><a href="concept-latent-reasoning.html">concept-latent-reasoning</a> — the "loops of one block" row, pretrained at 7.7T tokens; the extrapolation result bears on whether looping scales past its training range.</li><li><a href="source-recurrent-depth-latent-reasoning.html">source-recurrent-depth-latent-reasoning</a> — Huginn loops a middle block with a random loop count around 32; Ouro loops the whole stack 4 times with a learned exit (R, §2).</li><li><a href="source-loopcd-decoding-looped-transformers.html">source-loopcd-decoding-looped-transformers</a> — decodes Ouro's early loops as a weak model; see the contradiction above.</li><li><a href="source-mixture-of-depths.html">source-mixture-of-depths</a> — per-token depth by skipping layers; Ouro varies depth by stopping loops.</li><li><a href="source-trm-tiny-recursive-model.html">source-trm-tiny-recursive-model</a> — the tiny, task-trained end of looping.</li><li><a href="concept-test-time-compute.html">concept-test-time-compute</a> — depth as a compute knob; Ouro's knob works only up to the trained depth.</li><li><a href="entity-bytedance-seed.html">entity-bytedance-seed</a> — first affiliation.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2510-25741-scaling-latent-reasoning-via-looped-language.md</code></li><li><code>raw/arxiv-2610-02185-decoding-looped-transformers-better-for-almost.md</code></li><li><a href="https://arxiv.org/abs/2510.25741" rel="noreferrer">https://arxiv.org/abs/2510.25741</a></li><li><a href="http://ouro-llm.github.io" rel="noreferrer">http://ouro-llm.github.io</a></li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2510-25741-scaling-latent-reasoning-via-looped-language.md</code></li><li><a href="https://arxiv.org/abs/2510.25741" rel="noreferrer">https://arxiv.org/abs/2510.25741</a></li><li><a href="http://ouro-llm.github.io" rel="noreferrer">http://ouro-llm.github.io</a></li><li><code>raw/arxiv-2610-02185-decoding-looped-transformers-better-for-almost.md</code></li></ul></details>
+</main>
+</body>
+</html>

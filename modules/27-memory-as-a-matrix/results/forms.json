@@ -1,0 +1,123 @@
+{
+ "batch": 8,
+ "heads": 4,
+ "d_k": 32,
+ "chunk": 64,
+ "lengths": [
+  256,
+  512,
+  1024,
+  2048
+ ],
+ "agreement": {
+  "linear": {
+   "max_abs_diff_out": 5.245208740234375e-06,
+   "max_abs_diff_state": 9.5367431640625e-06,
+   "out_scale": 9.811178207397461
+  },
+  "decay": {
+   "max_abs_diff_out": 7.152557373046875e-07,
+   "max_abs_diff_state": 8.940696716308594e-07,
+   "out_scale": 2.052882194519043
+  },
+  "delta": {
+   "max_abs_diff_out": 1.5497207641601562e-06,
+   "max_abs_diff_state": 1.341104507446289e-06,
+   "out_scale": 4.194500923156738
+  },
+  "gated_delta": {
+   "max_abs_diff_out": 7.152557373046875e-07,
+   "max_abs_diff_state": 8.344650268554688e-07,
+   "out_scale": 1.8794326782226562
+  }
+ },
+ "agreement_alike_keys": {
+  "linear": {
+   "max_abs_diff_out": 2.6702880859375e-05,
+   "max_abs_diff_state": 2.09808349609375e-05,
+   "out_scale": 79.29385375976562
+  },
+  "decay": {
+   "max_abs_diff_out": 4.76837158203125e-06,
+   "max_abs_diff_state": 1.430511474609375e-06,
+   "out_scale": 10.498374938964844
+  },
+  "delta": {
+   "max_abs_diff_out": 7.152557373046875e-06,
+   "max_abs_diff_state": 2.4586915969848633e-06,
+   "out_scale": 4.739994525909424
+  },
+  "gated_delta": {
+   "max_abs_diff_out": 1.9669532775878906e-06,
+   "max_abs_diff_state": 5.364418029785156e-07,
+   "out_scale": 4.736471176147461
+  }
+ },
+ "module18_vs_decay_max_abs_diff": 1.4210854715202004e-13,
+ "inverse_errors": {
+  "random_keys": {
+   "block_form": 1.3014422919899182e-07,
+   "product_formula": 6.379329677147494e-07,
+   "largest_entry": 1.0
+  },
+  "alike_keys": {
+   "block_form": 2.501215414106971e-07,
+   "product_formula": 42949672960.000084,
+   "largest_entry": 1.0
+  }
+ },
+ "ms_forward_backward_gated_delta": {
+  "cpu": {
+   "256": {
+    "recurrent": 80.9,
+    "chunked": 10.9
+   },
+   "512": {
+    "recurrent": 189.8,
+    "chunked": 21.7
+   },
+   "1024": {
+    "recurrent": 468.9,
+    "chunked": 49.6
+   },
+   "2048": {
+    "recurrent": 1450.4,
+    "chunked": 112.2
+   }
+  },
+  "mps": {
+   "256": {
+    "recurrent": 79.9,
+    "chunked": 7.9
+   },
+   "512": {
+    "recurrent": 123.1,
+    "chunked": 12.0
+   },
+   "1024": {
+    "recurrent": 315.2,
+    "chunked": 27.9
+   },
+   "2048": {
+    "recurrent": 1197.8,
+    "chunked": 43.3
+   }
+  }
+ },
+ "guard": {
+  "script": "forms",
+  "seconds": 17.5,
+  "minutes": 0.29,
+  "peak_rss_gb": 0.51,
+  "peak_mps_driver_gb": 0.11,
+  "stages_seconds": {
+   "checks": 0.36,
+   "cpu": 9.66,
+   "mps": 7.46
+  },
+  "machine": "arm64 26.6.2",
+  "python": "3.12.13",
+  "torch": "2.14.1",
+  "mps_high_watermark_ratio": "0.5"
+ }
+}

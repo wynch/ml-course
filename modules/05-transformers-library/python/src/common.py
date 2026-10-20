@@ -11,8 +11,8 @@ import functools
 import torch
 
 # The workhorse for the whole module. ~700 MB, downloads to the HF cache on
-# first use. The "same recipe, bigger" upgrade path is SmolLM3-3B — identical
-# blocks, ~8x the parameters (see anatomy.py for the side-by-side table).
+# first use. The bigger sibling is SmolLM3-3B: the same recipe with RoPE dropped
+# from every fourth layer, ~8x the parameters (see anatomy.py for the table).
 MODEL_ID = "HuggingFaceTB/SmolLM2-360M-Instruct"
 UPGRADE_MODEL_ID = "HuggingFaceTB/SmolLM3-3B"
 

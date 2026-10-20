@@ -10,6 +10,7 @@ uv sync
 uv run python train_toy.py       # decision-boundary GIF (2D toy data)
 uv run python train_fashion.py   # FashionMNIST MLP -> >=85% test acc + figures
 uv run python bench_numpy.py     # BLAS matmul timing (pairs with ../zig)
+uv run python gradcheck.py       # finite-difference check of every layer
 ```
 
 ## Layout

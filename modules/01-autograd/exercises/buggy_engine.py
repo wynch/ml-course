@@ -32,7 +32,6 @@ class Value:
         out = Value(self.data * other.data, (self, other), "*")
 
         def _backward():
-            # BUG is hiding somewhere in this engine — is it here?
             self.grad += self.data * out.grad
             other.grad += self.data * out.grad
 

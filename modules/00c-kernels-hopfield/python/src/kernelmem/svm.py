@@ -131,7 +131,8 @@ class DualSVM:
         the classic derivation: the data *must* be separable in feature space.
     lr, iters
         Projected-gradient step size and iteration count. ``lr=None`` picks
-        1/λ_max(Q), the largest step that cannot overshoot the quadratic.
+        1/λ_max(Q), a safe step that never overshoots along any direction.
+        Steps up to 2/λ_max(Q) still climb; that is the edge module 00a measured.
     """
 
     kernel: str = "linear"

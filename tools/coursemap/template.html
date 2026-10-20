@@ -175,14 +175,14 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
     <p class="lede">From a scalar autograd engine to a Zig inference engine — every idea built from
       scratch first, then the Hugging Face way, and drawn as a picture both times.</p>
     <div class="topline">
-      <span class="stats"><b>29</b> modules · <b>164</b> figures · <b>29</b> explorables ·
-        <b>29</b> quizzes · <b>2</b> languages</span>
+      <span class="stats"><b>37</b> modules · <b>201</b> figures · <b>37</b> explorables ·
+        <b>37</b> quizzes · <b>2</b> languages</span>
       <a class="sitebtn" href="https://wynch.github.io/ml-course/" target="_blank" rel="noopener">Course site ↗
         <span class="u">wynch.github.io/ml-course</span></a>
     </div>
     <div class="prog">
       <div class="pbar"><div id="pfill"></div></div>
-      <span id="pcount">0 / 29</span>
+      <span id="pcount">0 / 37</span>
     </div>
   </div>
 </header>
@@ -257,7 +257,7 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
       <div class="fig"><img src="{{FIG01}}" alt="Module 01 figure: the computation graph of a scalar expression"></div>
       <p class="build"><b>You build:</b> a scalar autograd engine — reverse-mode backprop from first
         principles, twice: Python objects, then Zig structs.</p>
-      <div class="chips"><span>grad check 1.34e-10</span><span>100% moons</span><span>337 params</span></div>
+      <div class="chips"><span>grad check 1.34e-10</span><span>100% moons (train)</span><span>337 params</span></div>
       <div class="links">
         <a href="https://wynch.github.io/ml-course/explorables/01-gradient-descent.html" target="_blank" rel="noopener">🕹 Explorable</a>
         <a href="https://wynch.github.io/ml-course/quizzes/01.html" target="_blank" rel="noopener">✅ Quiz</a>
@@ -272,7 +272,7 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
       <div class="fig"><img src="{{FIG02}}" alt="Module 02 figure: first-layer weights learned on FashionMNIST"></div>
       <p class="build"><b>You build:</b> a numpy MLP trained on FashionMNIST, then chase the same matmul
         down to BLAS and to blocked Zig.</p>
-      <div class="chips"><span>86.5% FashionMNIST</span><span>BLAS ~740×</span><span>Zig blocked 2.4×</span></div>
+      <div class="chips"><span>86.5% FashionMNIST</span><span>BLAS ~535×</span><span>Zig blocked 2.4×</span></div>
       <div class="links">
         <a href="https://wynch.github.io/ml-course/explorables/02-nn-playground.html" target="_blank" rel="noopener">🕹 Explorable</a>
         <a href="https://wynch.github.io/ml-course/quizzes/02.html" target="_blank" rel="noopener">✅ Quiz</a>
@@ -327,7 +327,7 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
       <div class="fig"><img src="{{FIG05}}" alt="Module 05 figure: logit lens — the top prediction at every layer"></div>
       <p class="build"><b>You build:</b> a dissection of SmolLM2-360M — <code>pipeline</code>,
         <code>AutoModel</code>, the parameter budget, sampling, and a logit lens.</p>
-      <div class="chips"><span>“Paris” @ layer 27/32</span><span>362M params dissected</span><span>CPU 27–31 tok/s</span></div>
+      <div class="chips"><span>“Paris” @ layer 27/32</span><span>362M params dissected</span><span>CPU 29–32 tok/s</span></div>
       <div class="links">
         <a href="https://wynch.github.io/ml-course/explorables/05-transformer-anatomy.html" target="_blank" rel="noopener">🕹 Explorable</a>
         <a href="https://wynch.github.io/ml-course/quizzes/05.html" target="_blank" rel="noopener">✅ Quiz</a>
@@ -387,8 +387,8 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
 </section>
 
 <section class="track t3">
-  <h2>Breadth<span class="rng">modules 08–10</span></h2>
-  <p class="sub">The same machinery pointed at pixels, at noise, and at tools.</p>
+  <h2>Breadth<span class="rng">modules 08–10, 33</span></h2>
+  <p class="sub">The same machinery pointed at pixels, at noise, at tools, and at text written by unmasking.</p>
   <div class="grid">
 
     <article class="card t3" data-mod="08">
@@ -436,12 +436,28 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
         <a class="hf" href="https://huggingface.co/learn/agents-course/unit1/introduction" target="_blank" rel="noopener">HF Agents unit 1 ↗</a></div>
     </article>
 
+    <article class="card t3" data-mod="33">
+      <label class="donebox">done<input type="checkbox" data-mod="33" aria-label="Mark module 33 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">33</span><h3>Masked diffusion on characters</h3></div>
+      <div class="fig"><img src="{{FIG33}}" alt="Module 33 figure: word score, judge NLL and repetition against 1 to 128 steps, two rules, two models"></div>
+      <p class="build"><b>You build:</b> module 04's char-GPT without its causal mask, trained as a masked diffusion model beside an
+        autoregressive twin; sampling rules and step counts; block diffusion with a KV cache; flow matching on module 09's
+        spiral.</p>
+      <div class="chips"><span>bound 2.56 vs AR 1.75 at equal compute</span><span>6× compute: 2.06</span><span>100k chars: crosses AR at epoch 200, not AR's best</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/33-text-by-denoising.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/33.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/33-text-by-denoising</span>
+        <a class="hf" href="https://arxiv.org/abs/2502.09992" target="_blank" rel="noopener">LLaDA ↗</a></div>
+    </article>
+
   </div>
 </section>
 
 <section class="track t4">
-  <h2>Looking inside<span class="rng">modules 11–13</span></h2>
-  <p class="sub">Open a trained model while it runs: read one neuron, probe each layer, patch one cell, read features through a sparse dictionary, then do the same to vision and JEPA models.</p>
+  <h2>Looking inside<span class="rng">modules 11–13, 32</span></h2>
+  <p class="sub">Open a trained model while it runs: read one neuron, probe each layer, patch one cell, read features through a sparse dictionary, then do the same to vision and JEPA models, and test the findings against a random-weight copy, a second seed and a known truth.</p>
   <div class="grid">
 
     <article class="card t4" data-mod="11">
@@ -489,12 +505,28 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
         <a class="hf" href="https://github.com/greentfrapp/lucent" target="_blank" rel="noopener">Lucent ↗</a></div>
     </article>
 
+    <article class="card t4" data-mod="32">
+      <label class="donebox">done<input type="checkbox" data-mod="32" aria-label="Mark module 32 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">32</span><h3>Controls for interpretability</h3></div>
+      <div class="fig"><img src="{{FIG32}}" alt="Module 32 figure: best cosine of each true neuron, and MMCS per dictionary, seed and model"></div>
+      <p class="build"><b>You build:</b> a two-layer TinyStories model whose MLP neurons are the ground truth; SAEs and transcoders against a
+        random-weight copy and a second seed; an attribution graph checked by ablation; then SAELens on trained and random
+        GPT-2.</p>
+      <div class="chips"><span>SAE finds 63% of true neurons, transcoder 35%</span><span>random copy: recovered as well, MMCS 0.84</span><span>attribution vs ablation r 0.88 trained, 0.42 random</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/32-is-the-explanation-real.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/32.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/32-is-the-explanation-real</span>
+        <a class="hf" href="https://arxiv.org/abs/2501.17727" target="_blank" rel="noopener">random-transformer control ↗</a></div>
+    </article>
+
   </div>
 </section>
 
 <section class="track t5">
-  <h2>How learning works<span class="rng">modules 14–16</span></h2>
-  <p class="sub">Watch training find a solution, measure the shape it leaves behind, and learn without labels.</p>
+  <h2>How learning works<span class="rng">modules 14–16, 29–30</span></h2>
+  <p class="sub">Watch training find a solution, measure the shape it leaves behind, learn without labels, keep the old while learning the new, and learn without a backward pass.</p>
   <div class="grid">
 
     <article class="card t5" data-mod="14">
@@ -542,12 +574,44 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
         <a class="hf" href="https://huggingface.co/facebook/dinov2-small" target="_blank" rel="noopener">DINOv2-small ↗</a></div>
     </article>
 
+    <article class="card t5" data-mod="29">
+      <label class="donebox">done<input type="checkbox" data-mod="29" aria-label="Mark module 29 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">29</span><h3>Forgetting and plasticity</h3></div>
+      <div class="fig"><img src="{{FIG29}}" alt="Module 29 figure: forgetting against KL on the new and on the old text, 18 runs every 25 steps"></div>
+      <p class="build"><b>You build:</b> module 04's char-GPT taught GSM8K's solutions by full fine-tuning, LoRA, replay and self-distillation,
+        with forgetting measured on Shakespeare; plain backprop against continual backprop over 800 shuffled-pixel tasks; a LoRA
+        forgetting probe on SmolLM2-360M-Instruct.</p>
+      <div class="chips"><span>full fine-tune forgets 1.24 nats/char; replay 0.26</span><span>KL on the new text ranks forgetting: ρ 0.35</span><span>Adam loses 5.2 points over 800 tasks; continual backprop 0.9</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/29-learning-new-keeping-old.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/29.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/29-learning-new-keeping-old</span>
+        <a class="hf" href="https://arxiv.org/abs/2405.09673" target="_blank" rel="noopener">LoRA learns less, forgets less ↗</a></div>
+    </article>
+
+    <article class="card t5" data-mod="30">
+      <label class="donebox">done<input type="checkbox" data-mod="30" aria-label="Mark module 30 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">30</span><h3>Forward-only and local rules</h3></div>
+      <div class="fig"><img src="{{FIG30}}" alt="Module 30 figure: memory above inference against depth for six rules and two plain-SGD rows"></div>
+      <p class="build"><b>You build:</b> one MLP on FashionMNIST trained by backprop, checkpointing, MeZO, forward-forward, Mono-Forward and
+        predictive coding: the memory each holds above inference and how well each learns; then MeZO against LoRA on
+        SmolLM2-360M-Instruct for SST-2.</p>
+      <div class="chips"><span>MeZO: 0 MiB above inference</span><span>Adam: half of backprop's memory bill</span><span>Mono-Forward 88.2% vs backprop 88.9%</span><span>PC error: 10× smaller per layer down</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/30-learning-without-a-backward-pass.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/30.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/30-learning-without-a-backward-pass</span>
+        <a class="hf" href="https://arxiv.org/abs/2305.17333" target="_blank" rel="noopener">MeZO ↗</a></div>
+    </article>
+
   </div>
 </section>
 
 <section class="track t6">
-  <h2>Other recipes<span class="rng">modules 17–18</span></h2>
-  <p class="sub">Train from preferences instead of labels, and carry a fixed state from token to token instead of attention.</p>
+  <h2>Other recipes<span class="rng">modules 17–18, 27</span></h2>
+  <p class="sub">Train from preferences instead of labels, carry a fixed state from token to token instead of attention, and write to that state with the delta rule.</p>
   <div class="grid">
 
     <article class="card t6" data-mod="17">
@@ -578,6 +642,21 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
       </div>
       <div class="cfoot"><span class="path">modules/18-beyond-attention</span>
         <a class="hf" href="https://huggingface.co/state-spaces/mamba-130m-hf" target="_blank" rel="noopener">mamba-130m-hf ↗</a></div>
+    </article>
+
+    <article class="card t6" data-mod="27">
+      <label class="donebox">done<input type="checkbox" data-mod="27" aria-label="Mark module 27 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">27</span><h3>The delta rule</h3></div>
+      <div class="fig"><img src="{{FIG27}}" alt="Module 27 figure: pairs read back right against pairs written for four rules, and recall by age"></div>
+      <p class="build"><b>You build:</b> linear attention, decay, the delta rule and the gated delta rule as one-line writes into a matrix;
+        recall on MQAR against state size; a Gated DeltaNet hybrid (Qwen3.5-0.8B) against Qwen3-0.6B on MLX.</p>
+      <div class="chips"><span>Overwrite: delta 1.00, linear 0.66</span><span>48 pairs: state size decides, not the rule</span><span>Qwen3.5 cache 211 MB vs 1.75 GB at 16k</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/27-memory-as-a-matrix.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/27.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/27-memory-as-a-matrix</span>
+        <a class="hf" href="https://arxiv.org/abs/2412.06464" target="_blank" rel="noopener">Gated DeltaNet ↗</a></div>
     </article>
 
   </div>
@@ -623,8 +702,8 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
 </section>
 
 <section class="track t8">
-  <h2>Using models well<span class="rng">modules 21–23</span></h2>
-  <p class="sub">Fetch the right passage, spend more tokens on each question, and make a model smaller.</p>
+  <h2>Using models well<span class="rng">modules 21–23, 28</span></h2>
+  <p class="sub">Fetch the right passage, spend more tokens on each question, make a model smaller, and train one with fewer bits.</p>
   <div class="grid">
 
 
@@ -673,12 +752,27 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
     </article>
 
 
+    <article class="card t8" data-mod="28">
+      <label class="donebox">done<input type="checkbox" data-mod="28" aria-label="Mark module 28 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">28</span><h3>Ternary weights and the KV cache</h3></div>
+      <div class="fig"><img src="{{FIG28}}" alt="Module 28 figure: held-out loss against file size for four arms at two budgets"></div>
+      <p class="build"><b>You build:</b> module 04's char-GPT trained with ternary weights against float models rounded to 4 and 2 bits at the
+        same file size, tuned fairly; then SmolLM2-360M's KV cache rounded to 8–2 bits by hand and with mlx-lm.</p>
+      <div class="chips"><span>1.5 MB: ternary 1.617 vs 4-bit 1.648</span><span>a tuned baseline cut the gap from 0.168 to 0.031</span><span>KV cache: 2 bits per token, perplexity 16.1 → 562</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/28-fewer-bits-trained-in.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/28.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/28-fewer-bits-trained-in</span>
+        <a class="hf" href="https://arxiv.org/abs/2402.17764" target="_blank" rel="noopener">BitNet b1.58 ↗</a></div>
+    </article>
+
   </div>
 </section>
 
 <section class="track t9">
-  <h2>Acting and planning<span class="rng">modules 24–25</span></h2>
-  <p class="sub">Learn from reward instead of labels, then plan inside a model of the world.</p>
+  <h2>Acting and planning<span class="rng">modules 24–26, 31</span></h2>
+  <p class="sub">Learn from reward instead of labels, plan inside a model of the world, train a language model against a checker, and learn a world model from pixels.</p>
   <div class="grid">
 
 
@@ -711,6 +805,36 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
         <a class="hf" href="https://arxiv.org/abs/2506.09985" target="_blank" rel="noopener">V-JEPA 2 ↗</a></div>
     </article>
 
+
+    <article class="card t9" data-mod="26">
+      <label class="donebox">done<input type="checkbox" data-mod="26" aria-label="Mark module 26 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">26</span><h3>GRPO on sums</h3></div>
+      <div class="fig"><img src="{{FIG26}}" alt="Module 26 figure: reward, share of worked replies, KL and wrong-reply length over 300 steps for five arms"></div>
+      <p class="build"><b>You build:</b> GRPO, Dr. GRPO and RLOO by hand on a small char-GPT that adds 3-digit numbers, graded by a program,
+        against a coin-flip reward; then TRL's GRPOTrainer with LoRA on SmolLM2-360M-Instruct.</p>
+      <div class="chips"><span>pass@1 59.1% → 94.9% (Dr. GRPO)</span><span>worked replies 24.7% → 98%+</span><span>coin-flip reward: 4.6%</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/26-rl-with-a-checker.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/26.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/26-rl-with-a-checker</span>
+        <a class="hf" href="https://huggingface.co/docs/trl/grpo_trainer" target="_blank" rel="noopener">TRL GRPO trainer ↗</a></div>
+    </article>
+
+    <article class="card t9" data-mod="31">
+      <label class="donebox">done<input type="checkbox" data-mod="31" aria-label="Mark module 31 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">31</span><h3>LeWM in miniature</h3></div>
+      <div class="fig"><img src="{{FIG31}}" alt="Module 31 figure: success per planner and split, and one task with CEM's and random shooting's plans"></div>
+      <p class="build"><b>You build:</b> a small JEPA world model (encoder, predictor, prediction loss and SIGReg) trained end to end on
+        64-pixel frames of a two-room world; random shooting and CEM in its latent; PLDM's terms on module 25's grid.</p>
+      <div class="chips"><span>random shooting 70% · CEM 26% (same room)</span><span>D = 192 probe R² 1.00, D = 8 0.28</span><span>inverse dynamics: agent R² 0.97, planning 4.8%</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/31-world-model-from-pixels.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/31.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/31-world-model-from-pixels</span>
+        <a class="hf" href="https://arxiv.org/abs/2603.19312" target="_blank" rel="noopener">LeWorldModel ↗</a></div>
+    </article>
 
   </div>
 </section>

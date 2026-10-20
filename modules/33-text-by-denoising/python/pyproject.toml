@@ -1,0 +1,19 @@
+[project]
+name = "mlcourse-33-text-by-denoising"
+version = "0.1.0"
+description = "Module 33 — Text by denoising: flow matching on module 09's spiral; module 04's char-GPT made bidirectional and trained as a masked diffusion model on tiny-shakespeare; sampling in 1 to 128 steps; block diffusion with a KV cache; the data-repeat test against an autoregressive twin; Meta's flow_matching library and LLaDA's sampler as the check."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "flow-matching==1.0.10",
+    "matplotlib>=3.11.1",
+    "numpy>=2.0",
+    "pytest>=9.1.1",
+    "torch>=2.14.1",
+    "tqdm>=4.67",                # flow_matching's solvers import it without declaring it
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "../solutions"]
+addopts = "-q"
+filterwarnings = ["ignore::SyntaxWarning"]   # flow_matching's docstrings

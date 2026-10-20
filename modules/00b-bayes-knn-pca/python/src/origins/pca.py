@@ -33,7 +33,9 @@ def power_iteration(
 
     Stops when the vector stops moving: ``||v_new - v_old|| < tol``, with the
     sign of ``v_new`` aligned to ``v_old`` first so a sign flip is not mistaken
-    for movement.
+    for movement. A small last step is not a small error: with ratio
+    r = λ₂/λ₁ the true error is about step / (1 − r), far larger than the step
+    when eigenvalues nearly tie.
     """
     A = np.asarray(A, dtype=np.float64)
     rng = np.random.default_rng(seed)

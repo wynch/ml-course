@@ -89,8 +89,8 @@ integer key vs. allocated tuple key) is a big part of why the Zig version is
 ~20× faster on the same corpus.
 
 **Commentary — the `zip(ids, ids[1:])` trap.** In Python, `ids[1:]` *copies* the
-whole tail list every call. On a 1M-element corpus that is a megabyte of
-copying per merge. It is idiomatic and readable, and we keep it for teaching
+whole tail list every call. On a 1.1M-element corpus that is about 9 MB of
+pointers copied, plus a reference-count update per element, on every merge. It is idiomatic and readable, and we keep it for teaching
 clarity, but it is exactly the kind of hidden cost a systems language makes
 visible: Zig just indexes `ids.items[i]` and `ids.items[i + 1]` with no copy.
 
