@@ -466,7 +466,25 @@
   });
 
   if ("serviceWorker" in navigator && location.protocol !== "file:") {
-    navigator.serviceWorker.register(`${BASE}sw.js`, { scope: BASE }).catch(() => {});
+    // A page served by an older worker reloads once when the new worker takes
+    // control. No controller at load means a first install, whose page is
+    // already current.
+    const controlled = Boolean(navigator.serviceWorker.controller);
+    let reloading = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (!controlled || reloading) return;
+      reloading = true;
+      location.reload();
+    });
+    navigator.serviceWorker.register(`${BASE}sw.js`, { scope: BASE }).then((registration) => {
+      // A home-screen app on iOS resumes without reloading, so a visible page
+      // checks for a new worker itself.
+      const update = () => registration.update().catch(() => {});
+      update();
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") update();
+      });
+    }).catch(() => {});
   }
   render();
 })();
