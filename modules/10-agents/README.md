@@ -427,4 +427,4 @@ neurons read on both signs. To go further with agents:
   tool-calling (bonus unit 1), wrap it in this loop, expose its tools over MCP,
   and *measure* it. That is a real agent, built end to end, by you.
 
-Thanks for building tracks 1 to 3. Now go make something that acts, then open one up in module 11.
+Thanks for building this far. Now go make something that acts; after module 33, open one up in module 11.

@@ -1,6 +1,7 @@
 // Every URL here is relative to this script, so the reader caches correctly
 // whether it is served from a domain root or from /ml-course/reader/.
-const CACHE = "ml-course-reader-v13";
+const CACHE_PREFIX = "ml-course-reader-v";
+const CACHE = `${CACHE_PREFIX}14`;
 const CORE = ["./", "./index.html", "./styles.css", "./app.js", "./course-content.js", "./manifest.webmanifest", "./offline-assets.json", "./favicon.svg", "./favicon.ico", "./apple-touch-icon.png"];
 const HOME = new URL("./", self.location).href;
 // The shell and the module list must match the latest publish whenever the
@@ -8,16 +9,36 @@ const HOME = new URL("./", self.location).href;
 const FRESH = new Set(["./", "./index.html", "./app.js", "./course-content.js", "./styles.css", "./manifest.webmanifest", "./offline-assets.json"].map((path) => new URL(path, self.location).href));
 const REVALIDATE = /\.(?:html|js|css|json)$/;
 
+// Files go down a few at a time, in the order offline-assets.json lists them:
+// the shell, then explorables, quizzes and research, then lessons, then the
+// rest. A phone that runs out of room or cuts the install short loses the tail
+// of the list, never the visualizations.
+const BATCH = 6;
+
+// offline-assets.json is either a flat list (older builds) or groups in
+// priority order.
+function assetList(manifest) {
+  if (Array.isArray(manifest)) return manifest;
+  return (manifest.groups || []).flatMap((group) => group.urls);
+}
+
 async function warm(urls) {
   const cache = await caches.open(CACHE);
-  await Promise.all([...new Set(urls)].map(async (url) => {
-    try {
-      const response = await fetch(url, { cache: "reload" });
-      if (response.ok) await cache.put(url, response);
-    } catch {
-      // One optional asset must not prevent the rest of the reader installing.
-    }
-  }));
+  const queue = [...new Set(urls)];
+  for (let start = 0; start < queue.length; start += BATCH) {
+    let full = false;
+    await Promise.all(queue.slice(start, start + BATCH).map(async (url) => {
+      try {
+        const response = await fetch(url, { cache: "reload" });
+        if (response.ok) await cache.put(url, response);
+      } catch (error) {
+        // One optional asset must not prevent the rest of the reader installing.
+        if (error && error.name === "QuotaExceededError") full = true;
+      }
+    }));
+    // Out of room: what is saved stays saved; the rest stays online-only.
+    if (full) return;
+  }
 }
 
 async function fetchAndStore(request, init) {
@@ -49,7 +70,7 @@ self.addEventListener("install", (event) => {
     await warm(CORE);
     try {
       const response = await fetch("./offline-assets.json", { cache: "no-cache" });
-      if (response.ok) await warm(await response.json());
+      if (response.ok) await warm(assetList(await response.json()));
     } finally {
       await self.skipWaiting();
     }
@@ -58,8 +79,12 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil((async () => {
+    // The reader shares its origin (wynch.github.io) with other sites, so only
+    // this reader's own older caches are deleted.
     const names = await caches.keys();
-    await Promise.all(names.filter((name) => name !== CACHE).map((name) => caches.delete(name)));
+    await Promise.all(names
+      .filter((name) => name.startsWith(CACHE_PREFIX) && name !== CACHE)
+      .map((name) => caches.delete(name)));
     await self.clients.claim();
   })());
 });

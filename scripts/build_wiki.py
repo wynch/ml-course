@@ -34,9 +34,9 @@ SOURCE = PROJECT / "wiki"
 OUT = ROOT / "wiki"
 SKIP = {"log.md"}
 PRIVATE_TYPES = {"experiment", "idea"}
-# Analysis pages whose subject is the local projects, not papers.
+# Analysis pages whose subject is the local projects or Vincent's compass log, not papers.
 PRIVATE_PAGES = {"analysis-experiments-second-chance", "analysis-local-project-acronyms",
-                 "analysis-edge-research-agenda"}
+                 "analysis-edge-research-agenda", "analysis-thermodynamics-learning-and-selection"}
 # Index labels such as "**16 experiment pages**", recounted after pruning.
 COUNT_LABELS = {
     "source pages": "source", "source bundles": "source-bundle", "concept pages": "concept",
@@ -55,8 +55,12 @@ SCRUB = [
     (re.compile(r"/Users/[^/\s`\"'\])]+/?"), "~/"),
     # Links written from inside wiki/ climb one level more than the project.
     (re.compile(r"(?<![\w./])\.\./\.\./(?=[\w-])"), "../"),
+    # Private link dumps from Slack DMs and Apple Notes: never name them.
+    (re.compile(r"the Slack link dump \(`raw/DM_shared_links_complete\.md`\)"), "a private link list"),
+    (re.compile(r"raw/(?:DM_shared_links_complete|dm-links-[\w.-]+?|apple-notes-links-[\w.-]+?)\.(?:md|json)"),
+     "private link list"),
 ]
-FORBIDDEN = re.compile(r"/Users/|~/Perso|obsidian://|file://")
+FORBIDDEN = re.compile(r"/Users/|~/Perso|obsidian://|file://|DM_shared_links|dm-links-|apple-notes-links|Slack link dump")
 
 CSS = """
 :root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);

@@ -350,11 +350,156 @@
     const done = progress.completed.includes(page.id);
     return `<main class="lesson-page">
       <header class="lesson-mast accent-${page.accent || "teal"}"><div><span class="eyebrow">${page.kind === "module" ? `${page.track} · ${formatMinutes(page.minutes)}` : "Course guide"}</span><h1>${escapeHtml(page.title)}</h1></div>${page.explorable ? `<a class="explorable-button" href="${BASE}${page.explorable}">Open interactive explainer <span>↗</span></a>` : ""}</header>
+      ${page.id === "offline" ? offlinePanel() : ""}
       <article class="markdown-body">${renderMarkdown(page.markdown, page)}</article>
       ${page.kind === "module" ? `${quiz(page)}
         <section class="lesson-finish"><div><span class="eyebrow">Progress stays on this device</span><h2>${done ? "Lab marked complete." : "Finished this lab?"}</h2></div><button class="complete-button ${done ? "completed" : ""}" data-complete="${page.id}">${done ? "✓ Completed" : "Mark complete"}</button></section>
         <nav class="lesson-pagination">${previous ? `<button data-route="${previous.id}"><span>← Previous</span><strong>${escapeHtml(previous.shortTitle)}</strong></button>` : "<span></span>"}${next ? `<button data-route="${next.id}"><span>Next →</span><strong>${escapeHtml(next.shortTitle)}</strong></button>` : ""}</nav>` : ""}
     </main>`;
+  }
+
+  // The Offline packs page counts what this device has saved, against the
+  // list the service worker warms (offline-assets.json), and can fetch what is
+  // missing in the same priority order: explorables, quizzes, research, lessons.
+  const CACHE_PREFIX = "ml-course-reader-v";
+  const SAVE_BATCH = 6;
+  let saving = false;
+  let saveNote = "";
+
+  function offlinePanel() {
+    return `<section class="knowledge-check offline-saved" style="margin: 0 auto 3rem">
+      <div class="knowledge-heading"><div><span class="eyebrow">On this device</span><h2>Saved for offline</h2></div><strong data-offline-share></strong></div>
+      <ul data-offline-counts><li>Counting what this device has saved…</li></ul>
+      <p data-offline-note>${escapeHtml(saveNote)}</p>
+      <button type="button" class="complete-button" data-offline-save ${saving ? "disabled" : ""}>${saving ? "Saving…" : "Save for offline"}</button>
+    </section>`;
+  }
+
+  async function readerCache() {
+    if (!("caches" in window)) return null;
+    const names = (await caches.keys()).filter((name) => name.startsWith(CACHE_PREFIX));
+    if (!names.length) return null;
+    names.sort((a, b) => Number(b.slice(CACHE_PREFIX.length)) - Number(a.slice(CACHE_PREFIX.length)));
+    return caches.open(names[0]);
+  }
+
+  async function offlineManifest() {
+    const response = await fetch(`${BASE}offline-assets.json`, { cache: "no-cache" });
+    const manifest = await response.json();
+    // Older builds wrote a flat list; treat it as one group.
+    if (Array.isArray(manifest)) return { groups: [{ id: "rest", urls: manifest }], lessons: {} };
+    return manifest;
+  }
+
+  function absolute(path) {
+    return new URL(path, location.origin + BASE).href;
+  }
+
+  async function offlineCounts() {
+    const manifest = await offlineManifest();
+    const cache = await readerCache();
+    const saved = new Set(cache ? (await cache.keys()).map((request) => request.url) : []);
+    const has = (path) => saved.has(absolute(path));
+    const urls = (id) => (manifest.groups.find((group) => group.id === id) || { urls: [] }).urls;
+    const pagesOf = (id) => urls(id).filter((path) => path.endsWith(".html") && !path.endsWith("/index.html"));
+    const tally = (paths) => ({ saved: paths.filter(has).length, total: paths.length });
+    const lessonIds = Object.keys(manifest.lessons || {});
+    const textSaved = has("course-content.js");
+    const all = manifest.groups.flatMap((group) => group.urls);
+    return {
+      manifest,
+      cache: Boolean(cache),
+      rows: [
+        ["interactive explainers", tally(pagesOf("explorables"))],
+        ["quizzes", tally(pagesOf("quizzes"))],
+        ["research pages", tally(pagesOf("research"))],
+        ["lessons with their figures", {
+          saved: textSaved ? lessonIds.filter((id) => manifest.lessons[id].every(has)).length : 0,
+          total: lessonIds.length,
+        }],
+      ],
+      files: tally(all),
+      missing: all.filter((path) => !has(path)),
+    };
+  }
+
+  async function showOfflineCounts() {
+    const list = document.querySelector("[data-offline-counts]");
+    if (!list) return;
+    const share = document.querySelector("[data-offline-share]");
+    const button = document.querySelector("[data-offline-save]");
+    if (!("caches" in window) || !("serviceWorker" in navigator) || location.protocol === "file:") {
+      list.innerHTML = "<li>This browser cannot save the course for offline use. Open the reader from its web address in Safari or Chrome.</li>";
+      if (button) button.hidden = true;
+      return;
+    }
+    try {
+      const counts = await offlineCounts();
+      if (!document.body.contains(list)) return;
+      // An older flat list has no groups, so its empty rows are left out.
+      list.innerHTML = counts.rows.filter(([, { total }]) => total).map(([label, { saved, total }]) =>
+        `<li><b>${saved} of ${total}</b> ${label}</li>`).join("");
+      const megabytes = counts.manifest.bytes ? `, about ${Math.round(counts.manifest.bytes / 1e6)} MB in all` : "";
+      list.insertAdjacentHTML("beforeend", `<li>${counts.files.saved} of ${counts.files.total} files${megabytes}.</li>`);
+      if (share) share.textContent = `${Math.floor(counts.files.saved / Math.max(1, counts.files.total) * 100)}%`;
+      if (button && !saving) {
+        button.disabled = !counts.missing.length;
+        button.textContent = counts.missing.length ? "Save for offline" : "Everything is saved";
+      }
+    } catch {
+      list.innerHTML = navigator.onLine
+        ? "<li>The list of offline files did not load. Reload the page and try again.</li>"
+        : "<li>Go online once to see what this device has saved.</li>";
+    }
+  }
+
+  function noteOffline(text) {
+    saveNote = text;
+    const note = document.querySelector("[data-offline-note]");
+    if (note) note.textContent = text;
+  }
+
+  async function saveForOffline() {
+    if (saving) return;
+    if (!navigator.onLine) { noteOffline("You are offline. Connect to the internet, then press the button again."); return; }
+    saving = true;
+    const button = document.querySelector("[data-offline-save]");
+    if (button) { button.disabled = true; button.textContent = "Saving…"; }
+    let done = 0;
+    let failed = 0;
+    let full = false;
+    try {
+      const cache = await readerCache();
+      if (!cache) throw new Error("no cache");
+      // missing is already in the list's priority order.
+      const { missing } = await offlineCounts();
+      for (let start = 0; start < missing.length && !full; start += SAVE_BATCH) {
+        await Promise.all(missing.slice(start, start + SAVE_BATCH).map(async (path) => {
+          try {
+            const response = await fetch(absolute(path), { cache: "reload" });
+            if (!response.ok) throw new Error(String(response.status));
+            await cache.put(absolute(path), response);
+            done += 1;
+          } catch (error) {
+            if (error && error.name === "QuotaExceededError") full = true;
+            else failed += 1;
+          }
+        }));
+        noteOffline(`Saving… ${done} of ${missing.length} files.`);
+      }
+      noteOffline(full
+        ? `This device ran out of space after ${done} more files. What is saved stays saved; free some space and press the button again for the rest.`
+        : failed
+          ? `Saved ${done} more files; ${failed} did not download. Press the button again to retry them.`
+          : done ? `Saved ${done} more files.` : "Everything was already saved.");
+    } catch {
+      noteOffline("The reader has not finished installing yet. Reload the page, wait a moment and try again.");
+    } finally {
+      saving = false;
+      const current = document.querySelector("[data-offline-save]");
+      if (current) current.textContent = "Save for offline";
+      showOfflineCounts();
+    }
   }
 
   function footer() {
@@ -442,6 +587,8 @@
         alert("That file is not a valid ML course progress export.");
       }
     });
+    document.querySelector("[data-offline-save]")?.addEventListener("click", saveForOffline);
+    showOfflineCounts();
     document.querySelector(".install-button")?.addEventListener("click", async () => {
       await installPrompt?.prompt();
       installPrompt = null;

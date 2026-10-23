@@ -703,23 +703,8 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
 
 <section class="track t8">
   <h2>Using models well<span class="rng">modules 21–23, 28</span></h2>
-  <p class="sub">Fetch the right passage, spend more tokens on each question, make a model smaller, and train one with fewer bits.</p>
+  <p class="sub">Spend more tokens on each question, fetch the right passage, make a model smaller, and train one with fewer bits.</p>
   <div class="grid">
-
-
-    <article class="card t8" data-mod="21">
-      <label class="donebox">done<input type="checkbox" data-mod="21" aria-label="Mark module 21 done"><span class="box"></span></label>
-      <div class="chead"><span class="mno">21</span><h3>Retrieval</h3></div>
-      <div class="fig"><img src="{{FIG21}}" alt="Module 21 figure: recall at k for BM25 and the two cosine retrievers on SQuAD"></div>
-      <p class="build"><b>You build:</b> mean-pooled embeddings from MiniLM and SmolLM2, BM25 over a hand-built inverted index, and a RAG loop on 200 SQuAD questions with the gold paragraph as the ceiling.</p>
-      <div class="chips"><span>BM25 recall@1 75.5% vs MiniLM 62.5%</span><span>SmolLM2 EM 37% with the gold paragraph</span><span>4.5% with none</span></div>
-      <div class="links">
-        <a href="https://wynch.github.io/ml-course/explorables/21-retrieval-and-memory.html" target="_blank" rel="noopener">🕹 Explorable</a>
-        <a href="https://wynch.github.io/ml-course/quizzes/21.html" target="_blank" rel="noopener">✅ Quiz</a>
-      </div>
-      <div class="cfoot"><span class="path">modules/21-retrieval-and-memory</span>
-        <a class="hf" href="https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2" target="_blank" rel="noopener">all-MiniLM-L6-v2 ↗</a></div>
-    </article>
 
 
     <article class="card t8" data-mod="22">
@@ -734,6 +719,21 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
       </div>
       <div class="cfoot"><span class="path">modules/22-reasoning-at-test-time</span>
         <a class="hf" href="https://huggingface.co/datasets/openai/gsm8k" target="_blank" rel="noopener">openai/gsm8k ↗</a></div>
+    </article>
+
+
+    <article class="card t8" data-mod="21">
+      <label class="donebox">done<input type="checkbox" data-mod="21" aria-label="Mark module 21 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">21</span><h3>Retrieval</h3></div>
+      <div class="fig"><img src="{{FIG21}}" alt="Module 21 figure: recall at k for BM25 and the two cosine retrievers on SQuAD"></div>
+      <p class="build"><b>You build:</b> mean-pooled embeddings from MiniLM and SmolLM2, BM25 over a hand-built inverted index, and a RAG loop on 200 SQuAD questions with the gold paragraph as the ceiling.</p>
+      <div class="chips"><span>BM25 recall@1 75.5% vs MiniLM 62.5%</span><span>SmolLM2 EM 37% with the gold paragraph</span><span>4.5% with none</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/21-retrieval-and-memory.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/21.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/21-retrieval-and-memory</span>
+        <a class="hf" href="https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2" target="_blank" rel="noopener">all-MiniLM-L6-v2 ↗</a></div>
     </article>
 
 

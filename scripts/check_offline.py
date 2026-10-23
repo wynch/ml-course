@@ -123,6 +123,84 @@ def check_links(reader: Path) -> int:
     return checked
 
 
+# The service worker warms offline-assets.json in this order; explorables,
+# quizzes and research must come straight after the shell.
+OFFLINE_GROUPS = ["core", "explorables", "quizzes", "research", "lessons", "rest"]
+OFFLINE_BLOB = re.compile(r"\.(bin|ckpt|gguf|npz|pt|pth|safetensors)$|(^|/)uv\.lock$|\.lock$")
+# What a phone has to hold; the old list was 127 MB.
+OFFLINE_MAX_MB = 100
+
+
+def check_offline_list(reader: Path) -> list[str]:
+    """The offline list is small, in priority order, and saves every page that matters."""
+    manifest = json.loads((reader / "offline-assets.json").read_text())
+    if not isinstance(manifest, dict) or "groups" not in manifest:
+        raise RuntimeError("offline-assets.json must hold priority groups")
+    order = [group["id"] for group in manifest["groups"]]
+    if order != OFFLINE_GROUPS:
+        raise RuntimeError(f"offline groups out of order: {order}")
+    groups = {group["id"]: group["urls"] for group in manifest["groups"]}
+    assets = [url for group in manifest["groups"] for url in group["urls"]]
+    if len(assets) < 250:
+        raise RuntimeError(f"offline asset list is unexpectedly small ({len(assets)})")
+    if len(set(assets)) != len(assets):
+        raise RuntimeError("offline asset list repeats entries")
+    listed = set(assets)
+
+    for root in ("explorables", "quizzes", "research"):
+        pages = sorted(
+            path.relative_to(reader).as_posix() for path in (reader / root).rglob("*.html")
+        )
+        missing = [page for page in pages if page not in listed]
+        if missing:
+            raise RuntimeError(f"{root} pages left out of the offline list: {missing[:5]}")
+        files = sorted(
+            path.relative_to(reader).as_posix()
+            for path in (reader / root).rglob("*")
+            if path.is_file()
+        )
+        misplaced = [path for path in files if path in listed and path not in groups[root]]
+        if misplaced:
+            raise RuntimeError(f"{root} files outside their priority group: {misplaced[:5]}")
+
+    for core in ("index.html", "app.js", "styles.css", "course-content.js", "sw.js"):
+        if core not in groups["core"]:
+            raise RuntimeError(f"the reader shell is missing {core} from the offline list")
+
+    lessons = manifest.get("lessons", {})
+    payload = json.loads(
+        (reader / "course-content.js").read_text().split("=", 1)[1].rstrip().rstrip(";")
+    )
+    for module in payload["modules"]:
+        if module["id"] not in lessons:
+            raise RuntimeError(f"lesson {module['id']} has no entry in the offline list")
+        base = "/".join(module["path"].split("/")[:-1])
+        figures = [
+            f"content/{normalize(f'{base}/{source}')}"
+            for source in MARKDOWN_IMAGE.findall(module["markdown"])
+            if not re.match(r"^(https?:|data:|/)", source)
+        ]
+        lost = [figure for figure in figures if (reader / figure).is_file() and figure not in listed]
+        if lost:
+            raise RuntimeError(f"lesson {module['id']} figures left out of the offline list: {lost[:3]}")
+        if module["explorable"] not in groups["explorables"]:
+            raise RuntimeError(f"explorable {module['explorable']} is not saved offline")
+
+    blobs = [asset for asset in assets if OFFLINE_BLOB.search(asset.removesuffix(".html"))]
+    if blobs:
+        raise RuntimeError(f"weights, data blobs or lockfiles in the offline list: {blobs[:5]}")
+    hidden = [asset for asset in assets if any(part.startswith(".") for part in asset.split("/")[:-1])]
+    if hidden:
+        raise RuntimeError(f"hidden folders in the offline list: {hidden[:5]}")
+    stale = [asset for asset in assets if not (reader / asset).is_file()]
+    if stale:
+        raise RuntimeError(f"offline list names files the reader does not have: {stale[:5]}")
+    megabytes = sum((reader / asset).stat().st_size for asset in assets) / 1e6
+    if megabytes > OFFLINE_MAX_MB:
+        raise RuntimeError(f"offline list is {megabytes:.0f} MB, over the {OFFLINE_MAX_MB} MB budget")
+    return assets
+
+
 class DependencyParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__()
@@ -167,9 +245,7 @@ def check_reader() -> None:
     if missing:
         raise RuntimeError("missing reader artifacts: " + ", ".join(missing))
 
-    assets = json.loads((reader / "offline-assets.json").read_text())
-    if len(assets) < 250:
-        raise RuntimeError(f"offline asset list is unexpectedly small ({len(assets)})")
+    assets = check_offline_list(reader)
 
     quizzes = sorted((reader / "quizzes").glob("*.html"))
     if len(quizzes) < len(list((ROOT / "quizzes").glob("*.html"))):
@@ -218,7 +294,9 @@ def check_reader() -> None:
 
     links = check_links(reader)
     print(
-        f"reader: PASS ({len(assets)} assets, {len(quizzes) - 1} quizzes, "
+        f"reader: PASS ({len(assets)} offline assets, "
+        f"{sum((reader / asset).stat().st_size for asset in assets) / 1e6:.1f} MB, "
+        f"{len(quizzes) - 1} quizzes, "
         f"{links} links resolved, no remote dependencies, no unrouted module "
         "links, no root-absolute URLs)"
     )

@@ -266,6 +266,6 @@ answers in [`solutions/`](solutions/). Run from `python/`, e.g.
 - Andrej Karpathy — [nanoGPT](https://github.com/karpathy/nanoGPT) (this module is a graphical-first, smaller cousin)
 - Andrej Karpathy — [nanochat](https://github.com/karpathy/nanochat) (October 2025): the whole pipeline in one small repo, from tokenizer and pretraining to chat fine-tuning, evaluation and a web UI
 
-> **Next:** module 07 reimplements the *inference* of this exact model in **Zig**,
+> **Later:** module 07 reimplements the *inference* of this exact model in **Zig**,
 > reading the weights you exported here straight from `artifacts/` — no Python at
 > run time. The byte layout it depends on is pinned in `artifacts/EXPORT_FORMAT.md`.
