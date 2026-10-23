@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Denoising Hierarchical Representations: Joint Continuous Diffusion for Language Modeling (Ollu, Komodakis, 2026) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="hierarchical-continuous-diffusion-for-text-h-cdlm">Hierarchical continuous diffusion for text (H-CDLM)</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-23</span> <span>updated 2026-10-23</span> <span class="tag">diffusion</span> <span class="tag">language-models</span> <span class="tag">continuous-diffusion</span> <span class="tag">noise-schedule</span> <span class="tag">sampling</span> <span class="tag">embeddings</span> <span class="tag">2026</span></div>
+<p><strong>Authors:</strong> Mathias Ollu (École Polytechnique), Nikos Komodakis (Archimedes / Athena RC, University of Crete, IACM-FORTH) <strong>Published:</strong> arXiv 2610.08738, v1 2026-10-06. Code promised at <a href="https://github.com/matol-16/HCDLM" rel="noreferrer">https://github.com/matol-16/HCDLM</a> <strong>Raw copy:</strong> <code>raw/arxiv-2610-08738-denoising-hierarchical-representations-joint-continuous-diffusion.md</code> (full text of v1 from the arXiv HTML; cited as R, with its section)</p>
+<h2 id="terms">Terms</h2>
+<ul><li><strong>Continuous diffusion language model.</strong> It turns each token into a vector, adds Gaussian noise, and trains a network to recover the clean vectors from noisy ones; generation runs that in reverse from pure noise, all positions at once (R, §3.1–3.3). Discrete diffusion models instead corrupt the tokens themselves, e.g. by masking them (R, §2).</li><li><strong>Noise schedule.</strong> Which noise levels training and sampling spend their steps on. An "information-uniform" schedule spaces the steps so each reveals about the same amount about the tokens; for text that information comes out in a narrow band of noise (R, §3.3).</li><li><strong>Stochastic churn.</strong> During sampling, adding a little noise back before each step, which helps these models (R, §3.3).</li><li><strong>GenPPL.</strong> Generative perplexity: how surprised GPT-2 Large is by the generated text; lower reads as more fluent. A model can lower it by repeating itself, so results are compared at matched <strong>entropy</strong> of the token distribution, ideally the real data's (R, §5.1, Table 1). <strong>MAUVE</strong> scores how close the generated text distribution is to real text; higher is better.</li></ul>
+<h2 id="the-claim-plainly">The claim, plainly</h2>
+<p>Next to each token, diffuse a second, coarse label: which of n clusters of similar tokens it belongs to (clusters from k-means on pretrained token embeddings), and denoise both with the same network. The coarse label is easier to recover under heavy noise and steers the token toward the right region, and adding it to two continuous diffusion language models improves generation quality at about 2–4% extra compute with 16 clusters and about 1% more parameters (R, Abstract, §1, §4, §5.1, Table 12).</p>
+<h2 id="how-it-works">How it works</h2>
+<ul><li><strong>Two channels per position.</strong> The cluster's code is concatenated to the token's code at each position, each with its own noise level; the sequence length does not change, and the cluster channel is dropped at the end (R, §4.1, Figure 2). Dropping it is justified because clusters are a fixed function of tokens (R, §4.1, Appendix C.1).</li><li><strong>Separate schedules and samplers.</strong> Each channel gets its own information-uniform schedule; cluster identity survives more noise, so its schedule sits at higher noise (median noise 1.13 against 0.89 for tokens) (R, §4.3, Figure 3). Churn can differ per channel, and churning clusters only in the late, low-noise half of sampling worked best (R, §4.3, §5.3).</li><li><strong>Host models.</strong> Mainly CoBit, a continuous diffusion model that codes tokens as bit strings, giving H-CoBit; also FLM, a flow-matching model on one-hot vectors, giving H-FLM (R, §1, §5.4). The network is a 12-layer diffusion transformer of about 135M parameters, about 1% more than CoBit (R, §5.1).</li></ul>
+<h2 id="key-results">Key results</h2>
+<p>All GenPPL and MAUVE numbers below are the best over a sweep of sampling settings (number of steps, churn), as the paper reports them (R, §5.1).</p>
+<div class="tw"><table><thead><tr><th>Setting</th><th>CoBit</th><th>H-CoBit</th><th>Source</th></tr></thead><tbody><tr><td>LM1B, GenPPL at data entropy</td><td>85.2 (1M training steps, 128 sampling steps)</td><td>57.3 (600k, 256)</td><td>R, Table 1</td></tr><tr><td>LM1B, with per-channel churn (CoBit at noise scale 1.05)</td><td>73.6 (1M, 256)</td><td>49.4 (600k, 512)</td><td>R, Table 1</td></tr><tr><td>OpenWebText, GenPPL at data entropy</td><td>83.2 (750k, 256)</td><td>67.8 (750k, 128)</td><td>R, Table 1</td></tr><tr><td>OpenWebText, with per-channel churn (CoBit at noise scale 1.05)</td><td>71.1 (750k, 256)</td><td>50.4 (750k, 256)</td><td>R, Table 1</td></tr><tr><td>MAUVE at data entropy, LM1B / OWT</td><td>0.861 / 0.530</td><td>0.903 / 0.580</td><td>R, §5.2</td></tr><tr><td>GSM8K accuracy, 512 sampling steps</td><td>23.4%</td><td>27.4%</td><td>R, Table 2</td></tr></tbody></table></div>
+<ul><li><strong>Against other models.</strong> On OpenWebText at data entropy, H-CoBit with per-channel churn (50.4) is below the discrete diffusion models in Table 1 (MDLM 66.2, Duo 63.3) and the hybrid CADD (55.3); plain H-CoBit (67.8) is not. Those baselines are taken from their own papers, not re-run (R, Table 1). An autoregressive baseline scores 40.2, at entropy 5.61 rather than the data's 5.46 (R, Table 1). On GSM8K, 27.4% beats the other continuous models listed (FLM 0.3%, S-FLM 18.0%, CoBit 25.4% at 1,024 steps), but discrete diffusion models score about 33–36% and an autoregressive model 53.9–63.3% (R, Table 2).</li><li><strong>The step counts differ in places.</strong> On LM1B the per-channel-churn row compares H-CoBit at 512 sampling steps with CoBit at 256 (R, Table 1); the LM1B training budgets also differ, with H-CoBit trained for fewer steps (R, Figure 1 caption).</li><li><strong>Clusters must mean something.</strong> With random cluster assignments, the gain disappears; the frontier overlaps the baseline's (R, §5.3, Figure 5a). This ablation, and the choice of n = 16 clusters, were run on LM1B at 100k training steps only (R, §5.3).</li><li><strong>The cluster channel adds information.</strong> Its own prediction agrees with the final token's cluster more often during sampling than the cluster implied by the token prediction, except at the very first steps (R, Appendix E.4).</li><li><strong>Per-channel schedule: no clear winner.</strong> Against one shared schedule, it is slightly better at data entropy (GenPPL 57.3 vs 57.4; best MAUVE reached 0.973 vs 0.965) and worse at lower entropies (R, §5.3, Table 3).</li><li><strong>It carries over to flow matching.</strong> On LM1B, H-FLM beats FLM by 11 GenPPL points at data entropy with 512 sampling steps, with stochastic sampling for both (R, §5.4, Figure 6).</li><li><strong>Cost.</strong> Measured on one A100 with 16 clusters: training +1.9% to +2.5% per step, inference +2.9% to +4.2% per call; with 64 clusters, +3.2% and +5.0% (R, Appendix Table 12).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>Small models (about 135M) and three datasets; no scaling study.</li><li>Results are best-of-sweep, and the cluster loss weight "requires careful tuning for each new task" (R, §5.3).</li><li>Code and checkpoints are promised "upon acceptance" (R, Reproducibility statement).</li></ul>
+<h2 id="connections">Connections</h2>
+<p>Ties:</p>
+<ul><li><a href="concept-diffusion-language-models.html">concept-diffusion-language-models</a> — a new data point for continuous diffusion: a coarse auxiliary channel narrows the gap to discrete diffusion on generation quality, not on GSM8K.</li><li><a href="source-flow-map-language-models.html">source-flow-map-language-models</a> — FLM, one of the two host models, comes from that paper (Lee et al., 2026); H-FLM improves on it (R, §5.4).</li></ul>
+<p>See also (surface or contrast):</p>
+<ul><li><a href="source-llada.html">source-llada</a> — discrete masked diffusion at 8B scale, the other route.</li><li><a href="source-dino-lineage.html">source-dino-lineage</a> — the image work this borrows from diffuses DINOv2 features next to pixels (R, §2).</li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2610-08738-denoising-hierarchical-representations-joint-continuous-diffusion.md</code></li><li><a href="https://arxiv.org/abs/2610.08738" rel="noreferrer">https://arxiv.org/abs/2610.08738</a></li><li><a href="concept-diffusion-language-models.html">concept-diffusion-language-models</a> · <a href="source-flow-map-language-models.html">source-flow-map-language-models</a> · <a href="source-llada.html">source-llada</a> · <a href="source-dino-lineage.html">source-dino-lineage</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2610-08738-denoising-hierarchical-representations-joint-continuous-diffusion.md</code></li><li><a href="https://arxiv.org/abs/2610.08738" rel="noreferrer">https://arxiv.org/abs/2610.08738</a></li></ul></details>
+</main>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Adaptive Q-Network: On-the-fly Target Selection for Deep Reinforcement Learning (Vincent, Wahren, Peters, Belousov, D&#x27;Eramo, 2024) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="adaptive-q-network-adaqn-pick-the-target-network-from-an-ensemble">Adaptive Q-Network (AdaQN): pick the target network from an ensemble</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-23</span> <span>updated 2026-10-23</span> <span class="tag">reinforcement-learning</span> <span class="tag">q-learning</span> <span class="tag">target-network</span> <span class="tag">hyperparameters</span> <span class="tag">autorl</span> <span class="tag">optimization</span> <span class="tag">2024</span></div>
+<p><strong>Authors:</strong> Théo Vincent, Fabian Wahren, Jan Peters, Boris Belousov, Carlo D'Eramo (DFKI, TU Darmstadt, hessian.AI, University of Würzburg) <strong>Published:</strong> arXiv 2405.16195, v1 2024-05-25, v3 2025-03-03 <strong>Raw copy:</strong> <code>raw/arxiv-2405-16195-adaptive-q-network-on-the-fly.md</code> (full text of v3 from the arXiv HTML; cited as R, with its section)</p>
+<p>This is the wiki's first source on value-based deep RL (DQN, SAC). The overview noted that gap.</p>
+<h2 id="terms">Terms</h2>
+<ul><li><strong>Q-function.</strong> A network that estimates, for a state and an action, the total future reward expected from taking that action (R, §2).</li><li><strong>Bellman target and target network.</strong> The Q-network is trained toward "reward now plus the discounted value of the next state", where the next state's value comes from a frozen copy of the network, the target network. Every T steps the copy is refreshed from the trained network (R, §2). Between refreshes each phase is an ordinary regression problem; the refresh changes the problem, which is the "non-stationarity" the paper means (R, §1, §4). The frozen copy plays the role of a stop-gradient; see <a href="concept-stop-gradient.html">concept-stop-gradient</a> (this link is the wiki's).</li><li><strong>Hyperparameters</strong> here: learning rate, optimizer, network width, activation function, Adam's ε, loss, discount factor (R, §5).</li></ul>
+<h2 id="the-claim-plainly">The claim, plainly</h2>
+<p>Train several Q-networks at once, each with different hyperparameters, all toward one shared target. At each target refresh, copy into the target the network whose training loss was lowest, since lower error at each step bounds how far the final Q-function is from the best one. This roughly matches the best single setting while spending no extra environment samples on tuning; on MuJoCo it has the largest area under the learning curve, though its final score beats only 13 of the 16 single settings (R, Abstract, §4, §5.2).</p>
+<h2 id="how-it-works">How it works</h2>
+<ul><li><strong>Why lowest loss.</strong> A known bound (Farahmand, 2011) says the final policy's shortfall shrinks as the sum of per-refresh approximation errors shrinks; with unbiased samples, the network with the lowest empirical loss is the one closest to the true Bellman target (R, §4, Theorem 4.1, Appendix A).</li><li><strong>Exploration across the ensemble.</strong> Actions come from the selected network most of the time and from a random one with a decaying probability; without this, the unselected networks learn "passively" and fall behind (R, §4.1, §5.1).</li><li><strong>Variants.</strong> AdaDQN for DQN, AdaSAC for SAC (R, §4.1, Algorithms 1–2).</li><li><strong>Convergence.</strong> Proved only for a tabular version in a finite problem, with probability 1 (R, §4, Appendix A.1). With neural networks and off-policy data, convergence is not guaranteed, as for DQN itself (R, §4).</li></ul>
+<h2 id="key-results">Key results</h2>
+<p>Scores are interquartile means over seeds (20 for Lunar Lander, 9 for MuJoCo, 5 for Atari); grid search is charged for every environment step its runs use (R, §5).</p>
+<ul><li><strong>Lunar Lander, 4 network widths.</strong> AdaDQN has a larger area under the learning curve than every single-width DQN run (R, §5.1, Figure 2). Picking the target at random among the ensemble, or by highest loss, does worse (R, §5.1).</li><li><strong>MuJoCo, 16 settings</strong> (2 learning rates × 2 optimizers × 2 widths × 2 activations, 6 environments). AdaSAC is about ten times more sample-efficient than grid search, mostly because grid search is charged for all 16 runs; it beats random search, here the mean of the 16 single runs, throughout; has the largest area under the curve, and ends above 13 of the 16 single runs (R, §5.2, Figure 4). Per environment it varies: on HalfCheetah random target choice does slightly better (R, §5.2, Figure 5).</li><li><strong>Atari, 3 games, one hyperparameter varied at a time</strong> (activation, width, or Adam's ε). AdaDQN performs about as well as the best single setting; it never picks sigmoid activations, which do poorly alone (R, §5.3, Figure 6).</li><li><strong>Atari, 6 games, a large search space</strong> (18 activations, 24 optimizers, 4 losses, learning rates, free architectures; 5 networks). At 40M frames AdaDQN beats SEARL, an evolutionary method, and matches random search and DEHB, a black-box optimiser; trained longer, it passes both before 100M frames (R, §5.4, Figure 7).</li><li><strong>Discount factor.</strong> Choosing among 5 discount factors, AdaDQN performs like meta-gradient RL on 2 Atari games (R, §5.4, Figure 8).</li><li><strong>Cost.</strong> About 200–300 MB more GPU memory; slower per wall-clock step when many networks run, though still faster than grid search (R, Appendix C).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>Few seeds on Atari (5) and few games (3 and 6).</li><li>Only agent hyperparameters; reward and other environment properties are out of scope (R, §6).</li><li>The target is one selected network, not a mixture; mixtures are named as future work (R, §6).</li></ul>
+<h2 id="connections">Connections</h2>
+<p>Ties:</p>
+<ul><li><a href="concept-stop-gradient.html">concept-stop-gradient</a> — the target network is the RL form of a stop-gradient target; AdaQN changes which network supplies it.</li><li><a href="source-stopgrad-regression-flow-maps.html">source-stopgrad-regression-flow-maps</a> — treats TD(0) and Q-learning as stop-gradient regression whose full steps are fixed-point iteration of the Bellman operator (<code>raw/arxiv-2609-16222-how-i-learned-to-stop-worrying.md</code>, §3, Table 1). AdaQN works in that frame, roughly: each target refresh is approximately one Bellman iteration, a "projection step" fitted by regression (R, §2), with no convergence guarantee for neural networks (R, §4), and it picks the network that did that step best. The step sizes differ: Shen et al.'s fixed-point step is one full semi-gradient step, while an AdaQN refresh follows T regression steps. The link is this wiki's; neither paper cites the other.</li></ul>
+<p>See also (surface or contrast):</p>
+<ul><li><a href="source-expert-iteration.html">source-expert-iteration</a> — builds training targets from a whole tree search rather than a one-step Bellman target.</li><li><a href="source-barron-softmax-fix.html">source-barron-softmax-fix</a> — another case where Adam's ε matters; AdaDQN finds ε choices affect Atari returns (R, §5.3).</li><li><a href="source-dreamerv3.html">source-dreamerv3</a> — a model-based agent that also uses moving-average target networks.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-1705-08439-thinking-fast-and-slow-with-deep.md</code></li><li><code>raw/arxiv-2405-16195-adaptive-q-network-on-the-fly.md</code></li><li><code>raw/arxiv-2609-16222-how-i-learned-to-stop-worrying.md</code></li><li><a href="https://arxiv.org/abs/2405.16195" rel="noreferrer">https://arxiv.org/abs/2405.16195</a></li><li><a href="concept-stop-gradient.html">concept-stop-gradient</a> · <a href="source-stopgrad-regression-flow-maps.html">source-stopgrad-regression-flow-maps</a> · <a href="source-barron-softmax-fix.html">source-barron-softmax-fix</a> · <a href="source-dreamerv3.html">source-dreamerv3</a></li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-1705-08439-thinking-fast-and-slow-with-deep.md</code></li><li><code>raw/arxiv-2405-16195-adaptive-q-network-on-the-fly.md</code></li><li><code>raw/arxiv-2609-16222-how-i-learned-to-stop-worrying.md</code></li><li><a href="https://arxiv.org/abs/2405.16195" rel="noreferrer">https://arxiv.org/abs/2405.16195</a></li></ul></details>
+</main>
+</body>
+</html>
