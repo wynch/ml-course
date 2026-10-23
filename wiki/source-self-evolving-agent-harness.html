@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Self-Evolving Agent Harness (Wei, Guan, Zhu et al., 2026) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="self-evolving-agent-harnesses-a-taxonomy-and-a-rule-for-accepting-edits">Self-evolving agent harnesses: a taxonomy and a rule for accepting edits</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-23</span> <span>updated 2026-10-23</span> <span class="tag">harness</span> <span class="tag">self-improvement</span> <span class="tag">agents</span> <span class="tag">evaluation</span> <span class="tag">statistics</span> <span class="tag">survey</span> <span class="tag">2026</span></div>
+<p><strong>Authors:</strong> Chuyang Wei, Haoxiang Guan, Minghang Zhu, Kexin Zhou, Jiyan He, Xiren Zhou, Huanhuan Chen, Yifei Shen (Zhongguancun Academy, University of Science and Technology of China) <strong>Published:</strong> arXiv 2610.18813, v1 2026-10-13. A longer 66-page version and code are on GitHub (not captured). <strong>Raw copy:</strong> <code>raw/arxiv-2610-18813-self-evolving-agent-harness.md</code> (full text of the 18-page v1, extracted from the PDF because the arXiv HTML stops partway; cited as R, with its section)</p>
+<p>This is a survey and position paper with a short theory section. It runs no new experiments; its tables restate numbers from other papers (R, §3.2, §3.3).</p>
+<h2 id="terms">Terms</h2>
+<ul><li><strong>Harness.</strong> Everything around a fixed model that governs how it runs: the agent loop, tool dispatch, prompt and context building, memory, context compaction, scheduling of sub-agents, sandboxing and logs (R, §2, Table 1).</li><li><strong>Harness self-evolution.</strong> Using feedback from the agent's own runs to revise the harness, keeping accepted revisions for later runs and keeping the ability to revise again; the model's weights stay fixed (R, §2). The final scoring J must stay outside what the agent can edit (R, §2).</li></ul>
+<h2 id="the-claim-plainly">The claim, plainly</h2>
+<p>Systems that rewrite their own scaffolding can be sorted by what they edit (instructions and memory, tool code, the control loop, or plugin wiring), and an edit should be kept only if it beats the current harness on fresh validation tasks by more than a margin that shrinks with the number of tasks and grows with the number of comparisons made (R, Abstract, §3, §4.2).</p>
+<h2 id="key-points">Key points</h2>
+<ul><li><strong>What gets edited.</strong> Interpreted state (prompts, stored experience, task routing over fixed operators) versus executable revisions: tool and code patches, repository-level control logic, and plugin composition (R, §3).</li><li><strong>Search is evolutionary.</strong> Proposal, assessment and selection map onto evolutionary algorithms: local elitism, archives that keep alternative lineages, and Pareto selection across objectives. All select on measured fitness, so accepted edits can overfit or forget (R, §4.1).</li><li><strong>Three bounds, under stated assumptions</strong> (independent tasks, fixed model and evaluator, loss in [0, 1]) (R, §4.2):<ul><li>expected generalisation gap bounded by the update's sensitivity to swapping one task (stability), for the expected gap, not any single run;</li><li>forgetting of earlier task distributions bounded by the sum of per-round regression budgets, which are assumptions, not consequences;</li><li>an admission rule: fix at most K candidates first, then draw m fresh tasks from the uniform mix of past task distributions; accept a candidate only if its measured loss minus the incumbent's loss, plus √(2 ln(KT/δ)/m), is below zero, where K is candidates per round, T rounds, and 1 − δ the confidence (a Hoeffding bound with a union bound). The guarantee covers only that past-task mix, "not arbitrary future distributions" (R, §4.2, Eq. 7–8).</li></ul></li><li><strong>The fine print.</strong> Reusing validation tasks during search breaks the independence these bounds need, even with secrecy or comparison-count corrections; fresh samples or adaptive-data methods are required (R, §4.2). If the evaluator can differ from the true goal by up to η, the margin grows by 2η (R, §4.2, Eq. 9).</li><li><strong>Risks.</strong> Persistent edits can spread errors across users and teams; rollback cannot undo physical or institutional harm, so emergency stops, privileges and final assessment should stay outside the editable surface (R, §5, §6.5).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>No experiments of its own; the SpreadsheetBench and plugin tables restate other papers, and the authors note those do not show gains at matched cost (R, §3.2, §3.3).</li><li>The bounds rest on assumptions (independent tasks, fixed evaluator) that many real systems do not meet, as the paper says.</li></ul>
+<h2 id="connections">Connections</h2>
+<p>Ties:</p>
+<ul><li><a href="source-rrsi-regularized-harness-evolution.html">source-rrsi-regularized-harness-evolution</a> — RRSI accepts an edit if it scores at least the best so far minus a measured noise band, on its evolve set (<code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code>, §3.3). This paper's rule asks for more: a fresh validation set and a margin that grows with the number of comparisons. The comparison is this wiki's; the paper cites RRSI only for edit constraints and transfer-oriented admission (R, §3.2).</li><li><a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a> — the harness as the editable part of an agent.</li><li><a href="concept-evaluation-methodology.html">concept-evaluation-methodology</a> — reusing a validation set during search invalidates its guarantees.</li></ul>
+<p>See also (surface or contrast):</p>
+<ul><li><a href="source-bundle-agent-harnesses.html">source-bundle-agent-harnesses</a> · <a href="source-harness-optimization-evolve-harness.html">source-harness-optimization-evolve-harness</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2610-18813-self-evolving-agent-harness.md</code></li><li><code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code></li><li><a href="https://arxiv.org/abs/2610.18813" rel="noreferrer">https://arxiv.org/abs/2610.18813</a></li><li><a href="https://github.com/zgcagi/Harness-RSI" rel="noreferrer">https://github.com/zgcagi/Harness-RSI</a></li><li><a href="source-rrsi-regularized-harness-evolution.html">source-rrsi-regularized-harness-evolution</a> · <a href="concept-harness-as-symbolic-substrate.html">concept-harness-as-symbolic-substrate</a> · <a href="concept-evaluation-methodology.html">concept-evaluation-methodology</a> · <a href="source-bundle-agent-harnesses.html">source-bundle-agent-harnesses</a> · <a href="source-harness-optimization-evolve-harness.html">source-harness-optimization-evolve-harness</a></li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2610-18813-self-evolving-agent-harness.md</code></li><li><code>raw/arxiv-2609-24972-rrsi-regularized-recursive-self-improvement.md</code></li><li><a href="https://arxiv.org/abs/2610.18813" rel="noreferrer">https://arxiv.org/abs/2610.18813</a></li><li><a href="https://github.com/zgcagi/Harness-RSI" rel="noreferrer">https://github.com/zgcagi/Harness-RSI</a></li></ul></details>
+</main>
+</body>
+</html>

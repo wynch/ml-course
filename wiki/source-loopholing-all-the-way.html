@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Loopholing All the Way: Language Modeling with pure Self-Conditioning (LAW; Deschenaux, Ilieva, Deschenaux et al., 2026) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="law-a-diffusion-language-model-that-passes-only-a-soft-guess-between-steps">LAW: a diffusion language model that passes only a soft guess between steps</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-23</span> <span>updated 2026-10-23</span> <span class="tag">diffusion</span> <span class="tag">language-models</span> <span class="tag">self-conditioning</span> <span class="tag">sampling</span> <span class="tag">reasoning</span> <span class="tag">stop-gradient</span> <span class="tag">2026</span></div>
+<p><strong>Authors:</strong> Adrien Deschenaux, Nadezhda Ilieva, Justin Deschenaux, Manuel Madeira, Dorina Thanou, Aurélien Lucchi, Antonio Orvieto, Caglar Gulcehre, Pascal Frossard <strong>Published:</strong> arXiv 2610.30068, v1 2026-10-21. Code: <a href="https://github.com/ilievanadezhda/law" rel="noreferrer">https://github.com/ilievanadezhda/law</a> <strong>Raw copy:</strong> <code>raw/arxiv-2610-30068-loopholing-all-the-way-language-modeling.md</code> (full text of v1 from the arXiv HTML; cited as R, with its section)</p>
+<h2 id="terms">Terms</h2>
+<ul><li><strong>Discrete diffusion language model.</strong> Starts from random or masked tokens and refines all positions over several steps. At each step it predicts a probability for every token, samples tokens, and throws the probabilities away (R, §1, §2.1). The authors call this loss of the model's uncertainty "information collapse" (R, §1).</li><li><strong>Self-conditioning (SC), or "loopholing".</strong> Feeding something from the previous step's prediction back in as extra input, beside the sampled tokens (R, §1, §2.2).</li><li><strong>Expected Embedding.</strong> The average of the token embeddings, weighted by the model's predicted probabilities: a soft token, a point between the embeddings of the candidate words (R, §3.1).</li><li><strong>NFE.</strong> Number of function evaluations: how many times the network runs during sampling.</li></ul>
+<h2 id="the-claim-plainly">The claim, plainly</h2>
+<p>Instead of sampling tokens at each step and passing a side state along, pass only the soft guess, the Expected Embedding of the predicted tokens, from step to step, and pick actual tokens once at the end. With two training tricks it scores above the diffusion and flow baselines on Sudoku, mazes with few steps and GSM8K, except the concurrent AlphaDLM on GSM8K at few steps, and nears an autoregressive model on OpenWebText at 64 steps (R, Abstract, §1, §3). Compute is matched only where the authors trained the baselines: on Sudoku only the LDDMs; other Sudoku numbers are copied from Deschenaux and Gulcehre 2026 (R, Table 1 caption). (Corrected 2026-10-23: the page said it beats models of the same training compute on all three tasks.)</p>
+<h2 id="how-it-works">How it works</h2>
+<ul><li><strong>Sampling.</strong> Start from uniformly random tokens, embed them, then repeatedly: run the network, turn its prediction into the Expected Embedding at the sampling temperature, and feed that back in. Only the last step produces tokens (R, §3.1).</li><li><strong>Training.</strong> With probability p (0.9 by default), run the network twice: first on noisy tokens, then on its own Expected Embedding, and compute the loss only on the second pass; no gradient flows through the first (R, §3.2).</li><li><strong>Temperature regularisation.</strong> During training, randomly sharpen or flatten the logits used to build the fed-back embedding, so the model learns to handle the tempered states it will see when sampling at other temperatures (R, §3.2).</li><li><strong>Same network.</strong> A standard diffusion transformer, so it can start from an existing uniform-diffusion checkpoint (R, §3.2).</li></ul>
+<h2 id="key-results">Key results</h2>
+<p>Baselines the authors trained have matched training compute; on Sudoku that is only the LDDMs, and every other Sudoku baseline is copied from Deschenaux and Gulcehre 2026 (R, §4, Table 1 caption). The GSM8K comparison table with AlphaDLM and other few-step methods is also copied from other papers (R, Table 10 caption).</p>
+<ul><li><strong>Sudoku, 180 steps:</strong> 96.5% of hard puzzles solved, against 91.0% for LDDM-U (the earlier loopholing model) and 44.5–45.0% for the continuous flow models FLM and S-FLM (R, §4.1, Table 1). All baseline numbers except the LDDMs come from earlier papers. 96.5% is the best of 30 training settings (six configurations × five regularisation ranges, R, Table 9); with the NELBO loss and no regularisation LAW gets 85.3%, below LDDM-U's 91.0% (R, Table 1).</li><li><strong>Mazes (20×20):</strong> with multi-pass probability p = 0.75 (R, Figure 3 caption), 90.9% with 4 steps, ahead of every baseline up to 64 steps; from 512 steps LDDM-M is slightly better, both near 92% (R, §4.2, Figure 3).</li><li><strong>GSM8K, trained on TinyGSM:</strong> 42.2% at temperature 1 with 1,024 steps, against 34.5% for LDDM-U, the best diffusion or flow baseline (R, §4.3). Fine-tuning an existing Duo checkpoint with LAW lifts it from 17.2% to 48.1%, for 26% extra training compute (R, §4.3). The concurrent AlphaDLM is more accurate up to 8 steps and beats LAW trained from scratch; LAW fine-tuned from Duo for 15k steps beats it from 16 steps on, at temperature 1, for about 8% more training compute. AlphaDLM uses a confidence-based sampler, and its numbers are copied from Gushchin et al. 2026 (R, §4.3, Table 10).</li><li><strong>OpenWebText:</strong> at 64 steps LAW beats the diffusion and flow baselines at matched entropy and nears an autoregressive model sampled with 1,024 steps; at 1,024 steps it beats that model at matched entropy, but its samples are less diverse, entropy at most 5.1–5.2 (R, §4.4, Figure 5).</li><li><strong>Three choices are necessary</strong> (GSM8K ablations, R, §4.3):<ul><li>the Expected Embedding as the fed-back state: 35.8% against under 1.5% with the last hidden layer, both without temperature regularisation;</li><li>temperature regularisation: 24.8% → 48.8% at temperature 0.1;</li><li>no gradient through the first pass: backpropagating through both passes drops accuracy from 42.2% to 20.2% (temperature 1, 1,024 steps, p = 0.9, matched training FLOPs, so 132k training steps against 192k). At equal training steps the gap holds: 38.7% against 20.9% after 120k steps, sampled with 256 steps (R, §4.3, Figures 9–10).</li></ul></li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>Small models (8- to 12-layer DiTs) in an academic setting; scale untested (R, §6).</li><li>Which loss works better (NELBO or cross-entropy) differs by task (R, §6).</li><li>On OpenWebText at many steps, the samples cover a narrower range of entropy (R, §4.4, §6).</li></ul>
+<h2 id="connections">Connections</h2>
+<p>Ties:</p>
+<ul><li><a href="concept-diffusion-language-models.html">concept-diffusion-language-models</a> — a new design point between discrete and continuous diffusion: discrete noise for training, a continuous trajectory for sampling (R, §5).</li><li><a href="source-hierarchical-continuous-diffusion-lm.html">source-hierarchical-continuous-diffusion-lm</a> — the other recent continuous-diffusion improvement; both report on GSM8K after TinyGSM training (27.4% there, 42.2% here, different models and budgets, not comparable head to head).</li><li><a href="concept-stop-gradient.html">concept-stop-gradient</a> — here a stop-gradient between the two training passes roughly doubles GSM8K accuracy; the stop-gradient comes from LDDMs ("as in LDDMs", R, §6). Relay and PUMBA find backpropagating through the passed state better, but they pass hidden states along teacher-forced unmasking paths, a different setup (R, §5).</li><li><a href="source-holderrieth-erives-flow-matching-diffusion-notes.html">source-holderrieth-erives-flow-matching-diffusion-notes</a> — added 2026-10-23: the textbook frame for LAW's training corruption: discrete diffusion as a continuous-time Markov chain whose noise replaces each token independently (<code>raw/arxiv-2506-02070-introduction-to-flow-matching-and-diffusion.md</code>, §7, Example 35); LAW keeps that training and changes what passes between sampling steps.</li></ul>
+<p>See also (surface or contrast):</p>
+<ul><li><a href="source-ouro-looped-lms.html">source-ouro-looped-lms</a> — looped models change computation inside a step; LAW changes what passes between steps; the authors call the two complementary (R, §5).</li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2610-30068-loopholing-all-the-way-language-modeling.md</code></li><li><a href="https://arxiv.org/abs/2610.30068" rel="noreferrer">https://arxiv.org/abs/2610.30068</a></li><li><a href="https://github.com/ilievanadezhda/law" rel="noreferrer">https://github.com/ilievanadezhda/law</a></li><li><a href="concept-diffusion-language-models.html">concept-diffusion-language-models</a> · <a href="source-hierarchical-continuous-diffusion-lm.html">source-hierarchical-continuous-diffusion-lm</a> · <a href="concept-stop-gradient.html">concept-stop-gradient</a> · <a href="source-ouro-looped-lms.html">source-ouro-looped-lms</a></li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2610-30068-loopholing-all-the-way-language-modeling.md</code></li><li><a href="https://arxiv.org/abs/2610.30068" rel="noreferrer">https://arxiv.org/abs/2610.30068</a></li><li><a href="https://github.com/ilievanadezhda/law" rel="noreferrer">https://github.com/ilievanadezhda/law</a></li><li><code>raw/arxiv-2506-02070-introduction-to-flow-matching-and-diffusion.md</code></li></ul></details>
+</main>
+</body>
+</html>

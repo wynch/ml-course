@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Towards Continual Learning: Mitigating Forgetting With Subspace Tuning (SST; Chavan, Sareen, Tiwari et al., 2026) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="subspace-tuning-sst-fine-tune-only-along-a-weight-matrixs-weakest-directions">Subspace Tuning (SST): fine-tune only along a weight matrix's weakest directions</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-23</span> <span>updated 2026-10-23</span> <span class="tag">continual-learning</span> <span class="tag">catastrophic-forgetting</span> <span class="tag">fine-tuning</span> <span class="tag">optimizers</span> <span class="tag">svd</span> <span class="tag">weight-geometry</span> <span class="tag">2026</span></div>
+<p><strong>Authors:</strong> Arnav Chavan, Kusha Sareen, Rishabh Tiwari, Abhranil Chandra, Johan Obando-Ceron, Kurt Keutzer, Scott Niekum, Inderjit S. Dhillon, Devvrit Khatri <strong>Published:</strong> arXiv 2610.22293, v1 2026-10-15 <strong>Raw copy:</strong> <code>raw/arxiv-2610-22293-towards-continual-learning-mitigating-forgetting-with.md</code> (full text of v1 from the arXiv HTML; cited as R, with its section)</p>
+<h2 id="terms">Terms</h2>
+<ul><li><strong>Singular directions.</strong> Any weight matrix W can be written as a sum of rank-one pieces σᵢ uᵢ vᵢᵀ (its SVD): vᵢ is an input direction the layer reads, uᵢ the output direction it writes to, σᵢ how strongly. The top ones, with the largest σᵢ, are the principal directions (R, §2.1).</li><li><strong>Catastrophic forgetting.</strong> Fine-tuning on a new task destroys skills the model had (R, §1).</li><li><strong>Rank fraction r.</strong> The share of directions protected, counted in directions, not energy: k = ⌊r · min(d_out, d_in)⌋ top directions are frozen. The paper mostly uses r = 0.99, leaving only the weakest 1% of directions free (R, §2.1). One setting needed r = 0.90: Qwen2.5-7B-Instruct on Science, where the 1% left free was too small to fit the task (R, Appendix B.4).</li></ul>
+<h2 id="the-claim-plainly">The claim, plainly</h2>
+<p>Forgetting depends on where in weight space a fine-tuning update lands. Removing from every optimizer step any part along a matrix's top 99% of singular directions (counted in directions, k = ⌊0.99 · min(d_out, d_in)⌋), on both the input and output sides, lets a model learn a new task about as well as plain fine-tuning while keeping almost all of its earlier skills (R, Abstract, §1, §2).</p>
+<h2 id="how-it-works">How it works</h2>
+<ul><li><strong>Two-sided projection.</strong> Apply ΔW ← (I − UₖUₖᵀ) ΔW (I − VₖVₖᵀ), keeping only the part of the update that both reads from and writes to unprotected directions. The protected triplets (σᵢ, uᵢ, vᵢ) are then unchanged exactly (R, §2.1).</li><li><strong>Project the step, not the gradient.</strong> Adam rescales each coordinate, so a projected gradient still yields a step with protected components. In a toy run (Qwen2.5-0.5B, 60 Adam steps on eight fixed examples, r = 0.99), projecting the gradient left 69% of the weight change in protected directions, yet already cut the rise in held-out loss (NLL) to 0.72, against 13.0 for plain fine-tuning; projecting Adam's final step left none and raised it by 0.13 (R, §2.2, Figure 4, Appendix B.8). This is why the method works with any optimizer, Muon included (R, §1).</li><li><strong>Refresh.</strong> Optionally recompute the SVD every K steps (R100, R10), so the free subspace follows the current weights; this helps the new task at a small cost in retention (R, §2.3).</li></ul>
+<h2 id="key-results">Key results</h2>
+<p>Qwen3-8B in thinking mode, fine-tuned on reasoning traces; "prior capability" is the mean of GPQA-Diamond, MMLU-Pro, GSM8K, HumanEval and IFEval, 81.0 for the base model (R, §3, Table 4).</p>
+<div class="tw"><table><thead><tr><th>Science</th><th>New-task acc.</th><th>Prior capability</th></tr></thead><tbody><tr><td>Base</td><td>60.2</td><td>81.0</td></tr><tr><td>SFT</td><td>77.6</td><td>55.5</td></tr><tr><td>SFT + SST</td><td>80.1</td><td>80.0</td></tr><tr><td>SFT + SST, refresh every 10 steps</td><td>84.0</td><td>80.2</td></tr><tr><td>SDFT (self-distillation)</td><td>88.1</td><td>57.0</td></tr><tr><td>SDFT + SST + R100</td><td>83.4</td><td>80.7</td></tr></tbody></table></div>
+<p>(R, Table 4.) On FinQA, SFT drops prior capability to 23.7; SFT + SST keeps 82.3 at 73.0 new-task accuracy against SFT's 72.3 (R, Table 4).</p>
+<ul><li><strong>Scale.</strong> From 1.7B to 14B (5 epochs on Science), SFT loses 30–40 points of prior capability at every size; under SST the loss shrinks with size, within about 1% of the base from 8B on; a 2-epoch sweep to 32B shows the same trend (R, §3.2, Figure 2, Table 3).</li><li><strong>More data.</strong> Over a 45,000-example budget, SFT drifts further from the base as it trains; SST stays flat (R, §3.2, Figure 3).</li><li><strong>Closer to the base model.</strong> 2–4× less KL divergence from the base model on WikiText-2 across sizes and recipes (R, §3.3, Appendix B.7).</li><li><strong>A KL penalty does not do the same.</strong> Adding a reverse-KL penalty toward the base during SFT either fails to stop forgetting or blocks learning (R, §3.3, Appendix B.10, Table 6).</li><li><strong>Tasks in sequence.</strong> Over two- and three-stage chains, SST keeps earlier skills while learning new ones; plain SFT loses 28 and 18 points on untrained domains in one chain (R, §3.4, Figure 10).</li><li><strong>Against similar methods.</strong> Two earlier methods that protect top singular directions (Sculpting, OPLoRA) lose 18–26 points of prior capability at their official settings, against about 1 for SST without refresh; OPLoRA given SST's 99% protection closes much of the gap (R, §4.1, Tables 4–5).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>The best learning rate under SST may differ from SFT's; tuned frontiers are future work (R, §5).</li><li>Largest model 32B; long task sequences untested (R, §5).</li><li>Refresh trades retention for learning: on FinQA, R10 lowers prior capability to 75.7 (R, Table 4).</li></ul>
+<h2 id="connections">Connections</h2>
+<p>Ties:</p>
+<ul><li><a href="concept-continual-learning.html">concept-continual-learning</a> — a sixth route against forgetting: constrain the direction of each update, not only its size.</li><li><a href="source-rls-razor.html">source-rls-razor</a> — RL's Razor ties forgetting to KL drift from the base model; SST cuts that drift 2–4×, and here a direct KL penalty does not reproduce SST's result (R, §3.3, Appendix B.10). Three different KLs: SST's drift is KL(base ‖ tuned) on WikiText-2, general text; the penalty it tests is KL(tuned ‖ base) on response tokens; RL's Razor uses KL(base ‖ tuned) on the new task's inputs (R, Figure 7 caption, Appendix B.10). The wiki's reading: penalising KL is not the same as constraining where the update lands.</li><li><a href="source-sdft-self-distillation-continual.html">source-sdft-self-distillation-continual</a> — the paper finds SDFT, which held prior skills on non-reasoning instruct models, still forgets on long reasoning traces (Science: prior capability 81.0 → 57.0 on Qwen3-8B thinking) (R, §1, Table 4).</li><li><a href="source-bundle-mit-6-7960-optimizer-geometry.html">source-bundle-mit-6-7960-optimizer-geometry</a> — added 2026-10-23, the wiki's reading: Muon's step, the gradient with its singular values set to one, keeps the gradient's row and column spaces, so for Muon, unlike Adam, projecting the gradients would already keep the step in the free subspace in exact arithmetic. Untested here or in the lectures. Two caveats: it holds for the bare update only, since decoupled weight decay moves the weights along W itself, which has components in every direction; and common Muon setups update embeddings and the output head with Adam, so those matrices fall under Adam's behaviour (the wiki's note, not from these sources). See also <a href="concept-optimizers.html">concept-optimizers</a>.</li></ul>
+<p>See also (surface or contrast):</p>
+<ul><li><a href="source-lora-low-rank-adaptation.html">source-lora-low-rank-adaptation</a> — low-rank updates; OPLoRA combines LoRA with SST-like projectors (R, §4.1).</li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2610-22293-towards-continual-learning-mitigating-forgetting-with.md</code></li><li><a href="https://arxiv.org/abs/2610.22293" rel="noreferrer">https://arxiv.org/abs/2610.22293</a></li><li><a href="concept-continual-learning.html">concept-continual-learning</a> · <a href="source-bundle-mit-6-7960-optimizer-geometry.html">source-bundle-mit-6-7960-optimizer-geometry</a> · <a href="concept-optimizers.html">concept-optimizers</a> · <a href="source-rls-razor.html">source-rls-razor</a> · <a href="source-sdft-self-distillation-continual.html">source-sdft-self-distillation-continual</a> · <a href="source-lora-low-rank-adaptation.html">source-lora-low-rank-adaptation</a></li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2610-22293-towards-continual-learning-mitigating-forgetting-with.md</code></li><li><a href="https://arxiv.org/abs/2610.22293" rel="noreferrer">https://arxiv.org/abs/2610.22293</a></li><li><code>raw/web-2024-mit-6-7960-lec07-scaling-rules-optimization.md</code></li><li><code>raw/web-2024-mit-6-7960-lec23-metrized-deep-learning.md</code></li></ul></details>
+</main>
+</body>
+</html>

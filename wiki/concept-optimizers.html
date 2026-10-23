@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Optimizers · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="optimizers">Optimizers</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-10-23</span> <span>updated 2026-10-23</span> <span class="tag">optimization</span> <span class="tag">optimizers</span> <span class="tag">steepest-descent</span> <span class="tag">adam</span> <span class="tag">muon</span> <span class="tag">shampoo</span> <span class="tag">newton</span> <span class="tag">learning-rate</span></div>
+<p>An optimizer turns the gradient, the slope of the loss with respect to each weight, into a change to the weights. This page sorts optimizers by one frame from Bernstein's MIT lectures: each is the step that minimises a simple local model of the loss (L7 = <code>raw/web-2024-mit-6-7960-lec07-scaling-rules-optimization.md</code>; L23 = <code>raw/web-2024-mit-6-7960-lec23-metrized-deep-learning.md</code>).</p>
+<h2 id="the-frame">The frame</h2>
+<p>Near the current weights w, the loss is about L(w) + gᵀΔw plus a curvature term (L7, slide 10). Two ways to handle the curvature give two families:</p>
+<ul><li><strong>Use it</strong> (second order). Newton's step Δw = −H⁻¹g uses the Hessian H, the matrix of second derivatives; it costs d² numbers for d weights (L7, slides 11–12). Gauss–Newton keeps only the error's curvature and drops the network's (L7, slides 13–15).</li><li><strong>Replace it by a norm</strong> (first order). Model the curvature as (λ/2)‖Δw‖². The step is then a size, the gradient's dual norm over λ, times a unit direction that best aligns with the gradient (L7, slide 19). The norm picks the optimizer.</li></ul>
+<p>The step is optimal for the model, not the loss. It is safe only where the model bounds the loss from above (L23, slide 9).</p>
+<h2 id="optimizers-as-norms">Optimizers as norms</h2>
+<div class="tw"><table><thead><tr><th>Norm on the step</th><th>Step</th><th>Name</th><th>Source</th></tr></thead><tbody><tr><td>Euclidean, ‖·‖₂</td><td>−g/λ</td><td>gradient descent</td><td>L7, slide 17</td></tr><tr><td>Infinity, ‖·‖∞ (largest entry)</td><td>−(‖g‖₁/λ) sign(g)</td><td>sign descent</td><td>L7, slide 18</td></tr><tr><td>Spectral, per weight matrix (largest singular value)</td><td>−(‖G‖_nuclear/λ)·UVᵀ, where G = USVᵀ and ‖G‖_nuclear = Tr(S), the sum of G's singular values, is the dual of the spectral norm (L13 = <code>raw/web-2024-mit-6-7960-lec13-architectural-bias-representations.md</code>, slide 2); with a fixed step η instead, −η·UVᵀ (L23, slide 40)</td><td>the core of Shampoo (for a single gradient; Shampoo sums past ones); Muon approximates it by Newton–Schulz iteration, a fixed polynomial repeated a few times</td><td>L23, slides 40–42</td></tr><tr><td>Modular norm, built from each layer's norm</td><td>each layer's duality map, combined by fixed rules</td><td>Modula</td><td>L23, slides 20–23, 39</td></tr></tbody></table></div>
+<p>The wiki's reading, not in the lectures: Adam with β₁ = β₂ = 0 (no running averages) and ε = 0 takes the step g/|g| per coordinate, which is sign descent. That explains why tiny gradients can give full-size steps unless they fall below ε. The loss spikes in <a href="source-barron-softmax-fix.html">source-barron-softmax-fix</a> also need Adam's running average of squared gradients (β₂ &gt; 0): it decays while gradients vanish and lags when they return, so the returning gradient is divided by a small number (<code>raw/arxiv-2610-31642-a-fix-for-softmax-and-cross.md</code>, §4–5; <a href="concept-softmax-numerics.html">concept-softmax-numerics</a>).</p>
+<h2 id="what-the-norm-buys">What the norm buys</h2>
+<ul><li><strong>Learning-rate transfer.</strong> Measured in the RMS→RMS norm, √(fan-in/fan-out) times the spectral norm, a step of a given size bounds how much a layer's output can change, by the same amount at any width; the output moves by about that much only if the bound is tight, which Bernstein assumes (L23, slide 29). Bernstein claims that setting weight and update sizes this way stops the best learning rate drifting as width grows (L7, slides 24–25; L23, slides 29–30). The shown evidence is one GPT sweep, 10k steps on OpenWebText, widths 32–1024 and 2–64 blocks (L23, slide 34). This is the aim μP (the "maximal update" parameterization) shares; see <a href="source-learning-mechanics.html">source-learning-mechanics</a>.</li><li><strong>Where the step lands.</strong> Adam's per-coordinate scaling moves a step out of the subspace its gradient lay in; <a href="source-subspace-tuning.html">source-subspace-tuning</a> measured that in a toy run and so projects the final step (<code>raw/arxiv-2610-22293-towards-continual-learning-mitigating-forgetting-with.md</code>, §2.2, Appendix B.8). The spectral step keeps the gradient's row and column spaces (wiki's reading, see <a href="source-bundle-mit-6-7960-optimizer-geometry.html">source-bundle-mit-6-7960-optimizer-geometry</a>). Two caveats: it holds for the bare update only, since decoupled weight decay moves the weights along W itself, which has components in every direction; and common Muon setups update embeddings and the output head with Adam, so those matrices fall under Adam's behaviour (the wiki's note, not from these sources).</li></ul>
+<h2 id="open-questions">Open questions</h2>
+<ul><li>Mini-batch noise: the lecture frame is full batch (L7, slide 6).</li><li>How tight are the modular bounds in practice? The slides show no measurement (L23, slide 29).</li></ul>
+<h2 id="key-sources">Key sources</h2>
+<ul><li><a href="source-bundle-mit-6-7960-optimizer-geometry.html">source-bundle-mit-6-7960-optimizer-geometry</a> — Lectures 7 and 23, the frame on this page.</li><li><a href="source-barron-softmax-fix.html">source-barron-softmax-fix</a> · <a href="concept-softmax-numerics.html">concept-softmax-numerics</a> — Adam's ε meets float rounding.</li><li><a href="source-subspace-tuning.html">source-subspace-tuning</a> — projecting the step, not the gradient.</li><li>Related: <a href="concept-model-training.html">concept-model-training</a> · <a href="concept-scaling-laws.html">concept-scaling-laws</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/web-2024-mit-6-7960-lec07-scaling-rules-optimization.md</code></li><li><code>raw/web-2024-mit-6-7960-lec23-metrized-deep-learning.md</code></li><li><code>raw/arxiv-2610-31642-a-fix-for-softmax-and-cross.md</code></li><li><code>raw/arxiv-2610-22293-towards-continual-learning-mitigating-forgetting-with.md</code></li><li><a href="source-bundle-mit-6-7960-optimizer-geometry.html">source-bundle-mit-6-7960-optimizer-geometry</a> · <a href="source-barron-softmax-fix.html">source-barron-softmax-fix</a> · <a href="concept-softmax-numerics.html">concept-softmax-numerics</a> · <a href="source-subspace-tuning.html">source-subspace-tuning</a> · <a href="source-learning-mechanics.html">source-learning-mechanics</a> · <a href="concept-model-training.html">concept-model-training</a> · <a href="concept-scaling-laws.html">concept-scaling-laws</a></li></ul>
+<details class="src"><summary>Sources (5)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/web-2024-mit-6-7960-lec07-scaling-rules-optimization.md</code></li><li><code>raw/web-2024-mit-6-7960-lec23-metrized-deep-learning.md</code></li><li><code>raw/arxiv-2610-31642-a-fix-for-softmax-and-cross.md</code></li><li><code>raw/arxiv-2610-22293-towards-continual-learning-mitigating-forgetting-with.md</code></li><li><code>raw/web-2024-mit-6-7960-lec13-architectural-bias-representations.md</code></li></ul></details>
+</main>
+</body>
+</html>

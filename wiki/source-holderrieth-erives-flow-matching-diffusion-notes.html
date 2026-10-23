@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>An Introduction to Flow Matching and Diffusion Models (Holderrieth and Erives, MIT 6.S184 notes, 2025–2026) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="an-introduction-to-flow-matching-and-diffusion-models">An Introduction to Flow Matching and Diffusion Models</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-23</span> <span>updated 2026-10-23</span> <span class="tag">flow-matching</span> <span class="tag">diffusion</span> <span class="tag">score-matching</span> <span class="tag">classifier-free-guidance</span> <span class="tag">discrete-diffusion</span> <span class="tag">ctmc</span> <span class="tag">masked-diffusion</span> <span class="tag">sde</span> <span class="tag">generative-models</span> <span class="tag">lecture-notes</span> <span class="tag">mit-6-s184</span></div>
+<p><strong>Authors:</strong> Peter Holderrieth, Ezra Erives (MIT). arXiv 2506.02070, v3 2026-03-18. <strong>Course:</strong> MIT 6.S184, IAP 2026, <a href="https://diffusion.csail.mit.edu/2026" rel="noreferrer">https://diffusion.csail.mit.edu/2026</a>. The notes are the course's main text; this page covers lecture 2 (flow matching), 3-A (score matching), 3-B (classifier-free guidance) and 5 (discrete diffusion). <strong>License:</strong> CC BY-NC-ND 4.0. This page summarizes in the wiki's own words and quotes briefly; it does not adapt the notes. <strong>Raw copy (private study copy):</strong> <code>raw/arxiv-2506-02070-introduction-to-flow-matching-and-diffusion.md</code> (N below), the PDF's text with known extraction faults listed in its header (plus signs dropped inside many equations).</p>
+<h2 id="the-claim-plainly">The claim, plainly</h2>
+<p>A generator can turn noise into data by following a velocity field over time, like particles carried by a current. You never need to know that field directly: pick a simple path from noise to each single data point, whose velocity you can write down, and train a network by plain regression to match those per-point velocities; the network then learns the average field that carries noise to the whole data distribution (N, §3). The same recipe gives score matching (diffusion models), classifier-free guidance, and, with token jumps instead of velocities, discrete diffusion for text, where training reduces to a per-position classifier (N, §4, §5, §7).</p>
+<h2 id="terms">Terms</h2>
+<ul><li><strong>Vector field</strong> u_t(x): a velocity at every point x and time t; following it from t = 0 to 1 is solving an ODE, an ordinary differential equation (N, §2.1).</li><li><strong>SDE:</strong> a stochastic differential equation, an ODE with random kicks added at each step, scaled by a diffusion coefficient σ_t (N, §2.2).</li><li><strong>Probability path</strong> p_t: a chosen way to blend noise (t = 0) into data (t = 1). <em>Conditional</em>: toward one data point z. <em>Marginal</em>: averaged over all data points (N, §3.1).</li><li><strong>Score:</strong> ∇log p(x), the direction in which the density rises fastest (N, §4.1).</li><li><strong>CTMC:</strong> a continuous-time Markov chain, a process that jumps between discrete states at given rates; the discrete stand-in for an SDE (N, §7.1).</li></ul>
+<h2 id="key-points">Key points</h2>
+<p><strong>Generation as simulation</strong> (N, §2). A flow model is a network u_t^θ used as a velocity field; sampling draws X₀ from a Gaussian and integrates the ODE with small Euler steps, X_{t+h} = X_t + h·u_t^θ(X_t), returning X₁ (N, Algorithm 1). The network gives velocities, not the trajectory, so sampling costs one network call per step. A diffusion model adds noise at each step, the Euler–Maruyama scheme (N, eq. 9).</p>
+<p><strong>Flow matching</strong> (N, §3; lecture 2).</p>
+<ol><li><em>Path.</em> The standard choice is Gaussian: x = α_t z + β_t ε, with ε pure noise, α rising from 0 to 1 and β falling from 1 to 0 (N, Example 8). With α_t = t, β_t = 1 − t it is the "CondOT" path used, per the notes, by Stable Diffusion 3 and Meta's Movie Gen (N, §3.3).</li><li><em>Per-point velocity.</em> For that path, the velocity that carries noise to the single point z has a closed form (N, eq. 20); for CondOT it is simply z − ε.</li><li><em>Marginalization trick.</em> The field that carries noise to the whole data distribution is the average of the per-point velocities, weighted by how likely each data point is given the current noisy x, a posterior (N, Theorem 9, eq. 18). The proof uses the continuity equation, conservation of probability mass (N, Theorem 11).</li><li><em>Training.</em> That average is intractable, but regressing on the per-point velocity instead changes the loss only by a constant, so the gradients are the same (N, Theorem 12). For CondOT the loss is ‖u_t^θ(tz + (1 − t)ε) − (z − ε)‖², with t uniform on [0, 1] (N, Algorithm 3). No ODE is simulated during training: the notes call it "simulation-free" (N, §3.3). Condition: the minimizer equals the marginal field only for a network expressive enough, as the notes state (N, Theorem 12).</li></ol>
+<p><strong>Score matching and SDE sampling</strong> (N, §4; lecture 3-A).</p>
+<ul><li>The marginal score is the same kind of posterior average of per-point scores (N, eq. 38). For the Gaussian path the per-point score is −(x − α_t z)/β_t², and vector field and score convert into each other by a linear formula, so learning one gives the other (N, eq. 40, Proposition 1). Both are reparameterizations of the posterior mean of z given x, the "denoiser" (N, Remark 16).</li><li>Any amount of noise can be added at sampling time without changing the marginals: drift u_t + (σ_t²/2)∇log p_t plus noise σ_t dW_t keeps X_t ∼ p_t for every σ_t ≥ 0 (N, Theorem 17, via the Fokker–Planck equation, Theorem 19). In practice a best σ_t exists only because of training and step-size error (N, §4.2, footnote 2).</li><li>Denoising score matching regresses on the per-point score, again equal up to a constant (N, Theorem 22). Reparameterized and reweighted (the 1/β_t² factor dropped), the network predicts the noise ε that was added: the DDPM loss ‖ε_t^θ(α_t z + β_t ε) − ε‖², adopted because the raw loss is unstable when β_t is near 0 (N, Example 23).</li></ul>
+<p><strong>Classifier-free guidance</strong> (N, §5; lecture 3-B).</p>
+<ul><li><em>Vanilla guidance:</em> give the prompt y to the network and train on (data, prompt) pairs (N, §5.1). In practice samples fit the prompt poorly (N, §5.2).</li><li><em>Classifier guidance:</em> Bayes' rule splits the guided score into the unguided score plus ∇log p_t(y|x), the gradient of a classifier on noisy inputs; scaling that term by w &gt; 1 strengthens the prompt (N, eq. 62).</li><li><em>Classifier-free guidance:</em> the same scaling can be written without a classifier, ũ = (1 − w)·u(x|∅) + w·u(x|y), mixing the unguided and guided fields (N, eq. 65). One network learns both: during training the prompt is replaced by an empty label ∅ with some probability η (N, Algorithm 5).</li><li>Condition: for w ≠ 1 the result is no longer the true guided field, so the samples are not guaranteed to follow p_data(·|y), in the notes' words "not necessarily aligned" with it; w = 1 gives plain conditional sampling. The notes call guidance "a heuristic" justified by results, and say almost every AI-generated image or video they see relies on it with w ≥ 4 (N, §5.2).</li></ul>
+<p><strong>Discrete diffusion</strong> (N, §7; lecture 5).</p>
+<ul><li>Text is a sequence of d tokens from a vocabulary of size V. A CTMC replaces the vector field with a rate matrix Q_t(y|x), the rate of jumping from state x to state y (N, eqs. 84–87). Sampling takes small steps: stay with probability about 1 − h·(total leaving rate), else jump (N, eq. 88).</li><li>The full state space has V^d states, so models are <em>factorized</em>: only one token may change per jump, and the network outputs a d × V table of rates; all positions are then updated in parallel, which agrees with the exact step to first order in h (N, §7.1, Algorithm 7).</li><li><em>Path:</em> each token independently is the data token with probability κ_t and noise otherwise, the "factorized mixture path" (N, Example 35). As t grows, weight shifts from the noise distribution to the data token at each position; no mass travels along a direction, as it does on the Gaussian path (the wiki's wording of the notes' contrast in Example 35 and Figure 19).</li><li><em>Training:</em> by the same marginalization trick (N, Theorem 36), the marginal rate for position j is a rescaled probability that the clean token is v given the whole noisy sequence (N, Theorem 38). So training is a per-position classifier with cross-entropy: L = Σ_j −log p^θ(z_j | x) (N, §7.2.3, Algorithm 8). "In the same way as continuous flow matching reduced to simple regression", discrete flow matching reduces to classification (N, §7.2.3).</li><li><em>Masked diffusion (MDLM):</em> add a [mask] token and start from all-masks; generation unmasks positions over time (N, Example 39).</li></ul>
+<h2 id="which-component-it-bears-on">Which component it bears on</h2>
+<p>This section is the wiki's reading of the notes.</p>
+<ul><li><strong>The network's output.</strong> In flow matching the network outputs a velocity; in score matching a score or the added noise; in discrete diffusion a distribution over the clean token at each position. For Gaussian paths the first three are linear rewrites of one quantity, the posterior mean of the clean data given the noisy input (N, Remark 16). Choosing which to predict is a choice of scaling, made for training stability (N, Example 23).</li><li><strong>The training target.</strong> Every method regresses (or classifies) against a per-example target that is easy to compute, and the marginalization trick guarantees the average is the field you need. That is why training never runs the sampler.</li><li><strong>The sampler.</strong> The number of Euler steps is the inference cost; σ_t is a free knob at sampling time (N, Theorem 17). Few-step methods such as flow maps attack this cost.</li><li><strong>Guidance weight w</strong> trades faithfulness to the data distribution for fit to the prompt (N, eq. 65).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>Teaching notes, not a research result; the methods and theorems come from the papers the notes cite (Lipman et al., Liu et al., Albergo and Vanden-Eijnden, Song et al., Ho and Salimans, and others).</li><li>The usage claims (CondOT in Stable Diffusion 3 and Movie Gen; CFG with w ≥ 4 in "almost any" AI image) are the authors' statements, not checked here.</li></ul>
+<h2 id="connections">Connections</h2>
+<p>Ties:</p>
+<ul><li><a href="concept-diffusion-language-models.html">concept-diffusion-language-models</a> — the notes give the foundation the hub assumes: discrete diffusion as a CTMC with a factorized rate matrix, trained as a per-token classifier; masked diffusion as the all-[mask] start (N, §7).</li><li><a href="source-flow-map-language-models.html">source-flow-map-language-models</a> — FMLM learns continuous flows over one-hot embeddings and jumps along them in one step; the flows it accelerates are the ones §3 trains.</li><li><a href="source-hierarchical-continuous-diffusion-lm.html">source-hierarchical-continuous-diffusion-lm</a> — a continuous diffusion LM whose flow-matching variant (H-FLM) uses §3's objective.</li><li><a href="source-loopholing-all-the-way.html">source-loopholing-all-the-way</a> — LAW is trained with uniform-noise discrete corruption (<code>raw/arxiv-2610-30068-loopholing-all-the-way-language-modeling.md</code>, §5), in the wiki's reading a factorized mixture path of §7 with uniform noise, but samples along a continuous path of expected embeddings.</li><li><a href="source-stopgrad-regression-flow-maps.html">source-stopgrad-regression-flow-maps</a> — flow maps, the few-step shortcut over the ODE of §2–3.</li></ul>
+<p>See also:</p>
+<ul><li><a href="source-dit-diffusion-transformer.html">source-dit-diffusion-transformer</a> · <a href="source-latent-diffusion-stable-diffusion.html">source-latent-diffusion-stable-diffusion</a> — the architectures and latent spaces of lecture 4, not covered here.</li><li><a href="source-bundle-mit-6-7960-representation-learning.html">source-bundle-mit-6-7960-representation-learning</a> — VAEs and VQ autoencoders, which lecture 4 uses as latent spaces.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2506-02070-introduction-to-flow-matching-and-diffusion.md</code> (§2–§5, §7; Theorems 9, 11, 12, 17, 19, 22, 36, 38; Algorithms 1, 3, 5, 7, 8)</li><li><a href="https://arxiv.org/abs/2506.02070" rel="noreferrer">https://arxiv.org/abs/2506.02070</a></li><li><a href="https://diffusion.csail.mit.edu/2026" rel="noreferrer">https://diffusion.csail.mit.edu/2026</a></li><li><a href="concept-diffusion-language-models.html">concept-diffusion-language-models</a> · <a href="source-flow-map-language-models.html">source-flow-map-language-models</a> · <a href="source-hierarchical-continuous-diffusion-lm.html">source-hierarchical-continuous-diffusion-lm</a> · <a href="source-loopholing-all-the-way.html">source-loopholing-all-the-way</a> · <a href="source-stopgrad-regression-flow-maps.html">source-stopgrad-regression-flow-maps</a> · <a href="source-dit-diffusion-transformer.html">source-dit-diffusion-transformer</a> · <a href="source-latent-diffusion-stable-diffusion.html">source-latent-diffusion-stable-diffusion</a> · <a href="source-bundle-mit-6-7960-representation-learning.html">source-bundle-mit-6-7960-representation-learning</a></li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2506-02070-introduction-to-flow-matching-and-diffusion.md</code></li><li><a href="https://arxiv.org/abs/2506.02070" rel="noreferrer">https://arxiv.org/abs/2506.02070</a></li><li><a href="https://diffusion.csail.mit.edu/2026" rel="noreferrer">https://diffusion.csail.mit.edu/2026</a></li><li><code>raw/arxiv-2610-30068-loopholing-all-the-way-language-modeling.md</code></li></ul></details>
+</main>
+</body>
+</html>

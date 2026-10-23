@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>MIT 6.7960, Lecture 20: Scaling Laws (Isola, 2024) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="mit-67960-lecture-20-scaling-laws">MIT 6.7960, Lecture 20: Scaling Laws</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-23</span> <span>updated 2026-10-23</span> <span class="tag">scaling-laws</span> <span class="tag">compute-optimal</span> <span class="tag">chinchilla</span> <span class="tag">kaplan</span> <span class="tag">data-manifold</span> <span class="tag">intrinsic-dimension</span> <span class="tag">critical-batch-size</span> <span class="tag">gradient-noise</span> <span class="tag">platonic-representation</span> <span class="tag">lecture</span> <span class="tag">mit-6-7960</span></div>
+<p><strong>Course:</strong> MIT 6.7960 Deep Learning, Fall 2024, on MIT OpenCourseWare: <a href="https://ocw.mit.edu/courses/6-7960-deep-learning-fall-2024/" rel="noreferrer">https://ocw.mit.edu/courses/6-7960-deep-learning-fall-2024/</a> <strong>Lecturer:</strong> Phillip Isola <strong>License:</strong> CC BY-NC-SA 4.0. Figures marked "All rights reserved" (OpenAI, Kaplan et al., Hoffmann et al., McCandlish et al.) are outside the license; the raw copy describes them. <strong>Raw copy (private study copy):</strong> <code>raw/web-2024-mit-6-7960-lec20-scaling-laws.md</code> (R below): the PDF's text, plus the key formulas and charts read from the slide images.</p>
+<p>Claims below cite R with a slide number (PDF page). Sibling pages from the same course: <a href="source-bundle-mit-6-7960-optimizer-geometry.html">source-bundle-mit-6-7960-optimizer-geometry</a>, <a href="source-bundle-mit-6-7960-approximation-generalization.html">source-bundle-mit-6-7960-approximation-generalization</a>, <a href="source-bundle-mit-6-7960-representation-learning.html">source-bundle-mit-6-7960-representation-learning</a>.</p>
+<h2 id="the-claim-plainly">The claim, plainly</h2>
+<p>Test loss falls as a power law in parameters, data and compute, steadily enough that small runs predict large ones: OpenAI fitted GPT-4's final loss from runs using up to 10,000 times less compute (R, slides 5, 9). How to split a compute budget between model size and data has been revised once: Kaplan et al. said grow the model faster, Chinchilla said grow both equally (R, slides 15, 27).</p>
+<h2 id="terms">Terms</h2>
+<ul><li><strong>Power law:</strong> L(X) = X^(−α); doubling the resource X multiplies the loss by 2^(−α). On log-log axes it is a straight line (R, slide 9).</li><li><strong>Compute:</strong> about 6 × parameters × tokens floating-point operations for a transformer, counted in petaflop/s-days (8.64 × 10¹⁹ operations) (R, slides 8, 28).</li><li><strong>Compute-optimal:</strong> the model size and token count that minimise loss for a fixed compute budget (R, slide 7).</li></ul>
+<h2 id="key-points">Key points</h2>
+<p><strong>Kaplan et al. 2020</strong> (R, slides 8–22). Autoregressive transformers on WebText2, 768 to 1.5B non-embedding parameters, 22M to 23B tokens (slide 8).</p>
+<ul><li>Loss is a power law in data, parameters and compute, each measured with the other two not limiting (slides 10–12).</li><li>N and D must grow together; holding either fixed gives diminishing returns. Fits: L(N, D) = [(N_c/N)^(α_N/α_D) + D_c/D]^(α_D) (slide 15).</li><li>Their allocation: parameters ∝ C^0.73, data ∝ C^0.27, with Isola's warning, "Take these exact equations/numbers with a grain of salt!" (slide 15).</li><li>Shape (depth, width, heads) matters weakly, scale strongly (slide 18). Larger models need fewer samples for the same loss (slide 19).</li><li>Take-aways: don't train to completion, make the model larger (slide 21). Caveats from the paper itself: small-data fits were poor, regularization and augmentation were not studied, and learning rates were not tuned for short runs (slide 22).</li></ul>
+<p><strong>Chinchilla (Hoffmann et al. 2022)</strong> (R, slides 24–29). Three methods (training curves per model size; fixed-FLOP sweeps; a fitted loss formula) all give roughly N ∝ C^0.49, D ∝ C^0.51, so existing large models needed far more data: "smaller model, more data/steps" (slide 27). On the extrapolation chart, Gopher, GPT-3 and Megatron-Turing NLG sit above the compute-optimal line and Chinchilla (70B) on it (slide 28). The slide credits the difference to learning-rate schedules adapted to dataset size and to larger models, above 500M parameters (slide 26). Limitations listed: training loss used as the test-loss proxy; only two large runs (Gopher, Chinchilla); some curvature at high compute, so the power law may not hold everywhere; one epoch only (slide 29).</p>
+<p><strong>Why power laws? One hypothesis: the data manifold</strong> (R, slides 31–35). If a network does regression on data lying on a d-dimensional manifold, then approximating a Lipschitz function with N constant pieces gives L(N) ≲ N^(−2/d), and with the piecewise-linear pieces ReLU nets make, N^(−4/d) (slide 33). (The faster rate needs a smoother target, one with a bounded second derivative; Lipschitz alone is not enough. The slide does not say so; the wiki's note.) So the exponent should be α ≈ 4/d, with d the intrinsic dimension, the number of directions that actually vary, of the manifold the network maps the data onto; the slide says that manifold depends on data and loss or task, so different models should scale alike on the same data and task (slide 34). Measured intrinsic dimension of the embedding matches 4/α for vision models (teacher-student, CIFAR-10, MNIST, Fashion-MNIST, SVHN); for GPT the slide gives only α ≳ 4/d, so d ≳ 4/α (slide 35). The figure and hypothesis are from Sharma and Kaplan 2020, whom slide 30 cites as "Sharma et al". The lecture calls this "one hypothesis" (slide 31).</p>
+<p><strong>Beating a power law</strong> (R, slide 37). With small exponents, a small gain needs an order of magnitude more data or parameters; diminishing returns suggest redundant data, and pruning data well can scale better than a power law (Sorscher et al. 2022).</p>
+<p><strong>Critical batch size</strong> (R, slides 39–45, from McCandlish, Kaplan and Amodei 2018).</p>
+<ul><li>The question: 16 SGD steps at batch 16 cost the same FLOPs as 1 step at batch 256; which is better? FLOPs are not everything: big batches must be split across machines (communication) or run in sequence (time) (slide 39).</li><li>A minibatch gradient is the true gradient plus noise (slide 42). Expanding the loss to second order, the best learning rate and the best one-step progress both shrink by the factor 1/(1 + B_noise/B), where B_noise = trace(HΣ)/(GᵀHG), with H the Hessian and Σ the per-example gradient covariance (slide 43).</li><li>So below B_noise, doubling the batch nearly doubles progress per step ("perfect scaling"); above it, more batch buys little ("ineffective scaling"); the bend is the critical batch size (slide 44). OpenAI Five's Dota 2 training used batches of about 2 million (slide 40).</li></ul>
+<p><strong>Representational convergence</strong> (R, slides 46–50). Describe a representation by its kernel, K(xᵢ, xⱼ) = ⟨f(xᵢ), f(xⱼ)⟩, the table of similarities it assigns to pairs of inputs (slide 47). Across BLOOM, OpenLLaMA and LLaMA models, better language models have kernels more aligned with DINOv2 vision models, and larger DINOv2 models align more: "Scaling laws for cross-modal alignment" (slide 49, from Huh, Cheung, Wang and Isola 2024, the Platonic Representation Hypothesis; Isola is a co-author).</p>
+<p><strong>Summary slide.</strong> Scaling laws predict test loss from resources and hyperparameters, help allocate compute, and hold across many models and tasks, but "actual parameters hard to measure, large extrapolation nontrivial" (R, slide 51).</p>
+<h2 id="which-component-it-bears-on">Which component it bears on</h2>
+<p>This section is the wiki's reading.</p>
+<ul><li><strong>Model size against data.</strong> The two fitted exponents, α_N and α_D, set the split: the allocation follows from minimising L(N, D) under 6ND = C (R, slides 15, 27). Change the counting of N or the schedule and the split moves; see the contradiction below.</li><li><strong>The ReLU network as a piecewise-linear fitter.</strong> The data-manifold story is Lecture 3's approximation proof run backwards: N linear pieces on a d-dimensional manifold leave error falling as N^(−4/d) (R, slide 33; <a href="source-bundle-mit-6-7960-approximation-generalization.html">source-bundle-mit-6-7960-approximation-generalization</a>). The exponent comes from the dimension of the network's embedding of the data, which depends on the data and the task (slides 34–35).</li><li><strong>The batch.</strong> The batch size sets how much of each step is signal: B_noise compares the gradient noise, weighted by curvature, with the squared signal. Past it, extra examples per step only average away noise that was already small.</li></ul>
+<h2 id="tensions-and-open-questions">Tensions and open questions</h2>
+<ul><li>Tension, 2026-10-23 (corrected the same day from a "Contradiction (partial)" line): slide 26, "Differences", lists two differences between Chinchilla and Kaplan, learning-rate schedules adapted to dataset size and larger models (over 500M parameters), without claiming either explains the gap. <a href="source-reconciling-kaplan-chinchilla.html">source-reconciling-kaplan-chinchilla</a> finds the schedule a minor factor (it moves the exponent by at most 0.12; from Kaplan's scheme to Chinchilla's, 0.46 → 0.49) and the parameter count primary (0.49 with total parameters against 0.74 with non-embedding parameters on the same runs), which fits the slide's second item, since counting non-embedding parameters matters most at small sizes (<code>raw/arxiv-2406-12907-reconciling-kaplan-and-chinchilla-scaling-laws.md</code>, §4, Table 1). Tiny models there.</li><li>Open question, 2026-10-23 (corrected the same day from a "Contradiction (partial)" line): slide 49 plots alignment between language and vision models rising with scale, using Huh et al.'s mutual-nearest-neighbour score, a local measure. <a href="source-platonic-representation-aristotelian.html">source-platonic-representation-aristotelian</a> says similarity scores inflate with model size, but that after its calibration local neighbourhood agreement survives while global convergence "largely disappears" (arXiv 2602.14486, abstract only; not in raw). Whether slide 49's trend survives calibration is open; the slide itself draws three possible futures, up, flat and down.</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>A lecture survey of other papers' results; no new experiments.</li><li>The data-manifold fit is good for small vision models and only a bound for GPT (R, slide 35).</li><li>The GPT-4 extrapolation is OpenAI's own chart, one curve (R, slide 5).</li></ul>
+<h2 id="connections">Connections</h2>
+<p>Ties:</p>
+<ul><li><a href="concept-scaling-laws.html">concept-scaling-laws</a> — the hub; this lecture is a compact tour of its core sources plus the data-manifold and batch-size pieces it lacked.</li><li><a href="source-kaplan-scaling-laws.html">source-kaplan-scaling-laws</a> · <a href="source-chinchilla-compute-optimal.html">source-chinchilla-compute-optimal</a> · <a href="source-reconciling-kaplan-chinchilla.html">source-reconciling-kaplan-chinchilla</a> — the papers slides 8–29 summarise, and the later correction.</li><li><a href="source-neural-scaling-laws-from-language-statistics.html">source-neural-scaling-laws-from-language-statistics</a> — another account of where exponents come from, from token correlations rather than manifold dimension; the wiki's reading: both tie the exponent to the data, not the model.</li><li><a href="source-platonic-representation-aristotelian.html">source-platonic-representation-aristotelian</a> — the calibration critique of slide 49 (above).</li></ul>
+<p>See also:</p>
+<ul><li><a href="concept-optimizers.html">concept-optimizers</a> — the gradient-noise model of slides 42–44 is about plain SGD.</li><li><a href="source-neural-depth-scaling.html">source-neural-depth-scaling</a> — loss against depth, a separate axis.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/web-2024-mit-6-7960-lec20-scaling-laws.md</code> (slides 5–51)</li><li><code>raw/arxiv-2406-12907-reconciling-kaplan-and-chinchilla-scaling-laws.md</code> (§4, Table 1)</li><li><a href="https://ocw.mit.edu/courses/6-7960-deep-learning-fall-2024/" rel="noreferrer">https://ocw.mit.edu/courses/6-7960-deep-learning-fall-2024/</a></li><li><a href="https://arxiv.org/abs/2602.14486" rel="noreferrer">https://arxiv.org/abs/2602.14486</a></li><li><a href="concept-scaling-laws.html">concept-scaling-laws</a> · <a href="source-kaplan-scaling-laws.html">source-kaplan-scaling-laws</a> · <a href="source-chinchilla-compute-optimal.html">source-chinchilla-compute-optimal</a> · <a href="source-reconciling-kaplan-chinchilla.html">source-reconciling-kaplan-chinchilla</a> · <a href="source-neural-scaling-laws-from-language-statistics.html">source-neural-scaling-laws-from-language-statistics</a> · <a href="source-platonic-representation-aristotelian.html">source-platonic-representation-aristotelian</a> · <a href="concept-optimizers.html">concept-optimizers</a> · <a href="source-neural-depth-scaling.html">source-neural-depth-scaling</a> · <a href="source-bundle-mit-6-7960-approximation-generalization.html">source-bundle-mit-6-7960-approximation-generalization</a> · <a href="source-bundle-mit-6-7960-optimizer-geometry.html">source-bundle-mit-6-7960-optimizer-geometry</a> · <a href="source-bundle-mit-6-7960-representation-learning.html">source-bundle-mit-6-7960-representation-learning</a></li></ul>
+<details class="src"><summary>Sources (3)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/web-2024-mit-6-7960-lec20-scaling-laws.md</code></li><li><a href="https://ocw.mit.edu/courses/6-7960-deep-learning-fall-2024/" rel="noreferrer">https://ocw.mit.edu/courses/6-7960-deep-learning-fall-2024/</a></li><li><code>raw/arxiv-2406-12907-reconciling-kaplan-and-chinchilla-scaling-laws.md</code></li></ul></details>
+</main>
+</body>
+</html>

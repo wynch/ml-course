@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>MIT 6.7960, Lecture 24: Inference Methods for Deep Learning (Isola, 2024) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="mit-67960-lecture-24-inference-methods-for-deep-learning">MIT 6.7960, Lecture 24: Inference Methods for Deep Learning</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-23</span> <span>updated 2026-10-23</span> <span class="tag">inference</span> <span class="tag">test-time-compute</span> <span class="tag">search</span> <span class="tag">decoding</span> <span class="tag">best-of-n</span> <span class="tag">beam-search</span> <span class="tag">verification</span> <span class="tag">in-context-learning</span> <span class="tag">test-time-training</span> <span class="tag">star</span> <span class="tag">expert-iteration</span> <span class="tag">lecture</span> <span class="tag">mit-6-7960</span></div>
+<p><strong>Course:</strong> MIT 6.7960 Deep Learning, Fall 2024, on MIT OpenCourseWare: <a href="https://ocw.mit.edu/courses/6-7960-deep-learning-fall-2024/" rel="noreferrer">https://ocw.mit.edu/courses/6-7960-deep-learning-fall-2024/</a> <strong>Lecturer:</strong> Phillip Isola. Slide 1 recommends Sasha Rush's o1 tutorial. <strong>License:</strong> CC BY-NC-SA 4.0. Figures marked "All rights reserved" (OpenAI, Jones 2021, Zelikman et al.) are outside the license; the raw copy describes them. <strong>Raw copy (private study copy):</strong> <code>raw/web-2024-mit-6-7960-lec24-inference-methods.md</code> (R below): the PDF's text, plus formulas and charts read from the slide images.</p>
+<p>Claims below cite R with a slide number (PDF page). Sibling pages from the same course: <a href="source-mit-6-7960-scaling-laws-lecture.html">source-mit-6-7960-scaling-laws-lecture</a>, <a href="source-bundle-mit-6-7960-representation-learning.html">source-bundle-mit-6-7960-representation-learning</a>.</p>
+<h2 id="the-claim-plainly">The claim, plainly</h2>
+<p>Once a model is trained, you can still spend compute at answer time, either by searching over its outputs for the best one or by updating the model on the data in front of it. Search and learning feed each other: search finds better answers than the model gives on its own, training on those answers makes a better model, and the better model makes search cheaper (R, slides 3, 50–55).</p>
+<h2 id="terms">Terms</h2>
+<ul><li><strong>Inference:</strong> in statistics, learning a model from data; in ML, using a trained model to answer new queries. The lecture uses the ML sense (R, slide 2).</li><li><strong>Search:</strong> "given a model and a query, find the best answer to the query" (R, slide 3).</li><li><strong>Verifier:</strong> a program or model that checks an answer, such as running code against tests (R, slide 22).</li></ul>
+<h2 id="a-map-of-where-compute-goes">A map of where compute goes</h2>
+<p>The lecture sorts methods into three bands (R, slide 3):</p>
+<div class="tw"><table><thead><tr><th>Band</th><th>Job</th><th>Examples</th></tr></thead><tbody><tr><td>Pre-training</td><td>given data, learn a model or representation</td><td>generative modeling, representation learning</td></tr><tr><td>Post-training</td><td>given a model and new data, update the model (before deployment) or its behaviour (during it)</td><td>fine-tuning, RLHF; prompting, in-context learning, test-time training, continual learning</td></tr><tr><td>Search</td><td>given a model and a query, find the best answer</td><td>best-of-N, beam search, MCTS, chain-of-thought</td></tr></tbody></table></div>
+<p>An arrow runs from search back to training: reinforcement learning, STaR, self-instruct, self-play (R, slide 3). The Bitter Lesson's two methods that scale with compute are "search and learning" (R, slide 4). OpenAI's o1 charts show AIME accuracy rising with both train-time and test-time compute (R, slide 5). In board games, Jones (2021) found test-time and train-time compute trade off at a fixed Elo: log₁₀(test) = −1.2 · log₁₀(train) + 0.004 · Elo + 29 (R, slide 9).</p>
+<h2 id="key-points">Key points</h2>
+<p><strong>Decoding is a search problem.</strong> An autoregressive model trained by maximum likelihood with teacher forcing, each next token predicted from the true previous tokens, assigns a probability to every sequence (R, slides 12–14). Sampling or greedy decoding picks one token at a time; greedy decoding takes the most likely next token each step, which need not give the most likely whole sequence, because the best first token need not start the best sequence (R, slides 15–16).</p>
+<p><strong>Simple searches</strong> (R, slides 17–19):</p>
+<ul><li><em>Best-of-N:</em> sample N sequences independently and keep the one with the highest likelihood (slide 17).</li><li><em>Beam search:</em> keep the top-k partial sequences at each step, a form of tree search, then pick the most likely (slide 18).</li><li><em>Chain-of-thought:</em> "emergent/learned search", the model writing out intermediate steps (slide 19, Wei et al. 2022).</li></ul>
+<p><strong>Search for other scores.</strong> Search can maximise any scoring function, not only likelihood: the same caption candidates rank differently under a "fun-ness" scorer and a "scientific accuracy" scorer (R, slides 20–21). A verifier is one such scorer, with the key idea that "verification is easier than generation": checking that code computes Fibonacci is easier than writing it (R, slide 22). That holds where a cheap, reliable checker exists, such as unit tests or exact answers; a weak verifier lets wrong answers through, and search then amplifies them (the wiki's note).</p>
+<p><strong>Optimizing against human judgement.</strong> Generate images to maximise a score, such as CLIP similarity to a text through a VQGAN generator, or a model of human memorability (Isola's GANalyze, 2019): moving along a learned direction in the generator's latent space with strength α from −0.2 to 0.2 changes predicted memorability from 0.58 to 0.77 in one example (R, slides 26–31). Isola's "just ask" idea: chain-of-thought is "just ask for symbolic search"; prompting DALL·E with "very very … beautiful" is a crude "just ask for continuous reward optimization" (R, slides 32–40).</p>
+<p><strong>Updating the model at test time</strong> (R, slides 42–48).</p>
+<ul><li><em>In-context learning as gradient descent:</em> in certain cases a transformer's output with context c equals the output of a model whose weights took one gradient step on c (von Oswald et al. 2023; slide 43). The result (per the paper, not captured) holds for a single linear self-attention layer trained on linear-regression tasks, and the gradient step updates an implicit linear model, not the transformer's own weights. A descent step is θ − λ∇L; the slide writes θ + λ∇L. So why not run gradient descent itself at test time? It is not learned, so it is guaranteed to improve fit on the context examples and can use more compute; but ICL might be a smarter learner than gradient descent (slide 44).</li><li><em>Test-time training:</em> update the weights per test query; with few-shot examples this should help on them; with no labels, use a self-supervised task such as predicting masked parts (Sun et al. 2020; slides 45–46).</li><li><em>ARC:</em> the slide credits Akyürek et al. (2024) with 61.9% on ARC, "current SOTA" as of the lecture, "mostly with an 'old' method", gradient descent on examples highly relevant to each test query, and asks whether fancy search is needed at all (slide 48). The paper's abstract gives the conditions: ARC's public validation set (the original ARC, now called ARC-AGI-1); 53.0% with test-time training alone on an 8B model; 61.9% when ensembled with program-synthesis methods (<code>raw/arxiv-2411-07279-the-surprising-effectiveness-of-test-time.md</code>, Abstract).</li></ul>
+<p><strong>Search improves learning, learning improves search</strong> (R, slides 50–55).</p>
+<ul><li>Keep only verified answers and fine-tune on them (slides 50–51).</li><li>Games: search for winning action sequences, train a policy to make those moves, then let the policy guide the next search; AlphaGo (slides 52–53).</li><li>STaR: keep rationales that reach the right answer; for wrong ones, give the model the answer as a hint and ask it to rationalize; fine-tune on both; repeat (slide 54, Zelikman et al. 2022).</li><li>o1, as Sasha Rush speculated: search for chains of thought that solve problems, fine-tune toward them, repeat, and choose at deployment how much search to add (slide 55). Marked as speculation on the slide.</li></ul>
+<h2 id="which-component-it-bears-on">Which component it bears on</h2>
+<p>This section is the wiki's reading.</p>
+<ul><li><strong>The decoder's output distribution.</strong> The model gives a probability for each next token; decoding is a search over the tree those probabilities define. Greedy is beam search with width 1; beam search keeps k branches; best-of-N samples leaves at random. Each trades compute for a better score, under whatever scorer you choose.</li><li><strong>The verifier</strong> turns hard generation into easy checking; it is what lets search pay off and what makes the search-then-train loop safe from reinforcing wrong answers.</li><li><strong>The weights at test time.</strong> ICL changes behaviour through the activations; test-time training changes the weights. The von Oswald result says the first can act like the second in special cases (slide 43).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>A survey lecture, Fall 2024; the o1 recipe is speculation (R, slide 55).</li><li>"61.9% on ARC … current SOTA" is the slide's claim at the time; 61.9% is test-time training plus program synthesis on the public validation set, and test-time training alone gives 53.0% (<code>raw/arxiv-2411-07279-the-surprising-effectiveness-of-test-time.md</code>, Abstract; full text not captured).</li><li>The memorability numbers are one example image (R, slide 30).</li></ul>
+<h2 id="connections">Connections</h2>
+<p>Ties:</p>
+<ul><li><a href="concept-test-time-compute.html">concept-test-time-compute</a> — the hub for search at answer time; this lecture's three-band map and decoding-as-search view.</li><li><a href="source-expert-iteration.html">source-expert-iteration</a> — the wiki reads slide 52's three-step loop (search for winning moves, train a policy on them, let it guide search) as ExIt's; the lecture does not cite ExIt, and its example is AlphaGo (<code>raw/arxiv-1705-08439-thinking-fast-and-slow-with-deep.md</code>, §3).</li><li><a href="concept-test-time-training.html">concept-test-time-training</a> — test-time training as weight updates per query; the ARC result (R, slides 45–48).</li><li><a href="concept-in-context-learning.html">concept-in-context-learning</a> — ICL as an implicit gradient step in certain cases (R, slide 43).</li><li><a href="source-snell-test-time-compute-scaling.html">source-snell-test-time-compute-scaling</a> — test-time against train-time compute; Jones's board-game trade-off (R, slide 9) is the earlier game version.</li></ul>
+<p>See also:</p>
+<ul><li><a href="source-chain-of-thought-foundations.html">source-chain-of-thought-foundations</a> — chain-of-thought, which the slide calls emergent search.</li><li><a href="concept-rlvr.html">concept-rlvr</a> — training on verified answers at scale.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/web-2024-mit-6-7960-lec24-inference-methods.md</code> (slides 1–55)</li><li><code>raw/arxiv-1705-08439-thinking-fast-and-slow-with-deep.md</code> (§3)</li><li><a href="https://ocw.mit.edu/courses/6-7960-deep-learning-fall-2024/" rel="noreferrer">https://ocw.mit.edu/courses/6-7960-deep-learning-fall-2024/</a></li><li><a href="concept-test-time-compute.html">concept-test-time-compute</a> · <a href="source-expert-iteration.html">source-expert-iteration</a> · <a href="concept-test-time-training.html">concept-test-time-training</a> · <a href="concept-in-context-learning.html">concept-in-context-learning</a> · <a href="source-snell-test-time-compute-scaling.html">source-snell-test-time-compute-scaling</a> · <a href="source-chain-of-thought-foundations.html">source-chain-of-thought-foundations</a> · <a href="concept-rlvr.html">concept-rlvr</a> · <a href="source-mit-6-7960-scaling-laws-lecture.html">source-mit-6-7960-scaling-laws-lecture</a> · <a href="source-bundle-mit-6-7960-representation-learning.html">source-bundle-mit-6-7960-representation-learning</a></li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/web-2024-mit-6-7960-lec24-inference-methods.md</code></li><li><a href="https://ocw.mit.edu/courses/6-7960-deep-learning-fall-2024/" rel="noreferrer">https://ocw.mit.edu/courses/6-7960-deep-learning-fall-2024/</a></li><li><code>raw/arxiv-1705-08439-thinking-fast-and-slow-with-deep.md</code></li><li><code>raw/arxiv-2411-07279-the-surprising-effectiveness-of-test-time.md</code></li></ul></details>
+</main>
+</body>
+</html>
