@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Train an Imaginative Agent (Agima; Ge, Zhang, Chai et al., 2026) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="train-an-imaginative-agent-agima">Train an Imaginative Agent (Agima)</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-23</span> <span>updated 2026-10-23</span> <span class="tag">world-models</span> <span class="tag">planning</span> <span class="tag">agents</span> <span class="tag">multimodal</span> <span class="tag">reinforcement-learning</span> <span class="tag">grpo</span> <span class="tag">imagination</span> <span class="tag">sokoban</span> <span class="tag">2026</span></div>
+<p><strong>Authors:</strong> Jiaxin Ge, Junyi Zhang, Tianning Chai, Hanjun Yoo, Chenyang Wang, Xiuyu Li, Weijia Shi, XuDong Wang, Sewon Min, Luke Zettlemoyer, Trevor Darrell, Haiwen Feng (UC Berkeley, Impossible Research, University of Washington, Duke) <strong>Published:</strong> arXiv 2610.26845 (2026). Project page <a href="https://agima.net/" rel="noreferrer">https://agima.net/</a>; code <a href="https://github.com/Agentic-Imagination/Agima" rel="noreferrer">https://github.com/Agentic-Imagination/Agima</a> <strong>Raw copies:</strong> <code>raw/arxiv-2610-26845-train-an-imaginative-agent.md</code> (full text from the arXiv HTML; cited as R, with its section) and <code>raw/web-2026-agima-project-page.md</code> (the project page; cited as W)</p>
+<h2 id="the-claim-plainly">The claim, plainly</h2>
+<p>One model both chooses actions and draws a picture of what each action will lead to; it then plans by reading its own pictures, trying alternatives and dropping the ones that fail. Trained this way on easy puzzles, it solves harder ones more often than the same model trained to output actions alone, when it sees the real board only every few moves: gains of 5 to 43 points at K = 3 to 10. With no real frame for a whole episode, the gains shrink to 0–6 points, except 19 in Sokoban (R, Table 1). Reinforcement learning then teaches it when looking ahead is worth it (R, Abstract, §1).</p>
+<h2 id="how-it-works">How it works</h2>
+<ul><li><strong>One model, two jobs.</strong> BAGEL, an "omni" model (one model that reads and generates both text and images), is fine-tuned. It has 14B parameters, of which 7B are used for any one token ("7B active"). It learns to emit actions and predicted frames in one sequence. Each imagined frame is treated like a real observation for the next action; after execution, a real frame replaces it (R, §1, §2.1, §2.2). The training targets are frames and actions from expert solutions, not the model's own predictions (R, Appendix B.1). The loss is next-token cross-entropy on text plus the image generator's mean squared error on frames (R, §2.2).</li><li><strong>Three ways to use the pictures,</strong> taught by supervised fine-tuning (SFT: training to copy given examples) on built traces (R, §2.2; W, "How Agima imagines"):</li></ul>
+<div class="tw"><table><thead><tr><th>Mode</th><th>What it imagines</th></tr></thead><tbody><tr><td>Linear rollout</td><td>the frame after each action, then the next action from that frame</td></tr><tr><td>Counterfactual branching</td><td>at chosen steps, one alternative action and its outcome; rejects it if it fails</td></tr><tr><td>Forward thinking</td><td>two whole candidate plans; executes the one that succeeds</td></tr></tbody></table></div>
+<ul><li><strong>RL on top.</strong> GRPO with a success-or-failure reward only. It samples 8 plans per puzzle and scores each against the group's average ("group-relative"). Only the written words are trained, the choices such as "try another plan"; the generated images stay in the context but are not trained by RL (R, §2.3). GRPO is the method of <a href="concept-rlvr.html">concept-rlvr</a>.</li></ul>
+<h2 id="key-results">Key results</h2>
+<p>Tests use four environments: Maze2D, Sokoban, Pacman, PushT. Training uses an easier split (e.g. two-box Sokoban, 9×9 Pacman), testing a harder one never seen (four boxes, 12×12) (R, §3, Appendix A; W, "Environments"). K is the number of actions the agent plans and executes before it sees the real board again (R, §3.1).</p>
+<ul><li><strong>Easy to hard.</strong> At K = 5, Agima beats the same backbone trained on actions alone by 36 points in Pacman, 17 in Maze2D, 38 in Sokoban and 17 in PushT; on four-box Sokoban, 40% against 2% (R, §3.1, Table 1).</li><li><strong>The gain fades with blind horizon.</strong> At K = ∞, with no real frame during the episode, Sokoban falls to 19% and Maze2D to 3% (R, Table 1). The authors say both absolute success and the edge over action-only planning shrink (R, §3.1).</li><li><strong>It reads its own pictures.</strong> At K = 5, replace the imagined frames with grey ones, or with the last real frame ("stale"), and success collapses: Sokoban 40% → 1% and 0%. With true frames instead, Sokoban rises only to 43%, but Pacman goes 37% → 81%, Maze2D 40% → 69% and PushT 18% → 47% (R, §3.1, Table 2). So the agent uses the content, and better predictions would help most outside Sokoban.</li><li><strong>Looking ahead helps on traps.</strong> On Sokoban "Deadlock" levels, where a fair-looking push dooms the puzzle, forward thinking lifts two-box success from 22% to 60%; branching lifts four-box "Structural Fork" success from 22% to 32%; a Structural Fork level offers two legal pushes, one of which makes the puzzle unsolvable (W, "Planning traps"). On Pacman route-order traps, forward thinking lifts 8×8 grid, 4-food success from 22% to 54% (R, §3.2, Table 3).</li><li><strong>A big closed model wins one trap set.</strong> Gemini 3.1 Pro scores 74% on two-box Deadlock, above Agima's best of 60%. On two-box Fork it scores 84%, against 87% for Agima-A7B and 93% with forward thinking. At three and four boxes it loses: 42% and 19% on Deadlock, 34% and 7% on Fork, against Agima's best of 48% and 32%, 46% and 32% (R, Table 3a). In the main easy-to-hard table, Gemini 3.1 Pro and GPT-5.6 Sol score near zero on Pacman and PushT (R, Table 1).</li><li><strong>RL improves success.</strong> Over 200 RL steps on three-box Sokoban, pooled success on the four held-out trap sets rises from 30.3% to 41.0% with forward thinking and from 30.0% to 50.3% with branching, while the number of imagined actions per episode falls (R, Appendix C.3, Table 9). Sokoban only.</li><li><strong>RL makes imagination selective.</strong> A format grows that was never in the training data: roll out one plan, and draft another only if the first is predicted to fail. Before RL the model used it in 4–7% of episodes; from RL step 100, almost every comparison uses it (R, Appendix C.1, Table 7). When a second plan is drafted, the first was predicted to fail in 100% of cases after RL, against 32–58% before, depending on the set (32% on three-box Deadlock) (R, §4, Table 7). Branches per episode rise from 1.70 to 1.95 at RL step 150, and 1.89 at step 200 (R, Appendix C.2). More branches land on critical steps, where one wrong push makes the puzzle unsolvable: 63% to 73% for three boxes (W, Figure 10).</li><li><strong>RL without imagination does not transfer.</strong> The action-only model's training reward rises from near zero to about 15%, but its held-out trap accuracy stays near zero (R, §4, Figure 4).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>Toy grid worlds and one 2D push task; no real-world or 3D test.</li><li>The agent sometimes judges a plan a success when its execution fails (R, Appendix D.7).</li><li>RL ran 200 steps on one environment, Sokoban (R, §4).</li><li>Large compute: a 14B-parameter backbone; the paper states no hardware.</li><li>Gemini 3.1 Pro and GPT-5.6 Sol were not fine-tuned on the task; they form Table 1's "Closed" group (R, §3.1, Table 1), so the comparison with them is loose.</li></ul>
+<h2 id="connections">Connections</h2>
+<p>Ties:</p>
+<ul><li><a href="concept-world-models.html">concept-world-models</a> — on the question of searching at decision time versus training a policy that acts at once, Agima searches at decision time, inside its own output.</li><li><a href="source-rap-reasoning-planning.html">source-rap-reasoning-planning</a> — RAP already uses one LLM as both agent and world model, with an outside tree search over text states. What is new here: the predictions are pixels, and the search is written inside the model's own output rather than run by outside code (R, §5).</li><li><a href="concept-rlvr.html">concept-rlvr</a> — GRPO with a binary task reward; here RL changes when the agent looks ahead.</li></ul>
+<p>See also (surface or contrast only):</p>
+<ul><li><a href="source-dreamer-4.html">source-dreamer-4</a> — also trains in imagination, but imagines to train a policy offline, not to plan at decision time.</li><li><a href="source-leworldmodel.html">source-leworldmodel</a> — plans PushT in a small latent model; Agima plans PushT in pixels with a large model; the setups differ too much to compare.</li><li><a href="concept-test-time-compute.html">concept-test-time-compute</a> — imagined frames are test-time compute spent on pictures rather than text.</li><li><a href="concept-multimodal.html">concept-multimodal</a> — an omni model that generates images as part of its reasoning.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2610-26845-train-an-imaginative-agent.md</code></li><li><code>raw/web-2026-agima-project-page.md</code></li><li><a href="https://arxiv.org/abs/2610.26845" rel="noreferrer">https://arxiv.org/abs/2610.26845</a></li><li><a href="https://agima.net/" rel="noreferrer">https://agima.net/</a></li><li><a href="https://github.com/Agentic-Imagination/Agima" rel="noreferrer">https://github.com/Agentic-Imagination/Agima</a></li><li><a href="concept-world-models.html">concept-world-models</a> · <a href="source-rap-reasoning-planning.html">source-rap-reasoning-planning</a> · <a href="source-dreamer-4.html">source-dreamer-4</a> · <a href="source-leworldmodel.html">source-leworldmodel</a> · <a href="concept-test-time-compute.html">concept-test-time-compute</a> · <a href="concept-rlvr.html">concept-rlvr</a> · <a href="concept-multimodal.html">concept-multimodal</a></li></ul>
+<details class="src"><summary>Sources (5)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2610-26845-train-an-imaginative-agent.md</code></li><li><code>raw/web-2026-agima-project-page.md</code></li><li><a href="https://arxiv.org/abs/2610.26845" rel="noreferrer">https://arxiv.org/abs/2610.26845</a></li><li><a href="https://agima.net/" rel="noreferrer">https://agima.net/</a></li><li><a href="https://github.com/Agentic-Imagination/Agima" rel="noreferrer">https://github.com/Agentic-Imagination/Agima</a></li></ul></details>
+</main>
+</body>
+</html>

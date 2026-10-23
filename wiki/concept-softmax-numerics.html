@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Softmax Numerics · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="softmax-numerics">Softmax Numerics</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-10-23</span> <span>updated 2026-10-23</span> <span class="tag">softmax</span> <span class="tag">cross-entropy</span> <span class="tag">floating-point</span> <span class="tag">numerical-stability</span> <span class="tag">adam</span> <span class="tag">grokking</span> <span class="tag">distillation</span></div>
+<p>Softmax turns a list of scores (logits) into probabilities that sum to 1; cross-entropy is the loss on them. On paper the gradient of cross-entropy with respect to the logits is simply q − p, predicted minus target, and its entries sum to zero (<code>raw/arxiv-2610-31642-a-fix-for-softmax-and-cross.md</code>, §1). In floating point, rounding can break that. This page collects what the wiki's sources say about where and why.</p>
+<h2 id="the-standard-trick-and-what-it-leaves">The standard trick and what it leaves</h2>
+<p>Computers store these numbers in floating point. bf16, fp32 and fp64 are 16-, 32- and 64-bit formats; more bits give finer steps between neighbouring numbers. In fp32, e^z is larger than the biggest number the format can hold once z passes about 88, and it becomes infinity. So every framework subtracts the largest logit first, which leaves the top logit at 0 and all others negative (<code>raw/arxiv-2610-31642-a-fix-for-softmax-and-cross.md</code>, §1, Eq. 1). Two rounding faults remain.</p>
+<p>Both depend on the <strong>margin</strong> m: the top logit minus the log-sum-exp of the other logits, roughly how far the top choice leads (same file, Eq. 2). After the shift, the softmax's sum is 1 + e^(−m). Floating point has fine steps near 0, down to about 1e-38 in fp32, but coarse ones near 1: anything under about 1e-7 added to 1.0 is lost (same file, §1). So past a margin the authors call the <strong>precision cliff</strong>, about 5.5 in bf16, 16.6 in fp32 and 36.7 in fp64, the sum rounds to exactly 1 (same file, §1–2, Figure 1a).</p>
+<div class="tw"><table><thead><tr><th>Fault</th><th>When</th><th>What goes wrong</th><th>Source</th></tr></thead><tbody><tr><td>Softmax Collapse</td><td>the margin passes the precision cliff</td><td>1 + e^(−m) rounds to 1; loss and top-class gradient become exactly zero; other gradients stay positive, so the sum is no longer zero</td><td><a href="source-grokking-softmax-collapse.html">source-grokking-softmax-collapse</a> named it (<code>raw/arxiv-2501-04697-grokking-at-the-edge-of-numerical.md</code>, §3.1); <a href="source-barron-softmax-fix.html">source-barron-softmax-fix</a> measured the cliffs (<code>raw/arxiv-2610-31642-a-fix-for-softmax-and-cross.md</code>, §1–2, Figure 1a)</td></tr><tr><td>Softmax Cancellation</td><td>soft targets from a teacher whose logits are close to the student's</td><td>subtracting two nearly equal probabilities loses the difference; forward and backward formulas differ, so the gradient is non-zero even when student equals teacher</td><td><a href="source-barron-softmax-fix.html">source-barron-softmax-fix</a> (same file, §3, Figure 1b)</td></tr></tbody></table></div>
+<h2 id="why-an-optimiser-cares">Why an optimiser cares</h2>
+<p>Adam rescales each gradient to about size 1 unless it is below ε, so even tiny gradients give full steps (<code>raw/arxiv-2610-31642-a-fix-for-softmax-and-cross.md</code>, §4–5, Eq. 10). That turns both faults into real damage:</p>
+<ul><li>Collapse → "slingshot" spikes in grokking: gradients vanish past the cliff, Adam's running estimate of their size decays, then returning gradients produce oversized steps (same file, §4).</li><li>Cancellation → drift in distillation: a student that starts equal to its teacher walks away in bf16 (same file, §7).</li></ul>
+<p>Weight decay and ε together cap how far the margin grows. Once the gradient falls below ε, Adam's step shrinks with it, as e^(−m); weight decay keeps pulling the weights back; the margin stops where the two balance, near log(1/ε): 18.4 for the default ε = 1e-8, just past the fp32 cliff (same file, §5, Eq. 10–11). Prieto et al. saw the other side: an ε too large can halt learning at very low losses (<code>raw/arxiv-2501-04697-grokking-at-the-edge-of-numerical.md</code>, Appendix I).</p>
+<h2 id="remedies-compared">Remedies compared</h2>
+<p>The test task, a + b mod 31, asks a small network to add two numbers from 0 to 30 and keep the remainder after dividing by 31; it is a standard toy task for grokking (<code>raw/arxiv-2610-31642-a-fix-for-softmax-and-cross.md</code>, §6).</p>
+<div class="tw"><table><thead><tr><th>Remedy</th><th>Idea</th><th>Result on a + b mod 31, ε = 1e-8</th><th>Source</th></tr></thead><tbody><tr><td>Train in fp64</td><td>move the cliff to 36.7</td><td>(fp64) 100.0 ± 0.0%; drops to 97.2 ± 3.2% at ε = 1e-16</td><td><code>raw/arxiv-2610-31642-a-fix-for-softmax-and-cross.md</code>, Table 1</td></tr><tr><td>StableMax</td><td>replace e^x with a ramp that grows linearly</td><td>(fp32) 97.3 ± 4.7%; margins reach thousands</td><td>Prieto et al., §3.3; Barron et al., Table 1</td></tr><tr><td>⊥Grad</td><td>drop the part of each update that only scales the weights up</td><td>removes the delay on subtraction mod 113 (not in Barron's table)</td><td><code>raw/arxiv-2501-04697-grokking-at-the-edge-of-numerical.md</code>, §5.1</td></tr><tr><td>Zero-sum projection (Liu et al., 2026)</td><td>subtract the mean gradient so the entries sum to zero</td><td>(fp32) 97.9 ± 3.2%; below 50% at ε ≤ 1e-12</td><td>Barron et al., Table 1 (arXiv 2605.06152; not in raw)</td></tr><tr><td>Log-space rewrite</td><td>never add 1 to a tiny number; use softplus(x) = log(1 + e^x), expm1(x) = e^x − 1 and log1p(x) = log(1 + x), library functions that stay accurate when the answer is near 0</td><td>100.0 ± 0.1% in bf16, 100.0 ± 0.0% in fp32 and fp64</td><td>Barron et al., §2–3, Table 1</td></tr></tbody></table></div>
+<p>The rows come from different papers' settings except where Barron et al.'s Table 1 is cited.</p>
+<p>Superseded, 2026-10-23: <a href="source-grokking-softmax-collapse.html">source-grokking-softmax-collapse</a> said "the loss rounds to exactly zero, and so does the gradient from that example"; <a href="concept-grokking.html">concept-grokking</a>'s table said float32 rounds "the loss and its gradient" to zero. Only the correct class's gradient does; the others stay, as Prieto et al. state in §3.1 and Appendix B.1 (<code>raw/arxiv-2501-04697-grokking-at-the-edge-of-numerical.md</code>), though their Figure 2 caption speaks loosely of "the gradient from a large fraction of the samples" going to zero; Barron et al. build on it (<code>raw/arxiv-2610-31642-a-fix-for-softmax-and-cross.md</code>, §2, Eq. 4).</p>
+<h2 id="open-questions">Open questions</h2>
+<ul><li>Does any of this matter at scale? Barron et al. call the extreme margins "uncommon in standard large-scale training" (§8); Prieto et al.'s remedies gave no clear gain on ResNet18 or GPT-2 small (Appendix G).</li><li>A grokking run with full-batch AdamW, default ε = 1e-8, weight decay and standard fp32 cross-entropy is the setting where Barron et al. report slingshot spikes (§4–5). Any loss swings after grokking in such a run can be checked by logging the margin against 16.6.</li><li>2026-10-23: one such run exists. Vincent's local experiment 03 trained a one-layer transformer on (a + b) mod 97 with full-batch AdamW (learning rate 1e-3, betas 0.9 and 0.98, weight decay 1.0, no LayerNorm) (<code>compass/experiments/03-grokking/RESULTS.md</code>, "Config"); ε and the number format are left at PyTorch's defaults, 1e-8 and float32 (<code>compass/experiments/03-grokking/run.py</code>). After grokking, train and test loss both "oscillate hard", "swinging over an order of magnitude from one eval to the next", which the run did not predict (same file, "Verdict vs pre-registration"). That is the setting where Barron et al. report slingshot spikes (<code>raw/arxiv-2610-31642-a-fix-for-softmax-and-cross.md</code>, §4–5). The link is untested: nobody logged the margin against the fp32 cliff of about 16.6, so the swings may have another cause.</li></ul>
+<h2 id="key-sources">Key sources</h2>
+<ul><li><a href="source-barron-softmax-fix.html">source-barron-softmax-fix</a> · <a href="source-grokking-softmax-collapse.html">source-grokking-softmax-collapse</a></li><li>Related: <a href="concept-grokking.html">concept-grokking</a> · <a href="concept-knowledge-distillation.html">concept-knowledge-distillation</a> · <a href="concept-quantization.html">concept-quantization</a></li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>compass/experiments/03-grokking/RESULTS.md</code> ("Config", "Verdict vs pre-registration")</li><li><code>compass/experiments/03-grokking/run.py</code></li><li><code>raw/arxiv-2610-31642-a-fix-for-softmax-and-cross.md</code></li><li><code>raw/arxiv-2501-04697-grokking-at-the-edge-of-numerical.md</code></li><li>Liu et al., 2026: <a href="https://arxiv.org/abs/2605.06152" rel="noreferrer">https://arxiv.org/abs/2605.06152</a> (not in raw)</li><li><a href="source-barron-softmax-fix.html">source-barron-softmax-fix</a> · <a href="source-grokking-softmax-collapse.html">source-grokking-softmax-collapse</a> · <a href="concept-grokking.html">concept-grokking</a> · <a href="concept-knowledge-distillation.html">concept-knowledge-distillation</a> · <a href="concept-quantization.html">concept-quantization</a></li></ul>
+<details class="src"><summary>Sources (5)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>compass/experiments/03-grokking/RESULTS.md</code></li><li><code>compass/experiments/03-grokking/run.py</code></li><li><code>raw/arxiv-2610-31642-a-fix-for-softmax-and-cross.md</code></li><li><code>raw/arxiv-2501-04697-grokking-at-the-edge-of-numerical.md</code></li><li><a href="https://arxiv.org/abs/2605.06152" rel="noreferrer">https://arxiv.org/abs/2605.06152</a></li></ul></details>
+</main>
+</body>
+</html>

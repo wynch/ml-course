@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>How I Learned to Stop Worrying and Love StopGrads (Shen, Goldstein, Wang, Puli, Ranganath, 2026) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="stopgrad-regression-when-stop-gradient-training-lands-where-it-should">Stopgrad regression: when stop-gradient training lands where it should</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-23</span> <span>updated 2026-10-23</span> <span class="tag">stop-gradient</span> <span class="tag">optimization</span> <span class="tag">theory</span> <span class="tag">flow-maps</span> <span class="tag">diffusion</span> <span class="tag">generative-models</span> <span class="tag">reinforcement-learning</span> <span class="tag">self-distillation</span> <span class="tag">2026</span></div>
+<p><strong>Authors:</strong> Max W. Shen (Frontiers Research; Prescient Design, Genentech), Mark Goldstein (Flatiron Institute), Zichu Wang (MIT), Aahlad Puli and Rajesh Ranganath (NYU) <strong>Published:</strong> arXiv 2609.16222, v1 2026-09-14 <strong>Raw copy:</strong> <code>raw/arxiv-2609-16222-how-i-learned-to-stop-worrying.md</code> (full text of v1 from the arXiv HTML; cited as R, with its section)</p>
+<h2 id="terms">Terms</h2>
+<ul><li><strong>Stop-gradient (stopgrad, <code>detach</code>).</strong> An operation that passes a value forward unchanged but blocks the gradient on the way back, so the model is trained as if that copy of itself were a fixed number (R, §1, §2, Eq. 1).</li><li><strong>Semi-gradient.</strong> The update you get when part of the loss is behind a stop-gradient. It is generally not the gradient of the original loss, and may not be the gradient of any loss at all, so updates can in principle circle forever (R, §1, Definition 2). The term comes from reinforcement learning's TD learning (R, §2).</li><li><strong>Stationary point.</strong> A model at which the update is zero, so training stops changing it (R, Definition 3).</li><li><strong>Flow map.</strong> For a diffusion-style generator, a network that takes a point at one time to where it lands at a later time along the generator's path, so samples take one or a few steps instead of many (R, §4, Eq. 12). MeanFlow, improved MeanFlow, and Eulerian and Lagrangian self-distillation (ESD, LSD) are recipes for training one; each puts stop-gradients in different places (R, §4.1–4.4).</li></ul>
+<h2 id="the-claim-plainly">The claim, plainly</h2>
+<p>A common kind of stop-gradient loss trains a model to match a target built partly from the model itself ("regresses onto" it: squared error between model output and target). The "labels" are the data part of the target; for flow maps, the velocities of individual training samples. When the model appears only once outside the stop-gradient and the target has a simple form (affine: a part that ignores the labels plus a part proportional to them), training can only stop where the model equals its own target, a fixed point (R, §3, Theorem 1). For four flow-map recipes, the authors prove that the only such point is the true flow map and that idealised training converges to it, after perfect pretraining for three of the four; they also move the stop-gradients in ESD and LSD, which cuts training memory about in half against the same losses without stop-gradients, and by about a third against the original placements (R, Abstract, §4, §5, §6.2, Table 2).</p>
+<p>"Idealised" matters: the proofs treat the model as an arbitrary function (infinite capacity) trained by continuous-time gradient flow, not a finite network trained by SGD (R, §8, "Limitations").</p>
+<h2 id="key-results">Key results</h2>
+<ul><li><strong>One template, several fields.</strong> The template covers flow-map losses; TD(0) and Q-learning, the reinforcement-learning methods that train a value estimate toward reward plus the model's own estimate of the next state; and adjoint matching, a method for training diffusion samplers (R, §3, Table 1, Appendix D). Taking a full step along the semi-gradient is plain fixed-point iteration of the target: f ← T[f] (R, §3, "Connection to fixed-point iteration").</li><li><strong>Uniqueness under a condition.</strong> If the label enters the target without being multiplied by anything that depends on the model ("additive label noise"), the stationary point is unique exactly when the loss reaches its noise floor at one model (R, Definition 4, Corollary 1). This holds for improved MeanFlow and the new slim ESD and LSD; it fails for MeanFlow and TD(0)/Q-learning, where uniqueness is shown separately (R, §3).</li><li><strong>MeanFlow needs its stop-gradient.</strong> With it, the true flow map is MeanFlow's unique stationary point. In the simplified MeanFlow objective without it, the true flow map is not a stationary point at all (R, §4.1, Corollary 2, Appendix F).</li><li><strong>The updates are not gradients of any loss.</strong> For MeanFlow, improved MeanFlow, slim ESD and slim LSD, the semi-gradient is not the gradient of any twice-differentiable loss, so standard optimisation theory gives no convergence guarantee (R, §5.1, Theorem 2, Corollary 6).</li><li><strong>They converge anyway, in closed form.</strong> Under idealised training, the learned flow map at training time τ is the initial map and the true map glued together at a "hand-off" time that slides from one end to the other, so it converges to the true map; under further mild conditions the error shrinks like e^(−τ) (R, §5.2, Proposition 1, Proposition 6). For improved MeanFlow, slim ESD and slim LSD this assumes perfect flow-matching pretraining first; MeanFlow is treated from scratch (R, §5.2).</li><li><strong>The formula checks out numerically.</strong> Simulated semi-gradient flow on a grid, in one to five dimensions, matches the formula with a Pearson correlation of 1.000000 over 220M points (R, §6.1, Figure 3).</li><li><strong>Slim stop-gradients: less memory, mixed image quality.</strong> On CIFAR-10 (200k steps, three seeds), slim placements need 31.2 and 26.9 GiB against 64.6 and 60.8 for ESD and LSD without stop-gradients, and 50.0 and 41.0 with the original placements (R, §6.2, Table 2). FID measures how far generated images are from real ones; lower is better. Slim ESD beats original-stopgrad ESD at every step count (e.g. 2.8 against 5.8 at 100 steps). Slim LSD matches original LSD at 10–100 steps but is worse at one step, 47.6 against 25.3 (R, Table 2). CIFAR-10 FIDs are the best over checkpoints saved every 25k steps (R, §6.2). The authors say the slim placements "match or improve" FID (R, §1); one-step LSD is the exception, worse on both CIFAR-10 and ImageNet. On ImageNet, in short ablation runs (a 90M model, 200k steps), one-step FIDs are all high: slim ESD 128.7 is the best ESD variant; slim LSD 159.5 against 152.8 for original LSD (R, §6.2, Table 3).</li></ul>
+<h2 id="caveats">Caveats</h2>
+<ul><li>The theory is for infinite capacity and continuous optimisation; finite networks and SGD "may behave differently" (R, §8).</li><li>ImageNet runs are short ablations with one-step FIDs above 128, far from good image quality (R, Table 3).</li><li>The paper does not analyse stop-gradients in self-supervised learning such as BYOL; it only cites work that does (R, §7).</li></ul>
+<h2 id="connections">Connections</h2>
+<p>Ties:</p>
+<ul><li><a href="concept-stop-gradient.html">concept-stop-gradient</a> — the hub this source opens.</li><li><a href="analysis-self-distillation-as-universal-lever.html">analysis-self-distillation-as-universal-lever</a> — lists "the student itself with stop-gradient" as one kind of teacher; slim ESD and LSD are self-distillation losses, and this paper says when such a self-teacher has the right fixed point.</li></ul>
+<p>See also (contrast or surface):</p>
+<ul><li><a href="concept-jepa.html">concept-jepa</a>, <a href="source-ssl-contrastive-foundations.html">source-ssl-contrastive-foundations</a> — stop-gradient in self-supervised learning, which this paper does not analyse.</li><li><a href="concept-diffusion-language-models.html">concept-diffusion-language-models</a> — the generator family flow maps speed up.</li><li><a href="source-flow-map-language-models.html">source-flow-map-language-models</a> — trains flow maps for text; the paper does not study its cross-entropy objectives.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2609-16222-how-i-learned-to-stop-worrying.md</code></li><li><a href="https://arxiv.org/abs/2609.16222" rel="noreferrer">https://arxiv.org/abs/2609.16222</a></li><li><a href="concept-stop-gradient.html">concept-stop-gradient</a> · <a href="source-flow-map-language-models.html">source-flow-map-language-models</a> · <a href="analysis-self-distillation-as-universal-lever.html">analysis-self-distillation-as-universal-lever</a> · <a href="concept-jepa.html">concept-jepa</a> · <a href="source-ssl-contrastive-foundations.html">source-ssl-contrastive-foundations</a> · <a href="concept-diffusion-language-models.html">concept-diffusion-language-models</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2609-16222-how-i-learned-to-stop-worrying.md</code></li><li><a href="https://arxiv.org/abs/2609.16222" rel="noreferrer">https://arxiv.org/abs/2609.16222</a></li></ul></details>
+</main>
+</body>
+</html>
