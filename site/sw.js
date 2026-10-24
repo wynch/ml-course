@@ -1,7 +1,7 @@
 // Every URL here is relative to this script, so the reader caches correctly
 // whether it is served from a domain root or from /ml-course/reader/.
 const CACHE_PREFIX = "ml-course-reader-v";
-const CACHE = `${CACHE_PREFIX}15`;
+const CACHE = `${CACHE_PREFIX}16`;
 const CORE = ["./", "./index.html", "./styles.css", "./app.js", "./course-content.js", "./manifest.webmanifest", "./offline-assets.json", "./favicon.svg", "./favicon.ico", "./apple-touch-icon.png"];
 const HOME = new URL("./", self.location).href;
 // The shell and the module list must match the latest publish whenever the
@@ -10,7 +10,7 @@ const FRESH = new Set(["./", "./index.html", "./app.js", "./course-content.js", 
 const REVALIDATE = /\.(?:html|js|css|json)$/;
 
 // Files go down a few at a time, in the order offline-assets.json lists them:
-// the shell, then explorables, quizzes and research, then lessons, then the
+// the shell, then explorables, quizzes, research and moves, then lessons, then the
 // rest. A phone that runs out of room or cuts the install short loses the tail
 // of the list, never the visualizations.
 const BATCH = 6;

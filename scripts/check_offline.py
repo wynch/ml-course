@@ -23,7 +23,7 @@ MARKDOWN_IMAGE = re.compile(r'!\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)')
 MARKDOWN_LINK = re.compile(r'(?<!!)\[[^\]]+\]\(([^)]+)\)')
 # Kept in step with VIEWABLE in build_reader.py and app.js.
 VIEWABLE = re.compile(r"\.(cfg|csv|ini|json|lock|md|py|sh|toml|txt|ya?ml|zig|zon)$", re.I)
-ASSET_ROOTS = ("explorables", "quizzes", "research")
+ASSET_ROOTS = ("explorables", "quizzes", "research", "moves")
 
 
 def normalize(path: str) -> str:
@@ -124,8 +124,8 @@ def check_links(reader: Path) -> int:
 
 
 # The service worker warms offline-assets.json in this order; explorables,
-# quizzes and research must come straight after the shell.
-OFFLINE_GROUPS = ["core", "explorables", "quizzes", "research", "lessons", "rest"]
+# quizzes, research and moves must come straight after the shell.
+OFFLINE_GROUPS = ["core", "explorables", "quizzes", "research", "moves", "lessons", "rest"]
 OFFLINE_BLOB = re.compile(r"\.(bin|ckpt|gguf|npz|pt|pth|safetensors)$|(^|/)uv\.lock$|\.lock$")
 # What a phone has to hold; the old list was 127 MB.
 OFFLINE_MAX_MB = 100
@@ -147,7 +147,7 @@ def check_offline_list(reader: Path) -> list[str]:
         raise RuntimeError("offline asset list repeats entries")
     listed = set(assets)
 
-    for root in ("explorables", "quizzes", "research"):
+    for root in ("explorables", "quizzes", "research", "moves"):
         pages = sorted(
             path.relative_to(reader).as_posix() for path in (reader / root).rglob("*.html")
         )
@@ -252,6 +252,7 @@ def check_reader() -> None:
         reader / "research" / "why-atlas.html",
         reader / "research" / "jepa-field-map.html",
         reader / "research" / "assets" / "fonts.css",
+        reader / "moves" / "index.html",
         reader / "favicon.svg",
         reader / "favicon.ico",
         reader / "apple-touch-icon.png",
@@ -278,6 +279,7 @@ def check_reader() -> None:
         *(reader / "explorables").glob("*.html"),
         *quizzes,
         *(reader / "research").glob("*.html"),
+        *(reader / "moves").glob("*.html"),
     ]:
         text = html.read_text()
         parser = DependencyParser()

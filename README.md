@@ -350,6 +350,14 @@ research, all built around one question: *why* does this work?
 They are plain HTML with self-hosted fonts and no runtime network calls, and the
 reader bundles them, so they work offline at `reader/research/`.
 
+### One Hundred Moves
+
+[`moves/index.html`](moves/index.html) summarises the field in one scroll: a
+field of 420 points reshapes itself through a hundred moves, one short card
+each, laid out for a phone first. It is a single HTML file with no network
+calls; it borrows the research fonts and the reader bundles it at
+`reader/moves/`.
+
 ---
 
 ## Toolchain

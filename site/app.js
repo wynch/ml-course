@@ -15,7 +15,7 @@
     { name: "Using models well", blurb: "Spend tokens on reasoning, tune the prompt like a weight, fetch the right passage, make a model smaller, and train one with fewer bits." },
     { name: "Acting and planning", blurb: "Learn from reward, plan inside a model of the world, train a language model against a checker, evolve programs with a language model and a checker, and learn a world model from pixels." },
   ];
-  const ASSET_ROOTS = ["explorables", "quizzes", "research"];
+  const ASSET_ROOTS = ["explorables", "quizzes", "research", "moves"];
   // Pages serves source files as application/octet-stream, so a direct link
   // downloads them. build_reader.py writes a readable <name>.html beside every
   // file with one of these extensions; this mirrors that rule.
@@ -322,6 +322,7 @@
         }).join("")}</div></section>`).join("")}
       <section class="offline-promise"><div class="offline-glyph" aria-hidden="true">↯</div><div><span class="eyebrow">Designed for the train, plane, and bad Wi-Fi</span><h2>The reading layer fits in your pocket.</h2><p>Every lesson, figure, source file, and interactive explainer is packaged locally. Optional core and full lab packs add the runtimes, datasets, and model weights you choose.</p></div><button class="secondary-button" data-route="offline">Set up offline use</button></section>
       <section class="offline-promise research-promise"><div class="offline-glyph" aria-hidden="true">?</div><div><span class="eyebrow">Research companion · works offline too</span><h2>Ask why, then follow it into current research.</h2><p>Hidden Patch is eighteen chapters on JEPA, collapse, generalization, interpretability, world models, edge AI and artificial life, each with live labs and a quiz. The Why Atlas and the JEPA field map sit beside it.</p></div><a class="secondary-button" href="${BASE}research/index.html">Open the research pages</a></section>
+      <section class="offline-promise research-promise"><div class="offline-glyph" aria-hidden="true">∴</div><div><span class="eyebrow">One Hundred Moves · works offline too</span><h2>The whole field in one scroll.</h2><p>One field of 420 points reshapes itself a hundred times, from a line that learns to a planner that imagines. Built for a phone.</p></div><a class="secondary-button" href="${BASE}moves/index.html">Start scrolling</a></section>
     </main>`;
   }
 
@@ -360,7 +361,7 @@
 
   // The Offline packs page counts what this device has saved, against the
   // list the service worker warms (offline-assets.json), and can fetch what is
-  // missing in the same priority order: explorables, quizzes, research, lessons.
+  // missing in the same priority order: explorables, quizzes, research, moves, lessons.
   const CACHE_PREFIX = "ml-course-reader-v";
   const SAVE_BATCH = 6;
   let saving = false;
@@ -413,6 +414,7 @@
         ["interactive explainers", tally(pagesOf("explorables"))],
         ["quizzes", tally(pagesOf("quizzes"))],
         ["research pages", tally(pagesOf("research"))],
+        ["scroll summary", tally(urls("moves").filter((path) => path.endsWith(".html")))],
         ["lessons with their figures", {
           saved: textSaved ? lessonIds.filter((id) => manifest.lessons[id].every(has)).length : 0,
           total: lessonIds.length,

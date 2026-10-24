@@ -322,10 +322,10 @@ BLOB_SUFFIXES = {
     ".bin", ".ckpt", ".gguf", ".h5", ".npy", ".npz", ".onnx", ".pkl",
     ".pickle", ".pt", ".pth", ".safetensors",
 }
-# Warm order. Explorables, quizzes and research come straight after the shell,
+# Warm order. Explorables, quizzes, research and moves come straight after the shell,
 # so a phone that runs out of room or cuts the install short loses the long
 # tail of source files, never the visualizations.
-OFFLINE_GROUPS = ("core", "explorables", "quizzes", "research", "lessons", "rest")
+OFFLINE_GROUPS = ("core", "explorables", "quizzes", "research", "moves", "lessons", "rest")
 # Reader paths under content/ map back to these source folders and files.
 CONTENT_SOURCES = ("modules", "docs", "offline")
 MARKDOWN_IMAGE = re.compile(r'!\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)')
@@ -351,7 +351,7 @@ def tracked_files() -> set[str] | None:
 def source_of(asset: str) -> str | None:
     """The tracked source path a copied reader file came from, if any."""
     parts = asset.split("/")
-    if parts[0] in ("explorables", "quizzes", "research"):
+    if parts[0] in ("explorables", "quizzes", "research", "moves"):
         return asset
     if parts[0] == "content":
         rest = "/".join(parts[1:])
@@ -368,7 +368,7 @@ def referenced_assets(root: Path, payload: dict) -> set[str]:
         for source in MARKDOWN_IMAGE.findall(page["markdown"]):
             if not re.match(r"^(https?:|data:|/)", source):
                 found.add(f"content/{normalize(f'{base}/{source}')}")
-    for folder in ("explorables", "quizzes", "research"):
+    for folder in ("explorables", "quizzes", "research", "moves"):
         for html in (root / folder).rglob("*.html"):
             directory = html.parent.relative_to(root).as_posix()
             for href in PAGE_REFERENCE.findall(html.read_text()):
@@ -429,7 +429,7 @@ def offline_group(asset: str, lesson_files: set[str]) -> str:
     top = asset.split("/")[0]
     if "/" not in asset or top == "learnkit":
         return "core"
-    if top in ("explorables", "quizzes", "research"):
+    if top in ("explorables", "quizzes", "research", "moves"):
         return top
     if asset in lesson_files:
         return "lessons"
@@ -496,7 +496,7 @@ def offline_manifest(root: Path, payload: dict, views: set[Path]) -> dict:
         for module, figures in lessons.items()
     }
     # Within a group, pages first, so a half-finished group still opens.
-    for group in ("explorables", "quizzes", "research"):
+    for group in ("explorables", "quizzes", "research", "moves"):
         groups[group].sort(key=lambda asset: (not asset.endswith(".html"), asset))
     groups["lessons"].sort(key=lambda asset: (not asset.endswith("README.md.html"), asset))
     return {
@@ -728,6 +728,9 @@ def main() -> None:
     # The research companion links back with ../index.html, which lands on the
     # reader home here and on the course home on the site.
     copy_filtered(ROOT / "research", READER / "research")
+    # One Hundred Moves, the scroll summary, loads the research fonts as
+    # ../research/assets/ and links home with ../index.html, like the research pages.
+    copy_filtered(ROOT / "moves", READER / "moves")
     # Explorables and quizzes from module 34 on load the vendored learnkit as
     # ../learnkit/, so it sits beside them at the reader root.
     copy_filtered(ROOT / "learnkit", READER / "learnkit")
