@@ -1,7 +1,7 @@
 // Every URL here is relative to this script, so the reader caches correctly
 // whether it is served from a domain root or from /ml-course/reader/.
 const CACHE_PREFIX = "ml-course-reader-v";
-const CACHE = `${CACHE_PREFIX}14`;
+const CACHE = `${CACHE_PREFIX}15`;
 const CORE = ["./", "./index.html", "./styles.css", "./app.js", "./course-content.js", "./manifest.webmanifest", "./offline-assets.json", "./favicon.svg", "./favicon.ico", "./apple-touch-icon.png"];
 const HOME = new URL("./", self.location).href;
 // The shell and the module list must match the latest publish whenever the

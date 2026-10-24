@@ -1,0 +1,19 @@
+{
+ "written": "2026-10-24, before any of the runs in results/runs/ and before random_search.py existed",
+ "seen_before_writing": [
+  "first fit and best fit on the three instance sets: evolve 5.340% and 4.781% over L1, held-out 4.854% and 4.382%, shift 5.409% and 5.012%",
+  "one batch of 4 replies to the seed prompt (two cut at 512 tokens or returning -inf, which led us to allow infinite scores and ask for short code), and a 12-candidate smoke run of evolve (seed 99), deleted: 11 of 12 children valid, 10 of them behaving exactly like best fit"
+ ],
+ "budget": "400 sampled candidates per run, one evaluator call each except exact repeats; 4 replies per prompt",
+ "expectations": {
+  "E1": "evolve: the best program's excess on the evolve set is below best fit's 4.781% in every one of 3 seeds, and the mean of the 3 is at most 4.30%.",
+  "E2": "evolve beats noselect (same budget, always the two seed parents) on the evolve set by at least 0.2 points, mean of 3 seeds each.",
+  "E3": "evolve beats random search over a small expression grammar (same budget, no LLM) on the evolve set by at least 0.2 points, mean of 3 seeds each.",
+  "E4": "Held-out (10 new Weibull instances): each evolve seed's best program keeps at least half of its evolve-set gain over best fit (best fit held-out 4.382%).",
+  "E5": "Shift (uniform sizes 20-100, capacity 150): the evolve programs' gain over best fit (5.012%) is smaller than on held-out, or reverses, for at least 2 of 3 seeds.",
+  "E6": "noverifier: in at least 2 of 3 seeds the program the loop ends with is worse than best fit on the evolve set or fails to run, and at least 20% of its children fail (screen, crash, timeout, invalid or no function).",
+  "E7": "evolve: at least 60% of sampled children are valid programs (status valid).",
+  "E8": "evolve: exact code repeats (after dropping comments and docstrings) are under 10% of sampled candidates.",
+  "E9": "evolve_flat (cluster choice uniform instead of by score, seed 0 only): its best evolve-set excess is worse than the evolve mean."
+ }
+}

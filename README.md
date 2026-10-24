@@ -95,16 +95,18 @@ flowchart TD
         M19["19 · scaling laws"]
         M20["20 · in-context learning"]
     end
-    subgraph U["Using models well · 21–23, 28"]
+    subgraph U["Using models well · 21–23, 28, 34"]
         M22["22 · reasoning at test time"]
+        M34["34 · prompts as parameters"]
         M21["21 · retrieval and memory"]
         M23["23 · compression"]
         M28["28 · fewer bits, trained in"]
     end
-    subgraph A["Acting and planning · 24–26, 31"]
+    subgraph A["Acting and planning · 24–26, 31, 35"]
         M24["24 · reinforcement learning"]
         M25["25 · world models and planning"]
         M26["26 · RL with a checker"]
+        M35["35 · evolution with an LLM"]
         M31["31 · a world model from pixels"]
     end
     O -.-> F
@@ -120,8 +122,8 @@ flowchart TD
     M14 --> M15 --> M16 -.-> M29 --> M30
     M17 -.-> M18 --> M27
     M19 --> M20
-    M22 -.-> M21 -.-> M23 --> M28
-    M24 --> M25 --> M26 -.-> M31
+    M22 --> M34 -.-> M21 -.-> M23 --> M28
+    M24 --> M25 --> M26 --> M35 -.-> M31
 
     classDef track fill:#eef,stroke:#88a,color:#113;
     classDef origins fill:#fdf2df,stroke:#a86b0e,color:#4a2f05;
@@ -151,17 +153,20 @@ from token to token, and writes to that state with the delta rule. It needs
 track 2. **Why they work** fits the
 curves that plan big models, then trains a small transformer that learns a
 task from the examples in its prompt. It needs track 2. **Using models well**
-spends more tokens on each question, fetches the right passage for the model
-to read, makes a model smaller, then trains one with ternary weights; read
-22, then 21, then 23, then 28. It needs track 2. **Acting and planning**
+spends more tokens on each question, tunes the prompt of a frozen model as
+if it were a weight, fetches the right passage for the model to read, makes
+a model smaller, then trains one with ternary weights; read 22, then 34,
+then 21, then 23, then 28. It needs track 2. **Acting and planning**
 learns from reward instead of labels, plans inside a learned model of the
 world, trains a language model against a program that checks its answers,
+lets a language model propose programs that a checker keeps or throws out,
 and learns a world model from pixels. It needs track 1; module 25 also uses
-module 16's JEPA, and module 26 uses modules 17 and 22.
+module 16's JEPA, module 26 uses modules 17 and 22, and module 35 uses
+modules 22 and 26.
 
 The suggested order runs track by track: after module 10 comes 33; after 13,
-32; after 16, 29 and 30; after 18, 27; then 19, 20, 22, 21, 23, 28, 24, 25,
-26, 31.
+32; after 16, 29 and 30; after 18, 27; then 19, 20, 22, 34, 21, 23, 28, 24,
+25, 26, 35, 31.
 
 ---
 
@@ -221,18 +226,27 @@ want to know where an idea came from.
 | 31 | [world-model-from-pixels](modules/31-world-model-from-pixels) | A small **JEPA world model** trained end to end on frames with **SIGReg**; planning by random shooting and **CEM**; PLDM's terms on module 25's grid. |
 | 32 | [is-the-explanation-real](modules/32-is-the-explanation-real) | **SAEs** and **transcoders** on a model whose true neurons are known, against a **random-weight copy** and a second seed; an **attribution graph** checked by ablation. |
 | 33 | [text-by-denoising](modules/33-text-by-denoising) | The char-GPT without its causal mask, trained as a **masked diffusion** model beside an autoregressive twin; **block diffusion** with a KV cache; **flow matching** on the spiral. |
+| 34 | [prompts-as-parameters](modules/34-prompts-as-parameters) | The instruction of a frozen Qwen3-1.7B tuned like a weight: **APE**, **OPRO**, a **TextGrad**-style step and a **GEPA**-style loop by hand, one budget, seeds and a held-out split; then **DSPy**'s GEPA. |
+| 35 | [evolution-with-an-llm-mutator](modules/35-evolution-with-an-llm-mutator) | A **FunSearch-style loop** on online bin packing: islands, parents by score, a local **Qwen3-4B** as mutator, a sandboxed checker with dedupe; against random search, sampling with no selection, a loop with **no verifier**, and **OpenEvolve**. |
 
 ---
 
 ## Explorables
 
-All thirty-seven modules — the three Origins modules, the thirty-three numbered ones and the
+All thirty-nine modules — the three Origins modules, the thirty-five numbered ones and the
 evaluation bridge — ship an **interactive, in-browser
 explainer**: a single HTML file with no dependencies, no build step and no
 network calls. Where a module
 produced real artifacts (trained weights, merge lists, attention matrices,
 measured timings), its explorable inlines them, so what you drag and scrub is
 the same data your own runs produce.
+
+Modules 34 and 35 build theirs, and their quizzes, from **learnkit**, a small
+kit of web components copied into `learnkit/` (its `VERSION` file
+names the commit): slides (`<lk-deck>`), a guess before the answer
+(`<lk-predict>`), a replay of a recorded run (`<lk-stepper>`) and a quiz read
+from JSON (`<lk-quiz>`), whose missed questions come back on later days. They
+still make no network calls.
 
 Serve the repo root and open the gallery:
 
@@ -280,14 +294,16 @@ python3 -m http.server        # then browse to
 | [A world model from pixels](explorables/31-world-model-from-pixels.html) | 31 | Drop the agent and the goal, see the planner's cost over the rooms, and watch CEM's imagined paths narrow round by round; switch PLDM's terms on module 25's grid. |
 | [Is the explanation real?](explorables/32-is-the-explanation-real.html) | 32 | Browse SAE and transcoder latents with the true neuron beside each, on a trained and a random model; click through an attribution graph and compare it with real ablations. |
 | [Text by denoising](explorables/33-text-by-denoising.html) | 33 | Watch a line of Shakespeare unmask step by step, slide from 1 to 128 steps, play a block-diffusion line, and see when repeated data lets diffusion pass a left-to-right model. |
+| [Prompts as parameters](explorables/34-prompts-as-parameters.html) | 34 | Step through the slides, predict the best optimiser's test score, replay any of the twelve runs event by event, and read every chosen instruction with its score per label. |
+| [Evolution with an LLM as the mutator](explorables/35-evolution-with-an-llm-mutator.html) | 35 | Step through the slides, predict the held-out bins, replay one run prompt by prompt, and pack a held-out instance with four rules side by side. |
 
 ### Quizzes
 
-Each of the thirty-three numbered modules — plus the three Origins modules and the 05½
+Each of the thirty-five numbered modules — plus the three Origins modules and the 05½
 bridge lab — ships a
 **10-question quiz**, every question grounded in that module's own code, figures
 and measured numbers, with an explanation revealed as soon as you answer. Start at
-[`quizzes/index.html`](quizzes/index.html), which lists all thirty-seven and shows your
+[`quizzes/index.html`](quizzes/index.html), which lists all thirty-nine and shows your
 score for each. Nothing is uploaded: answers and scores stay in your browser's
 `localStorage`, and every quiz has a Reset button.
 

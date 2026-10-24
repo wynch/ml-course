@@ -163,7 +163,14 @@ def check_offline_list(reader: Path) -> list[str]:
         if misplaced:
             raise RuntimeError(f"{root} files outside their priority group: {misplaced[:5]}")
 
-    for core in ("index.html", "app.js", "styles.css", "course-content.js", "sw.js"):
+    # <lk-review> reloads a quiz by its JSON path, so every quiz file must be saved.
+    quiz_files = sorted(path.relative_to(reader).as_posix() for path in (reader / "quizzes").glob("*.json"))
+    missing = [path for path in quiz_files if path not in groups["quizzes"]]
+    if missing:
+        raise RuntimeError(f"quiz JSON files left out of the offline list: {missing}")
+
+    for core in ("index.html", "app.js", "styles.css", "course-content.js", "sw.js",
+                 "learnkit/lk.js", "learnkit/lk.css"):
         if core not in groups["core"]:
             raise RuntimeError(f"the reader shell is missing {core} from the offline list")
 
@@ -232,6 +239,14 @@ def check_reader() -> None:
         reader / "content" / "modules" / "33-text-by-denoising" / "README.md",
         reader / "explorables" / "33-text-by-denoising.html",
         reader / "quizzes" / "33.html",
+        reader / "content" / "modules" / "34-prompts-as-parameters" / "README.md",
+        reader / "explorables" / "34-prompts-as-parameters.html",
+        reader / "quizzes" / "34.html",
+        reader / "quizzes" / "34.json",
+        reader / "explorables" / "35-evolution-with-an-llm-mutator.html",
+        reader / "quizzes" / "35.html",
+        reader / "quizzes" / "35.json",
+        reader / "learnkit" / "lk.js",
         reader / "research" / "agenda.html",
         reader / "research" / "index.html",
         reader / "research" / "why-atlas.html",
@@ -421,6 +436,8 @@ def main() -> None:
             "31-world-model-from-pixels",
             "32-is-the-explanation-real",
             "33-text-by-denoising",
+            "34-prompts-as-parameters",
+            "35-evolution-with-an-llm-mutator",
         ):
             run_offline(
                 ["uv", "run", "--offline", "--frozen", "pytest", "-q"],

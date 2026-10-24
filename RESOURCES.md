@@ -81,6 +81,8 @@ Each row: what you built here → where to continue on HF Learn.
 | [31 · world-model-from-pixels](modules/31-world-model-from-pixels) | No HF Learn course yet | HF Learn does not teach world models or planning; the papers in the short list below are the way on. |
 | [32 · is-the-explanation-real](modules/32-is-the-explanation-real) | No HF Learn course yet · [SAELens tutorials](https://github.com/jbloomAus/SAELens/tree/main/tutorials) | SAELens's notebooks train and evaluate SAEs on real models; this module adds the controls that test what they find. |
 | [33 · text-by-denoising](modules/33-text-by-denoising) | [Diffusion Course](https://huggingface.co/learn/diffusion-course) | The course teaches diffusion on images with `diffusers`; this module carries the idea to text. |
+| [34 · prompts-as-parameters](modules/34-prompts-as-parameters) | [DSPy](https://dspy.ai/) · [DSPy GEPA tutorials](https://dspy.ai/api/optimizers/GEPA/overview/) | DSPy treats the prompts of a program as parameters and tunes them against a metric: the library lane of this module. |
+| [35 · evolution-with-an-llm-mutator](modules/35-evolution-with-an-llm-mutator) | [OpenEvolve](https://github.com/codelion/openevolve) | An open re-implementation of AlphaEvolve's loop, run here against a local model. |
 
 ---
 
@@ -367,6 +369,8 @@ The short list. Two to four external picks per module, chosen rather than dumped
 | [31 · world-model-from-pixels](modules/31-world-model-from-pixels) | [LeWorldModel](https://arxiv.org/abs/2603.19312) · [LeJEPA](https://arxiv.org/abs/2511.08544) · [Planning with Latent Dynamics Models](https://arxiv.org/abs/2502.14819) (PLDM) · [What Drives Success in Physical Planning with JEPA World Models?](https://arxiv.org/abs/2512.24497) |
 | [32 · is-the-explanation-real](modules/32-is-the-explanation-real) | [Automated Interpretability Metrics Do Not Distinguish Trained and Random Transformers](https://arxiv.org/abs/2501.17727) · [Sparse Autoencoders Trained on the Same Data Learn Different Features](https://arxiv.org/abs/2501.16615) · [Transcoders Beat Sparse Autoencoders](https://arxiv.org/abs/2501.18823) · [SAEBench](https://arxiv.org/abs/2503.09532) |
 | [33 · text-by-denoising](modules/33-text-by-denoising) | [Simple and Effective Masked Diffusion Language Models](https://arxiv.org/abs/2406.07524) · [Large Language Diffusion Models](https://arxiv.org/abs/2502.09992) (LLaDA) · [Block Diffusion](https://arxiv.org/abs/2503.09573) · [Flow Matching Guide and Code](https://arxiv.org/abs/2412.06264) |
+| [34 · prompts-as-parameters](modules/34-prompts-as-parameters) | [APE](https://arxiv.org/abs/2211.01910) · [OPRO](https://arxiv.org/abs/2309.03409) · [TextGrad](https://arxiv.org/abs/2406.07496) · [GEPA](https://arxiv.org/abs/2507.19457) · [MIT MAS.S62, How to AI an AI for (Almost) Anything](https://mit-mi.github.io/how2ai-course/fall2026/) |
+| [35 · evolution-with-an-llm-mutator](modules/35-evolution-with-an-llm-mutator) | [FunSearch](https://doi.org/10.1038/s41586-023-06924-6) · [AlphaEvolve](https://arxiv.org/abs/2506.13131) · [OpenEvolve](https://github.com/codelion/openevolve) · [MIT MAS.S62, How to AI an AI for (Almost) Anything](https://mit-mi.github.io/how2ai-course/fall2026/) |
 
 ---
 

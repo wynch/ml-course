@@ -7,7 +7,7 @@ Preparing a pack requires a connection once; using and verifying it does not.
 |---|---|---|
 | **Reader** | Lessons, figures, source files, search, progress, quizzes, and every browser explorable | Reading and visual experiments on any laptop |
 | **Core** | Reader + Python 3.12, locked dependencies, FashionMNIST, the SmolLM3 tokenizer, and modules 01–04, 05½, and 07 | The from-scratch path |
-| **Full** | Core + all model snapshots, datasets, and environments used by modules 05–33 | A completely disconnected workshop |
+| **Full** | Core + all model snapshots, datasets, and environments used by modules 05–35 | A completely disconnected workshop |
 
 External models and datasets are downloaded from their original repositories
 on your machine. They are pinned to commit revisions in

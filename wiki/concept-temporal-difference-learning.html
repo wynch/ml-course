@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Temporal Difference Learning · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="temporal-difference-learning">Temporal Difference Learning</h1>
+<div class="meta"><span class="type">concept</span> <span>created 2026-10-24</span> <span>updated 2026-10-24</span> <span class="tag">reinforcement-learning</span> <span class="tag">temporal-difference</span> <span class="tag">value-function</span> <span class="tag">actor-critic</span> <span class="tag">bootstrapping</span> <span class="tag">stub</span></div>
+<p>Stub. <strong>Temporal difference (TD) learning</strong> trains a prediction of the long-run future by pulling today's prediction toward tomorrow's: the target at each step is the reward that just arrived plus the model's own next estimate. The tabular TD(0) update is V(s) ← V(s) + α[r + γV(s′) − V(s)], with α the step size and γ the discount, at most 1. In reinforcement learning the prediction is usually the value function, or critic: the expected discounted sum of future rewards from here on. TD(0) and Q-learning train a value estimate toward reward plus the model's estimate of the next state (<code>raw/arxiv-2609-16222-how-i-learned-to-stop-worrying.md</code>, §3, Table 1).</p>
+<h2 id="key-ideas">Key ideas</h2>
+<ul><li><strong>Bootstrapping behind a stop-gradient.</strong> The target holds the model's own estimate, but the update does not change the model through it. The update is then a semi-gradient, not the gradient of a loss, and training can only stop where the model equals its own target, a fixed point; the term "semi-gradient" comes from TD learning (<code>raw/arxiv-2609-16222-how-i-learned-to-stop-worrying.md</code>, §1–§3). See <a href="concept-stop-gradient.html">concept-stop-gradient</a>, <a href="source-stopgrad-regression-flow-maps.html">source-stopgrad-regression-flow-maps</a>.</li><li><strong>Not only for reward.</strong> Byrnes calls TD "a general-purpose algorithm that takes a quantity X and spits out a long-term expectation of X" (<code>raw/web-2022-byrnes-brain-like-agi-safety-05-long-term-predictor-td.md</code>, §5.2.1.2).</li><li><strong>Credit travels back one step per trial</strong> in tabular TD(0), fully so only with α = 1 (slower with α &lt; 1), so long delays are slow to learn. TD(λ), eligibility traces and n-step returns are the standard ways to bridge long delays (textbook RL; no source in raw); Dreamer's critic uses a TD(λ)-style return (below). Separately, Byrnes argues that features which stay active from plan to outcome let one update bridge the delay (same file, §5.2.1.2). That is his argument; no simulation is reported.</li><li><strong>Sum or next reward.</strong> Textbook value is the expected discounted sum of future rewards; Byrnes proposes the brain's value is closer to the expected <em>next</em> reward, and notes the two agree when the only reward comes at the end and there is no discount, as in Go; he sets discounting aside (same file, §5.3.2.3).</li></ul>
+<h2 id="pages">Pages</h2>
+<ul><li><a href="source-byrnes-long-term-predictor-td.html">source-byrnes-long-term-predictor-td</a> — a supervised learner whose output is fed back as its own target, except at overrides, read as a TD learner; proposed as the brain's critic.</li><li><a href="source-stopgrad-regression-flow-maps.html">source-stopgrad-regression-flow-maps</a> — TD(0) and Q-learning in the same template as flow-map losses.</li><li><a href="source-dreamer-v1.html">source-dreamer-v1</a> — the critic regresses on a TD(λ)-style return over imagined trajectories.</li><li><a href="source-tdmpc2.html">source-tdmpc2</a> — a learned value bootstraps beyond the planning horizon.</li><li><a href="source-adaptive-q-network.html">source-adaptive-q-network</a> — several Q-networks with different hyperparameters trained toward one shared target.</li><li><a href="source-bundle-byrnes-brain-like-agi-safety.html">source-bundle-byrnes-brain-like-agi-safety</a> — the whole brain-as-actor-critic argument.</li></ul>
+<h2 id="open">Open</h2>
+<ul><li>No primary TD source is in raw (Sutton 1988, the Sutton and Barto textbook). Until one is, the definition above rests on the two secondary sources cited.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/web-2022-byrnes-brain-like-agi-safety-05-long-term-predictor-td.md</code> (§5.2.1.2, §5.3.2.3)</li><li><code>raw/arxiv-2609-16222-how-i-learned-to-stop-worrying.md</code> (§1–§3, Table 1)</li><li><a href="source-byrnes-long-term-predictor-td.html">source-byrnes-long-term-predictor-td</a> · <a href="source-stopgrad-regression-flow-maps.html">source-stopgrad-regression-flow-maps</a> · <a href="concept-stop-gradient.html">concept-stop-gradient</a> · <a href="source-dreamer-v1.html">source-dreamer-v1</a> · <a href="source-tdmpc2.html">source-tdmpc2</a> · <a href="source-adaptive-q-network.html">source-adaptive-q-network</a> · <a href="source-bundle-byrnes-brain-like-agi-safety.html">source-bundle-byrnes-brain-like-agi-safety</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/web-2022-byrnes-brain-like-agi-safety-05-long-term-predictor-td.md</code></li><li><code>raw/arxiv-2609-16222-how-i-learned-to-stop-worrying.md</code></li></ul></details>
+</main>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="lk-app" content="ml-course">
+<meta name="lk-build" content="dev">
+<meta name="lk-sw" content="../sw.js">
+<title>Quiz · Evolution with an LLM as the mutator · ML course</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="stylesheet" href="../learnkit/lk.css">
+<style>
+:root{--track:#4f6272;--track-ink:#ffffff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--track:#93a8b8;--track-ink:#141518}}
+body{margin:0;background:var(--lk-bg);color:var(--lk-fg);font-family:var(--lk-font);line-height:1.55}
+.top{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;padding:.7rem 16px;
+  border-bottom:1px solid var(--lk-border);background:var(--lk-surface)}
+.top h1{font-size:1.05rem;font-weight:600;margin:0}
+.pill{font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+  background:var(--track);color:var(--track-ink);padding:.24rem .6rem;border-radius:999px;white-space:nowrap}
+.spacer{flex:1 1 auto}
+.top a{font-size:.85rem;text-decoration:none;border:1px solid var(--lk-border);padding:.28rem .7rem;
+  border-radius:999px;color:var(--lk-fg)}
+main{max-width:52rem;margin:0 auto;padding:1rem 16px 4rem}
+footer{max-width:52rem;margin:0 auto;padding:0 16px 3rem;color:var(--lk-muted);font-size:.9rem}
+footer a{color:var(--lk-accent)}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Quiz · Evolution with an LLM as the mutator</h1>
+  <span class="pill">Module 35 · Acting and planning</span>
+  <span class="spacer"></span>
+  <a href="index.html">← All quizzes</a>
+</header>
+<main>
+  <p>Ten questions on the module's code, figures and measured numbers. Each has its own Check
+    button and an explanation. Missed questions come back in review on later days. Nothing is
+    uploaded: answers stay in this browser.</p>
+  <lk-quiz id="quiz" src="35.json"></lk-quiz>
+  <h2>Due for review</h2>
+  <lk-review></lk-review>
+</main>
+<footer>
+  <p>module → <a href="../modules/35-evolution-with-an-llm-mutator/README.md">../modules/35-evolution-with-an-llm-mutator/README.md</a>
+    · explorable → <a href="../explorables/35-evolution-with-an-llm-mutator.html">../explorables/35-evolution-with-an-llm-mutator.html</a></p>
+</footer>
+<script type="module">
+import "../learnkit/lk.js";
+// The quiz gallery reads one summary key for every quiz in the course.
+const QUIZ_ID = "35";
+document.getElementById("quiz").addEventListener("lk-quiz-done", (event) => {
+  try {
+    const all = JSON.parse(localStorage.getItem("mlcourse-quiz-scores") || "{}") || {};
+    all[QUIZ_ID] = { score: event.detail.score, total: event.detail.total, ts: Date.now() };
+    localStorage.setItem("mlcourse-quiz-scores", JSON.stringify(all));
+  } catch (error) { /* private mode: the quiz still works, the gallery just shows no score */ }
+});
+</script>
+</body>
+</html>

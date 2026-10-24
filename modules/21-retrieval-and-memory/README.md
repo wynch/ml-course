@@ -17,7 +17,7 @@ written by the script that measured it. In every table, the row with the
 best any retriever could hand this reader.
 
 This module belongs to track 8, **Using models well**. Read it after
-[module 22](../22-reasoning-at-test-time/README.md); next,
+[module 34](../34-prompts-as-parameters/README.md); next,
 [module 23](../23-compression/README.md) makes a model smaller.
 
 **🕹 Interactive:** [Retrieval and memory](../../explorables/21-retrieval-and-memory.html):

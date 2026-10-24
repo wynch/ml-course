@@ -1,0 +1,150 @@
+{
+ "id": "ml-course-34",
+ "title": "Prompts as parameters",
+ "questions": [
+  {
+   "id": "scorer",
+   "kind": "single",
+   "topic": "the scorer",
+   "text": "The module's scorer reads the frozen model's next-token scores and picks the label whose first token scores highest. Why not sample a reply and parse it?",
+   "options": [
+    "Sampling would be too slow on a laptop",
+    "So the same instruction always gets the same score: a change in score is then a change in the instruction, not luck",
+    "Because Qwen3 cannot write the label words",
+    "Because DSPy requires it"
+   ],
+   "answer": 1,
+   "explain": "A search compares many candidates by their scores. If the score had sampling noise in it, the best-looking candidate would often just be the luckiest. Reading next-token scores is greedy and deterministic, so only the instruction moves the number."
+  },
+  {
+   "id": "budget",
+   "kind": "numeric",
+   "topic": "the budget",
+   "text": "Each run may score 2,400 training questions. A GEPA-style child costs 6 to test on its minibatch, plus 60 more if it wins. If every child won, how many children could one run test after the baseline's own full pass?",
+   "answer": 35,
+   "tol": 0,
+   "unit": "children",
+   "hint": "The baseline's pass costs 60 first.",
+   "explain": "2,400 − 60 = 2,340 left; each winning child costs 66; 2,340 / 66 = 35.4, so 35. In the real runs only 43% of children won, which is why each run could try about 74."
+  },
+  {
+   "id": "textgrad-steps",
+   "kind": "single",
+   "topic": "text gradient",
+   "text": "Over 3 seeds the TextGrad-style loop took 117 edit steps. How many raised training accuracy?",
+   "options": [
+    "12",
+    "58",
+    "101",
+    "117"
+   ],
+   "answer": 0,
+   "explain": "12 raised it, 4 left it equal, and 101 lowered it and were undone. A gradient step with a small enough learning rate lowers the loss on its own batch every time; a critique applied as an edit has no size and no guaranteed sign."
+  },
+  {
+   "id": "pareto",
+   "kind": "single",
+   "topic": "Pareto parents",
+   "text": "Candidate A is right on questions 1–4 of 6, B on 1 and 5, C on 2 and 3. Which are on the Pareto front that GEPA-style search draws parents from?",
+   "options": [
+    "A only: it has the best average",
+    "A and B",
+    "A, B and C",
+    "B and C"
+   ],
+   "answer": 1,
+   "explain": "A is best on questions 1–4 and B is the only one right on question 5, so both are best somewhere and neither dominates the other. C is right only where A is also right, so A dominates C. Parents are drawn with weight equal to the questions each is best on: A 4, B 2."
+  },
+  {
+   "id": "gap",
+   "kind": "single",
+   "topic": "overfitting",
+   "text": "The baseline scores 60.0% on train and 55.3% on held-out; the chosen instructions lose 8.4 to 10.1 points from train to held-out. What is the best reading?",
+   "options": [
+    "The held-out set is harder than train, so every instruction loses the same",
+    "The optimisers saw the held-out questions",
+    "The chosen instructions lose about 4 to 5 points more than the baseline's own gap: the cost of picking the best of many candidates on 60 questions",
+    "The gap shows the model's weights changed"
+   ],
+   "answer": 2,
+   "explain": "The baseline's 4.7-point gap is chance: 60 questions are few. Beyond it, the winners lose another 3.8 to 5.4 points. With a standard error near 5.6 points on 60 questions, the best of 30 to 40 candidates tends to have been lucky: the winner's curse."
+  },
+  {
+   "id": "test-mix",
+   "kind": "single",
+   "topic": "held-out against test",
+   "text": "TextGrad-style seed 2 scores 69.7% on held-out but 51.6% on TREC's test set. What explains most of the drop?",
+   "options": [
+    "It saw the test questions",
+    "Test questions are longer than the context allows",
+    "Float32 scoring changed its answers",
+    "Test has a different label mix (28% description, 23% number), and this instruction gets 9% of descriptions and 34% of numbers right"
+   ],
+   "answer": 3,
+   "explain": "Train and held-out have 10 and 50 questions per label; test follows its own mix. An instruction that rarely says \"description\" and misses many numbers loses most where test has most. Its gain over the baseline on test is not significant (sign test, p = 0.36)."
+  },
+  {
+   "id": "copying",
+   "kind": "multi",
+   "topic": "what the search learned",
+   "text": "Which of these did the module find in the chosen instructions? Pick all that apply.",
+   "options": [
+    "TextGrad-style winners quote 1 or 2 training questions each",
+    "Some instructions quote held-out questions",
+    "The TextGrad-style and GEPA-style winners are longer than APE's on average",
+    "OPRO's best instruction turned up in the last 15% of its budget in every seed"
+   ],
+   "answer": [
+    0,
+    2
+   ],
+   "explain": "TextGrad-style winners share a five-word run with 1 or 2 training questions and none with held-out or test. They average 165 words and GEPA-style 147, against APE's 61. OPRO found its best after 240 to 360 of its 2,400 questions; the rest found nothing better."
+  },
+  {
+   "id": "sign-test",
+   "kind": "single",
+   "topic": "sign test",
+   "text": "The hand-written instruction against the baseline on 500 test questions: it is right where the baseline is wrong on 77, and wrong where it is right on 42. Why does the sign test ignore the other 381?",
+   "options": [
+    "Where both are right or both are wrong, the questions say nothing about which instruction is better",
+    "They were scored with a different model",
+    "They are held-out questions",
+    "The test only allows 119 questions"
+   ],
+   "answer": 0,
+   "explain": "Only disagreements carry information. If the two instructions were equally good, each disagreement would be a coin flip; a 77–42 split has p = 0.0017 under that coin."
+  },
+  {
+   "id": "gradient",
+   "kind": "multi",
+   "topic": "the maths",
+   "text": "Which hold for the prompt search in this module, and not for gradient descent on weights? Pick all that apply.",
+   "options": [
+    "The parameter has no derivative: accuracy is a step function of a string",
+    "There is a held-out set that measures overfitting",
+    "A step can store a training example verbatim in the parameter",
+    "What makes the score climb is a rule that keeps or drops each proposal"
+   ],
+   "answer": [
+    0,
+    2,
+    3
+   ],
+   "explain": "Held-out sets are common to both. The others are particular to text: no smooth neighbourhood, no step size; quoting a training question outright; and a sampler whose draws are kept or dropped, which makes it a search, closer to module 35's evolution than to module 14's optimisers."
+  },
+  {
+   "id": "dspy",
+   "kind": "single",
+   "topic": "the library way",
+   "text": "Why does the module score DSPy's found instruction with its own scorer, besides reporting DSPy's own accuracy?",
+   "options": [
+    "DSPy cannot compute accuracy",
+    "Our scorer is faster than DSPy",
+    "DSPy wraps the instruction in its own prompt format and parses generated text, so its number is not comparable with our runs; our fixed template and scorer are",
+    "DSPy's instruction is in another language"
+   ],
+   "answer": 2,
+   "explain": "Same instruction, different frame, different number. Putting DSPy's instruction into our fixed template and scorer is the only way to compare it with the twelve hand-built runs on the same footing."
+  }
+ ]
+}

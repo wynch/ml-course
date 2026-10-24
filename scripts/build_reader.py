@@ -70,8 +70,8 @@ GUIDES = [
 ]
 
 # Reading order, not number order: the lesson's Previous and Next buttons
-# follow this list (each track in turn; 22 comes before 21, and modules 26-33
-# sit inside their tracks).
+# follow this list (each track in turn; 22 and 34 come before 21, and modules
+# 26-35 sit inside their tracks).
 MODULES = [
     ("00a-perceptron", "The perceptron & least squares", "Perceptron", "modules/00a-perceptron/README.md", "Origins", 120, "00a-perceptron.html", "amber"),
     ("00b-bayes-knn-pca", "Probability, neighbours & eigenvectors", "Bayes, k-NN & PCA", "modules/00b-bayes-knn-pca/README.md", "Origins", 120, "00b-pca.html", "amber"),
@@ -103,12 +103,14 @@ MODULES = [
     ("19-scaling-laws", "Scaling laws", "Scaling laws", "modules/19-scaling-laws/README.md", "Why they work", 60, "19-scaling-laws.html", "olive"),
     ("20-in-context-learning", "In-context learning", "In-context learning", "modules/20-in-context-learning/README.md", "Why they work", 60, "20-in-context-learning.html", "olive"),
     ("22-reasoning-at-test-time", "Reasoning at test time", "Reasoning at test time", "modules/22-reasoning-at-test-time/README.md", "Using models well", 75, "22-reasoning-at-test-time.html", "ochre"),
+    ("34-prompts-as-parameters", "Prompts as parameters", "Prompts as parameters", "modules/34-prompts-as-parameters/README.md", "Using models well", 90, "34-prompts-as-parameters.html", "ochre"),
     ("21-retrieval-and-memory", "Retrieval and memory", "Retrieval", "modules/21-retrieval-and-memory/README.md", "Using models well", 75, "21-retrieval-and-memory.html", "ochre"),
     ("23-compression", "Compression", "Compression", "modules/23-compression/README.md", "Using models well", 120, "23-compression.html", "ochre"),
     ("28-fewer-bits-trained-in", "Fewer bits, trained in", "Fewer bits", "modules/28-fewer-bits-trained-in/README.md", "Using models well", 120, "28-fewer-bits-trained-in.html", "ochre"),
     ("24-reinforcement-learning", "Reinforcement learning", "RL", "modules/24-reinforcement-learning/README.md", "Acting and planning", 75, "24-reinforcement-learning.html", "slate"),
     ("25-world-models-and-planning", "World models and planning", "World models", "modules/25-world-models-and-planning/README.md", "Acting and planning", 60, "25-world-models-and-planning.html", "slate"),
     ("26-rl-with-a-checker", "RL with a checker", "RL with a checker", "modules/26-rl-with-a-checker/README.md", "Acting and planning", 75, "26-rl-with-a-checker.html", "slate"),
+    ("35-evolution-with-an-llm-mutator", "Evolution with an LLM as the mutator", "LLM evolution", "modules/35-evolution-with-an-llm-mutator/README.md", "Acting and planning", 75, "35-evolution-with-an-llm-mutator.html", "slate"),
     ("31-world-model-from-pixels", "A world model from pixels", "World model from pixels", "modules/31-world-model-from-pixels/README.md", "Acting and planning", 75, "31-world-model-from-pixels.html", "slate"),
 ]
 
@@ -425,7 +427,7 @@ def offline_reason(asset: str, root: Path, tracked: set[str] | None,
 
 def offline_group(asset: str, lesson_files: set[str]) -> str:
     top = asset.split("/")[0]
-    if "/" not in asset:
+    if "/" not in asset or top == "learnkit":
         return "core"
     if top in ("explorables", "quizzes", "research"):
         return top
@@ -626,7 +628,9 @@ def source_view(path: Path) -> str:
     if lines and lines[-1] == "":
         lines.pop()
     numbers = "\n".join(str(number) for number in range(1, len(lines) + 1))
-    source = escape("\n".join(lines), quote=False)
+    # Quotes escaped too, so code that holds href="…" in a string is not read
+    # as a link by the offline check or by a crawler.
+    source = escape("\n".join(lines), quote=True)
     body = (
         f'<p class="crumb"><a href="{escape(path.name)}">Open the raw file</a></p>\n'
         '<div class="source">'
@@ -724,6 +728,9 @@ def main() -> None:
     # The research companion links back with ../index.html, which lands on the
     # reader home here and on the course home on the site.
     copy_filtered(ROOT / "research", READER / "research")
+    # Explorables and quizzes from module 34 on load the vendored learnkit as
+    # ../learnkit/, so it sits beside them at the reader root.
+    copy_filtered(ROOT / "learnkit", READER / "learnkit")
     routed = route_module_links(READER / "explorables") + route_module_links(READER / "quizzes")
     for filename in ("README.md", "SETUP.md", "OFFLINE.md", "RESOURCES.md", "CLOUD.md"):
         shutil.copy2(ROOT / filename, READER / "content" / filename)

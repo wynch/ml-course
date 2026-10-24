@@ -12,8 +12,8 @@
     { name: "How learning works", blurb: "Watch training find a solution, measure the shape it leaves, learn without labels, keep the old while learning the new, and learn without a backward pass." },
     { name: "Other recipes", blurb: "Train from preferences instead of labels, carry a state instead of attention, and write to it with the delta rule." },
     { name: "Why they work", blurb: "Fit the curves that plan big models, and watch a model learn from its prompt." },
-    { name: "Using models well", blurb: "Spend tokens on reasoning, fetch the right passage, make a model smaller, and train one with fewer bits." },
-    { name: "Acting and planning", blurb: "Learn from reward, plan inside a model of the world, train a language model against a checker, and learn a world model from pixels." },
+    { name: "Using models well", blurb: "Spend tokens on reasoning, tune the prompt like a weight, fetch the right passage, make a model smaller, and train one with fewer bits." },
+    { name: "Acting and planning", blurb: "Learn from reward, plan inside a model of the world, train a language model against a checker, evolve programs with a language model and a checker, and learn a world model from pixels." },
   ];
   const ASSET_ROOTS = ["explorables", "quizzes", "research"];
   // Pages serves source files as application/octet-stream, so a direct link

@@ -26,8 +26,9 @@ uses [module 24](../24-reinforcement-learning/README.md)'s policy gradient,
 [module 22](../22-reasoning-at-test-time/README.md)'s pass@k ceiling,
 [module 17](../17-learning-from-preferences/README.md)'s KL to a reference
 model, and [module 04](../04-attention-transformer/README.md)'s char-GPT.
-Next, [module 31](../31-world-model-from-pixels/README.md) learns a world
-model from pixels.
+Next, [module 35](../35-evolution-with-an-llm-mutator/README.md) keeps the
+checker and drops the weight updates: a language model proposes programs and
+the checker keeps or throws out each one.
 
 **🕹 Interactive:** [RL with a checker](../../explorables/26-rl-with-a-checker.html):
 flip the rewards in a group and watch the three advantages; replay the

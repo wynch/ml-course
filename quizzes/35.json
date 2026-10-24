@@ -1,0 +1,147 @@
+{
+ "id": "ml-course-35",
+ "title": "Evolution with an LLM as the mutator",
+ "questions": [
+  {
+   "id": "l1",
+   "kind": "single",
+   "topic": "the score",
+   "text": "Why can no heuristic score below 0% excess over the L1 bound?",
+   "options": [
+    "The sandbox rejects any program that scores below 0%",
+    "The evolve set is too small for a rule to beat L1 on it",
+    "L1 = ⌈total size / capacity⌉ is the fewest bins any packing could use, and the packer checks that every item is placed and no bin overflows",
+    "Best fit is optimal for online packing, so nothing can beat it"
+   ],
+   "answer": 2,
+   "explain": "Bins hold at most their capacity, so the total size divided by the capacity, rounded up, is a floor. A rule that seems to beat it must lose items or overfill a bin, and <code>task.check_packing</code> rejects both; it runs in the parent process, which the candidate cannot reach. Best fit is not optimal: our evolved rules beat it."
+  },
+  {
+   "id": "sandbox",
+   "kind": "multi",
+   "topic": "sandbox",
+   "text": "Which of these does the module's sandbox turn into a failed candidate rather than a score? Pick all that apply.",
+   "options": [
+    "<code>import os</code> in the program",
+    "A <code>while True</code> loop",
+    "Scores containing NaN",
+    "Scores containing −inf",
+    "Returning one score per bin that ranks bins like best fit"
+   ],
+   "answer": [
+    0,
+    1,
+    2
+   ],
+   "explain": "The screen rejects imports other than numpy and math; the CPU limit and timeout stop endless loops; NaN fails the packer's check. −inf is allowed, because argmax still picks a bin, and a best-fit clone is a valid program: it just scores the same as best fit."
+  },
+  {
+   "id": "temp",
+   "kind": "numeric",
+   "topic": "selection pressure",
+   "text": "One draw between two clusters: best fit at 4.781% excess and first fit at 5.340%. With T = 0.25 points, what share of such draws (in %, nearest whole number) picks best fit's cluster?",
+   "answer": 90,
+   "tol": 1,
+   "unit": "%",
+   "explain": "p = 1 / (1 + exp(−(5.340 − 4.781) / 0.25)) = 1 / (1 + e<sup>−2.236</sup>) ≈ 0.90. At T = 2.5 it would be about 0.56: a higher temperature means less selection pressure. The loop itself draws two parents from two different clusters, so an island with only two clusters always gives both, and T starts to matter from three clusters on."
+  },
+  {
+   "id": "gain",
+   "kind": "single",
+   "topic": "results",
+   "text": "Over 3 seeds of 400 candidates each, what did the evolution loop's kept programs gain over best fit on the 10 held-out instances?",
+   "options": [
+    "0.35 points on average: about 0.52 in two seeds and 0 in one",
+    "Nothing in any seed",
+    "More than 2 points in every seed",
+    "It lost to best fit in every seed"
+   ],
+   "answer": 0,
+   "explain": "Held-out gains were 0.520, 0.000 and 0.517 points (mean 0.35 ± 0.30). Seed 1 never found anything better than best fit on the evolve set, so it kept a best-fit twin."
+  },
+  {
+   "id": "random",
+   "kind": "single",
+   "topic": "controls",
+   "text": "Random search over a small expression grammar, with no LLM and the same 400-candidate budget, did what?",
+   "options": [
+    "It never produced a valid program",
+    "It matched evolution exactly in every seed",
+    "It beat evolution on all three sets",
+    "It beat best fit on the evolve set in 2 of 3 seeds, by less than evolution on average, and its seed-0 program packed the shifted instances far worse than best fit"
+   ],
+   "answer": 3,
+   "explain": "Random search gained 0.19, 0.31 and 0 points on the evolve set (evolution: 0.62, 0 and 0.31). On the shift set (sizes 20–100, bins of 150) its seed-0 program scored 10.71% against best fit's 5.01%: it fit the Weibull sizes, not packing in general."
+  },
+  {
+   "id": "noselect",
+   "kind": "single",
+   "topic": "controls",
+   "text": "In the 'LLM, no selection' control, every prompt shows only first fit and best fit. What did its seed-0 run keep after 400 candidates?",
+   "options": [
+    "A rule 0.6 points better than best fit",
+    "Nothing valid",
+    "Best fit's behaviour: no child beat 4.781%",
+    "First fit"
+   ],
+   "answer": 2,
+   "explain": "Its best child used exactly best fit's bins. 36% of its candidates were exact repeats. Without children becoming parents, the LLM kept circling the textbook rule it was shown."
+  },
+  {
+   "id": "noverifier",
+   "kind": "single",
+   "topic": "verifier",
+   "text": "Without a verifier, each child became the next parent untested. What happened in seed 0?",
+   "options": [
+    "Children kept raising exponents and constants (powers of 400, then 10,000; terms like 1e18) until scores overflowed to NaN; 299 of 356 children failed and none beat best fit",
+    "It improved steadily, like the loop with a verifier",
+    "It stopped after the first failure",
+    "It found the same rule as evolution seed 0"
+   ],
+   "answer": 0,
+   "explain": "Asked each time for a version 'better than every version above', the model escalated the numbers in its own last guess. Nothing checked them, so from about child 57 on almost every child returned NaN. The checker is what turns a stream of guesses into a search."
+  },
+  {
+   "id": "rule",
+   "kind": "single",
+   "topic": "what was found",
+   "text": "What do the best evolved and random-search rules have in common, read from their code?",
+   "options": [
+    "They are best fit with a different tie-break",
+    "They always open a new bin for large items",
+    "They sort the items before packing",
+    "A term like 1/(room left + 1e-8) gives an exact fit a huge score; otherwise they lean toward bins with more room"
+   ],
+   "answer": 3,
+   "explain": "Sizes are whole numbers, so room left after an exact fit is 0 and 1/(0 + 1e-8) is 10<sup>8</sup>. For any other bin that term is at most 1, and added terms such as 0.1·√bins or log(bins + 1) favour roomier bins. Online packing cannot sort: items arrive in order."
+  },
+  {
+   "id": "flat",
+   "kind": "single",
+   "topic": "selection pressure",
+   "text": "One extra run drew parent clusters uniformly instead of by score (T = ∞), seed 0. How did it compare?",
+   "options": [
+    "It never left best fit",
+    "Its best program, at 4.035%, beat every by-score seed (best 4.159%)",
+    "It crashed on most candidates",
+    "It equalled the by-score mean exactly"
+   ],
+   "answer": 1,
+   "explain": "We expected the opposite (E9, missed). One seed proves little, but at 400 candidates strong selection may narrow the search too early: in seed 1 the by-score loop spent its budget around best fit and found nothing."
+  },
+  {
+   "id": "library",
+   "kind": "single",
+   "topic": "library",
+   "text": "OpenEvolve 0.4.0, run for 100 iterations with the same local model and our evaluator, ended with what?",
+   "options": [
+    "A rule better than all of ours",
+    "No valid program at all",
+    "Best fit itself: all 68 valid programs it stored used exactly best fit's bins",
+    "A program that failed the held-out check"
+   ],
+   "answer": 2,
+   "explain": "Of 103 programs it stored, 68 were valid and every one of them packed exactly like best fit; the rest failed. At this budget and with this model, the library did no better than our 'no selection' control."
+  }
+ ]
+}

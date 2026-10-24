@@ -27,7 +27,7 @@ This module belongs to track 9, **Acting and planning**. It builds on
 [module 16](../16-self-supervised-and-jepa/README.md) (JEPA, SIGReg, the
 collapse meters) and [module 25](../25-world-models-and-planning/README.md)
 (world models, random shooting, the JEPA that dropped the agent). Read it
-after [module 26](../26-rl-with-a-checker/README.md); it is the last module in
+after [module 35](../35-evolution-with-an-llm-mutator/README.md); it is the last module in
 the course's reading order.
 
 **🕹 Interactive:** [A world model from pixels](../../explorables/31-world-model-from-pixels.html):

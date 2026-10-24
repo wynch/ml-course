@@ -1,0 +1,19 @@
+[project]
+name = "mlcourse-34-prompts-as-parameters"
+version = "0.1.0"
+description = "Module 34 — Prompts as parameters: APE, OPRO, a TextGrad-style step and a GEPA-style loop optimise the instruction of a frozen Qwen3-1.7B on TREC question types; then DSPy's GEPA."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "dspy==3.4.1",
+    "huggingface-hub>=0.30",
+    "matplotlib>=3.11.1",
+    "mlx-lm>=0.31",
+    "numpy>=2.0",
+    "pyarrow>=20.0",
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "../solutions"]
+addopts = "-q"

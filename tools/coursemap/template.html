@@ -175,14 +175,14 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
     <p class="lede">From a scalar autograd engine to a Zig inference engine — every idea built from
       scratch first, then the Hugging Face way, and drawn as a picture both times.</p>
     <div class="topline">
-      <span class="stats"><b>37</b> modules · <b>201</b> figures · <b>37</b> explorables ·
-        <b>37</b> quizzes · <b>2</b> languages</span>
+      <span class="stats"><b>39</b> modules · <b>210</b> figures · <b>39</b> explorables ·
+        <b>39</b> quizzes · <b>2</b> languages</span>
       <a class="sitebtn" href="https://wynch.github.io/ml-course/" target="_blank" rel="noopener">Course site ↗
         <span class="u">wynch.github.io/ml-course</span></a>
     </div>
     <div class="prog">
       <div class="pbar"><div id="pfill"></div></div>
-      <span id="pcount">0 / 37</span>
+      <span id="pcount">0 / 39</span>
     </div>
   </div>
 </header>
@@ -702,8 +702,8 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
 </section>
 
 <section class="track t8">
-  <h2>Using models well<span class="rng">modules 21–23, 28</span></h2>
-  <p class="sub">Spend more tokens on each question, fetch the right passage, make a model smaller, and train one with fewer bits.</p>
+  <h2>Using models well<span class="rng">modules 21–23, 28, 34</span></h2>
+  <p class="sub">Spend more tokens on each question, tune the prompt like a weight, fetch the right passage, make a model smaller, and train one with fewer bits.</p>
   <div class="grid">
 
 
@@ -721,6 +721,21 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
         <a class="hf" href="https://huggingface.co/datasets/openai/gsm8k" target="_blank" rel="noopener">openai/gsm8k ↗</a></div>
     </article>
 
+
+    <article class="card t8" data-mod="34">
+      <label class="donebox">done<input type="checkbox" data-mod="34" aria-label="Mark module 34 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">34</span><h3>The prompt as a parameter</h3></div>
+      <div class="fig"><img src="{{FIG34}}" alt="Module 34 figure: the chosen instruction of each run on train, held-out and test, four optimisers and DSPy"></div>
+      <p class="build"><b>You build:</b> APE, OPRO, a TextGrad-style edit step and a GEPA-style loop that tune the instruction of a
+        frozen Qwen3-1.7B on 60 TREC questions, one budget, 3 seeds; then DSPy's GEPA on local models.</p>
+      <div class="chips"><span>held-out 55.3% → 69.3 ± 1.2% (GEPA-style)</span><span>train overstates by 4.8 points</span><span>12 of 117 text-gradient steps helped</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/34-prompts-as-parameters.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/34.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/34-prompts-as-parameters</span>
+        <a class="hf" href="https://dspy.ai/" target="_blank" rel="noopener">DSPy ↗</a></div>
+    </article>
 
     <article class="card t8" data-mod="21">
       <label class="donebox">done<input type="checkbox" data-mod="21" aria-label="Mark module 21 done"><span class="box"></span></label>
@@ -771,8 +786,8 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
 </section>
 
 <section class="track t9">
-  <h2>Acting and planning<span class="rng">modules 24–26, 31</span></h2>
-  <p class="sub">Learn from reward instead of labels, plan inside a model of the world, train a language model against a checker, and learn a world model from pixels.</p>
+  <h2>Acting and planning<span class="rng">modules 24–26, 31, 35</span></h2>
+  <p class="sub">Learn from reward instead of labels, plan inside a model of the world, train a language model against a checker, evolve programs with a language model and a checker, and learn a world model from pixels.</p>
   <div class="grid">
 
 
@@ -819,6 +834,22 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
       </div>
       <div class="cfoot"><span class="path">modules/26-rl-with-a-checker</span>
         <a class="hf" href="https://huggingface.co/docs/trl/grpo_trainer" target="_blank" rel="noopener">TRL GRPO trainer ↗</a></div>
+    </article>
+
+    <article class="card t9" data-mod="35">
+      <label class="donebox">done<input type="checkbox" data-mod="35" aria-label="Mark module 35 done"><span class="box"></span></label>
+      <div class="chead"><span class="mno">35</span><h3>FunSearch on bin packing</h3></div>
+      <div class="fig"><img src="{{FIG35}}" alt="Module 35 figure: best program so far against candidates sampled, for every arm and seed"></div>
+      <p class="build"><b>You build:</b> a FunSearch-style loop with islands, parents drawn by score, a local Qwen3-4B writing
+        packing rules and a sandboxed checker with dedupe; against random search, sampling with no selection, a loop with no
+        verifier, and OpenEvolve.</p>
+      <div class="chips"><span>best fit 4.78% over L1 → 4.47 ± 0.31% (3 seeds)</span><span>held-out gain 0.35 ± 0.30 points</span><span>no verifier: NaN from child ~57</span></div>
+      <div class="links">
+        <a href="https://wynch.github.io/ml-course/explorables/35-evolution-with-an-llm-mutator.html" target="_blank" rel="noopener">🕹 Explorable</a>
+        <a href="https://wynch.github.io/ml-course/quizzes/35.html" target="_blank" rel="noopener">✅ Quiz</a>
+      </div>
+      <div class="cfoot"><span class="path">modules/35-evolution-with-an-llm-mutator</span>
+        <a class="hf" href="https://doi.org/10.1038/s41586-023-06924-6" target="_blank" rel="noopener">FunSearch ↗</a></div>
     </article>
 
     <article class="card t9" data-mod="31">

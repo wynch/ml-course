@@ -1,0 +1,18 @@
+{
+ "written": "2026-10-24, before any optimiser run and before results/baseline.json",
+ "seen_before_writing": [
+  "the baseline instruction on a first draw of 60 training questions, redrawn before any run to add the held-out split: 53.3%, and on TREC's 500 test questions: 49.0% (float32 activations) and 49.4% (bfloat16)",
+  "one instruction we wrote by hand from TREC's class definitions: 58.3% train, 56.0% test (bfloat16, before the switch to float32)",
+  "8 sample replies of the optimiser model to an APE-style prompt, to check it writes instructions at all"
+ ],
+ "expectations": {
+  "E1": "Every optimiser (APE, OPRO, TextGrad-style, GEPA-style) picks an instruction that beats the baseline on the test set in each of its 3 seeds.",
+  "E2": "The best method's mean test gain over the baseline is at least 5 points.",
+  "E3": "Overfitting: averaged over the 12 runs, the chosen instruction's train accuracy exceeds its same-source held-out accuracy by 3 to 10 points more than the baseline's own train minus held-out gap.",
+  "E4": "The GEPA-style loop beats APE on mean test accuracy by at least 2 points.",
+  "E5": "In the TextGrad-style runs, fewer than half of the edit steps raise train accuracy, so most steps are rejected.",
+  "E6": "For at least two methods the standard deviation of test accuracy over the 3 seeds is 2 points or more.",
+  "E7": "The instruction DSPy's GEPA finds, scored by our evaluator, lands within 5 points of our GEPA-style mean test accuracy.",
+  "E8": "No run reaches 70% on the test set: the frozen 1.7B model, not the instruction, sets the ceiling."
+ }
+}

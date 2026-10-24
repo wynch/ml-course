@@ -75,6 +75,8 @@ FIGS: dict[str, tuple[str, str]] = {
     "31": ("31-world-model-from-pixels", "plan.png"),
     "32": ("32-is-the-explanation-real", "truth.png"),
     "33": ("33-text-by-denoising", "steps.png"),
+    "34": ("34-prompts-as-parameters", "splits.png"),
+    "35": ("35-evolution-with-an-llm-mutator", "curves.png"),
 }
 
 

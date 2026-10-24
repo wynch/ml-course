@@ -1,0 +1,77 @@
+{
+ "dspy": "3.4.1",
+ "max_metric_calls": 600,
+ "seed": 0,
+ "instruction": "Classify the question by the type of its answer. The possible answer types are: 'abbreviation', 'description', 'entity', 'human', 'place', 'date', 'quantity', or 'concept'. Note that 'abbreviation' refers to the expansion of an acronym or abbreviated term (e.g., 'PSI' stands for 'pounds per square inch'). 'description' refers to a definition or explanatory statement (e.g., 'laser stands for light amplification by stimulated emission of radiation'). 'entity' refers to a named thing such as a person, place, or organization, but if the entity is a human, specifically label it as 'human'. For example, 'Who was the tallest U.S. president?' should be labeled 'human' because the answer is a person. Ensure the correct classification based on the nature of the expected answer, not the structure of the question.",
+ "val_scores": [
+  0.4,
+  0.6166666666666667,
+  0.5666666666666667,
+  0.5333333333333333,
+  0.5666666666666667,
+  0.3333333333333333,
+  0.5666666666666667,
+  0.36666666666666664,
+  0.6166666666666667
+ ],
+ "total_metric_calls": 603,
+ "best_idx": 1,
+ "candidate_texts": [
+  "Classify the question by the type of its answer.",
+  "Classify the question by the type of its answer. The possible answer types are: 'abbreviation', 'description', 'entity', 'human', 'place', 'date', 'quantity', or 'concept'. Note that 'abbreviation' refers to the expansion of an acronym or abbreviated term (e.g., 'PSI' stands for 'pounds per square inch'). 'description' refers to a definition or explanatory statement (e.g., 'laser stands for light amplification by stimulated emission of radiation'). 'entity' refers to a named thing such as a person, place, or organization, but if the entity is a human, specifically label it as 'human'. For example, 'Who was the tallest U.S. president?' should be labeled 'human' because the answer is a person. Ensure the correct classification based on the nature of the expected answer, not the structure of the question.",
+  "Classify the question by the type of its answer. The answer types are: entity, location, abbreviation, number, or date. For example: 'When was the battle of the Somme fought?' should be labeled 'date', 'In Kafka's Metamorphosis, the hero awakes one morning to find himself turned into what?' should be labeled 'entity', and 'How much did a McDonald's hamburger cost in 1963?' should be labeled 'number'. Ensure the correct answer type is selected based on the nature of the expected response.",
+  "Classify the question into one of the following answer types: 'human' (if the answer involves a person or a human-related entity), 'abbreviation' (if the answer is the expansion of a shortened form, e.g., 'E' in 'E=mc²' stands for energy), or 'entity' (if the answer refers to a specific thing or concept, such as a product, place, or object). Note: if the question asks about a definition or expansion of a symbol or acronym, the correct label is 'abbreviation'. If the answer points to a person (e.g., who produces a product), the label should be 'human'. If the answer refers to a non-personal entity (e.g., a product, concept, or phenomenon), the label should be 'entity'. For example: 'Who produces Spumante?' → 'human'; 'What does LOL mean?' → 'abbreviation'; 'What does the E stand for in E=mc²?' → 'abbreviation' (not 'entity').",
+  "Classify the question by the type of its answer. The answer types are: entity, location, abbreviation, number, or date. For example: 'When was the battle of the Somme fought?' should be labeled 'date', 'In Kafka's Metamorphosis, the hero awakes one morning to find himself turned into what?' should be labeled 'entity', and 'How much did a McDonald's hamburger cost in 1963?' should be labeled 'number'. Additionally, consider that some questions may require a descriptive answer (e.g., explaining the origin of a term), which falls under the 'description' category and is not one of the predefined types. If the expected answer is a descriptive explanation rather than a specific entity, location, abbreviation, number, or date, label it as 'description'. Ensure the correct answer type is selected based on the nature of the expected response. For instance, 'What does the channel ESPN stand for?' should be labeled 'abbreviation', 'Where was the first restaurant located?' should be labeled 'location', and 'What is the origin of the term 'buffalo wings'?' should be labeled 'description'.",
+  "Classify the question by the type of its answer. The possible answer types are: 'number' (a quantitative value, e.g., '5 years'), 'entity' (a specific named thing, e.g., 'Coca-Cola'), 'human' (a person, e.g., 'Prince'), or 'description' (a detailed explanation or narrative). When the answer is a specific named item, such as a brand, product, or person, label it as 'entity'. If the answer is a numeric value with units, label it as 'number'. If the answer refers to a person, label it as 'human'. If the answer requires a lengthy descriptive response, label it as 'description'. Correctly identifying these categories requires understanding examples and context: for instance, 'How long does it take to travel from Tokyo to Niigata?' should be labeled 'number', not 'description'; 'What soft drink not only has its own video game, but was featured in its own Marvel comic book?' should be labeled 'entity', not 'number'.",
+  "Classify the question by the type of its answer. The answer types are: entity, location, abbreviation, number, or date. For example: 'When was the battle of the Somme fought?' should be labeled 'date', 'In Kafka's Metamorphosis, the hero awakes one morning to find himself turned into what?' should be labeled 'entity', and 'How much did a McDonald's hamburger cost in 963?' should be labeled 'number'. Additionally, consider the following nuances: if the answer is a name of a person, place, or organization, label it as 'entity'; if the answer is a geographical region or area (e.g., city, country, state), label it as 'location'; if the answer is a known and defined short form for a longer name (e.g., FBI, NYC), label it as 'abbreviation'; if the answer is a quantifiable value (e.g., 500, $2.50), label it as 'number'; if the answer is a year, month, or date (e.g., 1945, July 4), label it as 'date'. Note: the correct answer type must reflect the actual expected response, not just a surface-level match. For instance, 'Name the tree growing company' should not be labeled as 'entity'—if the company is known, it's an entity; if it's a type of plant, it's not a company. Also, 'What planet did Percival Lovell discover?' should be 'location' (as he discovered a planet, referring to a celestial body), not 'entity'. Correct classification requires proper domain knowledge and attention to the nature of the expected response.",
+  "Classify the question by the type of its answer. The answer types are: entity, location, abbreviation, number, or date. For example: 'When was the battle of the Somme fought?' should be labeled 'date', 'In Kafka's Metamorphosis, the hero awakes one morning to find himself turned into what?' should be labeled 'entity', and 'How much did a McDonald's hamburger cost in 1963?' should be labeled 'number'. Correct classifications include: 'What three colors of ink are used to print a U.S. dollar bill?' → 'entity' (not 'abbreviation'), and 'What does the T.S. stand for in T.S. Eliot's name?' → 'abbreviation'. Ensure the correct answer type is selected based on the nature of the expected response. Note: Questions about specific items, substances, or concepts (e.g., ink colors in U.S. bills) should be labeled 'entity' if they refer to a distinct, named thing, even if it is a list or set. Only use 'abbreviation' when the question asks for the expansion of an acronym or initialism (e.g., what does T.S. stand for).",
+  "Classify the question by the type of its answer. The answer types are: entity, location, abbreviation, number, date, or description. An 'entity' refers to a specific noun (e.g., a person, organization, or thing), such as 'Napoleon' or 'Microsoft'. A 'location' refers to a geographical place, such as 'Paris' or 'Santiago'. An 'abbreviation' refers to the expanded form of a shortened term, such as 'ESPN' standing for 'Entertainment and Sports Programming Network'. A 'number' refers to a quantitative value, such as a price, count, or measurement. A 'date' refers to a specific point in time, such as 'July 4, 1776'. A 'description' is used when the expected answer is an explanatory or interpretive response, such as explaining the origin, mechanism, or meaning of a concept, e.g., 'How does an ion drive work?' or 'What is the origin of the term 'buffalo wings'?' is best labeled 'description'. Ensure the correct answer type is selected based on the nature of the expected response. For instance, 'What is the capital of France?' should be labeled 'entity', 'Where was the first iPhone developed?' should be labeled 'location', 'What does the term 'quantum' mean in physics?' should be labeled 'description', and 'What year did the Titanic sink?' should be labeled 'date'. Prioritize the most precise and contextually relevant answer type, especially when the question requires a detailed or interpretive response rather than a simple factual value."
+ ],
+ "parents": [
+  [
+   null
+  ],
+  [
+   0
+  ],
+  [
+   0
+  ],
+  [
+   0
+  ],
+  [
+   2
+  ],
+  [
+   0
+  ],
+  [
+   2
+  ],
+  [
+   2
+  ],
+  [
+   4
+  ]
+ ],
+ "discovery_calls": [
+  0,
+  69,
+  141,
+  207,
+  273,
+  339,
+  405,
+  471,
+  543
+ ],
+ "guard": {
+  "script": "library compile",
+  "minutes": 5.03,
+  "peak_rss_gb": 0.15,
+  "peak_metal_gb": 0.0,
+  "machine": "arm64 26.6.2"
+ }
+}

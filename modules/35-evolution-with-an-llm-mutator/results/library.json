@@ -1,0 +1,64 @@
+{
+ "library": "openevolve 0.4.0",
+ "model": "mlx-community/Qwen3-4B-Instruct-2507-4bit via mlx_lm.server",
+ "iterations": 100,
+ "programs_in_database": 103,
+ "valid_programs_in_database": 68,
+ "valid_excess_counts": {
+  "4.7809": 68
+ },
+ "best_code": "def priority(item, bins):\n    \"\"\"Score each open bin that can take the item; the highest score wins.\n\n    item: size of the arriving item. bins: numpy array, remaining room of each\n    open bin that fits it. Goal: use as few bins as possible in online bin packing.\n    \"\"\"\n    return -(bins - item)\n",
+ "status": "valid",
+ "excess": {
+  "evolve": 4.7809,
+  "heldout": 4.3824,
+  "shift": 5.0118
+ },
+ "best_fit": {
+  "evolve": 4.7809,
+  "heldout": 4.3824,
+  "shift": 5.0118
+ },
+ "chunks": [
+  {
+   "script": "library.py from 0",
+   "minutes": 2.23,
+   "peak_rss_gb": 0.07,
+   "peak_metal_gb": 0.0,
+   "machine": "arm64 26.6.2",
+   "iterations_after": 20
+  },
+  {
+   "script": "library.py from 20",
+   "minutes": 1.26,
+   "peak_rss_gb": 0.08,
+   "peak_metal_gb": 0.0,
+   "machine": "arm64 26.6.2",
+   "iterations_after": 40
+  },
+  {
+   "script": "library.py from 40",
+   "minutes": 1.24,
+   "peak_rss_gb": 0.08,
+   "peak_metal_gb": 0.0,
+   "machine": "arm64 26.6.2",
+   "iterations_after": 60
+  },
+  {
+   "script": "library.py from 60",
+   "minutes": 1.2,
+   "peak_rss_gb": 0.08,
+   "peak_metal_gb": 0.0,
+   "machine": "arm64 26.6.2",
+   "iterations_after": 80
+  },
+  {
+   "script": "library.py from 80",
+   "minutes": 1.24,
+   "peak_rss_gb": 0.08,
+   "peak_metal_gb": 0.0,
+   "machine": "arm64 26.6.2",
+   "iterations_after": 100
+  }
+ ]
+}

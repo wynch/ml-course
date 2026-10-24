@@ -1,0 +1,17 @@
+[project]
+name = "mlcourse-35-evolution-with-an-llm-mutator"
+version = "0.1.0"
+description = "Module 35 — Evolution with an LLM as the mutator: a FunSearch-style loop that evolves an online bin-packing heuristic, with islands, a sandboxed evaluator and dedupe, against random search and a loop with no verifier."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "matplotlib>=3.11.1",
+    "mlx-lm>=0.31",
+    "numpy>=2.0",
+    "openevolve==0.4.0",
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "../solutions"]
+addopts = "-q"

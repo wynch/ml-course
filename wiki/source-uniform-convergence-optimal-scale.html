@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Uniform convergence at optimal rate and scale (Alon, Hanneke, Moran, Waknine, 2026) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="uniform-convergence-at-optimal-rate-and-scale">Uniform convergence at optimal rate and scale</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-24</span> <span>updated 2026-10-24</span> <span class="tag">generalization</span> <span class="tag">learning-theory</span> <span class="tag">uniform-convergence</span> <span class="tag">vc-dimension</span> <span class="tag">fat-shattering</span> <span class="tag">covering-numbers</span> <span class="tag">chaining</span> <span class="tag">rademacher-complexity</span> <span class="tag">sample-complexity</span> <span class="tag">theory</span></div>
+<p><strong>Paper:</strong> Noga Alon (Princeton), Steve Hanneke (Purdue), Shay Moran (Technion, Google Research), Tom Waknine (Technion), "Uniform convergence at optimal rate and scale", arXiv 2610.24336 v1, 2026-10-17, cs.LG and stat.ML. License CC BY 4.0. <strong>Raw:</strong> R = <code>raw/arxiv-2610-24336-uniform-convergence-at-optimal-rate-and.md</code> (full text from the arXiv HTML). <strong>Kind:</strong> pure theory, proofs only; no experiments, no neural networks.</p>
+<h2 id="claim-in-two-sentences">Claim in two sentences</h2>
+<p>If a class of functions with values in [−1, 1] has fat-shattering dimension d at a scale γ ∈ (0, 1), then about (d + log(1/δ))/ε² random samples make every function's sample average land within γ + ε of its true mean at once, with probability 1 − δ. This matches the best possible bound for yes/no functions, and a matching lower bound shows it cannot be improved using only that dimension (R, Theorem 1.1).</p>
+<h2 id="terms">Terms</h2>
+<ul><li><strong>Uniform convergence:</strong> one random sample estimates the mean of <em>every</em> function in a class at once, not one function at a time (R, §1). In learning, it is the guarantee that training error is close to test error for every model in the class, so no model can look good on the sample by luck.</li><li><strong>Union bound for M functions:</strong> O((log M + log(1/δ))/ε²) samples suffice, so the number of functions counts only through its logarithm (R, §1). Uniform convergence asks what replaces log M for an infinite class.</li><li><strong>VC dimension</strong> (yes/no functions): the size of the largest set of points the class can label in every one of the 2ⁿ ways. Uniform convergence holds exactly when it is finite, and the sharp sample size is Θ((d + log(1/δ))/ε²) (R, §1, "Binary-valued functions").</li><li><strong>Fat-shattering dimension at scale γ</strong> (real-valued functions): the largest n such that for some points and thresholds r₁…rₙ, every high/low pattern is realised by a function at least γ/2 above or below each threshold (R, §1, "Real-valued functions"). A bounded class has uniform convergence exactly when this is finite at every scale (Alon et al. 1997; Bartlett and Long 1998; R, §1).</li><li><strong>ε, δ, γ:</strong> extra error, failure probability, and the scale. Knowing only the dimension at scale γ, error below γ cannot be guaranteed in general, so γ + ε is the target (R, §1).</li></ul>
+<h2 id="what-is-new">What is new</h2>
+<div class="tw"><table><thead><tr><th>Result</th><th>Error</th><th>Sample size</th><th>Source (R, §1)</th></tr></thead><tbody><tr><td>Classical</td><td>Cγ + ε, C &gt; 1</td><td>extra log factors</td><td>Alon et al. 1997; Bartlett and Long 1998</td></tr><tr><td>Colomboni, Esposito, Paudice 2025</td><td>Cγ + ε</td><td>optimal</td><td>§1</td></tr><tr><td>Aiyer et al. 2026</td><td>γ + ε</td><td>extra log factors</td><td>§1</td></tr><tr><td>This paper</td><td>γ + ε</td><td>O((d + log(1/δ))/ε²), with a matching lower bound</td><td>Theorem 1.1</td></tr></tbody></table></div>
+<p>Conditions: γ ∈ (0, 1) and ε, δ ∈ (0, 1). The lower bound holds for every γ ∈ (0, 1) and every integer d ≥ 1: some class with fat_γ = d needs that many samples, for all small enough ε and δ (R, Theorem 1.1). Particular classes can do better if more is known about them at finer scales (R, §1, after Theorem 1.1).</p>
+<h2 id="how-the-proof-works">How the proof works</h2>
+<p>Each step below is the paper's; its own summary is in R, §3.</p>
+<ol><li><strong>Lower bound</strong> (§3.1). Take a hard yes/no class 𝓗 and the functions f(t, x) = (1 − γ/2)·h(x) + (γ/2)·b(t), with h in 𝓗, t a new coordinate in [0, 1], and b any measurable function into (−1, 1). That term cannot fat-shatter at scale γ, so the dimension stays d, yet it can sit near −1 on every sampled point and near +1 elsewhere, costing γ of error that no sample size removes. The yes/no part adds the usual ε cost.</li><li><strong>Rademacher complexity</strong> (§2.3). Colour sample points red or blue at random and measure the largest red-minus-blue imbalance any function in the class can produce; a class that can fit random signs can fit noise. Symmetrization (comparing the sample with an imagined second sample, which brings in the random signs) turns a bound on it into a uniform-convergence bound (§3.2).</li><li><strong>Covers</strong> (§2.2). A cover at radius r is a finite set of vectors such that every function, read on the sample, lies within r of one of them. Theorem 2.5: log N₂(V, γ/2 + ε) ≤ C·d·log³(e/ε), with no dependence on the sample size n. Earlier covers free of n were at radius Cγ (Table 1). The cover is built in rounds: each round halves the excess error above γ/2, using a covering bound for "partial" classes, functions allowed to be undefined on some points (Theorem 2.4; §3.2.1).</li><li><strong>Chaining at optimal scale</strong> (§2.3, §3.2.2). Chaining bounds Rademacher complexity by a sum over covers at shrinking radii. The classical form (Dudley) gives a leading term 4α; with α = γ/2 and the factor 2 from symmetrization, error 4γ instead of γ. Theorem 2.8 brings the coefficient to 1: Rad(V) ≤ α + (32/√n)∫₀¹√(log N₂(V, α + t²)) dt. The trick: when moving from a cover at radius R to one at radius r, the next centre only has to cover the intersection of the two balls, so it can be moved to within √(R² − r²) of the previous centre (Lemma 4.2). That gap shrinks to zero as the radii approach α, where the triangle inequality gives about 2α (Figure 1).</li><li>Combined: Rad(V_S) ≤ γ/2 + O(√(d/n)), hence error ≤ γ + O(√((d + log(2/δ))/n)) with probability 1 − δ (§3.2).</li></ol>
+<p><strong>Tools of their own interest</strong> (§2.1). An ε-net is a small set of points that meets every large set in a family. ε-nets with margin: a set of points that meets every halfspace (one side of a flat cut through space) holding at least an ε fraction of the data, after moving each halfspace's boundary out by η. In any Hilbert space, including infinite-dimensional ones, O(1/(εη²)) points suffice, and this is optimal (Theorem 2.1); without a margin the classical bound carries an extra log(1/ε) in dimension 4 and up. A related result rounds fractional covers in Hamming space (yes/no vectors, with distance the fraction of positions that differ) at a log cost (Theorems 2.2, 2.3).</p>
+<p><strong>Use of AI tools</strong> (R, section "Use of AI tools", before the references). The authors used ChatGPT to help write, review proofs and develop parts of several arguments; "it suggested applying ε-nets result to a fractional cover, provided Theorem 2.1 and Lemma 4.2, and helped optimize several of the technical results and lower bounds". Theorem 2.1 is a side result: the main proof does not use it, since the authors set apart tools "not used directly in our proof" (§2) and use the ε-net theorem of Bourneuf et al. for partial classes instead (§3.2.1). Lemma 4.2 is on the main path: it is the centre-moving step of point 4. The authors say they revised and verified the arguments and "take responsibility for its contents".</p>
+<p><strong>Open</strong> (R, §2.1–§2.2). Whether log³(1/ε) in Theorem 2.5 can drop to log(1/ε) at radius γ/2 + ε (one log suffices at radius Cγ, Mendelson and Vershynin 2003); whether Theorem 2.4's exponent can lose its extra log; optimal margin nets in other norms.</p>
+<h2 id="what-it-does-and-does-not-say">What it does and does not say</h2>
+<ul><li>Proved, with conditions as stated: the rate and the scale above, for classes of functions bounded in [−1, 1], with measurability assumed (R, §1, footnote 1). Constants are not given numerically except 32 in Theorem 2.8.</li><li>Not discussed: neural networks, training algorithms, or which classes have small fat-shattering dimension.</li><li>The wiki's reading: this sharpens the classical, worst-case side of generalization theory. It does not touch the deep-learning puzzle on <a href="concept-generalization.html">concept-generalization</a>, where networks fit random labels: a class that can give n points every ±1 labelling has fat-shattering dimension at least n at any scale up to 2, so a bound in terms of that dimension alone says nothing until the sample is larger than that.</li></ul>
+<h2 id="ties">Ties</h2>
+<ul><li><a href="concept-generalization.html">concept-generalization</a> — the hub's "counting functions" bounds (VC theory) are the binary case of this paper; it gives the real-valued version at the best scale.</li><li><a href="source-bundle-mit-6-7960-approximation-generalization.html">source-bundle-mit-6-7960-approximation-generalization</a> — lecture 6's VC slide states the bound as √(d/n) (the slide's d counts labellings; here d is a dimension; see the bundle's note) and shows it vacuous for nets that fit random labels; this paper is the sharp form of that bound, for real-valued classes.</li><li><a href="concept-automated-scientific-discovery.html">concept-automated-scientific-discovery</a> — a stated case of a language model supplying a side theorem (2.1) and a lemma on the main proof path (4.2), verified by the authors.</li></ul>
+<h2 id="see-also">See also</h2>
+<ul><li><a href="source-litman-generalization-theory.html">source-litman-generalization-theory</a> — a different, NTK-based account of generalization.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/arxiv-2610-24336-uniform-convergence-at-optimal-rate-and.md</code> (Abstract; §1; §2.1–§2.3; §3.1–§3.2.2; Theorems 1.1, 2.1, 2.4, 2.5, 2.8; Lemma 4.2; Table 1; "Use of AI tools")</li><li><a href="https://arxiv.org/abs/2610.24336" rel="noreferrer">https://arxiv.org/abs/2610.24336</a></li><li><a href="concept-generalization.html">concept-generalization</a> · <a href="source-bundle-mit-6-7960-approximation-generalization.html">source-bundle-mit-6-7960-approximation-generalization</a> · <a href="concept-automated-scientific-discovery.html">concept-automated-scientific-discovery</a> · <a href="source-litman-generalization-theory.html">source-litman-generalization-theory</a></li></ul>
+<details class="src"><summary>Sources (2)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/arxiv-2610-24336-uniform-convergence-at-optimal-rate-and.md</code></li><li><a href="https://arxiv.org/abs/2610.24336" rel="noreferrer">https://arxiv.org/abs/2610.24336</a></li></ul></details>
+</main>
+</body>
+</html>

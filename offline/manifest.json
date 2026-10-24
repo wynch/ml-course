@@ -55,7 +55,9 @@
         "modules/30-learning-without-a-backward-pass/python",
         "modules/31-world-model-from-pixels/python",
         "modules/32-is-the-explanation-real/python",
-        "modules/33-text-by-denoising/python"
+        "modules/33-text-by-denoising/python",
+        "modules/34-prompts-as-parameters/python",
+        "modules/35-evolution-with-an-llm-mutator/python"
       ]
     }
   },
@@ -163,7 +165,16 @@
       "pack": "full",
       "revision": "3b1b1768f8f8cf8351c712464f906e86c2b8269e",
       "include": ["*.json", "*.txt", "model.safetensors"],
-      "purpose": "Module 22 replies (923 MB); needed only to regenerate them, as the module ships its cached replies.",
+      "purpose": "Module 22 replies (923 MB); needed only to regenerate them, as the module ships its cached replies. Module 34's frozen task model, for its runs, its baseline and its DSPy lane.",
+      "license": "Apache-2.0"
+    },
+    {
+      "id": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+      "kind": "model",
+      "pack": "full",
+      "revision": "50d427756c6b1b2fe0c0a10f67fbda1fc8e82c1b",
+      "include": ["*.json", "*.txt", "*.jinja", "model.safetensors"],
+      "purpose": "Module 34's optimiser and reflection model; module 35's mutator (2.1 GB). Needed only to rerun the searches; both modules ship their logs.",
       "license": "Apache-2.0"
     },
     {
@@ -282,6 +293,15 @@
       "include": ["main/test-00000-of-00001.parquet", "main/train-00000-of-00001.parquet"],
       "purpose": "Module 22 problems and few-shot examples; module 29 new text and probe (2.7 MB).",
       "license": "MIT"
+    },
+    {
+      "id": "CogComp/trec",
+      "kind": "dataset",
+      "pack": "full",
+      "revision": "65752bf53af25bc935a0dce92fb5b6c930728450",
+      "include": ["default/train/0000.parquet", "default/test/0000.parquet"],
+      "purpose": "Module 34 questions (0.4 MB): 60 training and 300 held-out from the train file, the 500 test questions; the Hub's parquet conversion (refs/convert/parquet).",
+      "license": "not stated on the dataset card"
     },
     {
       "id": "roneneldan/TinyStories",

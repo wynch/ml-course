@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Byrnes: the short-term and long-term predictor, a TD-like value learner (Intro to Brain-Like-AGI Safety, posts 4–5) · ML wiki</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--paper:#f6f8f7;--panel:#fff;--ink:#1c2422;--muted:#5c6b67;--line:rgba(28,36,34,.14);
+--accent:#1f918d;--soft:rgba(31,145,141,.10);--code:#eef2f0;
+--body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--paper:#121816;--panel:#1a2320;--ink:#e8eeec;
+--muted:#9daba7;--line:rgba(232,238,236,.18);--accent:#37b3ae;--soft:rgba(55,179,174,.16);--code:#0d1211}}
+*{box-sizing:border-box}
+html{background:var(--paper);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
+overflow-wrap:break-word}
+a{color:var(--accent)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:.5rem;align-items:center;
+padding:.55rem 16px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.9rem}
+.bar a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:.2rem .7rem;color:var(--ink)}
+.bar .sp{flex:1}
+main{max-width:46rem;margin:0 auto;padding:1rem 16px 4rem}
+h1{font-size:1.5rem;line-height:1.25;margin:.6rem 0 .5rem}
+h2{font-size:1.2rem;margin:1.8rem 0 .5rem;line-height:1.3}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+h4,h5,h6{font-size:1rem;margin:1.2rem 0 .3rem}
+.meta{font-size:.82rem;color:var(--muted);margin:.2rem 0 1rem;display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center}
+.meta .type{font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.tag{font-family:var(--mono);font-size:.74rem;background:var(--soft);border-radius:999px;padding:.05rem .5rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--code);border-radius:4px;padding:.05em .3em;overflow-wrap:anywhere}
+pre{background:var(--code);border-radius:8px;padding:.8rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;overflow-wrap:normal}
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:.86rem;min-width:100%}
+th,td{border-bottom:1px solid var(--line);padding:.4rem .55rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+blockquote{margin:1rem 0;padding:.2rem .9rem;border-left:3px solid var(--accent);color:var(--muted)}
+ul,ol{padding-left:1.3rem}
+li{margin:.2rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:1.5rem 0}
+.dead{color:var(--muted);border-bottom:1px dotted var(--muted)}
+details.src{margin:2rem 0 0;border:1px solid var(--line);border-radius:8px;padding:.5rem .8rem;background:var(--panel)}
+details.src summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+details.src li{font-size:.84rem}
+.search{width:100%;font:inherit;font-size:16px;padding:.6rem .8rem;border:1px solid var(--line);
+border-radius:10px;background:var(--panel);color:var(--ink);margin:.4rem 0 .3rem}
+.hits{list-style:none;padding:0;margin:.5rem 0 1.5rem}
+.hits li{padding:.45rem 0;border-bottom:1px solid var(--line)}
+.hits small{color:var(--muted);display:block;font-size:.78rem}
+.note{font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<nav class="bar"><a href="index.html">← Wiki index</a><span class="sp"></span><a href="../learn/">Learn</a></nav>
+<main>
+<h1 id="byrnes-the-short-term-and-long-term-predictor">Byrnes: the short-term and long-term predictor</h1>
+<div class="meta"><span class="type">source</span> <span>created 2026-10-24</span> <span>updated 2026-10-24</span> <span class="tag">reinforcement-learning</span> <span class="tag">temporal-difference</span> <span class="tag">value-function</span> <span class="tag">actor-critic</span> <span class="tag">supervised-learning</span> <span class="tag">neuroscience</span> <span class="tag">brain-like-agi</span> <span class="tag">byrnes</span></div>
+<p><strong>Source:</strong> Steven Byrnes (Astera), "[Intro to brain-like-AGI safety] 4. The 'short-term predictor'" and "5. The 'long-term predictor', and TD learning", LessWrong, first posted 2022-02-16 and 2022-02-23; revised through June 2026 (the capture is the 2026 text; post 5 was rewritten in January, May and June 2026, per its changelog). <strong>Raw:</strong> P4 = <code>raw/web-2022-byrnes-brain-like-agi-safety-04-short-term-predictor.md</code>, P5 = <code>raw/web-2022-byrnes-brain-like-agi-safety-05-long-term-predictor-td.md</code> (full text). <strong>Bundle:</strong> posts 4 and 5 of a 15-post sequence; the rest is on <a href="source-bundle-byrnes-brain-like-agi-safety.html">source-bundle-byrnes-brain-like-agi-safety</a>. <strong>Kind of evidence:</strong> a hypothesis with toy models and literature pointers. Nothing is measured, and the author says he ran the toy model "in my head; I haven't simulated it" (P5, footnote to §5.2). Below, <em>argues</em> marks his reasoning and <em>cites</em> marks evidence he points to but this wiki has not read.</p>
+<h2 id="claim-in-two-sentences">Claim in two sentences</h2>
+<p>Byrnes argues that, in his toy model, a long-term predictor is a supervised learner whose own output is fed back as its training target most of the time, except when a fixed, hand-wired circuit overrides it with a ground-truth value; trained this way it learns to predict the value of the next override, however far off. He argues this is temporal difference (TD) learning in a slightly different form, that the brain's value function (the "critic" of actor-critic reinforcement learning) is one such predictor, and that it values "the next reward" rather than the textbook "discounted sum of all future rewards". He has not simulated it, and claims only that his account is "qualitatively true, or at least <em>can</em> be qualitatively true with appropriate parameter settings and perhaps other minor tweaks" (P5, footnote to §5.2).</p>
+<p>Glossary for this page:</p>
+<ul><li><strong>Supervised learning:</strong> learn from a signal that says what the output should have been.</li><li><strong>Reinforcement learning (RL):</strong> learn from a reward that says only how good the outcome was.</li><li><strong>Value function / critic:</strong> a learned estimate of how good the current situation or plan will turn out; the <strong>actor</strong> is the part that picks actions.</li><li><strong>TD learning:</strong> train a prediction now toward the prediction made a moment later (plus any reward that arrived), so the estimate is pulled toward its own future value; see <a href="concept-temporal-difference-learning.html">concept-temporal-difference-learning</a>.</li><li><strong>Latent variable:</strong> an internal feature the learner built, not a raw input.</li></ul>
+<h2 id="the-short-term-predictor-post-4">The short-term predictor (post 4)</h2>
+<ul><li><strong>Interface.</strong> Three signals: context (the inputs), output (the prediction), supervisor (in hindsight, what the output should have been), which map onto ML's model inputs, outputs and labels (P4, §4.3). Example: learn to flinch 0.3 s before a hit, after a cue such as someone yelling "FORE!" (P4, §4.2).</li><li><strong>Toy circuit.</strong> Track which context lines tend to fire 0.3 s before the supervisor and wire them to the output; in neurons, a synapse rule depending on three cells' activity and timing (a "three-factor learning rule") (P4, §4.4).</li><li><strong>Why not hard-wire it.</strong> Learned cues can be new to the species, and they can be learned features; the genome cannot know which neurons will hold a learned feature, so it cannot wire to it (P4, §4.5.1).</li><li><strong>Why not RL.</strong> He argues that a supervised signal says how the output was wrong (overshoot or undershoot), a reward only that it was wrong, so supervised learning gets "a full error gradient 'for free' on each query" and learns faster (P4, §4.5.2); no comparison is run. The wiki's reading: this holds when a ground truth exists; Byrnes notes it often does not, as in trying to prove a theorem (same section).</li><li><strong>Cerebellum (his theory).</strong> The cerebellum holds about 300,000 short-term predictors, each learning to send a signal a moment before it would arrive, to cut latency; close to Miall et al.'s 1993 "Smith predictor" model (P4, §4.6). The number is his estimate: 15 million Purkinje cells, the cerebellum's output neurons (Nairn et al. 1989) divided by about 50 cells per predictor, a mouse figure he assumes holds for humans (P4, footnote to §4.6.1). "I haven't run simulations or anything; it's just an idea" (P4, §4.6.1).</li><li><strong>Cortex.</strong> Predicting incoming senses and learning from the error is the main source of the cortex's world model, but it cannot choose actions: "I can predict that I'll sing, and then I sing, and my prediction was correct" (P4, §4.7). Choice needs reward signals from elsewhere.</li><li><strong>Distributional learning.</strong> Weight overshoot and undershoot errors differently across many predictors and together they output a spread, not a point; he cites a DeepMind-led study of dopamine neurons (Nature, 2020) as evidence the brain does this for reward prediction (P4, footnote to §4.4; the study is not in raw).</li></ul>
+<h2 id="the-long-term-predictor-post-5">The long-term predictor (post 5)</h2>
+<p><strong>The circuit</strong> (P5, §5.2). A short-term predictor's output goes to a two-way switch run by fixed circuitry:</p>
+<ul><li><em>Override mode:</em> the fixed circuit sends its own value (example: start making digestive enzymes because food is in the mouth).</li><li><em>Defer-to-predictor mode:</em> the circuit passes the predictor's output through as if it were ground truth.</li></ul>
+<p>The switch's output is also the predictor's supervisor. So in defer mode the predictor is trained toward its own later output.</p>
+<p><strong>What it learns</strong> (P5, §5.2.1.1). At an override with value R, the predictor is pushed to have already output R. In defer mode it is pushed to keep its output steady, in one time direction only: the later output is the target for the earlier one, not the reverse. Together: "we are training the short-term predictor to always output what the next override will be", or its expected value if the next override is uncertain. With fixed context, defer periods teach nothing and the overrides balance out on average; with changing context, a new output becomes the target for the old one (P5, §5.2.2–§5.2.3).</p>
+<p><strong>How it maps to ML</strong> (P5, §5.2.1.2, table in §5.2.1).</p>
+<div class="tw"><table><thead><tr><th>Mode</th><th>Training pushes toward</th><th>ML analogue</th><th>Brain analogue</th></tr></thead><tbody><tr><td>Override</td><td>anticipating the override</td><td>supervised learning</td><td>innate reactions</td></tr><tr><td>Defer</td><td>keeping the output steady</td><td>TD learning</td><td>self-fulfilling expectations, e.g. salivating before eating</td></tr></tbody></table></div>
+<p>He notes TD is "a general-purpose algorithm that takes a quantity X and spits out a long-term expectation of X", not only for rewards (P5, §5.2.1.2).</p>
+<p><strong>Why the brain is not stuck stepping back one tick at a time</strong> (P5, §5.2.1.2). Textbook TD passes value back about one time step per trial; planning a vacation a month ahead would need about 10,000,000 trials at 0.3 s a step. His answer: the inputs already hold features that last, such as the thought "I'm getting lunch", active from boarding the bus to the first bite, so one update can tie that feature to the outcome. The wiki's reading: this is a claim about the features, not the update rule. With a linear TD learner, a feature that stays on from plan to outcome gets its weight moved at the outcome, and that weight raises the value at the plan's start on the next trial. It can be checked on a laptop.</p>
+<p><strong>The value function as one long-term predictor</strong> (P5, §5.3). He proposes that override mode is pleasure or pain grounded in innate circuits, and defer mode the striatum's "valence guess" (valence: how good or bad a thought seems overall). Walking upstairs to fetch a sweater stays motivated before any warmth arrives because the guess is positive and the brainstem defers to it (P5, §5.3.1).</p>
+<p><strong>Differences from textbook RL</strong> (P5, §5.3.2):</p>
+<ul><li><em>Reward is less "ground truth".</em> It depends on what you think and on body state, not directly on the world (he quotes Singh et al. 2009: "all rewards are internal").</li><li><em>Learning-rate gating.</em> When an unrelated event cuts in (a phone alarm during maths homework), the update should be skipped; he calls it "TD learning with sporadic power outages" and ties it to a pause in one class of striatal neurons, the cholinergic interneurons (§5.3.2.2).</li><li><em>Switch, not sum.</em> His model's value is the expected <em>next</em> override; textbook value is the expected discounted <em>sum</em> of future rewards (§5.3.2.3). With one reward at the end of a game, as in AlphaGo, and no discounting, the two agree; he sets discounting aside throughout (§5.3.2.2). He argues the brain is "much closer to switch": a toe that hurts 40 s does not feel twice as bad as one that hurts 20 s (the peak-end rule). He adds that if reward may depend on value, each form can imitate the other, and that he does not think it matters much for the big picture.</li><li>He sets time-discounting aside (§5.3.2.2).</li></ul>
+<p>The wiki's reading: the switch form is TD(0) with no discount where each override ends an episode, since the target at an override is R alone, with nothing bootstrapped after it.</p>
+<p><strong>Brain mapping</strong> (P5, §5.4–§5.5.4). He proposes that an array of such predictors ("Thought Assessors") sits in the extended striatum (deep forebrain structures) (caudate, nucleus accumbens, lateral septum, part of the amygdala), each looping to a hypothalamus or brainstem target and back through a dopamine neuron that carries the supervisor signal. Most of the striatum serves the valence guess; dozens to hundreds of "visceral" predictors handle cortisol, freezing, goosebumps and the like. Evidence he offers: introspection, an evolutionary story, fruit-fly dopamine-supervised modules, and some anatomy papers (Lischinsky et al. 2023; Heimer et al. 2008; Lammel et al. 2014; Verharen et al. 2020); none is in raw. His summary: no "smoking-gun proof", but "broadly on the right track" (§5.6). The July 2024 changelog says much of the 2022 neuroanatomy "was incorrect" and was rewritten.</p>
+<h2 id="what-was-measured-what-is-argued">What was measured, what is argued</h2>
+<ul><li>Measured in the posts: nothing. The numbers (0.3 s, 300,000 predictors, 10,000,000 trials) are illustrations or estimates.</li><li>Argued: the circuit, its link to TD, the switch form, the brain mapping.</li><li>Checkable: the toy model's training behaviour (simulation), and the cerebellum and striatum mappings (neuroscience). Byrnes himself lists checking his neuroscience claims as an open research program (<code>raw/web-2022-byrnes-brain-like-agi-safety-15-conclusion-open-problems.md</code>, §15.2.1.1).</li></ul>
+<h2 id="ties">Ties</h2>
+<ul><li><a href="concept-temporal-difference-learning.html">concept-temporal-difference-learning</a> — this page is that stub's main source.</li><li><a href="source-stopgrad-regression-flow-maps.html">source-stopgrad-regression-flow-maps</a> — TD(0) trains toward a target built from the model's own next estimate, behind a stop-gradient, so updates are semi-gradients and training stops at fixed points of the target. The wiki's reading: defer mode is the same move; the predictor's later output is a target it does not adjust through.</li></ul>
+<h2 id="see-also">See also</h2>
+<ul><li><a href="source-dreamer-v1.html">source-dreamer-v1</a> and <a href="source-tdmpc2.html">source-tdmpc2</a> — actor-critic and value learning inside a learned world model, the ML systems closest to Byrnes's "actor-critic model-based RL" frame; he cites neither.</li><li><a href="concept-predictive-coding.html">concept-predictive-coding</a> — post 4's predictive learning of the senses is the "model of the brain" sense on that page; Byrnes argues it cannot choose actions on its own.</li><li><a href="source-expert-iteration.html">source-expert-iteration</a> — another way to make value targets: from search, not from bootstrapping.</li></ul>
+<h2 id="references">References</h2>
+<ul><li><code>raw/web-2022-byrnes-brain-like-agi-safety-04-short-term-predictor.md</code> (§4.2–§4.8, footnotes)</li><li><code>raw/web-2022-byrnes-brain-like-agi-safety-05-long-term-predictor-td.md</code> (§5.2–§5.6, changelog, footnotes)</li><li><code>raw/web-2022-byrnes-brain-like-agi-safety-15-conclusion-open-problems.md</code> (§15.2.1.1)</li><li><a href="https://www.lesswrong.com/posts/Y3bkJ59j4dciiLYyw" rel="noreferrer">https://www.lesswrong.com/posts/Y3bkJ59j4dciiLYyw</a> · <a href="https://www.lesswrong.com/posts/F759WQ8iKjqBncDki" rel="noreferrer">https://www.lesswrong.com/posts/F759WQ8iKjqBncDki</a></li><li><a href="source-bundle-byrnes-brain-like-agi-safety.html">source-bundle-byrnes-brain-like-agi-safety</a> · <a href="concept-temporal-difference-learning.html">concept-temporal-difference-learning</a> · <a href="source-stopgrad-regression-flow-maps.html">source-stopgrad-regression-flow-maps</a> · <a href="source-dreamer-v1.html">source-dreamer-v1</a> · <a href="source-tdmpc2.html">source-tdmpc2</a> · <a href="concept-predictive-coding.html">concept-predictive-coding</a> · <a href="source-expert-iteration.html">source-expert-iteration</a></li></ul>
+<details class="src"><summary>Sources (4)</summary><p class="note">Raw files and local projects are named, not published.</p><ul><li><code>raw/web-2022-byrnes-brain-like-agi-safety-04-short-term-predictor.md</code></li><li><code>raw/web-2022-byrnes-brain-like-agi-safety-05-long-term-predictor-td.md</code></li><li><a href="https://www.lesswrong.com/posts/Y3bkJ59j4dciiLYyw" rel="noreferrer">https://www.lesswrong.com/posts/Y3bkJ59j4dciiLYyw</a></li><li><a href="https://www.lesswrong.com/posts/F759WQ8iKjqBncDki" rel="noreferrer">https://www.lesswrong.com/posts/F759WQ8iKjqBncDki</a></li></ul></details>
+</main>
+</body>
+</html>

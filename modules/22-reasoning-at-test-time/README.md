@@ -22,8 +22,8 @@ each figure as "what this 4-bit 1.7B model did", not "what Qwen3 does".
 
 This is the first module of track 8, **Using models well**, in reading order.
 Read it after [module 20](../20-in-context-learning/README.md); next,
-[module 21](../21-retrieval-and-memory/README.md) fetches a passage for the
-model to read.
+[module 34](../34-prompts-as-parameters/README.md) tunes the prompt of a
+frozen model as if it were a weight.
 
 **🕹 Interactive:** [Reasoning at test time](../../explorables/22-reasoning-at-test-time.html):
 browse the real replies, eight samples per problem, slide n and watch the
