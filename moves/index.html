@@ -33,14 +33,19 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;
   padding-top:calc(env(safe-area-inset-top,0px) + 12px);padding-bottom:12px;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
-  display:flex;gap:12px;justify-content:space-between;align-items:baseline;
   font:500 12px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
   background:linear-gradient(var(--bg) 50%,transparent)}
+/* Only the label row takes taps; the negative margin gives it a 44px target without moving the bar. */
+.hud-btn{pointer-events:auto;display:flex;gap:12px;justify-content:space-between;align-items:baseline;width:100%;min-height:44px;margin:-15px 0;padding:15px 0;
+  background:none;border:0;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.hud-btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:6px}
+.hud .chap::after{content:"";display:inline-block;width:.42em;height:.42em;margin:0 0 .18em .55em;border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
 .hud .count{font-variant-numeric:tabular-nums;white-space:nowrap}
 .hud .count b{color:var(--fg);font-weight:500}
 .hud .chap{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bar{position:absolute;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));bottom:4px;height:2px;background:var(--line);border-radius:2px;overflow:hidden}
-.bar i{display:block;height:100%;width:100%;transform-origin:left center;transform:scaleX(0);background:var(--blue)}
+.ticks span{position:absolute;bottom:-2px;width:1.5px;height:6px;margin-left:-.75px;background:var(--muted);opacity:.55}
+.bar{position:absolute;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));bottom:4px;height:2px;background:var(--line);border-radius:2px}
+.bar i{display:block;height:100%;width:100%;border-radius:2px;transform-origin:left center;transform:scaleX(0);background:var(--blue)}
 main{position:relative;z-index:2}
 .step{height:86vh;height:86svh;display:flex;align-items:flex-end;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-bottom:calc(3svh + env(safe-area-inset-bottom,0px))}
@@ -62,8 +67,63 @@ main{position:relative;z-index:2}
 .again{margin-top:16px;font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;
   color:var(--bg);background:var(--fg);border:0;border-radius:999px;padding:12px 18px;min-height:44px;cursor:pointer}
 .again:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
-.home{display:inline-block;margin-top:12px;font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--blue);text-decoration:none;padding:10px 0}
+.home{display:inline-flex;align-items:center;min-height:44px;margin-top:12px;font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--blue);text-decoration:none;padding:10px 0}
 .home:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+html.locked{overflow:hidden}
+.take{margin:12px 0 0;padding-top:10px;border-top:1px solid var(--line);font-size:14px;line-height:1.45;color:var(--muted);font-style:italic;max-width:60ch}
+.deep{display:inline-flex;align-items:center;gap:8px;margin-top:12px;min-height:44px;padding:0 18px;border:1px solid var(--line);border-radius:999px;background:transparent;
+  color:var(--blue);font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.deep::after{content:"";width:.45em;height:.45em;border:solid currentColor;border-width:1.5px 1.5px 0 0;transform:rotate(45deg)}
+.deep:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+/* Dialogs: the deeper sheet (bottom sheet on phones, right panel on wide screens) and the chapter index. */
+.dlg{position:fixed;inset:0;z-index:20}
+.dlg[hidden]{display:none}
+.dlg:not(.open){pointer-events:none}
+.scrim{position:absolute;inset:0;background:rgba(8,14,22,.4);opacity:0;transition:opacity .28s ease}
+.dlg.open .scrim{opacity:1}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:75vh;max-height:75dvh;display:flex;flex-direction:column;background:var(--bg);color:var(--fg);
+  border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;box-shadow:0 -12px 40px rgba(0,0,0,.18);outline:none;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.dlg.open .sheet{transform:none}
+.handle{flex:none;height:30px;display:flex;align-items:center;justify-content:center;touch-action:none;cursor:grab}
+.handle i{width:40px;height:4px;border-radius:2px;background:var(--faint)}
+.x{width:44px;height:44px;flex:none;border:0;border-radius:999px;background:transparent;color:var(--muted);font:300 30px/1 var(--sans);cursor:pointer}
+.x:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
+.sheet .x{position:absolute;top:4px;right:6px}
+.scroll{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;min-height:0}
+.sheet .scroll{padding:0 max(20px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px))}
+.sheet .kicker{margin-right:40px}
+.sheet h2{margin:0 0 14px;font-family:var(--display);font-weight:700;font-size:clamp(25px,6.6vw,34px);line-height:1.05;letter-spacing:-.02em;text-wrap:balance}
+.d-text{margin:0 0 16px;font-size:16px;line-height:1.55}
+.d-text b,.d-cap b{font-weight:500;font-variant-numeric:tabular-nums}
+.d-formula{margin:0 0 16px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;font:500 14px/1.5 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere;color:var(--fg)}
+.d-cap{margin:0 0 14px;font-size:14px;line-height:1.5;color:var(--muted)}
+.lab{display:block;margin-bottom:2px;font:500 12px/1.4 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--fg)}
+.d-but{padding-left:12px;border-left:2px solid var(--gold)}
+.d-links{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 16px}
+.d-link{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border-radius:999px;background:var(--fg);color:var(--bg);
+  font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;text-decoration:none}
+.d-link:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+.d-src{margin:0;padding-top:10px;border-top:1px solid var(--line);font-size:12px;line-height:1.5;color:var(--muted)}
+.toc{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg);color:var(--fg);outline:none;
+  opacity:0;transform:translateY(10px);transition:opacity .22s ease,transform .22s ease}
+.dlg.open .toc{opacity:1;transform:none}
+.toc-head{flex:none;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);
+  padding:calc(env(safe-area-inset-top,0px) + 6px) max(8px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px))}
+.toc-head h2{margin:0;font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.toc .scroll{flex:1;padding:8px max(8px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+.toc ol{list-style:none;margin:0 auto;padding:0;max-width:42rem}
+.toc-i{display:grid;grid-template-columns:2.9rem minmax(0,1fr) auto;gap:12px;align-items:baseline;width:100%;min-height:44px;padding:14px 10px;
+  background:none;border:0;border-radius:12px;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.toc li+li .toc-i{box-shadow:inset 0 1px 0 var(--line)}
+.toc-i:hover{background:var(--line)}
+.toc-i:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
+.toc-i[aria-current]{background:var(--line);box-shadow:none}
+.toc-n{font:700 20px/1 var(--display);color:var(--muted);font-variation-settings:'opsz' 72}
+.toc-i[aria-current] .toc-n{color:var(--blue)}
+.toc-t{display:block;font:700 19px/1.2 var(--display);letter-spacing:-.01em}
+.toc-k{display:block;margin-top:4px;font-size:14px;line-height:1.4;color:var(--muted)}
+.toc-r{font:500 12px/1 var(--mono);letter-spacing:.06em;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (min-width:760px) and (min-aspect-ratio:21/20){
   .step{height:100vh;align-items:center;padding-left:max(48px,6vw,env(safe-area-inset-left,0px));padding-bottom:0}
@@ -72,16 +132,1542 @@ main{position:relative;z-index:2}
   .body{font-size:18px}
   .hud{padding-top:20px;padding-left:max(32px,env(safe-area-inset-left,0px));padding-right:max(32px,env(safe-area-inset-right,0px));font-size:12px}
   .bar{left:max(32px,env(safe-area-inset-left,0px));right:max(32px,env(safe-area-inset-right,0px))}
+  .hud-btn{margin:-20px 0 -15px;padding:20px 0 15px}
+  .take{font-size:15px}
+  .sheet{left:auto;top:0;bottom:0;right:0;width:min(30rem,42vw);max-height:none;border:0;border-left:1px solid var(--line);border-radius:0;
+    box-shadow:-12px 0 40px rgba(0,0,0,.14);transform:translateX(100%)}
+  .handle{display:none}
+  .sheet .x{top:12px;right:12px}
+  .sheet .scroll{padding:64px 36px 36px}
+  .toc .scroll{padding-top:16px}
 }
-@media (prefers-reduced-motion: reduce){.hint i{animation:none;transform:none}}
+@media (prefers-reduced-motion: reduce){.hint i{animation:none;transform:none}.scrim,.sheet,.toc{transition:none}}
 </style>
 </head>
 <body>
 <canvas id="stage" aria-hidden="true"></canvas>
-<div class="hud" aria-hidden="true"><span class="chap" id="chap">I · Points</span><span class="count"><b id="num">001</b> / 100</span><div class="bar"><i id="bar"></i></div></div>
+<header class="hud" id="hud"><button class="hud-btn" id="hudbtn" type="button" aria-haspopup="dialog" aria-controls="toc" aria-label="Chapters"><span class="chap" id="chap">I · Points</span><span class="count"><b id="num">001</b> / <span id="tot">136</span></span></button><div class="bar" aria-hidden="true"><i id="bar"></i><span class="ticks" id="ticks"></span></div></header>
 <h1 class="sr">One hundred moves: machine learning told with one field of points</h1>
 <main id="steps"></main>
+<div class="dlg" id="deep" hidden>
+  <div class="scrim" data-close></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="deep-title" tabindex="-1">
+    <div class="handle" aria-hidden="true"><i></i></div>
+    <button class="x" type="button" aria-label="Close" data-close>×</button>
+    <div class="scroll"><p class="kicker" id="deep-kick"></p><h2 id="deep-title"></h2><div id="deep-body"></div></div>
+  </div>
+</div>
+<div class="dlg" id="toc" hidden>
+  <div class="toc" role="dialog" aria-modal="true" aria-labelledby="toc-title" tabindex="-1">
+    <div class="toc-head"><h2 id="toc-title">Chapters</h2><button class="x" type="button" aria-label="Close" data-close>×</button></div>
+    <div class="scroll"><ol id="toc-list"></ol></div>
+  </div>
+</div>
 
+<!-- Card text: content.json verbatim. Code reads it with JSON.parse; titles and bodies here override the in-code ones. -->
+<script type="application/json" id="moves-text">
+{
+ "chapters": [
+  {
+   "n": "I",
+   "name": "Points",
+   "takeaway": "Every input a model sees arrives as a table of numbers."
+  },
+  {
+   "n": "II",
+   "name": "A line that learns",
+   "takeaway": "A line learns by fixing its mistakes; a hidden layer lets a line do more."
+  },
+  {
+   "n": "III",
+   "name": "Downhill",
+   "takeaway": "Training walks downhill on the error, and one backward pass gives every slope."
+  },
+  {
+   "n": "IV",
+   "name": "Fitting too well",
+   "takeaway": "A model can fit its training data perfectly and still fail on new data."
+  },
+  {
+   "n": "V",
+   "name": "Measuring honestly",
+   "takeaway": "A score counts only on data that shaped no choice, and only with its error bars."
+  },
+  {
+   "n": "VI",
+   "name": "Words to numbers",
+   "takeaway": "Text becomes tokens, tokens become points, and the model scores what comes next."
+  },
+  {
+   "n": "VII",
+   "name": "Attention",
+   "takeaway": "Each token takes an average of the others, weighted by dot products."
+  },
+  {
+   "n": "VIII",
+   "name": "Hide and predict",
+   "takeaway": "Hide part of the data and predict it back: the data supplies its own labels."
+  },
+  {
+   "n": "IX",
+   "name": "Looking inside",
+   "takeaway": "A tool that reads a model proves little until it beats a random network."
+  },
+  {
+   "n": "X",
+   "name": "How learning goes",
+   "takeaway": "A network can fit long before it generalizes, and forgets fast unless reminded."
+  },
+  {
+   "n": "XI",
+   "name": "Scale",
+   "takeaway": "Loss falls along a straight line on log axes, and big models learn from the prompt."
+  },
+  {
+   "n": "XII",
+   "name": "Adapting a model",
+   "takeaway": "A trained model can be changed cheaply: few weights, a teacher, or people’s choices."
+  },
+  {
+   "n": "XIII",
+   "name": "More from one model",
+   "takeaway": "More tokens, better prompts, the right page and fewer bits each buy something, at a cost."
+  },
+  {
+   "n": "XIV",
+   "name": "Tools and agents",
+   "takeaway": "An agent is a model, some tools and a loop, and it must be measured over many runs."
+  },
+  {
+   "n": "XV",
+   "name": "Acting",
+   "takeaway": "With only a reward, a learner makes good actions likelier; a checker keeps it honest."
+  },
+  {
+   "n": "XVI",
+   "name": "What came back",
+   "takeaway": "A few moves, used again and again, explain most of the field."
+  }
+ ],
+ "moves": {
+  "a5": {
+   "deeper": {
+    "text": "The perceptron scores a point x by w·x and predicts its sign. Add a constant 1 to every point and the bias becomes one more weight. On a mistake, the point is added to w if its label y is +1 and subtracted if y is −1; points it gets right change nothing. There is no learning rate and no loss, only a count of mistakes.",
+    "formula": "w ← w + y·x  (on each mistake)",
+    "measured": "12 mistakes in 3 epochs (11, 1, 0), then 100% accuracy: perceptron on 200 separable points, seed 1958, module 00a.",
+    "sources": [
+     "Rosenblatt, 1958"
+    ],
+    "links": {
+     "module": "00a-perceptron",
+     "explorable": "00a-perceptron.html",
+     "quiz": "00a"
+    }
+   }
+  },
+  "a6": {
+   "deeper": {
+    "text": "Suppose some line splits the data with margin γ, the smallest distance from any point to it, and every point lies within radius R of the origin. Each mistake turns w at least γ toward that line, while its squared length grows by at most R². Both cannot go on forever, so the mistakes must stop. Novikoff proved this in five lines.",
+    "formula": "mistakes ≤ (R/γ)²",
+    "measured": "Bound 139.57 mistakes; the run made 12, 8.60% of it: R = 4.169359, γ = 0.352921, 200 points, module 00a.",
+    "but": "The bound is a worst case: at margin 0.07, five seeds made between 6 and 47 mistakes.",
+    "sources": [
+     "Novikoff, 1962"
+    ],
+    "links": {
+     "module": "00a-perceptron",
+     "explorable": "00a-perceptron.html",
+     "quiz": "00a"
+    }
+   }
+  },
+  "a7": {
+   "deeper": {
+    "text": "XOR puts one class on two opposite corners of a square and the other class on the remaining two. A line cuts the plane into two halves, and any half that holds both blue corners also holds a gold one. So the best line gets three of four points right. With no line to find, the perceptron’s weights return to where they started every four updates.",
+    "measured": "Best possible line: 75% of the 4 points, found by trying every cut; module 00a.",
+    "sources": [
+     "Minsky and Papert, 1969"
+    ],
+    "links": {
+     "module": "00a-perceptron",
+     "explorable": "00a-perceptron.html",
+     "quiz": "00a"
+    }
+   }
+  },
+  "a9": {
+   "deeper": {
+    "text": "Put one hidden layer of two tanh units between input and output. Each unit takes a weighted sum of the inputs and passes it through tanh, a smooth S-shaped curve from −1 to 1. The two outputs give each point new coordinates, and in them the two classes sit on either side of a line. Gradient descent finds the weights; nobody sets them by hand.",
+    "measured": "9 parameters, 4 of 4 points right, loss 2.5e−32: 2 → 2 → 1 tanh network on XOR, module 00a.",
+    "links": {
+     "module": "00a-perceptron",
+     "explorable": "00a-perceptron.html",
+     "quiz": "00a"
+    }
+   }
+  },
+  "a11": {
+   "deeper": {
+    "text": "k-NN stores the training set and labels a new point by a vote of its k nearest points. Small k follows every noisy point; large k averages more labels and smooths the boundary. When the classes overlap, even the best rule makes some errors: that floor is the Bayes error. Cover and Hart proved that 1-NN ends at most about twice that floor.",
+    "measured": "Test error 0.2274 at k = 1 and 0.1593 at k = 151, against a best possible 0.158655: two overlapping Gaussians, 1,000 training points, module 00b.",
+    "sources": [
+     "Cover and Hart, 1967"
+    ],
+    "links": {
+     "module": "00b-bayes-knn-pca",
+     "quiz": "00b"
+    }
+   }
+  },
+  "a12": {
+   "deeper": {
+    "text": "The covariance matrix C records how the data’s coordinates vary together. Multiplying a vector by C stretches it most along the direction where the data spreads most, so repeating the step and rescaling leaves only that direction. This is power iteration, and the direction is the first principal component. Subtract it from C and repeat to find the next one.",
+    "formula": "v ← C·v / ‖C·v‖",
+    "measured": "PC1 alone holds 28.68% of the pixel variance, and 83 of 784 components hold 90%: FashionMNIST, module 00b.",
+    "sources": [
+     "Pearson, 1901",
+     "Hotelling, 1933"
+    ],
+    "links": {
+     "module": "00b-bayes-knn-pca",
+     "explorable": "00b-pca.html",
+     "quiz": "00b"
+    }
+   }
+  },
+  "a14": {
+   "deeper": {
+    "text": "The gradient is the list of slopes of the error, one per weight; it points uphill. Gradient descent subtracts a small multiple of it, the learning rate η, and repeats. On least squares, where the answer can also be solved in one step, the walk ends at that same answer.",
+    "formula": "w ← w − η·∇L(w)",
+    "measured": "400 steps at learning rate 0.05 agree with the solved answer to 1.8e−15: least squares, module 00a.",
+    "links": {
+     "module": "01-autograd",
+     "explorable": "01-gradient-descent.html",
+     "quiz": "01"
+    }
+   }
+  },
+  "a15": {
+   "deeper": {
+    "text": "On a bowl-shaped error, the steepest direction sets a speed limit. If the curvature along it is λ, any learning rate above 2/λ makes each step overshoot more than the last, and the weights grow without bound. Below the limit, smaller steps are safe but slow. Adam divides each weight’s step by the size of its recent slopes, so its steps stay near the rate.",
+    "formula": "stable only if η < 2/λ_max",
+    "measured": "Gradient descent diverged from rate 0.1 up on a tilted bowl with largest curvature 25 (limit 2/25 = 0.08); Adam diverged at none of 37 rates: module 14.",
+    "links": {
+     "module": "14-how-training-finds-a-solution",
+     "explorable": "14-how-training-finds-a-solution.html",
+     "quiz": "14"
+    }
+   }
+  },
+  "a16": {
+   "deeper": {
+    "text": "Momentum keeps a running sum of past gradients and steps along that sum. Gradients that agree from step to step add up, so the walk speeds along a long, gentle valley. Gradients that flip sign cancel, which damps the bounce across a narrow one.",
+    "formula": "v ← 0.9·v + g;  w ← w − η·v",
+    "measured": "Steps to loss below 10⁻³ in the Rosenbrock valley, each at its best rate: gradient descent 3,660, momentum 164, Adam 182; module 14.",
+    "but": "On a tilted bowl the three were within a factor of 2.5, and momentum’s count jumped from 76 to 18 to 56 over three neighbouring rates.",
+    "links": {
+     "module": "14-how-training-finds-a-solution",
+     "explorable": "14-how-training-finds-a-solution.html",
+     "quiz": "14"
+    }
+   }
+  },
+  "a17": {
+   "deeper": {
+    "text": "Training stops in some valley, and which one depends on the start, the batch size and the rate. A common picture says small batches find wide, flat valleys and that these generalize better. Sharpness can be measured as the top eigenvalue of the Hessian, the matrix of second derivatives: the curvature along the steepest direction.",
+    "measured": "Batch 2,048 stopped where the loss curves 16 times more sharply than batch 32 (35.2 against 2.2), yet tested better, 86.2% against 84.8%: MLP on FashionMNIST, module 14.",
+    "but": "One pair of runs, and the eigenvalue changes when the same function is written with rescaled weights.",
+    "sources": [
+     "Keskar et al., 2016",
+     "Dinh et al., 2017"
+    ],
+    "links": {
+     "module": "14-how-training-finds-a-solution",
+     "explorable": "14-how-training-finds-a-solution.html",
+     "quiz": "14"
+    }
+   }
+  },
+  "a19": {
+   "deeper": {
+    "text": "A network is a graph of small operations, and each knows its local derivative: how its output moves when its input moves. Backpropagation starts with slope 1 at the output and walks the graph in reverse. Each node multiplies the slope it receives by its local derivative and adds the result into its inputs. Reverse order makes sure a node has heard from every node that used it.",
+    "formula": "slope at input = slope at output × local derivative",
+    "measured": "Slopes from backward() agree with finite differences, nudging each input both ways, to about 1e-10: scalar autograd engine, module 01.",
+    "links": {
+     "module": "01-autograd",
+     "explorable": "01-gradient-descent.html",
+     "quiz": "01"
+    }
+   }
+  },
+  "a21": {
+   "deeper": {
+    "text": "A layer computes weighted sums of its inputs, one per unit, then bends each through a simple function such as ReLU, which keeps positive values and sets negative ones to zero. Without the bend, a stack of layers would collapse into one linear map. The last layer gives one score per class, and softmax turns the scores into probabilities.",
+    "measured": "0.8646 accuracy on the full 10,000 test images: 784 → 256 → 10 network, backward pass written by hand in NumPy, FashionMNIST, module 02.",
+    "links": {
+     "module": "02-neural-networks",
+     "explorable": "02-nn-playground.html",
+     "quiz": "02"
+    }
+   }
+  },
+  "a22": {
+   "deeper": {
+    "text": "Each first-layer ReLU unit switches on along one straight line, so the first layer cuts the plane into convex pieces. Inside each piece the second layer’s units switch along more lines. Fix which units are on and the network is one linear map: that set of inputs is a linear region. Cutting polygon by polygon gives the exact count, with no sampling.",
+    "measured": "158 regions at init, 236 after training to 100% accuracy: 2 → 12 → 12 → 2 network on two moons, module 15.",
+    "links": {
+     "module": "15-geometry-of-representations",
+     "explorable": "15-geometry-of-representations.html",
+     "quiz": "15"
+    }
+   }
+  },
+  "a23": {
+   "deeper": {
+    "text": "In 784 dimensions the regions cannot be drawn, but the regions a straight line crosses can be counted exactly. Along the line, each first-layer unit’s input changes in step with position, so it switches at most once, at a point that can be solved for; between those points the same holds for the second layer. Wider networks cut the line into more pieces, roughly in step with the number of neurons, not with the product of the widths.",
+    "measured": "Regions crossed by a line between two test images: 21.3 at width 32, 127.7 at width 256; FashionMNIST, module 15.",
+    "but": "One seed and 30 lines: at width 256 the count ran from 40 to 233.",
+    "sources": [
+     "Hanin and Rolnick, 2019"
+    ],
+    "links": {
+     "module": "15-geometry-of-representations",
+     "explorable": "15-geometry-of-representations.html",
+     "quiz": "15"
+    }
+   }
+  },
+  "a26": {
+   "deeper": {
+    "text": "Byte-pair encoding starts from the 256 byte values, so any text can be spelled and no word is ever unknown. It counts every adjacent pair, merges the commonest into a new token, and repeats. Common words end as one token, rare ones as a few pieces. Production tokenizers first split text into words and numbers so that merges never cross them.",
+    "measured": "SmolLM3’s 128k-token tokenizer splits 4096 into 409 + 6 and 2026 into 202 + 6, so one digit place lands in different tokens: module 03.",
+    "but": "Tokens cost more in some languages: SmolLM3 spent 1.36 times as many tokens on five Spanish sentences as on the same sentences in English.",
+    "sources": [
+     "Petrov et al., 2023"
+    ],
+    "links": {
+     "module": "03-tokenization",
+     "explorable": "03-bpe-stepper.html",
+     "quiz": "03"
+    }
+   }
+  },
+  "a28": {
+   "deeper": {
+    "text": "The embedding table gives each token a vector, one row per token, learned with the rest of the model. Tokens used in the same contexts must lead to similar predictions, so training pulls their vectors together. Months, numbers, countries and code words form groups before any layer runs.",
+    "measured": "Nearest tokens to “July” in the embedding table: “June”, then “July” without its leading space, then “August” and “September”; SmolLM2-360M-Instruct, module 05.",
+    "links": {
+     "module": "05-transformers-library",
+     "explorable": "05-transformer-anatomy.html",
+     "quiz": "05"
+    }
+   }
+  },
+  "a30": {
+   "deeper": {
+    "text": "The model ends with one score, a logit, for every token it knows. Softmax raises e to each score and divides by the total, so the results are positive and sum to 1. Generation picks a token from these odds, appends it to the text, and runs again.",
+    "formula": "pᵢ = e^zᵢ / Σⱼ e^zⱼ",
+    "measured": "91% on “ Paris” after “The capital of France is”, out of 49,152 tokens: SmolLM2-360M-Instruct, module 05.",
+    "links": {
+     "module": "05-transformers-library",
+     "explorable": "05-transformer-anatomy.html",
+     "quiz": "05"
+    }
+   }
+  },
+  "a31": {
+   "deeper": {
+    "text": "Dividing the logits by a temperature T before softmax changes the odds without changing the model. T below 1 sharpens them toward the top token; T above 1 flattens them. Top-k keeps a fixed number of tokens. Top-p keeps the smallest set whose odds add up to p, so it keeps more tokens when the model is unsure.",
+    "formula": "pᵢ ∝ e^(zᵢ/T)",
+    "measured": "After “My favorite color is”, top-p 0.8 keeps 14 tokens where top-k 5 keeps 5: SmolLM2-360M-Instruct, module 05.",
+    "links": {
+     "module": "05-transformers-library",
+     "quiz": "05"
+    }
+   }
+  },
+  "a34": {
+   "deeper": {
+    "text": "Three learned matrices turn each token into a query, a key and a value. Scores are query·key dot products, divided by the square root of the vector size so they do not grow with it and push the softmax to all or nothing. Softmax turns each row of scores into weights that sum to 1, and the output is the weighted average of the values.",
+    "formula": "Attention(Q, K, V) = softmax(Q·Kᵀ / √d)·V",
+    "links": {
+     "module": "04-attention-transformer",
+     "explorable": "04-attention.html",
+     "quiz": "04"
+    }
+   }
+  },
+  "a36": {
+   "deeper": {
+    "text": "A model that learns to predict the next token must not see that token. Setting every score above the diagonal to minus infinity gives it zero weight after softmax, so token t reads only tokens 0 to t. Training and generation must use the same mask, because at generation time the future does not exist yet.",
+    "measured": "Validation loss 1.910 with the mask; 2.875 for a model trained without it and then run with it, as at generation: small char GPTs, 1,500 steps, module 04.",
+    "links": {
+     "module": "04-attention-transformer",
+     "explorable": "04-attention.html",
+     "quiz": "04"
+    }
+   }
+  },
+  "a38": {
+   "deeper": {
+    "text": "A block normalizes its input, applies attention, and adds the result back; then it normalizes again, applies a small two-layer network, and adds again. The running sum that each block reads from and adds to is the residual stream. Token and position embeddings go in at the bottom; a score for every possible next token comes out at the top.",
+    "measured": "Train loss 4.22 → 1.54, validation loss 1.73, in about 4 minutes: about 620,000 parameters, 3 layers, 4 heads, characters of tiny-shakespeare, module 04.",
+    "links": {
+     "module": "04-attention-transformer",
+     "explorable": "05-transformer-anatomy.html",
+     "quiz": "04"
+    }
+   }
+  },
+  "a39": {
+   "deeper": {
+    "text": "Writing one token at a time, each new token needs the keys and values of every earlier token. Without a cache the model recomputes them all at each step, so the work grows with the square of the length. Storing them makes each step cost one new row. The price is memory, which grows with every token.",
+    "measured": "490 tokens per second with the cache against 8 without, at 128 tokens of context (63 times faster): Zig engine running module 04’s 619,776-parameter GPT, module 07.",
+    "links": {
+     "module": "07-inference-internals",
+     "explorable": "07-kv-cache.html",
+     "quiz": "07"
+    }
+   }
+  },
+  "a40": {
+   "deeper": {
+    "text": "A Vision Transformer cuts a 224 × 224 image into a 14 × 14 grid of 16 × 16 patches. Each patch is flattened and multiplied by a learned matrix to make a token; a position embedding is added, and one extra class token joins them. The same block as for text then runs with no causal mask, so every patch sees every patch.",
+    "measured": "95.3% on the test set (122 of 128) after 4 epochs, against 43.8% for CLIP with no training: ViT-tiny fine-tuned on bean-leaf diseases, module 08.",
+    "links": {
+     "module": "08-vision",
+     "explorable": "08-conv-vs-patches.html",
+     "quiz": "08"
+    }
+   }
+  },
+  "a43": {
+   "deeper": {
+    "text": "The forward process adds a little Gaussian noise at each of T steps, on a fixed schedule. A sum of Gaussian draws is Gaussian, so any step can be reached in one jump. ᾱ_t, the share of the signal’s variance left at step t, falls from 1 to near 0. Nothing in this part is learned.",
+    "formula": "x_t = √ᾱ_t·x₀ + √(1 − ᾱ_t)·ε,  ε ~ N(0, I)",
+    "sources": [
+     "Ho et al., 2020"
+    ],
+    "links": {
+     "module": "09-diffusion",
+     "explorable": "09-diffusion.html",
+     "quiz": "09"
+    }
+   }
+  },
+  "a44": {
+   "deeper": {
+    "text": "Pick a clean sample, a random step t and a random noise ε, and make the noisy sample in one jump. A network sees the noisy sample and t and must output ε. The loss is the squared error between the two. The same loss trains a small network on 2-D points and a UNet on images.",
+    "formula": "L = ‖ε − ε_θ(x_t, t)‖²",
+    "measured": "Loss 0.2678 → 0.0480 over 40 epochs in 3.1 minutes: 376,833-parameter UNet, 10,000 FashionMNIST images, T = 300, module 09.",
+    "sources": [
+     "Ho et al., 2020"
+    ],
+    "links": {
+     "module": "09-diffusion",
+     "explorable": "09-diffusion.html",
+     "quiz": "09"
+    }
+   }
+  },
+  "a45": {
+   "deeper": {
+    "text": "Sampling starts from pure noise and steps down from t = T to 0. At each step the network predicts the noise, and the sampler removes part of it; the original method then adds a little fresh noise back. DDIM adds none and takes larger steps, so the same trained network can run in far fewer steps.",
+    "measured": "6 images in 0.65 s with 10 DDIM steps, 7.53 s with 200; 10 steps already gave a plausible image: pretrained DDPM on CIFAR-10, module 09.",
+    "sources": [
+     "Ho et al., 2020",
+     "Song et al., 2021"
+    ],
+    "links": {
+     "module": "09-diffusion",
+     "explorable": "09-diffusion.html",
+     "quiz": "09"
+    }
+   }
+  },
+  "a46": {
+   "deeper": {
+    "text": "Drop the causal mask and train the model to guess characters hidden behind a [MASK] token, with a random share hidden each time. To write, start from a line of [MASK] and fill in a few guesses per step, in any order. The number of steps trades speed against quality. Filling the surest guesses first gives more real words, and more repeats.",
+    "measured": "Word score (share of real words) 0.95 at 128 steps, surest guesses first, but only 10% of 4-grams distinct: 619,904-parameter char model at six times the compute, module 33.",
+    "but": "At equal compute it trailed a left-to-right twin by 0.81 nats per character.",
+    "sources": [
+     "Nie et al., 2025"
+    ],
+    "links": {
+     "module": "33-text-by-denoising",
+     "explorable": "33-text-by-denoising.html",
+     "quiz": "33"
+    }
+   }
+  },
+  "a47": {
+   "deeper": {
+    "text": "SimCLR makes two views of each image by random crops, flips and colour changes. The loss asks each view to pick its partner out of all the other views in the batch, by cosine similarity. No label is used. A linear probe, a linear classifier trained on the frozen features, then measures what the encoder kept.",
+    "measured": "Class probe 57.9%, against 40.1% for the same encoder with random weights and 82.5% when trained on the labels: CIFAR-10, 10,000 probe images, 250 s each, module 16.",
+    "but": "A random network already reaches 40.1%, so judge each method by its gain over that floor.",
+    "sources": [
+     "Chen et al., 2020"
+    ],
+    "links": {
+     "module": "16-self-supervised-and-jepa",
+     "explorable": "16-self-supervised-and-jepa.html",
+     "quiz": "16"
+    }
+   }
+  },
+  "a48": {
+   "deeper": {
+    "text": "A loss that compares two outputs of the same encoder is zero when the encoder sends every input to one point. That is collapse. A milder form keeps outputs apart but along a few directions only. Two meters help: the spread of the normalized outputs, and the effective rank, the number of directions that carry variance.",
+    "measured": "Without stop-grad, spread fell from 0.16 to 0.005 and prediction loss to 0.0005 within six seconds: JEPA-style objective on CIFAR-10, module 16.",
+    "but": "The collapsed run had the highest effective rank, 17.8: rank reads the shape of the tiny spread left, not its size.",
+    "links": {
+     "module": "16-self-supervised-and-jepa",
+     "explorable": "16-self-supervised-and-jepa.html",
+     "quiz": "16"
+    }
+   }
+  },
+  "a49": {
+   "deeper": {
+    "text": "Four guards were tried: stop the gradient through the target; use a slow moving average of the encoder as the target (EMA); add a term that keeps each output number varying; or add one that makes outputs look Gaussian (SIGReg). Each kept the outputs from shrinking to a point. They differed in what the encoder kept.",
+    "measured": "Only the EMA target probed above the random floor, 44.8% against 40.1%; SIGReg spread widest (0.968) but probed 22.1%: 120 s runs on CIFAR-10, module 16.",
+    "but": "Spread is not use: picked by the meters alone, the wrong runs would have won.",
+    "sources": [
+     "Balestriero and LeCun, 2025"
+    ],
+    "links": {
+     "module": "16-self-supervised-and-jepa",
+     "explorable": "16-self-supervised-and-jepa.html",
+     "quiz": "16"
+    }
+   }
+  },
+  "a51": {
+   "deeper": {
+    "text": "A toy model squeezes n features into m < n dimensions and reads them back through a ReLU. When features are dense, it keeps m of them, each on its own axis, and drops the rest. When each feature is usually zero, two rarely fire together, so they can share directions and the ReLU clips most of the overlap.",
+    "measured": "Features kept rose from 5 to 13 of 20, in 5 dimensions, as sparsity went from 0 to 0.999: toy model, module 12.",
+    "but": "This shows a model can store more sparse features than dimensions, not that trained language models do.",
+    "sources": [
+     "Elhage et al., 2022"
+    ],
+    "links": {
+     "module": "12-features-and-dictionaries",
+     "explorable": "12-features-and-dictionaries.html",
+     "quiz": "12"
+    }
+   }
+  },
+  "a52": {
+   "deeper": {
+    "text": "A sparse autoencoder rewrites each activation as a mix of a few columns from a much larger dictionary, then rebuilds the activation from them. TopK keeps the k largest codes and zeroes the rest, so k sets how many fire. The hope is that each column, called a latent, fires for one thing.",
+    "formula": "z = TopK(ReLU(W_enc·(x − b_pre) + b_enc));  x′ = W_dec·z + b_pre",
+    "measured": "k = 32 of 2,048 latents rebuilt 98.7% of the variance and closed 98.4% of the loss gap: block 1 MLP of module 04’s char GPT, module 12.",
+    "but": "Two dictionaries that differ only in seed can share only about 30% of their features.",
+    "sources": [
+     "Gao et al., 2024",
+     "Paulo and Belrose, 2025"
+    ],
+    "links": {
+     "module": "12-features-and-dictionaries",
+     "explorable": "12-features-and-dictionaries.html",
+     "quiz": "12"
+    }
+   }
+  },
+  "a53": {
+   "deeper": {
+    "text": "A probe is a simple classifier, here logistic regression, trained to read one fact from a layer’s activations. A high score shows the fact is there in a form a line can read; it does not show that the model uses it. A copy of the model with random weights shows what a probe finds with no learning at all.",
+    "measured": "Sentiment read at 87.4% at layer 18 and 86.0% to 88.3% after it, against 58.0% at best with random weights: SmolLM2-360M, SST-2 sentences, module 11.",
+    "links": {
+     "module": "11-inside-a-language-model",
+     "explorable": "11-inside-a-language-model.html",
+     "quiz": "11"
+    }
+   }
+  },
+  "a54": {
+   "deeper": {
+    "text": "Run two prompts that differ in one detail, a clean one and a corrupt one. Rerun the corrupt prompt many times, each time pasting one activation from the clean run, at one layer and one position. If the clean answer returns, that place carries the detail. Pasting the other way asks whether the model needs it there.",
+    "measured": "“iffel” at layer 3 restored 0.919 of the Paris-over-Rome answer; the last token restored at most 0.11 up to layer 26, then 0.792 at layer 27: SmolLM2-360M, module 11.",
+    "sources": [
+     "Heimersheim and Nanda, 2024"
+    ],
+    "links": {
+     "module": "11-inside-a-language-model",
+     "explorable": "11-inside-a-language-model.html",
+     "quiz": "11"
+    }
+   }
+  },
+  "a55": {
+   "deeper": {
+    "text": "A steering vector is a direction added to the model’s state at one layer while it writes. The plainest kind is the mean state on positive sentences minus the mean on negative ones. A scale sets its strength. A random direction of the same size is the control.",
+    "measured": "Mean P(positive) 0.52 plain, 0.81 at ×2, 1.00 at ×4, 0.38 for a random direction, 0.996 for a one-line prompt: SmolLM2-360M-Instruct, four requests, module 12.",
+    "but": "At ×4, three of four replies left the request; the score alone missed it.",
+    "links": {
+     "module": "12-features-and-dictionaries",
+     "explorable": "12-features-and-dictionaries.html",
+     "quiz": "12"
+    }
+   }
+  },
+  "a56": {
+   "deeper": {
+    "text": "Some tools find tidy structure in any network, trained or not. The control is to run the same tool on a copy with random weights. In a model built so that its true units are known, dictionaries found the units of an untrained copy as well as those of the trained model.",
+    "measured": "Best-match cosine (MMCS) 0.840 on the random copy, 0.802 on the trained model: SAEs on a 2-layer sparse-MLP model, three seeds, module 32.",
+    "sources": [
+     "Heap et al., 2025"
+    ],
+    "links": {
+     "module": "32-is-the-explanation-real",
+     "explorable": "32-is-the-explanation-real.html",
+     "quiz": "32"
+    }
+   }
+  },
+  "a57": {
+   "deeper": {
+    "text": "CKA compares two whole layers on the same inputs. It gives 1 when one layer is a rotation and rescaling of the other, whatever the order of the neurons. Two trained networks scored high. Two untrained ones scored higher: a random ReLU layer keeps most of the input’s shape, so both look like the pixels.",
+    "measured": "Hidden-layer CKA 0.93 between two trained seeds, 0.95 between two untrained ones; at the logits 0.91 against 0.51: FashionMNIST MLP, module 15.",
+    "sources": [
+     "Kornblith et al., 2019"
+    ],
+    "links": {
+     "module": "15-geometry-of-representations",
+     "explorable": "15-geometry-of-representations.html",
+     "quiz": "15"
+    }
+   }
+  },
+  "a58": {
+   "deeper": {
+    "text": "Build a model whose units are known: each MLP keeps only 8 of 2,048 neurons per token, so those neurons are what it computes with. Fit a dictionary to it and ask how many true neurons it finds, by the best cosine between each neuron and any dictionary column. A neuron counts as found at cosine 0.9 or more.",
+    "measured": "An SAE found 63.0% of the true neurons, a transcoder 34.9%: 2-layer sparse-MLP model on TinyStories, three seeds, module 32.",
+    "but": "The paper this copies found the transcoder ahead; here it trailed, likely for lack of training.",
+    "sources": [
+     "Korznikov et al., 2026"
+    ],
+    "links": {
+     "module": "32-is-the-explanation-real",
+     "explorable": "32-is-the-explanation-real.html",
+     "quiz": "32"
+    }
+   }
+  },
+  "a60": {
+   "deeper": {
+    "text": "A one-layer transformer learns (a + b) mod 97 from 30% of all pairs. It fits its training pairs within a few hundred steps, while accuracy on the other pairs stays near chance. With weight decay, test accuracy later climbs to 100%. Without it, test accuracy never leaves the floor in 20,000 steps.",
+    "measured": "Train accuracy 100% at step 130; test accuracy ≥ 95% at step 5,900 with weight decay 1.0, not within 20,000 steps without: module 14.",
+    "but": "One seed per run; a repeat of the same run crossed 95% at step 6,000.",
+    "sources": [
+     "Power et al., 2022"
+    ],
+    "links": {
+     "module": "14-how-training-finds-a-solution",
+     "explorable": "14-how-training-finds-a-solution.html",
+     "quiz": "14"
+    }
+   }
+  },
+  "a61": {
+   "deeper": {
+    "text": "Weight decay shrinks every weight a little at each step, so weights the loss does not need fade away. Many weight settings fit the training set; decay keeps pushing toward smaller ones, which here are the ones that compute the sum. Another account blames the run without decay on logits that grow until float32 softmax rounds to exact 0s and 1s.",
+    "formula": "w ← w − η·λ·w  (beside the gradient step)",
+    "measured": "With decay, weight norm rose to 57.2 and fell to 32.2 as test accuracy climbed; without, it reached 80.6 and was still rising: module 14.",
+    "but": "Two runs cannot prove the small-weights reading.",
+    "sources": [
+     "Loshchilov and Hutter, 2017",
+     "Prieto et al., 2025"
+    ],
+    "links": {
+     "module": "14-how-training-finds-a-solution",
+     "explorable": "14-how-training-finds-a-solution.html",
+     "quiz": "14"
+    }
+   }
+  },
+  "a62": {
+   "deeper": {
+    "text": "Fine-tune a Shakespeare character model on maths solutions and its loss on Shakespeare rises fast; forgetting is that rise. KL divergence measures how far two sets of next-token odds differ. Measured on the old text, it ranks the runs by forgetting almost perfectly; measured on the new text, it does not.",
+    "measured": "Forgetting 1.238 nats per character after full fine-tuning, 1.229 of it by step 25: module 04’s char GPT, retrained without dropout, on GSM8K solutions, three seeds, module 29.",
+    "links": {
+     "module": "29-learning-new-keeping-old",
+     "explorable": "29-learning-new-keeping-old.html",
+     "quiz": "29"
+    }
+   }
+  },
+  "a63": {
+   "deeper": {
+    "text": "Replay mixes old examples into each batch while the model learns new ones: here 8 of every 32 windows came from Shakespeare. The model moved almost as far on the new text as plain fine-tuning did. Its loss on the old text rose a fifth as much.",
+    "measured": "Forgetting 0.255 nats per character against 1.238 for plain fine-tuning, for a new-text loss only 0.052 worse: three seeds, module 29.",
+    "links": {
+     "module": "29-learning-new-keeping-old",
+     "explorable": "29-learning-new-keeping-old.html",
+     "quiz": "29"
+    }
+   }
+  },
+  "a65": {
+   "deeper": {
+    "text": "MeZO draws a random direction z from a seed, measures the loss with the weights moved a small step ε along z both ways, and takes the difference as the slope along z. It then steps along z. Because z can be redrawn from its seed, nothing extra is stored: training needs only the memory of running the model.",
+    "formula": "g = (L(θ + εz) − L(θ − εz)) / 2ε;  θ ← θ − η·g·z",
+    "measured": "0.0 MiB above inference against 246.4 MiB for backprop: MLP with 16 hidden layers. On SST-2, 75.7% after 2,000 steps against LoRA’s 91.5% after 300: SmolLM2-360M-Instruct, module 30.",
+    "but": "Trained from scratch on FashionMNIST, MeZO reached about 70%, then diverged in every seed.",
+    "sources": [
+     "Malladi et al., 2023"
+    ],
+    "links": {
+     "module": "30-learning-without-a-backward-pass",
+     "explorable": "30-learning-without-a-backward-pass.html",
+     "quiz": "30"
+    }
+   }
+  },
+  "a66": {
+   "deeper": {
+    "text": "Attention keeps every past token’s keys and values, so its memory grows with the text. A recurrent layer keeps one fixed-size state and updates it at each token: decay the old state, add the new input. When the decay depends on the token, as in Mamba, the layer chooses what to keep.",
+    "formula": "h_t = a_t·h_{t−1} + b_t·x_t",
+    "measured": "After 4,096 tokens a GPT’s KV cache held 12,582,912 bytes; a selective state-space model held 106,400 bytes at any length: module 18.",
+    "but": "It also beat the GPT in a 60 s training run, 1.575 against 1.629 nats, but one seed and one budget make that a demo.",
+    "sources": [
+     "Gu and Dao, 2023"
+    ],
+    "links": {
+     "module": "18-beyond-attention",
+     "explorable": "18-beyond-attention.html",
+     "quiz": "18"
+    }
+   }
+  },
+  "a67": {
+   "deeper": {
+    "text": "A matrix memory S stores a value v under a key k and returns S·q for a query q. Plain linear attention just adds v·kᵀ. The delta rule first reads what S already returns for k and writes only the difference, so a key written twice returns its new value. That is one step of gradient descent on the error ½‖S·k − v‖².",
+    "formula": "S ← S + β·(v − S·k)·kᵀ",
+    "measured": "With 64 random pairs in a 32 × 32 state, the delta rule kept 0.96 of the newest 16 and 0.07 of the oldest; linear attention about 0.83 of each: module 27.",
+    "but": "Over all 64 pairs, linear attention read more right, 0.83 against 0.47, against the expectation written before the run.",
+    "sources": [
+     "Widrow and Hoff, 1960",
+     "Schlag et al., 2021"
+    ],
+    "links": {
+     "module": "27-memory-as-a-matrix",
+     "explorable": "27-memory-as-a-matrix.html",
+     "quiz": "27"
+    }
+   }
+  },
+  "a69": {
+   "deeper": {
+    "text": "If loss falls as a power of model size N, then log loss falls along a straight line in log N, and its slope is −α. One least-squares fit in log space reads α, and the line predicts the next size up. The fitter was first checked on made-up data with a known exponent.",
+    "formula": "L(N) ≈ A·N^(−α)",
+    "measured": "α = 0.074 (R² 0.962) over six sizes from 50,880 to 3,159,552 parameters, at 4M tokens: character models, module 19.",
+    "but": "α moved from 0.053 to 0.121 with the token budget, since no model had finished learning.",
+    "sources": [
+     "Kaplan et al., 2020"
+    ],
+    "links": {
+     "module": "19-scaling-laws",
+     "explorable": "19-scaling-laws.html",
+     "quiz": "19"
+    }
+   }
+  },
+  "a70": {
+   "deeper": {
+    "text": "Training compute is about 6 operations per parameter per token. At a fixed budget, a bigger model sees fewer tokens. Plot every run’s loss against the compute it used, and the lower edge names the best size at each budget. Chinchilla found that model size and data should grow together, about 20 tokens per parameter.",
+    "formula": "C ≈ 6·N·D",
+    "measured": "At all 40 budgets the winner was the smallest size whose run reached it; a line through the winners has slope 0.76: module 19.",
+    "but": "That staircase follows where the runs end, not a true best size.",
+    "sources": [
+     "Hoffmann et al., 2022"
+    ],
+    "links": {
+     "module": "19-scaling-laws",
+     "explorable": "19-scaling-laws.html",
+     "quiz": "19"
+    }
+   }
+  },
+  "a71": {
+   "deeper": {
+    "text": "In-context learning: a trained model reads a few solved examples in its prompt and applies the pattern to a new case. No weight changes; the examples act only through attention. Part of the gain can come from showing the format and the label words, not the task.",
+    "measured": "Sentiment accuracy 79.4% with no example, 88.6% with one, 84.2% with eight examples given coin-flip labels: SmolLM2-360M-Instruct, 872 SST-2 sentences, module 20.",
+    "sources": [
+     "Brown et al., 2020"
+    ],
+    "links": {
+     "module": "20-in-context-learning",
+     "explorable": "20-in-context-learning.html",
+     "quiz": "20"
+    }
+   }
+  },
+  "a72": {
+   "deeper": {
+    "text": "Train a small transformer on prompts that each hold pairs (x, w·x) for a fresh random w, and ask it to guess y for a new x. Give the same pairs to classic rules: least squares, ridge, nearest neighbours, one gradient step. The net’s error falls with each pair added, far faster than one gradient step’s.",
+    "measured": "Error 0.075 with 10 pairs, against 0.372 for one gradient step and 0.000 for least squares: 2-block transformer, 5-dimensional linear rules, module 20.",
+    "but": "It missed all three bars set before the run and levelled off near 0.03, where least squares is exact.",
+    "sources": [
+     "Garg et al., 2022",
+     "von Oswald et al., 2023"
+    ],
+    "links": {
+     "module": "20-in-context-learning",
+     "explorable": "20-in-context-learning.html",
+     "quiz": "20"
+    }
+   }
+  },
+  "a74": {
+   "deeper": {
+    "text": "Asked for the answer at once, a small model must do its arithmetic inside the first tokens it writes. Asked to write its steps first, it can work on the page. The cost is tokens: about 189 per problem here, against 13.",
+    "measured": "15.0% answer only, 61.5% with written steps: Qwen3-1.7B at 4 bits, first 200 GSM8K problems, greedy, module 22.",
+    "sources": [
+     "Wei et al., 2022"
+    ],
+    "links": {
+     "module": "22-reasoning-at-test-time",
+     "explorable": "22-reasoning-at-test-time.html",
+     "quiz": "22"
+    }
+   }
+  },
+  "a75": {
+   "deeper": {
+    "text": "Sample several chains at a temperature above 0 and take the answer most of them reach. Wrong chains tend to end at different numbers; right ones end at the same number. The share of problems where any sample is right sets a ceiling for every way of choosing.",
+    "measured": "One sample 61.1%, majority of 8 69.5%, any of 8 right 80.0%: Qwen3-1.7B at 4 bits, 200 GSM8K problems, module 22.",
+    "but": "Asked to grade the samples, the same model said Yes to 1,587 of 1,600; only its odds still ranked right above wrong, 82% of the time.",
+    "sources": [
+     "Wang et al., 2022"
+    ],
+    "links": {
+     "module": "22-reasoning-at-test-time",
+     "explorable": "22-reasoning-at-test-time.html",
+     "quiz": "22"
+    }
+   }
+  },
+  "a76": {
+   "deeper": {
+    "text": "Treat the instruction as the parameter of a frozen model. A program scores the answers on 60 training questions, with no luck in it. Another language model proposes instructions: APE writes them from examples, OPRO reads its own score history, and two other methods read the errors.",
+    "measured": "Test accuracy rose from 49.0% for the baseline instruction to between 59.3% and 63.1% on average across four methods: a small Qwen3, TREC question types, 3 seeds, module 34.",
+    "sources": [
+     "Zhou et al., 2022",
+     "Yang et al., 2023"
+    ],
+    "links": {
+     "module": "34-prompts-as-parameters",
+     "explorable": "34-prompts-as-parameters.html",
+     "quiz": "34"
+    }
+   }
+  },
+  "a77": {
+   "deeper": {
+    "text": "Choosing the best of 30 to 40 instructions on 60 questions picks partly for luck: the winner tends to have been lucky by a few points. A held-out split from the same source shows how much. A test set with another mix of question types can tell a different story.",
+    "measured": "Chosen instructions scored 8.4 to 10.1 points higher on train than on held-out questions, against 4.7 for the baseline: module 34.",
+    "but": "On test, two runs near the top on held-out got only 9% and 25% of description questions right.",
+    "links": {
+     "module": "34-prompts-as-parameters",
+     "explorable": "34-prompts-as-parameters.html",
+     "quiz": "34"
+    }
+   }
+  },
+  "a78": {
+   "deeper": {
+    "text": "Retrieval scores every passage against the question and pastes the best into the prompt before the model answers. BM25 scores by shared words: rare words count more, each repeat counts less, and long passages need more matches. Giving the model the right paragraph sets a ceiling, so errors split cleanly into finding and reading.",
+    "formula": "idf(t) = ln(1 + (N − df + 0.5) / (df + 0.5))",
+    "measured": "Exact match 4.5% with no passage, 29.0% with BM25’s top paragraph, 37.0% with the right one: SmolLM2-360M-Instruct, 200 SQuAD questions, module 21.",
+    "links": {
+     "module": "21-retrieval-and-memory",
+     "explorable": "21-retrieval-and-memory.html",
+     "quiz": "21"
+    }
+   }
+  },
+  "a79": {
+   "deeper": {
+    "text": "A neural retriever turns the question and each passage into vectors and ranks passages by cosine. On SQuAD, plain word matching found the right paragraph first more often. SQuAD’s writers read the paragraph before writing each question, so their questions may share more of its words.",
+    "measured": "Right paragraph ranked first for 75.5% of 10,570 questions with BM25, 62.5% with MiniLM vectors: SQuAD validation, module 21.",
+    "but": "This runs against the common story, and this run tests none of the reasons offered for it.",
+    "sources": [
+     "Karpukhin et al., 2020"
+    ],
+    "links": {
+     "module": "21-retrieval-and-memory",
+     "explorable": "21-retrieval-and-memory.html",
+     "quiz": "21"
+    }
+   }
+  },
+  "a81": {
+   "deeper": {
+    "text": "Rounding to 4 bits gives each weight one of 16 levels between a low and a high value. With one scale per row, one large weight stretches the levels and leaves few near zero, where most weights sit. A scale per group of 64 weights costs half a bit more per weight and fixes most of it.",
+    "formula": "q = round((w − b)/s) in 0..15;  w′ = q·s + b",
+    "measured": "Perplexity 16.07 untouched, 36.15 at 4 bits per row, 19.94 at 4 bits per group of 64: SmolLM2-360M-Instruct, module 23.",
+    "links": {
+     "module": "23-compression",
+     "explorable": "23-compression.html",
+     "quiz": "23"
+    }
+   }
+  },
+  "a82": {
+   "deeper": {
+    "text": "BitNet b1.58 rounds every weight to −1, 0 or 1, times one scale per matrix, during training. Rounding has no useful slope, so the backward pass treats it as if it were not there and updates hidden float weights; only the codes ship. The model learns weights that survive the rounding.",
+    "formula": "code = clamp(round(W/g), −1, 1),  g = mean|W|",
+    "measured": "Held-out loss 1.617 nats per character for ternary against 1.648 for the best rounded 4-bit model, both 1.5 MB: char GPTs, module 28.",
+    "but": "Most of the planned 0.168 lead came from a poorly tuned baseline: tuning one shape took away 0.137 of it.",
+    "sources": [
+     "Ma et al., 2024",
+     "Bengio et al., 2013"
+    ],
+    "links": {
+     "module": "28-fewer-bits-trained-in",
+     "explorable": "28-fewer-bits-trained-in.html",
+     "quiz": "28"
+    }
+   }
+  },
+  "a83": {
+   "deeper": {
+    "text": "Magnitude pruning sets to zero the weights nearest zero, the same share in every matrix. A control zeroes the same number at random places. Zeroed weights save nothing on their own: the matrices keep their shape.",
+    "measured": "Perplexity 16.07 untouched, 16.41 with the smallest 10% zeroed, 714.8 with a random 10%, 1,485.5 with the smallest 50%: SmolLM2-360M-Instruct, module 23.",
+    "links": {
+     "module": "23-compression",
+     "explorable": "23-compression.html",
+     "quiz": "23"
+    }
+   }
+  },
+  "a85": {
+   "deeper": {
+    "text": "Regret counts the wins lost against always pulling the best lever. ε-greedy explores at a fixed rate forever. UCB1 adds a bonus to levers pulled rarely. Thompson sampling keeps a belief about each lever’s odds, draws a guess from each, and pulls the best guess.",
+    "formula": "UCB1: argmax  mean + √(2 ln t / n)",
+    "measured": "Median regret after 10,000 pulls: Thompson 43, UCB1 228, ε-greedy 237, random 2,207; five arms, 20 seeds, module 24.",
+    "sources": [
+     "Thompson, 1933",
+     "Auer et al., 2002"
+    ],
+    "links": {
+     "module": "24-reinforcement-learning",
+     "explorable": "24-reinforcement-learning.html",
+     "quiz": "24"
+    }
+   }
+  },
+  "a86": {
+   "deeper": {
+    "text": "A policy network gives the probability of each action. REINFORCE plays one episode, then raises the log-probability of each action taken in proportion to the return that followed it, the discounted sum of later rewards. Subtracting the episode’s mean return and dividing by its spread makes below-average actions less likely.",
+    "formula": "loss = −Σₜ log π(aₜ|sₜ)·(Gₜ − mean G) / std G",
+    "measured": "All three seeds reached a 500-step episode within 13,684 steps; two ended holding the pole for all 500: CartPole, module 24.",
+    "but": "Seed 0 fell back to about 121 steps: one bad update can undo a good policy.",
+    "sources": [
+     "Williams, 1992"
+    ],
+    "links": {
+     "module": "24-reinforcement-learning",
+     "explorable": "24-reinforcement-learning.html",
+     "quiz": "24"
+    }
+   }
+  },
+  "a87": {
+   "deeper": {
+    "text": "PPO reuses each batch for several updates. To keep the new policy near the old one, it clips ρ, the ratio of new to old probability, to [0.8, 1.2], so an update gains nothing by pushing further. A second network, the critic, estimates each state’s value, and A, the advantage, is how much better an action did than that.",
+    "formula": "L = mean(min(ρ·A, clip(ρ, 0.8, 1.2)·A))",
+    "measured": "At rate 2.5 × 10⁻³, all three clipped seeds ended at 500; unclipped, they ended at 9.1, 190.1 and 108.9: CartPole, module 24.",
+    "sources": [
+     "Schulman et al., 2017"
+    ],
+    "links": {
+     "module": "24-reinforcement-learning",
+     "explorable": "24-reinforcement-learning.html",
+     "quiz": "24"
+    }
+   }
+  },
+  "a88": {
+   "deeper": {
+    "text": "A world model predicts what follows an action: here, the next cell of an agent on a grid with walls. Fed its own predictions, it can imagine several steps ahead. Its errors pile up with each imagined step.",
+    "measured": "Next cell right 92.5% of the time after one imagined step and 73.9% after eight, against 31.2% and 12.8% for “did not move”: grid arenas, module 25.",
+    "sources": [
+     "Ha and Schmidhuber, 2018"
+    ],
+    "links": {
+     "module": "25-world-models-and-planning",
+     "explorable": "25-world-models-and-planning.html",
+     "quiz": "25"
+    }
+   }
+  },
+  "a89": {
+   "deeper": {
+    "text": "Random shooting draws 64 sequences of 8 random moves, imagines each in the model, and scores each by its distance to the goal. The agent takes the first move of the best sequence, then plans again from where it lands. Planning again at every step is called model-predictive control.",
+    "measured": "Goals reached within 20 steps: 75.7% with the learned model, 89.0% with the true world as the model, 3.7% with random moves; 300 test arenas, module 25.",
+    "but": "A JEPA world model reached a loss of 3 × 10⁻⁶ yet planned no better than random, 3.7%: its latent held no linear trace of where the agent was.",
+    "sources": [
+     "Hafner et al., 2019"
+    ],
+    "links": {
+     "module": "25-world-models-and-planning",
+     "explorable": "25-world-models-and-planning.html",
+     "quiz": "25"
+    }
+   }
+  },
+  "a90": {
+   "deeper": {
+    "text": "For each question, sample a group of 8 replies and mark each right or wrong with a checker program. A reply’s advantage is its reward minus the group’s mean; GRPO also divides by the group’s spread. Replies above the mean become likelier, those below less likely. A group where all 8 score the same teaches nothing.",
+    "formula": "Aᵢ = (rᵢ − mean r) / std r",
+    "measured": "Right on the first try (pass@1) 59.1% → 94.9% after 300 steps with Dr. GRPO; worked-style replies rose from 24.7% to over 98%: char model on 3-digit sums, module 26.",
+    "sources": [
+     "Shao et al., 2024",
+     "Liu et al., 2025"
+    ],
+    "links": {
+     "module": "26-rl-with-a-checker",
+     "explorable": "26-rl-with-a-checker.html",
+     "quiz": "26"
+    }
+   }
+  },
+  "a91": {
+   "deeper": {
+    "text": "Replace the checker with a coin that hands out as many 1s as the checker would, but at random. Each update then pushes in a random direction, and nothing pulls the model back toward where it started. The damage feeds itself: as the model gets worse, more groups score all 0.",
+    "measured": "Pass@1 fell from 59.1% to 4.6% with GRPO and to 2.4% with PPO’s clip: coin-flip rewards, char model on 3-digit sums, module 26.",
+    "but": "One published run lifted a Qwen2.5 maths model 21.4 points with random rewards; other model families did not gain.",
+    "links": {
+     "module": "26-rl-with-a-checker",
+     "explorable": "26-rl-with-a-checker.html",
+     "quiz": "26"
+    }
+   }
+  },
+  "a92": {
+   "deeper": {
+    "text": "A language model rewrites a short program: here, a rule that picks a bin for each item in online bin packing. A sandbox runs each version and counts the bins. Versions that score well become the parents shown in later prompts. The model’s weights never change.",
+    "measured": "Kept programs beat best fit by 0.35 ± 0.30 points on held-out instances, in 2 of 3 seeds, at 400 candidates: a 4B model on a laptop, module 35.",
+    "but": "Random search over one-line formulas, with the same checker, came near.",
+    "sources": [
+     "Romera-Paredes et al., 2024",
+     "Novikov et al., 2025"
+    ],
+    "links": {
+     "module": "35-evolution-with-an-llm-mutator",
+     "explorable": "35-evolution-with-an-llm-mutator.html",
+     "quiz": "35"
+    }
+   }
+  },
+  "a93": {
+   "deeper": {
+    "text": "Remove the checker and accept every child untested. Asked each time for a better version, the model raised its own numbers: a power of 12, then 400, then 10,000, until the scores overflowed. One run wrote a better rule along the way, and the next child replaced it.",
+    "measured": "Best child 4.345% above the lower bound, against best fit’s 4.781%, then lost; every child failed from child 281: no-checker run, seed 1, module 35.",
+    "links": {
+     "module": "35-evolution-with-an-llm-mutator",
+     "explorable": "35-evolution-with-an-llm-mutator.html",
+     "quiz": "35"
+    }
+   }
+  },
+  "a97": {
+   "deeper": {
+    "text": "Write stored patterns as the rows of X, and take a probe ξ. A modern Hopfield network scores each pattern against the probe, takes a softmax, and blends the patterns. That is attention, with the probe as query and the patterns as keys and values; β plays the part of 1/√d.",
+    "formula": "ξ_new = Xᵀ·softmax(β·X·ξ)",
+    "measured": "100 neurons, 20% of bits flipped: one softmax step recalled all of 10,000 stored patterns; with 20 stored, the classic rule recalled 20% of them. Module 00c.",
+    "sources": [
+     "Hopfield, 1982",
+     "Ramsauer et al., 2020"
+    ],
+    "links": {
+     "module": "00c-kernels-hopfield",
+     "explorable": "00c-double-descent.html",
+     "quiz": "00c"
+    }
+   }
+  },
+  "n1": {
+   "title": "Fit every point exactly",
+   "body": "Give a curve as many coefficients as there are points and it passes through every one. Training error drops to zero.",
+   "deeper": {
+    "text": "A polynomial of degree d has d + 1 coefficients. With as many coefficients as data points, one polynomial passes through every point, and training error is zero. Zero training error says nothing about the points in between.",
+    "measured": "Training error 2.07e−18 at degree 19 on 20 noisy samples of sin(3x) + 0.35x: minimum-norm polynomial fits, module 00c.",
+    "links": {
+     "module": "00c-kernels-hopfield",
+     "explorable": "00c-double-descent.html",
+     "quiz": "00c"
+    }
+   }
+  },
+  "n2": {
+   "title": "Then miss the new ones",
+   "body": "Between the points the curve swings wildly. Fresh points from the same source land far from it."
+  },
+  "n3": {
+   "title": "Two curves tell it",
+   "body": "Training loss keeps falling. Loss on held-back data falls, then turns up. The gap between them is overfitting.",
+   "deeper": {
+    "text": "Hold back part of the data as a validation set and score it after every epoch. Training loss keeps falling, because the model sees those same examples again and again. Validation loss falls while the model learns patterns that carry over, then rises once it learns details of the training images.",
+    "measured": "After 25 epochs, train loss 0.216 and validation loss 0.411: 784 → 256 → 10 network on 18,000 FashionMNIST images, module 02.",
+    "links": {
+     "module": "02-neural-networks",
+     "explorable": "02-nn-playground.html",
+     "quiz": "02"
+    }
+   }
+  },
+  "n4": {
+   "title": "Stop at the bottom",
+   "body": "Keep the weights from the epoch with the lowest validation loss. In one run that was epoch <b>17<\/b> of 25.",
+   "deeper": {
+    "text": "Early stopping keeps the weights from the epoch with the lowest validation loss and stops there. It needs no change to the model, only a held-out set scored as training runs. The choice is made on validation data, so the test set still gives a fair final number.",
+    "measured": "Validation loss lowest at epoch 17 (0.360, accuracy 0.877) while train loss kept falling to 0.216: NumPy MLP on FashionMNIST, module 02.",
+    "but": "The module did not stop early: its 0.8646 test accuracy comes from the epoch-25 weights.",
+    "links": {
+     "module": "02-neural-networks",
+     "explorable": "02-nn-playground.html",
+     "quiz": "02"
+    }
+   }
+  },
+  "n5": {
+   "title": "Or keep the weights small",
+   "body": "Add a penalty on the size of the weights. Wild swings now cost too much, and the curve smooths.",
+   "deeper": {
+    "text": "Ridge regression adds λ times the squared size of the weights to the loss. Large coefficients that cancel each other now cost more than they gain, so the fit picks smaller ones. Weight decay does the same inside gradient descent.",
+    "formula": "(XᵀX + λI)·w = Xᵀy",
+    "measured": "With a near-copy of one feature, coefficients of +21.5 and −19.9 fell to about +0.83 each, while training error moved from 0.31956 to 0.32029: module 00a, exercise 2.",
+    "links": {
+     "module": "00a-perceptron",
+     "quiz": "00a"
+    }
+   }
+  },
+  "n6": {
+   "title": "The textbook U",
+   "body": "Too simple misses the shape; too flexible chases the noise. Test error is lowest in between.",
+   "deeper": {
+    "text": "Average a model’s test error over many fresh datasets and it splits in two. Bias² measures how wrong the average fit is; it falls as the model grows. Variance measures how much the fit moves when the data changes; it rises. Their sum is lowest at a middle size.",
+    "formula": "test error = bias² + variance + noise",
+    "measured": "Lowest at degree 3: bias² 0.0032 + variance 0.0088 = 0.0120; polynomials on 20 points, averaged over 300 datasets, module 00c.",
+    "links": {
+     "module": "00c-kernels-hopfield",
+     "explorable": "00c-double-descent.html",
+     "quiz": "00c"
+    }
+   }
+  },
+  "n7": {
+   "title": "Past the peak, error falls again",
+   "body": "Where parameters equal data points, test error spikes. Add still more parameters and it falls again.",
+   "deeper": {
+    "text": "At degree 19 a polynomial has 20 coefficients, one per data point, and exactly one curve fits them all; to pass through every noisy point it needs huge coefficients. Past that, infinitely many curves fit, the fitter can pick a calm one, and test error falls again. This is double descent.",
+    "measured": "Test error 0.0183 at degree 3, 1.11e+12 at degree 19, 3.019 at degree 30: one dataset of 20 points, module 00c.",
+    "sources": [
+     "Belkin et al., 2019",
+     "Nakkiran et al., 2019"
+    ],
+    "links": {
+     "module": "00c-kernels-hopfield",
+     "explorable": "00c-double-descent.html",
+     "quiz": "00c"
+    }
+   }
+  },
+  "n8": {
+   "title": "Of all perfect fits, the smallest",
+   "body": "Past that point many curves fit every point. Pick the one with the smallest coefficients and the swings calm down.",
+   "deeper": {
+    "text": "When many curves pass through every point, the pseudo-inverse picks the one whose coefficients have the smallest length. Gradient descent on the same loss, started from zero, lands on the same curve. At the peak there is only one curve, so there is nothing to choose.",
+    "measured": "Coefficient length 1.26e+06 at degree 19, 2.45 at degree 30, 0.70 at degree 80: module 00c.",
+    "links": {
+     "module": "00c-kernels-hopfield",
+     "explorable": "00c-double-descent.html",
+     "quiz": "00c"
+    }
+   }
+  },
+  "n9": {
+   "title": "The second dip is not always lower",
+   "body": "Here the second dip bottoms out at <b>0.4825<\/b>. The best point of the U was <b>0.0183<\/b>. Bigger was worse.",
+   "deeper": {
+    "text": "In this test the second descent is real: twelve orders of magnitude down from the spike. But it never comes back to the best point of the U. Dips below the first minimum show up in richer settings, such as random-feature models and wide networks, where extra capacity buys better fits.",
+    "measured": "Second-descent floor 0.4825 at degree 47 against 0.0183 at degree 3: minimum-norm polynomial fits on 20 points, module 00c.",
+    "but": "Counted in effective parameters, the classical curves fold back into a U.",
+    "sources": [
+     "Curth et al., 2023"
+    ],
+    "links": {
+     "module": "00c-kernels-hopfield",
+     "explorable": "00c-double-descent.html",
+     "quiz": "00c"
+    }
+   }
+  },
+  "n10": {
+   "title": "Hold some data back",
+   "body": "Train on one part, choose settings on a second, and report on a third that nothing else touched.",
+   "deeper": {
+    "text": "The training split fits the weights. The validation split makes the choices: when to stop, which threshold, which setting. The test split gives the final estimate and must shape no choice at all. A training objective, such as cross-entropy, can improve while the metric people care about stays flat.",
+    "links": {
+     "module": "05a-data-evaluation",
+     "explorable": "05a-evaluation-lab.html",
+     "quiz": "05a"
+    }
+   }
+  },
+  "n11": {
+   "title": "Split by what could leak",
+   "body": "Photos of one person, pages of one document: keep each group on one side of the split, not each row.",
+   "deeper": {
+    "text": "When examples come in groups, such as several photos of one person or several turns of one conversation, a row-by-row split puts parts of one group on both sides. The model can then score well by recognising the group, not by solving the task. Split by the unit that could leak: patient, customer, document, conversation or time window.",
+    "links": {
+     "module": "05a-data-evaluation",
+     "explorable": "05a-evaluation-lab.html",
+     "quiz": "05a"
+    }
+   }
+  },
+  "n12": {
+   "title": "A leak makes a fake win",
+   "body": "When near-copies of test items sit in the training data, the score rises without the model getting better.",
+   "deeper": {
+    "text": "Exact duplicates across a split are easy to find by ID or by hashing the content. Near-copies are harder. MinHash, a cheap estimate of how many word n-grams two texts share, can compare large sets. Removing leaked examples can make a good score fall, which shows how much of it was the leak.",
+    "sources": [
+     "Lee et al., 2021"
+    ],
+    "links": {
+     "module": "05a-data-evaluation",
+     "explorable": "05a-evaluation-lab.html",
+     "quiz": "05a"
+    }
+   }
+  },
+  "n13": {
+   "title": "Four counts behind every score",
+   "body": "True and false positives, true and false negatives. Accuracy, precision, recall and F1 are all made from these four.",
+   "deeper": {
+    "text": "A threshold turns each predicted probability into yes or no, and each example lands in one of four cells. Precision asks how many yes answers were right; recall asks how many true cases were caught. F1 combines the two. Accuracy misleads when positives are rare: always saying no is 99% accurate when 1% are positive.",
+    "formula": "F1 = 2·precision·recall / (precision + recall)",
+    "links": {
+     "module": "05a-data-evaluation",
+     "explorable": "05a-evaluation-lab.html",
+     "quiz": "05a"
+    }
+   }
+  },
+  "n14": {
+   "title": "Move the threshold, move the errors",
+   "body": "Lower the cut-off and you catch more positives but raise more false alarms. Choose it on validation data, then freeze it.",
+   "deeper": {
+    "text": "Lowering the threshold catches more positives and raises more false alarms; raising it does the reverse. Where to set it depends on what each error costs: a screening test favours recall, an alert that interrupts people favours precision. Pick it on validation data, freeze it, then score the test set once.",
+    "measured": "Threshold 0.43 chosen on validation; F1 0.692 on test, 95% interval 0.444 to 0.867: 112/24/24 split of 160 examples, module 05a.",
+    "links": {
+     "module": "05a-data-evaluation",
+     "explorable": "05a-evaluation-lab.html",
+     "quiz": "05a"
+    }
+   }
+  },
+  "n15": {
+   "title": "Does 80% sure mean 80% right?",
+   "body": "Group predictions by confidence and check how often each group is right. A model can rank well and still be overconfident.",
+   "deeper": {
+    "text": "Calibration asks whether predictions made with confidence p come true about p of the time. Expected calibration error puts predictions into bins by confidence, compares each bin’s mean confidence with how often it was right, and averages the gaps, weighted by bin size. Ranking cases well and being calibrated are different things.",
+    "but": "The number changes with the bin count and the sample size, so report both.",
+    "links": {
+     "module": "05a-data-evaluation",
+     "explorable": "05a-evaluation-lab.html",
+     "quiz": "05a"
+    }
+   }
+  },
+  "n16": {
+   "title": "Rare things fool good tests",
+   "body": "A test right 96% of the time on the sick, for a condition 4 in 1,000 have: a positive means only a <b>4.6%<\/b> chance of illness.",
+   "deeper": {
+    "text": "Bayes’ rule turns a prior into a posterior. In odds it is one multiplication: the odds before the test times the likelihood ratio, sensitivity divided by the false-positive rate. Here that ratio is 12, but the odds before are 1 to 249, so false positives outnumber true ones about twenty to one.",
+    "formula": "odds after = odds before × sensitivity / (1 − specificity)",
+    "measured": "P(ill | positive) = 4.598%: prevalence 0.4%, sensitivity 96%, specificity 92%; a worked example with made-up numbers, module 00b.",
+    "but": "Repeat tests multiply the odds by 12 again only if their errors are independent, which real repeat tests often are not.",
+    "links": {
+     "module": "00b-bayes-knn-pca",
+     "quiz": "00b"
+    }
+   }
+  },
+  "n17": {
+   "title": "Gaps need error bars",
+   "body": "Two slices scored <b>0.806<\/b> and <b>0.727<\/b>. On 40 examples, the interval for the gap runs from <b>−0.111<\/b> to <b>+0.347<\/b>.",
+   "deeper": {
+    "text": "A slice is a subgroup, such as photos taken in low light. It has fewer examples than the whole set, so its score is noisier. The bootstrap resamples the slice’s examples with replacement many times and keeps the middle 95% of the scores as an interval. A gap whose interval holds zero is no evidence of a gap.",
+    "measured": "F1 0.806 on 120 daylight examples, 0.727 on 40 low-light ones; gap 0.078, 95% interval −0.111 to +0.347: 2,000 resamples, module 05a.",
+    "sources": [
+     "Miller, 2024"
+    ],
+    "links": {
+     "module": "05a-data-evaluation",
+     "explorable": "05a-evaluation-lab.html",
+     "quiz": "05a"
+    }
+   }
+  },
+  "n18": {
+   "title": "Open the test set once",
+   "body": "Every look at the test set that changes a choice turns it into validation data. Look once, at the end."
+  },
+  "n19": {
+   "title": "Fine-tuning moves every weight",
+   "body": "Keep training a trained model on new examples. Every one of its <b>362M<\/b> weights can change.",
+   "deeper": {
+    "text": "Supervised fine-tuning keeps training a trained model with the same next-token loss, on chosen conversations. Full fine-tuning updates every weight, so it needs memory for every weight’s gradient and optimizer state. On a model already tuned to follow instructions, a few hundred examples mostly change tone, length and format, not knowledge.",
+    "links": {
+     "module": "06-fine-tuning",
+     "explorable": "06-lora-rank.html",
+     "quiz": "06"
+    }
+   }
+  },
+  "n20": {
+   "title": "Most change lives in few directions",
+   "body": "The bet behind LoRA: the useful change to a weight matrix needs only a few directions, so it can be stored small.",
+   "deeper": {
+    "text": "The rank of a matrix is the number of independent directions it uses. LoRA bets that the change a fine-tune makes to each weight matrix has low rank, so it can be written as the product of two thin matrices. The bet holds for style and format.",
+    "but": "On code and maths, full fine-tuning learns updates of much higher rank, and LoRA falls behind, though it forgets less.",
+    "sources": [
+     "Biderman et al., 2024"
+    ],
+    "links": {
+     "module": "06-fine-tuning",
+     "explorable": "06-lora-rank.html",
+     "quiz": "06"
+    }
+   }
+  },
+  "n21": {
+   "title": "Two thin matrices beside a frozen one",
+   "body": "Freeze the weight and learn a detour B·A of rank 16. That trains <b>8.7M<\/b> weights, <b>2.3%<\/b> of the model.",
+   "deeper": {
+    "text": "LoRA freezes each weight matrix W₀ and adds a detour: A maps the input down to r numbers, and B maps them back up. Only A and B are trained, scaled by α/r. The adapter is a few megabytes and can be swapped in and out.",
+    "formula": "W = W₀ + (α/r)·B·A",
+    "measured": "Rank 16 on every attention and MLP projection: 8.7M trainable weights, 2.3% of SmolLM2-360M-Instruct; module 06.",
+    "but": "Rank 4 and rank 32 reached the same held-out loss (0.6661 against 0.6662) for 8 times the weights.",
+    "links": {
+     "module": "06-fine-tuning",
+     "explorable": "06-lora-rank.html",
+     "quiz": "06"
+    }
+   }
+  },
+  "n22": {
+   "title": "B starts at zero",
+   "body": "A starts random and B at zero, so at step 0 the detour adds nothing and the model is exactly the original.",
+   "deeper": {
+    "text": "A starts with small random values and B with zeros, so B·A is zero at step 0. The first gradient step moves B, and from then on the detour changes the output. Training starts from exactly the model you had.",
+    "links": {
+     "module": "06-fine-tuning",
+     "explorable": "06-lora-rank.html",
+     "quiz": "06"
+    }
+   }
+  },
+  "n23": {
+   "title": "Read the loss with care",
+   "body": "Held-out loss fell from <b>1.29<\/b> to <b>0.67<\/b>. On the assistant’s replies alone it moved from <b>0.83<\/b> to <b>0.79<\/b>.",
+   "deeper": {
+    "text": "This trainer counted the loss on every token: the system prompt, the chat markers and the users’ turns as well as the replies. Those tokens repeat from one conversation to the next and are easy to learn, so most of the drop came from them. Many recipes count only the assistant’s tokens.",
+    "measured": "Held-out loss 1.29 → 0.67 on all tokens, 0.83 → 0.79 on assistant replies: LoRA fine-tune of SmolLM2-360M-Instruct, 119 test conversations, module 06.",
+    "links": {
+     "module": "06-fine-tuning",
+     "explorable": "06-lora-rank.html",
+     "quiz": "06"
+    }
+   }
+  },
+  "n24": {
+   "title": "A big model teaches a small one",
+   "body": "Train a small student to match a large teacher’s outputs, not only the right answers.",
+   "deeper": {
+    "text": "Distillation trains a small student to match a large teacher’s whole set of next-token odds, not only the right token. The loss mixes ordinary cross-entropy on the true token with the KL divergence from the teacher’s odds, both softened by a temperature T. The T² factor keeps the two gradients on the same scale.",
+    "formula": "loss = (1 − α)·CE + α·T²·KL(teacher_T ‖ student_T)",
+    "measured": "Student at 48% of the teacher’s size: 2.029 nats distilled, 2.066 from scratch, teacher 1.724; three paired seeds, module 23.",
+    "but": "One student size, one T and α, 1,000 steps: a demo of the method, not a measure of its gain.",
+    "sources": [
+     "Hinton et al., 2015"
+    ],
+    "links": {
+     "module": "23-compression",
+     "explorable": "23-compression.html",
+     "quiz": "23"
+    }
+   }
+  },
+  "n25": {
+   "title": "Soft targets say more",
+   "body": "After “window b” the teacher gives e <b>0.48<\/b>, y <b>0.12<\/b>, u <b>0.11<\/b>. A one-hot label says only e.",
+   "deeper": {
+    "text": "A one-hot label marks the right answer and nothing else. The teacher’s odds also say which wrong answers are nearly right. Dividing the logits by a temperature above 1 flattens the odds, so the small ones carry more of that to the student.",
+    "formula": "p_T = softmax(z / T)",
+    "measured": "After “window b”, module 04’s char GPT gives e 0.48, y 0.12, u 0.11: module 23, exercise (a).",
+    "links": {
+     "module": "23-compression",
+     "explorable": "23-compression.html",
+     "quiz": "23"
+    }
+   }
+  },
+  "n26": {
+   "title": "Learn from which reply people chose",
+   "body": "Show pairs of replies, one preferred. DPO raises the preferred reply’s odds against the other’s, measured against a frozen copy.",
+   "deeper": {
+    "text": "The Bradley-Terry model turns a gap in scores into the chance that one reply beats another. DPO scores each reply by β times the log of how much likelier the trained model makes it than a frozen reference. The loss widens the gap between preferred and rejected replies, with no separate reward model and no sampling.",
+    "formula": "P(w beats l) = σ(β·[log-ratio(w) − log-ratio(l)])",
+    "measured": "After 200 steps the implicit reward picked the preferred reply on 58.5% of 200 held-out pairs: SmolLM2-360M-Instruct with LoRA, UltraFeedback, module 17.",
+    "but": "Both replies grew less likely, rejected ones by 0.48 nats and preferred ones by 0.05: the loss only asks that the gap grow.",
+    "sources": [
+     "Rafailov et al., 2023",
+     "Christiano et al., 2017"
+    ],
+    "links": {
+     "module": "17-learning-from-preferences",
+     "explorable": "17-learning-from-preferences.html",
+     "quiz": "17"
+    }
+   }
+  },
+  "n27": {
+   "title": "Watch for length",
+   "body": "A reward model was right on <b>0.775<\/b> of pairs when the chosen reply was longer, <b>0.502<\/b> when it was shorter.",
+   "deeper": {
+    "text": "In this preference data, the chosen reply is the longer one more often than not. A judge that learns “longer is better” scores well without judging quality. Splitting accuracy by which reply is longer shows how much a judge leans on length.",
+    "measured": "Reward head right on 0.775 of pairs where the chosen reply was longer, 0.502 where it was shorter; length alone scored 0.574: 500 held-out pairs, module 17.",
+    "links": {
+     "module": "17-learning-from-preferences",
+     "explorable": "17-learning-from-preferences.html",
+     "quiz": "17"
+    }
+   }
+  },
+  "n28": {
+   "title": "A model only writes text",
+   "body": "On its own a language model cannot look anything up or run anything. Text goes in, and text comes out."
+  },
+  "n29": {
+   "title": "Give it tools and a loop",
+   "body": "Let the model name a tool, run the tool, paste the result back, and ask again. That loop is an agent.",
+   "deeper": {
+    "text": "An agent wraps a model in a loop with tools. The model writes which tool to call and with what input; plain code parses that line, runs the tool, and pastes its output back into the prompt. The loop repeats until the model gives a final answer or hits a step limit. The ReAct recipe alternates reasoning and acting this way.",
+    "sources": [
+     "Yao et al., 2022"
+    ],
+    "links": {
+     "module": "10-agents",
+     "explorable": "10-agent-loop.html",
+     "quiz": "10"
+    }
+   }
+  },
+  "n30": {
+   "title": "Thought, action, observation",
+   "body": "The model writes a thought, then an action such as calculator[86400 * 3]. The tool’s reply comes back as an observation.",
+   "deeper": {
+    "text": "Each turn the model writes a Thought in words and an Action that names a tool and its input. The loop runs the tool and appends its output as an Observation. A small model may go on to write a made-up Observation of its own; the loop cuts the reply there.",
+    "measured": "kb_lookup[seconds in a day] → 86400, calculator[86400 * 3] → 259200, final answer 259200: SmolLM2-1.7B-Instruct, temperature 0, module 10.",
+    "links": {
+     "module": "10-agents",
+     "explorable": "10-agent-loop.html",
+     "quiz": "10"
+    }
+   }
+  },
+  "n31": {
+   "title": "The loop ends at an answer",
+   "body": "When the model writes “Final Answer”, the loop stops. Otherwise it runs until a step limit.",
+   "deeper": {
+    "text": "The loop stops when the model writes “Final Answer”. That marks the end of a run, not a right result. Only a separate check of the answer turns a finished run into a success.",
+    "measured": "Asked for Earth radii in the Moon’s distance, the model divided 6371 by 1737 from memory and answered 3.67; the loop still reported OK: SmolLM2-1.7B, module 10.",
+    "links": {
+     "module": "10-agents",
+     "explorable": "10-agent-loop.html",
+     "quiz": "10"
+    }
+   }
+  },
+  "n32": {
+   "title": "Code as the action",
+   "body": "Let the model write a short program that calls several tools at once. A lookup and a multiply became one step.",
+   "deeper": {
+    "text": "In code-as-action, the model writes a short Python program that calls tools, does arithmetic and passes results along, and a restricted interpreter runs it. One step can do what took several text tool calls. The cost is that you run code a model wrote.",
+    "measured": "The lookup-then-multiply task ran as one CodeAgent step; (2 ** 10 + sqrt(144)) * 3 − 100 came back as 3008: smolagents with SmolLM2-1.7B, module 10.",
+    "links": {
+     "module": "10-agents",
+     "explorable": "10-agent-loop.html",
+     "quiz": "10"
+    }
+   }
+  },
+  "n33": {
+   "title": "Small models wander",
+   "body": "A 1.7B model, ten runs per task: <b>100%<\/b> on a lookup then a multiply, <b>20%<\/b> on (5 + 7) * 3, <b>10%<\/b> on reporting one number.",
+   "deeper": {
+    "text": "An agent that samples at a temperature above 0 is a random process: the same task can succeed or fail. One run proves little. Run each task many times and report the success rate and the steps used.",
+    "measured": "Success over 10 runs at temperature 0.5: 100% two-hop task (look up, then ×2), 90% 2 ** 10, 80% capital of Japan, 20% (5 + 7) * 3, 10% report the speed of light; module 10.",
+    "links": {
+     "module": "10-agents",
+     "explorable": "10-agent-loop.html",
+     "quiz": "10"
+    }
+   }
+  },
+  "n34": {
+   "title": "One plug for many tools",
+   "body": "The Model Context Protocol is a standard way to offer tools and data to any agent, so each tool is written once.",
+   "deeper": {
+    "text": "The Model Context Protocol (MCP) is a standard for offering tools and data to agents as a service. A tool written once can be found and used by any agent or app that speaks it. Since December 2025 the Linux Foundation’s Agentic AI Foundation runs it.",
+    "links": {
+     "module": "10-agents",
+     "explorable": "10-agent-loop.html",
+     "quiz": "10"
+    }
+   }
+  },
+  "n35": {
+   "title": "Check every step",
+   "body": "Tools can refuse bad input, and a program can check the answer. A loop that only waits for “Final Answer” can stop on a wrong one.",
+   "deeper": {
+    "text": "Checks can sit at each step. This module’s calculator reads the expression’s syntax tree and refuses anything but arithmetic, so a made-up command only errors. Text that comes back from a tool can carry orders the model may follow. CaMeL writes a plan from the trusted task alone and lets tool data fill in values but never change the plan.",
+    "sources": [
+     "Debenedetti et al., 2025"
+    ],
+    "links": {
+     "module": "10-agents",
+     "explorable": "10-agent-loop.html",
+     "quiz": "10"
+    }
+   }
+  },
+  "n36": {
+   "title": "Where agents break",
+   "body": "Small models drift from the format, repeat a failed call, or act when told only to report. Text from tools can carry orders too.",
+   "deeper": {
+    "text": "Format drift: the model writes the tool call inside its thought, so the parser finds nothing. Looping: after a failed lookup it sends almost the same bad key until the step limit. Over-acting: asked to report a number, it does arithmetic on it. A one-shot example in the system prompt fixed the first; a recovery rule fixed the second.",
+    "measured": "The first lookup tool joined two suggested keys in one string, and the model sent that string back whole, four times: SmolLM2-1.7B, module 10.",
+    "links": {
+     "module": "10-agents",
+     "explorable": "10-agent-loop.html",
+     "quiz": "10"
+    }
+   }
+  },
+  "a84": {
+   "body": "Five levers with unknown payouts. Each pull returns a win or nothing."
+  }
+ }
+}
+</script>
 <script>
 (()=>{
 'use strict';
@@ -135,18 +1721,18 @@ F.clouds=(mode)=>{let nx=1,ny=0,b=0,show=mode!=='plain',sep=1,layer=1;return{
     if(mode==='wrong'){th=60;b=.12;}
     else if(mode==='learn'){th=lerp(60,146,ease(s));b=lerp(.12,0,ease(s));}
     else {b=0;}
-    if(mode==='probe'){sep=lerp(.12,1,ease(s));layer=Math.round(lerp(1,24,ease(s)));}
+    if(mode==='probe'){sep=lerp(.12,1,ease(s));layer=Math.round(lerp(1,32,ease(s)));}
     nx=Math.cos(th*Math.PI/180);ny=Math.sin(th*Math.PI/180);},
   p(i,s,o){const [x,y,cl]=cloudPt(i,sep);o.x=x;o.y=y;o.c=cl?GD:BL;
     if(show){const side=nx*x+ny*y+b;const wrong=cl===0?side<0:side>0;if(wrong)o.r=1.9;else o.a=.8;}},
   draw(s,a){if(!show)return;cut(nx,ny,b,a);
     if(mode==='margin'){cut(nx,ny,-.2,a*.6,FT,[5,5]);cut(nx,ny,.2,a*.6,FT,[5,5]);}
-    if(mode==='probe')text('layer '+layer+' of 24',-.95,.92,a,{align:'left'});}};};
+    if(mode==='probe')text('layer '+layer+' of 32',-.95,.92,a,{align:'left'});}};};
 
 F.xor=(mode)=>{let nx=1,ny=0,b=0;return{
   prep(s){if(mode==='spin'){const th=s*TAU*1.25+.3;nx=Math.cos(th);ny=Math.sin(th);b=.08*Math.sin(s*9);}},
   p(i,s,o){let [x,y,cl]=xorPt(i);o.c=cl?GD:BL;
-    if(mode==='fold'||mode==='folded'){const t=mode==='folded'?1:ease(s);y=lerp(y,1.9*x*y,t);}
+    if(mode==='fold'||mode==='folded'){const t=mode==='folded'?1:ease(s);y=lerp(y,1.7*x*y,t);}
     o.x=x;o.y=y;
     if(mode==='spin'){const side=nx*x+ny*y+b;const wrong=cl===0?side<0:side>0;o.r=wrong?1.8:1;if(!wrong)o.a=.75;}},
   draw(s,a){if(mode==='spin')cut(nx,ny,b,a);if(mode==='folded')cut(0,1,0,a);}};};
@@ -245,7 +1831,7 @@ F.rays=(mode)=>{let q=.7,w=new Array(14).fill(1/14),wm=1/14,out=[0,0];return{
     w=softmax(RA.map(a=>Math.cos(a-q)*beta),1);wm=Math.max(...w);out=[0,0];RA.forEach((a,j)=>{out[0]+=w[j]*Math.cos(a)*.95;out[1]+=w[j]*Math.sin(a)*.95;});},
   p(i,s,o){const j=i%14,k=Math.floor(i/14);const wn=w[j]/wm;const len=mode==='blend'?.25+.7*wn:.95;const r=.14+(k/29)*(len-.14);o.x=r*Math.cos(RA[j]);o.y=r*Math.sin(RA[j]);
     if(mode==='query'){o.c=FT;o.a=.85;o.r=.8;}else{o.c=wn>.45?BL:FT;o.a=.3+.7*wn;o.r=.7+.6*wn;}},
-  draw(s,a){arrow(0,0,Math.cos(q)*1.08,Math.sin(q)*1.08,FG,a,3);text('query',Math.cos(q)*1.2,Math.sin(q)*1.2,a,{c:FG,size:.055});
+  draw(s,a){arrow(0,0,Math.cos(q)*1.08,Math.sin(q)*1.08,FG,a,3);text('query',clamp(Math.cos(q)*1.2,-.9,.9),Math.sin(q)*1.2,a,{c:FG,size:.055});
     if(mode==='blend'){arrow(0,0,out[0],out[1],GD,a,3.5);text('answer',out[0]*1.15,out[1]*1.15-.08,a,{c:GD,size:.055});}}};};
 
 F.matrix=(mode)=>{const W=new Float32Array(400);let hi=-1,fill=20;return{
@@ -288,8 +1874,8 @@ F.spiral=(mode)=>({p(i,s,o){const [x,y]=spiralPt(i);o.x=x;o.y=y;o.c=BL;o.r=.95;
 
 F.diffuse=(mode)=>{let ab=1;return{
   prep(s){ab=mode==='forward'?1-.98*ease(s):mode==='reverse'?.02+.98*ease(s):.02;},
-  p(i,s,o){const [x,y]=spiralPt(i);const ex=G(i,113)*.42,ey=G(i,115)*.42;const a=Math.sqrt(ab),b=Math.sqrt(1-ab);o.x=a*x+b*ex;o.y=a*y+b*ey;o.c=ab>.3?BL:FG;o.r=.9;if(ab<=.3)o.a=.75;},
-  draw(s,a){if(mode!=='noise')return;for(let i=0;i<N;i+=11){const [x,y]=spiralPt(i);const ex=G(i,113)*.42,ey=G(i,115)*.42;const nx=Math.sqrt(.02)*x+Math.sqrt(.98)*ex,ny=Math.sqrt(.02)*y+Math.sqrt(.98)*ey;const dx=x-nx,dy=y-ny,L=Math.hypot(dx,dy)||1,k=Math.min(.16,L)*sstep(0,.6,s);arrow(nx,ny,nx+dx/L*k,ny+dy/L*k,GD,a*.8,1.5);}}};};
+  p(i,s,o){const [x,y]=spiralPt(i);const ex=G(i,113)*.32,ey=G(i,115)*.32;const a=Math.sqrt(ab),b=Math.sqrt(1-ab);o.x=a*x+b*ex;o.y=a*y+b*ey;o.c=ab>.3?BL:FG;o.r=.9;if(ab<=.3)o.a=.75;},
+  draw(s,a){if(mode!=='noise')return;for(let i=0;i<N;i+=11){const [x,y]=spiralPt(i);const ex=G(i,113)*.32,ey=G(i,115)*.32;const nx=Math.sqrt(.02)*x+Math.sqrt(.98)*ex,ny=Math.sqrt(.02)*y+Math.sqrt(.98)*ey;const dx=x-nx,dy=y-ny,L=Math.hypot(dx,dy)||1,k=Math.min(.16,L)*sstep(0,.6,s);arrow(nx,ny,nx+dx/L*k,ny+dy/L*k,GD,a*.8,1.5);}}};};
 
 const FR="the cat sat down";const FRK=[...Array(16).keys()].sort((p,q)=>H(p,121)-H(q,121));const FRR=new Array(16);FRK.forEach((j,r)=>FRR[j]=r);
 F.fill=()=>{let k=0;return{
@@ -327,10 +1913,10 @@ F.panels=(mode)=>({p(i,s,o){const side=i%2?.5:-.5;const [tx,ty,c]=tidyPt(Math.fl
     if(mode==='tidy'||s>.8)text('≈',0,0,mode==='tidy'?a:a*sstep(.8,1,s),{c:GD,size:.12});}});
 
 const TA=[];for(let j=0;j<8;j++)TA.push(j/8*TAU+.2);
-F.truth=()=>({p(i,s,o){const j=i%8,k=Math.floor(i/8);const found=j!==2&&j!==6;const r=.12+(k/52)*.8;
+F.truth=()=>({p(i,s,o){const j=i%8,k=Math.floor(i/8);const found=j!==2&&j!==5&&j!==6;const r=.12+(k/52)*.8;
     if(!found){o.x=r*Math.cos(TA[j]);o.y=r*Math.sin(TA[j]);o.c=FT;o.a=.4;o.r=.6;return;}
     const a=TA[j]+(H(j,191)-.5)*1.2*(1-ease(s));o.x=r*Math.cos(a);o.y=r*Math.sin(a);o.c=ease(s)>.85?BL:FG;o.r=.8;},
-  draw(s,a){for(let j=0;j<8;j++)line(0,0,Math.cos(TA[j])*.95,Math.sin(TA[j])*.95,FG,a*.25,1,[3,5]);text(ease(s)>.85?'6 of 8 found':'searching',0,-1.08,a,{size:.055});}});
+  draw(s,a){for(let j=0;j<8;j++)line(0,0,Math.cos(TA[j])*.95,Math.sin(TA[j])*.95,FG,a*.25,1,[3,5]);text(ease(s)>.85?'5 of 8 found':'searching',0,-1.08,a,{size:.055});}});
 
 F.curves=(spec)=>({p(i,s,o){const cur=i%2,k=Math.floor(i/2);const u=k/209;const f=cur?spec.b:spec.a;const rv=lerp(spec.r0,spec.r1,ease(s));
     o.x=-.9+u*1.8;o.y=-.6+1.2*f(u);o.c=cur?GD:BL;o.r=.85;if(u>rv){o.a=0;o.x=-.9+rv*1.8;o.y=-.6+1.2*f(rv);}},
@@ -435,14 +2021,15 @@ F.quant=(mode)=>({p(i,s,o){const t=ease(s);let A=QH[i],B=QH[i];if(mode==='q16'){
     else if(mode==='q3'){[-1,0,1].forEach(l=>text(String(l).replace('-','−'),l*QMEAN*2.2,-.78,a,{c:FG,size:.06}));}
     else text(mode==='prune'?'smallest tenth removed':'weight value: 0 in the middle',0,-.82,a,{size:.05});}});
 
-const BP=[.3,.45,.62,.4],BPULL=[],BWIN=[],BIDX=[];
-(()=>{const n=[0,0,0,0],w=[0,0,0,0];for(let t=0;t<N;t++){let a=0;if(t<4)a=t;else{let best=-1;for(let j=0;j<4;j++){const u=w[j]/n[j]+Math.sqrt(1.2*Math.log(t+1)/n[j]);if(u>best){best=u;a=j;}}}
+/* Module 24: five arms paying with probabilities 0.2, 0.4, 0.5, 0.6 and 0.7, in shuffled order. */
+const BP=[.4,.2,.7,.5,.6],BPULL=[],BWIN=[],BIDX=[];
+(()=>{const n=[0,0,0,0,0],w=[0,0,0,0,0];for(let t=0;t<N;t++){let a=0;if(t<5)a=t;else{let best=-1;for(let j=0;j<5;j++){const u=w[j]/n[j]+Math.sqrt(1.2*Math.log(t+1)/n[j]);if(u>best){best=u;a=j;}}}
   const win=H(t,281)<BP[a];BIDX.push(n[a]);n[a]++;if(win)w[a]++;BPULL.push(a);BWIN.push(win);}})();
 F.bandit=(n0,n1)=>{let n=0;return{
   prep(s){n=lerp(n0,n1,ease(s));},
-  p(i,s,o){const a=BPULL[i],k=BIDX[i];const ax=-.66+a*.44;const col=k%8,row=Math.floor(k/8);const x=ax+(col-3.5)*.032,y=-.68+row*.032;
+  p(i,s,o){const a=BPULL[i],k=BIDX[i];const ax=-.72+a*.36;const col=k%8,row=Math.floor(k/8);const x=ax+(col-3.5)*.032,y=-.68+row*.032;
     const f=clamp((n-i)/6);o.x=x;o.y=lerp(1.0,y,ease(f));o.a=f;o.c=BWIN[i]?BL:FT;o.r=.95;},
-  draw(s,a){['A','B','C','D'].forEach((l,j)=>text(l,-.66+j*.44,-.8,a,{c:FG,size:.062}));text(Math.round(n)+' pulls',.95,.92,a,{align:'right',size:.052});}};};
+  draw(s,a){['A','B','C','D','E'].forEach((l,j)=>text(l,-.72+j*.36,-.8,a,{c:FG,size:.062}));text(Math.round(n)+' pulls',.95,.92,a,{align:'right',size:.052});}};};
 
 F.policy=()=>{let p=[];return{
   prep(s){const t=ease(s)*3.2;p=softmax([0,.2,-.1,.3,0,-.2,1.2,.1,-.3].map(v=>v*t),1);},
@@ -494,11 +2081,255 @@ F.motifs=()=>{const sub=[F.spiral('data'),F.graph('all'),F.rays('rotate'),F.chai
   p(i,s,o){const j=i%5;tmp.x=0;tmp.y=0;tmp.c=0;tmp.r=1;tmp.a=1;sub[j].p(i,.5,tmp);const ang=Math.PI/2-j*TAU/5+rot;o.x=.62*Math.cos(ang)+tmp.x*.25;o.y=.62*Math.sin(ang)+tmp.y*.25;o.c=tmp.c;o.r=tmp.r*.8;o.a=tmp.a;},
   draw(s,a){for(let j=0;j<5;j++){const ang=Math.PI/2-j*TAU/5+rot;text(L[j],.62*Math.cos(ang),.62*Math.sin(ang)-.32,a,{size:.045});}}};};
 
-/* ---------- the hundred moves ---------- */
-const CH=[['I','Points',0],['II','A line that learns',4],['III','Downhill',12],['IV','Words to numbers',23],['V','Attention',31],['VI','Hide and predict',40],
-  ['VII','Looking inside',49],['VIII','How learning goes',58],['IX','Scale',67],['X','More from one model',73],['XI','Acting',83],['XII','What came back',93]];
-const chOf=b=>{let c=0;for(let k=0;k<CH.length;k++)if(b>=CH[k][2])c=k;return c;};
-const B=[
+/* ---------- version 2 formations: n1–n36 ---------- */
+function dots(P,rp,c,a){if(a<.01)return;ctx.save();ctx.fillStyle=rgba(c,a);ctx.beginPath();const r=Math.max(.8,V.R*rp);for(const q of P){const X=V.X(q[0]),Y=V.Y(q[1]);ctx.moveTo(X+r,Y);ctx.arc(X,Y,r,0,TAU);}ctx.fill();ctx.restore();}
+function solveLin(M,b){const n=b.length,A=M.map((r,i)=>r.concat([b[i]]));
+  for(let c=0;c<n;c++){let p=c;for(let r=c+1;r<n;r++)if(Math.abs(A[r][c])>Math.abs(A[p][c]))p=r;const t=A[c];A[c]=A[p];A[p]=t;const d=A[c][c]||1e-12;
+    for(let r=c+1;r<n;r++){const f=A[r][c]/d;if(f)for(let k=c;k<=n;k++)A[r][k]-=f*A[c][k];}}
+  const x=new Array(n).fill(0);for(let r=n-1;r>=0;r--){let s=A[r][n];for(let k=r+1;k<n;k++)s-=A[r][k]*x[k];x[r]=s/(A[r][r]||1e-12);}return x;}
+/* Chebyshev basis keeps the 12×12 normal equations well conditioned on [-1,1]. */
+function cheb(x,deg,out){out[0]=1;if(deg>0)out[1]=x;for(let k=2;k<=deg;k++)out[k]=2*x*out[k-1]-out[k-2];return out;}
+const CHB=new Array(12);
+function chebVal(c,x){cheb(x,c.length-1,CHB);let y=0;for(let k=0;k<c.length;k++)y+=c[k]*CHB[k];return y;}
+function polyFit(X,Y,deg,lam){const n=deg+1,M=[],b=new Array(n).fill(0),r=new Array(n);for(let a=0;a<n;a++)M.push(new Array(n).fill(0));
+  for(let j=0;j<X.length;j++){cheb(X[j],deg,r);for(let a=0;a<n;a++){b[a]+=r[a]*Y[j];for(let c=0;c<n;c++)M[a][c]+=r[a]*r[c];}}
+  for(let a=1;a<n;a++)M[a][a]+=lam+1e-12;return solveLin(M,b);}
+const PTRUE=x=>.42*Math.sin(2.6*x)+.12*x+.05;
+const PFX=[],PFY=[],PTX=[],PTY=[];for(let j=0;j<12;j++){PFX.push(.88*(-.5*Math.cos(Math.PI*(j+.5)/12)+.5*(-1+2*j/11)));PFY.push(PTRUE(PFX[j])+G(j,823)*.2);}
+for(let j=0;j<11;j++){const x=(PFX[j]+PFX[j+1])/2+(H(j,405)-.5)*.03;PTX.push(x);PTY.push(PTRUE(x)+G(j,407)*.06);}
+const PFC=[null];for(let d=1;d<=11;d++)PFC.push(polyFit(PFX,PFY,d,0));
+F.polyfit=(mode)=>{let c0=PFC[1],c1=PFC[1],f=0,deg=1,lam=0;return{
+  prep(s){if(mode==='degree'){deg=lerp(1,11,ease(s));const d=Math.min(10,Math.floor(deg));c0=PFC[d];c1=PFC[d+1];f=deg-d;}
+    else if(mode==='penalty'){lam=Math.pow(10,lerp(-7,-.6,ease(s)));c0=c1=polyFit(PFX,PFY,11,lam);f=0;}
+    else{c0=c1=PFC[11];f=0;}},
+  y(x){const a=chebVal(c0,x);return f?lerp(a,chebVal(c1,x),f):a;},
+  p(i,s,o){if(i<12){o.x=PFX[i];o.y=PFY[i];o.c=GD;o.r=2.4;return;}
+    if(i<23){const k=i-12;o.x=PTX[k];o.y=PTY[k];o.c=BL;o.r=2;o.a=mode==='test'?clamp(s*3.2-k*.18):0;return;}
+    const u=(i-23)/396,x=lerp(PFX[0]-.02,PFX[11]+.02,u);o.x=x;o.y=this.y(x);o.c=FG;o.r=.75;o.a=.85;},
+  draw(s,a){if(mode==='degree')text('degree '+Math.round(deg),-.95,.92,a,{align:'left',size:.052});
+    if(mode==='test'){for(let k=0;k<11;k++){const al=clamp(s*3.2-k*.18);if(al<.02)continue;line(PTX[k],PTY[k],PTX[k],this.y(PTX[k]),GD,a*al*.9,1.5,[3,3]);}
+      text('new points',.95,.92,a*clamp(s*3),{c:BL,align:'right',size:.052});}
+    if(mode==='penalty'){const t=ease(s);text('weight penalty',-.95,.92,a,{align:'left',size:.048});rect(-.95,.76,-.25,.8,FT,a*.8,true);rect(-.95,.76,-.95+.7*Math.max(.02,t),.8,GD,a,true);}}};};
+
+/* Module 02: validation loss lowest at epoch 17 (0.360); train loss ends at 0.216 (epoch 25). */
+const LTR=e=>.216+.38*(Math.exp(-(e-1)/6)-Math.exp(-4))/(1-Math.exp(-4));
+const LVA=e=>e>=17?.36+.051*((e-17)/8)**2:.36+.25*((17-e)/16)**2;
+const LSX=e=>-.9+(e-1)/24*1.8, LSY=v=>-.6+1.2*(v-.15)/.55;
+F.losses=(mode)=>{let em=1;return{
+  prep(s){em=lerp(1,17,ease(s));},
+  p(i,s,o){if(i===0){if(mode==='stop'){o.x=LSX(em);o.y=LSY(LVA(em));o.c=GD;o.r=3;}else{o.x=LSX(1);o.y=LSY(LVA(1));o.a=0;}return;}
+    const cur=i%2,k=Math.floor(i/2),u=k/209,e=1+24*u;const rv=mode==='reveal'?ease(s):1;
+    o.x=LSX(e);o.y=LSY(cur?LTR(e):LVA(e));o.c=cur?BL:GD;o.r=.85;
+    if(mode==='reveal'&&u>rv){const er=1+24*rv;o.a=0;o.x=LSX(er);o.y=LSY(cur?LTR(er):LVA(er));}
+    if(mode==='stop'&&e>17)o.a=1-.65*sstep(.6,1,s);},
+  draw(s,a){axes('epochs →','loss',a);const rv=mode==='reveal'?ease(s):1,er=1+24*rv,al=rv>.7?'right':'left';
+    text('validation',LSX(er),LSY(LVA(er))+.1,a,{c:GD,size:.052,align:al});text(mode==='stop'?'train 0.216':'train',LSX(er),LSY(LTR(er))-.1,a,{c:BL,size:.052,align:al});
+    if(mode==='stop'){const b=sstep(.55,.9,s);line(LSX(17),-.68,LSX(17),LSY(.36),GD,a*b*.7,1.2,[4,4]);text('lowest: epoch 17, 0.360',LSX(17),LSY(.36)-.12,a*b,{c:GD,size:.05});}}};};
+
+F.ucurve=()=>{const TE=u=>.2+.6*(u<.4?((.4-u)/.4)**2:((u-.4)/.6)**2),TR=u=>.03+.75*Math.exp(-3.2*u);return{
+  p(i,s,o){const cur=i%2,u=(Math.floor(i/2))/209,rv=ease(s);const f=cur?TR:TE;o.x=-.9+u*1.8;o.y=-.6+1.2*f(u);o.c=cur?BL:GD;o.r=.85;
+    if(u>rv){o.a=0;o.x=-.9+rv*1.8;o.y=-.6+1.2*f(rv);}},
+  draw(s,a){axes('model size →','error',a);const rv=ease(s),al=rv>.7?'right':'left';
+    text('test',-.9+rv*1.8,-.6+1.2*TE(rv)+.1,a,{c:GD,size:.052,align:al});text('train',-.9+rv*1.8,-.6+1.2*TR(rv)-.1,a,{c:BL,size:.052,align:al});
+    const b=sstep(.45,.8,s);if(b>0){const x=-.9+.4*1.8,y=-.6+1.2*.2;circ(x,y,.06,GD,a*b);line(x,-.68,x,y-.06,GD,a*b*.6,1.2,[4,4]);text('best size',x,y-.16,a*b,{c:GD,size:.05});}}};};
+
+/* Module 00c: test MSE of minimum-norm polynomial fits to n = 20 points (one dataset). */
+const DDT=[[3,.0183],[10,.3309],[18,4.38e6],[19,1.11e12],[20,5.57e7],[25,37.95],[30,3.019],[47,.4825],[80,.5991]];
+const DDX=d=>-.9+(d-3)/77*1.8, DDY=m=>-.6+1.3*(Math.log10(m)+2)/14.5;
+function ddAt(d){let k=0;while(k<DDT.length-2&&d>DDT[k+1][0])k++;const [d0,m0]=DDT[k],[d1,m1]=DDT[k+1];const t=sstep(0,1,(d-d0)/(d1-d0));return lerp(DDY(m0),DDY(m1),t);}
+F.dd=(mode)=>{let dm=20;return{
+  prep(s){dm=lerp(20,47,ease(s));},
+  p(i,s,o){if(i===0){if(mode==='floor'){o.x=DDX(dm);o.y=ddAt(dm);o.c=GD;o.r=3;}else o.a=0;return;}
+    const u=(i-1)/418,d=3+77*u,rv=mode==='reveal'?ease(s):1;o.x=DDX(d);o.y=ddAt(d);o.c=BL;o.r=.85;
+    if(mode==='floor'&&d>19&&d<=dm)o.c=GD;
+    if(u>rv){const dr=3+77*rv;o.a=0;o.x=DDX(dr);o.y=ddAt(dr);}},
+  draw(s,a){axes('polynomial degree →','test error (log)',a);const rv=mode==='reveal'?ease(s):1,dr=3+77*rv;
+    const sp=mode==='reveal'?sstep(.18,.26,rv):1;if(sp>0){line(DDX(19),-.68,DDX(19),DDY(1.11e12),FG,a*sp*.4,1,[4,4]);text('degree 19: as many weights as points',0,.94,a*sp,{size:.045});}
+    if(mode==='reveal'&&rv>.05)circ(DDX(dr),ddAt(dr),.035,BL,a);
+    if(mode==='floor'){line(-.9,DDY(.0183),.9,DDY(.0183),BL,a*.6,1.2,[5,5]);text('0.0183 at degree 3',-.9,DDY(.0183)-.08,a,{c:BL,align:'left',size:.046});
+      const b=sstep(.6,.95,s);text('0.4825 at degree 47',DDX(47),DDY(.4825)+.1,a*b,{c:GD,size:.046});}}};};
+
+/* Minimum-norm interpolation: every curve passes the 5 points; blue has the smallest coefficients. */
+const IPX=[-.78,-.38,.02,.4,.8],IPY=IPX.map((x,j)=>PTRUE(x)*.9+G(j,411)*.08);
+const IPN=(()=>{const D=8,A=IPX.map(x=>{const r=[];for(let k=0;k<D;k++)r.push(Math.pow(x,k));return r;});
+  const M=A.map(r=>A.map(q=>r.reduce((s,v,k)=>s+v*q[k],0)));const z=solveLin(M,IPY);const cmin=new Array(D).fill(0);A.forEach((r,j)=>r.forEach((v,k)=>cmin[k]+=v*z[j]));
+  let q=[1];IPX.forEach(x0=>{const n=new Array(q.length+1).fill(0);q.forEach((v,k)=>{n[k+1]+=v;n[k]-=x0*v;});q=n;});
+  const nulls=[0,1,2].map(m=>{const c=new Array(D).fill(0);q.forEach((v,k)=>c[k+m]+=v);let mx=0;for(let x=-.95;x<=.95;x+=.01){let y=0;c.forEach((v,k)=>y+=v*Math.pow(x,k));mx=Math.max(mx,Math.abs(y));}return c.map(v=>v/mx);});
+  return{cmin,nulls};})();
+function ipVal(c,x){let y=0,p=1;for(let k=0;k<c.length;k++){y+=c[k]*p;p*=x;}return y;}
+F.interp=()=>{const C=[IPN.cmin,[],[],[]];return{
+  prep(s){for(let k=1;k<4;k++){const am=(.25+.08*k)*Math.sin(s*Math.PI*1.6+k*2.1)+(k%2?.2:-.2);C[k]=IPN.cmin.map((v,j)=>v+am*IPN.nulls[k-1][j]);}},
+  p(i,s,o){if(i<5){o.x=IPX[i];o.y=IPY[i];o.c=GD;o.r=2.6;return;}const k=(i-5)%4,u=Math.floor((i-5)/4)/103,x=-.84+1.7*u;o.x=x;o.y=ipVal(C[k],x);
+    if(k===0){o.c=BL;o.r=1;}else{o.c=FG;o.r=.65;o.a=.45;}},
+  draw(s,a){text('smallest weights',.95,.92,a,{c:BL,align:'right',size:.05});text('all pass through every point',-.95,-.98,a,{align:'left',size:.045});}};};
+
+/* Splits. */
+F.split=()=>({p(i,s,o){const t=ease(s);const a0=H(i,1)*TAU,r0=Math.sqrt(H(i,2))*1.02;let tx,ty;
+    if(i<294){tx=-.95+(i%14)*.083;ty=.6-Math.floor(i/14)*.06;o.c=BL;}else if(i<357){const k=i-294;tx=.3+(k%3)*.083;ty=.6-Math.floor(k/3)*.06;o.c=GD;}else{const k=i-357;tx=.72+(k%3)*.083;ty=.6-Math.floor(k/3)*.06;o.c=FG;}
+    o.x=lerp(r0*Math.cos(a0),tx,t);o.y=lerp(r0*Math.sin(a0),ty,t);if(t<.3)o.c=FT;o.r=.85;},
+  draw(s,a){const b=sstep(.5,.9,s);text('train',-.41,.76,a*b,{c:BL,size:.05});text('validation',.38,.76,a*b,{c:GD,size:.05});text('test',.8,.76,a*b,{c:FG,size:.05});}});
+
+const CLS=[];{let l=0,r=0;for(let g=0;g<70;g++){const left=g%10<7;const k=left?l++:r++;CLS.push({cx:(H(g,421)-.5)*1.6,cy:(H(g,423)-.5)*1.2,tx:left?-.85+(k%7)*.17:.5+(k%3)*.19,ty:.6-Math.floor(k/(left?7:3))*.19,left});}}
+F.clumps=()=>({p(i,s,o){const g=Math.floor(i/6),m=i%6,C=CLS[g];const t=ease(clamp((s-H(g,425)*.25)/.75));const ox=.04*Math.cos(m/6*TAU+g),oy=.04*Math.sin(m/6*TAU+g);
+    o.x=lerp(C.cx,C.tx,t)+ox;o.y=lerp(C.cy,C.ty,t)+oy;o.c=C.left?BL:GD;o.r=.9;},
+  draw(s,a){const b=sstep(.4,.9,s);line(.33,-.75,.33,.8,FG,a*b*.5,1.2,[4,4]);text('train',-.34,.84,a*b,{c:BL,size:.05});text('test',.69,.84,a*b,{c:GD,size:.05});text('one clump: one person',0,-.92,a,{size:.045});}});
+
+F.leak=()=>({p(i,s,o){const lit=sstep(.15,.55,s);
+    if(i>=300){const k=i-300;o.x=.15+H(i,431)*.8;o.y=(H(i,433)-.5)*1.1;o.c=BL;o.r=.9;if(k<12){o.c=lit>.5?GD:BL;o.r=.9+1.2*lit;}return;}
+    if(i<12){const j=300+i;o.x=.15+H(j,431)*.8-1.1+G(i,435)*.01;o.y=(H(j,433)-.5)*1.1+.03;o.c=lit>.5?GD:FT;o.r=.9+1.2*lit;return;}
+    o.x=-.95+H(i,437)*.8;o.y=(H(i,439)-.5)*1.1;o.c=FT;o.r=.85;},
+  draw(s,a){const lit=sstep(.15,.55,s);line(.05,-.65,.05,.62,FG,a*.4,1.2,[4,4]);text('train',-.55,-.78,a,{size:.05});text('test',.55,-.78,a,{size:.05});
+    for(let k=0;k<12;k++){const j=300+k;const x=.15+H(j,431)*.8,y=(H(j,433)-.5)*1.1;line(x,y,x-1.1,y+.03,GD,a*lit*.45,1,[2,4]);}
+    const sc=lerp(.4,.92,sstep(.35,.85,s));text('test score',.15,.94,a,{align:'left',size:.048});rect(.15,.74,.95,.8,FT,a*.7,true);rect(.15,.74,.15+.8*sc,.8,sc>.7?GD:BL,a,true);}});
+
+/* Confusion counts: 120 true positives, 40 false negatives, 60 false positives, 200 true negatives. */
+const CFN=[120,40,60,200],CFC=[[-.42,.36],[.42,.36],[-.42,-.44],[.42,-.44]],CFL=['true positive','false negative','false positive','true negative'];
+F.confusion=()=>({p(i,s,o){let k=0,j=i;while(j>=CFN[k]){j-=CFN[k];k++;}const n=CFN[k],cols=Math.ceil(Math.sqrt(n)),sp=.6/cols;const r=Math.floor(j/cols),c=j%cols;
+    const tx=CFC[k][0]+(c-(cols-1)/2)*sp,ty=CFC[k][1]+.3-sp/2-r*sp;const a0=H(i,1)*TAU,r0=Math.sqrt(H(i,2))*1.02;const t=ease(s);
+    o.x=lerp(r0*Math.cos(a0),tx,t);o.y=lerp(r0*Math.sin(a0),ty,t);o.c=t<.3?FT:(k===0||k===3?BL:GD);o.r=.85;},
+  draw(s,a){const b=sstep(.5,.9,s);CFC.forEach((p,k)=>{rect(p[0]-.36,p[1]-.36,p[0]+.36,p[1]+.36,FG,a*b*.25);text(CFL[k],p[0],p[1]-.44,a*b,{c:k===0||k===3?BL:GD,size:.045});});
+    text('predicted yes',-.42,.9,a*b,{size:.045});text('predicted no',.42,.9,a*b,{size:.045});}});
+
+/* Module 05a: threshold 0.43 chosen on validation. */
+const THS=[];for(let i=0;i<N;i++){const pos=i%2===0;THS.push(clamp((pos?.63:.37)+G(i,441)*.17,.02,.98));}
+F.thresh=()=>{let th=.15;return{
+  prep(s){th=s<.6?lerp(.15,.85,ease(s/.6)):lerp(.85,.43,ease((s-.6)/.4));},
+  p(i,s,o){const pos=i%2===0,sc=THS[i];o.x=-.9+sc*1.8;o.y=(pos?.38:-.38)+(H(i,443)-.5)*.42;const flag=sc>=th;o.r=.9;
+    if(flag){o.c=pos?BL:GD;}else{o.c=pos?FG:FT;o.a=pos?.55:.6;}},
+  draw(s,a){const x=-.9+th*1.8;line(x,-.68,x,.7,FG,a*.75,2);text('threshold '+th.toFixed(2),x,.82,a,{c:FG,size:.05});
+    line(-.95,-.72,.95,-.72,FG,a*.3,1.2);text('score →',.95,-.82,a,{align:'right',size:.048});text('positive',.95,.68,a,{align:'right',c:BL,size:.045});text('negative',.95,-.08,a,{align:'right',c:GD,size:.045});
+    if(s>.92)text('chosen on validation',x,-.9,a*sstep(.92,1,s),{c:FG,size:.045});}};};
+
+F.calib=()=>({p(i,s,o){const m=i%2,k=Math.floor(i/2),b=k%10,j=Math.floor(k/10);const c=.05+.1*b;const acc=m?clamp(.5+.45*(c-.5)-.06):clamp(c+G(b,451)*.025);
+    const X=-.95+c*1.9,Y=-.68+acc*1.4;o.x=X+G(i,453)*.014+(m?.018:-.018);o.y=Y+G(i,455)*.018;o.c=m?GD:BL;o.r=.8;
+    const rv=1+ease(s)*9;if(b>rv){o.a=0;}else if(b>rv-1)o.a=rv-b;},
+  draw(s,a){axes('confidence →','accuracy',a);line(-.95,-.68,.95,.72,FG,a*.5,1,[4,5]);text('calibrated',.5,.55,a,{c:BL,size:.048});text('overconfident',.55,-.05,a*sstep(.4,.8,s),{c:GD,size:.048});}});
+
+/* Module 00b: 1,000 people, prevalence 0.4% (4 sick), 96% sensitivity, 8% false positives: P(sick | flagged) = 4.6%. */
+const RG=[];for(let k=0;k<1000;k++)RG.push([-.95+(k%40)*(1.9/39),.56-Math.floor(k/40)*(1.12/24)]);
+const RSICK=[],RFP=[];{const used=new Set();let s=0;while(RSICK.length<4){const k=Math.floor(H(s++,461)*1000);if(!used.has(k)){used.add(k);RSICK.push(k);}}while(RFP.length<80){const k=Math.floor(H(s++,461)*1000);if(!used.has(k)){used.add(k);RFP.push(k);}}}
+const RREST=RG.filter((_,k)=>!RSICK.includes(k)&&!RFP.includes(k));
+F.rare=()=>({p(i,s,o){if(i<4){const q=RG[RSICK[i]];o.x=q[0];o.y=q[1];o.c=BL;o.r=2.4;return;}
+    if(i<84){const k=i-4,q=RG[RFP[k]];o.x=q[0];o.y=q[1];o.c=GD;o.r=1.6;o.a=clamp(s*2.2-k/80*1.1);return;}const q=RREST[(i-84)*2];o.x=q[0];o.y=q[1];o.c=FT;o.r=.7;o.a=0;},
+  draw(s,a){dots(RREST,.007,FT,a*.9);text('1,000 people',-.95,.72,a,{align:'left',size:.048});text('4 sick',.95,.72,a,{align:'right',c:BL,size:.048});
+    text('flagged but healthy',-.95,-.72,a*sstep(.2,.6,s),{align:'left',c:GD,size:.048});text('4.6% of flags are sick',0,-.9,a*sstep(.6,.95,s),{c:FG,size:.055});}});
+
+/* Module 05a: slice F1 at 0.5 with 95% bootstrap intervals. */
+const BS=[[.806,.722,.872,'daylight',.32],[.727,.428,.909,'low-light',-.38]],BX2=f=>-.9+(f-.35)/.6*1.8;
+F.boot=()=>({p(i,s,o){const r=i<210?0:1,[e,lo,hi,,y0]=BS[r];const g=G(i,471);const v=e+(g<0?g*(e-lo):g*(hi-e))/1.96;const t=ease(s);
+    const t2=.15+.85*t;o.x=lerp(BX2(e),BX2(v),t2);o.y=y0+(H(i,473)-.5)*.24*t2;o.c=r?GD:BL;o.r=.85;o.a=.55+.45*(1-t);},
+  draw(s,a){line(-.95,-.72,.95,-.72,FG,a*.3,1.2);text('F1 →',.95,-.82,a,{align:'right',size:.048});
+    BS.forEach(([e,lo,hi,l,y0],r)=>{const c=r?GD:BL;text(l+' '+e.toFixed(3),-.95,y0+.24,a,{align:'left',c,size:.05});
+      const b=sstep(.55,.9,s);line(BX2(lo),y0-.17,BX2(hi),y0-.17,c,a*b,2.5);line(BX2(lo),y0-.21,BX2(lo),y0-.13,c,a*b,2);line(BX2(hi),y0-.21,BX2(hi),y0-.13,c,a*b,2);});
+    text('the intervals overlap',0,-.92,a*sstep(.75,1,s),{c:FG,size:.05});}});
+
+F.vault=()=>{let open=0;return{
+  prep(s){open=sstep(.72,.95,s);},
+  p(i,s,o){if(i<300){const bx=-.95+H(i,481)*.95,by=(H(i,483)-.5)*1.1;o.x=bx+.04*Math.sin(s*14+i);o.y=by+.04*Math.cos(s*11+i*1.3);o.c=i%3?FT:BL;o.r=.85;return;}
+    const k=i-300;o.x=.32+(k%10)*.068;o.y=.4-Math.floor(k/10)*.075;o.c=open>.5?BL:FT;o.r=.85+.4*open;o.a=.4+.6*open;},
+  draw(s,a){rect(.26,-.5,.98,.5,FG,a*.6);const an=open*1.1;line(.26,.5,.26+.72*Math.cos(an),.5+.72*Math.sin(an),FG,a*.9,2.5);
+    text('tune here',-.48,-.78,a,{size:.05});text('test set',.62,-.62,a,{size:.05});text('opened once',.62,-.78,a*open,{c:BL,size:.05});}};};
+
+/* Weights. */
+F.wgrid=()=>({p(i,s,o){if(i>=400){o.a=0;return;}const r=Math.floor(i/20),c=i%20;const t=ease(s);const w0=G(i,491)*.45,dw=G(i,493)*.4;const w=w0+t*dw;
+    o.x=(c-9.5)*.09+t*.012*Math.sign(dw);o.y=(9.5-r)*.09-.05+t*.012*Math.sign(dw);o.r=.35+1.7*Math.min(1,Math.abs(w));o.c=w>0?BL:GD;o.a=.45+.55*Math.min(1,Math.abs(w));},
+  draw(s,a){text('every weight changes',0,-1.0,a*sstep(.2,.6,s),{size:.05});}});
+
+const LRU=[],LRV=[];for(let k=0;k<20;k++){LRU.push(G(k,501));LRV.push(G(k,503));}
+F.lowrank=()=>({p(i,s,o){const t=ease(s);
+    if(i<380){const r=Math.floor(i/20),c=i%20;const lo=LRU[r]*LRV[c]*.28,fu=G(i,505)*.45;const v=lerp(fu,lo,t);o.x=-.62+c*.078;o.y=.68-r*.078;o.r=.35+1.6*Math.min(1,Math.abs(v));o.c=v>0?BL:GD;o.a=.4+.6*Math.min(1,Math.abs(v));return;}
+    if(i<399){const r=i-380,v=LRU[r]*.5;o.x=-.92;o.y=.68-r*.078;o.r=.4+1.4*Math.min(1,Math.abs(v));o.c=v>0?BL:GD;o.a=t;return;}
+    if(i<419){const c=i-399,v=LRV[c]*.5;o.x=-.62+c*.078;o.y=.92;o.r=.4+1.4*Math.min(1,Math.abs(v));o.c=v>0?BL:GD;o.a=t;return;}o.a=0;},
+  draw(s,a){text('change ≈ column × row',0,-.86,a*sstep(.4,.9,s),{size:.05});}});
+
+/* Module 06: LoRA at rank 16 trains 8.7M parameters, 2.3% of the model. */
+F.lora=(mode)=>({p(i,s,o){
+    if(i<324){const r=Math.floor(i/18),c=i%18;o.x=-.95+c*.055;o.y=.47-r*.055;o.c=FT;o.r=1;o.a=1;
+      if(mode==='zero'){const col=Math.floor(s*18.99);if(c===col){o.c=FG;o.a=.9;}}return;}
+    if(i<360){const k=i-324,r=Math.floor(k/2),c=k%2;o.x=.2+c*.055;o.y=.47-r*.055;
+      if(mode==='zero'){o.c=FT;o.r=.3;o.a=.5;}else{const v=G(k,511)+.6*Math.sin(s*7+k);o.c=v>0?BL:GD;o.r=.5+.9*Math.min(1,Math.abs(v)*.6);}return;}
+    if(i<396){const k=i-360,r=Math.floor(k/18),c=k%18;o.x=.4+c*.033;o.y=.74-r*.055;const v=G(k,513)+.6*Math.sin(s*7+k*.7);o.c=v>0?BL:GD;o.r=.5+.9*Math.min(1,Math.abs(v)*.6);return;}
+    o.a=0;o.x=0;o.y=0;},
+  draw(s,a){text('W, frozen',-.48,-.62,a,{size:.05});text('B',.225,-.62,a,{c:BL,size:.055});text('A',.68,.9,a,{c:BL,size:.055});text('+',.09,0,a,{c:FG,size:.08});
+    if(mode==='zero')text('B = 0, so B·A adds nothing',0,-.86,a,{c:GD,size:.05});
+    else text('8.7M trainable, 2.3%, rank 16',0,-.86,a,{c:BL,size:.05});}});
+
+/* Bar charts drawn with points. spec.bars: {x, v, v0?, c, top, lab}. */
+F.vbars=(spec)=>{const nb=spec.bars.length,per=Math.floor(N/nb),cols=spec.cols||6;const rows=Math.ceil(per/cols);let hs=[];return{
+  prep(s){const t=ease(s);hs=spec.bars.map(b=>lerp(b.v0===undefined?0:b.v0,b.v,t)/spec.max);},
+  p(i,s,o){const b=Math.floor(i/per);if(b>=nb){o.a=0;o.x=0;o.y=-.6;return;}const k=i%per,c=k%cols,r=Math.floor(k/cols);const B0=spec.bars[b];
+    o.x=B0.x+(c-(cols-1)/2)*.032;o.y=-.6+hs[b]*1.25*(r/(rows-1));o.c=B0.c;o.r=.85;},
+  draw(s,a){line(-.95,-.64,.95,-.64,FG,a*.35,1.2);
+    if(spec.chance!==undefined){const y=-.6+spec.chance/spec.max*1.25;line(-.95,y,.95,y,FG,a*.55,1.2,[5,5]);text('chance',.95,y+.07,a,{align:'right',size:.044});}
+    spec.bars.forEach((B0,j)=>{text(B0.top,B0.x,-.6+hs[j]*1.25+.1,a*(B0.v0===B0.v?1:sstep(.6,.95,s)),{c:B0.c===FT?FG:B0.c,size:.05});if(B0.lab)text(B0.lab,B0.x,-.74,a,{size:.044});});
+    (spec.groups||[]).forEach(g=>text(g[1],g[0],-.88,a,{c:FG,size:.048}));if(spec.head)text(spec.head,0,.92,a,{size:.048});}};};
+
+/* Distillation. Module 23: after "window b" the teacher gives e 0.48, y 0.12, u 0.11; the rest share 0.29. */
+const DTE=[.48,.12,.11,.29],DST=[.22,.3,.26,.22],DOH=[1,0,0,0],DLB=['e','y','u','rest'],DTV=['0.48','0.12','0.11','0.29'];
+F.distill=(mode)=>{let L=DST,R=DTE;return{
+  prep(s){const t=ease(s);if(mode==='teach'){L=DTE;R=DST.map((v,k)=>lerp(v,DTE[k],t));}else{L=DOH;R=DTE.map(v=>v*t);}},
+  p(i,s,o){if(i>=416){o.a=0;o.x=0;o.y=-.55;return;}const g=i<208?0:1,k=i%208,b=Math.floor(k/52),j=k%52,c=j%4,r=Math.floor(j/4);const h=(g?R:L)[b];
+    o.x=(g?.5:-.5)+(b-1.5)*.2+(c-1.5)*.026;o.y=-.55+h*1.3*(r/12);o.c=g?(mode==='teach'?GD:BL):(mode==='teach'?BL:FG);o.r=.8;},
+  draw(s,a){[-.5,.5].forEach(cx=>DLB.forEach((l,b)=>text(l,cx+(b-1.5)*.2,-.67,a,{size:.044})));
+    const tv=mode==='teach'?-.5:.5,al=mode==='teach'?a:a*sstep(.6,.95,s);DTE.forEach((v,b)=>b<3&&text(DTV[b],tv+(b-1.5)*.2,-.55+v*1.3+.09,al,{c:BL,size:.04}));
+    if(mode==='teach'){text('teacher',-.5,.92,a,{c:BL,size:.052});text('student',.5,.92,a,{c:GD,size:.052});}
+    else{text('label',-.5,.92,a,{c:FG,size:.052});text('teacher',.5,.92,a,{c:BL,size:.052});text('1',-.5-.3,-.55+1.3+.09,a,{c:FG,size:.04});}}};};
+
+F.prefs=()=>({p(i,s,o){const g=Math.floor(i/14),m=i%14,ch=m<7,k=m%7;const t=ease(s);const x=-.9+g*(1.8/29);const base=(H(g,521)-.5)*.25;
+    const lift=(.32+.15*H(g,523))*t;o.x=x+(ch?-.014:.014);o.y=base+(ch?lift:-lift)+(k-3)*.022;o.c=ch?BL:GD;o.r=.75;},
+  draw(s,a){const t=ease(s);text('chosen',-.95,.75,a*sstep(.3,.7,s),{align:'left',c:BL,size:.05});text('rejected',-.95,-.75,a*sstep(.3,.7,s),{align:'left',c:GD,size:.05});
+    if(t>.05)for(let g=0;g<30;g+=3){const x=-.9+g*(1.8/29),base=(H(g,521)-.5)*.25,lift=(.32+.15*H(g,523))*t;line(x,base+lift,x,base-lift,FT,a*.6,1,[2,3]);}}});
+
+/* Agents. */
+const TKW=['It','can','only','write','the','next','word','…'];
+F.tokline=()=>{let k=0;return{
+  prep(s){k=lerp(1,8.4,ease(s));},
+  p(i,s,o){const j=Math.floor(i/52);if(j>7){o.a=0;return;}const m=i%52,cx=-.81+j*.232;
+    let x,y;if(m<40){const side=Math.floor(m/10);const u=(m%10)/9;x=side<2?cx-.1+u*.2:(side===2?cx-.1:cx+.1);y=side===0?.1:side===1?-.1:-.1+u*.2;}else{x=cx-.07+((m-40)%6)*.028;y=Math.floor((m-40)/6)*.05-.03;}
+    o.x=x;o.y=y;const v=clamp(k-j);o.a=v;o.c=j===Math.floor(k)-1||(v<1&&v>0)?BL:FG;o.r=.8;if(v<1)o.x+=(1-v)*.25;},
+  draw(s,a){TKW.forEach((w,j)=>{const v=clamp(k-j);if(v>.05)text(w,-.81+j*.232,.24,a*v,{c:FG,size:.05});});text('text in, text out',0,-.5,a,{size:.05});}};};
+
+const AGC=[0,.08],AGR=.55,AGA={th:Math.PI/2,ac:-Math.PI/6,ob:Math.PI*7/6};
+const agP=ang=>[AGC[0]+AGR*Math.cos(ang),AGC[1]+AGR*Math.sin(ang)];
+const AGANS=[0,-.92];
+F.agent=(mode)=>({p(i,s,o){
+    if(i<90){const nd=Math.floor(i/30),k=i%30;const ang=[AGA.th,AGA.ac,AGA.ob][nd];let [cx,cy]=agP(ang);
+      if(mode==='code'&&nd===1){o.x=-.9+(k%15)*.06;o.y=-.75-Math.floor(k/15)*.12;o.c=BL;o.r=.75;return;}
+      const a=k/30*TAU+s*2;o.x=cx+.075*Math.cos(a);o.y=cy+.075*Math.sin(a);o.c=[FG,BL,GD][nd];o.r=.9;return;}
+    const k=i-90;const ph=H(k,531)*TAU;const sp=mode==='stuck'?2.6:1.3;let ang=ph-s*TAU*sp;const jr=G(k,533)*.02;let [x,y]=[AGC[0]+(AGR+jr)*Math.cos(ang),AGC[1]+(AGR+jr)*Math.sin(ang)];
+    o.c=FT;o.r=.75;o.a=.7;
+    if(mode==='exit'){const t=clamp((ease(s)-H(k,535)*.85)*4);if(t>0){const q=[AGANS[0]+G(k,537)*.05,AGANS[1]+G(k,539)*.04];x=lerp(x,q[0],ease(t));y=lerp(y,q[1],ease(t));o.c=t>.5?BL:FT;o.a=.7+.3*t;}}
+    if(mode==='check'&&H(k,541)<.25){const f=(H(k,543)+s*2)%1;ang=AGA.ac-Math.PI/3*(1-Math.abs(1-2*f));x=AGC[0]+(AGR+jr)*Math.cos(ang);y=AGC[1]+(AGR+jr)*Math.sin(ang);o.c=GD;o.a=.9;}
+    if(mode==='stuck'){const w=1+.06*Math.sin(s*9+k);x=AGC[0]+(x-AGC[0])*w;y=AGC[1]+(y-AGC[1])*w;}
+    o.x=x;o.y=y;},
+  draw(s,a){const [tx,ty]=agP(AGA.th),[ax,ay]=agP(AGA.ac),[ox,oy]=agP(AGA.ob);circ(AGC[0],AGC[1],AGR,FT,a*.6,[3,5]);
+    text('thought',tx,ty+.17,a,{c:FG,size:.05});text(mode==='code'?'code':'action',ax,ay+.17,a,{c:BL,size:.05});text('observation',ox,oy+.17,a,{c:GD,size:.05});
+    if(mode==='exit'){circ(AGANS[0],AGANS[1],.1,BL,a*sstep(.1,.5,s));text('Final Answer',AGANS[0]+.16,AGANS[1],a*sstep(.3,.7,s),{c:BL,align:'left',size:.05});}
+    if(mode==='code'){rect(-.95,-1.0,.95,-.6,BL,a*.5);line(ax,ay-.08,ax,-.6,BL,a*.5,1,[3,4]);text("r = kb_lookup('seconds in an hour')",-.91,-.69,a,{c:FG,align:'left',size:.042});text("print(calculator(f'{r} * 2'))",-.91,-.81,a,{c:FG,align:'left',size:.042});}
+    if(mode==='check'){const [cx,cy]=agP(-Math.PI/2);circ(cx,cy,.07,GD,a);text('check',cx,cy-.17,a,{c:GD,size:.05});}
+    if(mode==='stuck'){circ(AGANS[0],AGANS[1],.1,FT,a*.8,[3,4]);text('no answer yet: step '+(1+Math.floor(s*29.99)),0,AGANS[1]-.18,a,{size:.05});}}});
+
+const TRL=[['Thought: I will look up seconds in a day.',FG],['Action: kb_lookup[seconds in a day]',BL],['Observation: 86400',GD],['Thought: Now I multiply by 3.',FG],['Action: calculator[86400 * 3]',BL],['Observation: 259200',GD],['Final Answer: 259200',BL]];
+F.trace=()=>{let k=0;return{
+  prep(s){k=lerp(.6,7.4,ease(s));},
+  p(i,s,o){const j=Math.floor(i/60);if(j>6){o.a=0;return;}const m=i%60,len=Math.min(2.1,TRL[j][0].length*.046);const y=.86-j*.27-.08;const v=clamp(k-j);
+    o.x=-1.08+len*(m/59)*v;o.y=y;o.c=TRL[j][1];o.r=.7;o.a=v;},
+  draw(s,a){TRL.forEach(([t,c],j)=>{const v=clamp(k-j);if(v>.05)text(t,-1.08,.86-j*.27,a*v,{c,align:'left',size:.04});});}};};
+
+const HBT=['calculator','files','search','database','calendar','browser'],HBC=[-.2,0],HBM=[-.82,0];
+const hbN=j=>{const an=(-70+j*28)*Math.PI/180;return[HBC[0]+.62*Math.cos(an),HBC[1]+.62*Math.sin(an)];};
+F.hub=()=>({p(i,s,o){
+    if(i<30){const a=i/30*TAU+s*2;o.x=HBM[0]+.08*Math.cos(a);o.y=HBM[1]+.08*Math.sin(a);o.c=FG;o.r=.9;return;}
+    if(i<70){const a=(i-30)/40*TAU-s*2;o.x=HBC[0]+.1*Math.cos(a);o.y=HBC[1]+.1*Math.sin(a);o.c=BL;o.r=.9;return;}
+    if(i<190){const j=Math.floor((i-70)/20),a=(i-70)%20/20*TAU+s*2;const [x,y]=hbN(j);o.x=x+.05*Math.cos(a);o.y=y+.05*Math.sin(a);o.c=GD;o.r=.8;return;}
+    const k=i-190,sp=k%7,ph=(H(k,551)+s*1.5)%1;const A=sp===6?HBM:HBC,B=sp===6?HBC:hbN(sp);const back=H(k,553)<.5;const t=back?1-ph:ph;
+    o.x=lerp(A[0],B[0],t);o.y=lerp(A[1],B[1],t);o.c=sp===6?FG:FT;o.r=.65;o.a=.75;},
+  draw(s,a){for(let j=0;j<6;j++){const [x,y]=hbN(j);line(HBC[0],HBC[1],x,y,FT,a*.6,1);text(HBT[j],x+.09,y,a,{align:'left',size:.044});}
+    line(HBM[0],HBM[1],HBC[0],HBC[1],FT,a*.6,1);text('model',HBM[0],HBM[1]+.17,a,{c:FG,size:.05});text('one protocol',HBC[0],HBC[1]-.2,a,{c:BL,size:.046});}});
+
+/* ---------- the moves ---------- */
+/* Old moves a1…a100 in their first order: [formation, title, body]. */
+const OLD=[
 [F.scatter(),'Machine learning in a hundred moves','420 points. Scroll, and they take every shape this field depends on.'],
 [F.grid(),'Data is a grid of numbers','Every photo, word and sound a model sees arrives as a table of numbers like this one.'],
 [F.clouds('plain'),'To learn is to find a rule','Two kinds of points. The task: tell them apart, and do it for points you have not seen yet.'],
@@ -600,17 +2431,95 @@ const B=[
 [F.panels('tidy'),'No number without its control','A floor, a ceiling, a random copy: the test that could have failed.'],
 [F.scatter(),'420 points, one field','Every shape here came from a few simple moves. Scroll back up and watch them again.']
 ];
+/* New moves n1…n36: formation only; titles, bodies and deeper layers come from the text block. */
+const LOSSB={max:1.4,cols:7,head:'held-out loss',bars:[{x:-.66,v:1.29,v0:1.29,c:FT,top:'1.29',lab:'base'},{x:-.3,v:.67,v0:1.29,c:BL,top:'0.67',lab:'tuned'},{x:.3,v:.83,v0:.83,c:FT,top:'0.83',lab:'base'},{x:.66,v:.79,v0:.83,c:BL,top:'0.79',lab:'tuned'}],groups:[[-.48,'all tokens'],[.48,'replies only']]};
+const LENB={max:1,cols:10,chance:.5,head:'reward head, share right',bars:[{x:-.42,v:.775,c:BL,top:'0.775',lab:'chosen longer'},{x:.42,v:.502,c:GD,top:'0.502',lab:'chosen shorter'}]};
+const AGB={max:1,cols:8,head:'10 runs each',bars:[{x:-.64,v:1,c:BL,top:'100%',lab:'two hops'},{x:0,v:.2,c:GD,top:'20%',lab:'(5 + 7) * 3'},{x:.64,v:.1,c:GD,top:'10%',lab:'speed of light'}]};
+const NEW=[F.polyfit('degree'),F.polyfit('test'),F.losses('reveal'),F.losses('stop'),F.polyfit('penalty'),F.ucurve(),F.dd('reveal'),F.interp(),F.dd('floor'),
+  F.split(),F.clumps(),F.leak(),F.confusion(),F.thresh(),F.calib(),F.rare(),F.boot(),F.vault(),
+  F.wgrid(),F.lowrank(),F.lora('train'),F.lora('zero'),F.vbars(LOSSB),F.distill('teach'),F.distill('soft'),F.prefs(),F.vbars(LENB),
+  F.tokline(),F.agent('ring'),F.trace(),F.agent('exit'),F.agent('code'),F.vbars(AGB),F.hub(),F.agent('check'),F.agent('stuck')];
+/* Chapters: numeral, name, id prefix, first and last id number. */
+const CHS=[['I','Points','a',1,4],['II','A line that learns','a',5,12],['III','Downhill','a',13,23],['IV','Fitting too well','n',1,9],['V','Measuring honestly','n',10,18],
+  ['VI','Words to numbers','a',24,31],['VII','Attention','a',32,40],['VIII','Hide and predict','a',41,49],['IX','Looking inside','a',50,58],['X','How learning goes','a',59,67],
+  ['XI','Scale','a',68,73],['XII','Adapting a model','n',19,27],['XIII','More from one model','a',74,83],['XIV','Tools and agents','n',28,36],['XV','Acting','a',84,93],['XVI','What came back','a',94,100]];
+/* B rows: [formation, title, body, id, deeper]; CH rows: [numeral, name, first index, takeaway]. */
+const B=[],CH=[];
+CHS.forEach(([n,name,k,lo,hi])=>{CH.push([n,name,B.length,'']);for(let q=lo;q<=hi;q++)B.push(k==='a'?[OLD[q-1][0],OLD[q-1][1],OLD[q-1][2],'a'+q,null]:[NEW[q-1],'','','n'+q,null]);});
+const chOf=b=>{let c=0;for(let k=0;k<CH.length;k++)if(b>=CH[k][2])c=k;return c;};
+
 
 /* ---------- page ---------- */
+const TXT=(()=>{try{const t=JSON.parse(document.getElementById('moves-text').textContent);return{chapters:t.chapters||[],moves:t.moves||{}};}catch(e){return{chapters:[],moves:{}};}})();
+const esc=t=>String(t).replace(/&(?![a-z]+;|#[0-9]+;)/gi,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const escB=t=>esc(t).replace(/&lt;(\/?)b&gt;/g,'<$1b>');
+const pad=n=>String(n).padStart(3,'0');
+B.forEach(b=>{const t=TXT.moves[b[3]];if(t){if(t.title)b[1]=t.title;if(t.body)b[2]=t.body;if(t.deeper)b[4]=t.deeper;}if(!b[1])b[1]=b[3];});
+CH.forEach(c=>{const t=TXT.chapters.find(x=>x.n===c[0]);if(t){if(t.name)c[1]=t.name;c[3]=t.takeaway||'';}});
+
+/* LINK BASE: lesson routes live in the reader; explorables and quizzes sit beside moves/ on the site and in the reader. */
+const INREADER=/\/reader\/moves\/(index\.html)?$/.test(location.pathname);
+const LINKS={lesson:m=>(INREADER?'../index.html':'../reader/index.html')+'#/'+m,explorable:f=>'../explorables/'+f,quiz:q=>'../quizzes/'+q+'.html'};
+/* /LINK BASE */
+
 const main=document.getElementById('steps');
-B.forEach((b,j)=>{const ch=CH[chOf(j)];const sec=document.createElement('section');sec.className='step';
-  const words=b[1].split(' ').map(w=>'<span class="w">'+w+'</span>').join(' ');
-  let extra='';if(j===0)extra='<p class="hint"><i></i>Scroll</p>';if(j===B.length-1)extra='<button class="again" id="again" type="button">Back to the first move</button><br><a class="home" href="../index.html">Back to the course</a>';
-  sec.innerHTML='<div class="card"><p class="kicker"><span>'+ch[0]+' · '+ch[1]+'</span><span>'+String(j+1).padStart(3,'0')+'</span></p><h2>'+words+'</h2><p class="body">'+b[2]+'</p>'+extra+'</div>';
+B.forEach((b,j)=>{const ci=chOf(j),ch=CH[ci];const sec=document.createElement('section');sec.className='step';sec.dataset.id=b[3];
+  const words=esc(b[1]).split(' ').map(w=>'<span class="w">'+w+'</span>').join(' ');
+  let extra='';
+  if(ch[2]===j&&ch[3])extra+='<p class="take">'+esc(ch[3])+'</p>';
+  if(b[4])extra+='<button class="deep" type="button" aria-haspopup="dialog" aria-controls="deep" data-j="'+j+'">Deeper</button>';
+  if(j===0)extra+='<p class="hint"><i></i>Scroll</p>';
+  if(j===B.length-1)extra+='<button class="again" id="again" type="button">Back to the first move</button><br><a class="home" href="../index.html">Back to the course</a>';
+  sec.innerHTML='<div class="card"><p class="kicker"><span>'+ch[0]+' · '+esc(ch[1])+'</span><span>'+pad(j+1)+'</span></p><h2>'+words+'</h2><p class="body">'+b[2]+'</p>'+extra+'</div>';
   main.appendChild(sec);});
 const steps=[...main.children], cards=steps.map(s=>s.firstChild), WD=cards.map(c=>[...c.querySelectorAll('.w')]), BD=cards.map(c=>c.querySelector('.body'));
 const RM=matchMedia('(prefers-reduced-motion: reduce)');let reduce=RM.matches;RM.addEventListener('change',e=>{reduce=e.matches;dirty=true;});
 document.getElementById('again').addEventListener('click',()=>window.scrollTo({top:0,behavior:reduce?'auto':'smooth'}));
+document.getElementById('tot').textContent=String(B.length);
+{const tk=document.getElementById('ticks');CH.forEach((c,k)=>{if(!k)return;const t=document.createElement('span');t.style.left=(c[2]/(B.length-1)*100).toFixed(3)+'%';tk.appendChild(t);});}
+
+/* ---------- dialogs: the deeper sheet and the chapter index ---------- */
+const root=document.documentElement,hud=document.getElementById('hud'),hudBtn=document.getElementById('hudbtn');
+const mkD=id=>{const w=document.getElementById(id);return{wrap:w,panel:w.querySelector('[role=dialog]'),scroll:w.querySelector('.scroll'),t:0};};
+const DD=mkD('deep'),DT=mkD('toc');
+let cur=null,opener=null;
+function openDlg(d,from,focusEl){if(cur)closeDlg(false);clearTimeout(d.t);cur=d;opener=from||null;d.wrap.hidden=false;root.classList.add('locked');main.inert=true;hud.inert=true;
+  void d.wrap.offsetWidth;d.wrap.classList.add('open');(focusEl||d.wrap.querySelector('.x')||d.panel).focus({preventScroll:true});}
+function closeDlg(refocus=true){const d=cur;if(!d)return;cur=null;d.wrap.classList.remove('open');d.panel.style.transform='';
+  const done=()=>{d.wrap.hidden=true;};if(reduce)done();else d.t=setTimeout(done,320);
+  root.classList.remove('locked');main.inert=false;hud.inert=false;if(refocus&&opener)opener.focus({preventScroll:true});opener=null;}
+[DD,DT].forEach(d=>{d.wrap.addEventListener('click',e=>{if(e.target.closest('[data-close]'))closeDlg();});
+  d.wrap.addEventListener('touchmove',e=>{if(!e.target.closest('.scroll'))e.preventDefault();},{passive:false});});
+document.addEventListener('keydown',e=>{if(!cur)return;
+  if(e.key==='Escape'){e.preventDefault();closeDlg();return;}
+  if(e.key!=='Tab')return;const f=[...cur.panel.querySelectorAll('a[href],button')];if(!f.length)return;const first=f[0],last=f[f.length-1],ae=document.activeElement;
+  if(e.shiftKey&&(ae===first||!cur.panel.contains(ae)||ae===cur.panel)){e.preventDefault();last.focus();}
+  else if(!e.shiftKey&&(ae===last||!cur.panel.contains(ae))){e.preventDefault();first.focus();}});
+
+const dKick=document.getElementById('deep-kick'),dTitle=document.getElementById('deep-title'),dBody=document.getElementById('deep-body');
+function openDeep(j,btn){const b=B[j],d=b[4],ch=CH[chOf(j)];if(!d)return;
+  dKick.innerHTML='<span>'+ch[0]+' · '+esc(ch[1])+'</span><span>'+pad(j+1)+'</span>';dTitle.innerHTML=esc(b[1]);
+  let h='';if(d.text)h+='<p class="d-text">'+escB(d.text)+'</p>';
+  if(d.formula)h+='<pre class="d-formula">'+esc(d.formula)+'</pre>';
+  if(d.measured)h+='<p class="d-cap"><span class="lab">Measured</span>'+escB(d.measured)+'</p>';
+  if(d.but)h+='<p class="d-cap d-but"><span class="lab">But</span>'+escB(d.but)+'</p>';
+  const L=d.links||{},ls=[];if(L.module)ls.push(['Lesson',LINKS.lesson(L.module)]);if(L.explorable)ls.push(['Explorable',LINKS.explorable(L.explorable)]);if(L.quiz)ls.push(['Quiz',LINKS.quiz(L.quiz)]);
+  if(ls.length)h+='<nav class="d-links" aria-label="Go further">'+ls.map(([t,u])=>'<a class="d-link" href="'+esc(u)+'">'+t+'</a>').join('')+'</nav>';
+  if(d.sources&&d.sources.length)h+='<p class="d-src">'+esc(Array.isArray(d.sources)?d.sources.join('; '):d.sources)+'</p>';
+  dBody.innerHTML=h;DD.scroll.scrollTop=0;openDlg(DD,btn);}
+main.addEventListener('click',e=>{const b=e.target.closest('.deep');if(b)openDeep(+b.dataset.j,b);});
+{const hd=DD.wrap.querySelector('.handle');let y0=null,dy=0;
+  hd.addEventListener('pointerdown',e=>{if(cur!==DD)return;y0=e.clientY;dy=0;hd.setPointerCapture(e.pointerId);DD.panel.style.transition='none';});
+  hd.addEventListener('pointermove',e=>{if(y0===null)return;dy=Math.max(0,e.clientY-y0);DD.panel.style.transform='translateY('+dy+'px)';});
+  const end=()=>{if(y0===null)return;y0=null;DD.panel.style.transition='';if(dy>70)closeDlg();else DD.panel.style.transform='';};
+  hd.addEventListener('pointerup',end);hd.addEventListener('pointercancel',end);}
+
+const tList=document.getElementById('toc-list');
+function openToc(){const now=chOf(Math.round(clamp(window.scrollY/stepH,0,B.length-1)));
+  tList.innerHTML=CH.map((c,k)=>{const hi=k<CH.length-1?CH[k+1][2]:B.length;return '<li><button class="toc-i" type="button" data-k="'+k+'"'+(k===now?' aria-current="true"':'')+'><span class="toc-n">'+c[0]+'</span><span class="toc-b"><span class="toc-t">'+esc(c[1])+'</span>'+(c[3]?'<span class="toc-k">'+esc(c[3])+'</span>':'')+'</span><span class="toc-r">'+pad(c[2]+1)+'–'+pad(hi)+'</span></button></li>';}).join('');
+  const curEl=tList.querySelector('[aria-current]');DT.wrap.hidden=false;DT.scroll.scrollTop=Math.max(0,curEl.offsetTop-DT.scroll.clientHeight/3);openDlg(DT,hudBtn,curEl);}
+hudBtn.addEventListener('click',openToc);
+tList.addEventListener('click',e=>{const b=e.target.closest('.toc-i');if(!b)return;const k=+b.dataset.k;closeDlg();window.scrollTo({top:CH[k][2]*stepH,behavior:reduce?'auto':'smooth'});});
 
 const cv=document.getElementById('stage');ctx=cv.getContext('2d');
 let W=0,Hh=0,lastVH=0,stepH=1,base=2,dirty=true;
@@ -640,7 +2549,7 @@ function cardsAt(p){const lo=Math.max(0,Math.floor(p)-1),hi=Math.min(B.length-1,
   shown.forEach(j=>{if(!now.has(j))cards[j].style.opacity='0';});shown=now;}
 cards.forEach((c,j)=>{if(j>1)c.style.opacity='0';});
 
-function frame(now){requestAnimationFrame(frame);if(document.hidden)return;
+function frame(now){requestAnimationFrame(frame);if(document.hidden)return;if(cur===DT){dirty=true;return;}/* the opaque chapter list hides the field */
   const p=clamp(window.scrollY/stepH,0,B.length-1);
   if(reduce&&!dirty&&Math.abs(p-lastP)<1e-4)return;
   const moved=dirty||p!==lastP;dirty=false;lastP=p;
@@ -662,7 +2571,7 @@ function frame(now){requestAnimationFrame(frame);if(document.hidden)return;
     ctx.fillStyle='rgba('+(cr|0)+','+(cg|0)+','+(cbb|0)+','+clamp(a).toFixed(3)+')';ctx.beginPath();ctx.arc(V.X(x),V.Y(y),Math.max(.6,base*r),0,TAU);ctx.fill();}
   if(!moved)return;
   cardsAt(p);
-  const bi=Math.round(p);if(bi!==lastB){lastB=bi;elNum.textContent=String(bi+1).padStart(3,'0');const ch=CH[chOf(bi)];elChap.textContent=ch[0]+' · '+ch[1];}
+  const bi=Math.round(p);if(bi!==lastB){lastB=bi;elNum.textContent=String(bi+1).padStart(3,'0');const ch=CH[chOf(bi)];elChap.textContent=ch[0]+' · '+ch[1];hudBtn.setAttribute('aria-label','Chapters. Now '+ch[0]+' · '+ch[1]+', move '+(bi+1)+' of '+B.length);}
   elBar.style.transform='scaleX('+(p/(B.length-1)).toFixed(4)+')';}
 requestAnimationFrame(frame);
 })();
