@@ -373,6 +373,7 @@
       <ul data-offline-counts><li>Counting what this device has saved…</li></ul>
       <p data-offline-note>${escapeHtml(saveNote)}</p>
       <button type="button" class="complete-button" data-offline-save ${saving ? "disabled" : ""}>${saving ? "Saving…" : "Save for offline"}</button>
+      ${versionRow()}
     </section>`;
   }
 
@@ -504,6 +505,409 @@
     }
   }
 
+  // ---------- Updates ----------
+  // How a new publish reaches an open or installed reader (OFFLINE.md,
+  // "Updates"). Nothing here may throw: there is no worker on file://, in some
+  // private windows, or before the first install ends.
+  const CHECK_THROTTLE_MS = 60_000;
+  const CHECK_TIMEOUT_MS = 8000;
+  const AUTO_RELOAD_WINDOW_MS = 3000;
+  const ASK_VERSION_TIMEOUT_MS = 3000;
+  const FORCE_TIMEOUT_MS = 90_000;
+  const PULL_TOP_SLACK = 4; // px: iOS rubber-banding leaves scrollY a little off 0
+  const PULL_DISTANCE = 80; // px
+  const canUpdate = "serviceWorker" in navigator && /^https?:$/.test(location.protocol);
+  let lastCheck = 0;
+  let checking = false;
+  let forcing = false;
+
+  // The build id and Paris date-time that build_reader.py stamps in index.html.
+  function buildInfo() {
+    const version = document.querySelector('meta[name="build"]')?.content || "";
+    // An unbuilt site/index.html still holds its placeholders.
+    if (!/^[0-9a-f]{12}$/.test(version)) return null;
+    const date = document.querySelector('meta[name="build-date"]')?.content || "";
+    return { version, date: /^\d{4}-\d\d-\d\d \d\d:\d\d$/.test(date) ? date : "" };
+  }
+
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  // The worker's {version, cache} reply, or null when it does not answer in time.
+  function askWorker(worker) {
+    if (!worker) return Promise.resolve(null);
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => resolve(null), ASK_VERSION_TIMEOUT_MS);
+      try {
+        const channel = new MessageChannel();
+        channel.port1.onmessage = (event) => {
+          clearTimeout(timer);
+          resolve(event.data && event.data.type === "VERSION" ? event.data : null);
+        };
+        worker.postMessage({ type: "GET_VERSION" }, [channel.port2]);
+      } catch {
+        clearTimeout(timer);
+        resolve(null);
+      }
+    });
+  }
+
+  async function askVersion(worker) {
+    return (await askWorker(worker))?.version || null;
+  }
+
+  // registration.update() fetches sw.js only. Stamps the throttle; true when it
+  // resolved in time.
+  function updateRegistration(registration) {
+    lastCheck = Date.now();
+    return Promise.race([
+      registration.update().then(() => true, () => false),
+      sleep(CHECK_TIMEOUT_MS).then(() => false),
+    ]);
+  }
+
+  // sw.js always skips waiting, but Chrome leaves a new worker waiting when the
+  // old one still had requests in flight as the install ended; this message
+  // frees it.
+  function skipWaiting(worker) {
+    try { worker?.postMessage({ type: "SKIP_WAITING" }); } catch { /* the worker is gone */ }
+  }
+
+  async function waitSettled(registration, ms) {
+    const deadline = Date.now() + ms;
+    let nudged = null;
+    while ((registration.installing || registration.waiting) && Date.now() < deadline) {
+      if (registration.waiting && registration.waiting !== nudged) {
+        nudged = registration.waiting;
+        skipWaiting(nudged);
+      }
+      await sleep(150);
+    }
+  }
+
+  async function registration() {
+    if (!canUpdate) return null;
+    try {
+      return (await navigator.serviceWorker.getRegistration()) || null;
+    } catch {
+      return null;
+    }
+  }
+
+  // The Version row's check: "updated", "latest", "installing", "offline" or "unknown".
+  async function checkForUpdate() {
+    const reg = await registration();
+    if (!reg) return "unknown";
+    const before = buildInfo()?.version || null;
+    if (!(await updateRegistration(reg))) return navigator.onLine === false ? "offline" : "unknown";
+    const installing = reg.installing;
+    await waitSettled(reg, CHECK_TIMEOUT_MS);
+    // A failed install leaves the old version active, which is not "latest".
+    if (installing && installing.state === "redundant") return "unknown";
+    if (reg.installing) return "installing";
+    const version = await askVersion(reg.active || reg.waiting);
+    if (!version) return "unknown";
+    return version !== before ? "updated" : "latest";
+  }
+
+  // The pull's check: no throttle, never deletes a cache, never fetches the page.
+  // "ready" means a worker of another build now serves this page: reload.
+  async function pullCheck() {
+    try {
+      const reg = await registration();
+      // No worker yet: a first install, nothing to update.
+      if (!reg || (!reg.active && !navigator.serviceWorker.controller)) return "unknown";
+      const current = buildInfo()?.version || null;
+      const stamp = lastCheck;
+      const ok = await updateRegistration(reg);
+      // A failed pull must not hold back the check the "online" event runs.
+      if (!ok) lastCheck = stamp;
+      // Even a worker of this page's own build is worth waiting for: until it
+      // takes over, a reload would show the same page.
+      if (reg.installing) return "installing";
+      // A waiting worker of any build is stuck (see skipWaiting): free it.
+      if (reg.waiting) await waitSettled(reg, CHECK_TIMEOUT_MS);
+      const active = await askVersion(reg.active);
+      // Only a controlled page reloads into the active worker's build.
+      if (active && current && active !== current && navigator.serviceWorker.controller) return "ready";
+      if (!ok) return navigator.onLine === false ? "offline" : "unknown";
+      return active && active === current ? "latest" : "unknown";
+    } catch {
+      return "unknown";
+    }
+  }
+
+  function pageBuild(html) {
+    return html.match(/<meta name="build" content="([0-9a-f]{12})">/)?.[1] || null;
+  }
+
+  // The name of the cache to keep, once the active worker serves the build of a
+  // page fresh from the network. Offline, reg.update() rejects, so this fails
+  // before anything is deleted.
+  async function readyToWipe() {
+    const reg = await registration();
+    if (!reg) throw new Error("no service worker registration");
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const response = await fetch(BASE, { cache: "reload" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const build = pageBuild(await response.text());
+      if (!build) throw new Error("no build meta");
+      await reg.update();
+      await waitSettled(reg, FORCE_TIMEOUT_MS);
+      const reply = await askWorker(reg.active);
+      if (reply && reply.version === build && reply.cache) return reply.cache;
+    }
+    throw new Error("the worker never served the page's build");
+  }
+
+  // Deletes nothing until the replacement is in place, then only this reader's
+  // other caches: the current one keeps every saved lesson. False on failure or
+  // after FORCE_TIMEOUT_MS, with nothing deleted.
+  async function forceRefresh() {
+    let timer = 0;
+    try {
+      const keep = await Promise.race([
+        readyToWipe(),
+        new Promise((resolve, reject) => { timer = setTimeout(() => reject(new Error("timeout")), FORCE_TIMEOUT_MS); }),
+      ]);
+      const names = await caches.keys();
+      await Promise.all(names
+        .filter((name) => name.startsWith(CACHE_PREFIX) && name !== keep)
+        .map((name) => caches.delete(name).catch(() => false)));
+      location.reload();
+      return true;
+    } catch {
+      return false;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  // One toast at a time at the bottom centre; it hides after 2.5 s unless sticky.
+  let toastBox = null;
+  let toastTimer = 0;
+  let toastHasAction = false;
+
+  function toastElement() {
+    if (!toastBox) {
+      toastBox = document.createElement("div");
+      toastBox.id = "toast";
+      toastBox.setAttribute("role", "status");
+      document.body.appendChild(toastBox);
+    }
+    clearTimeout(toastTimer);
+    return toastBox;
+  }
+
+  function toast(message, { sticky = false } = {}) {
+    const box = toastElement();
+    toastHasAction = false;
+    box.classList.remove("action");
+    box.textContent = message;
+    box.classList.add("on");
+    if (!sticky) toastTimer = setTimeout(() => box.classList.remove("on"), 2500);
+  }
+
+  function toastAction(message, label, onTap, { sticky = false } = {}) {
+    const box = toastElement();
+    box.innerHTML = `<span class="toast-msg">${escapeHtml(message)}</span><button class="toast-action" type="button">${escapeHtml(label)}</button><button class="toast-close" type="button" aria-label="Dismiss">×</button>`;
+    const hide = () => {
+      box.classList.remove("on", "action");
+      toastHasAction = false;
+    };
+    box.querySelector(".toast-action").addEventListener("click", () => { hide(); onTap(); });
+    box.querySelector(".toast-close").addEventListener("click", hide);
+    toastHasAction = true;
+    box.classList.add("on", "action");
+    if (!sticky) toastTimer = setTimeout(hide, 2500);
+  }
+
+  function versionRow() {
+    if (!canUpdate) return "";
+    const date = buildInfo()?.date;
+    return `<div class="version-row">
+      <span>${date ? `Version ${escapeHtml(date)}` : "Version"}</span>
+      <button type="button" class="complete-button" data-update-check ${checking ? "disabled" : ""}>${checking ? "Checking…" : "Check for updates"}</button>
+      <button type="button" class="quiet-button" data-update-force ${forcing ? "disabled" : ""}>${forcing ? "Updating…" : "Force the update"}</button>
+    </div>`;
+  }
+
+  function refreshVersionRow() {
+    const check = document.querySelector("[data-update-check]");
+    if (check) { check.disabled = checking; check.textContent = checking ? "Checking…" : "Check for updates"; }
+    const force = document.querySelector("[data-update-force]");
+    if (force) { force.disabled = forcing; force.textContent = forcing ? "Updating…" : "Force the update"; }
+  }
+
+  async function checkClicked() {
+    if (checking) return;
+    checking = true;
+    refreshVersionRow();
+    try {
+      const result = await checkForUpdate();
+      if (result === "updated") toastAction("New version installed", "Reload", () => location.reload(), { sticky: true });
+      else if (result === "latest") toast("Up to date");
+      else if (result === "installing") toast("Updating…");
+      else if (result === "offline") toast("No network");
+      else toast("Could not check for updates");
+    } finally {
+      checking = false;
+      refreshVersionRow();
+    }
+  }
+
+  async function forceClicked() {
+    if (forcing || !confirm("Fetch the latest version and reload? Saved lessons stay.")) return;
+    forcing = true;
+    refreshVersionRow();
+    toast("Downloading the update…", { sticky: true });
+    if (!(await forceRefresh())) {
+      forcing = false;
+      refreshVersionRow();
+      toast("Update failed. Try again with a network.");
+    }
+  }
+
+  // Registers the worker, checks for a new build at key moments, and reloads
+  // or offers a reload when one takes over.
+  function mountUpdates() {
+    // No controller at load means a first install: nothing to announce.
+    const hadController = Boolean(navigator.serviceWorker.controller);
+    const loadedAt = Date.now();
+    let interacted = false;
+    let announced = null;
+    window.addEventListener("touchstart", () => { interacted = true; }, { passive: true, once: true });
+    window.addEventListener("keydown", () => { interacted = true; }, { once: true });
+
+    function onNewVersion(version) {
+      const current = buildInfo()?.version || null;
+      if (version && current && version === current) return;
+      if (version && version === announced) return;
+      if (version) announced = version;
+      if (Date.now() - loadedAt < AUTO_RELOAD_WINDOW_MS && !interacted) {
+        location.reload();
+        return;
+      }
+      toastAction("New version available", "Reload", () => location.reload(), { sticky: true });
+    }
+
+    navigator.serviceWorker.register(`${BASE}sw.js`, { scope: BASE }).then((reg) => {
+      skipWaiting(reg.waiting);
+      const check = () => {
+        if (Date.now() - lastCheck >= CHECK_THROTTLE_MS) updateRegistration(reg);
+      };
+      check();
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") check();
+      });
+      window.addEventListener("online", check);
+      window.addEventListener("pageshow", check);
+      reg.addEventListener("updatefound", () => {
+        const installing = reg.installing;
+        if (!installing || !hadController) return;
+        installing.addEventListener("statechange", () => {
+          if (installing.state === "installed") skipWaiting(installing);
+          if (installing.state === "installed" || installing.state === "activated") askVersion(installing).then(onNewVersion);
+        });
+      });
+    }).catch(() => {});
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (!hadController) return;
+      askVersion(navigator.serviceWorker.controller).then(onNewVersion);
+    });
+    // The worker posts ACTIVATED to every open page: an iOS home-screen app
+    // resumes without navigating, so this is how it learns of a new version.
+    // Not gated on hadController: a first install posts this page's own build.
+    navigator.serviceWorker.addEventListener("message", (event) => {
+      if (event.data && event.data.type === "ACTIVATED") onNewVersion(event.data.version || null);
+    });
+  }
+
+  // Round indicator for the pull: follows the finger (a number from 0 to 1),
+  // spins while checking, folds away when done.
+  let pullBox = null;
+  let pullTimer = 0;
+
+  function pullIndicator(state) {
+    if (!pullBox) {
+      pullBox = document.createElement("div");
+      pullBox.id = "pullfx";
+      pullBox.setAttribute("aria-hidden", "true");
+      pullBox.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2v8M8 6l4-4 4 4M6.5 12a5.5 5.5 0 1011 0"/></svg>';
+      document.body.appendChild(pullBox);
+    }
+    clearTimeout(pullTimer);
+    if (typeof state === "number") {
+      const p = Math.max(0, Math.min(1, state));
+      pullBox.classList.remove("spinning", "settling");
+      pullBox.classList.add("on");
+      pullBox.style.opacity = String(p);
+      pullBox.style.transform = `translate3d(-50%, ${p * 44 - 6}px, 0) rotate(${p * 200}deg)`;
+    } else if (state === "spinning") {
+      pullBox.classList.add("on", "spinning");
+      pullBox.style.opacity = "1";
+      pullBox.style.transform = "translate3d(-50%, 34px, 0)";
+    } else {
+      pullBox.classList.remove("spinning");
+      pullBox.classList.add("settling");
+      pullBox.style.opacity = "0";
+      pullTimer = setTimeout(() => {
+        pullBox.classList.remove("on", "settling");
+        pullBox.style.transform = "";
+      }, 220);
+    }
+  }
+
+  function pullToast(result) {
+    // A "Reload" toast that appeared meanwhile stays.
+    if (toastHasAction) return;
+    const date = buildInfo()?.date;
+    if (result === "installing") toast("Updating…");
+    // "latest" means the active worker serves this page's build, so the page's date is that build's.
+    else if (result === "latest") toast(date ? `Up to date (version ${date})` : "Up to date");
+    else if (result === "offline") toast("No network");
+    else toast("Could not check for updates");
+  }
+
+  // Pull down at the top of the page to check for an update. Passive listeners
+  // only, so native scrolling is never blocked.
+  function mountPullToRefresh() {
+    let startY = 0;
+    let pulling = false;
+    let busy = false;
+    const atTop = () => window.scrollY <= PULL_TOP_SLACK;
+    const stop = () => {
+      if (pulling) pullIndicator("idle");
+      pulling = false;
+    };
+    window.addEventListener("touchstart", (event) => {
+      const touch = event.touches[0];
+      // The sidebar scrolls on its own, whether open on a phone or fixed beside the page.
+      pulling = !busy && atTop() && event.touches.length === 1 && Boolean(touch)
+        && !(event.target instanceof Element && event.target.closest(".sidebar"));
+      if (pulling) startY = touch.clientY;
+    }, { passive: true });
+    window.addEventListener("touchmove", (event) => {
+      if (!pulling) return;
+      const touch = event.touches[0];
+      if (!touch || !atTop()) { stop(); return; }
+      pullIndicator(Math.max(0, (touch.clientY - startY) / PULL_DISTANCE));
+    }, { passive: true });
+    window.addEventListener("touchcancel", stop, { passive: true });
+    window.addEventListener("touchend", (event) => {
+      if (!pulling) return;
+      pulling = false;
+      const touch = event.changedTouches[0];
+      if (!touch || !atTop() || touch.clientY - startY <= PULL_DISTANCE) { pullIndicator("idle"); return; }
+      busy = true;
+      pullIndicator("spinning");
+      pullCheck().then((result) => {
+        pullIndicator("done");
+        if (result === "ready") location.reload();
+        else pullToast(result);
+      }).finally(() => { busy = false; });
+    }, { passive: true });
+  }
+
   function footer() {
     return `<footer class="site-footer"><span>Build ML From Scratch</span><nav>${DATA.guides.slice(1, 5).map((page) => `<button data-route="${page.id}">${escapeHtml(page.shortTitle)}</button>`).join("")}</nav><span>Local-first · no account required</span></footer>`;
   }
@@ -590,6 +994,8 @@
       }
     });
     document.querySelector("[data-offline-save]")?.addEventListener("click", saveForOffline);
+    document.querySelector("[data-update-check]")?.addEventListener("click", checkClicked);
+    document.querySelector("[data-update-force]")?.addEventListener("click", forceClicked);
     showOfflineCounts();
     document.querySelector(".install-button")?.addEventListener("click", async () => {
       await installPrompt?.prompt();
@@ -614,26 +1020,9 @@
     render();
   });
 
-  if ("serviceWorker" in navigator && location.protocol !== "file:") {
-    // A page served by an older worker reloads once when the new worker takes
-    // control. No controller at load means a first install, whose page is
-    // already current.
-    const controlled = Boolean(navigator.serviceWorker.controller);
-    let reloading = false;
-    navigator.serviceWorker.addEventListener("controllerchange", () => {
-      if (!controlled || reloading) return;
-      reloading = true;
-      location.reload();
-    });
-    navigator.serviceWorker.register(`${BASE}sw.js`, { scope: BASE }).then((registration) => {
-      // A home-screen app on iOS resumes without reloading, so a visible page
-      // checks for a new worker itself.
-      const update = () => registration.update().catch(() => {});
-      update();
-      document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") update();
-      });
-    }).catch(() => {});
+  if (canUpdate) {
+    mountUpdates();
+    mountPullToRefresh();
   }
   render();
 })();

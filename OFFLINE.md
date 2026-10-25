@@ -44,6 +44,54 @@ The research companion under [`research/`](research/) is bundled the same
 way, at `research/` inside the reader, and so is the scroll summary under
 [`moves/`](moves/), at `moves/`.
 
+### Updates
+
+Each build of the reader has an id: the first 12 hex digits of a SHA-256 over
+every file in the offline list. `scripts/build_reader.py` writes it, with the
+build's date and time in Paris (`YYYY-MM-DD HH:MM`), into `index.html` and
+`sw.js`.
+
+An open reader checks for a new build when it starts, when it comes back into
+view, when the network returns and when it is shown again, at most once
+every 60 s. When a new build takes over:
+
+| The page | What happens |
+|---|---|
+| opened under 3 s ago, and not yet touched or typed in | it reloads at once |
+| any other | a toast says "New version available", with **Reload** and × |
+
+The installed reader on a phone resumes without loading again, so the service
+worker tells every open page when it takes over.
+
+A new build fetches the shell again and any listed file the device lacks. It
+does not fetch a saved file again: a saved lesson or explorable refreshes the
+next time it opens online.
+
+**Pull to refresh.** On a touch screen, at the top of a page, pull down more
+than 80 px. A ring spins while the reader checks:
+
+| Result | What you see |
+|---|---|
+| a new build is ready | the page reloads |
+| a new build is still downloading | "Updating…" |
+| no new build | "Up to date (version 2026-10-24 21:05)", the date of your build |
+| no network | "No network" |
+| anything else | "Could not check for updates" |
+
+A pull never deletes a cache and never downloads the page again.
+
+**Version row.** The Offline packs page shows "Version" and the build's date.
+**Check for updates** reports "New version installed" (with **Reload**),
+"Updating…", "Up to date", "No network" or "Could not check for updates".
+**Force the update** waits until the service worker serves the newest build,
+then deletes this reader's older caches and reloads. Saved lessons stay. If
+the newest build is not in place within 90 s, nothing is deleted and the
+reader says "Update failed. Try again with a network."
+
+The cache name, `ml-course-reader-v16` in `site/sw.js`, changes only by hand.
+A new name makes every device download the whole offline list again, about
+60 MB, so bump it only when every saved file must be fetched again.
+
 ## Core and full lab packs
 
 The pack builder uses a portable cache under `.offline-cache/` rather than

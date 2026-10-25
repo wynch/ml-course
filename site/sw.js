@@ -1,6 +1,10 @@
 // Every URL here is relative to this script, so the reader caches correctly
 // whether it is served from a domain root or from /ml-course/reader/.
+// Stamped by scripts/build_reader.py; equals the page's <meta name="build">.
+const BUILD = "__BUILD__";
 const CACHE_PREFIX = "ml-course-reader-v";
+// Set by hand, never from BUILD: a new name makes every device fetch the whole
+// offline list (about 60 MB) again.
 const CACHE = `${CACHE_PREFIX}16`;
 const CORE = ["./", "./index.html", "./styles.css", "./app.js", "./course-content.js", "./manifest.webmanifest", "./offline-assets.json", "./favicon.svg", "./favicon.ico", "./apple-touch-icon.png"];
 const HOME = new URL("./", self.location).href;
@@ -65,12 +69,22 @@ async function networkFirst(request) {
   }
 }
 
+// sw.js changes on every publish, so this runs once per publish. It refreshes
+// the shell, then fetches only the listed files the cache lacks: a file already
+// saved is not fetched again here, but refreshes on use (FRESH network-first,
+// the rest of the reader stale-while-revalidate).
 self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
     await warm(CORE);
     try {
       const response = await fetch("./offline-assets.json", { cache: "no-cache" });
-      if (response.ok) await warm(assetList(await response.json()));
+      if (response.ok) {
+        const cache = await caches.open(CACHE);
+        const saved = new Set((await cache.keys()).map((request) => request.url));
+        await warm(assetList(await response.json())
+          .map((path) => new URL(path, self.location).href)
+          .filter((url) => !saved.has(url)));
+      }
     } finally {
       await self.skipWaiting();
     }
@@ -86,7 +100,25 @@ self.addEventListener("activate", (event) => {
       .filter((name) => name.startsWith(CACHE_PREFIX) && name !== CACHE)
       .map((name) => caches.delete(name)));
     await self.clients.claim();
+    // A home-screen app on iOS resumes without navigating, so open pages hear
+    // about the new version from here.
+    const windows = await self.clients.matchAll({ type: "window" });
+    windows.forEach((client) => client.postMessage({ type: "ACTIVATED", version: BUILD }));
   })());
+});
+
+self.addEventListener("message", (event) => {
+  const data = event.data;
+  if (!data) return;
+  if (data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+    return;
+  }
+  if (data.type === "GET_VERSION") {
+    const reply = { type: "VERSION", version: BUILD, cache: CACHE };
+    if (event.ports && event.ports[0]) event.ports[0].postMessage(reply);
+    else if (event.source) event.source.postMessage(reply);
+  }
 });
 
 self.addEventListener("fetch", (event) => {

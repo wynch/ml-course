@@ -3,12 +3,15 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+import hashlib
 from html import escape
 import json
 from pathlib import Path
 import re
 import shutil
 import subprocess
+from zoneinfo import ZoneInfo
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -711,6 +714,42 @@ def write_directory_indexes(content: Path, generated: set[Path]) -> int:
     return len(directories)
 
 
+# site/index.html and site/sw.js carry these until the build stamps them.
+BUILD_PLACEHOLDER = "__BUILD__"
+DATE_PLACEHOLDER = "__BUILD_DATE__"
+
+
+def build_id(root: Path, assets: list[str]) -> str:
+    """12 hex digits of SHA-256 over every offline file, path and bytes.
+
+    Taken while index.html and sw.js still hold their placeholders, so the id
+    depends on content only, never on itself or on the build time.
+    """
+    digest = hashlib.sha256()
+    for asset in sorted(assets):
+        data = (root / asset).read_bytes()
+        digest.update(asset.encode() + b"\0" + len(data).to_bytes(8, "big") + data)
+    return digest.hexdigest()[:12]
+
+
+def stamp(root: Path, build: str, date: str) -> None:
+    """Write the build id and date into the page and the worker.
+
+    The worker answers GET_VERSION with the id, and the page compares it with
+    its own <meta name="build"> to tell a new version from its own.
+    """
+    index = root / "index.html"
+    worker = root / "sw.js"
+    page = index.read_text()
+    script = worker.read_text()
+    if DATE_PLACEHOLDER not in page or BUILD_PLACEHOLDER not in page:
+        raise SystemExit("site/index.html lost its build meta placeholders")
+    if BUILD_PLACEHOLDER not in script:
+        raise SystemExit("site/sw.js lost its build placeholder")
+    index.write_text(page.replace(DATE_PLACEHOLDER, date).replace(BUILD_PLACEHOLDER, build))
+    worker.write_text(script.replace(BUILD_PLACEHOLDER, build))
+
+
 def main() -> None:
     shutil.rmtree(READER, ignore_errors=True)
     READER.mkdir(parents=True)
@@ -753,13 +792,16 @@ def main() -> None:
     (READER / "offline-assets.json").write_text(
         json.dumps(manifest, indent=1) + "\n"
     )
-    entries = sum(len(group["urls"]) for group in manifest["groups"])
+    assets = [url for group in manifest["groups"] for url in group["urls"]]
+    build = build_id(READER, assets)
+    stamp(READER, build, datetime.now(ZoneInfo("Europe/Paris")).strftime("%Y-%m-%d %H:%M"))
+    entries = len(assets)
     counts = ", ".join(
         f"{group['id']} {len(group['urls'])}" for group in manifest["groups"]
     )
 
     print(
-        f"Built reader/ with {entries} offline assets "
+        f"Built reader/ (build {build}) with {entries} offline assets "
         f"({manifest['bytes'] / 1e6:.1f} MB: {counts}); "
         f"{sum(manifest['skipped'].values())} files online-only "
         f"({manifest['skippedBytes'] / 1e6:.1f} MB: {manifest['skipped']}); "

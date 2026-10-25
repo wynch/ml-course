@@ -224,6 +224,30 @@ class DependencyParser(HTMLParser):
             self.remote_dependencies.append(dependency)
 
 
+def check_build_stamp(reader: Path) -> str:
+    """The page and the worker carry the same build id; no placeholder is left.
+
+    The page tells a new version from its own by comparing the worker's id with
+    its <meta name="build">, so a mismatch would announce an update forever.
+    """
+    page = (reader / "index.html").read_text()
+    build = re.search(r'<meta name="build" content="([0-9a-f]{12})">', page)
+    if not build:
+        raise RuntimeError("reader/index.html has no 12-hex <meta name=\"build\">")
+    if not re.search(r'<meta name="build-date" content="\d{4}-\d{2}-\d{2} \d{2}:\d{2}">', page):
+        raise RuntimeError("reader/index.html has no build-date meta (YYYY-MM-DD HH:MM)")
+    if f'const BUILD = "{build[1]}";' not in (reader / "sw.js").read_text():
+        raise RuntimeError(f"reader/sw.js does not carry the page's build id {build[1]}")
+    unstamped = [
+        path.relative_to(reader).as_posix()
+        for path in sorted(reader.rglob("*"))
+        if path.is_file() and b"__BUILD" in path.read_bytes()
+    ]
+    if unstamped:
+        raise RuntimeError(f"build placeholders left in the reader: {unstamped[:5]}")
+    return build[1]
+
+
 def check_reader() -> None:
     reader = ROOT / "reader"
     required = [
@@ -310,8 +334,9 @@ def check_reader() -> None:
         raise RuntimeError("the reader shell still resolves URLs from the domain root")
 
     links = check_links(reader)
+    build = check_build_stamp(reader)
     print(
-        f"reader: PASS ({len(assets)} offline assets, "
+        f"reader: PASS (build {build}, {len(assets)} offline assets, "
         f"{sum((reader / asset).stat().st_size for asset in assets) / 1e6:.1f} MB, "
         f"{len(quizzes) - 1} quizzes, "
         f"{links} links resolved, no remote dependencies, no unrouted module "
