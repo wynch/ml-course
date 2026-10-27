@@ -360,6 +360,27 @@ calls; it borrows the research fonts and the reader bundles it at
 
 ---
 
+## Games
+
+Nine small games in `games/`, each built on one ML idea. You play first; each
+level ends with a short card that names the idea you just used. Like the
+explorables, each is one HTML file with no dependencies and no network calls.
+Progress stays in your browser. Open the list at [`games/index.html`](games/index.html).
+
+| Game | Idea | What you do |
+|---|---|---|
+| [Fog Golf](games/fog-golf.html) | Gradient descent | Putt through fog with only the slope under the ball; pick the power, then add momentum. |
+| [Neuron Factory](games/neuron-factory.html) | Networks and parameters | Build a sorter from neurons and knobs, with the fewest knobs, then let blame mode tune it. |
+| [Creature Trainer](games/creature-trainer.html) | Overfitting and double descent | Size a curve-fitting creature in the gym and test it on fresh points in the wild. |
+| [Border Desk](games/border-desk.html) | Classification and calibration | Stamp passports against a hidden rule, say how sure you are, read the day-end report. |
+| [Reward Hacker](games/reward-hacker.html) | Reinforcement learning | Write the reward for a Q-learning agent and fix each loophole it finds. |
+| [Spotlight Heist](games/spotlight-heist.html) | Attention | Share out spotlight weight from the last word to earlier ones to crack the code. |
+| [Expert Metro](games/expert-metro.html) | Mixture of experts | Route passengers to two of four stations each, keep the load even, then train a router. |
+| [Neuron Detective](games/neuron-detective.html) | Interpretability | Label eight neurons from what they fire on, then predict their firings on new text. |
+| [Lab Tycoon](games/lab-tycoon.html) | Scaling laws | Split each compute budget between model size and data and beat rival labs. |
+
+---
+
 ## Toolchain
 
 The course targets an **Apple-silicon Mac** and a small, modern toolset:

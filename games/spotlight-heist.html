@@ -1,0 +1,865 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spotlight Heist — ml-course game</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+  :root{
+    --paper:#f6f8f7; --ink:#1c2422; --panel:#ffffff; --panel-2:#eef2f0;
+    --line:#d5ddda; --muted:#5d6b67; --accent:#1f918d;
+    --t9:#4f6272; --good:#1baf7a; --bad:#eb6834; --rnd:#8a9894;
+    --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
+    --mono:"SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    --display:"Avenir Next","Helvetica Neue",sans-serif;
+    --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    /* the stage is night in both themes */
+    --night:#0c1316; --night-2:#141e22; --night-line:#26363b; --night-ink:#dfe8e6; --night-muted:#8fa29e;
+    --beamA:255,196,87; --beamB:102,217,255;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --panel-2:#222d29;
+      --line:#31403b; --muted:#9dada8; --accent:#37b3ae; --t9:#93a8b8;
+      --good:#199e70; --bad:#d95926; --rnd:#7d8b87;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
+      --night:#080d0f; --night-2:#10181b;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink)}
+  body{font-family:var(--body);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 16px 64px}
+
+  header.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    padding:16px 0 14px;border-bottom:1px solid var(--line);margin-bottom:18px}
+  header.top h1{font-family:var(--display);font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .pill{font-family:var(--display);font-size:11.5px;font-weight:600;letter-spacing:.02em;
+    padding:3px 10px;border-radius:999px;color:#fff;background:var(--t9);white-space:nowrap}
+  @media (prefers-color-scheme: dark){ .pill{color:#121816} }
+  .top .spacer{flex:1}
+  .backlink{font-size:13px;color:var(--muted);text-decoration:none;border-bottom:1px solid transparent}
+  .backlink:hover{color:var(--accent);border-bottom-color:var(--accent)}
+
+  .intro{max-width:78ch;font-size:15px;margin:0 0 14px}
+  h2{font-family:var(--display);font-size:15px;font-weight:600;margin:0 0 4px;letter-spacing:.01em}
+  h3{font-family:var(--display);font-size:13px;font-weight:600;margin:0 0 6px;color:var(--muted)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:16px}
+  .btn{font-family:var(--display);font-size:13px;font-weight:600;border:1.5px solid var(--line);
+    background:transparent;color:var(--ink);padding:0 16px;border-radius:999px;cursor:pointer;min-height:44px}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  @media (prefers-color-scheme: dark){ .btn.primary,.btn.primary:hover{color:#121816} }
+  .btn:focus-visible,.lvl:focus-visible,.wcard:focus-visible,.tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .hint{font-size:12.5px;color:var(--muted)}
+
+  .levels{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 16px}
+  .lvl{font-family:var(--display);font-size:13px;font-weight:600;min-width:44px;min-height:44px;padding:0 12px;
+    border-radius:12px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+  .lvl[aria-current="true"]{border-color:var(--accent);color:var(--accent)}
+  .lvl.cleared::after{content:" ✓";color:var(--good)}
+  .lvl:disabled{opacity:.4;cursor:default}
+  .levels .spacer{flex:1}
+
+  .game{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;
+    grid-template-areas:"job vault" "play vault"}
+  .job{grid-area:job} .vaultbox{grid-area:vault} .play{grid-area:play;min-width:0}
+  .vaultbox .card{position:sticky;top:12px}
+  @media (max-width:820px){
+    .game{grid-template-columns:minmax(0,1fr);grid-template-areas:"job" "vault" "play"}
+    .vaultbox .card{position:static}
+  }
+  .job p{margin:4px 0 8px;font-size:14.5px;max-width:70ch}
+  .jobrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .hinttext{font-size:13.5px;color:var(--ink);background:var(--panel-2);border-radius:8px;padding:8px 10px;margin:8px 0 0}
+
+  .tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+  .tab{font-family:var(--display);font-size:13px;font-weight:600;min-height:44px;padding:0 14px;border-radius:999px;
+    border:1.5px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+  .tab i{display:inline-block;width:12px;height:12px;border-radius:50%}
+  .tab[aria-pressed="true"]{color:var(--ink);border-color:var(--ink)}
+
+  .sliders{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:6px 16px;margin:0 0 12px}
+  .sl{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:0 8px;font-size:13px}
+  .sl label{font-family:var(--display);font-weight:600}
+  .sl output{font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .sl input{grid-column:1 / -1;width:100%;height:36px;margin:0}
+
+  .row{margin:0 0 12px}
+  .stage{position:relative;background:radial-gradient(ellipse at 100% 100%, #1b2a2f 0%, var(--night) 70%);
+    border:1px solid var(--night-line);border-radius:12px;padding:14px 12px;overflow:hidden}
+  .stage canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .cards{position:relative;display:flex;flex-wrap:wrap;gap:8px}
+  .wcard{position:relative;min-width:48px;height:62px;padding:6px 8px 0;border-radius:9px;
+    background:rgba(20,30,34,.82);border:1.5px solid var(--night-line);color:var(--night-ink);
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    cursor:ns-resize;touch-action:none;user-select:none;-webkit-user-select:none;
+    font-family:var(--display);font-size:15px;font-weight:600;
+    box-shadow:0 0 calc(var(--lit,0) * 30px) rgba(var(--beam), calc(var(--lit,0) * .9));
+    border-color:rgba(var(--beam), calc(.15 + var(--lit,0) * .85))}
+  .wcard .w{line-height:1.2;white-space:nowrap}
+  .wcard .tag{font-family:var(--mono);font-size:9.5px;color:var(--night-muted);white-space:nowrap;line-height:1.2}
+  .wcard .share{font-family:var(--mono);font-size:11px;color:rgb(var(--beam));line-height:1.3}
+  .wcard .bright{position:absolute;left:6px;right:6px;bottom:4px;height:3px;border-radius:2px;background:#22333a;overflow:hidden}
+  .wcard .bright b{display:block;height:100%;background:rgb(var(--beam));width:0}
+  .wcard.start{border-style:dashed;background:rgba(14,20,23,.7)}
+  .wcard.start .w{color:var(--night-muted);font-weight:500}
+  .wcard.same{outline:1px dashed rgba(var(--beam),.8);outline-offset:2px}
+  .wcard.query{cursor:default;background:#1d2a2e;border-color:rgba(var(--beam),.9);border-width:2px}
+  .wcard.query .lens{width:16px;height:16px;border-radius:50%;margin-top:4px;
+    background:radial-gradient(circle, #fff 0%, rgb(var(--beam)) 45%, rgba(var(--beam),0) 75%)}
+
+  .locks{display:flex;flex-wrap:wrap;gap:8px 16px;margin:6px 2px 0}
+  .lock{display:flex;flex-direction:column;gap:3px;min-width:200px;flex:1}
+  .lock .who{font-family:var(--display);font-size:12px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .lock .who i{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .lock .who .st{margin-left:auto;font-family:var(--mono);font-weight:500}
+  .lock .who .st.ok{color:var(--good)} .lock .who .st.no{color:var(--bad)}
+  .meter{display:grid;grid-template-columns:70px minmax(0,1fr) 112px;gap:8px;align-items:center;font-size:12px}
+  .meter .lab{font-family:var(--mono);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .meter .bar{position:relative;height:12px;border-radius:6px;background:var(--panel-2);border:1px solid var(--line);overflow:hidden}
+  .meter .band{position:absolute;top:0;bottom:0;background:rgba(27,175,122,.22)}
+  .meter .fill{position:absolute;left:0;top:0;bottom:0;border-radius:6px 4px 4px 6px;width:0}
+  .meter .val{font-family:var(--mono);color:var(--muted);text-align:right;white-space:nowrap}
+  .meter .val b{color:var(--ink)}
+
+  .vaultbox canvas{display:block;width:100%;aspect-ratio:5/4;border-radius:10px;background:var(--night)}
+  .vstat{font-family:var(--mono);font-size:12.5px;color:var(--muted);margin:8px 0 0}
+  .vstat b{color:var(--ink)}
+  .done{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
+  .done p{font-size:14px;margin:0 0 10px}
+  .done h2{color:var(--accent)}
+
+  .reveal{margin-top:24px}
+  .reveal p{max-width:72ch;font-size:14.5px}
+  .reveal ul{max-width:72ch;font-size:14.5px;padding-left:20px}
+  .reveal li{margin:6px 0}
+  .big{font-family:var(--display);font-size:40px;font-weight:600;color:var(--accent);line-height:1.1}
+  svg{display:block;max-width:100%;height:auto}
+  svg text{font-family:var(--body);fill:var(--muted);font-size:11px}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted);margin:6px 0}
+  .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .readout{font-family:var(--mono);font-size:12.5px;color:var(--muted);min-height:20px}
+  .readout b{color:var(--ink)}
+  details{font-size:13px;margin-top:8px}
+  details summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--muted)}
+  table.nums{border-collapse:collapse;font-family:var(--mono);font-size:12px}
+  table.nums td,table.nums th{padding:2px 10px;border-bottom:1px solid var(--line);text-align:right}
+  .tablewrap{overflow-x:auto}
+
+  footer.bot{border-top:1px solid var(--line);padding-top:14px;margin-top:28px;font-size:12.5px;color:var(--muted)}
+  footer.bot a{color:var(--accent)}
+  a.backlink{display:inline-flex;align-items:center;min-height:44px}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <h1>Spotlight Heist</h1>
+  <span class="pill">Game · Attention</span>
+  <span class="spacer"></span>
+  <a class="backlink" href="index.html">← All games</a>
+</header>
+
+<p class="intro">Each job is a line of word cards. The last card holds the torch and throws a beam at every card
+  before it. Drag a card up to make its beam brighter, down to dim it. The vault reads what the light brings back.</p>
+
+<div class="levels" id="levels"></div>
+
+<div class="game">
+  <div class="job card" id="job"></div>
+  <div class="vaultbox">
+    <div class="card">
+      <canvas id="vault" width="600" height="480" aria-label="The vault door"></canvas>
+      <div class="vstat" id="vstat"></div>
+      <div class="done" id="done" hidden></div>
+    </div>
+  </div>
+  <div class="play" id="play"></div>
+</div>
+
+<section class="reveal card" id="reveal" hidden></section>
+
+<footer class="bot">
+  The maths is real: each beam's share is a softmax of the brightness you set, and each lock reads the
+  share-weighted blend of what the cards carry. The numbers in the last card come from the course's own run
+  of an open language model on Wikipedia text.
+</footer>
+</div>
+
+<script id="core">
+/* Game logic, no DOM. A test loads this script alone. */
+(function (root) {
+  "use strict";
+  var START = "▢";
+  var LITTLE = new Set(["the","a","an","is","was","and","on","by","in","of","to","near","then","past","at","its","not","with","off","across","outside"]);
+  var COLOURS = new Set(["red","blue","green","grey"]);
+
+  function kindOf(w) {
+    if (w === START) return "start";
+    if (w === "guard") return "guard";
+    if (COLOURS.has(w)) return "colour";
+    if (/^\d$/.test(w)) return "digit";
+    if (LITTLE.has(w)) return "little";
+    return "other";
+  }
+  function tokens(row) { return row.split(" "); }
+
+  function softmax(s) {
+    var m = -Infinity, i;
+    for (i = 0; i < s.length; i++) if (s[i] > m) m = s[i];
+    var e = s.map(function (x) { return Math.exp(x - m); });
+    var z = e.reduce(function (a, b) { return a + b; }, 0);
+    return e.map(function (x) { return x / z; });
+  }
+
+  /* What a card carries: its own word, plus the level's extra signals. The start card carries nothing. */
+  function valueOf(level, w) {
+    var k = kindOf(w);
+    if (k === "start") return {};
+    var v = {}; v[w] = 1;
+    var extra = level.extra ? level.extra(k) : null;
+    if (extra) for (var c in extra) v[c] = extra[c];
+    return v;
+  }
+
+  function keyOf(level, w, i) {
+    if (level.mode === "card") return "c" + i;
+    var k = kindOf(w);
+    return level.kinds.indexOf(k) >= 0 ? k : "other";
+  }
+  function keysOf(level) {
+    if (level.mode === "card") return tokens(level.rows[0]).map(function (_, i) { return "c" + i; });
+    return level.kinds.slice();
+  }
+
+  function weightsFor(level, scores, toks) {
+    return softmax(toks.map(function (w, i) { var s = scores[keyOf(level, w, i)]; return s == null ? 0 : s; }));
+  }
+  function blend(level, toks, w) {
+    var out = {};
+    toks.forEach(function (t, i) {
+      var v = valueOf(level, t);
+      for (var c in v) out[c] = (out[c] || 0) + w[i] * v[c];
+    });
+    return out;
+  }
+
+  /* scores: one {key: brightness} per head. split: whether the second head is in play (level 2 starts with one). */
+  function evaluate(level, scores, split) {
+    var all = true, n = 0, nOk = 0;
+    var rows = level.rows.map(function (row) {
+      var toks = tokens(row);
+      return level.locks(toks).map(function (L) {
+        var h = (level.split && !split) ? 0 : L.head;
+        var w = weightsFor(level, scores[h], toks);
+        var o = blend(level, toks, w);
+        var conds = L.conds.map(function (c) {
+          var val = o[c.ch] || 0;
+          var margin = c.min != null ? val - c.min : c.max - val;
+          return { ch: c.ch, min: c.min, max: c.max, val: val, margin: margin, ok: margin >= -1e-9 };
+        });
+        var ok = conds.every(function (c) { return c.ok; });
+        n++; if (ok) nOk++; else all = false;
+        return { head: L.head, usedHead: h, conds: conds, ok: ok };
+      });
+    });
+    return { rows: rows, all: all, n: n, nOk: nOk };
+  }
+
+  function chatterExtra(k) {
+    if (k === "guard") return null;
+    if (k === "colour") return { colour: 1, chatter: 1 };
+    return { chatter: 1 };
+  }
+
+  var LEVELS = [
+    {
+      id: 1, name: "One beam", mode: "card", max: 8, query: "Where?",
+      heads: ["Crew"],
+      rows: ["▢ the key is in the vase not the box"],
+      job: "The last card asks a question. Light the card that answers it: the vault wants at least 60% of the light on the vase, and no more than 15% on the box.",
+      hint: "Drag the vase card upward until its share passes 60%. The other cards lose share as it gains.",
+      locks: function () { return [{ head: 0, conds: [{ ch: "vase", min: 0.6 }, { ch: "box", max: 0.15 }] }]; },
+      learned: "You made one card bright, and the game turned brightness into shares that always add up to 100%. The vault got a blend of what each card carries, mixed by those shares. Turning scores into shares this way is called <b>softmax</b>; a word lighting up earlier words is <b>attention</b>."
+    },
+    {
+      id: 2, name: "Two crews", mode: "card", max: 8, query: "Code?", split: true,
+      heads: ["Crew A · first digit", "Crew B · second digit"],
+      rows: ["▢ the code is 3 then 8"],
+      job: "Two dials. The first wants at least 60% on the 3 and at most 20% on the 8; the second wants the reverse.",
+      splitText: "Try to give both digits 60% with one beam. Then call in help.",
+      hint: "One beam has 100% to hand out, so two cards can't both get 60%. Call the second crew: each crew lights its own digit.",
+      locks: function () { return [
+        { head: 0, conds: [{ ch: "3", min: 0.6 }, { ch: "8", max: 0.2 }] },
+        { head: 1, conds: [{ ch: "8", min: 0.6 }, { ch: "3", max: 0.2 }] }]; },
+      learned: "One beam could not give two cards 60% each, because the shares add up to 100%. Two crews, each with its own beam and its own job, did it. A model runs many beams side by side at every word; each one is an <b>attention head</b>."
+    },
+    {
+      id: 3, name: "One rule", mode: "kind", max: 6, query: "Colour?",
+      heads: ["Crew"],
+      kinds: ["start", "colour", "other"],
+      init: {},
+      rows: ["▢ the red key", "▢ a door was blue and old", "▢ take the box on the green shelf by the back door"],
+      job: "Three doors, one rule. You no longer light single cards: you set one brightness for each kind of word, and it applies to every sentence. Each lock wants at least 60% of the light on the colour.",
+      hint: "Watch the longest sentence. The same brightness buys a smaller share there, because more cards split the 100%.",
+      extra: function (k) { return k === "colour" ? { colour: 1 } : null; },
+      locks: function () { return [{ head: 0, conds: [{ ch: "colour", min: 0.6 }] }]; },
+      learned: "You set one brightness per kind of word, and the rule ran on every sentence. The long one needed more, because more cards split the same 100%. In a model the brightness comes from matching what the last word looks for (its <b>query</b>) against what each word is (its <b>key</b>); what a card hands over is its <b>value</b>."
+    },
+    {
+      id: 4, name: "The quiet lookout", mode: "kind", max: 6, query: "Guard?",
+      heads: ["Lookout"],
+      kinds: ["start", "guard", "other"],
+      init: { guard: 5 },
+      rows: ["▢ the guard sleeps by the door", "▢ the hall is dark and empty tonight",
+             "▢ a cat walks past the old clock on the far wall", "▢ two men talk near the gate and then the guard comes back"],
+      job: "The lookout must shout when a guard is in the sentence: 60% of the light on the guard. Every real word it lights makes chatter on the radio, and in a sentence with no guard the chatter must stay under 20%. The light can't be switched off: the shares always add up to 100%.",
+      hint: "In the quiet sentences the light has to land somewhere. Is there a card that makes no sound?",
+      extra: chatterExtra,
+      locks: function (toks) {
+        return toks.indexOf("guard") >= 0
+          ? [{ head: 0, conds: [{ ch: "guard", min: 0.6 }] }]
+          : [{ head: 0, conds: [{ ch: "chatter", max: 0.2 }] }];
+      },
+      learned: "With no guard in the sentence, the light still had to land somewhere, and every real word it touched made chatter. You parked the spare light on the blank start card, which carries nothing, and kept the guard brighter still. Models learn the same trick; the parking spot is called an <b>attention sink</b>."
+    },
+    {
+      id: 5, name: "The big job", mode: "kind", max: 5, query: "Now?",
+      heads: ["Finder", "Lookout"],
+      kinds: ["start", "guard", "colour", "other"],
+      init: {},
+      rows: ["▢ the guard in the red coat stands by the door",
+             "▢ a blue van waits outside the bank with its lights off",
+             "▢ the old map on the table shows a green line across the city to the river",
+             "▢ near the back stairs a tired guard reads a grey paper by the lamp"],
+      job: "Two crews, four sentences, one rule each. The finder needs 60% on the colour in every sentence. The lookout shouts at guards (60%) and keeps chatter under 20% when there are none. Brightness now stops at 5.",
+      hint: "Solve the lookout as before, then tune its start card: too dim and the long quiet sentence chatters, too bright and the guard can't reach 60%. The window is narrow.",
+      extra: chatterExtra,
+      locks: function (toks) {
+        var finder = { head: 0, conds: [{ ch: "colour", min: 0.6 }] };
+        var look = toks.indexOf("guard") >= 0
+          ? { head: 1, conds: [{ ch: "guard", min: 0.6 }] }
+          : { head: 1, conds: [{ ch: "chatter", max: 0.2 }] };
+        return [finder, look];
+      },
+      learned: "Two crews, one rule each, four sentences, and a narrow window for the start card. That is one layer of a language model at one word, with two heads instead of dozens."
+    }
+  ];
+
+  /* Copied from the course's measured run (metrics.json). Shares are fractions. */
+  var REAL = {
+    params: "360-million",
+    tokensRead: 256,
+    layers: 32,
+    headsPerLayer: 15,
+    shareFirst: 0.4926945314484412,          /* layers 2-31 */
+    perLayer: [0.0047,0.0099,0.0135,0.0094,0.5159,0.5902,0.5445,0.4457,0.5178,0.6151,0.5602,0.5447,0.456,0.4606,0.5104,0.4082,
+               0.4547,0.5205,0.4338,0.3702,0.6068,0.4985,0.3748,0.4848,0.6135,0.6114,0.6448,0.693,0.6807,0.6202,0.5357,0.4452],
+    evenSpread: 0.005994546786225002,
+    headsOverHalf: 235, headsTotal: 450,
+    nextTokenShareWhenHidden: 0.4925,
+    pplRatioHideFirst: 1.0019656524819232,
+    pplRatioHideFirstBand: [0.9996831968518374, 1.0042319340696209],
+    pplRatioHide100: 1.0256992200806005
+  };
+
+  var Heist = { START: START, kindOf: kindOf, tokens: tokens, softmax: softmax, valueOf: valueOf, keyOf: keyOf,
+    keysOf: keysOf, weightsFor: weightsFor, blend: blend, evaluate: evaluate, LEVELS: LEVELS, REAL: REAL };
+  root.Heist = Heist;
+  if (typeof module !== "undefined" && module.exports) module.exports = Heist;
+})(typeof window !== "undefined" ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  "use strict";
+  var H = window.Heist, LEVELS = H.LEVELS, REAL = H.REAL;
+  var BEAMS = ["255,196,87", "102,217,255"];
+  var STORE = "ml-games.spotlight-heist";
+  var $ = function (id) { return document.getElementById(id); };
+  function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+  function pct(x) { return (x * 100).toFixed(x < 0.1 && x > 0 ? 1 : 0) + "%"; }
+  /* Round toward failing, so a shut lock never reads as if it met its bar (59.6% shows 59%, not 60%). */
+  function pctToward(x, dir) {
+    var d = x < 0.1 && x > 0 ? 1 : 0, f = Math.pow(10, d), v = x * 100 * f;
+    v = dir < 0 ? Math.floor(v + 1e-9) : Math.ceil(v - 1e-9);
+    return (v / f).toFixed(d) + "%";
+  }
+
+  /* ---------- progress ---------- */
+  var cleared = new Set();
+  try { var raw = localStorage.getItem(STORE); if (raw) (JSON.parse(raw).cleared || []).forEach(function (i) { cleared.add(i); }); } catch (e) {}
+  function save() { try { localStorage.setItem(STORE, JSON.stringify({ cleared: Array.from(cleared) })); } catch (e) {} }
+  function unlocked(id) { return id === 1 || cleared.has(id - 1) || cleared.has(id); }
+
+  /* ---------- sound, off by default ---------- */
+  var soundOn = false, actx = null;
+  function tone(f, d, vol, type, delay) {
+    if (!soundOn) return;
+    try {
+      if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === "suspended" && !document.hidden) actx.resume();
+      var t = actx.currentTime + (delay || 0), o = actx.createOscillator(), g = actx.createGain();
+      o.type = type || "sine"; o.frequency.value = f;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol || 0.05, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + d + 0.02);
+    } catch (e) {}
+  }
+
+  /* ---------- state ---------- */
+  var L = null, S = null, ROWS = [], lastEval = null;
+
+  function headShown() { return (L.split && !S.split) ? 0 : S.head; }
+  function headCount() { return (L.split && !S.split) ? 1 : L.heads.length; }
+
+  function buildLevels() {
+    var box = $("levels"); box.innerHTML = "";
+    LEVELS.forEach(function (lv) {
+      var b = el("button", "lvl" + (cleared.has(lv.id) ? " cleared" : ""), lv.id + " · " + lv.name);
+      b.disabled = !unlocked(lv.id);
+      b.setAttribute("aria-current", L && L.id === lv.id ? "true" : "false");
+      b.onclick = function () { loadLevel(lv.id); };
+      box.appendChild(b);
+    });
+    box.appendChild(el("span", "spacer"));
+    var s = el("button", "btn", soundOn ? "Sound: on" : "Sound: off");
+    s.setAttribute("aria-pressed", soundOn ? "true" : "false");
+    s.onclick = function () { soundOn = !soundOn; if (soundOn) tone(660, 0.12, 0.05); buildLevels(); };
+    box.appendChild(s);
+  }
+
+  function loadLevel(id) {
+    L = LEVELS.find(function (l) { return l.id === id; });
+    var keys = H.keysOf(L);
+    S = { scores: L.heads.map(function () { var o = {}; keys.forEach(function (k) { o[k] = (L.init && L.init[k]) || 0; }); return o; }),
+          split: false, head: 0, done: false, hint: false };
+    vault.open = 0; vault.spin = 0; vault.sparks = [];
+    $("done").hidden = true;
+    buildLevels(); buildJob(); buildPlay(); render();
+  }
+
+  function tracked() {
+    var set = new Set();
+    L.rows.forEach(function (r) { L.locks(H.tokens(r)).forEach(function (lk) { lk.conds.forEach(function (c) { set.add(c.ch); }); }); });
+    return set;
+  }
+
+  function buildJob() {
+    var j = $("job"); j.innerHTML = "";
+    j.appendChild(el("h2", null, "Job " + L.id + " · " + L.name));
+    j.appendChild(el("p", null, L.job));
+    var row = el("div", "jobrow");
+    if (L.split && !S.split) {
+      j.appendChild(el("p", "hint", L.splitText));
+      var c = el("button", "btn", "Call a second crew");
+      c.onclick = function () { S.split = true; S.head = 1; tone(520, 0.15, 0.05); buildJob(); buildPlay(); render(); };
+      row.appendChild(c);
+    }
+    var hb = el("button", "btn", S.hint ? "Hide hint" : "Need a hint?");
+    hb.onclick = function () { S.hint = !S.hint; buildJob(); };
+    row.appendChild(hb);
+    var rb = el("button", "btn", "Reset");
+    rb.onclick = function () { loadLevel(L.id); };
+    row.appendChild(rb);
+    j.appendChild(row);
+    if (S.hint) j.appendChild(el("p", "hinttext", L.hint));
+  }
+
+  var KIND_LABEL = { start: "start card", guard: "guard", colour: "colour words", other: "every other word" };
+
+  function buildPlay() {
+    var p = $("play"); p.innerHTML = ""; ROWS = [];
+    var hs = headShown();
+    if (headCount() > 1) {
+      var tabs = el("div", "tabs");
+      L.heads.forEach(function (name, h) {
+        var t = el("button", "tab", "<i style='background:rgb(" + BEAMS[h] + ")'></i>" + name);
+        t.setAttribute("aria-pressed", h === hs ? "true" : "false");
+        t.onclick = function () { S.head = h; buildPlay(); render(); };
+        tabs.appendChild(t);
+      });
+      p.appendChild(tabs);
+    }
+    if (L.mode === "kind") {
+      var sl = el("div", "sliders");
+      L.kinds.forEach(function (k) {
+        var d = el("div", "sl");
+        var id = "sl-" + k;
+        d.innerHTML = "<label for='" + id + "'>" + KIND_LABEL[k] + "</label><output></output>" +
+          "<input type='range' id='" + id + "' min='0' max='" + L.max + "' step='0.05'>";
+        var inp = d.querySelector("input"), out = d.querySelector("output");
+        inp.style.accentColor = "rgb(" + BEAMS[hs] + ")";
+        inp.value = S.scores[hs][k];
+        inp.oninput = function () { S.scores[headShown()][k] = +inp.value; tick(); render(); };
+        d._sync = function () { inp.value = S.scores[headShown()][k]; out.textContent = "brightness " + (+S.scores[headShown()][k]).toFixed(2); };
+        d._key = k;
+        sl.appendChild(d);
+      });
+      p.appendChild(sl);
+      SLIDERS = sl;
+    } else SLIDERS = null;
+    if (L.mode === "card") p.appendChild(el("p", "hint", "Drag a card up to brighten its beam, down to dim it. Arrow keys work too."));
+
+    var tr = tracked();
+    L.rows.forEach(function (rowStr, r) {
+      var toks = H.tokens(rowStr);
+      var wrap = el("div", "row");
+      var stage = el("div", "stage");
+      stage.style.setProperty("--beam", BEAMS[hs]);
+      var cv = el("canvas"); stage.appendChild(cv);
+      var cards = el("div", "cards");
+      var cardEls = toks.map(function (w, i) {
+        var k = H.kindOf(w), key = H.keyOf(L, w, i);
+        var c = el("div", "wcard" + (k === "start" ? " start" : ""));
+        var v = H.valueOf(L, w), tags = [];
+        Object.keys(v).forEach(function (ch) { if (tr.has(ch) && ch !== w) tags.push(ch); });
+        if (k === "start" && L.id >= 3) tags.push("empty");
+        c.innerHTML = "<span class='w'>" + (k === "start" ? "start" : w) + "</span><span class='tag'>" + tags.join(" · ") + "</span>" +
+          "<span class='share'></span><span class='bright'><b></b></span>";
+        c.tabIndex = 0; c.setAttribute("role", "slider");
+        c.setAttribute("aria-valuemin", "0"); c.setAttribute("aria-valuemax", String(L.max));
+        c._key = key;
+        attachDrag(c, key);
+        cards.appendChild(c);
+        return c;
+      });
+      var q = el("div", "wcard query", "<span class='w'>" + L.query + "</span><span class='lens'></span>");
+      q.setAttribute("aria-label", "The last card, holding the torch");
+      cards.appendChild(q);
+      stage.appendChild(cards);
+      wrap.appendChild(stage);
+      var locksBox = el("div", "locks");
+      var lockEls = L.locks(toks).map(function (lk) {
+        var box = el("div", "lock");
+        var head = (L.split && !S.split) ? 0 : lk.head;
+        var who = el("div", "who", "<i style='background:rgb(" + BEAMS[head] + ")'></i>" +
+          (L.rows.length > 1 ? "Sentence " + (r + 1) + " · " : "") + L.heads[head].split(" · ")[0] + "<span class='st'></span>");
+        box.appendChild(who);
+        var ms = lk.conds.map(function (c) {
+          var m = el("div", "meter");
+          var lab = (c.ch === "chatter" || c.ch === "guard" || c.ch === "colour") ? c.ch : "“" + c.ch + "”";
+          m.innerHTML = "<span class='lab'>" + lab + "</span><span class='bar'><span class='band'></span><span class='fill'></span></span><span class='val'></span>";
+          var band = m.querySelector(".band");
+          if (c.min != null) { band.style.left = (c.min * 100) + "%"; band.style.right = "0"; }
+          else { band.style.left = "0"; band.style.width = (c.max * 100) + "%"; }
+          m.querySelector(".fill").style.background = "rgb(" + BEAMS[head] + ")";
+          box.appendChild(m);
+          return m;
+        });
+        locksBox.appendChild(box);
+        return { box: box, st: who.querySelector(".st"), meters: ms };
+      });
+      wrap.appendChild(locksBox);
+      p.appendChild(wrap);
+      ROWS.push({ toks: toks, stage: stage, canvas: cv, cards: cardEls, query: q, locks: lockEls, rects: null });
+    });
+    layoutDirty = true;
+  }
+  var SLIDERS = null;
+
+  /* ---------- dragging brightness ---------- */
+  var drag = null, lastTick = 0;
+  function tick() { var now = performance.now(); if (now - lastTick > 60) { lastTick = now; tone(900 + Math.random() * 200, 0.03, 0.015, "triangle"); } }
+  function setScore(key, s) {
+    S.scores[headShown()][key] = Math.max(0, Math.min(L.max, s));
+    tick(); render();
+  }
+  function markSame(key, on) {
+    ROWS.forEach(function (R) { R.cards.forEach(function (c) { c.classList.toggle("same", on && c._key === key && L.mode === "kind"); }); });
+  }
+  function attachDrag(c, key) {
+    c.addEventListener("pointerdown", function (e) {
+      drag = { key: key, y: e.clientY, s0: S.scores[headShown()][key], el: c };
+      try { c.setPointerCapture(e.pointerId); } catch (er) {}
+      markSame(key, true); e.preventDefault();
+    });
+    c.addEventListener("pointermove", function (e) {
+      if (!drag || drag.el !== c) return;
+      setScore(key, drag.s0 + (drag.y - e.clientY) / 24);
+    });
+    function end() { if (drag && drag.el === c) { drag = null; markSame(key, false); } }
+    c.addEventListener("pointerup", end); c.addEventListener("pointercancel", end);
+    c.addEventListener("keydown", function (e) {
+      var d = 0;
+      if (e.key === "ArrowUp" || e.key === "ArrowRight") d = 0.25;
+      if (e.key === "ArrowDown" || e.key === "ArrowLeft") d = -0.25;
+      if (d) { e.preventDefault(); setScore(key, S.scores[headShown()][key] + d); }
+    });
+  }
+
+  /* ---------- render ---------- */
+  function render() {
+    var hs = headShown();
+    var ev = H.evaluate(L, S.scores, S.split);
+    ROWS.forEach(function (R, r) {
+      var w = H.weightsFor(L, S.scores[hs], R.toks);
+      R.w = w;
+      R.cards.forEach(function (c, i) {
+        var s = S.scores[hs][c._key];
+        c.style.setProperty("--lit", Math.min(1, Math.sqrt(w[i])).toFixed(3));
+        c.querySelector(".share").textContent = pct(w[i]);
+        c.querySelector(".bright b").style.width = (s / L.max * 100) + "%";
+        c.setAttribute("aria-valuenow", s.toFixed(2));
+        c.setAttribute("aria-label", (R.toks[i] === H.START ? "start card" : R.toks[i]) + ": brightness " + s.toFixed(2) + ", share " + pct(w[i]));
+      });
+      ev.rows[r].forEach(function (lk, j) {
+        var E = R.locks[j];
+        E.st.textContent = lk.ok ? "open" : "shut";
+        E.st.className = "st " + (lk.ok ? "ok" : "no");
+        lk.conds.forEach(function (c, k) {
+          var m = E.meters[k];
+          m.querySelector(".fill").style.width = Math.min(100, c.val * 100) + "%";
+          m.querySelector(".val").innerHTML = "<b>" + pctToward(c.val, c.min != null ? -1 : 1) + "</b> · " + (c.min != null ? "need " + pct(c.min) + "+" : "max " + pct(c.max));
+        });
+      });
+    });
+    if (SLIDERS) Array.prototype.forEach.call(SLIDERS.children, function (d) { d._sync(); });
+    if (lastEval && ev.nOk > lastEval.nOk && lastEval.level === L.id) tone(1200, 0.08, 0.04, "square");
+    ev.level = L.id; lastEval = ev;
+    vault.target = ev.all ? 1 : 0;
+    vault.frac = ev.n ? ev.nOk / ev.n : 0;
+    vault.lights = [];
+    ev.rows.forEach(function (rw) { rw.forEach(function (lk) { vault.lights.push(lk.ok); }); });
+    $("vstat").innerHTML = ev.all ? "<b>Vault open.</b>" : "Locks open: <b>" + ev.nOk + "</b> of " + ev.n;
+    if (ev.all && !S.done) win();
+  }
+
+  function win() {
+    S.done = true;
+    var first = !cleared.has(L.id);
+    cleared.add(L.id); save(); buildLevels();
+    [523, 659, 784, 1047].forEach(function (f, i) { tone(f, 0.5, 0.05, "sine", i * 0.09); });
+    var d = $("done"); d.hidden = false; d.innerHTML = "";
+    d.appendChild(el("h2", null, "What you just did"));
+    d.appendChild(el("p", null, L.learned));
+    var nxt = LEVELS.find(function (l) { return l.id === L.id + 1; });
+    if (nxt) {
+      var b = el("button", "btn primary", "Next job →");
+      b.onclick = function () { loadLevel(nxt.id); window.scrollTo({ top: 0, behavior: "smooth" }); };
+      d.appendChild(b);
+    } else {
+      buildReveal();
+      var b2 = el("button", "btn primary", "See a real model →");
+      b2.onclick = function () { $("reveal").scrollIntoView({ behavior: "smooth" }); };
+      d.appendChild(b2);
+      if (first) setTimeout(function () { $("reveal").scrollIntoView({ behavior: "smooth" }); }, 1400);
+    }
+  }
+
+  /* ---------- the real numbers ---------- */
+  function buildReveal() {
+    var R = $("reveal");
+    if (!R.hidden) return;
+    R.hidden = false;
+    var hidePct = (REAL.pplRatioHideFirst - 1) * 100;
+    R.innerHTML =
+      "<h2>What a real model does</h2>" +
+      "<p>We ran a " + REAL.params + "-parameter open language model on Wikipedia text, " + REAL.tokensRead +
+      " tokens at a time (a token is a word or a piece of one). The model has " + REAL.layers + " layers (steps it repeats, one after another; numbered 0 to " + (REAL.layers - 1) + ") of " +
+      REAL.headsPerLayer + " heads each. Nothing blank was put in front: its first card is whatever token the window starts on, most often a piece of a word.</p>" +
+      "<div class='big'>" + (REAL.shareFirst * 100).toFixed(0) + "%</div>" +
+      "<p style='margin-top:2px'>of all the light in layers 2 to " + (REAL.layers - 1) + " lands on that first token. An even spread would give it " +
+      (REAL.evenSpread * 100).toFixed(1) + "%.</p>" +
+      "<h3>Share of each layer's light on the first token</h3>" +
+      "<div class='legend'><span><i style='background:var(--accent)'></i>layers in the " + (REAL.shareFirst * 100).toFixed(0) + "% average</span>" +
+      "<span><i style='background:var(--rnd)'></i>layers 0 and 1, left out</span></div>" +
+      "<div id='chart'></div><div class='readout' id='chartro'>Tap or point at a bar.</div>" +
+      "<ul>" +
+      "<li>" + REAL.headsOverHalf + " of the " + REAL.headsTotal + " heads in those layers give the first token more than half of their light.</li>" +
+      "<li>Forbid every head to look at it, and the light moves to the next token, which then takes " + (REAL.nextTokenShareWhenHidden * 100).toFixed(0) +
+      "%. The model's guesses barely change: perplexity (how surprised the model is by each next word; lower is better) is multiplied by " +
+      REAL.pplRatioHideFirst.toFixed(3) + ", a rise of " + hidePct.toFixed(1) + "%. Across the stretches of text it read, the likely range runs from " + REAL.pplRatioHideFirstBand[0].toFixed(4) + " to " +
+      REAL.pplRatioHideFirstBand[1].toFixed(3) + ", and that range includes 1: no change at all.</li>" +
+      "<li>Hiding token 100, an ordinary token mid-text, costs more: perplexity times " + REAL.pplRatioHide100.toFixed(3) + ".</li>" +
+      "</ul>" +
+      "<p>So the parking spot is not a special word. Spare light has to go somewhere, and the model sends it to whichever token comes first, " +
+      "the one card every later word can see. Take that card away and the next one does the job.</p>" +
+      "<details><summary>Show the numbers per layer</summary><div class='tablewrap' id='ctable'></div></details>";
+    drawChart();
+  }
+
+  function drawChart() {
+    var W = 640, Ht = 250, ml = 40, mr = 10, mt = 14, mb = 34, n = REAL.perLayer.length, top = 0.75;
+    var bw = (W - ml - mr) / n, y = function (v) { return mt + (Ht - mt - mb) * (1 - v / top); };
+    var s = "<svg viewBox='0 0 " + W + " " + Ht + "' role='img' aria-label='Bar chart: share of attention on the first token in each of 32 layers'>";
+    [0, 0.25, 0.5, 0.75].forEach(function (t) {
+      s += "<line x1='" + ml + "' x2='" + (W - mr) + "' y1='" + y(t) + "' y2='" + y(t) + "' stroke='var(--line)' stroke-width='1'/>";
+      s += "<text x='" + (ml - 6) + "' y='" + (y(t) + 4) + "' text-anchor='end'>" + (t * 100) + "%</text>";
+    });
+    REAL.perLayer.forEach(function (v, i) {
+      var x = ml + i * bw + 1, w = bw - 2, y0 = y(0), y1 = y(v), r = Math.min(3, w / 2, y0 - y1);
+      var col = i < 2 ? "var(--rnd)" : "var(--accent)";
+      s += "<path d='M" + x + " " + y0 + "V" + (y1 + r) + "Q" + x + " " + y1 + " " + (x + r) + " " + y1 + "H" + (x + w - r) +
+        "Q" + (x + w) + " " + y1 + " " + (x + w) + " " + (y1 + r) + "V" + y0 + "Z' fill='" + col + "'/>";
+      if (i % 4 === 0 || i === n - 1) s += "<text x='" + (x + w / 2) + "' y='" + (Ht - mb + 15) + "' text-anchor='middle'>" + i + "</text>";
+    });
+    var ya = y(REAL.shareFirst), xa = ml + 2 * bw;
+    s += "<line x1='" + xa + "' x2='" + (W - mr) + "' y1='" + ya + "' y2='" + ya + "' stroke='var(--ink)' stroke-width='1.5' stroke-dasharray='5 4'/>";
+    s += "<text x='" + (xa + 4) + "' y='" + (y(0.72)) + "' fill='var(--ink)'>average " + (REAL.shareFirst * 100).toFixed(1) + "% (dashed)</text>";
+    var ye = y(REAL.evenSpread);
+    s += "<line x1='" + ml + "' x2='" + (W - mr) + "' y1='" + ye + "' y2='" + ye + "' stroke='var(--muted)' stroke-width='1' stroke-dasharray='2 3'/>";
+    s += "<text x='" + (W - mr) + "' y='" + (ye - 4) + "' text-anchor='end'>even spread " + (REAL.evenSpread * 100).toFixed(1) + "%</text>";
+    s += "<text x='" + ((ml + W - mr) / 2) + "' y='" + (Ht - 4) + "' text-anchor='middle'>layer</text>";
+    REAL.perLayer.forEach(function (v, i) {
+      s += "<rect class='hit' data-i='" + i + "' x='" + (ml + i * bw) + "' y='" + mt + "' width='" + bw + "' height='" + (Ht - mt - mb) + "' fill='transparent'/>";
+    });
+    s += "</svg>";
+    $("chart").innerHTML = s;
+    var ro = $("chartro");
+    Array.prototype.forEach.call($("chart").querySelectorAll(".hit"), function (h) {
+      var show = function () {
+        var i = +h.getAttribute("data-i");
+        ro.innerHTML = "Layer <b>" + i + "</b>: <b>" + (REAL.perLayer[i] * 100).toFixed(1) + "%</b> of its light on the first token" + (i < 2 ? " (left out of the average)" : "");
+      };
+      h.addEventListener("pointerenter", show); h.addEventListener("click", show);
+    });
+    var t = "<table class='nums'><tr><th>layer</th><th>share</th><th>layer</th><th>share</th></tr>";
+    for (var i = 0; i < n / 2; i++) {
+      t += "<tr><td>" + i + "</td><td>" + (REAL.perLayer[i] * 100).toFixed(1) + "%</td><td>" + (i + n / 2) + "</td><td>" + (REAL.perLayer[i + n / 2] * 100).toFixed(1) + "%</td></tr>";
+    }
+    $("ctable").innerHTML = t + "</table>";
+  }
+
+  /* ---------- drawing: beams and vault ---------- */
+  var layoutDirty = true, frame = 0;
+  function measure() {
+    ROWS.forEach(function (R) {
+      var sr = R.stage.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+      R.cw = sr.width; R.ch = sr.height;
+      if (R.canvas.width !== Math.round(sr.width * dpr) || R.canvas.height !== Math.round(sr.height * dpr)) {
+        R.canvas.width = Math.round(sr.width * dpr); R.canvas.height = Math.round(sr.height * dpr);
+      }
+      R.dpr = dpr;
+      var c = function (e) { var r = e.getBoundingClientRect(); return { x: r.left - sr.left + r.width / 2, y: r.top - sr.top + r.height / 2, w: r.width, h: r.height }; };
+      R.rects = R.cards.map(c); R.q = c(R.query);
+    });
+    layoutDirty = false;
+  }
+  window.addEventListener("resize", function () { layoutDirty = true; });
+
+  function drawBeams(t) {
+    var col = BEAMS[headShown()];
+    ROWS.forEach(function (R) {
+      if (!R.rects || !R.w) return;
+      var ctx = R.canvas.getContext("2d");
+      ctx.setTransform(R.dpr, 0, 0, R.dpr, 0, 0);
+      ctx.clearRect(0, 0, R.cw, R.ch);
+      ctx.globalCompositeOperation = "lighter";
+      var q = R.q;
+      R.rects.forEach(function (p, i) {
+        var w = R.w[i]; if (w < 0.002) return;
+        var flick = 0.9 + 0.1 * Math.sin(t / 260 + i * 1.7);
+        var dx = p.x - q.x, dy = p.y - q.y, len = Math.hypot(dx, dy) || 1, nx = -dy / len, ny = dx / len;
+        var half = (p.w * 0.25 + 2) + 18 * w;
+        var g = ctx.createLinearGradient(q.x, q.y, p.x, p.y);
+        var a = (0.04 + 0.55 * Math.sqrt(w)) * flick;
+        g.addColorStop(0, "rgba(" + col + "," + (a * 0.9) + ")");
+        g.addColorStop(1, "rgba(" + col + "," + a + ")");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.moveTo(q.x + nx * 3, q.y + ny * 3);
+        ctx.lineTo(p.x + nx * half, p.y + ny * half);
+        ctx.lineTo(p.x - nx * half, p.y - ny * half);
+        ctx.lineTo(q.x - nx * 3, q.y - ny * 3);
+        ctx.closePath(); ctx.fill();
+        var rg = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 20 + 40 * w);
+        rg.addColorStop(0, "rgba(" + col + "," + (0.5 * w * flick) + ")");
+        rg.addColorStop(1, "rgba(" + col + ",0)");
+        ctx.fillStyle = rg; ctx.fillRect(p.x - 70, p.y - 70, 140, 140);
+        if (w > 0.2) {   /* dust in strong beams */
+          for (var k = 0; k < 3; k++) {
+            var f = ((t / 2400 + k / 3 + i * 0.13) % 1);
+            ctx.fillStyle = "rgba(255,255,255," + (0.25 * w * (1 - f)) + ")";
+            ctx.beginPath(); ctx.arc(q.x + dx * f + nx * Math.sin(t / 500 + k) * half * f * 0.6, q.y + dy * f + ny * Math.sin(t / 500 + k) * half * f * 0.6, 1.2, 0, 6.3); ctx.fill();
+          }
+        }
+      });
+      ctx.globalCompositeOperation = "source-over";
+    });
+  }
+
+  var vault = { open: 0, target: 0, spin: 0, frac: 0, lights: [], sparks: [] };
+  function drawVault(t) {
+    var cv = $("vault"), ctx = cv.getContext("2d"), W = cv.width, Hh = cv.height;
+    vault.open += (vault.target - vault.open) * 0.05;
+    vault.spin += (vault.frac * Math.PI * 2 - vault.spin) * 0.08;
+    ctx.clearRect(0, 0, W, Hh);
+    var bg = ctx.createRadialGradient(W / 2, Hh * 0.45, 20, W / 2, Hh * 0.45, W * 0.7);
+    bg.addColorStop(0, "#1a272b"); bg.addColorStop(1, "#070b0d");
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, Hh);
+    var cx = W / 2, cy = Hh * 0.46, R = Math.min(W, Hh) * 0.36;
+    /* inside: gold */
+    ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, R * 0.96, 0, 6.3); ctx.clip();
+    ctx.fillStyle = "#0b1012"; ctx.fillRect(cx - R, cy - R, 2 * R, 2 * R);
+    var glow = ctx.createRadialGradient(cx, cy + R * 0.3, 5, cx, cy, R);
+    glow.addColorStop(0, "rgba(255,196,87," + (0.55 * vault.open) + ")"); glow.addColorStop(1, "rgba(255,196,87,0)");
+    ctx.fillStyle = glow; ctx.fillRect(cx - R, cy - R, 2 * R, 2 * R);
+    for (var row = 0; row < 3; row++) for (var b = 0; b < 4 - row; b++) {
+      var bx = cx - R * 0.55 + row * R * 0.14 + b * R * 0.28, by = cy + R * 0.42 - row * R * 0.17;
+      ctx.fillStyle = "rgb(" + (150 + 90 * vault.open | 0) + "," + (110 + 70 * vault.open | 0) + ",40)";
+      ctx.fillRect(bx, by, R * 0.25, R * 0.15);
+      ctx.fillStyle = "rgba(255,240,190," + (0.4 * vault.open) + ")"; ctx.fillRect(bx + 3, by + 2, R * 0.19, 3);
+    }
+    ctx.restore();
+    /* door, hinged on the left */
+    var sx = 1 - 0.86 * vault.open;
+    ctx.save(); ctx.translate(cx - R, cy); ctx.scale(sx, 1); ctx.translate(R, 0);
+    var steel = ctx.createLinearGradient(-R, -R, R, R);
+    steel.addColorStop(0, "#5d6e72"); steel.addColorStop(0.5, "#33424a"); steel.addColorStop(1, "#1d272b");
+    ctx.fillStyle = steel; ctx.beginPath(); ctx.arc(0, 0, R, 0, 6.3); ctx.fill();
+    ctx.strokeStyle = "#7f9196"; ctx.lineWidth = 4; ctx.stroke();
+    ctx.strokeStyle = "rgba(0,0,0,.35)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, R * 0.8, 0, 6.3); ctx.stroke();
+    for (var k = 0; k < 12; k++) {
+      var a = k / 12 * Math.PI * 2;
+      ctx.fillStyle = "#9aabb0"; ctx.beginPath(); ctx.arc(Math.cos(a) * R * 0.9, Math.sin(a) * R * 0.9, R * 0.03, 0, 6.3); ctx.fill();
+    }
+    ctx.save(); ctx.rotate(vault.spin);
+    ctx.strokeStyle = "#c7d2d4"; ctx.lineWidth = R * 0.06; ctx.lineCap = "round";
+    for (var s = 0; s < 3; s++) { var aa = s / 3 * Math.PI * 2; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(aa) * R * 0.5, Math.sin(aa) * R * 0.5); ctx.stroke();
+      ctx.fillStyle = "#c7d2d4"; ctx.beginPath(); ctx.arc(Math.cos(aa) * R * 0.5, Math.sin(aa) * R * 0.5, R * 0.06, 0, 6.3); ctx.fill(); }
+    ctx.fillStyle = "#e3eaeb"; ctx.beginPath(); ctx.arc(0, 0, R * 0.12, 0, 6.3); ctx.fill();
+    ctx.restore(); ctx.restore();
+    /* lock lights */
+    var n = vault.lights.length, gap = Math.min(40, (W - 60) / Math.max(1, n));
+    vault.lights.forEach(function (ok, i) {
+      var x = W / 2 - (n - 1) * gap / 2 + i * gap, y = Hh * 0.9;
+      ctx.fillStyle = ok ? "#33d18f" : "#5a2a20";
+      ctx.shadowColor = ok ? "#33d18f" : "transparent"; ctx.shadowBlur = ok ? 14 : 0;
+      ctx.beginPath(); ctx.arc(x, y, 9, 0, 6.3); ctx.fill();
+    });
+    ctx.shadowBlur = 0;
+    /* sparks when the door swings */
+    if (vault.target === 1 && vault.open > 0.3 && vault.open < 0.95 && vault.sparks.length < 80) {
+      for (var p = 0; p < 3; p++) vault.sparks.push({ x: cx + (Math.random() - 0.3) * R, y: cy + R * 0.3, vx: (Math.random() - 0.3) * 4, vy: -2 - Math.random() * 4, life: 1 });
+    }
+    vault.sparks = vault.sparks.filter(function (sp) {
+      sp.x += sp.vx; sp.y += sp.vy; sp.vy += 0.15; sp.life -= 0.015;
+      ctx.fillStyle = "rgba(255,210,110," + Math.max(0, sp.life) + ")";
+      ctx.fillRect(sp.x, sp.y, 3, 3);
+      return sp.life > 0;
+    });
+  }
+
+  var raf = 0;
+  function loop(t) {
+    frame++;
+    if (layoutDirty || frame % 30 === 0) measure();
+    drawBeams(t); drawVault(t);
+    raf = requestAnimationFrame(loop);
+  }
+  function startLoop() { if (!raf) raf = requestAnimationFrame(loop); }
+  function stopLoop() { if (raf) cancelAnimationFrame(raf); raf = 0; }
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) { stopLoop(); try { if (actx) actx.suspend(); } catch (e) {} }
+    else { layoutDirty = true; try { if (actx && soundOn) actx.resume(); } catch (e) {} startLoop(); }
+  });
+
+  /* ---------- start ---------- */
+  var startAt = LEVELS.find(function (l) { return !cleared.has(l.id); }) || LEVELS[LEVELS.length - 1];
+  loadLevel(startAt.id);
+  if (cleared.has(LEVELS[LEVELS.length - 1].id)) buildReveal();
+  startLoop();
+})();
+</script>

@@ -1,0 +1,892 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Expert Metro — ml-course game</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+  :root{
+    --paper:#f6f8f7; --ink:#1c2422; --panel:#ffffff; --panel-2:#eef2f0;
+    --line:#d5ddda; --muted:#5d6b67; --accent:#1f918d;
+    --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8; --t9:#4f6272;
+    --ucb:#eb6834; --warn:#c8402f;
+    --c0:#eb6834; --c1:#1d6fb8; --c2:#3fa34d; --c3:#b8336a;
+    --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
+    --mono:"SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    --display:"Avenir Next","Helvetica Neue",sans-serif;
+    --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --panel-2:#222d29;
+      --line:#31403b; --muted:#9dada8; --accent:#37b3ae; --t4:#e0679a; --t5:#5aa1e6; --t9:#93a8b8;
+      --ucb:#d95926; --warn:#ec6a58;
+      --c0:#e8743d; --c1:#5aa1e6; --c2:#52b860; --c3:#e0679a;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink)}
+  body{font-family:var(--body);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 16px 64px}
+
+  header.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    padding:16px 0 14px;border-bottom:1px solid var(--line);margin-bottom:18px}
+  header.top h1{font-family:var(--display);font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .pill{font-family:var(--display);font-size:11.5px;font-weight:600;letter-spacing:.02em;
+    padding:3px 10px;border-radius:999px;color:#fff;background:var(--t9);white-space:nowrap}
+  @media (prefers-color-scheme: dark){ .pill{color:#121816} }
+  .top .spacer{flex:1}
+  .backlink{font-size:13px;color:var(--muted);text-decoration:none;border-bottom:1px solid transparent;
+    min-height:44px;display:inline-flex;align-items:center}
+  .backlink:hover{color:var(--accent)}
+
+  .intro{max-width:70ch;font-size:15px;margin:0 0 16px}
+  h2{font-family:var(--display);font-size:15px;font-weight:600;margin:0 0 4px;letter-spacing:.01em}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    box-shadow:var(--shadow);padding:14px}
+
+  .btn{font-family:var(--display);font-size:13px;font-weight:600;border:1.5px solid var(--line);
+    background:transparent;color:var(--ink);padding:8px 16px;border-radius:999px;cursor:pointer;
+    min-height:44px;min-width:44px}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  @media (prefers-color-scheme: dark){ .btn.primary{color:#121816} }
+  .btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  @media (prefers-color-scheme: dark){ .btn[aria-pressed="true"]{color:#121816} }
+  .btn:focus-visible,.lvl:focus-visible,.cell:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .btn:disabled{opacity:.45;cursor:default}
+
+  .levels{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+  .lvl{font-family:var(--display);font-size:13px;font-weight:600;min-height:44px;min-width:44px;
+    padding:6px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+  .lvl[aria-current="true"]{border-color:var(--accent);color:var(--accent)}
+  .lvl:disabled{opacity:.4;cursor:default}
+  .lvl .done{color:var(--accent);margin-left:4px}
+
+  .hud{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}
+  .hud h2{margin:0 8px 0 0}
+  .chip{font-family:var(--mono);font-size:12px;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:999px;padding:4px 10px;color:var(--muted);white-space:nowrap}
+  .chip b{color:var(--ink)}
+  .chip.bad b{color:var(--warn)}
+  .bar{height:4px;border-radius:2px;background:var(--panel-2);overflow:hidden;margin:0 0 10px}
+  .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+
+  .stage{position:relative;width:100%;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:var(--panel-2)}
+  .stage canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
+  .ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:14px;
+    background:rgba(128,140,136,.28);background:color-mix(in srgb, var(--panel-2) 72%, transparent)}
+  .ov[hidden]{display:none}
+  .ovcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);
+    padding:16px 18px;max-width:460px;width:100%;max-height:100%;overflow:auto}
+  .ovcard h2{font-size:16px;margin:0 0 6px}
+  .ovcard p{margin:0 0 10px;font-size:14px}
+  .ovcard .kicker{font-family:var(--display);font-size:11.5px;font-weight:600;color:var(--accent);
+    letter-spacing:.04em;text-transform:uppercase;margin:0 0 2px}
+  .ovcard .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+
+  .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 0}
+  .controls .hint{font-size:12.5px;color:var(--muted)}
+  .knob{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .knob input{width:180px;max-width:60vw;accent-color:var(--accent);min-height:44px}
+  .knob output{font-family:var(--mono);font-size:12.5px;min-width:9ch}
+
+  .board{margin:12px 0 0;border-collapse:collapse}
+  .board th{font-family:var(--display);font-size:12px;font-weight:600;color:var(--muted);text-align:left;padding:2px 6px 4px 0}
+  .board td{padding:3px 6px 3px 0}
+  .board th svg{display:block;margin:0 auto}
+  .board .name{font-family:var(--display);font-size:13px;font-weight:600;white-space:nowrap;padding-right:10px}
+  .board .name i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+  .cell{width:44px;height:44px;border-radius:10px;border:1.5px solid var(--line);background:var(--panel-2);cursor:pointer;
+    padding:0;display:flex;align-items:center;justify-content:center}
+  .cell span{display:block;width:22px;height:6px;border-radius:3px;background:transparent}
+  .cell[aria-pressed="true"]{border-color:var(--ink)}
+  .toast{font-size:12.5px;color:var(--warn);min-height:20px;margin:6px 0 0}
+  .tip{font-size:12.5px;color:var(--muted);margin:8px 0 0;max-width:80ch}
+
+  footer.bot{border-top:1px solid var(--line);padding-top:14px;margin-top:26px;font-size:12.5px;color:var(--muted)}
+  footer.bot a{color:var(--accent)}
+  footer.bot p{margin:4px 0;max-width:80ch}
+  a.backlink{display:inline-flex;align-items:center;min-height:44px}
+</style>
+<body>
+<div class="wrap">
+<header class="top">
+  <h1>Expert Metro</h1>
+  <span class="pill">Game 7</span>
+  <span class="spacer"></span>
+  <button class="btn" id="sound" aria-pressed="false">sound off</button>
+  <a class="backlink" href="index.html">← All games</a>
+</header>
+
+<p class="intro">Words ride in as coloured dots. Lay lines from each gate to a station that serves its colour.
+  A station handles one rider at a time; when its platform fills, new riders are lost.</p>
+
+<nav class="levels" id="levels" aria-label="Levels"></nav>
+
+<section class="card">
+  <div class="hud" id="hud"></div>
+  <div class="bar"><i id="prog"></i></div>
+  <div class="stage" id="stage">
+    <canvas id="cv" aria-label="Metro map"></canvas>
+    <div class="ov" id="ov"><div class="ovcard" id="ovcard"></div></div>
+  </div>
+  <div class="controls" id="controls"></div>
+  <div class="toast" id="toast" aria-live="polite"></div>
+  <div id="boardwrap"></div>
+  <p class="tip" id="tip"></p>
+</section>
+
+<footer class="bot">
+  <p><a href="index.html">← All games</a></p>
+  <p id="how" hidden></p>
+</footer>
+</div>
+
+<script>
+/* CORE START: the game's model and simulation; no DOM here, so the tests can run it */
+var CORE = (function(){
+  "use strict";
+  function mulberry(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.imul(a^a>>>15,1|a);
+    t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+  function gauss(r){ var u=r()||1e-9, v=r(); return Math.sqrt(-2*Math.log(u))*Math.cos(6.283185307*v); }
+
+  var E=4, D=3, CFG={sig:0.2, wrong:0.6, off:0.5, initU:0.1, initW:0.01};
+  // each topic sits at its own corner of a plane; the answer the model must give is +1 or -1
+  var CX=[1,0,-1,0], CY=[0,1,0,-1], TARGET=[1,-1,1,-1];
+  var BALANCE=[0,0.03,0.1,0.3,1,3,10];
+
+  function pickColour(r,mix){ var u=r(), a=0; for(var c=0;c<mix.length-1;c++){ a+=mix[c]; if(u<a) return c; } return mix.length-1; }
+  function features(r,c){ return [CX[c]+CFG.sig*gauss(r), CY[c]+CFG.sig*gauss(r), 1]; }
+
+  // Router: a softmax gate over E experts. Experts: one linear map each. Top-1 routing.
+  function makeModel(seed){
+    var r=mulberry(seed*7919+13), W=[], U=[];
+    for(var e=0;e<E;e++){ W.push([0,0,0].map(function(){return CFG.initW*gauss(r);}));
+                          U.push([0,0,0].map(function(){return CFG.initU*gauss(r);})); }
+    return {r:r, W:W, U:U, lrW:0.15, lrU:0.6, batch:16, steps:0, lastLoss:0.5};
+  }
+  function gate(m,x){
+    var z=[], mx=-1e9, s=0, p=[], e, best=0;
+    for(e=0;e<E;e++){ z[e]=m.W[e][0]*x[0]+m.W[e][1]*x[1]+m.W[e][2]*x[2]; if(z[e]>mx) mx=z[e]; }
+    for(e=0;e<E;e++){ p[e]=Math.exp(z[e]-mx); s+=p[e]; }
+    for(e=0;e<E;e++){ p[e]/=s; if(p[e]>p[best]) best=e; }
+    return {p:p, e:best};
+  }
+  function expertOut(m,e,x){ var U=m.U[e]; return U[0]*x[0]+U[1]*x[1]+U[2]*x[2]; }
+  // how wrong the routed answer is for this word: 0 is perfect
+  function answerError(m,x,c){ var g=gate(m,x); return Math.abs(g.p[g.e]*expertOut(m,g.e,x)-TARGET[c]-CFG.off); }
+
+  function routedError(m,x,c,e){ var g=gate(m,x); return Math.min(1.5,Math.abs(g.p[e]*expertOut(m,e,x)-TARGET[c]-CFG.off)); }
+  // one gradient step on a batch: task loss 0.5*(p_e*o_e - y)^2, plus alpha * E * sum_i f_i * P_i
+  function trainStep(m,mix,alpha){
+    var B=m.batch, toks=[], gs=[], f=[0,0,0,0], gW=[], gU=[], L=0, i, j, k;
+    for(i=0;i<E;i++){ gW.push([0,0,0]); gU.push([0,0,0]); }
+    for(k=0;k<B;k++){ var c=pickColour(m.r,mix); var x=features(m.r,c); toks.push({x:x,y:TARGET[c]+CFG.off}); var g=gate(m,x); gs.push(g); f[g.e]+=1/B; }
+    for(k=0;k<B;k++){
+      var t=toks[k], p=gs[k].p, e=gs[k].e, o=expertOut(m,e,t.x), d=p[e]*o-t.y;
+      L+=0.5*d*d/B;
+      for(j=0;j<D;j++) gU[e][j]+=d*p[e]*t.x[j]/B;
+      var fp=0; for(i=0;i<E;i++) fp+=f[i]*p[i];
+      for(i=0;i<E;i++){
+        var dz=d*o*p[e]*((i===e?1:0)-p[i])/B + alpha*E/B*p[i]*(f[i]-fp);
+        for(j=0;j<D;j++) gW[i][j]+=dz*t.x[j];
+      }
+    }
+    for(i=0;i<E;i++) for(j=0;j<D;j++){ m.W[i][j]-=m.lrW*gW[i][j]; m.U[i][j]-=m.lrU*gU[i][j]; }
+    m.steps++; m.lastLoss=L;
+    return {f:f, loss:L};
+  }
+
+  // ---- metro simulation ----
+  function newSim(L,seed){
+    var S={L:L, t:0, r:mulberry(seed||1), next:0, delivered:0, dropped:0, wrong:0, status:'play', id:0,
+      gates:L.mix.map(function(){return {wait:[]};}),
+      stations:L.stations.map(function(){return {q:[], job:null, load:[0,0,0,0], seen:0};}),
+      riders:[], events:[], routes:L.mix.map(function(){return [];}), turn:L.mix.map(function(){return 0;}), alpha:0, trainAcc:0, release:0};
+    if(L.learn){ S.model=makeModel(seed||1); S.alpha=L.alpha0||0; }
+    S.next=expo(S);
+    return S;
+  }
+  function rateAt(S){ var L=S.L; return L.rate*Math.min(1, 0.35+0.65*S.t/L.ramp); }
+  function expo(S){ return -Math.log(1-S.r()*0.999)/rateAt(S); }
+
+  function sendRider(S,p,st,share,work){
+    S.riders.push({id:p.id, c:p.c, word:p.word, x:p.x, st:st, share:share, work:work, u:0});
+  }
+  function dispatch(S,p){
+    var L=S.L;
+    if(L.learn){
+      var e=gate(S.model,p.x).e;
+      sendRider(S,p,e,1,L.base*(1+L.kappa*routedError(S.model,p.x,p.c,e)));
+      return;
+    }
+    var rt=S.routes[p.c];
+    if(!rt.length){
+      var gq=S.gates[p.c].wait;
+      if(gq.length>=L.gateCap){ S.dropped++; S.events.push({k:'drop',at:'gate',c:p.c}); }
+      else gq.push(p);
+      return;
+    }
+    // two lines: whole riders take them in turn, so each station gets half the riders
+    var k=rt[(S.turn[p.c]++)%rt.length], good=L.stations[k].good.indexOf(p.c)>=0;
+    sendRider(S,p,k,1,good?L.good:L.poor);
+  }
+  function spawn(S){
+    var L=S.L, c=pickColour(S.r,L.mix), p={id:++S.id, c:c, word:Math.floor(S.r()*1000)};
+    if(L.learn) p.x=features(S.r,c);
+    S.events.push({k:'spawn',c:c,word:p.word});
+    dispatch(S,p);
+  }
+  function setRoute(S,c,st){ // toggle; returns false if refused
+    var rt=S.routes[c], i=rt.indexOf(st);
+    if(i>=0){ rt.splice(i,1); return true; }
+    if(rt.length>=2) return false;
+    rt.push(st); return true;
+  }
+  function step(S,dt){
+    if(S.status!=='play') return;
+    var L=S.L, i;
+    S.t+=dt;
+    // arrivals
+    S.next-=dt;
+    while(S.next<=0){ spawn(S); S.next+=expo(S); }
+    // riders waiting at a gate leave once their colour has a line
+    S.release-=dt;
+    if(S.release<=0){
+      for(var c=0;c<S.gates.length;c++){
+        if(S.routes[c].length && S.gates[c].wait.length){ dispatch(S,S.gates[c].wait.shift()); S.release=0.18; break; }
+      }
+    }
+    // training
+    if(L.learn){
+      S.trainAcc+=dt*L.stepsPerSec;
+      while(S.trainAcc>=1){ S.trainAcc-=1; trainStep(S.model,L.mix,S.alpha); }
+    }
+    // travel
+    for(i=S.riders.length-1;i>=0;i--){
+      var rd=S.riders[i]; rd.u+=dt/L.travel;
+      if(rd.u>=1){
+        S.riders.splice(i,1);
+        var st=S.stations[rd.st];
+        st.load[rd.c]+=rd.share; st.seen+=rd.share;
+        if(st.q.length>=L.cap){ S.dropped+=rd.share; S.events.push({k:'drop',at:'station',st:rd.st,c:rd.c,share:rd.share}); }
+        else st.q.push(rd);
+      }
+    }
+    // service, and fading load memory
+    var decay=Math.exp(-dt/5);
+    for(i=0;i<S.stations.length;i++){
+      var s=S.stations[i];
+      for(var k=0;k<4;k++) s.load[k]*=decay;
+      if(!s.job && s.q.length){ s.job=s.q.shift(); s.left=s.job.work; s.total=s.job.work; }
+      if(s.job){ s.left-=dt; if(s.left<=0){
+        var wrong=L.learn && routedError(S.model,s.job.x,s.job.c,i)>CFG.wrong;
+        S.delivered+=s.job.share; if(wrong) S.wrong++;
+        S.events.push({k:'done',st:i,c:s.job.c,wrong:wrong}); s.job=null; } }
+    }
+    if(S.dropped>L.maxDrop+1e-9){ S.status='lost'; S.why='drop'; }
+    else if(L.maxWrong!=null && S.wrong>L.maxWrong){ S.status='lost'; S.why='wrong'; }
+    else if(S.delivered>=L.goal-1e-9) S.status='won';
+  }
+  function shares(S){ // share of recent load per station
+    var tot=0, out=S.stations.map(function(s){ var a=s.load.reduce(function(x,y){return x+y;},0); tot+=a; return a; });
+    return out.map(function(a){ return tot>0?a/tot:0; });
+  }
+
+  var LEVELS=[
+    {name:'First line', mix:[0.5,0.5], stations:[{good:[0]},{good:[1]}], rate:1.3, ramp:8,
+     good:0.7, poor:3.5, cap:8, gateCap:6, travel:1.3, goal:30, maxDrop:4,
+     solution:[[0],[1]]},
+    {name:'Four lines', mix:[0.25,0.25,0.25,0.25], stations:[{good:[0]},{good:[1,2]},{good:[2]},{good:[3]}], rate:2.6, ramp:10,
+     good:0.85, poor:2.6, cap:8, gateCap:6, travel:1.3, goal:70, maxDrop:5,
+     solution:[[0],[1],[2],[3]]},
+    {name:'Rush hour', mix:[0.6,0.14,0.13,0.13], stations:[{good:[0,1]},{good:[1,2]},{good:[2,3]},{good:[3,0]}], rate:3.0, ramp:12,
+     good:0.9, poor:2.7, cap:8, gateCap:6, travel:1.3, goal:90, maxDrop:6,
+     solution:[[0,3],[1],[1],[2]]},
+    {name:'Autopilot', learn:true, mix:[0.25,0.25,0.25,0.25], stations:[{},{},{},{}], rate:3.0, ramp:14,
+     base:0.95, kappa:0.3, stepsPerSec:10, cap:8, travel:1.3, goal:120, maxDrop:8, alpha0:0, balance:'toggle',
+     solution:{alpha:0.3}},
+    {name:'Night rush', learn:true, mix:[0.5,0.2,0.15,0.15], stations:[{},{},{},{}], rate:2.6, ramp:14,
+     base:0.8, kappa:0.3, stepsPerSec:10, cap:8, travel:1.3, goal:140, maxDrop:8, maxWrong:26, alpha0:0, balance:'slider',
+     solution:{alpha:0.3}}
+  ];
+
+  return {CFG:CFG, features:features, pickColour:pickColour, mulberry:mulberry, gauss:gauss, E:E, TARGET:TARGET, CX:CX, CY:CY, BALANCE:BALANCE,
+    makeModel:makeModel, gate:gate, expertOut:expertOut, routedError:routedError, answerError:answerError, trainStep:trainStep,
+    newSim:newSim, step:step, setRoute:setRoute, shares:shares, LEVELS:LEVELS};
+})();
+/* CORE END */
+
+/* ---- the page: drawing, input, levels ---- */
+(function(){
+  "use strict";
+  var LV = CORE.LEVELS;
+  var STEP = 1/60;
+  var TOPICS = [
+    {name:'food',   words:['bread','plum','soup','rice','pear','cake','bean','fig','tea','corn','lime','stew']},
+    {name:'sea',    words:['wave','reef','tide','gull','shell','boat','kelp','crab','foam','cove','surf','eel']},
+    {name:'plants', words:['fern','oak','moss','seed','leaf','root','vine','pine','rose','reed','ivy','bud']},
+    {name:'music',  words:['drum','song','harp','beat','tune','horn','bass','choir','flute','chord','hum','bell']}
+  ];
+  var GLYPH = ['●','■','▲','◆'];
+  var SHAPE_NAME = ['circle','square','triangle','diamond'];
+
+  var TEXT = [
+    { intro:'Two kinds of word: food and sea. The pip inside a station shows the colour it serves fast. ' +
+            'Drag from a gate to a station to lay a line, or tap the gate, then the station. Tap again to lift a line.',
+      goal:'Carry 30 riders. Lose more than 4 and the line shuts.',
+      lose:'Too many riders lost. Match each gate to the station whose pip has its colour.',
+      win:['You sent each kind of word to the station that knows it. A part of a model that handles some inputs well is called an <b>expert</b>, and choosing the expert for each input is <b>routing</b>.'] },
+    { intro:'Four kinds of word, four stations. A station serves the colours of its pips fast and the rest slowly.',
+      goal:'Carry 70 riders. Lose at most 5.',
+      lose:'A station filled up. Two busy colours on one station is one too many; look for another station with the same pip.',
+      win:['Four experts, and each word used only one of them. The whole system is big, yet each word costs only one small part. That design is a <b>mixture of experts</b>.'] },
+    { intro:'Rush hour: most riders are food words, more than one station can take. A colour may have two lines; its riders then take the two in turn.',
+      goal:'Carry 90 riders. Lose at most 6.',
+      lose:'The food station could not keep up. Give food a second line to the other station with an orange pip, and move other colours off it.',
+      win:['One topic swamped its station, so you shared it between two. Keeping every expert’s queue short is <b>load balancing</b>.',
+           'Many real models also send each word to two experts at once and add their answers, each weighted by the router’s share for that expert: <b>top-2 routing</b>. It costs two experts’ work, so it does not shorten queues; balancing does.'] },
+    { intro:'Autopilot. You no longer lay lines: a router, the part that picks each word’s station, learns them as riders arrive, and keeps learning to send each word where it is answered well. There is a balance knob; it starts off.',
+      goal:'Carry 120 riders. Lose at most 8.',
+      lose:'The router piled almost every word onto one or two stations, and they jammed. Try the balance knob.',
+      win:['The router was a <b>softmax gate</b>: it turns each station’s score into a share, and the shares sum to one. Each step moved the scores downhill on the answers’ error (a gradient step).',
+           'Left alone, it fed the stations that learned first until they took nearly everything: <b>router collapse</b>. The knob adds a cost for uneven load, a <b>load-balancing loss</b>, and the words spread.'] },
+    { intro:'Night rush on autopilot: half the riders are food words. A station that gets words it never learned gives wrong answers. The balance knob now has seven settings, and you may turn it while the trains run.',
+      goal:'Carry 140 riders. Lose at most 8, and give at most 26 wrong answers.',
+      loseDrop:'Stations jammed: the router piled the words up again.',
+      loseWrong:'Too many wrong answers: stations got words they had not learned.',
+      win:['Too little balance and the router collapses; too much and it stops looking at the word, so experts get topics they never learned.',
+           'The weight of the <b>load-balancing loss</b> is a real dial, set between those two failures when a mixture of experts is trained.'] }
+  ];
+
+  // ---------- storage ----------
+  var KEY = 'ml-games:expert-metro:cleared';
+  var cleared = [];
+  try { var raw = localStorage.getItem(KEY); if(raw) cleared = JSON.parse(raw) || []; } catch(e){ cleared = []; }
+  if(!Array.isArray(cleared)) cleared = [];
+  function saveCleared(i){
+    if(cleared.indexOf(i) < 0) cleared.push(i);
+    try { localStorage.setItem(KEY, JSON.stringify(cleared)); } catch(e){}
+  }
+  function unlocked(i){ return i === 0 || cleared.indexOf(i-1) >= 0 || cleared.indexOf(i) >= 0; }
+
+  // ---------- elements ----------
+  var $ = function(id){ return document.getElementById(id); };
+  var cv = $('cv'), ctx = cv.getContext('2d'), stage = $('stage');
+  var ov = $('ov'), ovcard = $('ovcard');
+
+  var col = {};
+  function readColours(){
+    var cs = getComputedStyle(document.documentElement);
+    ['ink','panel','panel-2','line','muted','accent','warn','c0','c1','c2','c3'].forEach(function(k){
+      col[k] = cs.getPropertyValue('--'+k).trim() || '#888'; });
+    col.topic = [col.c0, col.c1, col.c2, col.c3];
+  }
+  readColours();
+  try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(){ readColours(); buildBoard(); }); } catch(e){}
+
+  // ---------- state ----------
+  var cur = 0, S = null, running = false, paused = false;
+  var sel = -1, drag = null, parts = [], labels = [], W = 0, H = 0, portrait = false, R = 14;
+  var pos = {gates:[], st:[]};
+  var hudT = 0, toastT = 0;
+  var keepRoutes = null, keepAlpha = null;
+
+  // ---------- sound ----------
+  var audio = null, soundOn = false, lastBlip = 0;
+  $('sound').addEventListener('click', function(){
+    soundOn = !soundOn;
+    this.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+    this.textContent = soundOn ? 'sound on' : 'sound off';
+    if(soundOn && !audio){ try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ audio = null; } }
+    if(audio && audio.state === 'suspended') audio.resume();
+  });
+  function blip(freq, vol, dur){
+    if(!soundOn || !audio) return;
+    var now = audio.currentTime; if(now - lastBlip < 0.07) return; lastBlip = now;
+    try {
+      var o = audio.createOscillator(), g = audio.createGain();
+      o.type = 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(0, now); g.gain.linearRampToValueAtTime(vol, now+0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, now+dur);
+      o.connect(g); g.connect(audio.destination); o.start(now); o.stop(now+dur+0.02);
+    } catch(e){}
+  }
+
+  // ---------- layout ----------
+  function layout(){
+    var w = stage.clientWidth || 340;
+    portrait = w < 600;
+    var h = portrait ? Math.round(Math.min(w*1.2, 520)) : Math.round(Math.min(w*0.56, 560));
+    stage.style.height = h + 'px';
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    W = w; H = h; R = portrait ? 13 : 15;
+    var L = LV[cur], n = L.mix.length, m = L.stations.length, i;
+    pos.gates = []; pos.st = [];
+    if(!portrait){
+      var gap = Math.min(H*0.2, 96);
+      for(i=0;i<n;i++) pos.gates.push({x:W*0.14, y:H*0.5 + (i-(n-1)/2)*gap});
+      var ys = m === 2 ? [0.28,0.66] : [0.1,0.34,0.58,0.82];
+      for(i=0;i<m;i++) pos.st.push({x:W*(m === 2 ? 0.72 : (i%2 ? 0.84 : 0.68)), y:H*ys[i]});
+    } else {
+      var gx = Math.min(W*0.23, 88);
+      for(i=0;i<n;i++) pos.gates.push({x:W*0.5 + (i-(n-1)/2)*gx, y:H*0.14});
+      var xs = m === 2 ? [0.3,0.7] : [0.13,0.38,0.62,0.87];
+      for(i=0;i<m;i++) pos.st.push({x:W*xs[i], y:H*(m === 2 ? 0.7 : (i%2 ? 0.8 : 0.64))});
+    }
+  }
+  // octilinear path from gate c to station s, shifted so each colour runs in its own lane
+  function path(c, s){
+    var A = pos.gates[c], B = pos.st[s], n = LV[cur].mix.length;
+    var off = (c - (n-1)/2) * 5;
+    var ax = A.x, ay = A.y, bx = B.x, by = B.y, pts;
+    if(!portrait){
+      ay += off; by += off;
+      var dx = bx-ax, dy = by-ay, sx = dx<0?-1:1, sy = dy<0?-1:1;
+      var a = Math.max(0, (Math.abs(dx)-Math.abs(dy))/2), d = Math.min(Math.abs(dx), Math.abs(dy));
+      pts = [[ax,ay],[ax+sx*a,ay],[ax+sx*(a+d),ay+sy*d],[bx,by]];
+    } else {
+      ax += off; bx += off;
+      var dx2 = bx-ax, dy2 = by-ay, sx2 = dx2<0?-1:1, sy2 = dy2<0?-1:1;
+      var a2 = Math.max(0, (Math.abs(dy2)-Math.abs(dx2))/2), d2 = Math.min(Math.abs(dx2), Math.abs(dy2));
+      pts = [[ax,ay],[ax,ay+sy2*a2],[ax+sx2*d2,ay+sy2*(a2+d2)],[bx,by]];
+    }
+    return pts;
+  }
+  function pointAt(pts, u){
+    var lens = [], tot = 0, i;
+    for(i=1;i<pts.length;i++){ var l = Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]); lens.push(l); tot += l; }
+    var d = Math.max(0, Math.min(1, u)) * tot;
+    for(i=0;i<lens.length;i++){
+      if(d <= lens[i] || i === lens.length-1){
+        var f = lens[i] ? Math.min(1, d/lens[i]) : 0;
+        return [pts[i][0] + (pts[i+1][0]-pts[i][0])*f, pts[i][1] + (pts[i+1][1]-pts[i][1])*f];
+      }
+      d -= lens[i];
+    }
+    return pts[pts.length-1];
+  }
+
+  // ---------- drawing ----------
+  function shapePath(k, x, y, r){
+    ctx.beginPath();
+    if(k === 0) ctx.arc(x, y, r, 0, Math.PI*2);
+    else if(k === 1) ctx.rect(x-r*0.88, y-r*0.88, r*1.76, r*1.76);
+    else if(k === 2){ ctx.moveTo(x, y-r*1.15); ctx.lineTo(x+r*1.1, y+r*0.8); ctx.lineTo(x-r*1.1, y+r*0.8); ctx.closePath(); }
+    else { ctx.moveTo(x, y-r*1.2); ctx.lineTo(x+r*1.2, y); ctx.lineTo(x, y+r*1.2); ctx.lineTo(x-r*1.2, y); ctx.closePath(); }
+  }
+  function strokePath(pts){
+    ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+    for(var i=1;i<pts.length;i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    ctx.stroke();
+  }
+  function dot(x, y, r, c){ ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fillStyle = c; ctx.fill(); }
+
+  function routeShares(){ // learned levels: share of each colour's recent riders per station
+    var L = LV[cur], out = [];
+    for(var c=0;c<L.mix.length;c++){
+      var row = [], tot = 0;
+      for(var s=0;s<S.stations.length;s++){ var v = S.stations[s].load[c]; row.push(v); tot += v; }
+      out.push(row.map(function(v){ return tot > 0 ? v/tot : 0; }));
+    }
+    return out;
+  }
+
+  function draw(time){
+    var L = LV[cur], c, s, i;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = col.panel; ctx.fillRect(0, 0, W, H);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+
+    // lines
+    if(L.learn){
+      var sh = routeShares();
+      for(c=0;c<L.mix.length;c++) for(s=0;s<S.stations.length;s++){
+        if(sh[c][s] < 0.03) continue;
+        ctx.strokeStyle = col.topic[c]; ctx.globalAlpha = 0.35 + 0.6*sh[c][s];
+        ctx.lineWidth = 1.5 + 7*sh[c][s];
+        strokePath(path(c, s));
+      }
+      ctx.globalAlpha = 1;
+    } else {
+      for(c=0;c<L.mix.length;c++) for(i=0;i<S.routes[c].length;i++){
+        ctx.strokeStyle = col.topic[c]; ctx.lineWidth = 6; strokePath(path(c, S.routes[c][i]));
+      }
+    }
+    if(drag && drag.moved){
+      ctx.strokeStyle = col.topic[drag.c]; ctx.lineWidth = 4; ctx.setLineDash([6,6]);
+      ctx.beginPath(); ctx.moveTo(pos.gates[drag.c].x, pos.gates[drag.c].y); ctx.lineTo(drag.x, drag.y); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // riders in transit
+    for(i=0;i<S.riders.length;i++){
+      var rd = S.riders[i], p = pointAt(path(rd.c, rd.st), rd.u);
+      dot(p[0], p[1], rd.share < 1 ? 3.6 : 5, col.topic[rd.c]);
+      ctx.strokeStyle = col.panel; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(p[0], p[1], rd.share < 1 ? 3.6 : 5, 0, Math.PI*2); ctx.stroke();
+    }
+
+    // gates
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for(c=0;c<L.mix.length;c++){
+      var g = pos.gates[c];
+      if(sel === c){ ctx.strokeStyle = col.topic[c]; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(g.x, g.y, R+7+Math.sin(time*5)*1.5, 0, Math.PI*2); ctx.stroke(); }
+      dot(g.x, g.y, R, col.topic[c]);
+      dot(g.x, g.y, R*0.42, col.panel);
+      ctx.fillStyle = col.muted; ctx.font = '600 11px ' + getFont();
+      if(!portrait) ctx.fillText(TOPICS[c].name, g.x, g.y + R + 11);
+      else ctx.fillText(TOPICS[c].name, g.x, g.y + R + 11);
+      // riders waiting at the gate
+      var wq = S.gates[c].wait;
+      for(i=0;i<wq.length;i++){
+        var wx, wy;
+        if(!portrait){ wx = g.x - R - 10 - (i%3)*10; wy = g.y - 5 + Math.floor(i/3)*10; }
+        else { wx = g.x - 10 + (i%3)*10; wy = g.y - R - 10 - Math.floor(i/3)*10; }
+        dot(wx, wy, 4, col.topic[c]);
+      }
+      if(wq.length >= L.gateCap - 2){
+        ctx.strokeStyle = col.warn; ctx.lineWidth = 2; ctx.globalAlpha = 0.5 + 0.5*Math.sin(time*8);
+        ctx.beginPath(); ctx.arc(g.x, g.y, R+5, 0, Math.PI*2); ctx.stroke(); ctx.globalAlpha = 1;
+      }
+      // router's softmax shares for a typical word of this colour
+      if(L.learn){
+        var pr = CORE.gate(S.model, [CORE.CX[c], CORE.CY[c], 1]).p;
+        for(s=0;s<4;s++){
+          var bh = 2 + 20*pr[s], bx, by;
+          if(!portrait){ bx = g.x - R - 46 + s*9; by = g.y + 10; }
+          else { bx = g.x - 17 + s*9; by = g.y - R - 8; }
+          ctx.fillStyle = col.line; ctx.fillRect(bx, by-22, 6, 22);
+          ctx.fillStyle = col.topic[c]; ctx.fillRect(bx, by-bh, 6, bh);
+        }
+      }
+    }
+    // word labels
+    ctx.font = '12px ' + getFont();
+    for(i=0;i<labels.length;i++){
+      var lb = labels[i], gp = pos.gates[lb.c];
+      ctx.globalAlpha = Math.max(0, Math.min(1, lb.life*1.6));
+      ctx.fillStyle = col.ink;
+      var lx = portrait ? gp.x : gp.x, ly = portrait ? gp.y + R + 25 + (1-lb.life)*6 : gp.y - R - 10 - (1-lb.life)*8;
+      ctx.fillText(lb.text, lx, ly);
+    }
+    ctx.globalAlpha = 1;
+
+    // stations
+    for(s=0;s<S.stations.length;s++){
+      var st = S.stations[s], P = pos.st[s], fill = st.q.length / L.cap;
+      if(fill >= 0.75){
+        var full = st.q.length >= L.cap;
+        ctx.strokeStyle = col.warn; ctx.lineWidth = full ? 4 : 2.5;
+        ctx.globalAlpha = full ? 0.6 + 0.4*Math.sin(time*10) : 0.45 + 0.3*Math.sin(time*5);
+        shapePath(s, P.x, P.y, R + 9); ctx.stroke(); ctx.globalAlpha = 1;
+      }
+      shapePath(s, P.x, P.y, R);
+      ctx.fillStyle = col.panel; ctx.fill();
+      ctx.strokeStyle = col.ink; ctx.lineWidth = 3.5; ctx.stroke();
+      if(st.job){
+        var f = 1 - Math.max(0, st.left) / st.total;
+        ctx.strokeStyle = col.topic[st.job.c]; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(P.x, P.y, R + 4.5, -Math.PI/2, -Math.PI/2 + f*Math.PI*2); ctx.stroke();
+        dot(P.x, P.y + (s === 2 ? 2 : 0), st.job.share < 1 ? 3.2 : 4.5, col.topic[st.job.c]);
+      } else if(!L.learn){
+        var gd = L.stations[s].good;
+        for(i=0;i<gd.length;i++) dot(P.x + (i-(gd.length-1)/2)*8, P.y + (s === 2 ? 2 : 0), 3.2, col.topic[gd[i]]);
+      }
+      // the platform: waiting riders in rows of four under the station
+      for(i=0;i<st.q.length;i++){
+        var qx = P.x - 13.5 + (i%4)*9, qy = P.y + R + 12 + Math.floor(i/4)*9;
+        dot(qx, qy, st.q[i].share < 1 ? 2.8 : 3.8, col.topic[st.q[i].c]);
+      }
+    }
+
+    // particles
+    for(i=0;i<parts.length;i++){
+      var q = parts[i], a = Math.max(0, q.life / q.max);
+      ctx.globalAlpha = a;
+      if(q.kind === 'puff'){
+        ctx.strokeStyle = col.warn; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(q.x, q.y, 6 + (1-a)*16, 0, Math.PI*2); ctx.stroke();
+        dot(q.x + (1-a)*q.vx, q.y + (1-a)*q.vy, 3.5, col.topic[q.c]);
+      } else if(q.kind === 'wrong'){
+        ctx.strokeStyle = col.warn; ctx.lineWidth = 2;
+        var wx2 = q.x + (1-a)*q.vx, wy2 = q.y + (1-a)*q.vy;
+        ctx.beginPath(); ctx.moveTo(wx2-4, wy2-4); ctx.lineTo(wx2+4, wy2+4); ctx.moveTo(wx2+4, wy2-4); ctx.lineTo(wx2-4, wy2+4); ctx.stroke();
+      } else {
+        dot(q.x + (1-a)*q.vx, q.y + (1-a)*q.vy, 3.2, col.topic[q.c]);
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+  var fontCache = null;
+  function getFont(){ if(!fontCache) fontCache = getComputedStyle(document.body).fontFamily || 'sans-serif'; return fontCache; }
+
+  // ---------- events from the simulation ----------
+  function handleEvents(){
+    var ev = S.events, L = LV[cur];
+    for(var i=0;i<ev.length;i++){
+      var e = ev[i];
+      if(e.k === 'spawn'){
+        var words = TOPICS[e.c].words;
+        labels = labels.filter(function(l){ return l.c !== e.c; });
+        labels.push({c:e.c, text:words[e.word % words.length], life:1});
+      } else if(e.k === 'drop'){
+        var P = e.at === 'gate' ? pos.gates[e.c] : pos.st[e.st];
+        parts.push({kind:'puff', x:P.x, y:P.y, vx:(Math.random()-0.5)*30, vy:-24, c:e.c, life:0.9, max:0.9});
+        blip(150, 0.05, 0.25);
+      } else if(e.k === 'done'){
+        var Q = pos.st[e.st];
+        var vx = portrait ? 0 : 46, vy = portrait ? 40 : 0;
+        if(!portrait && Q.x > W*0.8) vx = 30;
+        parts.push({kind:e.wrong ? 'wrong' : 'out', x:Q.x + (portrait ? 0 : R+8), y:Q.y + (portrait ? R+30 : 0),
+          vx:vx, vy:vy, c:e.c, life:0.6, max:0.6});
+        if(!e.wrong) blip([523, 587, 659, 784][e.st % 4], 0.03, 0.18); else blip(220, 0.035, 0.2);
+      }
+    }
+    ev.length = 0;
+  }
+
+  // ---------- HUD ----------
+  function fmt(n){ return Math.abs(n - Math.round(n)) < 1e-6 ? String(Math.round(n)) : n.toFixed(1); }
+  function hud(){
+    var L = LV[cur], h = '<h2>' + (cur+1) + ' · ' + L.name + '</h2>';
+    h += '<span class="chip">carried <b>' + fmt(Math.min(S.delivered, L.goal)) + '</b> / ' + L.goal + '</span>';
+    h += '<span class="chip' + (S.dropped > L.maxDrop*0.6 ? ' bad' : '') + '">lost <b>' + fmt(S.dropped) + '</b> / ' + L.maxDrop + '</span>';
+    if(L.maxWrong != null) h += '<span class="chip' + (S.wrong > L.maxWrong*0.6 ? ' bad' : '') + '">wrong <b>' + S.wrong + '</b> / ' + L.maxWrong + '</span>';
+    if(L.learn){
+      var sh = CORE.shares(S);
+      h += '<span class="chip">load ' + sh.map(function(v, i){ return GLYPH[i] + '<b>' + Math.round(v*100) + '%</b>'; }).join(' ') + '</span>';
+    }
+    $('hud').innerHTML = h;
+    $('prog').style.width = Math.min(100, 100*S.delivered/L.goal) + '%';
+  }
+
+  // ---------- switchboard (manual levels) ----------
+  function shapeSVG(k, good){
+    var s = '<svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">';
+    var st = 'fill="' + col.panel + '" stroke="' + col.ink + '" stroke-width="2.5"';
+    if(k === 0) s += '<circle cx="15" cy="15" r="10" ' + st + '/>';
+    else if(k === 1) s += '<rect x="6" y="6" width="18" height="18" ' + st + '/>';
+    else if(k === 2) s += '<path d="M15 3 L26 24 L4 24 Z" ' + st + '/>';
+    else s += '<path d="M15 2 L28 15 L15 28 L2 15 Z" ' + st + '/>';
+    (good || []).forEach(function(c, i){
+      var x = 15 + (i - ((good.length-1)/2))*6, y = k === 2 ? 17 : 15;
+      s += '<circle cx="' + x + '" cy="' + y + '" r="2.6" fill="' + col.topic[c] + '"/>';
+    });
+    return s + '</svg>';
+  }
+  function buildBoard(){
+    var L = LV[cur], wrap = $('boardwrap');
+    if(L.learn || !S){ wrap.innerHTML = ''; return; }
+    var h = '<table class="board" aria-label="Lines: one row per colour, one column per station"><tr><th>lines</th>';
+    for(var s=0;s<L.stations.length;s++) h += '<th title="' + SHAPE_NAME[s] + ' station">' + shapeSVG(s, L.stations[s].good) + '</th>';
+    h += '</tr>';
+    for(var c=0;c<L.mix.length;c++){
+      h += '<tr><td class="name"><i style="background:' + col.topic[c] + '"></i>' + TOPICS[c].name + '</td>';
+      for(s=0;s<L.stations.length;s++){
+        var on = S.routes[c].indexOf(s) >= 0;
+        h += '<td><button class="cell" data-c="' + c + '" data-s="' + s + '" aria-pressed="' + on + '" aria-label="' +
+          TOPICS[c].name + ' to the ' + SHAPE_NAME[s] + ' station"><span style="background:' + (on ? col.topic[c] : 'transparent') + '"></span></button></td>';
+      }
+      h += '</tr>';
+    }
+    wrap.innerHTML = h + '</table>';
+    Array.prototype.forEach.call(wrap.querySelectorAll('.cell'), function(b){
+      b.addEventListener('click', function(){ toggle(+b.getAttribute('data-c'), +b.getAttribute('data-s')); });
+    });
+  }
+  function toast(msg){ $('toast').textContent = msg; toastT = 3; }
+  function toggle(c, s){
+    if(!S || S.status !== 'play') return;
+    if(!CORE.setRoute(S, c, s)) toast('Two lines per colour at most. Lift one first.');
+    else $('toast').textContent = '';
+    buildBoard();
+  }
+
+  // ---------- controls ----------
+  function buildControls(){
+    var L = LV[cur], h = '';
+    h += '<button class="btn" id="pause">' + (paused ? 'resume' : 'pause') + '</button>';
+    h += '<button class="btn" id="restart">restart</button>';
+    if(L.balance === 'toggle'){
+      h += '<button class="btn" id="knob" aria-pressed="' + (S.alpha > 0) + '">balance knob: ' + (S.alpha > 0 ? 'on' : 'off') + '</button>';
+    } else if(L.balance === 'slider'){
+      var ix = Math.max(0, CORE.BALANCE.indexOf(S.alpha));
+      h += '<span class="knob"><label for="bal" class="hint">balance</label><input id="bal" type="range" min="0" max="' +
+        (CORE.BALANCE.length-1) + '" step="1" value="' + ix + '"><output id="balv"></output></span>';
+    }
+    $('controls').innerHTML = h;
+    $('pause').addEventListener('click', function(){ setPaused(!paused); });
+    $('restart').addEventListener('click', function(){ restart(); });
+    if($('knob')) $('knob').addEventListener('click', function(){
+      S.alpha = S.alpha > 0 ? 0 : 0.3; keepAlpha = S.alpha;
+      this.setAttribute('aria-pressed', S.alpha > 0); this.textContent = 'balance knob: ' + (S.alpha > 0 ? 'on' : 'off');
+    });
+    if($('bal')){
+      var show = function(){ var a = CORE.BALANCE[+$('bal').value]; $('balv').textContent = a === 0 ? 'off' : 'weight ' + a; };
+      $('bal').addEventListener('input', function(){ S.alpha = CORE.BALANCE[+this.value]; keepAlpha = S.alpha; show(); });
+      show();
+    }
+    var tips = [
+      'Riders with no line wait at their gate; six waiting and the next is lost.',
+      'The pips show what each station serves fast. A wrong station is three times slower.',
+      'A colour with two lines sends its riders down each in turn.',
+      'The bars by each gate are the router’s shares for a typical word of that colour. Line width shows where words really went.',
+      'Bars by each gate: the router’s shares. A cross by a station is a wrong answer.'
+    ];
+    $('tip').textContent = tips[cur];
+  }
+  function setPaused(p){
+    paused = p;
+    var b = $('pause'); if(b) b.textContent = paused ? 'resume' : 'pause';
+  }
+
+  // ---------- levels ----------
+  function buildLevels(){
+    var h = '';
+    for(var i=0;i<LV.length;i++){
+      h += '<button class="lvl" data-i="' + i + '"' + (unlocked(i) ? '' : ' disabled') + (i === cur ? ' aria-current="true"' : '') + '>' +
+        (i+1) + ' · ' + LV[i].name + (cleared.indexOf(i) >= 0 ? '<span class="done" aria-label="cleared">✓</span>' : '') + '</button>';
+    }
+    $('levels').innerHTML = h;
+    Array.prototype.forEach.call($('levels').querySelectorAll('.lvl'), function(b){
+      b.addEventListener('click', function(){ keepRoutes = null; keepAlpha = null; load(+b.getAttribute('data-i')); });
+    });
+    var how = $('how');
+    if(cleared.indexOf(3) >= 0){
+      how.hidden = false;
+      how.textContent = 'How levels 4 and 5 work: each word is a point with two numbers plus a constant. The router is a softmax gate, ' +
+        'a 4 × 3 weight table, and each station is a linear expert with three weights. The page trains both by plain gradient descent, ' +
+        'ten steps a second on batches of 16 words, on the error of the routed answer; the balance knob adds weight × 4 × the sum, over stations, ' +
+        'of (share of words sent there) × (mean gate share there). Each word rides to the station with the top score.';
+    } else how.hidden = true;
+  }
+  function newSim(){
+    S = CORE.newSim(LV[cur], (Math.floor(Math.random()*1e9) + 1));
+    if(keepRoutes && !LV[cur].learn) keepRoutes.forEach(function(rt, c){ rt.forEach(function(s){ CORE.setRoute(S, c, s); }); });
+    if(keepAlpha != null && LV[cur].learn) S.alpha = keepAlpha;
+    parts = []; labels = []; sel = -1; drag = null;
+  }
+  function load(i){
+    cur = i; running = false; paused = false;
+    // learned levels take no input on the map, so let a finger on it scroll the page
+    cv.style.touchAction = LV[cur].learn ? 'pan-y' : 'none';
+    layout(); newSim(); buildLevels(); buildControls(); buildBoard(); hud();
+    showIntro();
+  }
+  function restart(){
+    if(S && !LV[cur].learn) keepRoutes = S.routes.map(function(r){ return r.slice(); });
+    newSim(); buildControls(); buildBoard(); hud();
+    running = true; setPaused(false); ov.hidden = true;
+  }
+  function card(kicker, title, paras, buttons){
+    var h = (kicker ? '<p class="kicker">' + kicker + '</p>' : '') + '<h2>' + title + '</h2>';
+    paras.forEach(function(p){ h += '<p>' + p + '</p>'; });
+    h += '<div class="row">';
+    buttons.forEach(function(b, i){ h += '<button class="btn' + (i === 0 ? ' primary' : '') + '" data-b="' + i + '">' + b[0] + '</button>'; });
+    ovcard.innerHTML = h + '</div>';
+    Array.prototype.forEach.call(ovcard.querySelectorAll('button'), function(el){
+      el.addEventListener('click', buttons[+el.getAttribute('data-b')][1]);
+    });
+    ov.hidden = false;
+    var first = ovcard.querySelector('button'); if(first) try { first.focus({preventScroll:true}); } catch(e){}
+  }
+  function showIntro(){
+    var T = TEXT[cur];
+    card('Level ' + (cur+1), LV[cur].name, [T.intro, '<b>' + T.goal + '</b>'], [['Start', function(){ ov.hidden = true; running = true; setPaused(false); }]]);
+  }
+  function end(){
+    running = false;
+    var T = TEXT[cur], L = LV[cur];
+    if(S.status === 'won'){
+      saveCleared(cur); buildLevels();
+      var btns = [];
+      if(cur < LV.length-1) btns.push(['Next level', function(){ keepRoutes = null; keepAlpha = null; load(cur+1); }]);
+      btns.push(['Play again', function(){ restart(); }]);
+      card('What you just did', 'Level cleared', T.win, btns);
+    } else {
+      var msg;
+      if(cur === 4) msg = S.why === 'wrong' ? T.loseWrong : T.loseDrop;
+      else if(cur === 3) msg = S.alpha > 0 ? 'The stations still jammed. Try once more; the router starts from new random weights each time.' : T.lose;
+      else msg = T.lose;
+      card('Line shut', 'Not this time', [msg], [['Try again', function(){ restart(); }]]);
+    }
+  }
+
+  // ---------- input ----------
+  function pt(e){ var r = cv.getBoundingClientRect(); return {x:e.clientX - r.left, y:e.clientY - r.top}; }
+  function hit(list, p, rad){
+    var best = -1, bd = rad;
+    for(var i=0;i<list.length;i++){ var d = Math.hypot(list[i].x - p.x, list[i].y - p.y); if(d < bd){ bd = d; best = i; } }
+    return best;
+  }
+  cv.addEventListener('pointerdown', function(e){
+    if(!S || LV[cur].learn || S.status !== 'play') return;
+    var p = pt(e), g = hit(pos.gates, p, 28);
+    if(g >= 0){
+      drag = {c:g, x:p.x, y:p.y, x0:p.x, y0:p.y, moved:false};
+      try { cv.setPointerCapture(e.pointerId); } catch(err){}
+      e.preventDefault(); return;
+    }
+    var s = hit(pos.st, p, 30);
+    if(s >= 0 && sel >= 0){ toggle(sel, s); e.preventDefault(); return; }
+    sel = -1;
+  });
+  cv.addEventListener('pointermove', function(e){
+    if(!drag) return;
+    var p = pt(e); drag.x = p.x; drag.y = p.y;
+    if(Math.hypot(p.x - drag.x0, p.y - drag.y0) > 10) drag.moved = true;
+  });
+  function up(e){
+    if(!drag) return;
+    var p = pt(e), s = hit(pos.st, p, 32);
+    if(drag.moved){ if(s >= 0) toggle(drag.c, s); sel = -1; }
+    else sel = (sel === drag.c) ? -1 : drag.c;
+    drag = null;
+  }
+  cv.addEventListener('pointerup', up);
+  cv.addEventListener('pointercancel', function(){ drag = null; });
+  document.addEventListener('keydown', function(e){
+    if(e.key === ' ' && running && document.activeElement && document.activeElement.tagName !== 'BUTTON' && document.activeElement.tagName !== 'INPUT'){
+      e.preventDefault(); setPaused(!paused);
+    }
+  });
+  document.addEventListener('visibilitychange', function(){ if(document.hidden && running) setPaused(true); });
+  var rT = null;
+  window.addEventListener('resize', function(){ clearTimeout(rT); rT = setTimeout(function(){ layout(); }, 80); });
+
+  // ---------- loop ----------
+  var last = 0, acc = 0;
+  function frame(ts){
+    requestAnimationFrame(frame);
+    var dt = last ? Math.min(0.05, (ts - last)/1000) : 0; last = ts;
+    if(running && !paused){
+      acc += dt; var n = 0;
+      while(acc >= STEP && n < 6){ CORE.step(S, STEP); acc -= STEP; n++; }
+      if(n >= 6) acc = 0;
+      handleEvents();
+      if(S.status !== 'play'){ hud(); end(); }
+    }
+    if(!paused){
+      for(var i=parts.length-1;i>=0;i--){ parts[i].life -= dt; if(parts[i].life <= 0) parts.splice(i, 1); }
+      for(var j=labels.length-1;j>=0;j--){ labels[j].life -= dt*0.9; if(labels[j].life <= 0) labels.splice(j, 1); }
+    }
+    hudT -= dt; if(hudT <= 0 && S){ hudT = 0.15; hud(); }
+    if(toastT > 0){ toastT -= dt; if(toastT <= 0) $('toast').textContent = ''; }
+    if(S) draw(ts/1000);
+  }
+
+  var start = 0;
+  for(var k=0;k<LV.length;k++) if(unlocked(k)) start = k;
+  if(cleared.length >= LV.length) start = 0;
+  load(start);
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

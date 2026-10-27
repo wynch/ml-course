@@ -1,0 +1,909 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Border Desk — ml-course game</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+  :root{
+    --paper:#f6f8f7; --ink:#1c2422; --panel:#ffffff; --panel-2:#eef2f0;
+    --line:#d5ddda; --muted:#5d6b67; --accent:#1f918d;
+    --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8; --t9:#4f6272;
+    --ok:#2f8a3e; --no:#b8336a; --gold:#c49a2c;
+    --sheet:#f4eedc; --sheet-ink:#3a3528;
+    --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
+    --mono:"SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    --display:"Avenir Next","Helvetica Neue",sans-serif;
+    --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --panel-2:#222d29;
+      --line:#31403b; --muted:#9dada8; --accent:#37b3ae; --t4:#e0679a; --t5:#5aa1e6; --t9:#93a8b8;
+      --ok:#4cb85c; --no:#e0679a; --gold:#d8b14a;
+      --sheet:#d8d1bc; --sheet-ink:#2a261c;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink)}
+  body{font-family:var(--body);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:860px;margin:0 auto;padding:0 16px 64px}
+
+  header.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    padding:16px 0 14px;border-bottom:1px solid var(--line);margin-bottom:18px}
+  header.top h1{font-family:var(--display);font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .pill{font-family:var(--display);font-size:11.5px;font-weight:600;letter-spacing:.02em;
+    padding:3px 10px;border-radius:999px;color:#fff;background:var(--t9);white-space:nowrap}
+  @media (prefers-color-scheme: dark){ .pill{color:#121816} }
+  .top .spacer{flex:1}
+  .backlink{font-size:13px;color:var(--muted);text-decoration:none;border-bottom:1px solid transparent;
+    display:inline-flex;align-items:center;min-height:44px}
+  .backlink:hover{color:var(--accent);border-bottom-color:var(--accent)}
+
+  .btn{font-family:var(--display);font-size:13px;font-weight:600;border:1.5px solid var(--line);
+    background:transparent;color:var(--ink);padding:0 16px;min-height:44px;border-radius:999px;cursor:pointer}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{color:#fff;filter:brightness(1.07)}
+  @media (prefers-color-scheme: dark){ .btn.primary,.btn.primary:hover{color:#121816} }
+  .btn:focus-visible,.daybtn:focus-visible,.sb:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .hint{font-size:12px;color:var(--muted)}
+
+  .days{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+  .daybtn{font-family:var(--display);font-size:12.5px;font-weight:600;min-height:44px;min-width:44px;
+    padding:0 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+  .daybtn[aria-current="true"]{border-color:var(--accent);color:var(--accent)}
+  .daybtn:disabled{opacity:.45;cursor:default}
+  .daybtn .done{color:var(--ok)}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:14px}
+  .brief{margin:0 0 12px}
+  .brief h2{font-family:var(--display);font-size:16px;font-weight:600;margin:0 0 4px}
+  .brief p{margin:0 0 10px;font-size:14.5px;max-width:70ch}
+
+  .hud{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--mono);font-size:12.5px;
+    color:var(--muted);margin:0 0 8px;min-height:22px}
+  .hud b{color:var(--ink)}
+  .clock{flex:1;min-width:90px;height:8px;border-radius:999px;background:var(--panel-2);border:1px solid var(--line);overflow:hidden}
+  .clock i{display:block;height:100%;width:100%;background:var(--accent);transition:background .3s}
+  .clock.late i{background:var(--no)}
+
+  .stage{position:relative;width:100%;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--panel-2);
+    touch-action:manipulation}
+  .stage canvas{display:block;width:100%}
+
+  .stamps{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin:10px 0 4px}
+  .sb{font-family:var(--display);font-weight:700;font-size:12.5px;line-height:1.15;min-height:52px;border-radius:10px;
+    border:2px solid; cursor:pointer;padding:4px 2px;color:var(--ink);background:var(--panel)}
+  .sb small{display:block;font-family:var(--mono);font-weight:600;font-size:11.5px;margin-top:2px}
+  .sb.deny{border-color:var(--no)} .sb.pass{border-color:var(--ok)}
+  .sb.deny.s90{background:var(--no);color:#fff} .sb.pass.s90{background:var(--ok);color:#fff}
+  .sb.deny.s70{background:color-mix(in srgb,var(--no) 35%,var(--panel))}
+  .sb.pass.s70{background:color-mix(in srgb,var(--ok) 35%,var(--panel))}
+  .sb:disabled{opacity:.4;cursor:default}
+  .sb:active:not(:disabled){transform:translateY(1px)}
+  .scale{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin:0 2px 8px}
+
+  .log{margin:8px 0 0}
+  .log h3{font-family:var(--display);font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 4px}
+  table.lg{width:100%;border-collapse:collapse;font-size:12px;font-family:var(--mono)}
+  table.lg th{font-family:var(--display);font-weight:600;font-size:11px;color:var(--muted);text-align:left;padding:3px 4px;border-bottom:1px solid var(--line)}
+  table.lg td{padding:3px 4px;border-bottom:1px solid var(--line);white-space:nowrap}
+  table.lg i.cv{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .yes{color:var(--ok);font-weight:700} .nope{color:var(--no);font-weight:700}
+
+  .report{margin:12px 0 0}
+  .report h2{font-family:var(--display);font-size:16px;font-weight:600;margin:0 0 6px}
+  .report p{margin:0 0 8px;font-size:14.5px;max-width:70ch}
+  .charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin:6px 0 10px}
+  .charts h3{font-family:var(--display);font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 2px}
+  svg{display:block;max-width:100%;height:auto}
+  svg text{font-family:var(--body);fill:var(--muted);font-size:11px}
+  .goal{font-family:var(--display);font-weight:600;font-size:14px;margin:4px 0 10px}
+  .goal.met{color:var(--ok)} .goal.miss{color:var(--no)}
+  .what{border-left:3px solid var(--accent);padding:8px 12px;background:var(--panel-2);border-radius:0 10px 10px 0;margin:8px 0 12px}
+  .what h3{font-family:var(--display);font-size:13px;font-weight:600;margin:0 0 4px;color:var(--accent)}
+  .what p{margin:0;font-size:14px}
+  .what strong{color:var(--accent)}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+  .ask .row .btn{flex:1 1 200px}
+  .knob{margin:8px 0}
+  .knob label{font-family:var(--display);font-weight:600;font-size:13px;display:block;margin:0 0 2px}
+  .knob input{width:100%;height:44px;accent-color:var(--accent)}
+  .readout{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+  .readout b{color:var(--ink)}
+  .fastlbl{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 6px;cursor:pointer}
+  .fastlbl input{width:20px;height:20px;margin:0}
+
+  footer.bot{border-top:1px solid var(--line);padding-top:14px;margin-top:28px;font-size:12.5px;color:var(--muted)}
+  footer.bot .row{margin:4px 0}
+  [hidden]{display:none!important}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <h1>Border Desk</h1>
+  <span class="pill">Game 4 · Sorting and sureness</span>
+  <span class="spacer"></span>
+  <button class="btn" id="snd" aria-pressed="false">Sound: off</button>
+  <a class="backlink" href="index.html">← All games</a>
+</header>
+
+<nav class="days" id="days" aria-label="Days"></nav>
+
+<div class="card brief" id="brief">
+  <h2 id="btitle"></h2>
+  <p id="btext"></p>
+  <div class="row"><button class="btn primary" id="bgo">Open the booth</button></div>
+</div>
+
+<div class="hud" id="hud">
+  <span id="hleft"></span>
+  <span class="clock" id="clock"><i id="clockbar"></i></span>
+  <span id="hright"></span>
+</div>
+
+<div class="stage" id="stage"><canvas id="cv" aria-label="The desk: passports slide in for you to stamp" role="img"></canvas></div>
+
+<div id="controls">
+  <div class="stamps" id="stamps">
+    <button class="sb deny s90" data-v="0" data-c="0.9">DENY<small>90%</small></button>
+    <button class="sb deny s70" data-v="0" data-c="0.7">DENY<small>70%</small></button>
+    <button class="sb deny s50" data-v="0" data-c="0.5">DENY<small>50%</small></button>
+    <button class="sb pass s50" data-v="1" data-c="0.5">PASS<small>50%</small></button>
+    <button class="sb pass s70" data-v="1" data-c="0.7">PASS<small>70%</small></button>
+    <button class="sb pass s90" data-v="1" data-c="0.9">PASS<small>90%</small></button>
+  </div>
+  <div class="scale"><span>sure: deny</span><span class="hint" id="keyhint">keys 1 to 6</span><span>sure: pass</span></div>
+</div>
+
+<div class="card report" id="report" hidden></div>
+
+<div class="log" id="logwrap" hidden>
+  <h3>Today's log, newest first</h3>
+  <div style="overflow-x:auto"><table class="lg" id="log"></table></div>
+</div>
+
+<footer class="bot">
+  <div class="row">Everything runs in this page. The passports, the hidden rule and the machine (trained here on 400 made-up archive passports) are all made by the script below; nothing is fetched.</div>
+  <div class="row">Progress is kept in this browser only.</div>
+</footer>
+</div>
+
+<script>
+"use strict";
+/* ---------- core: pure logic, also loaded by node tests ---------- */
+const BD = (function(){
+  function rng(seed){
+    let a = seed >>> 0;
+    return function(){
+      a = (a + 0x6D2B79F5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function pickW(r, w){
+    let s = 0; for (const x of w) s += x;
+    let u = r() * s;
+    for (let i = 0; i < w.length; i++){ u -= w[i]; if (u < 0) return i; }
+    return w.length - 1;
+  }
+  function shuffle(r, a){
+    for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(r() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+  const HOME = ["Arvenia", "Belmora", "Corvane"], NEW = "Dravask";
+  // Visible stamp counts 0..8. Corvane leans to 3-5 so its higher bar shows up.
+  const W_HOME = [7, 9, 12, 13, 12, 10, 8, 6, 5];
+  const W_CORV = [4, 6, 9, 15, 16, 13, 9, 6, 4];
+  const SYL = ["ka","lo","mir","an","te","vo","ri","sa","del","or","ne","bas","il","ru","fen","ta","mo","gar","li","en"];
+  const COLS = 4, ROWS = 3;   // stamp page grid, 12 cells
+
+  // The hidden rule. Stamps count all of them, hidden under ink or not.
+  function rule(p){
+    if (p.country === NEW) return p.seal;
+    return p.stamps >= (p.country === "Corvane" ? 5 : 3);
+  }
+
+  function name(r){
+    const w = () => { let s = ""; const n = 2 + Math.floor(r() * 2); for (let i = 0; i < n; i++) s += SYL[Math.floor(r() * SYL.length)]; return s[0].toUpperCase() + s.slice(1); };
+    return w() + " " + w();
+  }
+
+  // o.smudge: chance of an ink blot; o.newShare: chance of a Dravask passport.
+  function makePassport(r, o){
+    o = o || {};
+    const country = (o.newShare && r() < o.newShare) ? NEW : HOME[Math.floor(r() * 3)];
+    const visible = pickW(r, country === "Corvane" ? W_CORV : W_HOME);
+    const smudged = !!o.smudge && r() < o.smudge;
+    const lo = o.hideMin || 0, hidden = smudged ? lo + Math.floor(r() * (4 - lo)) : 0;   // lo..3 under the blot
+    const p = {
+      country, visible, hidden, stamps: visible + hidden, smudged,
+      age: 18 + Math.floor(r() * 62), glasses: r() < 0.3,
+      seal: country === NEW && r() < 0.5,
+      name: name(r), skin: Math.floor(r() * 5), hair: Math.floor(r() * 5), style: Math.floor(r() * 4),
+      blot: null, cells: [], seed: Math.floor(r() * 1e9)
+    };
+    let free = [];
+    for (let i = 0; i < COLS * ROWS; i++) free.push(i);
+    if (smudged){
+      const c0 = Math.floor(r() * (COLS - 1)), r0 = Math.floor(r() * (ROWS - 1));
+      const blk = [r0 * COLS + c0, r0 * COLS + c0 + 1, (r0 + 1) * COLS + c0, (r0 + 1) * COLS + c0 + 1];
+      p.blot = { c0, r0 };
+      free = free.filter(i => blk.indexOf(i) < 0);
+      shuffle(r, blk);
+      for (let i = 0; i < hidden; i++) p.cells.push({ cell: blk[i], hid: true, ...stampLook(r) });
+    }
+    shuffle(r, free);
+    for (let i = 0; i < visible; i++) p.cells.push({ cell: free[i], hid: false, ...stampLook(r) });
+    p.pass = rule(p);
+    return p;
+  }
+  function stampLook(r){ return { shape: Math.floor(r() * 3), col: Math.floor(r() * 5), rot: (r() - 0.5) * 0.7, jx: r() - 0.5, jy: r() - 0.5 }; }
+
+  function makeBatch(seed, n, o){
+    const r = rng(seed), out = [];
+    for (let i = 0; i < n; i++) out.push(makePassport(r, o));
+    return out;
+  }
+
+  // ---------- the machine: logistic regression ----------
+  // Features it can read off the page. It sees visible stamps only.
+  function features(p){
+    return [p.visible / 4, p.country === "Corvane" ? 1 : 0, p.country === "Belmora" ? 1 : 0, p.age / 50, p.glasses ? 1 : 0];
+  }
+  // Full-batch gradient descent on mean log loss, no weight penalty.
+  // Clean archive data is separable, so weights keep growing: that is the overconfidence.
+  function trainLR(ps, opt){
+    opt = opt || {};
+    const lr = opt.lr || 1, steps = opt.steps || 3000, l2 = opt.l2 || 0;
+    const X = ps.map(features), y = ps.map(p => p.pass ? 1 : 0);
+    const d = X[0].length, w = new Array(d + 1).fill(0), n = X.length;
+    const g = new Array(d + 1);
+    for (let s = 0; s < steps; s++){
+      g.fill(0);
+      for (let i = 0; i < n; i++){
+        const q = sigmoid(dotz(w, X[i]));
+        const e = q - y[i];
+        for (let j = 0; j < d; j++) g[j] += e * X[i][j];
+        g[d] += e;
+      }
+      for (let j = 0; j <= d; j++) w[j] -= lr * (g[j] / n + (j < d ? l2 * w[j] : 0));
+    }
+    return w;
+  }
+  function dotz(w, x){ let z = w[x.length]; for (let j = 0; j < x.length; j++) z += w[j] * x[j]; return z; }
+  function sigmoid(z){ return z >= 0 ? 1 / (1 + Math.exp(-z)) : Math.exp(z) / (1 + Math.exp(z)); }
+  // T is the temperature knob: the score is divided by T before the squash.
+  function machine(w, p, T){
+    const q = sigmoid(dotz(w, features(p)) / (T || 1));
+    const pass = q >= 0.5;
+    return { pass, conf: pass ? q : 1 - q, right: pass === p.pass };
+  }
+  let archiveW = null;
+  function archiveModel(){
+    if (!archiveW) archiveW = trainLR(makeBatch(7, 400, { smudge: 0, newShare: 0 }), { lr: 1, steps: 20000 });
+    return archiveW;
+  }
+
+  // ---------- reliability ----------
+  // recs: [{conf, right}]; edges ascending, last edge above 1.
+  function reliability(recs, edges){
+    const bins = [];
+    for (let b = 0; b < edges.length - 1; b++) bins.push({ lo: edges[b], hi: edges[b + 1], n: 0, right: 0, sumConf: 0 });
+    for (const r of recs){
+      for (const b of bins){
+        if (r.conf >= b.lo - 1e-9 && r.conf < b.hi - 1e-9){ b.n++; b.sumConf += r.conf; if (r.right) b.right++; break; }
+      }
+    }
+    for (const b of bins){ b.conf = b.n ? b.sumConf / b.n : (b.lo + Math.min(1, b.hi)) / 2; b.acc = b.n ? b.right / b.n : null; }
+    return bins;
+  }
+  const PLAYER_EDGES = [0.5, 0.6, 0.8, 1.01];            // 50%, 70%, 90%
+  const MODEL_EDGES = [0.5, 0.6, 0.7, 0.8, 0.9, 1.01];
+  // Average gap between said and right, weighted by count (0..1).
+  function gap(bins){
+    let n = 0, s = 0;
+    for (const b of bins) if (b.n){ n += b.n; s += b.n * Math.abs(b.acc - b.conf); }
+    return n ? s / n : 0;
+  }
+  // Verdict on a machine's top bin: "over" says more than it earns, "under" less, "honest".
+  function judge(recs){
+    let top = recs.filter(r => r.conf >= 0.9);
+    if (top.length < 3) top = recs;
+    const conf = top.reduce((a, r) => a + r.conf, 0) / top.length;
+    const acc = top.filter(r => r.right).length / top.length;
+    const d = acc - conf;
+    return { n: top.length, conf, acc, answer: d < -0.07 ? "over" : d > 0.07 ? "under" : "honest" };
+  }
+
+  // ---------- days ----------
+  const DAYS = [
+    { title: "First shift", kind: "stamp", secs: 60, smudge: 0, newShare: 0, goalRight: 10, goal90: null },
+    { title: "Ink", kind: "stamp", secs: 90, smudge: 0.35, newShare: 0, goalRight: 14, goal90: 0.8 },
+    { title: "New neighbours", kind: "stamp", secs: 90, smudge: 0.2, newShare: 0.4, goalRight: 14, goal90: 0.8 },
+    { title: "The machine", kind: "watch", n: 30, smudge: 0.6, hideMin: 1, newShare: 0 },
+    { title: "The knob", kind: "knob", tuneN: 120, freshN: 100, smudge: 0.6, hideMin: 1, newShare: 0, goalGap: 0.08 }
+  ];
+  // Day 4 shift: redraw until the top bin is clearly below the honest line
+  // (at least 12 points, so its chart dot shows red), so the answer is always "over".
+  function watchShift(seed, d, w){
+    const r = rng(seed); let b = null;
+    for (let i = 0; i < 300; i++){
+      b = makeBatch(r() * 1e9 >>> 0, d.n, d);
+      const j = judge(b.map(p => machine(w, p, 1)));
+      if (j.n >= 8 && j.answer === "over" && j.acc - j.conf <= -0.12) return b;
+    }
+    return b;
+  }
+  // Day 5 pair: redraw until the knob that is best on the tuning stamps, and every
+  // knob within 6 steps of it, clears the fresh shift, while the knob at 1 fails it
+  // by a wide margin. A player who tunes well can never lose to sampling noise.
+  function knobShift(seed, d, w){
+    const r = rng(seed), G = (b, x) => gap(reliability(b.map(p => machine(w, p, knobT(x))), MODEL_EDGES));
+    let tune = null, fresh = null;
+    for (let i = 0; i < 400; i++){
+      tune = makeBatch(r() * 1e9 >>> 0, d.tuneN, d); fresh = makeBatch(r() * 1e9 >>> 0, d.freshN, d);
+      let bx = 0, bg = Infinity;
+      for (let x = 0; x <= 100; x++){ const g = G(tune, x); if (g < bg){ bg = g; bx = x; } }
+      let ok = G(fresh, 0) > 2 * d.goalGap;
+      for (let x = Math.max(0, bx - 6); ok && x <= Math.min(100, bx + 6); x++) if (G(fresh, x) > d.goalGap) ok = false;
+      if (ok) return { tune, fresh, best: bx };
+    }
+    return { tune, fresh, best: null };
+  }
+  const MIN90 = 4;
+  function checkStampDay(day, recs){
+    const right = recs.filter(r => r.right).length;
+    const s90 = recs.filter(r => r.conf >= 0.85);
+    const r90 = s90.filter(r => r.right).length;
+    let ok = right >= day.goalRight;
+    if (day.goal90 != null) ok = ok && s90.length >= MIN90 && r90 >= day.goal90 * s90.length - 1e-9;
+    return { cleared: ok, right, n: recs.length, n90: s90.length, right90: r90 };
+  }
+  // Temperature knob: slider 0..100 maps to T = 2^(s/100 * 5), from 1 to 32.
+  function knobT(s){ return Math.pow(2, s / 100 * 5); }
+
+  return { rng, makePassport, makeBatch, rule, features, trainLR, sigmoid, machine, archiveModel,
+    reliability, gap, judge, watchShift, knobShift, PLAYER_EDGES, MODEL_EDGES, DAYS, checkStampDay, knobT, HOME, NEW, COLS, ROWS, MIN90 };
+})();
+if (typeof module !== "undefined") module.exports = BD;
+
+/* ---------- the page ---------- */
+if (typeof document !== "undefined") (function(){
+  const $ = id => document.getElementById(id);
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const COVER = { Arvenia: "#8c2f39", Belmora: "#23407a", Corvane: "#2e6b4a", Dravask: "#5b3d8a" };
+  const INKS = ["#1d6fb8", "#b8336a", "#3f8a3d", "#453781", "#b4602a"];
+  const SKIN = ["#f1d0b5", "#dcae88", "#b98260", "#8d5a3b", "#5e3a26"];
+  const HAIR = ["#2a1d14", "#5a3a1e", "#a8742e", "#c9c3b8", "#7a2e1e"];
+  const STORE = "border-desk:cleared";
+
+  let cleared = 0;
+  try { cleared = Math.max(0, Math.min(5, parseInt(localStorage.getItem(STORE) || "0", 10) || 0)); } catch (e) {}
+  function saveCleared(n){ cleared = Math.max(cleared, n); try { localStorage.setItem(STORE, String(cleared)); } catch (e) {} }
+
+  /* ----- sound, off by default ----- */
+  const Snd = {
+    on: false, ctx: null,
+    ac(){ if (!this.ctx){ try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { this.on = false; } } return this.ctx; },
+    thunk(){
+      if (!this.on) return; const c = this.ac(); if (!c) return; const t = c.currentTime;
+      const len = Math.floor(c.sampleRate * 0.12), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+      const src = c.createBufferSource(); src.buffer = buf;
+      const f = c.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 420;
+      const g = c.createGain(); g.gain.value = 0.9;
+      src.connect(f); f.connect(g); g.connect(c.destination); src.start(t);
+      const o = c.createOscillator(), og = c.createGain(); o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.15);
+      og.gain.setValueAtTime(0.5, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      o.connect(og); og.connect(c.destination); o.start(t); o.stop(t + 0.2);
+    },
+    tone(freq, type, dur, vol){
+      if (!this.on) return; const c = this.ac(); if (!c) return; const t = c.currentTime + 0.08;
+      const o = c.createOscillator(), g = c.createGain(); o.type = type; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + dur + 0.02);
+    },
+    good(){ this.tone(880, "sine", 0.18, 0.15); },
+    bad(){ this.tone(130, "square", 0.3, 0.08); }
+  };
+  $("snd").addEventListener("click", () => {
+    Snd.on = !Snd.on; if (Snd.on) { const c = Snd.ac(); if (c && c.resume) c.resume(); }
+    $("snd").textContent = "Sound: " + (Snd.on ? "on" : "off"); $("snd").setAttribute("aria-pressed", String(Snd.on));
+  });
+
+  /* ----- day text ----- */
+  const BRIEF = [
+    "The chief left you no rulebook, only a buzzer. Stamp each passport PASS or DENY, and say how sure you are: 50, 70 or 90 out of 100. Get 10 right before the bell.",
+    "It rained in the night. Ink has smeared over some stamp pages, and stamps may hide under a blot. Get 14 right. Say 90% on at least four passports, and be right on 8 in 10 of those.",
+    "A new border opened. Travellers from Dravask carry purple passports, and some bear a gold seal nobody here has seen. Same goal: 14 right, and 8 in 10 right when you say 90%.",
+    "The ministry bought a machine. It learned from last year's archive: 400 clean passports and their answers. This week it rained hard, and many pages came in inked. Watch it work one shift, then say whether its sureness holds up.",
+    "The machine has one knob. It divides the machine's score before it turns into a sureness. Set it on last week's stamps, then run a fresh shift. Goal: the average gap between what it says and how often it is right stays under 8 points."
+  ];
+  const WHAT = [
+    "You found a rule from cases and a buzzer; nobody told you the rule. A program can learn the same way from <em>labelled examples</em>, cases with the right answer attached. Sorting cases into groups like pass and deny is <strong>classification</strong>.",
+    "The chart held each sureness up against what happened. When your 90% stamps come out right about 9 times in 10, and your 70% ones about 7 in 10, your sureness means what it says. That is <strong>calibration</strong>. Under the ink, 70% was often the honest stamp.",
+    "What you learned at home told you nothing about Dravask, yet a first guess there can feel just as sure. Cases unlike anything you learned from are <strong>out-of-distribution</strong>. Sureness earned on one kind of case does not carry over to another.",
+    "The machine is <strong>logistic regression</strong>: it gives each <em>feature</em> (a thing it reads off the page: stamps it can see, country, age, glasses) a weight, one number per feature, adds them up into a score, and squashes the score into a sureness between 0 and 1. The archive had no ink, so training pushed the weights up until every case looked certain. On inked pages it stayed certain and was often wrong: its sureness was <strong>miscalibrated</strong>, overconfident.",
+    "The knob made every answer less sure without changing a single verdict, and you set it so the machine's 90% means 90%. This fix is <strong>temperature scaling</strong>; the knob is the temperature. It cannot see through ink. It only makes the machine admit what it cannot see."
+  ];
+
+  /* ----- state ----- */
+  const S = {
+    day: 0, mode: "brief", paused: false, clock: 0, recs: [], log: [], queue: [], qi: 0,
+    cur: null, r: null, W: null, T: 1, endPending: false, answerShown: false, knobS: 0, tune: null, oldGap: 0
+  };
+
+  /* ----- day buttons ----- */
+  function renderDays(){
+    const nav = $("days"); nav.innerHTML = "";
+    BD.DAYS.forEach((d, i) => {
+      const b = document.createElement("button");
+      b.className = "daybtn"; b.disabled = i > cleared;
+      b.setAttribute("aria-current", String(i === S.day));
+      b.innerHTML = "Day " + (i + 1) + (i < cleared ? ' <span class="done">✓</span>' : "");
+      b.title = d.title;
+      b.addEventListener("click", () => openDay(i));
+      nav.appendChild(b);
+    });
+  }
+
+  function openDay(i){
+    S.day = i; S.mode = "brief"; S.cur = null; S.recs = []; S.log = []; S.endPending = false;
+    const d = BD.DAYS[i];
+    $("btitle").textContent = "Day " + (i + 1) + " · " + d.title;
+    $("btext").textContent = BRIEF[i];
+    $("bgo").textContent = d.kind === "stamp" ? "Open the booth" : d.kind === "watch" ? "Start the machine" : "Go to the knob";
+    $("brief").hidden = false; $("report").hidden = true; $("report").innerHTML = "";
+    $("controls").hidden = d.kind !== "stamp"; setStampsEnabled(false);
+    $("logwrap").hidden = true;
+    S.clock = d.secs || 0;
+    renderDays(); renderHud(); renderLog();
+  }
+
+  $("bgo").addEventListener("click", () => {
+    const d = BD.DAYS[S.day];
+    $("brief").hidden = true;
+    S.r = BD.rng((Date.now() ^ (S.day * 7919)) >>> 0);
+    if (d.kind === "stamp"){ S.mode = "run"; S.clock = d.secs; nextPassport(); }
+    else if (d.kind === "watch"){ S.W = BD.archiveModel(); S.T = 1; S.mode = "watch"; S.queue = BD.watchShift(S.r() * 1e9 >>> 0, d, S.W); S.qi = 0; nextPassport(); }
+    else startKnob();
+    $("logwrap").hidden = false;
+  });
+
+  /* ----- passports ----- */
+  function speed(){ return S.mode === "fresh" && S.fast ? 0.12 : 1; }
+  function nextPassport(){
+    const d = BD.DAYS[S.day];
+    let p;
+    if (S.mode === "run") p = BD.makePassport(S.r, d);
+    else { if (S.qi >= S.queue.length){ endDay(); return; } p = S.queue[S.qi++]; }
+    S.cur = { p, phase: "in", t: 0, verdict: null, conf: 0, right: null, reveal: 0 };
+    setStampsEnabled(false);
+    renderHud();
+  }
+  function setStampsEnabled(on){ document.querySelectorAll(".sb").forEach(b => b.disabled = !on); }
+
+  function stamp(pass, conf){
+    const c = S.cur; if (!c || c.phase !== "wait") return;
+    c.verdict = pass; c.conf = conf; c.right = pass === c.p.pass; c.phase = "stamp"; c.t = 0;
+    setStampsEnabled(false);
+    Snd.thunk(); setTimeout(() => c.right ? Snd.good() : Snd.bad(), 0);
+    S.recs.push({ conf, right: c.right, isNew: c.p.country === BD.NEW });
+    S.log.unshift({ p: c.p, pass, conf, right: c.right });
+    renderLog(); renderHud();
+  }
+  document.querySelectorAll(".sb").forEach(b => b.addEventListener("click", () => stamp(b.dataset.v === "1", parseFloat(b.dataset.c))));
+  const KEYMAP = { "1": [0, 0.9], "2": [0, 0.7], "3": [0, 0.5], "4": [1, 0.5], "5": [1, 0.7], "6": [1, 0.9] };
+  document.addEventListener("keydown", e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const k = KEYMAP[e.key];
+    if (k && S.mode === "run"){ stamp(k[0] === 1, k[1]); e.preventDefault(); }
+  });
+  if (matchMedia("(hover: none)").matches) $("keyhint").textContent = "";
+
+  /* ----- HUD and log ----- */
+  function renderHud(){
+    const d = BD.DAYS[S.day];
+    const right = S.recs.filter(r => r.right).length;
+    const cb = $("clock");
+    if (d.kind === "stamp"){
+      cb.hidden = false;
+      const frac = Math.max(0, S.clock / d.secs);
+      $("clockbar").style.width = (frac * 100).toFixed(1) + "%";
+      cb.classList.toggle("late", S.clock < 10);
+      const s = Math.max(0, Math.ceil(S.clock));
+      $("hleft").innerHTML = "<b>" + Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0") + "</b>";
+      $("hright").innerHTML = "right <b>" + right + "</b> / " + d.goalRight;
+    } else {
+      cb.hidden = true;
+      const total = S.mode === "fresh" || S.mode === "watch" ? S.queue.length : 0;
+      $("hleft").innerHTML = total ? "machine at the desk · <b>" + S.recs.length + "</b> / " + total : "";
+      $("hright").innerHTML = S.mode === "fresh" ? "knob <b>" + S.T.toFixed(1) + "</b>" : "";
+    }
+  }
+  function pct(c){ return Math.round(c * 100) + "%"; }
+  function renderLog(){
+    const t = $("log"), seal = S.day === 2;
+    const rows = S.log.slice(0, 10).map(e => {
+      const p = e.p;
+      return "<tr><td><i class='cv' style='background:" + COVER[p.country] + "'></i>" + p.country + "</td><td>" + p.age + "</td><td>" + p.stamps +
+        (p.hidden ? " <span class='hint'>(" + p.hidden + " inked)</span>" : "") + "</td><td>" + (p.glasses ? "yes" : "no") + "</td>" +
+        (seal ? "<td>" + (p.country === BD.NEW ? (p.seal ? "yes" : "no") : "") + "</td>" : "") + "<td>" + (e.pass ? "pass" : "deny") + " " + pct(e.conf) + "</td><td>" +
+        (e.right ? "<span class='yes'>✓</span>" : "<span class='nope'>✗</span>") + "</td></tr>";
+    }).join("");
+    t.innerHTML = "<tr><th>from</th><th>age</th><th>stamps</th><th>glasses</th>" + (seal ? "<th>seal</th>" : "") + "<th>stamped</th><th></th></tr>" +
+      (rows || "<tr><td colspan='7' class='hint'>Nothing stamped yet.</td></tr>");
+  }
+
+  /* ----- canvas ----- */
+  const cv = $("cv"), ctx = cv.getContext("2d");
+  let CW = 0, CH = 0, DPR = 1, colours = {};
+  function readColours(){
+    ["--panel-2","--panel","--ink","--muted","--line","--ok","--no","--gold","--sheet","--sheet-ink","--accent"].forEach(k => colours[k] = css(k));
+  }
+  function resize(){
+    const w = $("stage").clientWidth;
+    const h = Math.round(w * (w < 520 ? 0.78 : 0.6));
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = Math.round(w * DPR); cv.height = Math.round(h * DPR);
+    cv.style.height = h + "px"; CW = w; CH = h;
+  }
+  window.addEventListener("resize", resize);
+  try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", readColours); } catch (e) {}
+
+  function rr(x, y, w, h, r){ ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+  const ease = t => 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3);
+
+  function drawFace(p, x, y, w, h){
+    ctx.fillStyle = "#c9d6dc"; ctx.fillRect(x, y, w, h);
+    ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+    const cx = x + w / 2, cy = y + h * 0.44, r = w * 0.24;
+    const shirt = ["#4a5a6a", "#6a4a3a", "#3a5a4a", "#5a4a6a", "#7a6a4a"][p.seed % 5];
+    if (p.style === 1){ ctx.fillStyle = HAIR[p.hair]; rr(cx - r * 1.2, cy - r * 1.1, r * 2.4, r * 2.7, r * 0.9); ctx.fill(); }
+    ctx.fillStyle = shirt; ctx.beginPath(); ctx.ellipse(cx, y + h * 1.02, w * 0.46, h * 0.3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = SKIN[p.skin]; ctx.fillRect(cx - r * 0.35, cy + r * 0.8, r * 0.7, r * 0.7);
+    ctx.beginPath(); ctx.ellipse(cx, cy, r, r * 1.15, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = HAIR[p.hair];
+    if (p.style === 0 || p.style === 1){ ctx.beginPath(); ctx.ellipse(cx, cy - r * 0.45, r * 1.05, r * 0.75, 0, Math.PI, 0); ctx.fill(); }
+    if (p.style === 3){ ctx.beginPath(); ctx.ellipse(cx, cy - r * 0.5, r * 1.02, r * 0.7, 0, Math.PI, 0); ctx.fill(); ctx.beginPath(); ctx.arc(cx, cy - r * 1.35, r * 0.4, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = "#1e1a16";
+    ctx.beginPath(); ctx.arc(cx - r * 0.38, cy, r * 0.09, 0, Math.PI * 2); ctx.arc(cx + r * 0.38, cy, r * 0.09, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#5a3a2a"; ctx.lineWidth = Math.max(1, r * 0.07);
+    ctx.beginPath(); ctx.moveTo(cx - r * 0.25, cy + r * 0.52); ctx.lineTo(cx + r * 0.25, cy + r * 0.5); ctx.stroke();
+    if (p.glasses){
+      ctx.strokeStyle = "#1e1a16"; ctx.lineWidth = Math.max(1, r * 0.08);
+      ctx.beginPath(); ctx.arc(cx - r * 0.38, cy, r * 0.26, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx + r * 0.38, cy, r * 0.26, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx - r * 0.12, cy); ctx.lineTo(cx + r * 0.12, cy); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawEmblem(country, x, y, s){
+    ctx.fillStyle = COVER[country]; ctx.beginPath();
+    if (country === "Arvenia"){ for (let i = 0; i < 10; i++){ const a = -Math.PI / 2 + i * Math.PI / 5, rad = i % 2 ? s * 0.4 : s; ctx.lineTo(x + Math.cos(a) * rad, y + Math.sin(a) * rad); } }
+    else if (country === "Belmora"){ ctx.moveTo(x, y - s); ctx.lineTo(x + s, y); ctx.lineTo(x, y + s); ctx.lineTo(x - s, y); }
+    else if (country === "Corvane"){ ctx.moveTo(x, y - s); ctx.lineTo(x + s, y + s * 0.8); ctx.lineTo(x - s, y + s * 0.8); }
+    else { for (let i = 0; i < 6; i++){ const a = i * Math.PI / 3; ctx.lineTo(x + Math.cos(a) * s, y + Math.sin(a) * s); } }
+    ctx.closePath(); ctx.fill();
+  }
+
+  function drawStampMark(st, x, y, s, alpha){
+    ctx.save(); ctx.globalAlpha = alpha; ctx.translate(x, y); ctx.rotate(st.rot);
+    ctx.strokeStyle = INKS[st.col]; ctx.fillStyle = INKS[st.col]; ctx.lineWidth = Math.max(1, s * 0.12);
+    if (st.shape === 0){ ctx.beginPath(); ctx.arc(0, 0, s, 0, Math.PI * 2); ctx.stroke(); ctx.beginPath(); ctx.arc(0, 0, s * 0.62, 0, Math.PI * 2); ctx.stroke(); }
+    else if (st.shape === 1){ rr(-s * 1.15, -s * 0.75, s * 2.3, s * 1.5, s * 0.2); ctx.stroke(); ctx.fillRect(-s * 0.7, -s * 0.1, s * 1.4, s * 0.2); }
+    else { ctx.beginPath(); for (let i = 0; i < 8; i++){ const a = i * Math.PI / 4; ctx.lineTo(Math.cos(a) * s, Math.sin(a) * s); } ctx.closePath(); ctx.stroke(); ctx.beginPath(); ctx.arc(0, 0, s * 0.25, 0, Math.PI * 2); ctx.fill(); }
+    ctx.restore();
+  }
+
+  function drawBlot(p, x, y, w, h, alpha){
+    const r = BD.rng(p.seed), cx = x + w / 2, cy = y + h / 2;
+    ctx.save(); ctx.globalAlpha = alpha; ctx.fillStyle = "#1d2236";
+    ctx.beginPath();
+    const n = 16;
+    for (let i = 0; i <= n; i++){
+      const a = i / n * Math.PI * 2, k = 0.92 + r() * 0.2;
+      ctx.lineTo(cx + Math.cos(a) * w * 0.56 * k, cy + Math.sin(a) * h * 0.58 * k);
+    }
+    ctx.fill();
+    for (let i = 0; i < 4; i++){ ctx.beginPath(); ctx.arc(cx + (r() - 0.5) * w * 1.3, cy + (r() - 0.5) * h * 1.3, w * 0.05 * (0.5 + r()), 0, Math.PI * 2); ctx.fill(); }
+    ctx.restore();
+  }
+
+  function drawPassport(c, ox){
+    const p = c.p;
+    const bw = Math.min(CW * 0.94, (CH * 0.82) / 0.62), bh = bw * 0.62;
+    const bx = (CW - bw) / 2 + ox, by = CH * 0.15;
+    const shake = c.phase === "stamp" && c.t < 0.12 ? Math.sin(c.t * 200) * 2 : 0;
+    ctx.save(); ctx.translate(shake, 0);
+    ctx.fillStyle = "rgba(0,0,0,.18)"; rr(bx + 3, by + 5, bw, bh, bw * 0.03); ctx.fill();
+    ctx.fillStyle = COVER[p.country]; rr(bx, by, bw, bh, bw * 0.03); ctx.fill();
+    const m = bw * 0.025, pw = (bw - m * 2) / 2, ph = bh - m * 2;
+    const lx = bx + m, rx = bx + m + pw, py = by + m;
+    ctx.fillStyle = colours["--sheet"]; ctx.fillRect(lx, py, pw * 2, ph);
+    ctx.fillStyle = "rgba(0,0,0,.08)"; ctx.fillRect(rx - 2, py, 4, ph);
+    const fs = Math.max(9, bw / 32);
+    // left page
+    ctx.fillStyle = COVER[p.country]; ctx.font = "700 " + (fs * 1.15) + "px " + "system-ui, sans-serif";
+    ctx.textBaseline = "middle"; ctx.textAlign = "left";
+    drawEmblem(p.country, lx + pw * 0.09, py + ph * 0.1, fs * 0.6);
+    ctx.fillText(p.country.toUpperCase(), lx + pw * 0.17, py + ph * 0.1);
+    const fx = lx + pw * 0.06, fy = py + ph * 0.22, fw = pw * 0.4, fh = ph * 0.56;
+    drawFace(p, fx, fy, fw, fh);
+    ctx.strokeStyle = "rgba(0,0,0,.25)"; ctx.lineWidth = 1; ctx.strokeRect(fx, fy, fw, fh);
+    const tx = fx + fw + pw * 0.06;
+    const field = (label, val, yy) => {
+      ctx.fillStyle = "rgba(58,53,40,.65)"; ctx.font = "600 " + (fs * 0.75) + "px system-ui, sans-serif"; ctx.fillText(label, tx, yy);
+      ctx.fillStyle = colours["--sheet-ink"]; ctx.font = "600 " + fs + "px system-ui, sans-serif"; ctx.fillText(val, tx, yy + fs * 1.05);
+    };
+    const parts = p.name.split(" ");
+    field("NAME", parts[0], fy + fs * 0.3);
+    ctx.fillText(parts[1], tx, fy + fs * 2.4);
+    field("AGE", String(p.age), fy + fh * 0.52);
+    field("FROM", p.country, fy + fh * 0.8);
+    if (p.seal){
+      const sx = fx + fw * 0.95, sy = fy + fh * 0.98, sr = fs * 1.2;
+      ctx.fillStyle = colours["--gold"]; ctx.beginPath();
+      for (let i = 0; i < 24; i++){ const a = i * Math.PI / 12, rad = i % 2 ? sr * 0.82 : sr; ctx.lineTo(sx + Math.cos(a) * rad, sy + Math.sin(a) * rad); }
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,.7)"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(sx, sy, sr * 0.5, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.fillStyle = "rgba(58,53,40,.35)"; ctx.font = (fs * 0.7) + "px " + "ui-monospace, Menlo, monospace";
+    ctx.fillText("<<" + p.name.toUpperCase().replace(" ", "<") + "<<<<", lx + pw * 0.06, py + ph * 0.92);
+    // right page: stamps
+    ctx.fillStyle = "rgba(58,53,40,.65)"; ctx.font = "600 " + (fs * 0.75) + "px system-ui, sans-serif";
+    ctx.fillText("ENTRY STAMPS", rx + pw * 0.06, py + ph * 0.08);
+    const gx = rx + pw * 0.05, gy = py + ph * 0.16, gw = pw * 0.9, gh = ph * 0.8;
+    const cw = gw / BD.COLS, ch = gh / BD.ROWS, ss = Math.min(cw, ch) * 0.3;
+    const reveal = c.reveal;
+    for (const st of p.cells){
+      const col = st.cell % BD.COLS, row = Math.floor(st.cell / BD.COLS);
+      drawStampMark(st, gx + (col + 0.5 + st.jx * 0.3) * cw, gy + (row + 0.5 + st.jy * 0.3) * ch, ss, st.hid ? 0.75 : 0.8);
+    }
+    if (p.blot) drawBlot(p, gx + p.blot.c0 * cw, gy + p.blot.r0 * ch, cw * 2, ch * 2, 0.94 - 0.72 * reveal);
+    // decision stamp
+    if (c.verdict !== null){
+      const k = c.phase === "stamp" ? 1 + 0.8 * (1 - ease(c.t / 0.14)) : 1;
+      const col = c.verdict ? colours["--ok"] : colours["--no"];
+      ctx.save(); ctx.translate(rx + pw * 0.5, py + ph * 0.52); ctx.rotate(c.verdict ? -0.12 : 0.1); ctx.scale(k, k);
+      ctx.globalAlpha = 0.9;
+      ctx.strokeStyle = col; ctx.lineWidth = fs * 0.28; const sw = pw * 0.7, sh = ph * 0.34;
+      rr(-sw / 2, -sh / 2, sw, sh, fs * 0.5); ctx.stroke();
+      ctx.fillStyle = col; ctx.textAlign = "center"; ctx.font = "800 " + (fs * 2) + "px system-ui, sans-serif";
+      ctx.fillText(c.verdict ? "ENTRY" : "DENIED", 0, -sh * 0.1);
+      ctx.font = "700 " + (fs * 1.0) + "px ui-monospace, Menlo, monospace";
+      ctx.fillText(pct(c.conf) + " sure", 0, sh * 0.3);
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  function drawBanner(){
+    const c = S.cur; const fs = Math.max(12, CW / 40);
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    let txt = "", col = colours["--muted"];
+    if (S.paused){ txt = "Paused"; }
+    else if (c && c.verdict !== null && (c.phase === "stamp" || c.phase === "out")){
+      txt = c.right ? "✓ Right" : "✗ Wrong: they should " + (c.p.pass ? "pass" : "be denied");
+      if (c.right && c.p.hidden) txt += " (" + c.p.hidden + " under the ink)";
+      else if (!c.right && c.p.hidden) txt += " (" + c.p.hidden + " stamps under the ink)";
+      col = c.right ? colours["--ok"] : colours["--no"];
+    } else if (c && c.phase === "wait" && S.mode === "run"){ txt = "Your stamp?"; }
+    else if (c && (S.mode === "watch" || S.mode === "fresh")){ txt = "The machine reads the page…"; }
+    ctx.fillStyle = col; ctx.font = "700 " + fs + "px " + "system-ui, sans-serif";
+    ctx.fillText(txt, CW / 2, CH * 0.075);
+  }
+
+  function draw(){
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.fillStyle = colours["--panel-2"]; ctx.fillRect(0, 0, CW, CH);
+    // desk edge
+    ctx.fillStyle = "rgba(0,0,0,.05)"; ctx.fillRect(0, CH * 0.93, CW, CH * 0.07);
+    const c = S.cur;
+    if (c){
+      let ox = 0;
+      if (c.phase === "in") ox = -(1 - ease(c.t)) * CW;
+      if (c.phase === "out") ox = (c.verdict ? 1 : -1) * ease(c.t) * CW;
+      drawPassport(c, ox);
+    } else if (S.mode === "brief" || S.mode === "report" || S.mode === "ask" || S.mode === "knob"){
+      ctx.fillStyle = colours["--muted"]; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.font = "600 " + Math.max(13, CW / 36) + "px system-ui, sans-serif";
+      ctx.fillText(S.mode === "brief" ? "The booth is closed." : S.mode === "knob" ? "The machine waits." : "The booth is closed for the day.", CW / 2, CH / 2);
+    }
+    drawBanner();
+  }
+
+  /* ----- the loop ----- */
+  let last = performance.now();
+  function frame(now){
+    let dt = Math.min(0.1, (now - last) / 1000); last = now;
+    if (S.paused) dt = 0;
+    step(dt);
+    if (CW) draw();
+    requestAnimationFrame(frame);
+  }
+  function step(dt){
+    const d = BD.DAYS[S.day];
+    if (S.mode === "run"){
+      S.clock -= dt; renderHudClock();
+      if (S.clock <= 0 && S.cur && (S.cur.phase === "wait" || S.cur.phase === "in")){ S.cur = null; endDay(); return; }
+    }
+    const c = S.cur; if (!c) return;
+    const sp = speed();
+    c.t += dt;
+    if (c.phase === "in" && c.t >= 0.3 * sp){
+      c.phase = "wait"; c.t = 0;
+      if (S.mode === "run") setStampsEnabled(true);
+    } else if (c.phase === "wait" && (S.mode === "watch" || S.mode === "fresh") && c.t >= 0.5 * sp){
+      const m = BD.machine(S.W, c.p, S.T);
+      c.verdict = m.pass; c.conf = m.conf; c.right = m.right; c.phase = "stamp"; c.t = 0;
+      Snd.thunk();
+      S.recs.push({ conf: m.conf, right: m.right });
+      S.log.unshift({ p: c.p, pass: m.pass, conf: m.conf, right: m.right });
+      renderLog(); renderHud();
+    } else if (c.phase === "stamp"){
+      if (c.t > 0.25 * sp) c.reveal = Math.min(1, c.reveal + dt / (0.3 * sp));
+      const hold = (c.right ? 0.8 : 1.5) * (S.mode === "run" ? 1 : 0.85) * sp;
+      if (c.t >= hold){ c.phase = "out"; c.t = 0; }
+    } else if (c.phase === "out" && c.t >= 0.28 * sp){
+      if (S.mode === "run" && S.clock <= 0){ S.cur = null; endDay(); }
+      else nextPassport();
+    }
+    void d;
+  }
+  let lastSec = -1;
+  function renderHudClock(){ const s = Math.ceil(S.clock); if (s !== lastSec){ lastSec = s; renderHud(); } }
+
+  document.addEventListener("visibilitychange", () => { S.paused = document.hidden; last = performance.now(); });
+
+  /* ----- reliability chart (SVG) ----- */
+  function relChart(bins, opt){
+    const W = 300, H = 230, x0 = 44, x1 = 286, y0 = 196, y1 = 14;
+    const X = c => x0 + (c - 0.5) / 0.5 * (x1 - x0), Y = a => y0 - a * (y0 - y1);
+    let s = "<svg viewBox='0 0 " + W + " " + H + "' role='img' aria-label='" + (opt.label || "Reliability chart") + "'>";
+    for (const a of [0, 0.25, 0.5, 0.75, 1]) s += "<line x1='" + x0 + "' x2='" + x1 + "' y1='" + Y(a) + "' y2='" + Y(a) + "' stroke='var(--line)'/><text x='" + (x0 - 6) + "' y='" + (Y(a) + 4) + "' text-anchor='end'>" + Math.round(a * 100) + "%</text>";
+    const ticks = opt.ticks || [0.5, 0.6, 0.7, 0.8, 0.9, 1];
+    for (const t of ticks) s += "<text x='" + X(t) + "' y='" + (y0 + 15) + "' text-anchor='middle'>" + Math.round(t * 100) + "%</text>";
+    s += "<line x1='" + X(0.5) + "' y1='" + Y(0.5) + "' x2='" + X(1) + "' y2='" + Y(1) + "' stroke='var(--muted)' stroke-dasharray='4 4'/>";
+    s += "<text x='" + (X(0.62)) + "' y='" + (Y(0.66)) + "' transform='rotate(-35 " + X(0.62) + " " + Y(0.66) + ")' style='font-size:10px'>honest line</text>";
+    s += "<text x='" + ((x0 + x1) / 2) + "' y='" + (H - 2) + "' text-anchor='middle'>" + (opt.xlab || "what you said") + "</text>";
+    s += "<text x='12' y='" + ((y0 + y1) / 2) + "' text-anchor='middle' transform='rotate(-90 12 " + ((y0 + y1) / 2) + ")'>how often right</text>";
+    for (const b of bins){
+      if (!b.n) continue;
+      const cx = X(b.conf), cy = Y(b.acc), far = b.acc < b.conf - 0.1 || b.acc > b.conf + 0.1;
+      const col = far ? "var(--no)" : "var(--accent)";
+      s += "<line x1='" + cx + "' x2='" + cx + "' y1='" + Y(b.conf) + "' y2='" + cy + "' stroke='" + col + "' stroke-width='2'/>";
+      s += "<circle cx='" + cx + "' cy='" + cy + "' r='" + (4 + Math.min(8, Math.sqrt(b.n) * 1.3)) + "' fill='" + col + "' fill-opacity='.85'/>";
+      s += "<text x='" + (cx + (cx > x1 - 40 ? -12 : 12)) + "' y='" + (cy + (cy < y1 + 20 ? 18 : -10)) + "' text-anchor='" + (cx > x1 - 40 ? "end" : "start") + "' style='fill:var(--ink);font-family:var(--mono)'>" + b.right + "/" + b.n + "</text>";
+    }
+    return s + "</svg>";
+  }
+  function relLines(bins, who){
+    return bins.filter(b => b.n).map(b => "When " + who + " said " + pct(b.conf) + ", " + (who === "you" ? "you were" : "it was") + " right " + b.right + " of " + b.n + " times (" + pct(b.acc) + ").").join(" ");
+  }
+
+  /* ----- day end ----- */
+  function endDay(){
+    const d = BD.DAYS[S.day];
+    setStampsEnabled(false);
+    S.cur = null;
+    const rep = $("report"); rep.hidden = false;
+    if (d.kind === "stamp"){
+      S.mode = "report";
+      const res = BD.checkStampDay(d, S.recs);
+      let h = "<h2>End of day " + (S.day + 1) + "</h2>";
+      h += "<p>You stamped " + res.n + " passports and got " + res.right + " right.</p>";
+      if (S.day === 2){
+        const home = BD.reliability(S.recs.filter(r => !r.isNew), BD.PLAYER_EDGES), nw = BD.reliability(S.recs.filter(r => r.isNew), BD.PLAYER_EDGES);
+        h += "<div class='charts'><div><h3>Home countries</h3>" + relChart(home, { ticks: [0.5, 0.7, 0.9], label: "Your sureness against results, home countries" }) +
+          "</div><div><h3>Dravask</h3>" + relChart(nw, { ticks: [0.5, 0.7, 0.9], label: "Your sureness against results, Dravask" }) + "</div></div>";
+        h += "<p class='hint'>Home: " + (relLines(home, "you") || "none.") + "<br>Dravask: " + (relLines(nw, "you") || "none.") + "</p>";
+      } else {
+        const bins = BD.reliability(S.recs, BD.PLAYER_EDGES);
+        h += "<div class='charts'><div><h3>Your sureness against what happened</h3>" + relChart(bins, { ticks: [0.5, 0.7, 0.9], label: "Your sureness against results" }) + "</div>" +
+          "<div><p class='hint'>Each dot is one sureness you used. On the dashed line, your word holds: 90% stamps right 9 times in 10. Below the line, you said more than you knew; above it, less.</p>" +
+          "<p class='hint'>" + (relLines(bins, "you") || "") + "</p></div></div>";
+      }
+      let goal = res.right + " right of " + d.goalRight + " needed";
+      if (d.goal90 != null) goal += "; 90% stamps: " + res.right90 + " right of " + res.n90 + (res.n90 < BD.MIN90 ? " (say 90% at least " + BD.MIN90 + " times)" : " (need 8 in 10)");
+      h += "<div class='goal " + (res.cleared ? "met" : "miss") + "'>" + (res.cleared ? "Day cleared. " : "Not yet. ") + goal + ".</div>";
+      h += finish(res.cleared);
+      rep.innerHTML = h;
+    } else if (d.kind === "watch"){
+      S.mode = "ask";
+      rep.innerHTML = "<div class='ask'><h2>Your verdict on the machine</h2><p>Look back at its stamps. When it said 90% or more, was it right about that often?</p>" +
+        "<div class='row'><button class='btn' data-a='over'>No: right less often than it says</button><button class='btn' data-a='honest'>Yes: about as often as it says</button><button class='btn' data-a='under'>No: right more often than it says</button></div></div>";
+      rep.querySelectorAll("[data-a]").forEach(b => b.addEventListener("click", () => answerWatch(b.dataset.a)));
+    } else if (d.kind === "knob" && S.mode === "fresh"){
+      S.mode = "report";
+      const bins = BD.reliability(S.recs, BD.MODEL_EDGES), g = BD.gap(bins);
+      const ok = g <= d.goalGap;
+      let h = "<h2>The fresh shift</h2><p>The knob stood at " + S.T.toFixed(1) + ". The machine stamped " + S.recs.length + " new passports and got " + S.recs.filter(r => r.right).length + " right; the knob does not change a verdict, only its sureness.</p>";
+      h += "<div class='charts'><div><h3>Machine with your knob, fresh shift</h3>" + relChart(bins, { xlab: "what the machine said", label: "Machine sureness against results" }) + "</div><div><p class='hint'>" + relLines(bins, "it") + "</p>" +
+        "<p class='readout'>average gap <b>" + Math.round(g * 100) + " points</b> (goal: under " + Math.round(d.goalGap * 100) + "; with the knob at 1 it was " + Math.round(S.oldGap * 100) + ")</p></div></div>";
+      h += "<div class='goal " + (ok ? "met" : "miss") + "'>" + (ok ? "Day cleared." : "Not yet: the gap is still too wide. Turn the knob and run again.") + "</div>";
+      h += finish(ok);
+      rep.innerHTML = h;
+    }
+    wireFinish();
+    renderHud();
+  }
+  function finish(ok){
+    let h = "";
+    if (ok){
+      saveCleared(S.day + 1);
+      h += "<div class='what'><h3>What you just did</h3><p>" + WHAT[S.day] + "</p></div>";
+    }
+    h += "<div class='row'>" + (ok && S.day < 4 ? "<button class='btn primary' data-go='next'>Day " + (S.day + 2) + "</button>" : "") +
+      "<button class='btn" + (ok ? "" : " primary") + "' data-go='again'>" + (ok ? "Play this day again" : "Try the day again") + "</button></div>";
+    if (ok && S.day === 4) h += "<p class='hint' style='margin-top:8px'>That was the last day. The desk stays open: replay any day above.</p>";
+    renderDays();
+    return h;
+  }
+  function wireFinish(){
+    $("report").querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => {
+      openDay(b.dataset.go === "next" ? S.day + 1 : S.day);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }));
+  }
+
+  function answerWatch(a){
+    const j = BD.judge(S.recs), bins = BD.reliability(S.recs, BD.MODEL_EDGES);
+    const ok = a === j.answer;
+    const words = { over: "right less often than it says", honest: "about as right as it says", under: "right more often than it says" };
+    S.mode = "report";
+    let h = "<h2>" + (ok ? "Well caught." : "Look again.") + "</h2>";
+    h += "<p>When the machine said 90% or more (" + j.n + " stamps, " + pct(j.conf) + " on average), it was right " + pct(j.acc) + " of the time: " + words[j.answer] + ".</p>";
+    h += "<div class='charts'><div><h3>Machine sureness against what happened</h3>" + relChart(bins, { xlab: "what the machine said", label: "Machine sureness against results" }) + "</div><div><p class='hint'>" + relLines(bins, "it") +
+      "</p><p class='hint'>Its misses sit on inked pages: it counts only the stamps it can see, and it has never met a blot.</p></div></div>";
+    h += "<div class='goal " + (ok ? "met" : "miss") + "'>" + (ok ? "Day cleared." : "Not yet. Watch a new shift and look at its sureness on the ✗ rows.") + "</div>";
+    h += finish(ok);
+    $("report").innerHTML = h; wireFinish();
+  }
+
+  /* ----- knob day ----- */
+  function startKnob(){
+    const d = BD.DAYS[4];
+    S.W = BD.archiveModel(); S.mode = "knob";
+    const ks = BD.knobShift(S.r() * 1e9 >>> 0, d, S.W);
+    S.tune = ks.tune; S.freshBatch = ks.fresh;
+    S.oldGap = BD.gap(BD.reliability(S.tune.map(p => BD.machine(S.W, p, 1)), BD.MODEL_EDGES));
+    const rep = $("report"); rep.hidden = false;
+    rep.innerHTML = "<h2>Last week's " + d.tuneN + " stamps</h2><p>The answers for these are known. Turn the knob and watch the dots.</p>" +
+      "<div class='knob'><label for='kn'>knob <span class='readout' id='kv'></span></label><input type='range' id='kn' min='0' max='100' step='1' value='" + S.knobS + "'></div>" +
+      "<div class='charts'><div id='kchart'></div><div><p class='readout' id='kgap'></p><p class='hint' id='klines'></p></div></div>" +
+      "<div class='row'><button class='btn primary' id='krun'>Run a fresh shift with this knob</button><label class='hint fastlbl'><input type='checkbox' id='kfast' checked> fast</label></div>";
+    const upd = () => {
+      S.knobS = +$("kn").value; S.T = BD.knobT(S.knobS);
+      const bins = BD.reliability(S.tune.map(p => BD.machine(S.W, p, S.T)), BD.MODEL_EDGES), g = BD.gap(bins);
+      $("kv").innerHTML = "<b>" + S.T.toFixed(1) + "</b>";
+      $("kchart").innerHTML = relChart(bins, { xlab: "what the machine said", label: "Machine sureness against results, last week" });
+      $("kgap").innerHTML = "average gap <b>" + Math.round(g * 100) + " points</b>";
+      $("klines").textContent = relLines(bins, "it");
+    };
+    $("kn").addEventListener("input", upd); upd();
+    $("krun").addEventListener("click", () => {
+      S.fast = $("kfast").checked;
+      rep.hidden = true; rep.innerHTML = "";
+      S.mode = "fresh"; S.recs = []; S.log = [];
+      S.queue = S.freshBatch; S.qi = 0;
+      renderLog(); nextPassport();
+    });
+    renderHud();
+  }
+
+  /* ----- boot ----- */
+  readColours(); resize();
+  const startDay = Math.min(cleared, 4);
+  openDay(startDay);
+  requestAnimationFrame(t => { last = t; frame(t); });
+})();
+</script>

@@ -1,0 +1,956 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creature Trainer — ml-course game</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+  :root{
+    --paper:#f6f8f7; --ink:#1c2422; --panel:#ffffff; --panel-2:#eef2f0;
+    --line:#d5ddda; --muted:#5d6b67; --accent:#1f918d;
+    --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8; --t9:#4f6272;
+    --win:#1baf7a; --lose:#eb6834;
+    --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
+    --mono:"SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    --display:"Avenir Next","Helvetica Neue",sans-serif;
+    --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --panel-2:#222d29;
+      --line:#31403b; --muted:#9dada8; --accent:#37b3ae; --t4:#e0679a; --t5:#5aa1e6; --t9:#93a8b8;
+      --win:#199e70; --lose:#d95926;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink)}
+  body{font-family:var(--body);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:900px;margin:0 auto;padding:0 16px 64px}
+
+  header.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    padding:16px 0 14px;border-bottom:1px solid var(--line);margin-bottom:18px}
+  header.top h1{font-family:var(--display);font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .pill{font-family:var(--display);font-size:11.5px;font-weight:600;letter-spacing:.02em;
+    padding:3px 10px;border-radius:999px;color:#fff;background:var(--t9);white-space:nowrap}
+  @media (prefers-color-scheme: dark){ .pill{color:#121816} }
+  .top .spacer{flex:1}
+  .backlink{font-size:13px;color:var(--muted);text-decoration:none;border-bottom:1px solid transparent;
+    padding:12px 0}
+  .backlink:hover{color:var(--accent);border-bottom-color:var(--accent)}
+
+  .intro{max-width:70ch;font-size:15px;margin:0 0 16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    box-shadow:var(--shadow);padding:14px;position:relative}
+  h2{font-family:var(--display);font-size:16px;font-weight:600;margin:0 0 2px}
+  .goal{font-size:14px;margin:0 0 10px;max-width:72ch}
+  .hint{font-size:12px;color:var(--muted)}
+
+  .levels{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+  .lv{font-family:var(--display);font-size:13px;font-weight:600;min-height:44px;min-width:44px;
+    border:1.5px solid var(--line);background:var(--panel);color:var(--ink);border-radius:12px;
+    padding:6px 12px;cursor:pointer}
+  .lv[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:#fff}
+  @media (prefers-color-scheme: dark){ .lv[aria-pressed="true"]{color:#121816} }
+  .lv:disabled{opacity:.45;cursor:default}
+  .lv .tick{color:var(--win);margin-left:4px}
+  .lv[aria-pressed="true"] .tick{color:inherit}
+
+  .stage{position:relative;width:100%;border-radius:10px;overflow:hidden;border:1px solid var(--line);
+    background:var(--panel-2);touch-action:manipulation}
+  .stage canvas{display:block;width:100%}
+  .banner{position:absolute;left:50%;top:10px;transform:translateX(-50%);font-family:var(--display);
+    font-weight:600;font-size:14px;padding:5px 14px;border-radius:999px;background:var(--panel);
+    border:1.5px solid var(--line);max-width:92%;width:max-content;text-align:center;pointer-events:none;opacity:0;transition:opacity .2s}
+  .banner.show{opacity:1}
+  .banner.win{border-color:var(--win);color:var(--win)}
+  .banner.lose{border-color:var(--lose);color:var(--lose)}
+
+  .mood{font-size:13.5px;margin:8px 0 10px;min-height:22px}
+  .mood b{font-family:var(--display)}
+
+  .meters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:0 0 12px}
+  .meter{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:7px 10px}
+  .meter .k{font-family:var(--display);font-size:11.5px;font-weight:600;color:var(--muted)}
+  .meter .v{font-family:var(--mono);font-size:18px}
+  .meter .v.win{color:var(--win)} .meter .v.lose{color:var(--lose)}
+  .meter .t{font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+  .sizebox{display:flex;align-items:center;gap:8px;margin:0 0 4px}
+  .sizebox .lab{font-family:var(--display);font-weight:600;font-size:14px;min-width:92px}
+  .sizebox input[type=range]{flex:1;min-width:0;height:44px;accent-color:var(--accent);margin:0}
+  .sq{font-family:var(--display);font-size:20px;font-weight:600;width:44px;height:44px;flex:none;
+    border:1.5px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);cursor:pointer;padding:0}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 0}
+  .btn{font-family:var(--display);font-size:14px;font-weight:600;min-height:44px;border:1.5px solid var(--line);
+    background:var(--panel);color:var(--ink);padding:8px 16px;border-radius:999px;cursor:pointer}
+  .btn.main{background:var(--accent);border-color:var(--accent);color:#fff}
+  @media (prefers-color-scheme: dark){ .btn.main{color:#121816} }
+  .btn:disabled{opacity:.45;cursor:default}
+  .btn:focus-visible,.sq:focus-visible,.lv:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .cups{display:flex;gap:10px;font-family:var(--display);font-size:13px;font-weight:600}
+  .cups span{padding:4px 10px;border-radius:999px;border:1.5px dashed var(--line);color:var(--muted)}
+  .cups span.got{border-style:solid;border-color:var(--win);color:var(--win)}
+
+  .logwrap{margin-top:14px}
+  .logwrap h3{font-family:var(--display);font-size:13px;font-weight:600;margin:0 0 4px;color:var(--muted)}
+  svg{display:block;max-width:100%;height:auto}
+  svg text{font-family:var(--body);fill:var(--muted);font-size:11px}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:var(--muted);margin-top:4px}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+  .legend i.ln{width:14px;height:3px;border-radius:2px}
+
+  .reveal{position:absolute;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;
+    padding:12px;border-radius:12px;z-index:5}
+  .reveal.show{display:flex}
+  .reveal .box{background:var(--panel);border:1.5px solid var(--accent);border-radius:12px;padding:16px;
+    max-width:520px;width:100%;box-shadow:var(--shadow);max-height:100%;overflow:auto}
+  .reveal h3{font-family:var(--display);font-size:15px;margin:0 0 6px}
+  .reveal p{font-size:14px;margin:0 0 8px}
+  .reveal p.idea{font-family:var(--display);font-weight:600;color:var(--accent)}
+  .reveal .nums{font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+  footer.bot{border-top:1px solid var(--line);padding-top:14px;margin-top:26px;font-size:12.5px;color:var(--muted)}
+  footer.bot a{color:var(--accent)}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <h1>Creature Trainer</h1>
+  <span class="pill">Game 3 · Fitting</span>
+  <span class="spacer"></span>
+  <button class="btn" id="sound" aria-pressed="false" style="font-size:12px;padding:6px 12px">Sound: off</button>
+  <a class="backlink" href="index.html">← All games</a>
+</header>
+
+<p class="intro">This is Noodle. Its body is a curve, and it bends to touch points. Give it tricks, train it on the
+  gym points, then send it into the wild, where fresh points come from the same place.</p>
+
+<div class="levels" id="levels"></div>
+
+<div class="card" id="card">
+  <h2 id="ltitle"></h2>
+  <p class="goal" id="lgoal"></p>
+  <div class="stage" id="stage">
+    <canvas id="arena" aria-label="Noodle, its body bent through the gym points"></canvas>
+    <div class="banner" id="banner"></div>
+  </div>
+  <div class="mood" id="mood"></div>
+  <div class="meters" id="meters">
+    <div class="meter"><div class="k">Gym miss</div><div class="v" id="mgym">–</div><div class="t" id="tgym">on the points it trains on</div></div>
+    <div class="meter" id="sparmeter" hidden><div class="k">Sparring miss</div><div class="v" id="mspar">–</div><div class="t">on the 6 sparring partners</div></div>
+    <div class="meter"><div class="k">Wild miss</div><div class="v" id="mwild">–</div><div class="t" id="twild"></div></div>
+  </div>
+  <div class="sizebox">
+    <span class="lab" id="sizelab">Tricks: 1</span>
+    <button class="sq" id="minus" aria-label="One trick fewer">−</button>
+    <input type="range" id="size" min="0" max="5" step="1" value="0" aria-label="Number of tricks">
+    <button class="sq" id="plus" aria-label="One trick more">+</button>
+  </div>
+  <div class="hint" id="sizehint">A trick is one wave shape Noodle can mix into its body. More tricks, more ways to bend.</div>
+  <div class="row">
+    <button class="btn" id="gymfight">Gym fight</button>
+    <button class="btn" id="sparfight" hidden>Spar</button>
+    <button class="btn main" id="wildfight">Wild fight</button>
+    <span class="cups" id="cups" hidden><span id="cupgym">Gym cup</span><span id="cupwild">Wild cup</span></span>
+    <button class="btn" id="retry" hidden>Start over</button>
+  </div>
+  <div class="logwrap" id="logwrap" hidden>
+    <h3 id="logtitle">Fight log: wild miss by number of tricks</h3>
+    <svg id="log" viewBox="0 0 460 220" role="img" aria-label="Wild miss against number of tricks"></svg>
+    <div class="legend" id="logleg"></div>
+  </div>
+  <div class="reveal" id="reveal" role="dialog" aria-modal="false" aria-labelledby="rvh">
+    <div class="box">
+      <h3 id="rvh">What you just did</h3>
+      <div id="rvbody"></div>
+      <div class="row"><button class="btn main" id="rvnext">Next level</button><button class="btn" id="rvstay">Stay here</button></div>
+    </div>
+  </div>
+</div>
+
+<footer class="bot">
+  Everything runs in your browser. Noodle's body is a real fit of its tricks to the gym points, solved exactly in
+  the page; every miss on this page is computed live from that fit.
+</footer>
+</div>
+
+<script>
+"use strict";
+/* ═════════════════════════ PURE LOGIC START ═════════════════════════
+   No DOM here: node loads this part to check the curves and the levels. */
+
+const SIGMA = 0.25;      // noise on every gym and wild point
+const HALF_PERIOD = 1.5; // tricks are waves of period 2*HALF_PERIOD/k on x in [-1, 1]
+const JITTER = 0.8;      // gym x sits on a grid, moved by up to ±0.4 of a cell
+
+function rng(seed) {
+  let s = seed >>> 0;
+  return function () {
+    s = (s + 0x6D2B79F5) >>> 0;
+    let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function gauss(r) {
+  let u = 0;
+  while (!u) u = r();
+  const v = r();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+const CURVES = {
+  a: function (x) { return Math.sin(2.5 * x) + 0.4 * Math.cos(5 * x); },
+  b: function (x) { return 0.8 * Math.sin(7 * x) + 0.5 * Math.cos(2 * x); }
+};
+
+/* Trick j: j = 0 is a constant; j = 2k-1 is cos(πkx/H)/k, j = 2k is sin(πkx/H)/k.
+   The 1/k makes fast waves weak, so the minimum-norm fit prefers slow ones. */
+function trickRow(x, N) {
+  const r = new Float64Array(N);
+  if (N > 0) r[0] = 1;
+  for (let j = 1; j < N; j++) {
+    const k = Math.ceil(j / 2);
+    const a = Math.PI * k * x / HALF_PERIOD;
+    r[j] = (j % 2 ? Math.cos(a) : Math.sin(a)) / k;
+  }
+  return r;
+}
+
+/* One-sided Jacobi SVD of a tall matrix, M = U diag(s) Vᵀ (as in explorable 00c).
+   Accurate at the interpolation threshold, where normal equations break down. */
+function svdTall(M) {
+  const m = M.length, n = M[0].length;
+  const W = [];
+  for (let i = 0; i < m; i++) W.push(Float64Array.from(M[i]));
+  const V = [];
+  for (let i = 0; i < n; i++) { const r = new Float64Array(n); r[i] = 1; V.push(r); }
+  const EPS = 1e-15;
+  for (let sweep = 0; sweep < 60; sweep++) {
+    let rotations = 0;
+    for (let p = 0; p < n - 1; p++) {
+      for (let q = p + 1; q < n; q++) {
+        let a = 0, b = 0, g = 0;
+        for (let i = 0; i < m; i++) { const wp = W[i][p], wq = W[i][q]; a += wp * wp; b += wq * wq; g += wp * wq; }
+        if (g === 0) continue;
+        const scale = Math.sqrt(a * b);
+        if (scale === 0 || Math.abs(g) <= EPS * scale) continue;
+        rotations += 1;
+        const zeta = (b - a) / (2 * g);
+        const t = Math.sign(zeta || 1) / (Math.abs(zeta) + Math.sqrt(1 + zeta * zeta));
+        const c = 1 / Math.sqrt(1 + t * t), s = c * t;
+        for (let i = 0; i < m; i++) { const wp = W[i][p], wq = W[i][q]; W[i][p] = c * wp - s * wq; W[i][q] = s * wp + c * wq; }
+        for (let i = 0; i < n; i++) { const vp = V[i][p], vq = V[i][q]; V[i][p] = c * vp - s * vq; V[i][q] = s * vp + c * vq; }
+      }
+    }
+    if (rotations === 0) break;
+  }
+  const s = new Float64Array(n);
+  const U = [];
+  for (let i = 0; i < m; i++) U.push(new Float64Array(n));
+  for (let j = 0; j < n; j++) {
+    let nrm = 0;
+    for (let i = 0; i < m; i++) nrm += W[i][j] * W[i][j];
+    nrm = Math.sqrt(nrm);
+    s[j] = nrm;
+    if (nrm > 0) for (let i = 0; i < m; i++) U[i][j] = W[i][j] / nrm;
+  }
+  return { U: U, s: s, V: V };
+}
+
+/* β = pinv(A)·y with numpy's default cutoff; for a wide A this is the minimum-norm solution. */
+function pinvSolve(A, y) {
+  const m = A.length, n = A[0].length;
+  const RCOND = 1e-15;
+  const beta = new Float64Array(n);
+  if (m >= n) {
+    const sv = svdTall(A);
+    let smax = 0;
+    for (let j = 0; j < n; j++) smax = Math.max(smax, sv.s[j]);
+    for (let j = 0; j < n; j++) {
+      if (sv.s[j] <= RCOND * smax) continue;
+      let uy = 0;
+      for (let i = 0; i < m; i++) uy += sv.U[i][j] * y[i];
+      const coef = uy / sv.s[j];
+      for (let k = 0; k < n; k++) beta[k] += sv.V[k][j] * coef;
+    }
+    return beta;
+  }
+  const At = [];
+  for (let j = 0; j < n; j++) { const r = new Float64Array(m); for (let i = 0; i < m; i++) r[i] = A[i][j]; At.push(r); }
+  const sv = svdTall(At);
+  let smax = 0;
+  for (let j = 0; j < m; j++) smax = Math.max(smax, sv.s[j]);
+  for (let j = 0; j < m; j++) {
+    if (sv.s[j] <= RCOND * smax) continue;
+    let vy = 0;
+    for (let i = 0; i < m; i++) vy += sv.V[i][j] * y[i];
+    const coef = vy / sv.s[j];
+    for (let k = 0; k < n; k++) beta[k] += sv.U[k][j] * coef;
+  }
+  return beta;
+}
+
+function predict(beta, x) {
+  const r = trickRow(x, beta.length);
+  let s = 0;
+  for (let k = 0; k < beta.length; k++) s += r[k] * beta[k];
+  return s;
+}
+
+/* Gym: n points on a jittered grid over [-1, 1], y = curve + noise. */
+function makeGym(seed, n, curve) {
+  const r = rng(seed * 7919 + 1);
+  const x = [], y = [];
+  for (let i = 0; i < n; i++) {
+    const xi = -1 + (i + 0.5 + (r() - 0.5) * JITTER) * 2 / n;
+    x.push(xi);
+    y.push(curve(xi) + SIGMA * gauss(r));
+  }
+  return { x: x, y: y };
+}
+
+function fitCreature(xs, ys, N) {
+  return pinvSolve(xs.map(function (x) { return trickRow(x, N); }), ys);
+}
+
+/* root mean square miss */
+function rmsMiss(beta, xs, ys) {
+  let e = 0;
+  for (let i = 0; i < xs.length; i++) { const d = predict(beta, xs[i]) - ys[i]; e += d * d; }
+  return Math.sqrt(e / xs.length);
+}
+
+/* Expected wild miss: RMS over endless fresh points = sqrt(mean gap to the curve² + noise²). */
+const WILD_GRID = 400;
+function wildExpected(beta, curve) {
+  let e = 0;
+  for (let i = 0; i < WILD_GRID; i++) {
+    const x = -1 + 2 * (i + 0.5) / WILD_GRID;
+    const d = predict(beta, x) - curve(x);
+    e += d * d;
+  }
+  return Math.sqrt(e / WILD_GRID + SIGMA * SIGMA);
+}
+
+function wildDraw(seed, count, curve) {
+  const r = rng(seed);
+  const pts = [];
+  for (let i = 0; i < count; i++) { const x = r() * 2 - 1; pts.push({ x: x, y: curve(x) + SIGMA * gauss(r) }); }
+  return pts;
+}
+
+/* Bendiness: RMS slope of the body over that of the hidden curve. Slope, not
+   curvature: a body that passes through noisy points has small kinks we do not count. */
+function bendiness(beta, curve) {
+  const M = 200, h = 2 / M;
+  let a = 0, b = 0;
+  let p0 = predict(beta, -1), c0 = curve(-1);
+  for (let i = 1; i <= M; i++) {
+    const x = -1 + i * h;
+    const p1 = predict(beta, x), c1 = curve(x);
+    a += (p1 - p0) * (p1 - p0); b += (c1 - c0) * (c1 - c0);
+    p0 = p1; c0 = c1;
+  }
+  return Math.sqrt(a / b);
+}
+
+/* Mood from the fit: stiff (cannot reach the gym), calm, twitchy, frantic. */
+function moodOf(gymMiss, bend) {
+  if (gymMiss > 0.5) return "stiff";
+  if (bend < 2.6) return "calm";
+  if (bend < 8) return "twitchy";
+  return "frantic";
+}
+
+function range(a, b) { const o = []; for (let i = a; i <= b; i++) o.push(i); return o; }
+
+const GIANT_SIZES = range(1, 24).concat([28, 32, 40, 48, 64, 80, 100, 128, 160, 200]);
+
+const LEVELS = [
+  { id: 1, name: "Stiff", curve: "a", n: 16, seed: 2, spar: false, sizes: range(1, 6), start: 1,
+    wildTarget: 0.45 },
+  { id: 2, name: "Just right", curve: "a", n: 16, seed: 2, spar: false, sizes: range(1, 16), start: 16,
+    wildTarget: 0.34 },
+  { id: 3, name: "Two cups", curve: "a", n: 16, seed: 2, spar: false, sizes: range(1, 16), start: 6,
+    wildTarget: 0.40, gymTarget: 0.05 },
+  { id: 4, name: "One shot", curve: "b", n: 24, seed: 5, spar: true, sizes: range(1, 20), start: 3,
+    wildTarget: 0.38, oneShot: true },
+  { id: 5, name: "Giant", curve: "a", n: 16, seed: 2, spar: false, sizes: GIANT_SIZES, start: 16,
+    wildTarget: 0.40, minSize: 48, hidden: true }
+];
+
+/* Gym split for a level: sparring partners (every 4th point from the second) never train. */
+function levelGym(L) {
+  const g = makeGym(L.seed, L.n, CURVES[L.curve]);
+  const train = [], spar = [];
+  for (let i = 0; i < L.n; i++) (L.spar && i % 4 === 1 ? spar : train).push(i);
+  return {
+    x: g.x, y: g.y, train: train, spar: spar,
+    tx: train.map(function (i) { return g.x[i]; }), ty: train.map(function (i) { return g.y[i]; }),
+    sx: spar.map(function (i) { return g.x[i]; }), sy: spar.map(function (i) { return g.y[i]; })
+  };
+}
+
+/* Gym and expected wild miss at every size, for the curve revealed at the end. */
+function sizeCurve(L, sizes) {
+  const G = levelGym(L), curve = CURVES[L.curve];
+  return sizes.map(function (N) {
+    const b = fitCreature(G.tx, G.ty, N);
+    return { N: N, gym: rmsMiss(b, G.tx, G.ty), wild: wildExpected(b, curve),
+             spar: G.sx.length ? rmsMiss(b, G.sx, G.sy) : null, bend: bendiness(b, curve) };
+  });
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { SIGMA, CURVES, trickRow, svdTall, pinvSolve, predict, makeGym, fitCreature, rmsMiss,
+    wildExpected, wildDraw, bendiness, moodOf, LEVELS, levelGym, sizeCurve, range, rng };
+}
+/* ══════════════════════════ PURE LOGIC END ══════════════════════════ */
+
+(function () {
+  if (typeof document === "undefined") return;
+
+  const $ = function (id) { return document.getElementById(id); };
+  const WILD_COUNT = 80;
+  const STORE = "ml-games/creature-trainer";
+
+  /* ---- progress, every access guarded ---- */
+  let cleared = {};
+  try { const raw = localStorage.getItem(STORE); if (raw) cleared = JSON.parse(raw).cleared || {}; } catch (e) { cleared = {}; }
+  function saveProgress() { try { localStorage.setItem(STORE, JSON.stringify({ cleared: cleared })); } catch (e) { /* ok */ } }
+  function unlocked(i) { return i === 0 || !!cleared[LEVELS[i - 1].id]; }
+
+  /* ---- colours ---- */
+  let C = {};
+  function readColours() {
+    const s = getComputedStyle(document.documentElement);
+    ["paper", "ink", "panel", "panel-2", "line", "muted", "accent", "t1", "t4", "t5", "win", "lose"].forEach(function (k) {
+      C[k] = s.getPropertyValue("--" + k).trim();
+    });
+  }
+  readColours();
+  if (window.matchMedia) {
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const on = function () { readColours(); drawLog(); };
+    if (mq.addEventListener) mq.addEventListener("change", on); else if (mq.addListener) mq.addListener(on);
+  }
+
+  /* ---- sound: off by default ---- */
+  let soundOn = false, actx = null;
+  function beep(freq, dur, vol) {
+    if (!soundOn) return;
+    try {
+      if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = "triangle"; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol || 0.05, actx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + dur);
+      o.connect(g); g.connect(actx.destination);
+      o.start(); o.stop(actx.currentTime + dur);
+    } catch (e) { /* no audio */ }
+  }
+  $("sound").addEventListener("click", function () {
+    soundOn = !soundOn;
+    this.textContent = "Sound: " + (soundOn ? "on" : "off");
+    this.setAttribute("aria-pressed", String(soundOn));
+    beep(660, 0.12);
+  });
+
+  /* ---- level state ---- */
+  const BODY_PTS = 161;
+  const bodyX = [];
+  for (let i = 0; i < BODY_PTS; i++) bodyX.push(-1 + 2 * i / (BODY_PTS - 1));
+
+  let li = 0, L = null, G = null, curve = null;
+  let sizeIdx = 0, beta = null, target = null, shown = null, stats = null;
+  let fight = null, fightNo = 0, log = [], shotUsed = false, cups = { gym: false, wild: false };
+  let fullCurve = null;
+  const fitCache = {};
+
+  function fitAt(N) {
+    const key = L.id + ":" + N;
+    if (!fitCache[key]) {
+      const b = fitCreature(G.tx, G.ty, N);
+      const gm = rmsMiss(b, G.tx, G.ty);
+      const bd = bendiness(b, curve);
+      fitCache[key] = { beta: b, gym: gm, spar: G.sx.length ? rmsMiss(b, G.sx, G.sy) : null, bend: bd,
+                        mood: moodOf(gm, bd), body: bodyX.map(function (x) { return predict(b, x); }) };
+    }
+    return fitCache[key];
+  }
+
+  const GOALS = {
+    1: "Noodle starts with one trick. Grow it until it wins a wild fight: wild miss under 0.45.",
+    2: "Mossback, the local champ, misses by 0.34 in the wild. Find a size that beats it.",
+    3: "Win both cups. Gym cup: miss under 0.05 on the gym points. Wild cup: miss under 0.40 in the wild. Change size between fights as you like.",
+    4: "New gym, new hidden curve. Six gym points (squares) sit out as sparring partners: Noodle never trains on them. Spar at two sizes or more, as often as you like, then take your one wild fight. Win: miss under 0.38.",
+    5: "The old trainer says: grow far past the gym. Win in the wild with 48 tricks or more, three times the 16 gym points. Miss under 0.40. Everyone says it will lose."
+  };
+
+  const CARDS = {
+    1: ["With one or two tricks Noodle could only lie flat or tilt. It missed the gym points and the wild ones alike. A few more tricks let it bend to the curve.",
+        "A model too small for its data underfits."],
+    2: ["Too few tricks and Noodle cannot bend; too many and it bends to chase noise. Only the wild fight, on points it never trained on, showed which size works.",
+        "Fresh points like these are a test set. Doing well on them is generalising: working on data the model never saw."],
+    3: ["To hit every gym point Noodle needed one trick per point, 16 in all. It bent through the noise too, and lost in the wild. You could not win both cups with one size.",
+        "Learning the training points by heart, noise and all, is overfitting."],
+    4: ["You kept some points out of training and used them to choose a size before the one fight that counted.",
+        "Held-out points used to choose a model are a validation set. The tricks are features; picking how many is model selection."],
+    5: null
+  };
+
+  function buildLevelButtons() {
+    const box = $("levels");
+    box.innerHTML = "";
+    LEVELS.forEach(function (lv, i) {
+      const b = document.createElement("button");
+      b.className = "lv";
+      const open = unlocked(i);
+      const label = lv.hidden && !open ? "?" : lv.id + " · " + lv.name;
+      b.textContent = label;
+      if (cleared[lv.id]) { const t = document.createElement("span"); t.className = "tick"; t.textContent = "✓"; b.appendChild(t); }
+      b.disabled = !open;
+      b.setAttribute("aria-pressed", String(i === li));
+      b.addEventListener("click", function () { startLevel(i); });
+      box.appendChild(b);
+    });
+  }
+
+  let cardTimer = 0, levelToken = 0;
+  function startLevel(i) {
+    clearTimeout(cardTimer); levelToken += 1;
+    li = i; L = LEVELS[i]; G = levelGym(L); curve = CURVES[L.curve];
+    fight = null; fightNo = 0; log = []; shotUsed = false; cups = { gym: false, wild: false };
+    fullCurve = null;
+    $("ltitle").textContent = "Level " + L.id + " · " + L.name;
+    $("lgoal").textContent = GOALS[L.id];
+    $("logtitle").textContent = "Fight log: wild miss by number of tricks";
+    const sl = $("size");
+    sl.min = 0; sl.max = L.sizes.length - 1;
+    sizeIdx = Math.max(0, L.sizes.indexOf(L.start));
+    sl.value = sizeIdx;
+    $("sparmeter").hidden = !L.spar;
+    $("sparfight").hidden = !L.spar;
+    $("cups").hidden = !L.gymTarget;
+    $("retry").hidden = true;
+    $("wildfight").disabled = false;
+    $("tgym").textContent = L.spar ? "on the 18 points it trains on" : "on the " + L.n + " points it trains on";
+    $("twild").textContent = "target: under " + L.wildTarget.toFixed(2);
+    $("mwild").textContent = "–"; $("mwild").className = "v";
+    $("mspar").textContent = "–"; $("mspar").className = "v";
+    $("logwrap").hidden = L.id === 1;
+    $("reveal").classList.remove("show");
+    hideBanner();
+    updateCups();
+    buildLevelButtons();
+    shown = null;
+    setSize(sizeIdx, true);
+    drawLog();
+    setButtons();
+    if (L.id === 5 && cleared[5]) revealCurve();
+  }
+
+  function setSize(idx, instant) {
+    sizeIdx = Math.max(0, Math.min(L.sizes.length - 1, idx));
+    $("size").value = sizeIdx;
+    const N = L.sizes[sizeIdx];
+    stats = fitAt(N);
+    beta = stats.beta;
+    target = stats.body;
+    if (!shown || instant) shown = target.slice();
+    $("sizelab").textContent = "Tricks: " + N;
+    $("mgym").textContent = fmt(stats.gym);
+    $("mgym").className = "v" + (L.gymTarget ? (stats.gym < L.gymTarget ? " win" : "") : "");
+    $("mood").innerHTML = moodText(stats.mood, N);
+    if (fight && fight.done) fight = null;
+    hideBanner();
+  }
+
+  function fmt(v) {
+    if (!isFinite(v)) return "huge";
+    if (v >= 1000) return v.toExponential(1).replace("e+", "e");
+    if (v >= 10) return v.toFixed(0);
+    return v.toFixed(2);
+  }
+
+  function moodText(m, N) {
+    const n = G.tx.length;
+    if (m === "stiff") return "<b>Noodle yawns.</b> It cannot bend enough to reach the gym points.";
+    if (m === "calm") return N > n ? "<b>Noodle is calm,</b> though it has more tricks than there are gym points."
+                                   : "<b>Noodle is calm.</b> Its body runs smooth.";
+    if (m === "twitchy") return "<b>Noodle twitches.</b> Its body starts to kink between points.";
+    return "<b>Noodle is frantic,</b> thrashing to touch every gym point.";
+  }
+
+  function updateCups() {
+    $("cupgym").className = cups.gym ? "got" : "";
+    $("cupwild").className = cups.wild ? "got" : "";
+    $("cupgym").textContent = (cups.gym ? "✓ " : "") + "Gym cup";
+    $("cupwild").textContent = (cups.wild ? "✓ " : "") + "Wild cup";
+  }
+
+  /* ---- fights ---- */
+  function startFight(kind) {
+    if (fight && !fight.done) return;
+    hideBanner();
+    let pts;
+    if (kind === "gym") pts = G.tx.map(function (x, i) { return { x: x, y: G.ty[i] }; });
+    else if (kind === "spar") pts = G.sx.map(function (x, i) { return { x: x, y: G.sy[i] }; });
+    else {
+      if (L.oneShot && shotUsed) return;
+      fightNo += 1;
+      pts = wildDraw(L.id * 100003 + fightNo * 7717, WILD_COUNT, curve);
+    }
+    const N = L.sizes[sizeIdx];
+    pts.forEach(function (p) { p.fit = predict(beta, p.x); p.miss = Math.abs(p.fit - p.y); p.t = 0; });
+    shown = target.slice();
+    fight = { kind: kind, pts: pts, k: 0, done: false, N: N, rate: kind === "wild" ? 1.4 : 0.5 };
+    setButtons();
+  }
+
+  function finishFight() {
+    const f = fight;
+    let e = 0;
+    f.pts.forEach(function (p) { e += (p.fit - p.y) * (p.fit - p.y); });
+    f.rms = Math.sqrt(e / f.pts.length);
+    f.done = true;
+    let msg = "", ok = false;
+    if (f.kind === "gym") {
+      if (L.gymTarget) {
+        ok = f.rms < L.gymTarget;
+        if (ok && !cups.gym) { cups.gym = true; updateCups(); }
+        msg = ok ? "Gym cup won! Gym miss " + fmt(f.rms) : "Gym miss " + fmt(f.rms) + ", the cup needs under 0.05";
+      } else { ok = true; msg = "Gym miss " + fmt(f.rms); }
+    } else if (f.kind === "spar") {
+      ok = true; msg = "Sparring miss " + fmt(f.rms);
+      $("mspar").textContent = fmt(f.rms);
+      log.push({ N: f.N, v: f.rms, kind: "spar" });
+    } else {
+      ok = f.rms < L.wildTarget;
+      $("mwild").textContent = fmt(f.rms);
+      $("mwild").className = "v " + (ok ? "win" : "lose");
+      log.push({ N: f.N, v: f.rms, kind: "wild" });
+      if (L.oneShot) shotUsed = true;
+      if (L.minSize && ok && f.N < L.minSize) {
+        msg = "Won with " + f.N + " tricks. The old trainer wants 48 or more.";
+        ok = false;
+      } else if (L.gymTarget) {
+        if (ok && !cups.wild) { cups.wild = true; updateCups(); }
+        msg = ok ? "Wild cup won! Wild miss " + fmt(f.rms) : "Lost in the wild: miss " + fmt(f.rms);
+      } else {
+        msg = (ok ? "Won! " : "Lost. ") + "Wild miss " + fmt(f.rms) + (L.id === 2 ? ", Mossback 0.34" : "");
+      }
+      if (L.oneShot && !ok) msg += ". Shot spent.";
+    }
+    showBanner(msg, ok);
+    beep(ok ? 880 : 220, 0.25, 0.06);
+    drawLog();
+    let levelWon = false;
+    if (L.gymTarget) levelWon = cups.gym && cups.wild;
+    else if (f.kind === "wild") levelWon = ok;
+    if (levelWon) {
+      const first = !cleared[L.id];
+      cleared[L.id] = true; saveProgress();
+      buildLevelButtons();
+      cardTimer = setTimeout(showCard, 900);
+      if (soundOn) { setTimeout(function () { beep(1046, 0.3, 0.05); }, 200); setTimeout(function () { beep(1318, 0.4, 0.05); }, 380); }
+    }
+    setButtons();
+  }
+
+  function setButtons() {
+    const busy = fight && !fight.done;
+    $("gymfight").disabled = busy;
+    $("sparfight").disabled = busy;
+    $("wildfight").disabled = busy || (L.oneShot && shotUsed) || (L.spar && sparSizes() < 2);
+    $("retry").hidden = !(L.oneShot && shotUsed);
+  }
+
+  function sparSizes() {
+    const seen = {};
+    log.forEach(function (p) { if (p.kind === "spar") seen[p.N] = true; });
+    return Object.keys(seen).length;
+  }
+
+  function showBanner(t, ok) {
+    const b = $("banner");
+    b.textContent = t;
+    b.className = "banner show " + (ok ? "win" : "lose");
+  }
+  function hideBanner() { $("banner").className = "banner"; }
+
+  /* ---- level-end card ---- */
+  function showCard() {
+    const body = $("rvbody");
+    body.innerHTML = "";
+    if (L.id === 5) {
+      add("p", "Past 16 tricks, many bodies hit every gym point. Noodle takes the one with the smallest weights (how much of each trick it mixes in). Its fast-wave tricks are weak, so far past 16 that body runs calm.");
+      add("p", "The fight log now shows the wild miss at every size. It climbs to a peak at 16 tricks, as many as the gym points. Past the peak it falls again and levels off just above the best small size, never below it.");
+      const nums = add("p", "Computing every size…", "nums");
+      add("p", "The tricks are features. The smallest-weight fit is the minimum-norm fit. A wild miss that falls, peaks where the model can just hit every training point, then falls again is double descent.", "idea");
+      revealCurve(function (fc) {
+        let best = null, peak = null;
+        fc.forEach(function (r) {
+          if (r.N < 16 && (!best || r.wild < best.wild)) best = r;
+          if (!peak || r.wild > peak.wild) peak = r;
+        });
+        const at = function (N) { for (let i = 0; i < fc.length; i++) if (fc[i].N === N) return fc[i]; return null; };
+        nums.textContent = "Best small size " + best.N + " tricks: " + fmt(best.wild) + ". Peak at " + peak.N + " tricks: " + fmt(peak.wild) +
+          ". At 48: " + fmt(at(48).wild) + ". At 200: " + fmt(at(200).wild) + ". (Expected miss over endless wild points.)";
+      });
+      $("rvnext").hidden = true;
+    } else {
+      add("p", CARDS[L.id][0]);
+      add("p", CARDS[L.id][1], "idea");
+      $("rvnext").hidden = false;
+      $("rvnext").textContent = L.id === 4 ? "Next level: ???" : "Next level";
+    }
+    $("reveal").classList.add("show");
+    $("rvnext").focus();
+    function add(tag, text, cls) { const e = document.createElement(tag); e.textContent = text; if (cls) e.className = cls; body.appendChild(e); return e; }
+  }
+  $("rvnext").addEventListener("click", function () { $("reveal").classList.remove("show"); if (li + 1 < LEVELS.length) startLevel(li + 1); });
+  $("rvstay").addEventListener("click", function () { $("reveal").classList.remove("show"); });
+
+  /* 200 fits take a moment on a phone: do them in chunks between frames. */
+  function revealCurve(done) {
+    const token = levelToken, Lv = L, sizes = range(1, 200), out = [];
+    const finish = function () {
+      $("logtitle").textContent = "Wild miss by number of tricks, every size";
+      drawLog();
+      if (done) done(fullCurve);
+    };
+    if (fullCurve) { finish(); return; }
+    $("logtitle").textContent = "Computing every size…";
+    let i = 0;
+    (function step() {
+      if (token !== levelToken) return;
+      const chunk = sizes.slice(i, i + 20);
+      Array.prototype.push.apply(out, sizeCurve(Lv, chunk));
+      i += chunk.length;
+      if (i < sizes.length) { setTimeout(step, 0); return; }
+      fullCurve = out;
+      finish();
+    })();
+  }
+
+  /* ---- fight log chart (log-log) ---- */
+  function drawLog() {
+    const svg = $("log");
+    if (!L || $("logwrap").hidden) return;
+    const W = 460, H = 220, ml = 40, mr = 10, mt = 10, mb = 30;
+    const maxN = L.sizes[L.sizes.length - 1];
+    const yMin = 0.2, yMax = 100;
+    const X = function (n) { return ml + (W - ml - mr) * Math.log(n) / Math.log(maxN); };
+    const Y = function (v) { const c = Math.max(yMin, Math.min(yMax, v)); return mt + (H - mt - mb) * (1 - Math.log(c / yMin) / Math.log(yMax / yMin)); };
+    let s = "";
+    [0.2, 0.5, 1, 2, 5, 10, 100].forEach(function (v) {
+      s += '<line x1="' + ml + '" x2="' + (W - mr) + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="' + C.line + '" stroke-width="1"/>';
+      s += '<text x="' + (ml - 5) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' + v + '</text>';
+    });
+    const xt = [1, 2, 5, 10, 16, 20, 50, 100, 200].filter(function (n) { return n <= maxN && (n !== 16 || G.tx.length === 16) && (n !== 20 || maxN < 30); });
+    if (L.spar) xt.push(18);
+    xt.forEach(function (n) { s += '<text x="' + X(n) + '" y="' + (H - mb + 15) + '" text-anchor="middle">' + n + '</text>'; });
+    s += '<text x="' + ((W + ml) / 2) + '" y="' + (H - 2) + '" text-anchor="middle">tricks (log scale)</text>';
+    const nG = G.tx.length;
+    if (nG <= maxN) {
+      s += '<line x1="' + X(nG) + '" x2="' + X(nG) + '" y1="' + mt + '" y2="' + (H - mb) + '" stroke="' + C.muted + '" stroke-dasharray="3 3"/>';
+      s += '<text x="' + (X(nG) + 4) + '" y="' + (mt + 10) + '">' + nG + ' gym points</text>';
+    }
+    if (L.wildTarget) {
+      s += '<line x1="' + ml + '" x2="' + (W - mr) + '" y1="' + Y(L.wildTarget) + '" y2="' + Y(L.wildTarget) + '" stroke="' + C.win + '" stroke-dasharray="5 3"/>';
+    }
+    if (fullCurve) {
+      const path = function (key) {
+        return fullCurve.filter(function (r) { return key !== "gym" || r.gym > 1e-6; })
+          .map(function (r, i) { return (i ? "L" : "M") + X(r.N).toFixed(1) + "," + Y(r[key]).toFixed(1); }).join("");
+      };
+      s += '<path d="' + path("gym") + '" fill="none" stroke="' + C.muted + '" stroke-width="1.5"/>';
+      s += '<path d="' + path("wild") + '" fill="none" stroke="' + C.t4 + '" stroke-width="2.2"/>';
+    }
+    log.forEach(function (p) {
+      const col = p.kind === "spar" ? C.t5 : (p.v < L.wildTarget ? C.win : C.lose);
+      s += '<circle cx="' + X(p.N).toFixed(1) + '" cy="' + Y(p.v).toFixed(1) + '" r="4.5" fill="' + col + '" stroke="' + C.panel + '"/>';
+    });
+    if (!log.length && !fullCurve) s += '<text x="' + ((W + ml) / 2) + '" y="' + (H / 2) + '" text-anchor="middle">Fight in the wild to fill this in.</text>';
+    svg.innerHTML = s;
+    let lg = '<span><i style="background:' + C.win + '"></i>wild fight won</span><span><i style="background:' + C.lose + '"></i>wild fight lost</span>';
+    if (L.spar) lg += '<span><i style="background:' + C.t5 + '"></i>spar</span>';
+    lg += '<span><i class="ln" style="background:' + C.win + '"></i>target</span>';
+    if (fullCurve) lg += '<span><i class="ln" style="background:' + C.t4 + '"></i>expected wild miss</span><span><i class="ln" style="background:' + C.muted + '"></i>gym miss (zero past ' + nG + ')</span>';
+    $("logleg").innerHTML = lg;
+  }
+
+  /* ---- arena drawing ---- */
+  const cv = $("arena"), ctx = cv.getContext("2d");
+  let cw = 0, ch = 0, dpr = 1;
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cw = cv.parentElement.clientWidth;
+    ch = Math.round(Math.max(230, Math.min(420, cw * 0.6)));
+    cv.width = Math.round(cw * dpr); cv.height = Math.round(ch * dpr);
+    cv.style.height = ch + "px";
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  const XR = 1.12, YR = 2.3;
+  function px(x) { return cw / 2 + x * (cw / 2 - 24) / XR + (-10); }
+  function py(y) { return ch / 2 - y * (ch / 2 - 12) / YR; }
+
+  let tNow = 0;
+  function draw(t) {
+    tNow = t / 1000;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cw, ch);
+    ctx.fillStyle = C["panel-2"]; ctx.fillRect(0, 0, cw, ch);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, py(0)); ctx.lineTo(cw, py(0)); ctx.stroke();
+
+    // body eases toward its new shape; a huge body still moves in a bounded time
+    for (let i = 0; i < BODY_PTS; i++) shown[i] += (target[i] - shown[i]) * 0.18;
+
+    const mood = stats.mood;
+    const shake = { stiff: 0, calm: 0.25, twitchy: 1.6, frantic: 4 }[mood];
+    const breathe = Math.sin(tNow * (mood === "stiff" ? 1.2 : mood === "calm" ? 2 : 6)) * 1.2;
+    const bx = [], by = [];
+    for (let i = 0; i < BODY_PTS; i++) {
+      bx.push(px(bodyX[i]));
+      let yy = py(shown[i]) + breathe * Math.sin(i / 12 + tNow * 2) * 0.6;
+      if (shake) yy += Math.sin(tNow * 31 + i * 1.7) * shake * Math.sin(tNow * 7 + i * 0.4);
+      by.push(Math.max(-2000, Math.min(2000 + ch, yy)));
+    }
+
+    // gym points
+    for (let i = 0; i < G.tx.length; i++) dot(px(G.tx[i]), py(G.ty[i]), 4.2, C.ink, null);
+    for (let i = 0; i < G.sx.length; i++) square(px(G.sx[i]), py(G.sy[i]), 5.5, C.t5);
+
+    // fight
+    if (fight) {
+      if (!fight.done) {
+        fight.k = Math.min(fight.pts.length, fight.k + fight.rate);
+        const hit = Math.floor(fight.k);
+        if (hit > (fight.lastBeep || 0)) {
+          const p = fight.pts[hit - 1];
+          beep(p.miss < 0.4 ? 700 + 200 * Math.random() : 180, 0.05, 0.03);
+          fight.lastBeep = hit;
+        }
+        if (fight.k >= fight.pts.length) finishFight();
+      }
+      const kk = Math.floor(fight.k);
+      for (let i = 0; i < kk; i++) {
+        const p = fight.pts[i];
+        const good = p.miss < 0.4;
+        const yb = Math.max(-50, Math.min(ch + 50, py(p.fit)));
+        ctx.strokeStyle = good ? C.win : C.lose; ctx.lineWidth = 1.6; ctx.globalAlpha = 0.85;
+        ctx.beginPath(); ctx.moveTo(px(p.x), py(p.y)); ctx.lineTo(px(p.x), yb); ctx.stroke();
+        ctx.globalAlpha = 1;
+        if (fight.kind === "wild") dot(px(p.x), py(p.y), 3.6, C.t4, null);
+      }
+    }
+
+    drawBody(bx, by, mood);
+    raf = requestAnimationFrame(draw);
+  }
+
+  function dot(x, y, r, fill, stroke) {
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = fill; ctx.fill();
+    if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1.5; ctx.stroke(); }
+  }
+  function square(x, y, r, col) {
+    ctx.strokeStyle = col; ctx.lineWidth = 2;
+    ctx.strokeRect(x - r, y - r, 2 * r, 2 * r);
+  }
+
+  function drawBody(bx, by, mood) {
+    const n = bx.length;
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    // outline then fill, tapering from tail (left) to head (right)
+    for (let pass = 0; pass < 2; pass++) {
+      for (let i = 1; i < n; i++) {
+        const w = 4 + 11 * Math.pow(i / n, 0.7);
+        ctx.strokeStyle = pass === 0 ? C.ink : C.accent;
+        ctx.globalAlpha = pass === 0 ? 0.55 : 1;
+        ctx.lineWidth = pass === 0 ? w + 3 : w;
+        ctx.beginPath(); ctx.moveTo(bx[i - 1], by[i - 1]); ctx.lineTo(bx[i], by[i]); ctx.stroke();
+      }
+    }
+    ctx.globalAlpha = 1;
+    // back spots
+    ctx.fillStyle = C.panel;
+    for (let i = 12; i < n - 8; i += 14) {
+      const w = 4 + 11 * Math.pow(i / n, 0.7);
+      ctx.globalAlpha = 0.55;
+      ctx.beginPath(); ctx.arc(bx[i], by[i], w * 0.22, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    // head, kept on screen so the face always shows
+    const hx = bx[n - 1] + 6;
+    const hy = Math.max(22, Math.min(ch - 22, by[n - 1]));
+    const R = 17;
+    ctx.fillStyle = C.accent; ctx.strokeStyle = C.ink; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(hx, hy, R, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 0.55; ctx.stroke(); ctx.globalAlpha = 1;
+    // eyes
+    const blink = (Math.sin(tNow * 0.9) > 0.985);
+    const eyeR = mood === "frantic" ? 6.2 : mood === "twitchy" ? 5.4 : 4.8;
+    const pupil = mood === "frantic" ? 1.6 : 2.6;
+    const look = mood === "frantic" ? Math.sin(tNow * 23) * 1.5 : 0;
+    [-7, 6].forEach(function (dx) {
+      const ex = hx + dx, ey = hy - 4;
+      ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(ex, ey, eyeR, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "#1c2422"; ctx.lineWidth = 1; ctx.stroke();
+      if (mood === "stiff" || blink) {
+        ctx.fillStyle = C.accent; ctx.fillRect(ex - eyeR - 1, ey - eyeR - 1, 2 * eyeR + 2, eyeR + (blink ? eyeR + 2 : 1));
+        ctx.strokeStyle = "#1c2422"; ctx.beginPath(); ctx.moveTo(ex - eyeR, ey + (blink ? eyeR : 0)); ctx.lineTo(ex + eyeR, ey + (blink ? eyeR : 0)); ctx.stroke();
+      }
+      if (!blink) { ctx.fillStyle = "#1c2422"; ctx.beginPath(); ctx.arc(ex + 1 + look, ey + (mood === "stiff" ? 2 : 0.5), pupil, 0, Math.PI * 2); ctx.fill(); }
+    });
+    // mouth
+    ctx.strokeStyle = "#1c2422"; ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    const my = hy + 7;
+    if (mood === "calm") ctx.arc(hx, my - 3, 5, 0.15 * Math.PI, 0.85 * Math.PI);
+    else if (mood === "stiff") { ctx.ellipse(hx, my, 3, 2 + Math.abs(Math.sin(tNow * 0.8)) * 2, 0, 0, Math.PI * 2); }
+    else if (mood === "twitchy") { ctx.moveTo(hx - 5, my); ctx.lineTo(hx + 5, my + 1); }
+    else { ctx.moveTo(hx - 6, my); for (let k = 1; k <= 6; k++) ctx.lineTo(hx - 6 + 2 * k, my + (k % 2 ? -2 : 2)); }
+    ctx.stroke();
+    // sweat when it strains
+    if (mood === "twitchy" || mood === "frantic") {
+      const sy = hy - R + ((tNow * 30) % 18);
+      ctx.fillStyle = C.t5; ctx.globalAlpha = 0.8;
+      ctx.beginPath(); ctx.arc(hx + R - 2, sy, 2.6, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    if (mood === "stiff") {
+      ctx.fillStyle = C.muted; ctx.font = "600 12px " + getComputedStyle(document.body).fontFamily;
+      ctx.fillText("z", hx + R, hy - R + 2 - (tNow * 6 % 8));
+    }
+  }
+
+  /* ---- controls ---- */
+  $("size").addEventListener("input", function () { if (fight && !fight.done) { this.value = sizeIdx; return; } setSize(+this.value); beep(400 + 20 * sizeIdx, 0.04, 0.02); });
+  $("minus").addEventListener("click", function () { if (fight && !fight.done) return; setSize(sizeIdx - 1); });
+  $("plus").addEventListener("click", function () { if (fight && !fight.done) return; setSize(sizeIdx + 1); });
+  $("gymfight").addEventListener("click", function () { startFight("gym"); });
+  $("sparfight").addEventListener("click", function () { startFight("spar"); });
+  $("wildfight").addEventListener("click", function () { startFight("wild"); });
+  $("retry").addEventListener("click", function () { startLevel(li); });
+
+  /* ---- loop, paused while the tab is hidden ---- */
+  let raf = 0;
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) { cancelAnimationFrame(raf); raf = 0; }
+    else if (!raf) raf = requestAnimationFrame(draw);
+  });
+
+  let first = 0;
+  for (let i = 0; i < LEVELS.length; i++) if (unlocked(i)) first = i;
+  startLevel(first);
+  raf = requestAnimationFrame(draw);
+})();
+</script>

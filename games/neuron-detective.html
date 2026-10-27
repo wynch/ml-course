@@ -1,0 +1,639 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neuron Detective — ml-course game</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+  :root{
+    --paper:#f6f8f7; --ink:#1c2422; --panel:#ffffff; --panel-2:#eef2f0;
+    --line:#d5ddda; --muted:#5d6b67; --accent:#1f918d;
+    --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8; --t9:#4f6272;
+    --glow:#e39b16; --glow-rgb:227,155,22; --ok:#1baf7a; --bad:#c1121f;
+    --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
+    --mono:"SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    --display:"Avenir Next","Helvetica Neue",sans-serif;
+    --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --panel-2:#222d29;
+      --line:#31403b; --muted:#9dada8; --accent:#37b3ae; --t4:#e0679a; --t5:#5aa1e6; --t9:#93a8b8;
+      --glow:#f5b73b; --glow-rgb:245,183,59; --ok:#199e70; --bad:#ff6b6b;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink)}
+  body{font-family:var(--body);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 16px 64px}
+
+  header.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    padding:16px 0 14px;border-bottom:1px solid var(--line);margin-bottom:22px}
+  header.top h1{font-family:var(--display);font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .pill{font-family:var(--display);font-size:11.5px;font-weight:600;letter-spacing:.02em;
+    padding:3px 10px;border-radius:999px;color:#fff;background:var(--t4);white-space:nowrap}
+  @media (prefers-color-scheme: dark){ .pill{color:#121816} }
+  .top .spacer{flex:1}
+  .backlink{font-size:13px;color:var(--muted);text-decoration:none;border-bottom:1px solid transparent}
+  .backlink:hover{color:var(--accent);border-bottom-color:var(--accent)}
+
+  .intro{max-width:78ch;font-size:15.5px;margin:0 0 20px}
+  .intro em{color:var(--accent);font-style:normal;font-weight:600}
+  section{margin:0 0 30px}
+  h2{font-family:var(--display);font-size:17px;font-weight:600;margin:0 0 4px;letter-spacing:.01em}
+  h3{font-family:var(--display);font-size:13px;font-weight:600;margin:0 0 8px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.06em}
+  .sub{font-size:13.5px;color:var(--muted);margin:0 0 14px;max-width:80ch}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    box-shadow:var(--shadow);padding:16px}
+  .hint{font-size:12.5px;color:var(--muted)}
+  .chip{font-family:var(--mono);font-size:11.5px;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:999px;padding:3px 10px;color:var(--muted);white-space:nowrap}
+  .chip b{color:var(--ink)}
+  .notice{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+
+  button{font:inherit;color:inherit;touch-action:manipulation}
+  .btn{font-family:var(--display);font-size:14px;font-weight:600;border:1.5px solid var(--line);
+    background:transparent;color:var(--ink);padding:0 16px;min-height:44px;border-radius:999px;cursor:pointer}
+  .btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+  .btn:disabled{opacity:.45;cursor:default}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover:not(:disabled){color:#fff;filter:brightness(1.08)}
+  @media (prefers-color-scheme: dark){ .btn.primary{color:#121816} .btn.primary:hover:not(:disabled){color:#121816} }
+  .btn.small{font-size:12.5px;min-height:44px;padding:0 12px}
+  button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* case picker */
+  .cases{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 16px}
+  .casebtn{border:1.5px solid var(--line);background:var(--panel);border-radius:12px;padding:8px 10px;
+    min-height:56px;text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:center}
+  .casebtn .n{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .casebtn .t{font-family:var(--display);font-weight:600;font-size:13.5px;line-height:1.25}
+  .casebtn[aria-pressed="true"]{border-color:var(--accent);background:var(--panel-2)}
+  .casebtn:disabled{opacity:.5;cursor:default}
+  .casebtn .done{color:var(--ok);font-weight:700}
+  @media (max-width:560px){ .cases{grid-template-columns:repeat(2,minmax(0,1fr))} }
+
+  .casehead{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;margin:0 0 4px}
+
+  /* board */
+  .board{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:20px}
+  @media (max-width:820px){ .board{grid-template-columns:minmax(0,1fr)} }
+  .evlist{display:flex;flex-direction:column;gap:6px;max-height:520px;overflow-y:auto;padding:2px}
+  @media (max-width:820px){ .evlist{max-height:none} }
+  .ev{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;text-align:left;
+    border:1.5px solid var(--line);background:var(--panel-2);border-radius:10px;padding:8px 10px;
+    min-height:44px;cursor:pointer;font-family:var(--mono);font-size:13px;line-height:1.4;
+    border-left-width:4px}
+  .ev[aria-pressed="true"]{border-color:var(--accent);background:var(--panel)}
+  .ev .txt{overflow-wrap:anywhere}
+  .ev .tag{font-family:var(--display);font-size:10.5px;font-weight:600;color:var(--t4);margin-right:6px;
+    text-transform:uppercase;letter-spacing:.05em}
+  .ev .val{font-size:12px;color:var(--muted);min-width:2.6em;text-align:right}
+  .dots{grid-column:1 / -1;display:flex;gap:4px}
+  .dots i{width:9px;height:9px;border-radius:50%;background:var(--glow);border:1px solid var(--line)}
+  .ask{display:flex;gap:8px;margin-top:10px}
+  .ask input{flex:1;min-width:0;font-family:var(--mono);font-size:16px;min-height:44px;padding:0 12px;
+    border:1.5px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink)}
+
+  .exhibit{border:1.5px dashed var(--line);border-radius:10px;padding:12px 14px;margin:0 0 14px;
+    font-family:var(--mono);font-size:16px;line-height:1.8;min-height:58px;overflow-wrap:anywhere;background:var(--panel-2)}
+  .exhibit .lbl{display:block;font-family:var(--display);font-size:11px;font-weight:600;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.06em;line-height:1.4;margin-bottom:2px}
+  .exhibit .tk{border-radius:3px;padding:1px 0}
+  .exhibit.big{font-size:19px;text-align:center;padding:18px 14px}
+
+  .suspects{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px}
+  .sus{border:1.5px solid var(--line);border-radius:12px;background:var(--panel-2);padding:8px;display:flex;
+    flex-direction:column;gap:6px;position:relative}
+  .sus.focus{border-color:var(--glow)}
+  .sushead{display:flex;align-items:center;gap:10px;border:0;background:transparent;cursor:pointer;
+    padding:2px;min-height:44px;text-align:left;border-radius:8px}
+  .sushead .nm{font-family:var(--display);font-weight:600;font-size:14px;flex:1}
+  .sushead .val{font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .bulb{width:34px;height:34px;border-radius:50%;flex:none;position:relative;
+    background:radial-gradient(circle at 40% 35%, var(--panel), var(--line));border:1.5px solid var(--line)}
+  .bulb i{position:absolute;inset:-1.5px;border-radius:50%;opacity:0;transition:opacity .35s, box-shadow .35s;
+    background:radial-gradient(circle at 40% 35%, #fff6d8, var(--glow) 60%, #b86d00)}
+  .bulb.lit i{animation:flicker 2.6s infinite}
+  @keyframes flicker{0%,100%{filter:brightness(1)} 47%{filter:brightness(1)} 50%{filter:brightness(.82)} 53%{filter:brightness(1.05)}}
+  body.paused .bulb.lit i,body.paused .stamp{animation-play-state:paused}
+  .meter{height:6px;border-radius:3px;background:var(--panel);overflow:hidden;border:1px solid var(--line)}
+  .meter i{display:block;height:100%;background:var(--glow);transition:width .35s}
+  .label{font-family:var(--body);font-size:16px;min-height:44px;width:100%;padding:0 10px;border:1.5px solid var(--line);
+    border-radius:8px;background:var(--panel);color:var(--ink)}
+  .label:read-only{border-style:dashed;color:var(--muted)}
+  .lockrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px}
+
+  /* trial */
+  .notes{font-family:var(--display);font-size:14px;font-weight:600;line-height:1.3;min-height:2.6em;
+    overflow-wrap:anywhere}
+  .notes.empty{color:var(--muted);font-weight:400}
+  .pred{min-height:44px;border-radius:10px;border:1.5px solid var(--line);background:var(--panel);cursor:pointer;
+    font-family:var(--display);font-weight:600;font-size:13.5px}
+  .pred[aria-pressed="true"]{background:var(--glow);border-color:var(--glow);color:#1c1300}
+  .pred:disabled{cursor:default}
+  .mark{font-family:var(--mono);font-size:12px;min-height:1.5em}
+  .mark.ok{color:var(--ok)} .mark.bad{color:var(--bad)} .mark.meh{color:var(--muted)}
+  .sus.right{border-color:var(--ok)} .sus.wrong{border-color:var(--bad)}
+  .trialbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:14px}
+
+  /* verdict */
+  .stamp{display:inline-block;font-family:var(--display);font-weight:700;font-size:26px;letter-spacing:.08em;
+    padding:4px 16px;border:4px solid currentColor;border-radius:8px;transform:rotate(-6deg);margin:6px 0 14px;
+    animation:thump .5s ease-out both}
+  .stamp.ok{color:var(--ok)} .stamp.bad{color:var(--bad)} .stamp.lock{color:var(--t4);font-size:20px}
+  @keyframes thump{0%{transform:rotate(-6deg) scale(2.2);opacity:0} 70%{transform:rotate(-6deg) scale(.95);opacity:1} 100%{transform:rotate(-6deg) scale(1)}}
+  table.st{border-collapse:collapse;width:100%;font-size:13.5px;table-layout:fixed}
+  table.st td,table.st th{border-bottom:1px solid var(--line);padding:7px 6px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+  table.st th{font-family:var(--display);font-size:12px;color:var(--muted);font-weight:600}
+  table.st td.num{font-family:var(--mono);white-space:nowrap}
+  table.st th:nth-child(1){width:4.6em} table.st th:nth-child(3){width:3.6em}
+  .misses{font-family:var(--mono);font-size:12.5px;margin:10px 0 0;padding-left:18px}
+  .misses li{margin:4px 0}
+  .reveal{border-left:4px solid var(--accent);background:var(--panel-2);border-radius:8px;padding:12px 14px;margin:16px 0}
+  .reveal h3{color:var(--accent);margin:0 0 6px}
+  .reveal p{margin:0 0 6px;font-size:14.5px;max-width:72ch}
+  .reveal a{color:var(--accent)}
+  .row{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+  [hidden]{display:none !important}
+
+  footer.bot{border-top:1px solid var(--line);padding-top:14px;font-size:12.5px;color:var(--muted)}
+  footer.bot a{color:var(--accent)}
+  footer.bot .row{margin:4px 0;display:block}
+  a.backlink{display:inline-flex;align-items:center;min-height:44px}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <h1>Neuron Detective</h1>
+  <span class="pill">Game 8 · Looking inside</span>
+  <span class="spacer"></span>
+  <button class="btn small" id="sound" aria-pressed="false">Sound: off</button>
+  <a class="backlink" href="index.html">← All games</a>
+</header>
+
+<p class="intro">
+  Lamps keep lighting up inside a small text-reading machine. Each lamp is a <em>neuron</em>: one number inside the
+  machine that rises when the text holds what it looks for. Read the evidence, watch who lights up, and write down
+  what each one is after. Then lock in your notes and face the trial: say who lights up on text you have never seen.
+</p>
+
+<div class="cases" id="cases"></div>
+
+<section class="card" id="play">
+  <div class="casehead"><h2 id="ctitle"></h2><span class="chip" id="cphase"></span></div>
+  <p class="sub" id="cbrief"></p>
+
+  <div id="board">
+    <div class="board">
+      <div>
+        <h3>Evidence</h3>
+        <p class="hint" id="sorthint">Tap a snippet to see who lights up.</p>
+        <div class="evlist" id="evlist"></div>
+        <form class="ask" id="ask" autocomplete="off">
+          <input id="askin" maxlength="90" placeholder="Write your own snippet" aria-label="Your own snippet">
+          <button class="btn" type="submit">Test it</button>
+        </form>
+      </div>
+      <div>
+        <div class="exhibit" id="exhibit"></div>
+        <h3>Suspects</h3>
+        <p class="hint">Tap a suspect to rank the evidence by how bright it glows and to see which words light it.</p>
+        <div class="suspects" id="suspects"></div>
+        <div class="lockrow">
+          <button class="btn primary" id="lock" disabled>Lock in your labels</button>
+          <span class="hint" id="lockhint"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="trial" hidden>
+    <div id="tstamp"></div>
+    <div class="notice"><span class="chip" id="tcount"></span><span class="chip" id="tscore"></span></div>
+    <div class="exhibit big" id="texhibit"></div>
+    <p class="hint">Your notes are all you have. Tap each suspect you think lights up on this snippet, then check.</p>
+    <div class="suspects" id="tsus"></div>
+    <div class="trialbar">
+      <span class="hint" id="tread"></span>
+      <button class="btn primary" id="tgo">Check</button>
+    </div>
+  </div>
+
+  <div id="verdict" hidden></div>
+</section>
+
+<footer class="bot">
+  <div class="row">The machine is hand-built: each neuron adds up weighted clues word by word, keeps only the positive part,
+    and squashes the total into a glow between 0 and 1, with a little fixed noise per snippet. A glow of 0.50 or more counts
+    as lit; under 0.25 counts as dark; in between, either answer counts. To close a case, call 80% of the lamps right and catch
+    at least 70% of the ones that light: saying "dark" to everything will not do.</div>
+  <div class="row">The course module on this idea: <a href="../explorables/12-features-and-dictionaries.html">Features and dictionaries</a>.</div>
+</footer>
+</div>
+
+<script>
+"use strict";
+// ---------- The machine: clue detectors per word, neurons as weighted sums ----------
+const FR = new Set(("le la les un une des du de est et je tu il elle nous vous ils elles ne pas très avec pour dans sur " +
+  "bonjour merci oui ce ces c'est suis sont avons mangé soir viens faim chien maison pomme mange café va bien ça êtes en " +
+  "retard lundi qui quoi pourquoi livre prix").split(" "));
+const QWORDS = new Set("who what why how when where which".split(" "));
+const NEGS = new Set("not no never nothing nobody none nor neither".split(" "));
+const MONEYW = new Set("price prices cost costs paid pay pays dollar dollars euro euros cent cents bucks cash cheap expensive bill".split(" "));
+const FOOD = new Set(("pizza cheese bread soup rice cake pasta apple pear banana tomato salad sushi taco tea " +
+  "lunch dinner breakfast sandwich egg noodle cookie").split(" "));
+const DAYS = new Set("monday tuesday wednesday thursday friday saturday sunday".split(" "));
+
+const NEURONS = {
+  FR:    {name:"#305", file:"French words",                                 w:{fr:0.75}},
+  Q:     {name:"#12",  file:"Questions (the question mark; a little for who, what, why… at the start)", w:{qmark:1.6, qword:0.3}},
+  CAPS:  {name:"#77",  file:"Words in capitals",                            w:{caps:0.95, capword:0.04}},
+  NEG:   {name:"#481", file:"English negation: not, no, never, nobody, -n't", w:{neg:1.3, without:0.35}},
+  MONEY: {name:"#9",   file:"Money: currency signs and money words",        w:{money:1.1, moneynum:0.6, num:0.06}},
+  QNUM:  {name:"#260", file:"Numbers inside quotes (plain numbers only a little)", w:{qnum:1.8, num:0.1, qtext:0.12}},
+  EXCL:  {name:"#143", file:"Exclamation marks",                            w:{excl:1.3, wow:0.35, caps:0.08}},
+  POLY:  {name:"#58",  file:"Food AND days of the week: two unrelated things in one neuron", w:{food:1.2, day:1.2}}
+};
+
+function inSet(set, w){
+  if (set.has(w)) return true;
+  if (w.endsWith("es") && set.has(w.slice(0,-2))) return true;
+  return w.endsWith("s") && set.has(w.slice(0,-1));
+}
+
+// Splits text into pieces (words, numbers, marks, spaces); every piece keeps its original text for display.
+function analyse(text){
+  const re = /\s+|[A-Za-zÀ-ÖØ-öø-ÿŒœ]+(?:['’][A-Za-zÀ-ÖØ-öø-ÿ]+)*|\d+(?:[.,]\d+)*|["“”]|[€$£]|[^\sA-Za-z0-9]/g;
+  const toks = []; let m;
+  while ((m = re.exec(text))) toks.push({t:m[0], f:null});
+  let inQ = false, start = true;
+  const solid = toks.map((t,i)=>i).filter(i=>!/^\s+$/.test(toks[i].t));
+  solid.forEach((idx, k) => {
+    const tok = toks[idx], s = tok.t, low = s.toLowerCase().replace(/’/g,"'");
+    const prev = k > 0 ? toks[solid[k-1]].t : "", next = k < solid.length-1 ? toks[solid[k+1]].t : "";
+    const f = {};
+    if (/^["“”]$/.test(s)) { inQ = !inQ; tok.f = f; return; }
+    if (/^[A-Za-zÀ-ÖØ-öø-ÿŒœ]/.test(s)) {
+      if (FR.has(low) || /[àâäçéèêëîïôöûùüÿœ]/i.test(s)) f.fr = 1;
+      if (start && QWORDS.has(low)) f.qword = 1;
+      const letters = s.replace(/['’]/g,"");
+      if (letters.length >= 2 && /^[A-ZÀ-ÖØ-Þ]+$/.test(letters)) f.caps = 1;
+      else if (!start && /^[A-Z][a-z]/.test(s)) f.capword = 1;
+      if (NEGS.has(low) || /n't$/.test(low)) f.neg = 1;
+      if (low === "without") f.without = 1;
+      if (MONEYW.has(low)) f.money = 1;
+      if (low === "wow" || low === "yay" || low === "hooray") f.wow = 1;
+      if (inSet(FOOD, low)) f.food = 1;
+      if (DAYS.has(low)) f.day = 1;
+      if (inQ) f.qtext = 1;
+      start = false;
+    } else if (/^\d/.test(s)) {
+      f.num = 1;
+      if (inQ) f.qnum = 1;
+      if (/^[€$£]$/.test(prev) || /^[€$£]$/.test(next) || MONEYW.has(next.toLowerCase())) f.moneynum = 1;
+      start = false;
+    } else if (/^[€$£]$/.test(s)) { f.money = 1; }
+    else if (s === "?") { f.qmark = 1; start = true; }
+    else if (s === "!") { f.excl = 1; start = true; }
+    else if (s === ".") { start = true; }
+    tok.f = f;
+  });
+  return toks;
+}
+
+function hash(s){ let h = 2166136261; for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h,16777619); } return h>>>0; }
+
+// glow = squash(sum over words of max(0, w·clues)) + hum + fixed noise in [-0.06, 0.06]
+function fire(nid, text){
+  const W = NEURONS[nid].w, toks = analyse(text);
+  let S = 0; const contrib = [];
+  for (const t of toks){
+    let z = 0;
+    if (t.f) for (const k in W) if (t.f[k]) z += W[k]*t.f[k];
+    z = Math.max(0, z); contrib.push(z); S += z;
+  }
+  const noise = ((hash(nid + "|" + text) % 1000)/1000 - 0.5) * 0.12;
+  const a = Math.min(1, Math.max(0, 1 - Math.exp(-S) + 0.03 + noise));
+  return {a, toks, contrib};
+}
+const glow = (nid, text) => fire(nid, text).a;
+const LIT = 0.5, DARK = 0.25;
+const CATCH = 0.7; // share of lit lamps the player must predict
+const truthOf = a => a >= LIT ? "lit" : a < DARK ? "dark" : "faint";
+
+// ---------- Cases ----------
+// Each snippet: [text, neurons meant to light]. Every other neuron of the case should stay dark.
+const CASES = [
+  { title:"The Night Shift", short:"Night Shift", suspects:["FR","Q","CAPS"], trialN:5, pass:0.8,
+    brief:"Three suspects. They light up cleanly: a lamp is either bright or nearly dark. Start here.",
+    evidence:[
+      ["Bonjour, je suis très content.","FR"], ["Where did you park the car?","Q"], ["STOP running in the hall.","CAPS"],
+      ["The train leaves at noon.",""], ["Est-ce que tu viens ce soir?","FR Q"], ["I am SO tired of this.","CAPS"],
+      ["Can you help me with this?","Q"], ["Merci pour le café.","FR"], ["WHY IS NOBODY HERE?","CAPS Q"],
+      ["My cat sleeps all day.",""]],
+    trial:[
+      ["Le chien mange une pomme.","FR",1], ["How old is your sister?","Q"], ["This is a VERY big deal.","CAPS"],
+      ["We walked home in the rain.","",1], ["Tu as faim?","FR Q"], ["WATCH OUT for the dog.","CAPS"],
+      ["Is it raining in Paris?","Q"], ["Nous avons mangé à la maison.","FR"], ["She reads books on the bus.",""],
+      ["DO NOT TOUCH.","CAPS"]],
+    reveal:["You watched three neurons on examples, guessed what each one looks for, then tested your guesses on text you had not seen.",
+      "A label counts only if it predicts. The thing a neuron answers to is called its <b>feature</b>; checking a label by predicting new cases is how people test one."]},
+  { title:"Small Change", short:"Small Change", suspects:["NEG","MONEY","QNUM"], trialN:5, pass:0.8,
+    brief:"These three glow by degrees. Some evidence lights a lamp only a little. Watch the faint ones: they show where a label stops being true.",
+    evidence:[
+      ["I never said that.","NEG"], ["The ticket costs $12.","MONEY"], ["She typed \"42\" into the box.","QNUM"],
+      ["There were 3 cats and 7 dogs.",""], ["The code is \"7731\", don't share it.","QNUM NEG"],
+      ["We paid 40 euros for dinner.","MONEY"], ["Nothing here works.","NEG"], ["He wrote \"hello\" on the wall.",""],
+      ["It's cheap, only $3.","MONEY"], ["Room \"12\" is not ready.","QNUM NEG"]],
+    trial:[
+      ["I can't find my keys.","NEG"], ["Lunch was €9 today.","MONEY"], ["Enter \"2024\" to continue.","QNUM"],
+      ["The box has 5 pens.","",1], ["Nobody came to the party.","NEG"], ["Type \"yes\" to agree.","",1],
+      ["That bike was so expensive.","MONEY"], ["Pin \"0042\" won't work.","QNUM NEG"],
+      ["The bill came to 60 dollars.","MONEY"], ["Bus \"38\" stops here at 9.","QNUM"]],
+    reveal:["#260 glowed a little on plain numbers and a lot on numbers in quotes; quoted words left it dark. A neuron gives a number, not a yes or no, so its edges blur.",
+      "The brightest examples show what a neuron likes most. The faint ones show where your label stops being true. Reading only the brightest, the <b>top-activating examples</b>, can fool you."]},
+  { title:"Two Faces", short:"Two Faces", suspects:["POLY","EXCL","Q"], trialN:5, pass:0.8, key:"POLY",
+    brief:"One of these three leads a double life. Read every snippet that lights it, not only the first.",
+    evidence:[
+      ["I love pizza with extra cheese.","POLY"], ["See you on Tuesday.","POLY"], ["Watch out!","EXCL"],
+      ["Is the soup hot?","POLY Q"], ["Monday again!","POLY EXCL"], ["The meeting moved to Friday?","POLY Q"],
+      ["We won the game!","EXCL"], ["Pass the bread, please.","POLY"], ["The lamp is broken.",""],
+      ["Why is the sky blue?","Q"]],
+    trial:[
+      ["Can I have more rice?","POLY Q"], ["Sunday is my favourite day.","POLY",1], ["Great job!","EXCL"],
+      ["The cake is ready!","POLY EXCL"], ["The car would not start.",""], ["Shall we meet on Thursday?","POLY Q"],
+      ["She bought apples and pears.","POLY",1], ["What a mess!","EXCL"], ["Wednesday works for me.","POLY"],
+      ["Where is the station?","Q"]],
+    reveal:["#58 lit up for food and for days of the week, two things with nothing in common. A one-idea label caught only half its cases.",
+      "Real models do this too. They need more features than they have neurons, so they pack several into one. A neuron that answers to unrelated features is called <b>polysemantic</b>."]},
+  { title:"The Full Lineup", short:"Full Lineup", suspects:["FR","Q","CAPS","NEG","MONEY","QNUM","EXCL","POLY"], trialN:6, pass:0.8,
+    brief:"All eight suspects at once, and most snippets light several. Rank the evidence one suspect at a time.",
+    evidence:[
+      ["Le prix est 20 euros.","FR MONEY"], ["DON'T eat my cake!","CAPS NEG POLY EXCL"],
+      ["Code \"88\" opens the door on Friday.","QNUM POLY"], ["Who wants pasta?","Q POLY"],
+      ["It costs $5? No way!","MONEY Q NEG EXCL"], ["Nobody paid for the soup.","NEG MONEY POLY"],
+      ["BIG NEWS: the shop opens Monday.","CAPS POLY"], ["She said \"100\" twice.","QNUM"],
+      ["The river is calm tonight.",""], ["Ça va très bien, merci!","FR EXCL"], ["Never on a Sunday.","NEG POLY"],
+      ["Je suis en retard.","FR"]],
+    trial:[
+      ["Merci pour le livre.","FR"], ["Is lunch on Saturday?","Q POLY"], ["NO WAY!","CAPS NEG EXCL"],
+      ["Pay \"30\" at the desk.","MONEY QNUM"], ["I don't like rain.","NEG"], ["The pizza was €8.","POLY MONEY"],
+      ["Who left the door open?","Q"], ["The dog sleeps by the fire.","",1], ["WOW, it works!","CAPS EXCL"],
+      ["Vous êtes en retard?","FR Q"]],
+    reveal:["Eight neurons, most snippets lighting several at once. You pulled them apart by ranking the evidence for one suspect at a time and testing each guess.",
+      "People who study real models face the same tangle with thousands of neurons. One fix trains a second, wider model, a <b>sparse autoencoder</b>, that rewrites the layer as many features that each fire rarely and mean one thing. <a href=\"../explorables/12-features-and-dictionaries.html\">See it in the course</a>."]}
+];
+
+if (typeof module !== "undefined") module.exports = {NEURONS, CASES, fire, glow, analyse, truthOf, LIT, DARK, CATCH};
+
+// ---------- Game ----------
+if (typeof document !== "undefined") (function(){
+  const $ = id => document.getElementById(id);
+  const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+  const KEY = "ml-games:neuron-detective";
+  let prog = {cleared:[false,false,false,false], labels:{}};
+  try { const raw = localStorage.getItem(KEY); if (raw){ const p = JSON.parse(raw); if (p && Array.isArray(p.cleared)) prog = Object.assign(prog, p); } } catch(e){}
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(prog)); } catch(e){} }
+
+  const S = {ci:0, phase:"board", sel:0, focus:null, extra:CASES.map(()=>[]), custom:CASES.map(()=>[]), trial:null};
+  const firstOpen = prog.cleared.findIndex(x=>!x);
+  S.ci = firstOpen < 0 ? 0 : firstOpen;
+
+  // ----- sound (off by default) -----
+  let actx = null, soundOn = false;
+  function blip(freq, dur, vol){
+    if (!soundOn || document.hidden) return;
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = "triangle"; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol || 0.06, actx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + (dur || 0.15));
+      o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + (dur || 0.15));
+    } catch(e){}
+  }
+  $("sound").onclick = () => {
+    soundOn = !soundOn; $("sound").setAttribute("aria-pressed", soundOn); $("sound").textContent = "Sound: " + (soundOn ? "on" : "off");
+    blip(660, .1);
+  };
+  document.addEventListener("visibilitychange", () => {
+    document.body.classList.toggle("paused", document.hidden);
+    try { if (actx) document.hidden ? actx.suspend() : actx.resume(); } catch(e){}
+  });
+
+  const C = () => CASES[S.ci];
+  const labels = () => (prog.labels[S.ci] = prog.labels[S.ci] || {});
+  function unlocked(i){ return i === 0 || prog.cleared[i-1] || prog.cleared[i]; }
+
+  // evidence = case evidence + failed trial snippets + the player's own
+  function evidence(){
+    return C().evidence.map(e=>({t:e[0], tag:""}))
+      .concat(S.extra[S.ci].map(t=>({t, tag:"from trial"})))
+      .concat(S.custom[S.ci].map(t=>({t, tag:"yours"})));
+  }
+
+  function bulbHTML(a, show){
+    const v = show ? a : 0;
+    return `<span class="bulb${v >= LIT ? " lit" : ""}"><i style="opacity:${v.toFixed(2)};box-shadow:0 0 ${Math.round(v*22)}px ${Math.round(v*6)}px rgba(var(--glow-rgb),${(v*.7).toFixed(2)})"></i></span>`;
+  }
+  function tokensHTML(text, nid){
+    if (!nid) return esc(text);
+    const {toks, contrib} = fire(nid, text);
+    const mx = Math.max(0.0001, ...contrib);
+    return toks.map((t,i) => {
+      const al = contrib[i] > 0 ? Math.min(.85, .15 + .7*contrib[i]/Math.max(mx, 1)) : 0;
+      return al ? `<span class="tk" style="background:rgba(var(--glow-rgb),${al.toFixed(2)})">${esc(t.t)}</span>` : esc(t.t);
+    }).join("");
+  }
+
+  function renderCases(){
+    $("cases").innerHTML = CASES.map((c,i)=>`<button class="casebtn" data-i="${i}" aria-pressed="${i===S.ci}" ${unlocked(i)?"":"disabled"}>
+      <span class="n">Case ${i+1}${prog.cleared[i] ? ' · <span class="done">closed ✓</span>' : unlocked(i) ? "" : " · locked"}</span>
+      <span class="t">${c.short}</span></button>`).join("");
+    $("cases").querySelectorAll(".casebtn").forEach(b => b.onclick = () => {
+      S.ci = +b.dataset.i; S.phase = "board"; S.sel = 0; S.focus = null; S.trial = null; render();
+    });
+  }
+
+  function render(){
+    renderCases();
+    const c = C();
+    $("ctitle").textContent = `Case ${S.ci+1}: ${c.title}`;
+    $("cbrief").textContent = c.brief;
+    $("cphase").textContent = {board:"investigating", trial:"on trial", verdict:"verdict"}[S.phase];
+    $("board").hidden = S.phase !== "board"; $("trial").hidden = S.phase !== "trial"; $("verdict").hidden = S.phase !== "verdict";
+    if (S.phase === "board") renderBoard();
+    if (S.phase === "trial") renderTrial();
+    if (S.phase === "verdict") renderVerdict();
+  }
+
+  // ----- board -----
+  function renderBoard(){ renderEvidence(); renderExhibit(); renderSuspects(); updateLock(); }
+
+  function renderEvidence(){
+    const c = C(), ev = evidence().map((e,i)=>Object.assign(e,{i}));
+    const f = S.focus;
+    if (f) ev.sort((x,y)=>glow(f,y.t)-glow(f,x.t));
+    $("sorthint").innerHTML = f ? `Ranked by how bright <b>${NEURONS[f].name}</b> glows. Tap the suspect again to stop.` : "Tap a snippet to see who lights up.";
+    $("evlist").innerHTML = ev.map(e=>{
+      const dots = c.suspects.map(n=>{ const a = glow(n,e.t); return `<i title="${NEURONS[n].name}" style="opacity:${(0.08+0.92*a).toFixed(2)}"></i>`; }).join("");
+      const val = f ? glow(f,e.t).toFixed(2) : "";
+      const edge = f ? `border-left-color:rgba(var(--glow-rgb),${glow(f,e.t).toFixed(2)})` : "";
+      return `<button class="ev" data-i="${e.i}" aria-pressed="${e.i===S.sel}" style="${edge}">
+        <span class="txt">${e.tag?`<span class="tag">${e.tag}</span>`:""}${esc(e.t)}</span><span class="val">${val}</span>
+        <span class="dots" aria-hidden="true">${dots}</span></button>`;
+    }).join("");
+    $("evlist").querySelectorAll(".ev").forEach(b => b.onclick = () => {
+      S.sel = +b.dataset.i; renderEvidence(); renderExhibit(); renderSuspects();
+      const t = evidence()[S.sel].t, top = Math.max(...C().suspects.map(n=>glow(n,t)));
+      blip(220 + 520*top, .18);
+    });
+  }
+
+  function renderExhibit(){
+    const ev = evidence(), e = ev[Math.min(S.sel, ev.length-1)];
+    $("exhibit").innerHTML = `<span class="lbl">Exhibit${S.focus ? " · words that light " + NEURONS[S.focus].name : ""}</span>${tokensHTML(e.t, S.focus)}`;
+  }
+
+  function renderSuspects(){
+    const c = C(), t = evidence()[Math.min(S.sel, evidence().length-1)].t, L = labels();
+    $("suspects").innerHTML = c.suspects.map(n=>{
+      const a = glow(n,t);
+      return `<div class="sus${S.focus===n?" focus":""}">
+        <button class="sushead" data-n="${n}" aria-pressed="${S.focus===n}">${bulbHTML(a,true)}<span class="nm">${NEURONS[n].name}</span><span class="val">${a.toFixed(2)}</span></button>
+        <div class="meter"><i style="width:${(a*100).toFixed(0)}%"></i></div>
+        <input class="label" data-n="${n}" maxlength="60" placeholder="What lights it?" aria-label="Your label for ${NEURONS[n].name}" value="${esc(L[n]||"")}">
+      </div>`;
+    }).join("");
+    $("suspects").querySelectorAll(".sushead").forEach(b => b.onclick = () => {
+      S.focus = S.focus === b.dataset.n ? null : b.dataset.n; renderEvidence(); renderExhibit(); renderSuspects();
+    });
+    $("suspects").querySelectorAll(".label").forEach(inp => inp.oninput = () => {
+      labels()[inp.dataset.n] = inp.value; save(); updateLock();
+    });
+  }
+
+  function updateLock(){
+    const L = labels(), missing = C().suspects.filter(n=>!(L[n]||"").trim()).length;
+    $("lock").disabled = missing > 0;
+    $("lockhint").textContent = missing ? `Write a label for ${missing === 1 ? "one more suspect" : missing + " more suspects"}.` : "The trial judges your predictions, not your wording.";
+  }
+
+  $("ask").onsubmit = ev => {
+    ev.preventDefault();
+    const v = $("askin").value.trim(); if (!v) return;
+    const list = S.custom[S.ci]; if (!list.includes(v)) list.push(v);
+    $("askin").value = "";
+    S.sel = evidence().findIndex(e=>e.t===v && e.tag==="yours");
+    renderBoard();
+  };
+
+  // ----- trial -----
+  function shuffle(a){ for (let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; } return a; }
+  function drawTrial(){
+    const c = C(), used = new Set(S.extra[S.ci]);
+    const must = c.trial.filter(x=>x[2]).map(x=>x[0]);
+    let rest = shuffle(c.trial.filter(x=>!x[2] && !used.has(x[0])).map(x=>x[0]));
+    if (rest.length < c.trialN - must.length) rest = rest.concat(shuffle(c.trial.filter(x=>!x[2] && used.has(x[0])).map(x=>x[0])));
+    return shuffle(must.concat(rest.slice(0, c.trialN - must.length)));
+  }
+  $("lock").onclick = () => {
+    S.trial = {items:drawTrial(), i:0, pred:{}, checked:false, results:[]};
+    S.phase = "trial"; blip(180,.3,.09); render();
+    $("play").scrollIntoView({behavior:"smooth", block:"start"});
+  };
+
+  function renderTrial(){
+    const c = C(), T = S.trial, text = T.items[T.i], L = labels();
+    const right = T.results.filter(r=>r.ok).length;
+    $("tstamp").innerHTML = T.i === 0 && !T.checked ? `<div class="stamp lock">LABELS LOCKED</div>` : "";
+    $("tcount").innerHTML = `Snippet <b>${T.i+1}</b> of ${T.items.length}`;
+    $("tscore").innerHTML = `Right so far <b>${right}</b> of ${T.results.length}`;
+    $("texhibit").innerHTML = esc(text);
+    $("tsus").innerHTML = c.suspects.map(n=>{
+      const a = glow(n,text), p = !!T.pred[n], tr = truthOf(a);
+      let cls = "", mark = "";
+      if (T.checked){
+        if (tr === "faint"){ mark = `<span class="mark meh">faint ${a.toFixed(2)} · either counts</span>`; }
+        else { const ok = (tr === "lit") === p; cls = ok ? " right" : " wrong"; mark = `<span class="mark ${ok?"ok":"bad"}">${ok?"✓":"✗"} ${tr} · ${a.toFixed(2)}</span>`; }
+      }
+      const note = (L[n]||"").trim();
+      return `<div class="sus${cls}">
+        <div class="sushead" style="cursor:default">${bulbHTML(a, T.checked)}<span class="nm">${NEURONS[n].name}</span></div>
+        <div class="notes${note?"":" empty"}">${note ? esc(note) : "no notes"}</div>
+        <button class="pred" data-n="${n}" aria-pressed="${p}" ${T.checked?"disabled":""}>${p ? "Lights up" : "Stays dark"}</button>
+        ${mark}</div>`;
+    }).join("");
+    $("tsus").querySelectorAll(".pred").forEach(b => b.onclick = () => {
+      T.pred[b.dataset.n] = !T.pred[b.dataset.n]; blip(T.pred[b.dataset.n] ? 520 : 300, .08); renderTrial();
+    });
+    $("tgo").textContent = !T.checked ? "Check" : (T.i < T.items.length-1 ? "Next snippet" : "Hear the verdict");
+    $("tread").textContent = T.checked ? "" : "Tap a card's button to switch between dark and lit.";
+  }
+
+  $("tgo").onclick = () => {
+    const c = C(), T = S.trial, text = T.items[T.i];
+    if (!T.checked){
+      T.checked = true;
+      let anyWrong = false;
+      c.suspects.forEach(n=>{
+        const a = glow(n,text), tr = truthOf(a), p = !!T.pred[n];
+        const ok = tr === "faint" || (tr === "lit") === p;
+        if (!ok) anyWrong = true;
+        T.results.push({n, text, a, p, ok});
+      });
+      blip(anyWrong ? 160 : 760, .22, .08);
+      if (anyWrong && !S.extra[S.ci].includes(text)) T.missed = (T.missed||[]).concat(text);
+      renderTrial(); return;
+    }
+    if (T.i < T.items.length-1){ T.i++; T.pred = {}; T.checked = false; renderTrial(); return; }
+    S.phase = "verdict"; render();
+  };
+
+  // ----- verdict -----
+  function renderVerdict(){
+    const c = C(), T = S.trial, L = labels();
+    const right = T.results.filter(r=>r.ok).length, total = T.results.length, share = right/total;
+    // Most cells are dark, so "all dark" alone scores high; also ask that the player catch most lamps that lit.
+    const litRs = T.results.filter(r=>truthOf(r.a)==="lit"), caught = litRs.filter(r=>r.p).length;
+    const catchShare = litRs.length ? caught/litRs.length : 1;
+    // A case with a key suspect also needs that suspect called right on every always-drawn snippet
+    // (Two Faces: one days-only and one food-only), so a half label cannot pass.
+    const mustT = c.trial.filter(x=>x[2]).map(x=>x[0]);
+    const keyOk = !c.key || T.results.filter(r=>r.n===c.key && mustT.includes(r.text)).every(r=>r.ok);
+    const pass = share >= c.pass && catchShare >= CATCH && keyOk;
+    if (pass && !prog.cleared[S.ci]){ prog.cleared[S.ci] = true; save(); renderCases(); }
+    const rows = c.suspects.map(n=>{
+      const rs = T.results.filter(r=>r.n===n), ok = rs.filter(r=>r.ok).length;
+      return `<tr><td class="num">${NEURONS[n].name}</td><td>${esc((L[n]||"").trim())}${pass?`<div class="hint">Case file: ${NEURONS[n].file}</div>`:""}</td><td class="num">${ok}/${rs.length}</td></tr>`;
+    }).join("");
+    const misses = T.results.filter(r=>!r.ok).map(r=>`<li>${NEURONS[r.n].name} on “${esc(r.text)}”: you said ${r.p?"lit":"dark"}, it glowed ${r.a.toFixed(2)}</li>`).join("");
+    const nextOpen = S.ci < CASES.length-1;
+    $("verdict").innerHTML = `
+      <div class="stamp ${pass?"ok":"bad"}">${pass ? "CASE CLOSED" : "CASE STILL OPEN"}</div>
+      <p class="sub">You called <b>${right} of ${total}</b> right (${Math.round(share*100)}%). The bar is ${Math.round(c.pass*100)}%.
+        Of the ${litRs.length} lamps that lit, you caught <b>${caught}</b>; the bar is ${Math.round(CATCH*100)}%.${c.key && !keyOk ? `
+        You also need ${NEURONS[c.key].name} right on “${esc(mustT[0])}” and on “${esc(mustT[1])}”.` : ""}</p>
+      <table class="st"><thead><tr><th>Suspect</th><th>Your label</th><th>Right</th></tr></thead><tbody>${rows}</tbody></table>
+      ${misses ? `<h3 style="margin-top:14px">${pass ? "What you missed" : "What gave you away"}</h3><ul class="misses">${misses}</ul>` : ""}
+      ${pass ? `<div class="reveal"><h3>What you just did</h3>${c.reveal.map(p=>`<p>${p}</p>`).join("")}</div>`
+             : `<p class="hint" style="margin-top:12px">The snippets you missed now sit in the evidence. Fix your labels and try a fresh trial.</p>`}
+      <div class="row">
+        <button class="btn${pass?"":" primary"}" id="vback">${pass ? "Back to this board" : "Back to the board"}</button>
+        ${pass && nextOpen ? `<button class="btn primary" id="vnext">Next case: ${CASES[S.ci+1].title}</button>` : ""}
+      </div>`;
+    blip(pass ? 880 : 140, .4, .09);
+    $("vback").onclick = () => {
+      if (T.missed) T.missed.forEach(t=>{ if (!S.extra[S.ci].includes(t)) S.extra[S.ci].push(t); });
+      S.phase = "board"; S.trial = null; S.focus = null; render();
+    };
+    if ($("vnext")) $("vnext").onclick = () => { S.ci++; S.phase = "board"; S.sel = 0; S.focus = null; S.trial = null; render(); $("play").scrollIntoView({behavior:"smooth", block:"start"}); };
+  }
+
+  render();
+})();
+</script>

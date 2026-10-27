@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Games · ML course</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --paper:#f6f8f7; --ink:#1c2422; --accent:#1f918d;
+  --t0:#a86b0e; --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8; --t6:#b7410e; --t7:#6e7a14; --t8:#9a6a00; --t9:#4f6272; --track-ink:#ffffff;
+  --panel:#ffffff; --line:rgba(28,36,34,.14); --muted:#5c6b67;
+  --soft:rgba(31,145,141,.10); --sketch:rgba(28,36,34,.42);
+  --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --display:"Avenir Next","Helvetica Neue",Helvetica,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --line:rgba(232,238,236,.18);
+    --muted:#9daba7; --t0:#d9962e; --t1:#6b5ac0; --t2:#37b3ae; --t3:#57c063; --t4:#e0679a; --t5:#5aa1e6; --t6:#e7764a; --t7:#aab53c; --t8:#d9a63a; --t9:#93a8b8; --accent:#37b3ae;
+    --track-ink:#0d1211; --soft:rgba(31,145,141,.16); --sketch:rgba(232,238,236,.40);
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
+  }
+  .evaluation-thumb{--err:#ef8b60}
+}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem .9rem;align-items:center;
+  padding:.7rem clamp(.9rem,3vw,2rem);border-bottom:1px solid var(--line);
+  background:var(--panel);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:var(--display);font-size:1.05rem;font-weight:600;margin:0;letter-spacing:.1px}
+.topbar .spacer{flex:1 1 auto}
+.topbar .count{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+.topbar a.back{font-size:.85rem;text-decoration:none;border:1px solid var(--line);
+  padding:.28rem .7rem;border-radius:999px;color:var(--ink)}
+.topbar a.back:hover{border-color:var(--accent);color:var(--accent)}
+
+main{max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(.9rem,3vw,2rem) 3rem}
+.intro{max-width:70ch}
+.intro .lede{font-family:var(--display);font-size:1.12rem;margin:.2rem 0 .7rem}
+.intro p{margin:.5rem 0}
+.intro code{font-family:var(--mono);font-size:.88em;background:var(--soft);
+  border-radius:4px;padding:.08em .35em}
+
+.track{margin:2.1rem 0 0}
+.track > h2{font-family:var(--display);font-size:1rem;letter-spacing:.02em;text-transform:uppercase;
+  margin:0 0 .15rem;display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap}
+.track > h2 .dot{width:.62rem;height:.62rem;border-radius:3px;display:inline-block}
+.track > h2 .rng{font-family:var(--mono);font-size:.78rem;font-weight:400;
+  text-transform:none;letter-spacing:0;color:var(--muted)}
+.track > p.sub{margin:0 0 .9rem;color:var(--muted);font-size:.88rem;max-width:70ch}
+.track.t0 > h2{color:var(--t0)} .track.t0 > h2 .dot{background:var(--t0)}
+.track.t1 > h2{color:var(--t1)} .track.t1 > h2 .dot{background:var(--t1)}
+.track.t2 > h2{color:var(--t2)} .track.t2 > h2 .dot{background:var(--t2)}
+.track.t3 > h2{color:var(--t3)} .track.t3 > h2 .dot{background:var(--t3)}
+.track.t4 > h2{color:var(--t4)} .track.t4 > h2 .dot{background:var(--t4)}
+.track.t5 > h2{color:var(--t5)} .track.t5 > h2 .dot{background:var(--t5)}
+.track.t6 > h2{color:var(--t6)} .track.t6 > h2 .dot{background:var(--t6)}
+.track.t7 > h2{color:var(--t7)} .track.t7 > h2 .dot{background:var(--t7)}
+.track.t8 > h2{color:var(--t8)} .track.t8 > h2 .dot{background:var(--t8)}
+.track.t9 > h2{color:var(--t9)} .track.t9 > h2 .dot{background:var(--t9)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:1rem}
+
+.card{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);
+  border-radius:14px;padding:.85rem .95rem 1rem;text-decoration:none;color:inherit;
+  box-shadow:var(--shadow);transition:border-color .15s,transform .15s}
+.card{position:relative}
+.card:hover,.card:focus-within{border-color:var(--accent);transform:translateY(-2px)}
+.card:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.card h3 a{color:inherit;text-decoration:none;outline:none}
+.card h3 a::after{content:"";position:absolute;inset:0;border-radius:14px}
+.cardfoot{margin-top:auto;padding-top:.7rem;display:flex;justify-content:flex-end}
+.card .quiz{position:relative;z-index:1;font-family:var(--mono);font-size:.74rem;
+  text-decoration:none;color:var(--muted);border:1px solid var(--line);
+  border-radius:999px;padding:.16rem .6rem}
+.card .quiz:hover,.card .quiz:focus-visible{border-color:var(--accent);color:var(--accent)}
+.card .thumb{display:block;width:100%;height:auto;border-radius:10px;background:var(--soft);
+  margin:0 0 .7rem}
+.card h3{font-family:var(--display);font-size:1rem;font-weight:600;margin:0 0 .4rem;
+  line-height:1.3;letter-spacing:.1px}
+.card .hook{font-size:.87rem;color:var(--muted);margin:0;line-height:1.45}
+.card .meta{display:flex;align-items:center;gap:.5rem;margin:0 0 .45rem;flex-wrap:wrap}
+.pill{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--track-ink);padding:.24rem .6rem;border-radius:999px;
+  white-space:nowrap}
+.pill.t0{background:var(--t0)}
+.pill.t1{background:var(--t1)} .pill.t2{background:var(--t2)} .pill.t3{background:var(--t3)} .pill.t4{background:var(--t4)} .pill.t5{background:var(--t5)} .pill.t6{background:var(--t6)} .pill.t7{background:var(--t7)} .pill.t8{background:var(--t8)} .pill.t9{background:var(--t9)}
+.card .file{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+
+
+.topbar a.back{display:inline-flex;align-items:center;min-height:44px;padding:0 .9rem}
+.grid{margin-top:1.4rem}
+.card{min-height:44px}
+.card .pill{white-space:normal}
+.card .progress{margin:.7rem 0 0;font-family:var(--mono);font-size:.76rem;color:var(--muted)}
+.card .progress.done{color:var(--accent)}
+
+footer{border-top:1px solid var(--line);padding:1.1rem clamp(.9rem,3vw,2rem) 2.4rem;
+  font-size:.84rem;color:var(--muted)}
+footer .paths{font-family:var(--mono);font-size:.82rem}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline}
+footer p{margin:.3rem 0;max-width:74ch}
+
+@media (max-width:700px){
+  .topbar h1{font-size:.98rem}
+  .grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>Games</h1>
+  <span class="count">9 games</span>
+  <span class="spacer"></span>
+  <a class="back" href="../index.html">← Course home</a>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="lede">Play first. Each game teaches one ML idea by making you do it.</p>
+  </section>
+
+  <div class="grid">
+
+    <div class="card" data-key="fogGolf.cleared" data-kind="arr" data-levels="6">
+      <div class="meta"><span class="pill t2">Gradient descent</span></div>
+      <h3><a href="fog-golf.html">Fog Golf</a></h3>
+      <p class="hook">You can't see the hole. You can feel the slope. Pick your power and swing.</p>
+      <p class="progress" hidden></p>
+    </div>
+
+    <div class="card" data-key="neuron-factory-cleared" data-kind="arr" data-levels="5">
+      <div class="meta"><span class="pill t1">Networks and parameters</span></div>
+      <h3><a href="neuron-factory.html">Neuron Factory</a></h3>
+      <p class="hook">Build a sorting machine from knobs and wires. Fewest knobs wins.</p>
+      <p class="progress" hidden></p>
+    </div>
+
+    <div class="card" data-key="ml-games/creature-trainer" data-kind="objmap" data-levels="5">
+      <div class="meta"><span class="pill t3">Overfitting and double descent</span></div>
+      <h3><a href="creature-trainer.html">Creature Trainer</a></h3>
+      <p class="hook">Train your creature in the gym, then send it into the wild. The gym lies.</p>
+      <p class="progress" hidden></p>
+    </div>
+
+    <div class="card" data-key="border-desk:cleared" data-kind="num" data-levels="5">
+      <div class="meta"><span class="pill t0">Classification and calibration</span></div>
+      <h3><a href="border-desk.html">Border Desk</a></h3>
+      <p class="hook">Stamp passports against a rule nobody told you. Say how sure you are.</p>
+      <p class="progress" hidden></p>
+    </div>
+
+    <div class="card" data-key="reward-hacker-cleared" data-kind="arr" data-levels="5">
+      <div class="meta"><span class="pill t4">Reinforcement learning</span></div>
+      <h3><a href="reward-hacker.html">Reward Hacker</a></h3>
+      <p class="hook">Write the reward. Watch a robot find the loophole you missed.</p>
+      <p class="progress" hidden></p>
+    </div>
+
+    <div class="card" data-key="ml-games.spotlight-heist" data-kind="objarr" data-levels="5">
+      <div class="meta"><span class="pill t5">Attention</span></div>
+      <h3><a href="spotlight-heist.html">Spotlight Heist</a></h3>
+      <p class="hook">Shine the beams on the right words and the safe clicks open.</p>
+      <p class="progress" hidden></p>
+    </div>
+
+    <div class="card" data-key="ml-games:expert-metro:cleared" data-kind="arr" data-levels="5">
+      <div class="meta"><span class="pill t6">Mixture of experts</span></div>
+      <h3><a href="expert-metro.html">Expert Metro</a></h3>
+      <p class="hook">Route the rush-hour crowd to four stations before one of them jams.</p>
+      <p class="progress" hidden></p>
+    </div>
+
+    <div class="card" data-key="ml-games:neuron-detective" data-kind="objbool" data-levels="4">
+      <div class="meta"><span class="pill t7">Interpretability</span></div>
+      <h3><a href="neuron-detective.html">Neuron Detective</a></h3>
+      <p class="hook">Eight suspects light up on the evidence. Name each one, then prove it.</p>
+      <p class="progress" hidden></p>
+    </div>
+
+    <div class="card" data-key="ml-games:lab-tycoon:v1" data-kind="objarr" data-levels="5">
+      <div class="meta"><span class="pill t9">Scaling laws</span></div>
+      <h3><a href="lab-tycoon.html">Lab Tycoon</a></h3>
+      <p class="hook">Spend the compute: bigger model or more data? Beat the rival labs.</p>
+      <p class="progress" hidden></p>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p>Each game is one HTML file with no network calls. Progress stays in this browser.</p>
+  <p><a href="../index.html">← Course home</a></p>
+</footer>
+<script>
+(function () {
+  // Each game stores progress in its own shape; count cleared levels per shape.
+  function count(raw, kind) {
+    if (kind === "num") return parseInt(raw, 10) || 0;
+    var v = JSON.parse(raw);
+    if (kind === "arr") return Array.isArray(v) ? v.length : 0;
+    if (kind === "objarr") return v && Array.isArray(v.cleared) ? v.cleared.length : 0;
+    if (kind === "objmap") return v && v.cleared ? Object.keys(v.cleared).filter(function (k) { return v.cleared[k]; }).length : 0;
+    if (kind === "objbool") return v && Array.isArray(v.cleared) ? v.cleared.filter(Boolean).length : 0;
+    return 0;
+  }
+  document.querySelectorAll(".card[data-key]").forEach(function (card) {
+    var n = 0, m = parseInt(card.dataset.levels, 10);
+    try {
+      var raw = localStorage.getItem(card.dataset.key);
+      if (raw === null) return;
+      n = Math.min(m, count(raw, card.dataset.kind));
+    } catch (e) { return; }
+    if (!n) return;
+    var p = card.querySelector(".progress");
+    p.textContent = "Cleared " + n + " of " + m + " levels";
+    if (n === m) p.classList.add("done");
+    p.hidden = false;
+  });
+})();
+</script>
+</body>
+</html>

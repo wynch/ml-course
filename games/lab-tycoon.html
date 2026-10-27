@@ -1,0 +1,829 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab Tycoon — ml-course game</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+  :root{
+    --paper:#f6f8f7; --ink:#1c2422; --panel:#ffffff; --panel-2:#eef2f0;
+    --line:#d5ddda; --muted:#5d6b67; --accent:#1f918d;
+    --t1:#453781; --t2:#1f918d; --t3:#3fa34d; --t4:#b8336a; --t5:#1d6fb8; --t9:#4f6272;
+    --you:#b8336a; --ucb:#eb6834;
+    --c-col:#5b45a8; --c-book:#1d6fb8; --c-twenty:#3f8f3a; --c-copy:#d0661f; --c-hype:#4f6272;
+    --good:#1baf7a; --bad:#d95926;
+    --shadow:0 1px 2px rgba(20,40,35,.06), 0 6px 18px rgba(20,40,35,.05);
+    --mono:"SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    --display:"Avenir Next","Helvetica Neue",sans-serif;
+    --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#121816; --ink:#e8eeec; --panel:#1a2320; --panel-2:#222d29;
+      --line:#31403b; --muted:#9dada8; --accent:#37b3ae; --t4:#e0679a; --t5:#5aa1e6; --t9:#93a8b8;
+      --you:#e0679a; --ucb:#d95926;
+      --c-col:#a08ee0; --c-book:#5aa1e6; --c-twenty:#6cc46a; --c-copy:#e88a4a; --c-hype:#93a8b8;
+      --good:#199e70; --bad:#e0703f;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink)}
+  body{font-family:var(--body);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 16px 64px}
+
+  header.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    padding:16px 0 14px;border-bottom:1px solid var(--line);margin-bottom:22px}
+  header.top h1{font-family:var(--display);font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .pill{font-family:var(--display);font-size:11.5px;font-weight:600;letter-spacing:.02em;
+    padding:3px 10px;border-radius:999px;color:#fff;background:var(--t9);white-space:nowrap}
+  @media (prefers-color-scheme: dark){ .pill{color:#121816} }
+  .top .spacer{flex:1}
+  .backlink{font-size:13px;color:var(--muted);text-decoration:none;border-bottom:1px solid transparent;
+    display:inline-flex;align-items:center;min-height:44px}
+  .backlink:hover{color:var(--accent);border-bottom-color:var(--accent)}
+
+  .intro{max-width:78ch;font-size:15.5px;margin:0 0 20px}
+  .intro em{color:var(--accent);font-style:normal;font-weight:600}
+
+  section{margin:0 0 24px}
+  h2{font-family:var(--display);font-size:15px;font-weight:600;margin:0 0 4px;letter-spacing:.01em}
+  h3{font-family:var(--display);font-size:13px;font-weight:600;margin:0 0 6px;color:var(--muted)}
+  .sub{font-size:13.5px;color:var(--muted);margin:0 0 12px;max-width:80ch}
+  .sub b{color:var(--ink)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    box-shadow:var(--shadow);padding:16px}
+
+  .btn{font-family:var(--display);font-size:13px;font-weight:600;border:1.5px solid var(--line);
+    background:transparent;color:var(--ink);padding:8px 16px;border-radius:999px;cursor:pointer;
+    min-height:44px;min-width:44px;touch-action:manipulation}
+  .btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+  .btn:disabled{opacity:.45;cursor:default}
+  .btn.go{background:var(--accent);border-color:var(--accent);color:#fff;font-size:15px;padding:8px 26px}
+  .btn.go:hover:not(:disabled){color:#fff;filter:brightness(1.08)}
+  @media (prefers-color-scheme: dark){ .btn.go{color:#121816} .btn.go:hover:not(:disabled){color:#121816} }
+  .btn:focus-visible,.tile:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .btn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  .hint{font-size:12px;color:var(--muted)}
+
+  .tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+  .tile{font-family:var(--display);border:1.5px solid var(--line);background:var(--panel-2);color:var(--ink);
+    border-radius:12px;padding:8px 6px;cursor:pointer;text-align:center;min-height:56px;touch-action:manipulation}
+  .tile .n{font-size:18px;font-weight:600;display:block;line-height:1.2}
+  .tile .t{font-size:11.5px;color:var(--muted);display:block;line-height:1.25}
+  .tile[aria-current="true"]{border-color:var(--accent)}
+  .tile.done .n::after{content:" ✓";color:var(--good)}
+  .tile:disabled{opacity:.4;cursor:default}
+  @media (max-width:560px){ .tile .t{font-size:10.5px} }
+
+  .gamehead{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;margin:0 0 4px}
+  .notice{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+  .chip{font-family:var(--mono);font-size:11.5px;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:999px;padding:3px 10px;color:var(--muted)}
+  .chip b{color:var(--ink)}
+  .chip.good{border-color:var(--good)} .chip.bad{border-color:var(--bad)}
+
+  .stage{position:relative;width:100%;aspect-ratio:12/5;border-radius:8px;overflow:hidden;border:1px solid var(--line);
+    background:var(--panel-2)}
+  @media (max-width:560px){ .stage{aspect-ratio:2/1} }
+  .stage canvas{position:absolute;inset:0;width:100%;height:100%}
+
+  .ticker{position:relative;overflow:hidden;white-space:nowrap;border:1px solid var(--line);border-radius:8px;
+    background:var(--panel-2);margin:8px 0 14px;height:30px;font-size:12.5px}
+  .ticker .lbl{position:absolute;left:0;top:0;bottom:0;z-index:2;display:flex;align-items:center;padding:0 9px;
+    font-family:var(--display);font-weight:600;font-size:11px;letter-spacing:.06em;color:#fff;background:var(--you)}
+  @media (prefers-color-scheme: dark){ .ticker .lbl{color:#121816} }
+  .ticker .run{position:absolute;top:0;bottom:0;display:flex;align-items:center;will-change:transform;left:0}
+  .ticker .run span{padding:0 18px;color:var(--ink)}
+  .ticker .run span::before{content:"■ ";color:var(--accent);font-size:9px;vertical-align:1px}
+
+  .choose{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin:0 0 6px}
+  .sliderrow{display:flex;align-items:center;gap:8px}
+  .sliderrow input{flex:1;min-width:0;height:44px;accent-color:var(--you);touch-action:pan-y}
+  .ends{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin:-6px 52px 0}
+  .actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+
+  .panel-title{font-family:var(--display);font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 6px}
+  .race{position:relative;width:100%;aspect-ratio:2/1;max-height:340px;border-radius:8px;border:1px solid var(--line);background:var(--panel)}
+  @media (max-width:560px){ .race{aspect-ratio:4/3} }
+  .race canvas{position:absolute;inset:0;width:100%;height:100%}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);margin-top:6px}
+  .legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+
+  .tablewrap{overflow-x:auto;margin-top:10px}
+  table.score{border-collapse:collapse;font-size:12.5px;width:100%}
+  table.score th{font-family:var(--display);font-weight:600;font-size:11.5px;color:var(--muted);text-align:left;
+    padding:4px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+  table.score td{padding:5px 6px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;white-space:nowrap}
+  table.score td.name{font-family:var(--display);font-weight:600;white-space:normal;min-width:120px}
+  table.score td.name small{display:block;font-family:var(--body);font-weight:400;font-size:11px;color:var(--muted)}
+  table.score th.num, table.score td.num{text-align:right}
+  table.score i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  table.score tr.you td{background:var(--panel-2)}
+
+  .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+  @media (max-width:820px){ .two{grid-template-columns:minmax(0,1fr)} }
+  svg{display:block;max-width:100%;height:auto}
+  svg text{font-family:var(--body);fill:var(--muted);font-size:11px}
+  .readout{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:8px;min-height:19px}
+  .readout b{color:var(--ink)}
+  .hidden{display:none !important}
+
+  .overlay{position:fixed;inset:0;z-index:50;background:rgba(10,20,18,.45);display:flex;align-items:flex-start;
+    justify-content:center;padding:24px 12px;overflow-y:auto}
+  .overlay .card{max-width:620px;width:100%;margin:auto}
+  .overlay h2{font-size:18px;margin-bottom:8px}
+  .whatyoudid{border-left:3px solid var(--accent);padding:2px 0 2px 12px;margin:12px 0;font-size:14.5px}
+  .whatyoudid h3{color:var(--accent);margin:0 0 4px}
+  .whatyoudid p{margin:0 0 6px}
+  .whatyoudid em{font-style:normal;font-weight:600;color:var(--accent)}
+
+  footer.bot{border-top:1px solid var(--line);padding-top:14px;font-size:12.5px;color:var(--muted)}
+  footer.bot a{color:var(--accent)}
+  label.name{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--muted)}
+  label.name input{font:inherit;color:var(--ink);background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
+    padding:8px 10px;min-height:44px;width:170px;font-size:16px}
+  a.backlink{display:inline-flex;align-items:center;min-height:44px}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <h1>Lab Tycoon</h1>
+  <span class="pill">Game · Growing a lab</span>
+  <span class="spacer"></span>
+  <button class="btn" id="sound" aria-pressed="false">Sound: off</button>
+  <a class="backlink" href="index.html">← All games</a>
+</header>
+
+<p class="intro">
+  You run a young AI lab. Each year the chips give you a budget of <em>compute</em>, counted in FLOP: one FLOP is
+  one sum or one product your machines work out. Spend it on a <em>bigger model</em>, one with more parameters (the
+  numbers it tunes as it learns), or on <em>more reading</em>: more tokens, the word pieces it learns from. Rival
+  labs have their own ideas. Beat them.
+</p>
+
+<section>
+  <div class="tiles" id="tiles"></div>
+</section>
+
+<section class="card" id="game">
+  <div class="gamehead">
+    <h2 id="ltitle"></h2>
+    <label class="name">Your lab <input id="labname" maxlength="22" autocomplete="off" spellcheck="false"></label>
+  </div>
+  <p class="sub" id="goal"></p>
+  <div class="notice" id="status"></div>
+
+  <div class="stage"><canvas id="lab" aria-label="Your lab, its model and its pile of reading" role="img"></canvas></div>
+  <div class="ticker" aria-live="off"><span class="lbl">NEWS</span><div class="run" id="tick"></div></div>
+
+  <div id="chooseBox">
+    <div class="choose">
+      <div class="sliderrow">
+        <button class="btn" id="minus" aria-label="Smaller model">−</button>
+        <input type="range" id="split" min="0" max="1000" step="1" value="500" aria-label="Model size; the rest of the budget buys reading">
+        <button class="btn" id="plus" aria-label="Bigger model">+</button>
+      </div>
+      <div class="ends"><span>small model, reads a lot</span><span>big model, reads little</span></div>
+      <div class="notice" id="pick"></div>
+    </div>
+    <div class="actions">
+      <button class="btn go" id="train">Train</button>
+      <span class="hint" id="rules"></span>
+    </div>
+  </div>
+
+  <div id="raceBox" class="hidden" style="margin-top:14px">
+    <p class="panel-title" id="racetitle"></p>
+    <div class="race"><canvas id="race" role="img" aria-label="Loss of every lab's model as it trains"></canvas></div>
+    <div class="legend" id="raceleg"></div>
+    <div class="tablewrap"><table class="score" id="table"></table></div>
+    <div class="readout" id="verdict"></div>
+    <div class="actions" style="margin-top:10px">
+      <button class="btn" id="skip">Skip to the end</button>
+      <button class="btn go hidden" id="next">Next year</button>
+    </div>
+  </div>
+
+  <div id="triesBox" class="hidden" style="margin-top:16px">
+    <p class="panel-title">Your tries: the bill to reach the target, by model size</p>
+    <svg id="tries" viewBox="0 0 520 260" role="img" aria-label="Compute bill against model size for each try"></svg>
+  </div>
+
+  <div id="frontBox" class="hidden" style="margin-top:16px">
+    <p class="panel-title">Model size against budget: your picks (dots) and, once each year ends, the best size (ring)</p>
+    <svg id="front" viewBox="0 0 520 300" role="img" aria-label="Model size chosen against budget"></svg>
+  </div>
+</section>
+
+<footer class="bot">
+  <div class="row">Each round runs the same law for every lab; nothing is random. Progress stays in this browser.</div>
+  <div class="row"><a href="index.html">All games</a></div>
+</footer>
+</div>
+
+<div class="overlay hidden" id="overlay" role="dialog" aria-modal="true" aria-labelledby="otitle">
+  <div class="card">
+    <h2 id="otitle"></h2>
+    <div id="obody"></div>
+    <div class="actions" style="margin-top:14px" id="obtns"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================ the law
+   Loss in nats per token: L(N, D) = E + A/N^alpha + B/D^beta, N parameters, D training tokens.
+   Training compute C = 6 N D FLOP. Constants as published for large language models. */
+const LAW = {E:1.69, A:406.4, B:410.7, alpha:0.34, beta:0.28};
+const POINTS = [10, 6, 3, 1, 0];
+const R_MIN = 0.05, R_MAX = 2e5;          // slider bounds, tokens per parameter
+const N_LO_T = 1e7, N_HI_T = 1e12;        // slider bounds for the target level
+const STEPS = 1000;
+
+function loss(N, D){ return LAW.E + LAW.A*Math.pow(N, -LAW.alpha) + LAW.B*Math.pow(D, -LAW.beta); }
+function lossAt(C, N){ return loss(N, C/(6*N)); }
+// d/dN [A N^-a + B (6N/C)^b] = 0  =>  N* = G (C/6)^(b/(a+b)),  G = (aA/(bB))^(1/(a+b))
+const G = Math.pow(LAW.alpha*LAW.A/(LAW.beta*LAW.B), 1/(LAW.alpha+LAW.beta));
+function bestN(C){ return G*Math.pow(C/6, LAW.beta/(LAW.alpha+LAW.beta)); }
+function bestLoss(C){ return lossAt(C, bestN(C)); }
+function nForRatio(C, r){ return Math.sqrt(C/(6*r)); }
+// Smallest compute whose best split reaches loss L (bisection on log10 C; bestLoss falls with C).
+function minCompute(L){
+  if(!(L > LAW.E)) return Infinity;
+  let lo = 0, hi = 60;
+  if(bestLoss(Math.pow(10, hi)) > L) return Infinity;
+  for(let i=0;i<100;i++){ const m=(lo+hi)/2; if(bestLoss(Math.pow(10,m)) > L) lo=m; else hi=m; }
+  return Math.pow(10, hi);
+}
+// Value for money: the share of C that the best split would need to match loss L.
+function valueOf(C, L){ return Math.min(1, minCompute(L)/C); }
+function tokensToReach(N, T){
+  const rest = T - LAW.E - LAW.A*Math.pow(N, -LAW.alpha);
+  return rest > 0 ? Math.pow(LAW.B/rest, 1/LAW.beta) : Infinity;
+}
+function billToReach(N, T){ return 6*N*tokensToReach(N, T); }
+// Compute a fixed tokens-per-parameter habit needs to reach loss T.
+function billForRatio(r, T){
+  let lo = 10, hi = 60;
+  for(let i=0;i<100;i++){ const m=(lo+hi)/2, C=Math.pow(10,m); if(lossAt(C, nForRatio(C,r)) > T) lo=m; else hi=m; }
+  return Math.pow(10, hi);
+}
+
+/* ============================================================ rivals */
+const RIVALS = {
+  colossus:{name:"Colossus Dynamics", color:"--c-col", habit:"Biggest model it can afford: one token read per parameter.",
+    ratio:()=>1},
+  bookworm:{name:"Bookworm Institute", color:"--c-book", habit:"Tiny model that reads 5,000 tokens per parameter.",
+    ratio:()=>5000},
+  twenty:{name:"Twenty Club", color:"--c-twenty", habit:"Twenty tokens per parameter, every year.",
+    ratio:()=>20},
+  copycat:{name:"Copycat Corp", color:"--c-copy", habit:"Copies last year's winner: same tokens per parameter.",
+    ratio:ctx=>ctx.lastWinnerR || 200},
+  hype:{name:"Hype Machine", color:"--c-hype", habit:"Doubles its model every year, whatever the budget.",
+    n:(C, ctx)=>9e8*Math.pow(2, ctx.year)},
+};
+function rivalN(id, C, ctx){ const R=RIVALS[id]; return R.n ? R.n(C, ctx) : nForRatio(C, R.ratio(ctx)); }
+
+/* ============================================================ levels */
+const LEVELS = [
+  {id:1, name:"Garage lab", mode:"budget", budgets:[1e19], rivals:["colossus","bookworm"],
+   goal:"One year, one budget. Train a model with a lower <b>loss</b> than both rivals. Loss: how wrong the model's guesses about the next word are; lower wins.",
+   judge(s){ const r=s.rounds[0]; return {pass:r.you.rank===1,
+     msg:r.you.rank===1 ? "Your model beat both rivals." : "Beaten by "+r.entries[0].name+". Try another size."}; },
+   card:["You had one budget and split it between a bigger model and more reading. The giant that read little lost, and so did the small model that read everything. The winner sat between.",
+     "Loss falls as a power of model size and as a power of the tokens read: L = 1.69 + 406.4/N<sup>0.34</sup> + 410.7/D<sup>0.28</sup>, with N parameters and D tokens. That rule is a <em>scaling law</em>."]},
+  {id:2, name:"Least compute", mode:"target", target:2.40, rivals:["colossus","bookworm","twenty"],
+   goal:"Investors want a model with loss <b>2.40</b>. Pick a size; it trains until it gets there. Pay a smaller compute bill than every rival. Try as many sizes as you like.",
+   card:["You reached a set loss and paid as little as you could. Your tries traced a valley: a small model must read for ever, and a big one costs a fortune for every token it reads.",
+     "The bottom of that valley is the <em>compute-optimal</em> model: the cheapest way to reach a given loss."]},
+  {id:3, name:"Boom years", mode:"budget", budgets:[1e19,1e20,1e21,1e22], rivals:["colossus","bookworm","hype","copycat"],
+   goal:"Four years. The budget grows ten times each year. Top the league: 10, 6, 3, 1 and 0 points for places 1 to 5.",
+   judge(s){ const t=league(s); const ok=t[0].id==="you";
+     return {pass:ok, msg:ok ? "You top the league." : t[0].name+" tops the league. Watch how the best size moves as budgets grow."}; },
+   card:["Each year the budget grew ten times. Keeping last year's model meant it read far too much; doubling it each year lagged behind.",
+     "At the best split the model grows about 2.8 times and its reading about 3.5 times for each tenfold budget. Size and data grow together: that is how <em>compute-optimal scaling</em> spends a bigger budget."]},
+  {id:4, name:"The rule of twenty", mode:"budget", budgets:[1e20,1e21,1e22,1e23,1e24], rivals:["twenty","copycat","colossus","bookworm"],
+   goal:"Five years, budgets ten times larger each year. Win every year outright; a tie counts as a loss. Twenty Club keeps its rule, and Copycat Corp copies the winner's tokens per parameter a year late.",
+   judge(s){ const lost=s.rounds.filter(r=>r.you.rank!==1);
+     return {pass:lost.length===0, msg:lost.length===0 ? "You won five years out of five."
+       : "You lost year "+lost.map(r=>(r.year+1)+" to "+r.entries[0].name).join(", year ")+". Look at the tokens per parameter of your winning years."}; },
+   card:["Twenty Club kept one rule and Copycat kept last year's answer; both fell behind. Under this law the best number of tokens per parameter climbs as budgets grow: about 40 at 10<sup>20</sup> FLOP and about 98 at 10<sup>24</sup>.",
+     "You may have heard \"about 20 tokens per parameter\". That figure came from other fits of the data; this formula puts the best ratio higher, and rising. Either way a fixed rule drifts off the best split, and the <em>scaling law</em> tells you where it moves next."]},
+  {id:5, name:"The long bet", mode:"budget", budgets:[1e19,1e20,1e21,1e22,1e23,1e24], rivals:["colossus","bookworm","twenty","copycat"],
+   goal:"Six years. In at least five of them, get <b>99%</b> value for money or better. Value: the share of your budget the best possible split would need to match your loss. The chart shows each year's best size once that year ends.",
+   judge(s){ const k=s.rounds.filter(r=>r.you.value>=0.99).length;
+     return {pass:k>=5, msg:k+" of 6 years at 99% value or better."+(k>=5 ? "" : " The rings on the chart line up; extend the line.")}; },
+   card:["You found the best split from its trend and followed it. On log scales the best model size against budget is a straight line: size grows as budget<sup>0.45</sup>, reading as budget<sup>0.55</sup>.",
+     "Labs fit this <em>compute-optimal frontier</em> on small runs, then bet their biggest budget on where the line points."]},
+];
+
+/* ============================================================ rounds */
+function newSeason(level){ return {level, year:0, lastWinnerR:0, rounds:[], tries:[], done:false}; }
+function labName(id){ return id==="you" ? (state && state.labName || "Your lab") : RIVALS[id].name; }
+
+// Copycat rebuilds your split from its ratio, so equal picks can differ by rounding: treat those as a tie.
+function tie(x, y){ return (isFinite(x)&&isFinite(y)&&Math.abs(x-y)<=1e-9*Math.abs(y)) ? 0 : (x<y ? -1 : x>y ? 1 : 0); }
+function playRound(s, playerN){
+  const level=s.level, C=level.budgets[s.year];
+  const ids=level.rivals.slice();
+  const entries=ids.map(id=>({id, N:rivalN(id, C, s)})).concat([{id:"you", N:playerN}]);
+  entries.forEach(e=>{ e.name=labName(e.id); e.D=C/(6*e.N); e.r=e.D/e.N; e.L=loss(e.N, e.D); e.value=valueOf(C, e.L); });
+  // ties (to rounding) go to the rival
+  entries.sort((a,b)=>tie(a.L,b.L) || ((a.id==="you")-(b.id==="you")));
+  entries.forEach((e,i)=>{ e.rank=i+1; e.points=POINTS[i]||0; });
+  const round={year:s.year, C, entries, byId:{}, best:{N:bestN(C), L:bestLoss(C)}};
+  entries.forEach(e=>{ round.byId[e.id]=e; });
+  round.you=round.byId.you;
+  s.lastWinnerR=entries[0].r;
+  s.rounds.push(round);
+  s.year++;
+  if(s.year>=level.budgets.length) s.done=true;
+  return round;
+}
+function league(s){
+  const tot={};
+  s.rounds.forEach(r=>r.entries.forEach(e=>{ tot[e.id]=(tot[e.id]||0)+e.points; }));
+  const last=s.rounds[s.rounds.length-1];
+  return Object.keys(tot).map(id=>({id, name:labName(id), pts:tot[id], lastL:last.byId[id].L}))
+    .sort((a,b)=>(b.pts-a.pts) || ((a.id==="you")-(b.id==="you")));
+}
+function playTry(s, playerN){
+  const level=s.level, T=level.target;
+  const entries=level.rivals.map(id=>{ const r=RIVALS[id].ratio(s); const C=billForRatio(r,T); return {id, N:nForRatio(C,r), bill:C}; })
+    .concat([{id:"you", N:playerN, bill:billToReach(playerN, T)}]);
+  entries.forEach(e=>{ e.name=labName(e.id); e.D=isFinite(e.bill) ? e.bill/(6*e.N) : Infinity; e.r=e.D/e.N; });
+  entries.sort((a,b)=>tie(a.bill,b.bill) || ((a.id==="you")-(b.id==="you")));
+  entries.forEach((e,i)=>{ e.rank=i+1; });
+  const t={entries, byId:{}, best:{N:bestN(minCompute(T)), bill:minCompute(T)}};
+  entries.forEach(e=>{ t.byId[e.id]=e; }); t.you=t.byId.you;
+  s.tries.push(t);
+  return t;
+}
+function judgeTarget(s){
+  const t=s.tries[s.tries.length-1], you=t.you;
+  const beaten=you.rank===1;
+  return {pass:beaten, msg: !isFinite(you.bill) ? "That model can never reach 2.40, however long it reads."
+    : beaten ? "Cheapest bill in town." : "Still beaten by "+t.entries[0].name+"."};
+}
+
+/* slider: u in [0, STEPS] maps to log10 N */
+function nRange(level, C){
+  if(level.mode==="target") return [Math.log10(N_LO_T), Math.log10(N_HI_T)];
+  return [Math.log10(nForRatio(C, R_MAX)), Math.log10(nForRatio(C, R_MIN))];
+}
+function uToN(level, C, u){ const [a,b]=nRange(level, C); return Math.pow(10, a+(b-a)*u/STEPS); }
+function nToU(level, C, N){ const [a,b]=nRange(level, C);
+  return Math.max(0, Math.min(STEPS, Math.round((Math.log10(N)-a)/(b-a)*STEPS))); }
+
+if(typeof module!=="undefined" && module.exports){
+  module.exports={LAW,loss,lossAt,bestN,bestLoss,minCompute,valueOf,billToReach,billForRatio,nForRatio,
+    RIVALS,LEVELS,newSeason,playRound,playTry,judgeTarget,league,uToN,nToU,nRange,STEPS};
+}
+
+/* ============================================================ page */
+var state = null;
+if(typeof document!=="undefined") (function(){
+const $=s=>document.querySelector(s);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const reduceMotion=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const KEY="ml-games:lab-tycoon:v1";
+
+function load(){ try{ const v=JSON.parse(localStorage.getItem(KEY)||"{}"); return v&&typeof v==="object"?v:{}; }catch(e){ return {}; } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify({cleared:state.cleared, name:state.labName})); }catch(e){} }
+const stored=load();
+function clean(t){ return String(t).replace(/[<>&"']/g,"").trim().slice(0,22); }
+state={cleared:Array.isArray(stored.cleared)?stored.cleared.filter(x=>x>=1&&x<=5):[], labName:typeof stored.name==="string"&&clean(stored.name)?clean(stored.name):"Garage Labs",
+  lvl:0, season:null, u:0, phase:"choose", history:[], sound:false, hidden:document.hidden};
+
+/* ---------- number words */
+function big(x){
+  if(!isFinite(x)) return "∞";
+  const u=[[1e15,"P"],[1e12,"T"],[1e9,"B"],[1e6,"M"],[1e3,"K"]];
+  for(const [v,s] of u) if(x>=v){ const y=x/v; return (y<10?y.toFixed(1):y.toFixed(0))+" "+s; }
+  return x.toFixed(0);
+}
+function sci(x){
+  if(!isFinite(x)) return "∞";
+  const e=Math.floor(Math.log10(x)), m=x/Math.pow(10,e);
+  return (Math.abs(m-1)<0.005 ? "" : m.toFixed(1)+" × ")+"10<sup>"+e+"</sup>";
+}
+function pct(v){ return (v>=1?"100":(Math.floor(v*1000)/10).toFixed(1))+"%"; }
+function ratioTxt(r){ return !isFinite(r)?"∞":r<10?r.toFixed(1):r.toFixed(0); }
+
+/* ---------- sound (off by default) */
+let actx=null;
+function beep(f, d, type){
+  if(!state.sound) return;
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(), g=actx.createGain(), t=actx.currentTime;
+    o.type=type||"sine"; o.frequency.value=f; g.gain.setValueAtTime(0.08,t); g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+    o.connect(g).connect(actx.destination); o.start(t); o.stop(t+d);
+  }catch(e){}
+}
+$("#sound").addEventListener("click",()=>{ state.sound=!state.sound; $("#sound").setAttribute("aria-pressed",state.sound);
+  $("#sound").textContent="Sound: "+(state.sound?"on":"off"); beep(660,.12); });
+
+/* ---------- canvas helpers */
+function fit(cv){
+  const r=cv.getBoundingClientRect(), dpr=Math.min(2, window.devicePixelRatio||1);
+  const w=Math.max(1,Math.round(r.width*dpr)), h=Math.max(1,Math.round(r.height*dpr));
+  if(cv.width!==w||cv.height!==h){ cv.width=w; cv.height=h; }
+  const g=cv.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0); return {g, W:r.width, H:r.height};
+}
+
+/* ---------- ticker */
+const tick={items:["Chip makers report record sales.","Every lab in town wants a bigger budget next year.",
+  "Analysts ask: is a bigger model always a better model?"], x:0, el:$("#tick"), w:0};
+function setTicker(lines){
+  tick.items=lines.concat(tick.items).slice(0,14);
+  tick.el.innerHTML=tick.items.map(t=>"<span>"+t+"</span>").join("")+tick.items.map(t=>"<span>"+t+"</span>").join("");
+  tick.w=tick.el.scrollWidth/2; tick.x=0;
+}
+function rivalHeadline(e, C){
+  const N=big(e.N), D=big(e.D);
+  switch(e.id){
+    case "colossus": return "Colossus Dynamics unveils a "+N+"-parameter giant. It read "+D+" tokens, about one each.";
+    case "bookworm": return "Bookworm Institute's little "+N+" model has read "+D+" tokens. \"Size is a fad,\" says its dean.";
+    case "twenty": return "Twenty Club sticks to its rule: "+N+" parameters, "+D+" tokens.";
+    case "copycat": return "Copycat Corp studies last year's winner and does the same: "+ratioTxt(e.r)+" tokens per parameter.";
+    case "hype": return "Hype Machine doubles its model again, to "+N+". \"Bigger every year,\" says the keynote.";
+    default: return state.labName+" ships a "+N+" model that read "+D+" tokens.";
+  }
+}
+
+/* ---------- lab scene */
+let blink=0;
+function drawLab(){
+  const cv=$("#lab"), {g,W,H}=fit(cv);
+  const lv=LEVELS[state.lvl], s=state.season;
+  const C=curC();
+  const N=curN(), D=lv.mode==="target" ? Math.min(1e15, (()=>{ const d=billToReach(N,lv.target)/(6*N); return isFinite(d)?d:1e15; })()) : C/(6*N);
+  g.clearRect(0,0,W,H);
+  const ink=css("--ink"), muted=css("--muted"), line=css("--line"), panel=css("--panel"), you=css("--you"), acc=css("--accent");
+  const ground=H-18;
+  g.fillStyle=line; g.fillRect(0,ground,W,2);
+  // building grows with the budget
+  const lc=Math.log10(lv.mode==="target" ? (s.tries.length? Math.min(1e24,s.tries[s.tries.length-1].you.bill||1e20):1e20) : C);
+  const size=Math.max(0, Math.min(1, (lc-18.5)/6));
+  const floors=1+Math.round(size*4);
+  const bw=Math.min(W*0.48, 90+size*W*0.3), fh=Math.min(28, (ground-36)/5.2);
+  const bx=14, by=ground-floors*fh;
+  g.fillStyle=panel; g.strokeStyle=muted; g.lineWidth=1.5;
+  g.fillRect(bx,by,bw,floors*fh); g.strokeRect(bx+.5,by+.5,bw-1,floors*fh-1);
+  // roof sign
+  g.fillStyle=you; const sw=Math.min(bw-8, 12+g.measureText(state.labName).width*1.1+16);
+  g.fillRect(bx+6,by-18,sw,15);
+  g.fillStyle=panel; g.font="600 11px "+css("--display"); g.textBaseline="middle"; g.fillText(state.labName, bx+12, by-10.5, sw-12);
+  // racks: count grows with compute
+  const perFloor=Math.max(2, Math.floor((bw-14)/16));
+  const racks=Math.max(2, Math.round(2+size*perFloor*floors*0.9));
+  let k=0;
+  for(let f=0;f<floors;f++) for(let i=0;i<perFloor;i++){
+    if(k++>=racks) break;
+    const x=bx+8+i*16, y=by+f*fh+4;
+    g.fillStyle=line; g.fillRect(x,y,11,fh-7);
+    const on=state.phase==="race" ? ((k*7+Math.floor(blink*12))%5<2) : (k%3===0);
+    g.fillStyle=on?acc:muted; g.globalAlpha=on?1:.35;
+    for(let j=0;j<Math.floor((fh-10)/5);j++) g.fillRect(x+2,y+3+j*5,2,2);
+    g.globalAlpha=1;
+  }
+  // the model: a blob sized by log N
+  const nx=bx+bw+(W-bx-bw)*0.36, rmax=Math.min((W-bx-bw)*0.26, (ground-30)/2);
+  const rn=Math.max(6, rmax*Math.max(0.12,(Math.log10(N)-6.5)/6));
+  const cy=ground-rn-6;
+  g.fillStyle=you; g.globalAlpha=.18; g.beginPath(); g.arc(nx,cy,rn,0,7); g.fill(); g.globalAlpha=1;
+  g.strokeStyle=you; g.lineWidth=2; g.beginPath(); g.arc(nx,cy,rn,0,7); g.stroke();
+  g.lineWidth=1.2; for(let i=0;i<5;i++){ const a=i*1.26+blink*(state.phase==="race"?3:0.3);
+    g.beginPath(); g.moveTo(nx,cy); g.lineTo(nx+Math.cos(a)*rn*.75, cy+Math.sin(a)*rn*.75); g.stroke();
+    g.beginPath(); g.arc(nx+Math.cos(a)*rn*.75, cy+Math.sin(a)*rn*.75, 2.2,0,7); g.fillStyle=you; g.fill(); }
+  // the reading pile: books stacked by log D
+  const px=bx+bw+(W-bx-bw)*0.78, nb=Math.max(1, Math.round(Math.max(0,(Math.log10(D)-7))*2.2));
+  const bh=Math.min(6, (ground-30)/Math.max(nb,1)), cols=[css("--c-book"),css("--c-twenty"),css("--c-copy"),css("--c-col")];
+  for(let i=0;i<nb;i++){ g.fillStyle=cols[i%4]; const w=26+((i*37)%9); g.fillRect(px-w/2+((i*13)%5)-2, ground-(i+1)*bh, w, bh-1); }
+  g.fillStyle=muted; g.font="11px "+css("--body"); g.textBaseline="alphabetic"; g.textAlign="center";
+  g.fillText("model "+big(N), nx, H-4); g.fillText("reads "+big(D), px, H-4); g.textAlign="left";
+}
+
+/* ---------- current choice */
+function curC(){ const lv=LEVELS[state.lvl], s=state.season; return lv.mode==="target" ? 1e20 : lv.budgets[Math.min(s.year, lv.budgets.length-1)]; }
+function curN(){ return uToN(LEVELS[state.lvl], curC(), state.u); }
+
+function renderPick(){
+  const lv=LEVELS[state.lvl], N=curN();
+  let h;
+  if(lv.mode==="target"){
+    h="<span class='chip'>target loss <b>"+lv.target.toFixed(2)+"</b></span><span class='chip'>model <b>"+big(N)+"</b> parameters</span>";
+    $("#rules").innerHTML="Bill = 6 × parameters × tokens read.";
+  } else {
+    const C=curC(), D=C/(6*N);
+    h="<span class='chip'>year <b>"+(state.season.year+1)+" of "+lv.budgets.length+"</b></span>"+
+      "<span class='chip'>budget <b>"+sci(C)+"</b> FLOP</span>"+
+      "<span class='chip'>model <b>"+big(N)+"</b> parameters</span>"+
+      "<span class='chip'>reads <b>"+big(D)+"</b> tokens</span>"+
+      "<span class='chip'><b>"+ratioTxt(D/N)+"</b> tokens per parameter</span>";
+    $("#rules").innerHTML="Cost = 6 × parameters × tokens read. A token is a word piece.";
+  }
+  $("#pick").innerHTML=h;
+  drawLab();
+}
+
+/* ---------- tiles and level setup */
+function unlocked(i){ return i===0 || state.cleared.includes(LEVELS[i-1].id) || state.cleared.includes(LEVELS[i].id); }
+function renderTiles(){
+  $("#tiles").innerHTML=LEVELS.map((l,i)=>"<button class='tile"+(state.cleared.includes(l.id)?" done":"")+"' data-i='"+i+"'"+
+    (i===state.lvl?" aria-current='true'":"")+(unlocked(i)?"":" disabled")+"><span class='n'>"+l.id+"</span><span class='t'>"+l.name+"</span></button>").join("");
+  document.querySelectorAll(".tile").forEach(b=>b.addEventListener("click",()=>startLevel(+b.dataset.i)));
+}
+function startLevel(i){
+  state.lvl=i; const lv=LEVELS[i];
+  state.season=newSeason(lv); state.phase="choose";
+  $("#ltitle").textContent="Level "+lv.id+" · "+lv.name;
+  $("#goal").innerHTML=lv.goal;
+  // year 1 starts at the big end: the board wants the biggest model it can get
+  state.u = lv.mode==="target" ? nToU(lv, 1e20, 3e11) : STEPS;
+  $("#raceBox").classList.add("hidden");
+  $("#triesBox").classList.toggle("hidden", lv.mode!=="target");
+  $("#frontBox").classList.toggle("hidden", lv.id!==5);
+  $("#train").disabled=false; setSlider(true);
+  $("#split").value=state.u;
+  renderStatus(); renderPick(); renderTiles();
+  if(lv.mode==="target") drawTries(); if(lv.id===5) drawFront(false);
+  setTicker([lv.mode==="target" ? "Investors set a target: loss 2.40. Who gets there cheapest?" :
+    "New season: "+lv.rivals.map(id=>RIVALS[id].name).join(", ")+" and "+state.labName+" line up."]);
+}
+function setSlider(on){ ["#split","#minus","#plus"].forEach(q=>$(q).disabled=!on); }
+function renderStatus(){
+  const lv=LEVELS[state.lvl], s=state.season; let h="";
+  if(lv.mode==="target"){
+    const best=s.tries.reduce((m,t)=>Math.min(m,t.you.bill),Infinity);
+    h="<span class='chip'>tries <b>"+s.tries.length+"</b></span><span class='chip'>your best bill <b>"+sci(best)+"</b> FLOP</span>";
+  } else if(s.rounds.length && lv.id===3){
+    const t=league(s); h=t.map((e,i)=>"<span class='chip"+(e.id==="you"?" good":"")+"'>"+(i+1)+". "+e.name+" <b>"+e.pts+"</b></span>").join("");
+  } else if(s.rounds.length && lv.id===4){
+    h="<span class='chip'>years won <b>"+s.rounds.filter(r=>r.you.rank===1).length+" of "+s.rounds.length+"</b></span>";
+  } else if(s.rounds.length && lv.id===5){
+    h="<span class='chip'>years at 99% value or better <b>"+s.rounds.filter(r=>r.you.value>=0.99).length+" of "+s.rounds.length+"</b></span>";
+  }
+  $("#status").innerHTML=h;
+}
+
+/* ---------- slider */
+$("#split").addEventListener("input",e=>{ state.u=+e.target.value; renderPick(); });
+function nudge(d){ state.u=Math.max(0,Math.min(STEPS,state.u+d)); $("#split").value=state.u; renderPick(); }
+$("#minus").addEventListener("click",()=>nudge(-5));
+$("#plus").addEventListener("click",()=>nudge(5));
+$("#labname").value=state.labName;
+$("#labname").addEventListener("input",e=>{ state.labName=clean(e.target.value)||"Your lab"; save(); drawLab(); });
+
+/* ---------- train and race */
+let race=null;
+$("#train").addEventListener("click",train);
+function train(){
+  if(state.phase!=="choose") return;
+  const lv=LEVELS[state.lvl], s=state.season, N=curN();
+  state.phase="race"; setSlider(false); $("#train").disabled=true;
+  let res;
+  if(lv.mode==="target") res=playTry(s, N);
+  else { res=playRound(s, N); state.history.push({C:res.C, N, lvl:lv.id}); }
+  race={res, lv, p:0, t0:null};
+  $("#raceBox").classList.remove("hidden");
+  $("#next").classList.add("hidden"); $("#skip").classList.remove("hidden");
+  $("#table").innerHTML=""; $("#verdict").textContent="";
+  $("#racetitle").textContent = lv.mode==="target" ? "Loss as each lab spends compute; the run stops when it reaches 2.40"
+    : "Loss as each lab spends its budget; lowest at the end wins";
+  $("#raceleg").innerHTML=res.entries.slice().sort((a,b)=>(a.id==="you")?-1:(b.id==="you")?1:0)
+    .map(e=>"<span><i style='background:"+css(e.id==="you"?"--you":RIVALS[e.id].color)+"'></i>"+e.name+"</span>").join("");
+  beep(330,.15,"triangle");
+  $("#raceBox").scrollIntoView({behavior:reduceMotion?"auto":"smooth", block:"nearest"});
+}
+$("#skip").addEventListener("click",()=>{ if(race) race.p=1; });
+
+function raceGeom(){
+  const {res, lv}=race;
+  if(lv.mode==="target"){
+    const fin=res.entries.filter(e=>isFinite(e.bill)).map(e=>e.bill);
+    const xmax=Math.log10(Math.max(...fin, 1e19))+0.4, xmin=Math.min(...fin.map(Math.log10))-2.2;
+    return {xmin, xmax, ymin:lv.target-0.12, ymax:lv.target+0.9, target:lv.target};
+  }
+  const Ls=res.entries.map(e=>e.L), lo=Math.min(...Ls), hi=Math.max(...Ls);
+  return {xmin:Math.log10(res.C)-2.5, xmax:Math.log10(res.C), ymin:lo-(hi-lo)*0.08-0.01, ymax:hi+Math.max(0.35,(hi-lo)*1.4)};
+}
+function drawRace(){
+  const cv=$("#race"), {g,W,H}=fit(cv);
+  g.clearRect(0,0,W,H);
+  if(!race) return;
+  const {res, lv, p}=race, G=raceGeom();
+  const m={l:44,r:12,t:12,b:30}, iw=W-m.l-m.r, ih=H-m.t-m.b;
+  const X=v=>m.l+(v-G.xmin)/(G.xmax-G.xmin)*iw, Y=v=>m.t+(1-(Math.min(G.ymax,Math.max(G.ymin,v))-G.ymin)/(G.ymax-G.ymin))*ih;
+  const muted=css("--muted"), line=css("--line");
+  g.strokeStyle=line; g.lineWidth=1; g.fillStyle=muted; g.font="11px "+css("--body");
+  g.textAlign="right"; g.textBaseline="middle";
+  const step=(G.ymax-G.ymin)>0.6?0.2:(G.ymax-G.ymin)>0.25?0.1:0.05;
+  for(let v=Math.ceil(G.ymin/step)*step; v<=G.ymax+1e-9; v+=step){ g.beginPath(); g.moveTo(m.l,Y(v)); g.lineTo(W-m.r,Y(v)); g.stroke(); g.fillText(v.toFixed(2), m.l-5, Y(v)); }
+  g.textAlign="center"; g.textBaseline="top";
+  for(let e=Math.ceil(G.xmin); e<=G.xmax; e++){ g.fillText("10^"+e, X(e), H-m.b+6); }
+  g.textAlign="left"; g.fillText("compute spent (FLOP) →", m.l+4, H-m.b+18);
+  g.save(); g.translate(11, m.t+ih/2); g.rotate(-Math.PI/2); g.textAlign="center"; g.fillText("loss", 0, 0); g.restore();
+  if(G.target){ g.setLineDash([5,4]); g.strokeStyle=css("--ink"); g.beginPath(); g.moveTo(m.l,Y(G.target)); g.lineTo(W-m.r,Y(G.target)); g.stroke(); g.setLineDash([]);
+    g.fillStyle=css("--ink"); g.textAlign="right"; g.textBaseline="bottom"; g.fillText("target "+G.target.toFixed(2), W-m.r-2, Y(G.target)-2); }
+  const xNow=G.xmin+(G.xmax-G.xmin)*p;
+  const order=res.entries.slice().sort((a,b)=>(a.id==="you")-(b.id==="you"));
+  order.forEach(e=>{
+    const col=css(e.id==="you"?"--you":RIVALS[e.id].color);
+    const xEnd=lv.mode==="target" ? (isFinite(e.bill)?Math.log10(e.bill):G.xmax) : G.xmax;
+    const x1=Math.min(xNow, xEnd);
+    g.strokeStyle=col; g.lineWidth=e.id==="you"?3:2; g.beginPath();
+    let first=true;
+    for(let i=0;i<=120;i++){ const x=G.xmin+(x1-G.xmin)*i/120, L=lossAt(Math.pow(10,x), e.N);
+      if(first){ g.moveTo(X(x),Y(L)); first=false; } else g.lineTo(X(x),Y(L)); }
+    g.stroke();
+    const Lend=lossAt(Math.pow(10,x1), e.N);
+    g.fillStyle=col; g.beginPath(); g.arc(X(x1),Y(Lend), e.id==="you"?5:4, 0, 7); g.fill();
+  });
+}
+function finishRace(){
+  const {res, lv}=race; const s=state.season;
+  state.phase="result";
+  $("#skip").classList.add("hidden");
+  if(lv.mode==="target"){
+    const j=judgeTarget(s);
+    $("#table").innerHTML=tableTarget(res);
+    $("#verdict").innerHTML="<b>"+j.msg+"</b>";
+    setTicker(res.entries.filter(e=>e.id!=="you").map(e=>e.name+" reaches 2.40 for "+sci(e.bill)+" FLOP.")
+      .concat([isFinite(res.you.bill)?state.labName+" gets there for "+sci(res.you.bill)+" FLOP.":state.labName+"'s model stalls above the target: it can never get there."]));
+    drawTries(); renderStatus();
+    if(j.pass){ beep(880,.25); clearLevel(); showEnd(true, j.msg); }
+    else { beep(220,.2,"square"); $("#next").textContent="Try another size"; $("#next").onclick=nextYear; $("#next").classList.remove("hidden"); }
+    return;
+  }
+  $("#table").innerHTML=tableRound(res, lv);
+  const w=res.entries[0];
+  setTicker([(w.id==="you"?state.labName:w.name)+" wins year "+(res.year+1)+" with loss "+w.L.toFixed(3)+"."]
+    .concat(res.entries.filter(e=>e.id!=="you").map(e=>rivalHeadline(e,res.C))));
+  if(lv.id===5) drawFront(false);
+  renderStatus();
+  beep(res.you.rank===1?784:262,.2,res.you.rank===1?"sine":"triangle");
+  if(s.done){
+    const j=lv.judge(s);
+    $("#verdict").innerHTML="<b>"+j.msg+"</b>";
+    if(j.pass) clearLevel();
+    $("#next").textContent="Season results"; $("#next").classList.remove("hidden");
+    $("#next").onclick=()=>showEnd(j.pass, j.msg);
+    return;
+  }
+  $("#verdict").innerHTML=res.you.rank===1 ? "<b>You win year "+(res.year+1)+".</b> Next year the budget is ten times larger."
+    : "<b>"+w.name+" wins year "+(res.year+1)+".</b> Next year the budget is ten times larger.";
+  $("#next").textContent="Next year"; $("#next").classList.remove("hidden");
+  $("#next").onclick=nextYear;
+}
+function nextYear(){
+  const lv=LEVELS[state.lvl], s=state.season;
+  if(lv.mode==="target"){ state.phase="choose"; setSlider(true); $("#train").disabled=false; $("#next").classList.add("hidden"); renderPick(); return; }
+  // keep last year's model size as the starting point: that is the habit to unlearn
+  const lastN=s.rounds[s.rounds.length-1].you.N;
+  state.u=nToU(lv, curC(), lastN); $("#split").value=state.u;
+  state.phase="choose"; setSlider(true); $("#train").disabled=false; $("#next").classList.add("hidden");
+  setTicker(["Chip prices fall again: every lab's budget jumps to "+sci(curC())+" FLOP."]);
+  renderPick();
+  $("#chooseBox").scrollIntoView({behavior:reduceMotion?"auto":"smooth", block:"nearest"});
+}
+$("#next").onclick=nextYear;
+
+function sw(e){ return "<i style='background:"+css(e.id==="you"?"--you":RIVALS[e.id].color)+"'></i>"; }
+function nameCell(e){ return "<td class='name'>"+sw(e)+e.name+(e.id==="you"?"":"<small>"+RIVALS[e.id].habit+"</small>")+"</td>"; }
+function tableRound(r, lv){
+  const showV=lv.id===5, showP=lv.id===3;
+  let h="<thead><tr><th>#</th><th>lab</th><th class='num'>model</th><th class='num'>tokens</th><th class='num'>per param</th><th class='num'>loss</th>"+
+    (showV?"<th class='num'>value</th>":"")+(showP?"<th class='num'>pts</th>":"")+"</tr></thead><tbody>";
+  r.entries.forEach(e=>{ h+="<tr"+(e.id==="you"?" class='you'":"")+"><td>"+e.rank+"</td>"+nameCell(e)+"<td class='num'>"+big(e.N)+"</td><td class='num'>"+big(e.D)+
+    "</td><td class='num'>"+ratioTxt(e.r)+"</td><td class='num'><b>"+e.L.toFixed(3)+"</b></td>"+(showV?"<td class='num'>"+pct(e.value)+"</td>":"")+
+    (showP?"<td class='num'>"+e.points+"</td>":"")+"</tr>"; });
+  return h+"</tbody>";
+}
+function tableTarget(t){
+  let h="<thead><tr><th>#</th><th>lab</th><th class='num'>model</th><th class='num'>tokens</th><th class='num'>bill (FLOP)</th></tr></thead><tbody>";
+  t.entries.forEach(e=>{ h+="<tr"+(e.id==="you"?" class='you'":"")+"><td>"+e.rank+"</td>"+nameCell(e)+"<td class='num'>"+big(e.N)+"</td><td class='num'>"+big(e.D)+
+    "</td><td class='num'><b>"+(isFinite(e.bill)?sci(e.bill):"never")+"</b></td></tr>"; });
+  return h+"</tbody>";
+}
+
+/* ---------- svg charts */
+const NS="http://www.w3.org/2000/svg";
+function el(tag, at, parent){ const e=document.createElementNS(NS, tag); for(const k in at) e.setAttribute(k, at[k]); if(parent) parent.appendChild(e); return e; }
+function axes(svg, W, H, m, xr, yr, xl, yl, xfmt, yfmt){
+  svg.innerHTML="";
+  const X=v=>m.l+(v-xr[0])/(xr[1]-xr[0])*(W-m.l-m.r), Y=v=>H-m.b-(v-yr[0])/(yr[1]-yr[0])*(H-m.t-m.b);
+  const line=css("--line");
+  for(let v=Math.ceil(xr[0]); v<=xr[1]; v++){ el("line",{x1:X(v),x2:X(v),y1:m.t,y2:H-m.b,stroke:line},svg); const t=el("text",{x:X(v),y:H-m.b+14,"text-anchor":"middle"},svg); t.textContent=xfmt(v); }
+  for(let v=Math.ceil(yr[0]); v<=yr[1]; v++){ el("line",{x1:m.l,x2:W-m.r,y1:Y(v),y2:Y(v),stroke:line},svg); const t=el("text",{x:m.l-5,y:Y(v)+4,"text-anchor":"end"},svg); t.textContent=yfmt(v); }
+  let t=el("text",{x:(m.l+W-m.r)/2,y:H-4,"text-anchor":"middle"},svg); t.textContent=xl;
+  t=el("text",{x:12,y:(m.t+H-m.b)/2,"text-anchor":"middle",transform:"rotate(-90 12 "+((m.t+H-m.b)/2)+")"},svg); t.textContent=yl;
+  return {X,Y};
+}
+function drawTries(){
+  const svg=$("#tries"), s=state.season; if(!s) return;
+  const W=520,H=260,m={l:48,r:12,t:12,b:34};
+  const tries=s.tries.filter(t=>isFinite(t.you.bill));
+  const bills=tries.map(t=>Math.log10(t.you.bill));
+  const ylo=19.5, yhi=Math.max(23, Math.ceil(Math.max(...bills, 22)));
+  const {X,Y}=axes(svg,W,H,m,[7,12],[ylo,yhi],"model size (parameters)","bill (FLOP)",v=>"10^"+v,v=>"10^"+v);
+  if(s.tries.length){
+    const t0=s.tries[0];
+    s.level.rivals.forEach(id=>{ const e=t0.byId[id]; const x=X(Math.log10(e.N)), y=Y(Math.min(yhi,Math.log10(e.bill)));
+      el("rect",{x:x-5,y:y-5,width:10,height:10,fill:css(RIVALS[id].color)},svg); });
+  }
+  s.tries.forEach((t,i)=>{ const e=t.you, x=X(Math.log10(e.N)), y=isFinite(e.bill)?Y(Math.min(yhi,Math.log10(e.bill))):Y(yhi);
+    el("circle",{cx:x,cy:y,r:i===s.tries.length-1?6:4.5,fill:css("--you"),"fill-opacity":isFinite(e.bill)?1:.35},svg); });
+  if(!s.tries.length){ const t=el("text",{x:W/2,y:H/2,"text-anchor":"middle"},svg); t.textContent="Each try adds a dot. Squares: the rivals."; }
+}
+function drawFront(full){
+  const svg=$("#front"), s=state.season; if(!s) return;
+  return drawFrontInto(svg, s.rounds.map(r=>({C:r.C,N:r.you.N})), s.rounds.map(r=>r.C), full);
+}
+function drawFrontInto(svg, picks, revealed, full){
+  const W=520,H=300,m={l:48,r:14,t:12,b:34};
+  const {X,Y}=axes(svg,W,H,m,[18.5,24.5],[7,12],"budget (FLOP)","model size (parameters)",v=>"10^"+v,v=>"10^"+v);
+  // rival habits as dashed lines
+  [["colossus",1],["twenty",20],["bookworm",5000]].forEach(([id,r])=>{
+    const a=18.5,b=24.5, ya=Math.log10(nForRatio(Math.pow(10,a),r)), yb=Math.log10(nForRatio(Math.pow(10,b),r));
+    el("line",{x1:X(a),y1:Y(ya),x2:X(b),y2:Y(yb),stroke:css(RIVALS[id].color),"stroke-width":1.5,"stroke-dasharray":"5 4"},svg);
+    const lx=23.2, ly=Math.log10(nForRatio(Math.pow(10,lx),r));
+    if(ly>7.2&&ly<11.8){ const t=el("text",{x:X(lx),y:Y(ly)-6,"text-anchor":"middle",fill:css(RIVALS[id].color)},svg); t.textContent=RIVALS[id].name; }
+  });
+  if(full){
+    let d=""; for(let x=18.5;x<=24.5;x+=0.1){ d+=(d?"L":"M")+X(x).toFixed(1)+" "+Y(Math.log10(bestN(Math.pow(10,x)))).toFixed(1); }
+    el("path",{d,fill:"none",stroke:css("--accent"),"stroke-width":2.5},svg);
+    const t=el("text",{x:X(19),y:Y(Math.log10(bestN(1e19)))-10,fill:css("--accent")},svg); t.textContent="best split";
+  }
+  revealed.forEach(C=>{ el("circle",{cx:X(Math.log10(C)),cy:Y(Math.log10(bestN(C))),r:8,fill:"none",stroke:css("--accent"),"stroke-width":2},svg); });
+  picks.forEach(p=>{ el("circle",{cx:X(Math.log10(p.C)),cy:Y(Math.max(7,Math.min(12,Math.log10(p.N)))),r:4.5,fill:css("--you")},svg); });
+}
+
+/* ---------- end of level */
+function clearLevel(){ const id=LEVELS[state.lvl].id; if(!state.cleared.includes(id)){ state.cleared.push(id); save(); } renderTiles(); }
+function showEnd(pass, msg){
+  const lv=LEVELS[state.lvl], s=state.season;
+  $("#otitle").textContent=pass ? "Level "+lv.id+" cleared" : "Not this time";
+  let h="<p class='sub'>"+msg+"</p>";
+  if(lv.id===3){
+    const t=league(s);
+    h+="<p class='panel-title'>Final league table</p><div class='tablewrap'><table class='score'><thead><tr><th>#</th><th>lab</th><th class='num'>points</th><th class='num'>last loss</th></tr></thead><tbody>"+
+      t.map((e,i)=>"<tr"+(e.id==="you"?" class='you'":"")+"><td>"+(i+1)+"</td>"+nameCell({id:e.id,name:e.name})+"<td class='num'><b>"+e.pts+"</b></td><td class='num'>"+e.lastL.toFixed(3)+"</td></tr>").join("")+"</tbody></table></div>";
+  }
+  if(pass){
+    h+="<div class='whatyoudid'><h3>What you just did</h3>"+lv.card.map(p=>"<p>"+p+"</p>").join("")+"</div>";
+    if(lv.id===5) h+="<p class='panel-title'>Every pick you made this visit, on the curve of the best split</p><svg id='frontAll' viewBox='0 0 520 300' role='img' aria-label='All your picks against the best split'></svg>";
+  } else {
+    h+="<p class='sub'>"+hint(lv)+"</p>";
+  }
+  $("#obody").innerHTML=h;
+  const btns=[];
+  btns.push("<button class='btn' id='oretry'>Play again</button>");
+  if(pass && state.lvl<LEVELS.length-1) btns.push("<button class='btn go' id='onext'>Next level</button>");
+  btns.push("<button class='btn' id='oclose'>Close</button>");
+  $("#obtns").innerHTML=btns.join("");
+  $("#overlay").classList.remove("hidden");
+  if(pass && lv.id===5) drawFrontInto($("#frontAll"), state.history.filter(p=>p.C>=3e18&&p.C<=3e24), [], true);
+  $("#oretry").onclick=()=>{ closeEnd(); startLevel(state.lvl); };
+  if($("#onext")) $("#onext").onclick=()=>{ closeEnd(); startLevel(state.lvl+1); };
+  $("#oclose").onclick=closeEnd;
+  $("#obtns button:last-child").focus();
+}
+function hint(lv){
+  return {1:"Try the middle of the slider: neither giant nor tiny.",
+    2:"Watch the dots: the bill falls, then rises again. Aim for the bottom.",
+    3:"Last year's size is rarely right for a budget ten times larger. Grow the model, but not ten times.",
+    4:"Twenty Club never changes, and Copycat repeats last year's answer. Each year, give your model a little more reading per parameter than last year.",
+    5:"The rings fall on a straight line. Each tenfold budget moves the best size by the same step."}[lv.id];
+}
+function closeEnd(){ $("#overlay").classList.add("hidden"); }
+document.addEventListener("keydown",e=>{ if(e.key==="Escape" && !$("#overlay").classList.contains("hidden")) closeEnd(); });
+
+/* ---------- main loop; pauses while the tab is hidden */
+let last=null;
+function frame(t){
+  requestAnimationFrame(frame);
+  if(state.hidden){ last=null; return; }
+  const dt=last==null?0:Math.min(0.05,(t-last)/1000); last=t;
+  blink+=dt;
+  tick.x-=dt*45; if(tick.w>0 && -tick.x>tick.w) tick.x+=tick.w;
+  tick.el.style.transform="translateX("+(tick.x+70).toFixed(1)+"px)";
+  if(state.phase==="race" && race){
+    race.p=Math.min(1, race.p+dt/(reduceMotion?0.5:2.6));
+    drawRace(); drawLab();
+    if(race.p>=1) finishRace();
+  } else if(Math.floor(blink*2)!==Math.floor((blink-dt)*2)) drawLab();
+}
+document.addEventListener("visibilitychange",()=>{ state.hidden=document.hidden; });
+window.addEventListener("resize",()=>{ drawLab(); if(race) drawRace(); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{ drawLab(); if(race) drawRace();
+  const lv=LEVELS[state.lvl]; if(lv.mode==="target") drawTries(); if(lv.id===5) drawFront(false); });
+
+const firstOpen=LEVELS.findIndex(l=>!state.cleared.includes(l.id));
+startLevel(firstOpen<0?0:firstOpen);
+requestAnimationFrame(frame);
+})();
+</script>
