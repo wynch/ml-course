@@ -15,7 +15,7 @@
     { name: "Using models well", blurb: "Spend tokens on reasoning, tune the prompt like a weight, fetch the right passage, make a model smaller, and train one with fewer bits." },
     { name: "Acting and planning", blurb: "Learn from reward, plan inside a model of the world, train a language model against a checker, evolve programs with a language model and a checker, and learn a world model from pixels." },
   ];
-  const ASSET_ROOTS = ["explorables", "quizzes", "research", "moves"];
+  const ASSET_ROOTS = ["explorables", "quizzes", "research", "moves", "games"];
   // Pages serves source files as application/octet-stream, so a direct link
   // downloads them. build_reader.py writes a readable <name>.html beside every
   // file with one of these extensions; this mirrors that rule.
@@ -416,6 +416,7 @@
         ["quizzes", tally(pagesOf("quizzes"))],
         ["research pages", tally(pagesOf("research"))],
         ["scroll summary", tally(urls("moves").filter((path) => path.endsWith(".html")))],
+        ["games", tally(pagesOf("games"))],
         ["lessons with their figures", {
           saved: textSaved ? lessonIds.filter((id) => manifest.lessons[id].every(has)).length : 0,
           total: lessonIds.length,
