@@ -27,6 +27,14 @@ from origins.knn import (
     cover_hart_bound,
     eta_two_gaussians,
 )
+from origins.kmeans import (
+    assign,
+    cosine_step,
+    init_from_data,
+    kmeans_error,
+    lloyd,
+    moving_average_kmeans,
+)
 from origins.pca import PCA, _fix_signs, power_iteration, top_eigenpairs
 
 
@@ -224,6 +232,59 @@ def test_pca_finds_the_direction_the_data_was_built_with():
     assert ang == pytest.approx(30.0, abs=1.5)
 
 
+# ───────────────────────────── k-means ─────────────────────────────
+
+
+def test_assignment_is_1nn_against_the_centres():
+    X, _ = two_gaussians(2000, sep=4.0, seed=5)
+    C = init_from_data(X, 7, seed=1)
+    labels, d2 = assign(X, C)
+    np.testing.assert_array_equal(labels, KNN(k=1).fit(C, np.arange(7)).predict(X))
+    np.testing.assert_allclose(d2, ((X[:, None, :] - C[None]) ** 2).sum(-1).min(1), atol=1e-12)
+
+
+def test_full_batch_step_one_is_lloyd():
+    """The paper's own claim: B = n, alpha = 1, no decay gives one Lloyd pass per pass."""
+    X, _ = two_gaussians(3000, sep=5.0, seed=5)
+    C0 = init_from_data(X, 4, seed=2)
+    Cl, el = lloyd(X, C0, 4)
+    Ce, ee = moving_average_kmeans(X, C0, 4, batch=len(X), alpha0=1.0, cosine=False,
+                                   finalize=False)
+    np.testing.assert_allclose(ee, el, rtol=1e-12)
+    np.testing.assert_allclose(Ce, Cl, atol=1e-12)
+
+
+def test_lloyd_error_never_rises():
+    X, _ = two_gaussians(3000, sep=5.0, seed=5)
+    _, errs = lloyd(X, init_from_data(X, 6, seed=0), 15)
+    assert all(b <= a + 1e-12 for a, b in zip(errs, errs[1:]))
+
+
+@pytest.mark.parametrize("seed", range(5))
+def test_final_exact_pass_never_raises_the_error(seed):
+    X, _ = two_gaussians(3000, sep=4.0, seed=seed)
+    _, errs = moving_average_kmeans(X, init_from_data(X, 5, seed=seed), 3, batch=128,
+                                    alpha0=0.8, seed=seed)
+    assert errs[-1] <= errs[-2]
+
+
+def test_cosine_step_ends_at_a_tenth():
+    assert cosine_step(0, 100, 0.8) == pytest.approx(0.8)
+    assert cosine_step(50, 100, 0.8) == pytest.approx(0.8 * 0.55)
+    assert cosine_step(100, 100, 0.8) == pytest.approx(0.08)
+
+
+def test_moving_average_escapes_where_lloyd_stays_stuck():
+    """Part 5's figure, panel (a): gap 5, the start the script draws."""
+    X, _ = two_gaussians(10_000, sep=5.0, sigma=1.0, seed=5)
+    C0 = init_from_data(X, 4, seed=1)
+    Cl, _ = lloyd(X, C0, 25)
+    Ce, _ = moving_average_kmeans(X, C0, 10, batch=256, alpha0=0.8, seed=1001)
+    assert np.sum(Cl[:, 0] < 0) in (1, 3)          # three centres on one blob
+    assert np.sum(Ce[:, 0] < 0) == 2                # two on each
+    assert kmeans_error(X, Ce) < 0.95 * kmeans_error(X, Cl)
+
+
 # ─────────────────────────── the exercises ───────────────────────────
 
 
@@ -231,7 +292,9 @@ def test_solutions_pass():
     import ex1_naive_bayes
     import ex2_knn_weighted
     import ex3_power_iteration
+    import ex4_moving_average
 
     assert ex1_naive_bayes._check()
     assert ex2_knn_weighted._check()
     assert ex3_power_iteration._check()
+    assert ex4_moving_average._check()

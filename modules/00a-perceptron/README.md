@@ -318,7 +318,7 @@ stop treating any separator as good enough.
 ## What's next
 
 Continue in Track 0 with [module 00b](../00b-bayes-knn-pca/README.md) —
-probability, neighbours and eigenvectors — or jump straight to the machinery
+probability, neighbours, eigenvectors and clusters — or jump straight to the machinery
 that generalises what you just built: [module 01](../01-autograd/README.md),
 autograd from scratch.
 

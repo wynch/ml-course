@@ -59,7 +59,7 @@ build it yourself, or to prepare a reader/core/full pack, see
 ```mermaid
 flowchart TD
     subgraph O["Origins · 00a–00c (optional)"]
-        M00A["00a · perceptron"] --> M00B["00b · Bayes, k-NN & PCA"] --> M00C["00c · kernels & Hopfield"]
+        M00A["00a · perceptron"] --> M00B["00b · Bayes, k-NN, PCA & k-means"] --> M00C["00c · kernels & Hopfield"]
     end
     subgraph F["Foundations · 01–03"]
         M01["01 · autograd"] --> M02["02 · neural networks"] --> M03["03 · tokenization"]
@@ -177,7 +177,7 @@ The suggested order runs track by track: after module 10 comes 33; after 13,
 The classic math behind modern ML, after Anil Ananthaswamy's *Why Machines
 Learn* — the same ideas, rebuilt here in original code and figures. Three
 numpy-level modules with no deep learning in them at all: a learning rule with a
-proof, three algorithms that predate every network in this course and still run
+proof, four algorithms that predate every network in this course and still run
 inside them, and the curve that broke the textbook. **Optional** — nothing after
 it depends on it. Take it before Track 1 as a warm-up, or alongside it when you
 want to know where an idea came from.
@@ -185,7 +185,7 @@ want to know where an idea came from.
 | # | Module | What you build |
 |---|--------|----------------|
 | 00a | [perceptron](modules/00a-perceptron) | The **Rosenblatt perceptron** with its mistake bound, and least squares two ways — **in Python and Zig**. |
-| 00b | [bayes-knn-pca](modules/00b-bayes-knn-pca) | **Naive Bayes**, **k-NN** against the Cover-Hart ceiling, and **PCA by power iteration** — all from scratch. |
+| 00b | [bayes-knn-pca](modules/00b-bayes-knn-pca) | **Naive Bayes**, **k-NN** against the Cover-Hart ceiling, **PCA by power iteration**, and **k-means**, Lloyd against the e-means moving average — all from scratch. |
 | 00c | [kernels-hopfield](modules/00c-kernels-hopfield) | A dual **SVM**, the **kernel trick**, a **Hopfield** memory, and a measured **double-descent** curve. |
 
 ### Tracks 1–9 — the main line
