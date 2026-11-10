@@ -465,7 +465,7 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
       <div class="chead"><span class="mno">11</span><h3>Inside a language model</h3></div>
       <div class="fig"><img src="{{FIG11}}" alt="Module 11 figure: patching heatmap, layer by position, Eiffel Tower against Colosseum"></div>
       <p class="build"><b>You build:</b> forward hooks on module 04's char-GPT, then a probe per layer,
-        an activation-patching sweep and a two-pole neuron reader on SmolLM2-360M.</p>
+        an activation-patching sweep, a two-pole neuron reader and a split of one neuron's inputs on SmolLM2-360M.</p>
       <div class="chips"><span>probe 87.4% from layer 18</span><span>random weights ≤ 58.0%</span><span>Paris moves at layer 27</span></div>
       <div class="links">
         <a href="https://wynch.github.io/ml-course/explorables/11-inside-a-language-model.html" target="_blank" rel="noopener">🕹 Explorable</a>
@@ -480,8 +480,9 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
       <div class="chead"><span class="mno">12</span><h3>Features and dictionaries</h3></div>
       <div class="fig"><img src="{{FIG12}}" alt="Module 12 figure: toy superposition, feature directions and norms at low and high sparsity"></div>
       <p class="build"><b>You build:</b> the toy model of superposition, a TopK sparse autoencoder on module 04's
-        char-GPT, GPT-2's layer-8 SAE through SAELens, and a steering vector on SmolLM2-360M.</p>
-      <div class="chips"><span>13 features in 5 dims at S = 0.999</span><span>SAE 98.7% variance, k = 32</span><span>274 of 2,048 latents dead</span></div>
+        char-GPT, GPT-2's layer-8 SAE through SAELens, a steering vector on SmolLM2-360M, and top-k in the
+        neuron basis against random rotations.</p>
+      <div class="chips"><span>13 features in 5 dims at S = 0.999</span><span>SAE 98.7% variance, k = 32</span><span>8 neurons ≈ 33 random; learned part 1.47×</span></div>
       <div class="links">
         <a href="https://wynch.github.io/ml-course/explorables/12-features-and-dictionaries.html" target="_blank" rel="noopener">🕹 Explorable</a>
         <a href="https://wynch.github.io/ml-course/quizzes/12.html" target="_blank" rel="noopener">✅ Quiz</a>

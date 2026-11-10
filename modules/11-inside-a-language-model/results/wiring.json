@@ -1,0 +1,1151 @@
+{
+ "model": "HuggingFaceTB/SmolLM2-360M-Instruct",
+ "device": "cpu",
+ "target": "L4/N2177",
+ "mlp": {
+  "class": "LlamaMLP",
+  "children": [
+   "act_fn",
+   "down_proj",
+   "gate_proj",
+   "up_proj"
+  ],
+  "act_fn": "SiLUActivation",
+  "biases": false,
+  "intermediate_size": 2560
+ },
+ "exact": "gate and up pre-activations = sum over writes (embedding, attention per layer, each earlier neuron) of v . write, v = row of gate_proj or up_proj * norm weight / rms(h), rms at its actual value",
+ "approximate": "readers: first order in the target's write, direct path only, each reader's norm frozen; checked against zeroing the target at that token",
+ "toy": [
+  {
+   "context": "marine",
+   "N": 2.0,
+   "marine reader": 3.523,
+   "dental reader": -0.477
+  },
+  {
+   "context": "dental",
+   "N": 2.0,
+   "marine reader": -0.477,
+   "dental reader": 3.523
+  },
+  {
+   "context": "marine, N silent",
+   "N": 0.0,
+   "marine reader": 0.0,
+   "dental reader": -0.0
+  }
+ ],
+ "contexts": {
+  "date dash": {
+   "text": "\n Charles Eaton , OBE , AFC ( 21 December 1895 –",
+   "fires_on": " –",
+   "position": 20,
+   "value": 1.4881,
+   "swiglu_max_abs_err": 0.0,
+   "feeders": {
+    "residual_sum_max_abs_err": 7.62939453125e-06,
+    "gate": {
+     "actual": 0.8333,
+     "sum_of_terms": 0.8333,
+     "abs_err": 5.96512109041214e-07,
+     "embedding": -0.0033,
+     "attention": 0.7865,
+     "neurons": 0.0502,
+     "by_attention_layer": {
+      "attn L0": -0.0264,
+      "attn L1": 0.0333,
+      "attn L2": 0.3047,
+      "attn L3": 0.0221,
+      "attn L4": 0.4527
+     },
+     "top_neurons": [
+      {
+       "from": "L2/N1487",
+       "term": 0.0621
+      },
+      {
+       "from": "L2/N2070",
+       "term": -0.0555
+      },
+      {
+       "from": "L3/N299",
+       "term": 0.0492
+      },
+      {
+       "from": "L0/N765",
+       "term": -0.0405
+      },
+      {
+       "from": "L2/N50",
+       "term": 0.0358
+      },
+      {
+       "from": "L2/N566",
+       "term": -0.0312
+      },
+      {
+       "from": "L1/N1704",
+       "term": -0.031
+      },
+      {
+       "from": "L2/N1439",
+       "term": -0.0308
+      },
+      {
+       "from": "L2/N2472",
+       "term": 0.0301
+      },
+      {
+       "from": "L3/N1300",
+       "term": -0.0296
+      },
+      {
+       "from": "L1/N564",
+       "term": 0.0292
+      },
+      {
+       "from": "L3/N1335",
+       "term": 0.0283
+      },
+      {
+       "from": "L0/N865",
+       "term": -0.0279
+      },
+      {
+       "from": "L2/N1504",
+       "term": -0.0277
+      },
+      {
+       "from": "L0/N1023",
+       "term": 0.0273
+      },
+      {
+       "from": "L3/N1102",
+       "term": 0.0269
+      },
+      {
+       "from": "L0/N2299",
+       "term": -0.0266
+      },
+      {
+       "from": "L3/N495",
+       "term": 0.0265
+      },
+      {
+       "from": "L2/N682",
+       "term": -0.0259
+      },
+      {
+       "from": "L3/N620",
+       "term": -0.0254
+      }
+     ]
+    },
+    "up": {
+     "actual": 2.5618,
+     "sum_of_terms": 2.5618,
+     "abs_err": 5.941838026046753e-07,
+     "embedding": -0.0281,
+     "attention": 0.8923,
+     "neurons": 1.6976,
+     "by_attention_layer": {
+      "attn L0": -0.0617,
+      "attn L1": 0.0822,
+      "attn L2": 0.1011,
+      "attn L3": 0.0255,
+      "attn L4": 0.7452
+     },
+     "top_neurons": [
+      {
+       "from": "L3/N1023",
+       "term": 0.2254
+      },
+      {
+       "from": "L0/N957",
+       "term": 0.1195
+      },
+      {
+       "from": "L0/N765",
+       "term": 0.1011
+      },
+      {
+       "from": "L3/N1102",
+       "term": 0.0845
+      },
+      {
+       "from": "L2/N1677",
+       "term": 0.0687
+      },
+      {
+       "from": "L0/N685",
+       "term": 0.0671
+      },
+      {
+       "from": "L0/N839",
+       "term": 0.0608
+      },
+      {
+       "from": "L2/N50",
+       "term": 0.058
+      },
+      {
+       "from": "L0/N865",
+       "term": 0.05
+      },
+      {
+       "from": "L0/N1023",
+       "term": 0.0484
+      },
+      {
+       "from": "L0/N2401",
+       "term": 0.0481
+      },
+      {
+       "from": "L2/N1487",
+       "term": -0.0447
+      },
+      {
+       "from": "L3/N418",
+       "term": -0.0361
+      },
+      {
+       "from": "L2/N1998",
+       "term": -0.036
+      },
+      {
+       "from": "L3/N1300",
+       "term": 0.0357
+      },
+      {
+       "from": "L2/N2070",
+       "term": -0.0349
+      },
+      {
+       "from": "L2/N1527",
+       "term": 0.0343
+      },
+      {
+       "from": "L0/N293",
+       "term": 0.0335
+      },
+      {
+       "from": "L2/N347",
+       "term": -0.0325
+      },
+      {
+       "from": "L2/N2541",
+       "term": 0.0303
+      }
+     ]
+    }
+   },
+   "readers_top": [
+    {
+     "reader": "L22/N2182",
+     "layer": 22,
+     "neuron": 2182,
+     "da_first_order": -0.525,
+     "via_up": -0.2718,
+     "via_gate": -0.2532,
+     "silu_gate": 4.2136,
+     "dz_up": -0.0645
+    },
+    {
+     "reader": "L13/N2308",
+     "layer": 13,
+     "neuron": 2308,
+     "da_first_order": -0.4788,
+     "via_up": -0.3846,
+     "via_gate": -0.0942,
+     "silu_gate": 1.6169,
+     "dz_up": -0.2379
+    },
+    {
+     "reader": "L5/N1902",
+     "layer": 5,
+     "neuron": 1902,
+     "da_first_order": -0.3905,
+     "via_up": -0.0115,
+     "via_gate": -0.379,
+     "silu_gate": 1.4409,
+     "dz_up": -0.008
+    },
+    {
+     "reader": "L12/N1172",
+     "layer": 12,
+     "neuron": 1172,
+     "da_first_order": -0.3525,
+     "via_up": -0.2765,
+     "via_gate": -0.0759,
+     "silu_gate": 2.8746,
+     "dz_up": -0.0962
+    },
+    {
+     "reader": "L14/N1972",
+     "layer": 14,
+     "neuron": 1972,
+     "da_first_order": -0.3304,
+     "via_up": -0.1706,
+     "via_gate": -0.1598,
+     "silu_gate": 1.2778,
+     "dz_up": -0.1335
+    },
+    {
+     "reader": "L31/N2060",
+     "layer": 31,
+     "neuron": 2060,
+     "da_first_order": 0.3222,
+     "via_up": 0.3133,
+     "via_gate": 0.0089,
+     "silu_gate": 14.9146,
+     "dz_up": 0.021
+    },
+    {
+     "reader": "L5/N181",
+     "layer": 5,
+     "neuron": 181,
+     "da_first_order": -0.3149,
+     "via_up": -0.0451,
+     "via_gate": -0.2698,
+     "silu_gate": 0.4283,
+     "dz_up": -0.1053
+    },
+    {
+     "reader": "L8/N2550",
+     "layer": 8,
+     "neuron": 2550,
+     "da_first_order": -0.3011,
+     "via_up": -0.072,
+     "via_gate": -0.2292,
+     "silu_gate": 0.9312,
+     "dz_up": -0.0773
+    },
+    {
+     "reader": "L7/N310",
+     "layer": 7,
+     "neuron": 310,
+     "da_first_order": -0.2961,
+     "via_up": -0.0991,
+     "via_gate": -0.197,
+     "silu_gate": 1.2236,
+     "dz_up": -0.081
+    },
+    {
+     "reader": "L31/N2496",
+     "layer": 31,
+     "neuron": 2496,
+     "da_first_order": -0.2933,
+     "via_up": -0.3945,
+     "via_gate": 0.1012,
+     "silu_gate": 17.0219,
+     "dz_up": -0.0232
+    },
+    {
+     "reader": "L8/N1971",
+     "layer": 8,
+     "neuron": 1971,
+     "da_first_order": 0.2832,
+     "via_up": 0.1488,
+     "via_gate": 0.1345,
+     "silu_gate": 1.4918,
+     "dz_up": 0.0997
+    },
+    {
+     "reader": "L18/N2195",
+     "layer": 18,
+     "neuron": 2195,
+     "da_first_order": -0.2694,
+     "via_up": -0.0206,
+     "via_gate": -0.2488,
+     "silu_gate": 3.3206,
+     "dz_up": -0.0062
+    },
+    {
+     "reader": "L19/N1176",
+     "layer": 19,
+     "neuron": 1176,
+     "da_first_order": -0.2662,
+     "via_up": -0.2186,
+     "via_gate": -0.0476,
+     "silu_gate": 3.308,
+     "dz_up": -0.0661
+    },
+    {
+     "reader": "L17/N481",
+     "layer": 17,
+     "neuron": 481,
+     "da_first_order": 0.2512,
+     "via_up": 0.0893,
+     "via_gate": 0.162,
+     "silu_gate": 2.8707,
+     "dz_up": 0.0311
+    },
+    {
+     "reader": "L31/N616",
+     "layer": 31,
+     "neuron": 616,
+     "da_first_order": 0.2467,
+     "via_up": 0.2355,
+     "via_gate": 0.0112,
+     "silu_gate": 13.6154,
+     "dz_up": 0.0173
+    },
+    {
+     "reader": "L19/N2526",
+     "layer": 19,
+     "neuron": 2526,
+     "da_first_order": 0.2447,
+     "via_up": 0.1921,
+     "via_gate": 0.0526,
+     "silu_gate": 3.5833,
+     "dz_up": 0.0536
+    },
+    {
+     "reader": "L15/N1614",
+     "layer": 15,
+     "neuron": 1614,
+     "da_first_order": -0.2354,
+     "via_up": -0.335,
+     "via_gate": 0.0996,
+     "silu_gate": 1.9342,
+     "dz_up": -0.1732
+    },
+    {
+     "reader": "L9/N258",
+     "layer": 9,
+     "neuron": 258,
+     "da_first_order": -0.2348,
+     "via_up": -0.2324,
+     "via_gate": -0.0024,
+     "silu_gate": 1.274,
+     "dz_up": -0.1824
+    },
+    {
+     "reader": "L5/N2071",
+     "layer": 5,
+     "neuron": 2071,
+     "da_first_order": -0.2169,
+     "via_up": -0.0658,
+     "via_gate": -0.1511,
+     "silu_gate": 1.6942,
+     "dz_up": -0.0389
+    },
+    {
+     "reader": "L6/N1767",
+     "layer": 6,
+     "neuron": 1767,
+     "da_first_order": -0.2082,
+     "via_up": -0.0797,
+     "via_gate": -0.1285,
+     "silu_gate": 0.9893,
+     "dz_up": -0.0805
+    }
+   ],
+   "ablation_check": [
+    {
+     "reader": "L22/N2182",
+     "estimate": -0.525,
+     "measured": 0.2457
+    },
+    {
+     "reader": "L13/N2308",
+     "estimate": -0.4788,
+     "measured": 0.0877
+    },
+    {
+     "reader": "L5/N1902",
+     "estimate": -0.3905,
+     "measured": -0.3283
+    },
+    {
+     "reader": "L12/N1172",
+     "estimate": -0.3525,
+     "measured": -0.0743
+    },
+    {
+     "reader": "L14/N1972",
+     "estimate": -0.3304,
+     "measured": -0.1372
+    },
+    {
+     "reader": "L31/N2060",
+     "estimate": 0.3222,
+     "measured": 0.0648
+    },
+    {
+     "reader": "L5/N181",
+     "estimate": -0.3149,
+     "measured": -0.246
+    },
+    {
+     "reader": "L8/N2550",
+     "estimate": -0.3011,
+     "measured": -0.298
+    },
+    {
+     "reader": "L7/N310",
+     "estimate": -0.2961,
+     "measured": -0.187
+    },
+    {
+     "reader": "L31/N2496",
+     "estimate": -0.2933,
+     "measured": -1.5059
+    }
+   ]
+  },
+  "word piece": {
+   "text": " James Endrst of the Hartford Courant",
+   "fires_on": "ant",
+   "position": 7,
+   "value": 2.14,
+   "swiglu_max_abs_err": 0.0,
+   "feeders": {
+    "residual_sum_max_abs_err": 2.6702880859375e-05,
+    "gate": {
+     "actual": 2.5446,
+     "sum_of_terms": 2.5446,
+     "abs_err": 1.6111880540847778e-06,
+     "embedding": -0.0126,
+     "attention": 0.6439,
+     "neurons": 1.9132,
+     "by_attention_layer": {
+      "attn L0": -0.0164,
+      "attn L1": -0.0358,
+      "attn L2": 0.2775,
+      "attn L3": 0.2169,
+      "attn L4": 0.2018
+     },
+     "top_neurons": [
+      {
+       "from": "L0/N1168",
+       "term": 0.3912
+      },
+      {
+       "from": "L2/N173",
+       "term": 0.2305
+      },
+      {
+       "from": "L3/N2332",
+       "term": 0.2044
+      },
+      {
+       "from": "L3/N2215",
+       "term": 0.1427
+      },
+      {
+       "from": "L1/N130",
+       "term": 0.1212
+      },
+      {
+       "from": "L2/N980",
+       "term": 0.0951
+      },
+      {
+       "from": "L3/N1238",
+       "term": -0.0923
+      },
+      {
+       "from": "L3/N1947",
+       "term": 0.075
+      },
+      {
+       "from": "L2/N2331",
+       "term": 0.0731
+      },
+      {
+       "from": "L2/N1242",
+       "term": -0.0728
+      },
+      {
+       "from": "L3/N2296",
+       "term": 0.0713
+      },
+      {
+       "from": "L1/N1993",
+       "term": 0.0703
+      },
+      {
+       "from": "L3/N2297",
+       "term": -0.0678
+      },
+      {
+       "from": "L3/N1186",
+       "term": 0.0666
+      },
+      {
+       "from": "L1/N636",
+       "term": 0.0658
+      },
+      {
+       "from": "L2/N427",
+       "term": 0.061
+      },
+      {
+       "from": "L1/N685",
+       "term": 0.0608
+      },
+      {
+       "from": "L3/N2235",
+       "term": 0.0592
+      },
+      {
+       "from": "L2/N514",
+       "term": 0.0543
+      },
+      {
+       "from": "L1/N673",
+       "term": 0.0528
+      }
+     ]
+    },
+    "up": {
+     "actual": 0.9071,
+     "sum_of_terms": 0.9071,
+     "abs_err": 1.1324882507324219e-06,
+     "embedding": 0.0269,
+     "attention": 0.8226,
+     "neurons": 0.0575,
+     "by_attention_layer": {
+      "attn L0": -0.049,
+      "attn L1": 0.2769,
+      "attn L2": 0.2847,
+      "attn L3": 0.1958,
+      "attn L4": 0.1142
+     },
+     "top_neurons": [
+      {
+       "from": "L3/N601",
+       "term": -0.1914
+      },
+      {
+       "from": "L3/N2332",
+       "term": -0.1351
+      },
+      {
+       "from": "L3/N2215",
+       "term": 0.105
+      },
+      {
+       "from": "L2/N173",
+       "term": -0.0831
+      },
+      {
+       "from": "L3/N651",
+       "term": -0.0742
+      },
+      {
+       "from": "L3/N1269",
+       "term": -0.0741
+      },
+      {
+       "from": "L3/N1186",
+       "term": 0.0732
+      },
+      {
+       "from": "L3/N1263",
+       "term": 0.0663
+      },
+      {
+       "from": "L2/N2382",
+       "term": 0.0584
+      },
+      {
+       "from": "L1/N130",
+       "term": 0.0565
+      },
+      {
+       "from": "L0/N1168",
+       "term": -0.0562
+      },
+      {
+       "from": "L2/N2388",
+       "term": -0.0561
+      },
+      {
+       "from": "L3/N1439",
+       "term": 0.0534
+      },
+      {
+       "from": "L2/N10",
+       "term": 0.0512
+      },
+      {
+       "from": "L3/N1947",
+       "term": -0.0507
+      },
+      {
+       "from": "L3/N2054",
+       "term": 0.0499
+      },
+      {
+       "from": "L2/N1109",
+       "term": -0.0499
+      },
+      {
+       "from": "L3/N1654",
+       "term": -0.0495
+      },
+      {
+       "from": "L1/N510",
+       "term": -0.0494
+      },
+      {
+       "from": "L2/N2331",
+       "term": 0.0491
+      }
+     ]
+    }
+   },
+   "readers_top": [
+    {
+     "reader": "L6/N2287",
+     "layer": 6,
+     "neuron": 2287,
+     "da_first_order": -1.7379,
+     "via_up": -0.8016,
+     "via_gate": -0.9362,
+     "silu_gate": 3.4838,
+     "dz_up": -0.2301
+    },
+    {
+     "reader": "L5/N181",
+     "layer": 5,
+     "neuron": 181,
+     "da_first_order": -0.7768,
+     "via_up": -0.259,
+     "via_gate": -0.5179,
+     "silu_gate": 2.0382,
+     "dz_up": -0.1271
+    },
+    {
+     "reader": "L9/N1838",
+     "layer": 9,
+     "neuron": 1838,
+     "da_first_order": 0.7247,
+     "via_up": 0.2441,
+     "via_gate": 0.4806,
+     "silu_gate": 1.9638,
+     "dz_up": 0.1243
+    },
+    {
+     "reader": "L8/N1836",
+     "layer": 8,
+     "neuron": 1836,
+     "da_first_order": 0.5134,
+     "via_up": 0.115,
+     "via_gate": 0.3983,
+     "silu_gate": 1.613,
+     "dz_up": 0.0713
+    },
+    {
+     "reader": "L31/N2060",
+     "layer": 31,
+     "neuron": 2060,
+     "da_first_order": 0.5037,
+     "via_up": 0.4753,
+     "via_gate": 0.0284,
+     "silu_gate": 16.3034,
+     "dz_up": 0.0292
+    },
+    {
+     "reader": "L31/N2496",
+     "layer": 31,
+     "neuron": 2496,
+     "da_first_order": -0.4336,
+     "via_up": -0.5612,
+     "via_gate": 0.1276,
+     "silu_gate": 17.4483,
+     "dz_up": -0.0322
+    },
+    {
+     "reader": "L5/N123",
+     "layer": 5,
+     "neuron": 123,
+     "da_first_order": 0.4091,
+     "via_up": 0.1517,
+     "via_gate": 0.2574,
+     "silu_gate": 0.7709,
+     "dz_up": 0.1968
+    },
+    {
+     "reader": "L8/N339",
+     "layer": 8,
+     "neuron": 339,
+     "da_first_order": -0.3885,
+     "via_up": -0.1963,
+     "via_gate": -0.1922,
+     "silu_gate": 1.1624,
+     "dz_up": -0.1689
+    },
+    {
+     "reader": "L6/N843",
+     "layer": 6,
+     "neuron": 843,
+     "da_first_order": -0.3884,
+     "via_up": -0.2469,
+     "via_gate": -0.1415,
+     "silu_gate": 1.508,
+     "dz_up": -0.1637
+    },
+    {
+     "reader": "L11/N240",
+     "layer": 11,
+     "neuron": 240,
+     "da_first_order": -0.3831,
+     "via_up": -0.0867,
+     "via_gate": -0.2963,
+     "silu_gate": 4.4031,
+     "dz_up": -0.0197
+    },
+    {
+     "reader": "L18/N490",
+     "layer": 18,
+     "neuron": 490,
+     "da_first_order": 0.3623,
+     "via_up": -0.1042,
+     "via_gate": 0.4665,
+     "silu_gate": 1.9753,
+     "dz_up": -0.0528
+    },
+    {
+     "reader": "L7/N1314",
+     "layer": 7,
+     "neuron": 1314,
+     "da_first_order": -0.3441,
+     "via_up": -0.0619,
+     "via_gate": -0.2823,
+     "silu_gate": 0.9407,
+     "dz_up": -0.0657
+    },
+    {
+     "reader": "L5/N943",
+     "layer": 5,
+     "neuron": 943,
+     "da_first_order": -0.3386,
+     "via_up": -0.1206,
+     "via_gate": -0.2181,
+     "silu_gate": 0.635,
+     "dz_up": -0.1899
+    },
+    {
+     "reader": "L7/N1681",
+     "layer": 7,
+     "neuron": 1681,
+     "da_first_order": -0.335,
+     "via_up": -0.226,
+     "via_gate": -0.1091,
+     "silu_gate": 3.4851,
+     "dz_up": -0.0648
+    },
+    {
+     "reader": "L6/N2554",
+     "layer": 6,
+     "neuron": 2554,
+     "da_first_order": -0.3126,
+     "via_up": -0.3373,
+     "via_gate": 0.0247,
+     "silu_gate": 2.475,
+     "dz_up": -0.1363
+    },
+    {
+     "reader": "L31/N616",
+     "layer": 31,
+     "neuron": 616,
+     "da_first_order": 0.311,
+     "via_up": 0.3382,
+     "via_gate": -0.0271,
+     "silu_gate": 14.0869,
+     "dz_up": 0.024
+    },
+    {
+     "reader": "L5/N199",
+     "layer": 5,
+     "neuron": 199,
+     "da_first_order": -0.303,
+     "via_up": -0.281,
+     "via_gate": -0.022,
+     "silu_gate": 1.7529,
+     "dz_up": -0.1603
+    },
+    {
+     "reader": "L8/N1375",
+     "layer": 8,
+     "neuron": 1375,
+     "da_first_order": 0.2994,
+     "via_up": 0.0432,
+     "via_gate": 0.2563,
+     "silu_gate": 0.5111,
+     "dz_up": 0.0845
+    },
+    {
+     "reader": "L31/N2373",
+     "layer": 31,
+     "neuron": 2373,
+     "da_first_order": -0.2932,
+     "via_up": -0.2639,
+     "via_gate": -0.0293,
+     "silu_gate": 15.4515,
+     "dz_up": -0.0171
+    },
+    {
+     "reader": "L31/N1034",
+     "layer": 31,
+     "neuron": 1034,
+     "da_first_order": 0.2706,
+     "via_up": 0.2613,
+     "via_gate": 0.0092,
+     "silu_gate": 16.6495,
+     "dz_up": 0.0157
+    }
+   ],
+   "ablation_check": [
+    {
+     "reader": "L6/N2287",
+     "estimate": -1.7379,
+     "measured": -1.2086
+    },
+    {
+     "reader": "L5/N181",
+     "estimate": -0.7768,
+     "measured": -0.6851
+    },
+    {
+     "reader": "L9/N1838",
+     "estimate": 0.7247,
+     "measured": -1.311
+    },
+    {
+     "reader": "L8/N1836",
+     "estimate": 0.5134,
+     "measured": 0.5208
+    },
+    {
+     "reader": "L31/N2060",
+     "estimate": 0.5037,
+     "measured": 0.3376
+    },
+    {
+     "reader": "L31/N2496",
+     "estimate": -0.4336,
+     "measured": -2.0761
+    },
+    {
+     "reader": "L5/N123",
+     "estimate": 0.4091,
+     "measured": 0.3371
+    },
+    {
+     "reader": "L8/N339",
+     "estimate": -0.3885,
+     "measured": -0.0729
+    },
+    {
+     "reader": "L6/N843",
+     "estimate": -0.3884,
+     "measured": -0.2071
+    },
+    {
+     "reader": "L11/N240",
+     "estimate": -0.3831,
+     "measured": 0.1195
+    }
+   ]
+  }
+ },
+ "overlap_of_top": 20,
+ "overlap": {
+  "date dash | word piece": {
+   "feeders_gate": 0,
+   "feeders_up": 0,
+   "readers": 4
+  }
+ },
+ "shared_up_readers": [
+  {
+   "reader": "L5/N1798",
+   "dz_up": [
+    -0.2467,
+    -0.2976
+   ],
+   "silu_gate": [
+    -0.2715,
+    -0.1995
+   ],
+   "da_first_order": [
+    0.0677,
+    0.0329
+   ],
+   "via_up": [
+    0.067,
+    0.0594
+   ],
+   "via_gate": [
+    0.0008,
+    -0.0265
+   ],
+   "measured": [
+    0.073,
+    0.0175
+   ],
+   "measured_dz_gate": [
+    -0.1664,
+    -0.1519
+   ]
+  },
+  {
+   "reader": "L5/N2452",
+   "dz_up": [
+    0.2423,
+    0.2923
+   ],
+   "silu_gate": [
+    -0.197,
+    0.0687
+   ],
+   "da_first_order": [
+    -0.0544,
+    0.0235
+   ],
+   "via_up": [
+    -0.0477,
+    0.0201
+   ],
+   "via_gate": [
+    -0.0067,
+    0.0034
+   ],
+   "measured": [
+    -0.0505,
+    0.0332
+   ],
+   "measured_dz_gate": [
+    -0.06,
+    -0.0537
+   ]
+  },
+  {
+   "reader": "L5/N2062",
+   "dz_up": [
+    -0.2418,
+    -0.2917
+   ],
+   "silu_gate": [
+    -0.1536,
+    0.276
+   ],
+   "da_first_order": [
+    -0.0176,
+    -0.2135
+   ],
+   "via_up": [
+    0.0371,
+    -0.0805
+   ],
+   "via_gate": [
+    -0.0548,
+    -0.133
+   ],
+   "measured": [
+    -0.005,
+    -0.1678
+   ],
+   "measured_dz_gate": [
+    0.1323,
+    0.1691
+   ]
+  },
+  {
+   "reader": "L5/N198",
+   "dz_up": [
+    -0.2399,
+    -0.2894
+   ],
+   "silu_gate": [
+    0.0937,
+    0.046
+   ],
+   "da_first_order": [
+    -0.011,
+    -0.0151
+   ],
+   "via_up": [
+    -0.0225,
+    -0.0133
+   ],
+   "via_gate": [
+    0.0115,
+    -0.0018
+   ],
+   "measured": [
+    0.0079,
+    -0.0191
+   ],
+   "measured_dz_gate": [
+    -0.0349,
+    -0.0218
+   ]
+  },
+  {
+   "reader": "L13/N2308",
+   "dz_up": [
+    -0.2379,
+    -0.2775
+   ],
+   "silu_gate": [
+    1.6169,
+    -0.2452
+   ],
+   "da_first_order": [
+    -0.4788,
+    0.0695
+   ],
+   "via_up": [
+    -0.3846,
+    0.068
+   ],
+   "via_gate": [
+    -0.0942,
+    0.0014
+   ],
+   "measured": [
+    0.0877,
+    0.0143
+   ],
+   "measured_dz_gate": [
+    -0.0038,
+    0.0293
+   ]
+  }
+ ],
+ "first_order_rel_error": {
+  "median": 0.798,
+  "max": 6.46,
+  "same_sign": 16,
+  "n": 20,
+  "next_layer": {
+   "n": 4,
+   "median": 0.202
+  },
+  "later_layers": {
+   "n": 16,
+   "median": 1.142
+  }
+ },
+ "guard": {
+  "script": "wiring.py",
+  "seconds": 7.0,
+  "minutes": 0.12,
+  "peak_rss_gb": 1.97,
+  "peak_mps_driver_gb": 0.0,
+  "stages_seconds": {
+   "load": 5.73,
+   "contexts": 1.18
+  },
+  "machine": "arm64 26.6.2",
+  "torch": "2.14.1",
+  "mps_high_watermark_ratio": "0.5",
+  "mps_cap_gb": 5.92
+ }
+}

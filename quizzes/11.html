@@ -339,7 +339,9 @@ const QUESTIONS = [
     answer: 2,
     explain: "With <code>silu(gate)</code> positive, the product takes the sign of <code>up</code>. The " +
              "Goodfire essay's “double negative” (both factors negative, product positive) never shows up " +
-             "among these 60 contexts. <code>down_proj</code> reads the value; it does not set its sign.",
+             "among these 60 contexts. Goodfire's later paper finds double negatives are about a third of all " +
+             "activations in Qwen3.6-35B-A3B, but rare among the most causal ones. " +
+             "<code>down_proj</code> reads the value; it does not set its sign.",
     source: "modules/11-inside-a-language-model/results/poles.json → contexts[].regime · python/src/poles.py (regime)"
   },
   /* ── 10 ─────────────────────────────────────────────────── read-code ── */

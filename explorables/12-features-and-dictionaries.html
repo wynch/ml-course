@@ -131,8 +131,9 @@
 </header>
 
 <p class="intro">
-  A layer can hold more <em>features</em> than it has dimensions if the features are rare. A
-  <em>sparse autoencoder</em> (SAE) tries to undo that packing: it rewrites each activation as a few
+  A layer can hold more <em>features</em> than it has dimensions if the features are rare; whether trained models pack
+  features this way, or compose extra ones from neurons that fire together (suggested by Goodfire in 2026, from transcoders on one model), is open. A
+  <em>sparse autoencoder</em> (SAE) tries to undo such packing: it rewrites each activation as a few
   directions out of a large dictionary. Below: the toy model where the packing happens, a feature browser
   for an SAE trained from scratch on module 04's char-GPT and for a published SAE on GPT-2 small, and a
   steering demo. Every number comes from the module's own runs.

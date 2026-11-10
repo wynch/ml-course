@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from common import FIGURES, read_results
 
+import basis
 import gpt2_sae
 import sae
 import steer
@@ -22,6 +23,7 @@ def main() -> None:
     sae.fig_sae_features(s, FIGURES / "sae_features.png")
     gpt2_sae.fig_gpt2(read_results("gpt2_sae"), FIGURES / "gpt2_sae.png")
     steer.fig_steer(read_results("steer"), FIGURES / "steer.png")
+    basis.fig_basis(read_results("basis"), FIGURES / "basis.png")
 
 
 if __name__ == "__main__":

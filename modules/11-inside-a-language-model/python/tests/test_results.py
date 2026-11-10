@@ -16,7 +16,7 @@ sys.path.insert(0, str(ROOT / "python" / "src"))
 
 import common  # noqa: E402
 
-SCRIPTS = ("hooks", "probe", "patching", "poles")
+SCRIPTS = ("hooks", "probe", "patching", "poles", "wiring")
 
 
 @pytest.mark.parametrize("name", SCRIPTS)
@@ -52,6 +52,22 @@ def test_poles_both_signs():
             assert len(cs) == 10
             assert cs[0]["share_of_max"] == 1.0
             assert all(0 < c["share_of_max"] <= 1 for c in cs)
+
+
+def test_wiring_parts_sum_to_whole():
+    r = common.read_results("wiring")
+    assert r["mlp"]["children"] == ["act_fn", "down_proj", "gate_proj", "up_proj"]
+    for ctx in r["contexts"].values():
+        assert ctx["swiglu_max_abs_err"] < 1e-5
+        f = ctx["feeders"]
+        assert f["residual_sum_max_abs_err"] < 1e-3
+        for lane in ("gate", "up"):
+            assert f[lane]["abs_err"] < 1e-4
+            parts = f[lane]["embedding"] + f[lane]["attention"] + f[lane]["neurons"]
+            assert abs(parts - f[lane]["actual"]) < 1e-3          # rounded to 4 places
+    toy = {row["context"]: row for row in r["toy"]}
+    assert toy["marine"]["marine reader"] > 3 > 0 > toy["marine"]["dental reader"]
+    assert toy["marine, N silent"]["marine reader"] == 0
 
 
 def test_explorable_in_sync():

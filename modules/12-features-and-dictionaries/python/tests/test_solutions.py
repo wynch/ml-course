@@ -1,6 +1,6 @@
 """The reference solutions, checked against the scripts.
 
-(a) and (b) run on the CPU in a second or two. (c) needs the GPT-2 SAE file
+(a), (b) and (d) run on the CPU in a second or two. (c) needs the GPT-2 SAE file
 in the Hugging Face cache (src/gpt2_sae.py fetches it) and is skipped
 without it.
 """
@@ -100,3 +100,18 @@ def test_sae_by_hand_matches_saelens():
         assert torch.allclose(sol.decode(mine, f_lib), lib.decode(f_lib), atol=1e-3)
     one = sol.encode(mine, mine["b_dec"] + 40 * mine["W_dec"][sol.LATENT])
     assert int(one.argmax()) == sol.LATENT
+
+
+# ------------------------------------------------------------- (d) basis
+def test_basis_topk_matches_script():
+    import basis
+    import solution_d_basis as sol
+
+    torch.manual_seed(0)
+    h, P, Q = torch.randn(64, 512), torch.randn(128, 512), basis.rotation(0, 0)
+    for k in (1, 8, 64):
+        assert torch.allclose(sol.keep_topk(h, k), basis.keep_topk(h, k))
+        assert torch.allclose(sol.keep_topk(h, k, Q), basis.keep_topk(h, k, Q), atol=1e-5)
+        assert sol.output_kept(h, P, k, Q) == pytest.approx(basis.output_kept(h, P, k, Q), abs=1e-5)
+    assert int((sol.keep_topk(h, 8) != 0).sum(-1).max()) == 8
+    assert sol.output_kept(h, P, 512) == pytest.approx(1.0)

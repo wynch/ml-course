@@ -111,3 +111,18 @@ def test_patch_cells(smol):
     sweep = common.read_results("patching")["score"]
     for row, pos in ((3, 2), (27, 9)):
         assert abs(sol.patch_cell(model, tok, row, pos)["score"] - sweep[row][pos]) < 0.02
+
+
+# ------------------------------------------------ section 5: wiring, live
+def test_wiring_decomposition_is_exact(smol):
+    import wiring
+
+    model, tok = smol
+    ids = tok(wiring.CONTEXTS["word piece"], return_tensors="pt").input_ids.to(model.device)
+    t = ids.shape[1] - 1
+    rec = wiring.record(model, ids)
+    feed = wiring.feeders(model, rec, t)                 # asserts the sums inside
+    ref = common.read_results("wiring")["contexts"]["word piece"]["feeders"]
+    for lane in ("gate", "up"):
+        assert feed[lane]["abs_err"] < 1e-4
+        assert abs(feed[lane]["actual"] - ref[lane]["actual"]) < 1e-2   # MPS against the CPU run

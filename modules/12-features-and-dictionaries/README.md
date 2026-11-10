@@ -3,15 +3,18 @@
 Module 11 read single neurons. This module asks whether neurons are the right
 thing to read, and tries the main alternative: a **sparse autoencoder** (SAE),
 which rewrites each activation as a few directions picked from a large
-dictionary. It has four sections, each with a figure and the numbers beside it:
+dictionary. It has five sections, each with a figure and the numbers beside it:
 
 1. **Toy superposition**: when does a small model pack more features than it has dimensions?
 2. **An SAE from scratch** on module 04's char-GPT: how well it rebuilds the layer, and what its latents read as.
 3. **A published SAE, the library way**: GPT-2 small, layer 8, through SAELens and TransformerLens.
 4. **Steering against prompting**: a demo on SmolLM2-360M-Instruct.
+5. **Neurons or random directions?**: which basis keeps more with k numbers per layer, and how much of the answer GELU gives with nothing learned.
 
-Every number in this README comes from a JSON file in [`results/`](results/),
-written by the script that measured it.
+Every number this module measures comes from a JSON file in
+[`results/`](results/), written by the script that measured it. Section 5 also
+quotes an earlier, larger run of the same test, from a separate copy of the
+code.
 
 This is the second module of track 4, **Looking inside**. Next,
 [module 13](../13-inside-vision-and-jepa/README.md) turns the same tools on
@@ -21,7 +24,7 @@ vision models: one InceptionV1 channel, CLIP neurons and a JEPA encoder.
 move the sparsity of the toy model, browse SAE latents and raw neurons by their
 top contexts, see which GPT-2 latents fire on a prompt.
 
-**✅ Quiz:** [10 questions](../../quizzes/12.html): check yourself once you have run the four scripts.
+**✅ Quiz:** [10 questions](../../quizzes/12.html): check yourself once you have run the scripts of sections 1 to 4.
 
 ## Goals
 
@@ -32,6 +35,7 @@ By the end you will be able to:
 - measure an SAE: variance explained, L0, dead latents, and the loss when its output replaces the layer;
 - load a published SAE with SAELens, and by hand from its weight file;
 - add a steering vector during generation, and say why a sentiment score alone cannot judge it;
+- compare neurons with random directions under top-k, against an untrained copy and a GELU null;
 - say what each of these tools can and cannot show.
 
 ## Setup
@@ -72,6 +76,7 @@ logs its time and peak memory (process RSS from `getrusage`, and
 | `src/sae.py` | 3.74 | 1.72 GB | 4.96 GB |
 | `src/gpt2_sae.py` | 0.67 | 2.03 GB | 3.24 GB |
 | `src/steer.py` | 0.30 | 2.39 GB | 1.43 GB |
+| `src/basis.py` | 0.49 | 1.68 GB | 0 (runs on the CPU) |
 
 Measured on an Apple M5 with 16 GB, torch 2.14.1. No script holds two big
 models at once: `steer.py` frees SmolLM2 before it loads the sentiment scorer.
@@ -427,6 +432,73 @@ the same kind of difference vector automatically from a plain description of
 a trait (sycophancy, say), and use it to watch for, and prevent, shifts in
 that trait during fine-tuning.
 
+## 5 · Neurons or random directions?
+
+If each MLP layer may pass on only k of its 512 numbers per character, is it
+better to keep k neurons or k random directions? **Top-k** keeps the k entries
+largest in absolute value and zeroes the rest:
+
+```
+h_k = TopK(h)          # neuron basis; h is the post-GELU input of mlp.proj
+h_k = TopK(h Q) Qᵀ     # random basis; Q a fixed random 512 × 512 rotation
+```
+
+The **exchange rate** at k neurons is the number of random directions that do
+as well, divided by k. Goodfire's [Neurons as an Interpretable
+Basis](https://www.goodfire.com/research/neurons-as-an-interpretable-basis)
+(Tigges et al., 2026) answers for Qwen3.6-35B-A3B, a 40-layer mixture of
+experts: keep 320 of 4,096 routed neurons per layer and token, and loss rises
+2.9%; one layer at a time, by KL, 8 neurons do what 128 to 256 random
+directions do.
+
+`src/basis.py` runs top-k at all three layers of module 04's char-GPT at once.
+An earlier run, written down before any training, retrained the model on three
+seeds and used five rotations; this run reads module 04's committed model with
+two rotations, so its numbers differ a little.
+
+Two controls ask what learning added. They use **output kept**, the share of
+one layer's output (`mlp.proj` of h) that top-k keeps, which needs no loss gap:
+an **untrained copy** (module 04's init), and a **GELU null**, independent
+Gaussians with each trained neuron's mean and SD put through GELU, which keeps
+GELU's shape and each neuron's scale and nothing else.
+
+| At k = 8 | This run | Earlier run, three seeds |
+|---|---|---|
+| Loss: full, 8 neurons, 8 random directions (nats) | 1.724, 3.151, 4.675 | seed 1337: 1.724, 3.23, 4.66 |
+| Loss exchange rate | **4.16×** (≈ 33 directions) | 3.94–4.40× (31–35) |
+| Neurons needed to stay within 3% of full loss | 52% | 54–55% |
+| Output kept, exchange rate: untrained copy | **1.84×** | 1.75–1.86× |
+| … GELU null | 4.24× | 4.31–4.35× |
+| … trained | 6.23× | 5.55–5.97× |
+| Trained over GELU null: the learned part | **1.47×** | 1.27–1.39× |
+
+![Loss against k for neurons and random directions; output kept for trained, untrained and the GELU null](figures/basis.png)
+
+Neurons win, by about 4× in loss, and the model is far from sparse. The catch
+shows in output kept: there the untrained copy already gives neurons a 1.8×
+edge, and the GELU null gives 4.2–4.4× of the trained 5.6–6.2×; learning adds
+1.27–1.47×. GELU acts on each coordinate alone, so h has a few large entries
+and many near zero; a rotation mixes them into Gaussian-looking ones, the
+worst case for top-k. A coordinate-wise nonlinearity makes its own axes
+special whether or not anything was learned. So "neurons beat random
+directions" needs a null before it means "the model learned a sparse neuron
+basis": the kind of random-weight control section 2 lacks. Section 4's random
+direction was a different control, for a steering push.
+
+Before training, the earlier run guessed a loss exchange rate of 8× at k = 8
+(8 neurons ≈ 64 directions) and that 19% of the neurons would stay within 3%;
+it found 3.9–4.4× (31–35 directions) and 54–55%. Three of its four main bars
+missed: sparsity (within 3% on at most 25% of the neurons), the 4× edge
+(narrowly: one seed at 3.94) and a learned part of at least 1.5×. The fourth,
+the GELU prediction for the untrained copy, hit.
+
+**Limits.** A dense 0.6M-parameter GELU model, against a 40-layer mixture of
+experts with gated SwiGLU neurons. Loss over all layers, against the paper's
+KL one layer at a time: on the paper's measure the earlier run found 2.7–8.9×
+at k = 8, closer to the paper's 16–32× but still short. Dropped coordinates
+set to zero; three seeds there, one here. A miss on this model does not refute
+the paper.
+
 ## Run it
 
 Each script prints its numbers, writes `results/<name>.json`, and with
@@ -446,6 +518,10 @@ uv run python src/gpt2_sae.py --figures
 
 ```bash
 uv run python src/steer.py --figures
+```
+
+```bash
+uv run python src/basis.py --figures
 ```
 
 Redraw every figure from the committed JSON, with no model loaded:
@@ -477,6 +553,11 @@ you run.
 - **(c) `exercise_c_sae_by_hand.py`**: load GPT-2's layer-8 SAE from its
   safetensors file (a plain file format for tensors) with no SAELens, and write encode and decode. The test
   checks both against SAELens.
+- **(d) `exercise_d_basis.py`**: write top-k in either basis and output kept,
+  then swap what the untrained copy applies to its pre-activations: GELU,
+  nothing, ReLU, GELU of 4u, tanh. Predict each edge at k = 8 first; the
+  solution's docstring gives the measured values and why. Ten seconds on the
+  CPU.
 
 ## Tests
 
@@ -484,7 +565,7 @@ you run.
 uv run pytest
 ```
 
-Fifteen tests, under 10 seconds once the GPT-2 SAE is cached. They check the
+Eighteen tests, under 15 seconds once the GPT-2 SAE is cached. They check the
 solutions against the scripts and SAELens, the committed results against the
 laptop budget, and the explorable against the results.
 
@@ -523,7 +604,8 @@ consistently, the same lesson AxBench gave for steering.
 - read an SAE's numbers: variance explained, L0, dead latents, spliced loss;
 - say why a latent's top ten can look cleaner than a neuron's, beyond meaning;
 - load a published SAE with SAELens and by hand;
-- add a steering vector, and say why a sentiment score alone cannot judge the reply.
+- add a steering vector, and say why a sentiment score alone cannot judge the reply;
+- say why "neurons beat random directions" needs an untrained copy or a GELU null before it means "learned".
 
 ## Links
 
@@ -542,4 +624,5 @@ consistently, the same lesson AxBench gave for steering.
 - Kantamneni et al., [Are Sparse Autoencoders Useful? A Case Study in Sparse Probing](https://arxiv.org/abs/2502.16681) (2025)
 - Chen et al., [Persona Vectors](https://arxiv.org/abs/2507.21509) (2025)
 - Cammarata, [Neural networks are already clean](https://already-clean.goodfire.com/) (Goodfire, 2026)
+- Tigges et al., [Neurons as an Interpretable Basis](https://www.goodfire.com/research/neurons-as-an-interpretable-basis) (Goodfire, 2026)
 - [SAELens](https://github.com/jbloomAus/SAELens) · [TransformerLens](https://github.com/TransformerLensOrg/TransformerLens) · [Neuronpedia, GPT-2 small 8-res-jb](https://www.neuronpedia.org/gpt2-small/8-res-jb)

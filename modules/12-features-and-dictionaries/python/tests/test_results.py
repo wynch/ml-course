@@ -16,7 +16,7 @@ sys.path.insert(0, str(ROOT / "python" / "src"))
 
 import common  # noqa: E402
 
-SCRIPTS = ("toy", "sae", "gpt2_sae", "steer")
+SCRIPTS = ("toy", "sae", "gpt2_sae", "steer", "basis")
 
 
 @pytest.mark.parametrize("name", SCRIPTS)
@@ -68,6 +68,18 @@ def test_steer_conditions():
     c = r["conditions"]
     assert set(c) == {"plain", "prompt", "steer x2", "steer x4", "random x4"}
     assert all(len(v["replies"]) == len(v["p_positive"]) == len(r["requests"]) for v in c.values())
+
+
+def test_basis_claims():
+    """The claims section 5 makes from results/basis.json."""
+    r = common.read_results("basis")
+    assert r["loss_full"] < r["loss_neuron"][3] < r["loss_random_mean"][3] < r["loss_zero_mlp"]
+    assert 3 < r["loss_rate_k8"] < 6                         # 8 neurons ~ 24 to 48 random directions
+    assert r["frac3"] > 0.25                                  # not sparse: over a quarter of the neurons
+    ok = r["output_kept"]
+    assert 1.3 < ok["untrained"]["rate_k8"] < 2.5             # GELU alone, nothing learned
+    assert ok["untrained"]["rate_k8"] < ok["gelu_null"]["rate_k8"] < ok["trained"]["rate_k8"]
+    assert r["trained_over_null_k8"] < 1.5                    # the learned part is the smaller factor
 
 
 def test_explorable_in_sync():

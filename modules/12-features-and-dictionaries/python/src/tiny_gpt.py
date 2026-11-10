@@ -44,11 +44,8 @@ class CharTokenizer:
         return "".join(self.itos[int(i)] for i in ids)
 
 
-def load_tiny_gpt(device: str = "cpu"):
-    """Return (model, tokenizer) for module 04's trained tiny char-GPT."""
+def _config(m04):
     cfg_json = json.loads((ARTIFACTS / "tiny_gpt_config.json").read_text())
-    chars = json.loads((ARTIFACTS / "tokenizer_chars.json").read_text())["chars"]
-    m04 = _m04_model_module()
     cfg = m04.GPTConfig(
         vocab_size=cfg_json["vocab_size"],
         block_size=cfg_json["block_size"],
@@ -57,6 +54,14 @@ def load_tiny_gpt(device: str = "cpu"):
         d_model=cfg_json["d_model"],
         dropout=0.0,
     )
+    return cfg, cfg_json
+
+
+def load_tiny_gpt(device: str = "cpu"):
+    """Return (model, tokenizer) for module 04's trained tiny char-GPT."""
+    chars = json.loads((ARTIFACTS / "tokenizer_chars.json").read_text())["chars"]
+    m04 = _m04_model_module()
+    cfg, cfg_json = _config(m04)
     model = m04.GPT(cfg)
     blob = np.fromfile(ARTIFACTS / "tiny_gpt_weights.bin", dtype="<f4")
     state = {}
@@ -68,6 +73,14 @@ def load_tiny_gpt(device: str = "cpu"):
     assert not unexpected, unexpected
     assert all(k == "head.weight" or k.endswith("attn.mask") for k in missing), missing
     return model.to(device).eval(), CharTokenizer(chars)
+
+
+def untrained_tiny_gpt(seed: int = 1337, device: str = "cpu"):
+    """The same network before step 1: module 04's init under its training seed (1337)."""
+    m04 = _m04_model_module()
+    cfg, _ = _config(m04)
+    torch.manual_seed(seed)
+    return m04.GPT(cfg).to(device).eval()
 
 
 def val_text() -> str:

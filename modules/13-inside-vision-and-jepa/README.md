@@ -19,8 +19,9 @@ numbers to the last digit, and a test checks that.
 
 This is the third module of track 4, **Looking inside**, after
 [module 11](../11-inside-a-language-model/README.md) (hooks, probes,
-patching, neuron poles) and [module 12](../12-features-and-dictionaries/README.md)
-(superposition, sparse autoencoders, steering). Next,
+patching, neuron poles, wiring) and [module 12](../12-features-and-dictionaries/README.md)
+(superposition, sparse autoencoders, steering, neurons against random
+directions). Next,
 [module 32](../32-is-the-explanation-real/README.md) closes the track by
 testing such findings against controls; then
 [module 14](../14-how-training-finds-a-solution/README.md) opens track 5 and

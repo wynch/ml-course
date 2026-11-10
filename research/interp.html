@@ -31,7 +31,7 @@
   <section class="opener">
     <p class="eyebrow"><span class="sw"></span>Part 2 · Theory · Chapter 08</p>
     <h1 class="big"><span class="w">Why</span> can we read anything inside a network?</h1>
-    <p class="because">a trained network tends to store each concept as a direction in its activation space, and the next layer reads those directions with dot products. Concepts are also rare, so the network packs far more of them than it has neurons, overlapping like an overbooked hotel. A sparse dictionary can pull them apart, a linear probe can find one, and adding a direction can steer behaviour. None of these readings is guaranteed to be the one the model uses, so each has to be tested by intervention.</p>
+    <p class="because">a trained network tends to store each concept as a direction in its activation space, and the next layer reads those directions with dot products. Concepts are also rare, and one reading says the network packs far more of them than it has neurons, overlapping like an overbooked hotel; another (Goodfire, 2026, from transcoders on one model) suggests the extra ones are composed from neurons that fire together, and which holds in trained models is open. A sparse dictionary can pull them apart, a linear probe can find one, and adding a direction can steer behaviour. None of these readings is guaranteed to be the one the model uses, so each has to be tested by intervention.</p>
     <p class="meta"><span>7 beats · 3 labs · 6 questions</span><span>Builds on: <a href="fractured.html">07 The broken inside</a> · <a href="../explorables/04-attention.html">course: attention</a></span></p>
     <ul class="toc">
       <li><a href="#direction"><span class="q">?</span>Why a direction</a></li>
@@ -283,7 +283,7 @@
     <h2>Three things to <span class="w">remember</span></h2>
     <ol>
       <li><b>Concepts are directions.</b>Layers read by dot products, so whatever the next layer needs tends to sit along a direction you can probe or push.</li>
-      <li><b>Sparse guests share rooms.</b>When features rarely co-occur, a network stores more of them than it has neurons, and a ReLU cleans up the rare collisions.</li>
+      <li><b>Sparse guests share rooms.</b>When features rarely co-occur, a network can store more of them than it has neurons, and a ReLU cleans up the rare collisions; whether trained models pack features this way or compose extra ones from neurons that fire together (Goodfire, 2026) is open.</li>
       <li><b>A reading is a hypothesis until you push.</b>Dictionaries and probes find what is decodable. Only steering and ablation show what the model uses.</li>
     </ol>
   </section>

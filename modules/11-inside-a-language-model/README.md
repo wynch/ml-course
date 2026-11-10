@@ -1,26 +1,28 @@
 # Module 11: Inside a language model
 
 Modules 04 to 10 built models and used them. This module opens one up while it
-runs and asks what it holds. It covers four tools, each on a real model, each
-with a figure and the numbers beside it:
+runs and asks what it holds. It covers five tools, each on a real model, each
+with a figure or a printout and the numbers beside it:
 
 1. **Hooks**: read and edit one neuron of module 04's char-GPT with plain PyTorch.
 2. **A linear probe**: at which layer of SmolLM2-360M is sentiment readable?
 3. **Activation patching**: where does SmolLM2 keep "Eiffel Tower" until it says Paris?
 4. **Neuron poles**: what three SmolLM2 neurons respond to, on both signs.
+5. **Wiring**: which writes feed one of those neurons, and which later neurons read it.
 
 Every number in this README comes from a JSON file in [`results/`](results/),
 written by the script that measured it.
 
 This is the first module of track 4, **Looking inside**. Next,
 [module 12](../12-features-and-dictionaries/README.md) asks whether neurons are
-the right thing to read: toy superposition, sparse autoencoders, and steering.
+the right thing to read: toy superposition, sparse autoencoders, steering,
+and neurons against random directions.
 
 **🕹 Interactive:** [Inside a language model](../../explorables/11-inside-a-language-model.html):
 browse the three neurons pole by pole, hover the probe curve and the patching
 heatmap.
 
-**✅ Quiz:** [10 questions](../../quizzes/11.html): check yourself once you have run the four scripts.
+**✅ Quiz:** [10 questions](../../quizzes/11.html): check yourself once you have run the first four scripts.
 
 ## Goals
 
@@ -31,6 +33,7 @@ By the end you will be able to:
 - explain why a probe needs a random-weight control;
 - patch one clean activation into a corrupt run and read the heatmap;
 - read an MLP neuron by its top contexts on both its positive and its negative pole;
+- split a neuron's gate and up inputs exactly into the writes that feed them;
 - say what each of these tools can and cannot show.
 
 ## Setup
@@ -68,6 +71,7 @@ time into its results file:
 | `src/probe.py` | 1.3 | 2.61 GB | 2.48 GB |
 | `src/patching.py` | 0.12 | 2.51 GB | 2.46 GB |
 | `src/poles.py` | 4.2 | 3.13 GB | 3.46 GB |
+| `src/wiring.py` | 0.12 | 1.97 GB | 0 (runs on the CPU) |
 
 Measured on an Apple M5 with 16 GB, torch 2.14.1. No script holds two big
 models at once: `probe.py` frees the trained model before it builds the
@@ -239,8 +243,20 @@ It can be large and positive or large and negative, so each neuron has two
 **poles**. The Goodfire essay [Neural networks are already
 clean](https://already-clean.goodfire.com/) (Cammarata, 2026) reads neurons
 this way, pole by pole, and reports that about 90% of Qwen3-32B's poles do
-one main job. Those audits are preliminary: the technical paper is not out
-yet, and no outside group has checked the result. `src/poles.py` shows the method on three neurons.
+one main job. Its technical paper, [Neurons as an Interpretable
+Basis](https://www.goodfire.com/research/neurons-as-an-interpretable-basis)
+(Tigges et al., Goodfire, 2026-11-10), studies another model with another
+measure. On Qwen3.6-35B-A3B, a mixture-of-experts model, it sorts each pole's
+jobs into modes by the neurons that drive it (section 5 shows that wiring on
+SmolLM2). 47% of poles have a single mode,
+and 69% have one mode that does at least 90% of the damage when the pole is
+zeroed; the 69% includes the 47%. Neither number compares directly with the
+essay's 90%. The firings at the 99.9th percentile and above carry 73% of that
+damage. On those firings, a model given a short description of each pole
+guesses its values, and the guesses undo 73% of the damage that perfect
+guesses undo: a second 73%, unrelated to the first. The limits: one model, a
+language model judges the modes, the page names no code, and no outside group
+has checked the result yet. `src/poles.py` shows the method on three neurons.
 
 It runs SmolLM2 over the first 999,936 tokens of wikitext-103 (3,906 rows of
 256 tokens) and keeps, for every neuron in layers 4, 16 and 28, the strongest
@@ -276,6 +292,148 @@ poles, a labeller checked against a control, and an expectation written down
 before the run. That is a separate experiment, outside this course; this
 module does not run it.
 
+## 5 · One neuron, two jobs: who feeds it, who reads it
+
+Section 4 read neurons by the text they fire on. Goodfire's paper reads them
+by their wiring: which earlier neurons drive a firing, and which later neurons
+pick it up. The question it answers: a neuron always writes the same
+direction, so when it has two jobs, how does the rest of the model tell them
+apart?
+
+**The mechanism, from the paper.** A later neuron (a "reader") is itself
+`silu(gate) * up`. It can take the first neuron on its up input while its gate
+listens to the context. Then it fires only when the first neuron fires *and*
+its own context holds. In the paper's case, neuron L18_E219_N55 of
+Qwen3.6-35B-A3B fires on oral surgery and on marine text. Both groups of
+readers take N55 through their up input; context neurons, which the paper
+calls primers, feed their gates and decide which group reads it (Tigges et
+al., 2026, "How models disambiguate heterogeneous meanings: two circuit case
+studies"). One neuron with two jobs is told apart by who reads it, and under
+what gate.
+
+Hand-built numbers make it concrete. N is 2.0 in both contexts. Each reader's
+up is N; its gate is +2 when its primer is on and −2 when off:
+
+| Context | N | Marine reader `silu(gate) * up` | Dental reader |
+|---|---|---|---|
+| marine | 2.0 | silu(+2) × 2 = **+3.523** | silu(−2) × 2 = −0.477 |
+| dental | 2.0 | −0.477 | **+3.523** |
+| marine, N silent | 0.0 | 0.000 | 0.000 |
+
+N's write is the same in the first two rows; the gates choose the reader.
+
+**Who feeds a neuron is arithmetic.** SmolLM2-360M is a Llama model, and its
+MLP is gated too: `src/wiring.py` checks from the loaded weights that every MLP
+holds `gate_proj`, `up_proj`, `down_proj` and a SiLU, with no biases. The
+input to a layer's MLP is `RMSNorm(h)`, and `h`, the residual stream at that
+token, is a plain sum: the token embedding, the output of every attention
+layer so far, and every earlier neuron's value times its column of
+`down_proj`. RMSNorm divides `h` by its root-mean-square and scales each
+coordinate by a fixed weight. Take that divisor at its actual value and the
+gate and up inputs are linear in `h`, so each splits into one term per write:
+
+```
+z_gate = sum over writes w of  (gate_proj[n] * norm.weight / rms(h)) . w
+```
+
+This is an identity, not an estimate: the script asserts that the terms add up
+to the model's own value, within 10⁻⁴. The paper does the same, with its
+"RMSNorm scale held at its actual value" ("Identifying Computational Functions
+From Subcircuits"). Two things it does not give you. If you removed a write,
+`rms(h)` would change, so a term is not "what removing that write would do".
+And an attention term is one block's output; who feeds attention is not linear.
+
+**Who reads it is an estimate.** Going forward, the script takes the neuron's
+write, `value * down_proj[:, n]`, pushes it through each later layer's norm
+(frozen at its actual value), and estimates each later neuron's change to
+first order. That covers only the direct path; the blocks in between also pass
+the write on. So it then zeroes the neuron at that token, reruns, and compares.
+
+The neuron is L4/N2177 from section 4. Its + pole fired on the dash between
+two dates and on word pieces such as `Cour·ant`. The script cuts two of those
+top contexts at the firing token (shorter than section 4's 256-token rows, so
+the values differ a little: +1.488 against +1.71, +2.140 against +2.26).
+
+```bash
+uv run python src/wiring.py
+```
+
+What you should see (CPU, 7 seconds; trimmed):
+
+```
+[date dash] '... ( 21 December 1895 –': L4/N2177 = +1.488 (silu(gate) +0.581 x up +2.562)
+  gate +0.833 = embedding -0.003 + attention +0.786 + neurons +0.050   (error 6.0e-07)
+  up   +2.562 = embedding -0.028 + attention +0.892 + neurons +1.698   (error 5.9e-07)
+       biggest neuron terms: L3/N1023 +0.225, L0/N957 +0.119, L0/N765 +0.101, ...
+
+[word piece] ' James Endrst of the Hartford Courant': L4/N2177 = +2.140 (silu(gate) +2.359 x up +0.907)
+  gate +2.545 = embedding -0.013 + attention +0.644 + neurons +1.913   (error 1.6e-06)
+       biggest neuron terms: L0/N1168 +0.391, L2/N173 +0.231, L3/N2332 +0.204, ...
+  up   +0.907 = embedding +0.027 + attention +0.823 + neurons +0.058   (error 1.1e-06)
+
+shared, of the top 20:
+  date dash | word piece: gate feeders 0, up feeders 0, readers 4
+readers that hear N on their up lane in every context (date dash | word piece):
+  L5/N2062   up gets -0.242 | -0.292   silu(gate) -0.154 | +0.276   effect -0.018 | -0.213   zeroed for real -0.005 | -0.168
+             effect via up +0.037 | -0.081   via gate -0.055 | -0.133   N moves its gate input for real +0.132 | +0.169
+  L13/N2308  up gets -0.238 | -0.278   silu(gate) +1.617 | -0.245   effect -0.479 | +0.070   zeroed for real +0.088 | +0.014
+             effect via up -0.385 | +0.068   via gate -0.094 | +0.001   N moves its gate input for real -0.004 | +0.029
+first-order estimate against zeroing, top 10 readers x 2 contexts: median relative error 80%, worst 646%; same sign 16/20
+  readers in layer 5 (n=4): median 20%; later layers (n=16): median 114%
+```
+
+Four things to read off it:
+
+- **The parts add up.** Every split matches the model's value to about 10⁻⁶.
+- **Two contexts, two sets of feeders.** On the dash, the neuron fires through
+  its up input (2.562), fed mostly by earlier neurons (+1.698); the gate is
+  barely open (0.581). On `ant`, the gate does the work (2.359), fed by
+  earlier neurons (+1.913), and attention sets most of the up input. The top 20
+  feeders of each lane share no neuron across the two contexts.
+- **One reader, two contexts.** L5/N2062 gets about the same signal from
+  N2177 on its up input in both contexts (−0.242 and −0.292). Its gate,
+  set mostly by the rest of the context, is a little negative on the dash
+  (silu −0.154) and open on `ant` (+0.276). Zero N2177 for real and L5/N2062
+  moves by −0.005 on the dash and −0.168 on `ant`. That looks like the
+  paper's mechanism, with one difference: N2177 also feeds this reader's
+  gate (zeroing it moves that input by +0.132 and +0.169), and on `ant` the
+  estimate sends more of the effect through the gate (−0.133) than through
+  up (−0.081). On the dash the two routes cancel. One reader that hears the
+  neuron in one context and not the other, then, but not a clean split of
+  "up from the neuron, gate from the context".
+- **The reader estimate can be wrong.** For readers in the next layer, the
+  direct-path estimate lands within a median 20% of the real change. For
+  readers further on it is off by a median 114%, and 4 of 20 have the wrong
+  sign: L13/N2308 looks like a second clean case (−0.479 against +0.070) until
+  the real change comes back +0.088. The paper uses the same first-order
+  estimate for its readers ("Methods: Subcircuit and Mode Methods"), and this
+  check, on one neuron, says nothing about how well it does there.
+
+**Exercise.** Section 4's other top contexts for this pole include
+`Dayton[ (]` and `Raj B·under`. Add one to `CONTEXTS` and `FIRES_ON`, cut
+at the firing token. Before you run it, predict: does the neuron fire through
+its gate, like `ant`, or through its up input, like the dash? Does its
+gate-feeder list share neurons with either? Then rerun and check: the script
+prints the overlap for every pair of contexts.
+
+**Limits.**
+
+- The paper shows the mechanism in two case studies. It says they "do not
+  establish how prevalent these mechanisms are" ("Summary: Neurons as Atomic
+  Units of Computation"). This script adds one partial case, not a rate.
+- The paper's pipeline leans on language models: Claude Opus 5.5 names
+  subcircuits and groups them into modes, and a second model simulates
+  ("Identifying Computational Functions From Subcircuits"; "Simulation").
+- It releases data and labels, and names no code.
+- Our model is not theirs. SmolLM2-360M is dense, with 32 layers and 2,560
+  neurons per layer. Qwen3.6-35B-A3B is a mixture of experts with 40 layers,
+  256 experts of 512 neurons per layer, a router weight on each neuron, and
+  an RMSNorm that scales by `1 + weight`. The sums here have the same shape;
+  the numbers do not carry over.
+- Two contexts and one neuron, picked from section 4's draw, not searched for
+  a good example. L5/N2062 came out of a ranking the script prints; nothing
+  checked it on other text.
+
 ## The logit lens
 
 Module 05 already built the logit lens: push each layer's residual through the
@@ -287,8 +445,8 @@ module does not rebuild it.
 
 ## Run it
 
-Each script prints its numbers, writes `results/<name>.json`, and with
-`--figures` redraws its figure.
+Each script prints its numbers and writes `results/<name>.json`; with
+`--figures`, the four scripts that draw one redraw it.
 
 ```bash
 uv run python src/hooks.py --figures
@@ -304,6 +462,10 @@ uv run python src/patching.py --figures
 
 ```bash
 uv run python src/poles.py --figures
+```
+
+```bash
+uv run python src/wiring.py
 ```
 
 Redraw every figure from the committed JSON, with no model loaded:
@@ -340,7 +502,7 @@ you run.
 uv run pytest
 ```
 
-Thirteen tests, under 10 seconds once SmolLM2 is cached. They check the
+Sixteen tests, under 15 seconds once SmolLM2 is cached. They check the
 solutions against the scripts, the committed results against the laptop
 budget, and the explorable against the results.
 
@@ -372,7 +534,8 @@ which backs this module's "demo, not a measurement" stance.
 - fit a probe per layer and name the layer where accuracy plateaus;
 - explain what the random-weight control rules out;
 - read a patching heatmap: where the information sits, and when it moves;
-- read a SwiGLU neuron on both poles, and say why three neurons prove nothing.
+- read a SwiGLU neuron on both poles, and say why three neurons prove nothing;
+- say why "who feeds this neuron" is an exact sum, while "who reads it" is an estimate.
 
 ## Links
 

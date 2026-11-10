@@ -646,9 +646,10 @@ html.locked{overflow:hidden}
    "deeper": {
     "text": "A toy model squeezes n features into m < n dimensions and reads them back through a ReLU. When features are dense, it keeps m of them, each on its own axis, and drops the rest. When each feature is usually zero, two rarely fire together, so they can share directions and the ReLU clips most of the overlap.",
     "measured": "Features kept rose from 5 to 13 of 20, in 5 dimensions, as sparsity went from 0 to 0.999: toy model, module 12.",
-    "but": "This shows a model can store more sparse features than dimensions, not that trained language models do.",
+    "but": "This shows a model can store more sparse features than dimensions, not that trained language models do. They may pack unrelated features this way, or, as Goodfire suggested in 2026 from transcoders on one model, compose extra features from neurons that fire together. The question is open.",
     "sources": [
-     "Elhage et al., 2022"
+     "Elhage et al., 2022",
+     "Tigges et al., 2026"
     ],
     "links": {
      "module": "12-features-and-dictionaries",
@@ -662,10 +663,11 @@ html.locked{overflow:hidden}
     "text": "A sparse autoencoder rewrites each activation as a mix of a few columns from a much larger dictionary, then rebuilds the activation from them. TopK keeps the k largest codes and zeroes the rest, so k sets how many fire. The hope is that each column, called a latent, fires for one thing.",
     "formula": "z = TopK(ReLU(W_enc·(x − b_pre) + b_enc));  x′ = W_dec·z + b_pre",
     "measured": "k = 32 of 2,048 latents rebuilt 98.7% of the variance and closed 98.4% of the loss gap: block 1 MLP of module 04’s char GPT, module 12.",
-    "but": "Two dictionaries that differ only in seed can share only about 30% of their features.",
+    "but": "Two dictionaries that differ only in seed can share only about 30% of their features. And the few that fire may be packed features, or mixes of neurons that fire together: on one model, Goodfire found that most transcoder features that copy no neuron are sparse mixes of 2 to 64 neurons, often ones that fire together. The question is open.",
     "sources": [
      "Gao et al., 2024",
-     "Paulo and Belrose, 2025"
+     "Paulo and Belrose, 2025",
+     "Tigges et al., 2026"
     ],
     "links": {
      "module": "12-features-and-dictionaries",
@@ -2379,9 +2381,9 @@ const OLD=[
 [F.views(),'Or match two views','Two crops of one photo should land close together. No label says what the photo shows.'],
 [F.collapse(),'The cheat: one point for all','Map every input to the same spot and every prediction is perfect, and worthless.'],
 [F.spread(),'Make spread a rule','Add a term that keeps the points apart, or predict a slow-moving copy. The cheat no longer works.'],
-[F.superpos('rays'),'What does a model store?','Often more features than it has dimensions: here, five in a plane.'],
+[F.superpos('rays'),'What does a model store?','A toy can hold more features than it has dimensions: here, five in a plane. Whether trained models do is open.'],
 [F.superpos('interfere'),'Rare features can share','If they seldom fire together, the overlap rarely gets in the way.'],
-[F.dict(),'Read them with a dictionary','Rewrite each activation as a few directions from a long list. The few that fire name what the model sees.'],
+[F.dict(),'Read them with a dictionary','Rewrite each activation as a few directions from a long list. The few that fire are a guess at what the model sees.'],
 [F.clouds('probe'),'Ask with a straight line','Train a line to read one fact from one layer. Deeper layers often make the fact plain.'],
 [F.matrix('patch'),'Or swap a piece and watch','Copy one activation from a clean run into a broken one. If the answer returns, you found where it lives.'],
 [F.steer(),'Push along a feature','Add a direction to the model’s state, and its replies lean toward that topic.'],

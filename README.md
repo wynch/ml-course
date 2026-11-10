@@ -203,8 +203,8 @@ want to know where an idea came from.
 | 08 | [vision](modules/08-vision) | Fine-tune a **ViT**, and visualize its **feature maps**. |
 | 09 | [diffusion](modules/09-diffusion) | A toy denoiser from scratch → the **`diffusers`** library. |
 | 10 | [agents](modules/10-agents) | Build agents with **smolagents** and the **Model Context Protocol (MCP)**. |
-| 11 | [inside-a-language-model](modules/11-inside-a-language-model) | **Hooks**, a per-layer **probe**, **activation patching**, and **neuron poles** on SmolLM2-360M, with **nnsight**. |
-| 12 | [features-and-dictionaries](modules/12-features-and-dictionaries) | **Toy superposition**, a **sparse autoencoder** from scratch, GPT-2's published SAE through **SAELens**, and a **steering** demo. |
+| 11 | [inside-a-language-model](modules/11-inside-a-language-model) | **Hooks**, a per-layer **probe**, **activation patching**, **neuron poles** and one neuron's **wiring** on SmolLM2-360M, with **nnsight**. |
+| 12 | [features-and-dictionaries](modules/12-features-and-dictionaries) | **Toy superposition**, a **sparse autoencoder** from scratch, GPT-2's published SAE through **SAELens**, a **steering** demo, and **neurons against random directions** with an untrained copy and a GELU null. |
 | 13 | [inside-vision-and-jepa](modules/13-inside-vision-and-jepa) | **One InceptionV1 channel** tested on drawn and real images, **feature visualisation** with Lucent, a per-block **probe** and three neurons in **CLIP**, and **probes on a JEPA encoder**. |
 | 14 | [how-training-finds-a-solution](modules/14-how-training-finds-a-solution) | **SGD**, **momentum** and **Adam** on toy losses and an MLP, **learning-rate schedules**, **loss slices** and sharpness, and **grokking** with and without weight decay. |
 | 15 | [geometry-of-representations](modules/15-geometry-of-representations) | A ReLU net's **linear regions** cut exactly, the **intrinsic dimension** of the data, and **linear CKA** between two trained nets. |
