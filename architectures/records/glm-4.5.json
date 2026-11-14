@@ -73,6 +73,7 @@
   "expert_hidden_dim": 1536,
   "latent_dim": null,
   "dense_layers": "first 3",
+  "first_dense": 3,
   "router": "sigmoid gates, loss-free balancing bias (e_score_correction_bias), routed scale 2.5"
  },
  "stack": {
@@ -257,15 +258,6 @@
  "unknowns": {},
  "notes": [
   "Report: RoPE base raised from 10,000 to 1,000,000 when context went to 32K; config holds 1,000,000."
- ],
- "teaches": [
-  "gqa",
-  "qk_norm",
-  "partial_rope",
-  "moe",
-  "shared_expert",
-  "dense_prefix",
-  "mtp"
  ],
  "layer_kinds": {
   "dense_ffn": {

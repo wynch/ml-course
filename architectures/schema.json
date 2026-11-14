@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "architectures.schema.json",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "title": "LLM architecture record",
-  "description": "One record per model. Numbers come from a fetched source; a number not published is null and has an entry in `unknowns`. Every non-null leaf field is covered by `field_sources` (exact path, or a prefix ending in `.*`). Component kinds use the ids in glossary.json. Version 1.1.0 adds optional fields only (see SCHEMA-CHANGES.md): layer_kinds, attention.attention_free, attention.window_kind, attention.kv_shared_layers, attention.sparse.index_shared_layers, ffn.ffn_free, moe.shared_expert_hidden_dim, moe.layer_step, params.effective, params.active_prefill, params.active_decode, and the ref kind config_mirror.",
+  "description": "One record per model. Numbers come from a fetched source; a number not published is null and has an entry in `unknowns`. Every non-null leaf field is covered by `field_sources` (exact path, or a prefix ending in `.*`). Component kinds use the ids in glossary.json. Version 1.1.0 adds optional fields only (see SCHEMA-CHANGES.md): layer_kinds, attention.attention_free, attention.window_kind, attention.kv_shared_layers, attention.sparse.index_shared_layers, ffn.ffn_free, moe.shared_expert_hidden_dim, moe.layer_step, params.effective, params.active_prefill, params.active_decode, and the ref kind config_mirror. Version 1.2.0 adds attention.conv_kernel, attention.sparse.block_size, layer_kinds.*.sparse moe.first_dense, attn_res_block and logit_softcap, and retires teaches: the parts a model has are derived from its fields by parts.py.",
   "type": "object",
   "required": ["id", "name", "organisation", "release_date", "weights", "modality", "params", "layers", "d_model", "vocab_size", "context_length", "attention", "norm", "ffn", "moe", "stack", "block_order", "specials", "omitted_towers", "refs", "field_sources", "figure_links", "unknowns"],
   "additionalProperties": false,
@@ -92,6 +92,7 @@
         "heads": {"type": ["integer", "null"]},
         "kv_heads": {"type": ["integer", "null"]},
         "head_dim": {"type": ["integer", "null"]},
+        "conv_kernel": {"type": ["integer", "null"], "description": "width in tokens of the short causal convolution the mixer runs (Mamba, LFM2, Gated DeltaNet, KDA, Inkling); omitted when there is none"},
         "window": {"type": ["integer", "null"], "description": "window size in tokens for local layers (see window_kind); null if none"},
         "window_kind": {"enum": ["sliding", "chunked", null], "description": "sliding: each token sees the last `window` tokens; chunked: tokens see only their own block of `window` tokens"},
         "kv_shared_layers": {"type": ["integer", "null"], "description": "layers that reuse another layer's keys and values instead of computing their own; layer_kinds.*.kv_source says which"},
@@ -115,7 +116,8 @@
           "qk_rope_head_dim": {"type": "integer"}, "qk_nope_head_dim": {"type": "integer"}, "v_head_dim": {"type": "integer"}}},
         "sparse": {"type": ["object", "null"], "description": "token-selection attention (DSA and kin)", "additionalProperties": false, "properties": {
           "kind": {"type": "string"}, "top_k": {"type": "integer"}, "index_heads": {"type": ["integer", "null"]}, "index_head_dim": {"type": ["integer", "null"]},
-          "index_shared_layers": {"type": ["integer", "null"], "description": "layers that run no indexer and reuse another layer's top-k choice"}}},
+          "index_shared_layers": {"type": ["integer", "null"], "description": "layers that run no indexer and reuse another layer's top-k choice"},
+          "block_size": {"type": ["integer", "null"], "description": "tokens per key block when the indexer picks blocks, not single tokens (top_k then counts blocks); omitted for token-level selection"}}},
         "other": {"type": "array", "items": {"type": "string"}, "description": "glossary ids of extras: attention_sink, gated_attention, softcap_attn, query_pre_attn_scalar"}
       }
     },
@@ -157,7 +159,8 @@
         "dense_layers": {"type": ["string", "null"], "description": "which layers keep a dense FFN, e.g. 'first 3'"},
         "router": {"type": ["string", "null"]},
         "shared_expert_hidden_dim": {"type": ["integer", "null"], "description": "width of one shared expert, set only when it differs from expert_hidden_dim"},
-        "layer_step": {"type": ["integer", "null"], "description": "MoE every n-th layer after the dense prefix (2 = dense and MoE alternate); omitted when every layer is MoE"}
+        "layer_step": {"type": ["integer", "null"], "description": "MoE every n-th layer after the dense prefix (2 = dense and MoE alternate); omitted when every layer is MoE"},
+        "first_dense": {"type": "integer", "minimum": 0, "description": "count of leading layers that keep a dense FFN; 0 when none (dense_layers keeps the wording); validate.py requires it on every MoE record"}
       }
     },
     "stack": {
@@ -190,6 +193,8 @@
       "name": {"type": "string", "description": "glossary id when one exists"},
       "what": {"type": "string"},
       "where": {"type": "string"}}}},
+    "attn_res_block": {"type": ["integer", "null"], "description": "layers per block of block attention residuals: inside a block the stream adds up as usual; each sublayer reads a learned mix of the block outputs before it"},
+    "logit_softcap": {"type": ["number", "null"], "description": "cap c on the final logits, c * tanh(z / c); set exactly when specials name logit_softcap"},
     "omitted_towers": {"type": "array", "items": {"type": "object", "required": ["modality", "what"], "additionalProperties": false, "properties": {
       "modality": {"enum": ["image", "audio", "video"]},
       "what": {"type": "string"},
@@ -214,7 +219,6 @@
       "author": {"type": "string"}, "url": {"type": "string", "format": "uri"}, "title": {"type": "string"}, "terms": {"type": "string"}}}},
     "unknowns": {"type": "object", "description": "field path -> why it is null or uncertain", "additionalProperties": {"type": "string"}},
     "notes": {"type": "array", "items": {"type": "string"}, "description": "conflicts between sources, and which one the record follows"},
-    "teaches": {"type": "array", "items": {"type": "string"}, "description": "glossary ids this model is the course's example of"},
     "layer_kinds": {"type": "object", "description": "settings per layer kind, keyed by the type names used in stack; validate.py requires it when the stack has two or more types. Top-level attention fields keep describing the main kind.", "additionalProperties": {"$ref": "#/$defs/layer_kind"}}
   },
   "$defs": {
@@ -224,6 +228,7 @@
       "additionalProperties": false,
       "properties": {
         "mixer": {"type": "string", "description": "glossary id of the token mixer, or 'none' (a feed-forward-only layer)"},
+        "sparse": {"type": "boolean", "description": "true when this kind runs the top-k selection in attention.sparse; validate.py requires it on every kind when attention.sparse is set"},
         "ffn": {"type": "string", "description": "glossary id: mlp, glu, moe, latent_moe; or 'none' (a mixer-only layer)"},
         "heads": {"type": ["integer", "null"], "description": "query heads (for linear mixers: query/key heads)"},
         "kv_heads": {"type": ["integer", "null"]},

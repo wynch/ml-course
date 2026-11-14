@@ -58,6 +58,7 @@
   "heads": 32,
   "kv_heads": 2,
   "head_dim": 256,
+  "conv_kernel": 4,
   "window": null,
   "local_global": null,
   "position": {
@@ -93,6 +94,7 @@
   "expert_hidden_dim": 1024,
   "latent_dim": null,
   "dense_layers": "none",
+  "first_dense": 0,
   "router": "softmax top-10, renormalised; shared expert scaled by a sigmoid gate"
  },
  "stack": {
@@ -312,6 +314,9 @@
   ],
   "layer_kinds.*": [
    "cfg"
+  ],
+  "attention.conv_kernel": [
+   "cfg"
   ]
  },
  "figure_links": [
@@ -327,9 +332,6 @@
  },
  "notes": [
   "README: context 262,144 natively, extensible to about 1M tokens with YaRN factor 4; config allows 262,144."
- ],
- "teaches": [
-  "vision_tower"
  ],
  "layer_kinds": {
   "gated_deltanet": {

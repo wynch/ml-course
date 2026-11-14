@@ -89,6 +89,7 @@
   "expert_hidden_dim": 2048,
   "latent_dim": null,
   "dense_layers": "first 3",
+  "first_dense": 3,
   "router": "sigmoid scores, aux-loss-free bias (noaux_tc), top-8 within the best 4 of 8 groups"
  },
  "stack": {
@@ -284,16 +285,15 @@
   "Config num_key_value_heads 128 is nominal; DSA runs MLA in MQA mode, one latent shared by all heads.",
   "Report starts from DeepSeek-V3.1-Terminus (128K), trains the indexer alone for 2.1B tokens, then sparse training for 943.7B tokens."
  ],
- "teaches": [
-  "sparse_topk"
- ],
  "layer_kinds": {
   "dense_ffn": {
    "mixer": "mla",
+   "sparse": true,
    "ffn": "glu"
   },
   "moe": {
    "mixer": "mla",
+   "sparse": true,
    "ffn": "moe"
   }
  }

@@ -10,11 +10,16 @@ passes validation, the glossary, the module titles the glossary links to, and
 the planned models that have no record yet. No fetch() at run time, so the
 offline reader sees everything.
 
-A record that fails validation is left out of the page and listed here; it
-does not stop the build.
+The block also holds, per record, the parts parts.py derives from its fields;
+the page's part filter and each definition's list of models read them.
 
-    uv run course/architectures/build.py           # rewrite the block
-    uv run course/architectures/build.py --check   # exit 1 if the page is stale
+A record that fails validation stops the build (exit 1, page untouched) unless
+--lenient is given; then it is left out of the page and listed. --check never
+writes, and fails when the page is stale or when any record fails.
+
+    uv run course/architectures/build.py                # rewrite the block
+    uv run course/architectures/build.py --lenient      # local work: leave failing records out
+    uv run course/architectures/build.py --check        # exit 1 if a record fails or the page is stale
 """
 
 from __future__ import annotations
@@ -30,6 +35,7 @@ import jsonschema
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from validate import covered, leaves, load_glossary, record_problems  # noqa: E402  (the checks validate.py runs)
+from parts import derived_parts  # noqa: E402
 
 COURSE = HERE.parent
 PAGE = COURSE / "explorables" / "05b-architecture-explorer.html"
@@ -91,6 +97,7 @@ def build() -> tuple[dict, list[tuple[str, list[str]]], list[str]]:
     good.sort(key=lambda r: (r["release_date"]["value"] or "9999", r["id"]))
     data = {
         "records": good,
+        "parts": {r["id"]: sorted(derived_parts(r, gloss)) for r in good},
         "glossary": {"groups": glossary["groups"], "terms": glossary["terms"]},
         "modules": modules(),
         "planned": [
@@ -109,7 +116,8 @@ def block(data: dict) -> str:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--check", action="store_true", help="exit 1 if the page is stale")
+    ap.add_argument("--check", action="store_true", help="write nothing; exit 1 if a record fails or the page is stale")
+    ap.add_argument("--lenient", action="store_true", help="leave failing records out instead of stopping")
     args = ap.parse_args()
     data, failed, orphans = build()
     page = PAGE.read_text()
@@ -129,6 +137,9 @@ def main() -> None:
     if orphans:
         print("  parent not among the records (lineage stops there): " + ", ".join(orphans))
 
+    if failed and not args.lenient:
+        sys.exit(f"{len(failed)} record(s) fail validation; fix them, or pass --lenient to leave them out"
+                 + ("" if args.check else " (page not written)"))
     if args.check:
         if new != page:
             sys.exit(f"{PAGE.name} is stale: run architectures/build.py")

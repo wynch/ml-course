@@ -82,6 +82,7 @@
   "expert_hidden_dim": 2880,
   "latent_dim": null,
   "dense_layers": "none",
+  "first_dense": 0,
   "router": "linear router with bias; softmax over the selected top-4"
  },
  "stack": {
@@ -260,14 +261,6 @@
  },
  "notes": [
   "Paper: attention alternates banded-window and dense layers 'following GPT-3'; window 128 tokens."
- ],
- "teaches": [
-  "local_global",
-  "sliding_window",
-  "attention_sink",
-  "mxfp4",
-  "moe",
-  "yarn"
  ],
  "layer_kinds": {
   "local": {

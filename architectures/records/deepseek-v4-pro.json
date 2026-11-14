@@ -98,6 +98,7 @@
   "expert_hidden_dim": 3072,
   "latent_dim": null,
   "dense_layers": "none",
+  "first_dense": 0,
   "router": "sqrt(softplus) scores, aux-loss-free bias, top-6; first 3 layers route by a fixed hash of the token id"
  },
  "stack": {
@@ -355,13 +356,10 @@
   "Config rope_theta 10000 applies only to pure sliding-window layers (the MTP layer); the 61 compressed layers use compress_rope_theta 160000 with YaRN (factor 16 over 65,536).",
   "Gallery calls the attention 'MLA-style'; the config has no kv_lora_rank, one 512-wide KV head and a 1536-wide query latent, so mla is left null."
  ],
- "teaches": [
-  "attention_sink",
-  "partial_rope"
- ],
  "layer_kinds": {
   "hca": {
    "mixer": "hca",
+   "sparse": false,
    "ffn": "moe",
    "heads": 128,
    "kv_heads": 1,
@@ -376,6 +374,7 @@
   },
   "csa": {
    "mixer": "csa",
+   "sparse": true,
    "ffn": "moe",
    "heads": 128,
    "kv_heads": 1,

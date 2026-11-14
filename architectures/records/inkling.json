@@ -47,6 +47,7 @@
   "heads": 64,
   "kv_heads": 8,
   "head_dim": 128,
+  "conv_kernel": 4,
   "window": 512,
   "local_global": "5:1",
   "position": {
@@ -80,6 +81,7 @@
   "expert_hidden_dim": 3072,
   "latent_dim": null,
   "dense_layers": "first 2",
+  "first_dense": 2,
   "router": "sigmoid scores with bias for top-6; the router also scores the 2 shared experts and their weights are normalised together ('shared expert sink'); route scale 8"
  },
  "stack": {
@@ -308,6 +310,10 @@
   "layer_kinds.*": [
    "cfg",
    "code"
+  ],
+  "attention.conv_kernel": [
+   "cfg",
+   "code"
   ]
  },
  "figure_links": [
@@ -325,15 +331,6 @@
  "notes": [
   "NVIDIA's NIM page calls Inkling 'a Mamba-hybrid' with 952B parameters. The config, weight index and transformers code show a local/global GQA stack with short convolutions and no Mamba layers, and the model card says 975B; the record follows them.",
   "Inkling 2 Small's record now reads its block from transformers' inkling2 code; both models apply the post-sublayer short convolutions before the residual add."
- ],
- "teaches": [
-  "relative_bias",
-  "short_conv",
-  "local_global",
-  "log_length_scaling",
-  "moe",
-  "shared_expert",
-  "audio_tower"
  ],
  "layer_kinds": {
   "local": {

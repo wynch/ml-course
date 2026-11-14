@@ -6,10 +6,11 @@ draws its diagrams, fact sheets and comparisons from these records.
 
 | File | Holds |
 |---|---|
-| `schema.json` | the record format (JSON Schema 2020-12), version 1.1.0; changes are listed in `SCHEMA-CHANGES.md` |
+| `schema.json` | the record format (JSON Schema 2020-12), version 1.2.0; changes are listed in `SCHEMA-CHANGES.md` |
 | `glossary.json` | 101 part names (`gqa`, `rmsnorm`, `moe` ...), one plain line each, with the modules that teach them; a merged name sits in its term's `aliases` |
 | `model_list.json` | the 62 models planned, with the best source for each |
 | `records/<id>.json` | one record per model; the file name is the record's `id` |
+| `parts.py` | derives the parts a model has from its fields; the explorer's part filter and definitions use it |
 | `validate.py` | the checks every record must pass: schema, a source for every field, glossary ids, stacks that sum to `layers`, `layer_kinds` that match the stack |
 | `SCHEMA-CHANGES.md` | what changed between schema versions |
 | `build.py` | validates the records and writes them into the explorer page |
@@ -51,9 +52,10 @@ draws its diagrams, fact sheets and comparisons from these records.
    part has no id, report it rather than editing `glossary.json`. Take attention
    width from heads × head size, never from `d_model`.
 3. Set `parent_id` to the model it extends, so the explorer can walk the lineage.
-4. Check it with `uv run --with jsonschema python -I architectures/validate.py`, then
-   rebuild (below). `build.py` runs the same checks; a record that fails is left out of
-   the page and listed with its problems.
+4. Tag no parts by hand: `parts.py` reads them from the fields, and a part with no
+   field goes in `specials`.
+5. Check it with `uv run --with jsonschema python -I architectures/validate.py`, then
+   rebuild (below). `build.py` runs the same checks and stops on a record that fails.
 
 ## Rebuild
 
@@ -61,8 +63,9 @@ From `course/`:
 
 | Command | Does |
 |---|---|
-| `uv run architectures/build.py` | checks every record and rewrites the data block of the explorer page |
-| `uv run architectures/build.py --check` | exits 1 if the page is out of date; CI runs this |
+| `uv run architectures/build.py` | checks every record and rewrites the data block of the explorer page; stops if a record fails |
+| `uv run architectures/build.py --lenient` | the same, but leaves failing records out and lists them; for local work |
+| `uv run architectures/build.py --check` | writes nothing; exits 1 if a record fails or the page is out of date; CI runs this |
 
 `build.py` needs `jsonschema`; `uv` installs it from the script's header. The page
 holds all its data inline and fetches nothing, so it works offline and in the

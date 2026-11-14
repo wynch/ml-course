@@ -124,3 +124,108 @@ def test_state_sizes():
     sel = models.build("selective", 65)
     # per layer: conv buffer E x 3, state H x P x N = E x N
     assert sel.state_floats(sel.init_state(1, "cpu")) == 5 * (280 * 3 + 280 * 16)
+
+
+# ----------------------------------------------------------------- (d) window
+def test_window_solution_matches_script():
+    import solution_d_window as sol
+    import window
+
+    for T, w in ((8, 3), (40, 8), (40, None), (40, 64)):
+        assert torch.equal(sol.window_mask(T, w), window.window_mask(T, w))
+    for ws in window.ARMS.values():
+        assert sol.reach(ws) == window.reach(ws)
+    assert window.reach([16, 16, 16]) < window.copy_distance() < window.reach([32, 32, 32])
+
+
+def test_window_kv_share_from_records():
+    import json
+
+    import solution_d_window as sol
+
+    gemma = json.loads((sol.RECORDS / "gemma-3-27b.json").read_text())
+    ink = json.loads((sol.RECORDS / "inkling-2-small.json").read_text())
+    g, i = sol.kv_share(gemma, 131072), sol.kv_share(ink, 131072)
+    assert (g["local"], g["global"], g["window"]) == (52, 10, 1024)
+    assert (i["local"], i["global"], i["window"]) == (40, 8, 1024)
+    assert g["share"] == pytest.approx((52 * 1024 + 10 * 131072) / (62 * 131072))
+    assert sol.kv_share(gemma, 512)["share"] == 1.0          # shorter than the window: nothing saved
+
+
+def test_window_mask_hides_older_tokens():
+    """Changing a token more than reach() positions back leaves the last logit unchanged."""
+    import window
+
+    torch.manual_seed(0)
+    g = window.make([8, 8, 8], 65, 0).eval()
+    x = torch.randint(0, 65, (1, 64))
+    y = x.clone()
+    y[0, 63 - 22] = (y[0, 63 - 22] + 1) % 65                 # 22 back: beyond the reach of 21
+    with torch.no_grad():
+        assert torch.equal(g(x)[0][0, -1], g(y)[0][0, -1])
+        z = x.clone()
+        z[0, 63 - 21] = (z[0, 63 - 21] + 1) % 65             # 21 back: inside it
+        assert not torch.equal(g(x)[0][0, -1], g(z)[0][0, -1])
+
+
+def test_no_arm_sees_the_future_and_one_window_includes_itself():
+    """Every arm: a change after position t leaves logits up to t unchanged.
+    One layer of window w: a change w - 1 back reaches the current token, w back does not."""
+    import window
+
+    torch.manual_seed(0)
+    x = torch.randint(0, 65, (1, 128))
+    with torch.no_grad():
+        for ws in window.ARMS.values():
+            g = window.make(ws, 65, 0).eval()
+            for p in g.parameters():
+                p.data.normal_(0, 0.2)
+            base = g(x)[0][0]
+            for t in (0, 31, 100):
+                y = x.clone()
+                y[0, t + 1:] = (y[0, t + 1:] + 7) % 65
+                assert torch.equal(g(y)[0][0, : t + 1], base[: t + 1])
+        for w in (8, 64):
+            g = window.make([w, None, None], 65, 0).eval()
+            g.blocks = g.blocks[:1]
+            for p in g.parameters():
+                p.data.normal_(0, 0.2)
+            out = g(x)[0][0, 120]
+            for back, changes in ((w - 1, True), (w, False)):
+                y = x.clone()
+                y[0, 120 - back] = (y[0, 120 - back] + 1) % 65
+                assert torch.equal(g(y)[0][0, 120], out) is not changes
+
+
+def test_banded_equals_window_mask():
+    import window
+    import window_cost
+
+    torch.manual_seed(0)
+    a = models.make_gpt(65, block_size=256)
+    for p in a.parameters():
+        p.data.normal_(0, 0.3)
+    b = models.make_gpt(65, block_size=256)
+    b.load_state_dict(a.state_dict())
+    window.set_windows(a, [64] * 3)
+    window_cost.make_banded(b, 64)
+    x = torch.randint(0, 65, (2, 256))
+    assert torch.allclose(a(x)[0], b(x)[0], atol=1e-5)
+
+
+@pytest.mark.parametrize("windows", [[16, 16, 16], [16, 16, None]])
+def test_window_cache_matches_parallel(windows):
+    import window
+    import window_cost
+
+    torch.manual_seed(0)
+    g = window.make(windows, 65, 0).eval()
+    s = window_cost.WindowCache(g, windows)
+    x = torch.randint(0, 65, (1, 100))
+    st, outs = s.init_state(1, "cpu"), []
+    for t in range(100):
+        logits, st = s.step(x[0, t:t + 1], st)
+        outs.append(logits)
+    assert torch.allclose(torch.cat(outs), g(x)[0][0], atol=1e-4)
+    full = sum(w is None for w in windows)
+    assert s.state_floats(st) == 2 * 128 * ((3 - full) * 16 + full * 100)

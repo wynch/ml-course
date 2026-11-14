@@ -56,6 +56,7 @@
   "heads": 32,
   "kv_heads": 32,
   "head_dim": 128,
+  "conv_kernel": 4,
   "window": null,
   "local_global": null,
   "position": {
@@ -95,6 +96,7 @@
   "expert_hidden_dim": 1024,
   "latent_dim": null,
   "dense_layers": "first 1",
+  "first_dense": 1,
   "router": "sigmoid scores, aux-loss-free bias (e_score_correction_bias), top-8, renormalised; routed_scaling_factor 2.446"
  },
  "stack": {
@@ -291,6 +293,9 @@
   "layer_kinds.*": [
    "cfg",
    "code"
+  ],
+  "attention.conv_kernel": [
+   "cfg"
   ]
  },
  "figure_links": [
@@ -314,9 +319,6 @@
   "Config keeps qk_rope_head_dim 64 while setting mla_use_nope; the paper says all MLA layers use NoPE.",
   "Parent is Kimi K2 (MLA + fine-grained MoE recipe at small scale); the paper compares against a full-MLA baseline.",
   "README describes the layout as 3:1 KDA to MLA; the config gives 20 KDA and 7 MLA layers, the last group being 2:1."
- ],
- "teaches": [
-  "kda"
  ],
  "layer_kinds": {
   "kda": {

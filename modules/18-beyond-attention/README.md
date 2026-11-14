@@ -4,13 +4,14 @@ Module 04 built a GPT, and module 07 gave it a KV cache. To write each new
 token, that GPT reads a key and a value for every token before it, so its
 memory grows with the context. This module builds models that carry a
 fixed-size **state** from one token to the next instead, and sets them against
-the tiny GPT on the same data. It has four sections, each with a figure and the
+the tiny GPT on the same data. It has five sections, each with a figure and the
 numbers beside it:
 
 1. **A GRU**, a gated recurrent network, at the tiny GPT's size.
 2. **A diagonal linear recurrence, then a selective one**, in plain PyTorch. Both are state-space models (SSMs) in the style of Mamba: a layer that carries a fixed-size state and updates it by a linear rule at each token.
 3. **GPT, GRU and SSM at equal budget**: validation loss after the same training time, then memory and speed per generated token up to 4,096 tokens.
 4. **The library way**: Mamba-130M against GPT-2 small through transformers, and a paragraph on RWKV, Hyena and hybrids.
+5. **Sliding windows**: attention that keeps only the last w tokens, local and global layers, what a stack can still reach, and what the window saves.
 
 Every number in this README comes from a JSON file in [`results/`](results/),
 written by the script that measured it.
@@ -34,7 +35,8 @@ By the end you will be able to:
 - say what makes a recurrence selective, and why that rules out the convolution;
 - train a recurrence in parallel and run it one token at a time, and check that both give the same output;
 - count what a GPT and a recurrent model keep between tokens, and measure it;
-- run Mamba with transformers without its CUDA kernels, and say which of its numbers still mean something.
+- run Mamba with transformers without its CUDA kernels, and say which of its numbers still mean something;
+- build a sliding-window mask, work out how far a stack of windows reaches, and count the KV cache a local/global mix keeps.
 
 ## Setup
 
@@ -71,6 +73,10 @@ its results file:
 | `src/compare.py` | 3.34 | 0.57 GB | 1.16 GB |
 | `src/decode.py` | 0.31 | 0.63 GB | 1.09 GB |
 | `src/hf_compare.py` | 0.13 | 1.13 GB | 1.10 GB |
+| `src/window.py` | 8.95 | 0.45 GB | 1.06 GB |
+| `src/window.py --long` | 4.34 | 0.49 GB | 1.06 GB |
+| `src/window_cost.py` | 0.13 | 0.73 GB | 1.07 GB |
+| `src/window.py --checks` (review) | 18.03 | 0.48 GB | 1.07 GB |
 
 Measured on an Apple M5 with 16 GB, torch 2.14.1, transformers 5.20.1, while
 other jobs shared the Mac. Times carry that noise; memory counts do not.
@@ -367,6 +373,201 @@ cache and up to 6× the decoding speed at a context of 1M tokens. LFM2
 convolutions with a few attention layers for phones and laptops, and reports
 up to 2× faster prefill and decode on CPUs than models of similar size.
 
+## 5 · Sliding windows: attention with a capped cache
+
+Sections 1 to 4 replaced attention. This section keeps it and limits how far
+back it looks. Full causal attention scores every token against every
+earlier one: a sequence of T tokens costs about T²/2 scores per layer and
+head, and the KV cache grows by one key and one value per token in every
+layer. A **sliding window** of w lets each token read only itself and the
+w − 1 tokens before it. The scores then cost about T·w, and the cache stops
+growing at w tokens per layer: Mistral 7B keeps it in a rolling buffer, slot
+i mod w.
+
+**What a stack can still reach.** One window layer sees w − 1 tokens back.
+The next layer reads outputs that each already saw w − 1 back, so a stack of
+L window layers reaches L·(w − 1). Mistral 7B's record gives 32 layers with
+a window of 4,096, a reach of about 131K tokens. Reach is an upper bound: a
+token far back must be passed on, layer by layer, through the tokens in
+between, and each hop shares its vector with everything else that token
+carries.
+
+**Local and global layers.** Most recent models mix window layers ("local")
+with a few full ones ("global"). The full layers keep exact look-up at any
+distance; the local ones keep the cost down. From the architecture
+explorer's records:
+
+| Model | Local : global | Window | Source |
+|---|---|---|---|
+| [Mistral 7B](../../explorables/05b-architecture-explorer.html#m=mistral-7b) | all 32 local | 4,096 | [paper](https://arxiv.org/abs/2310.06825), Table 1 |
+| [Gemma 2 9B](../../explorables/05b-architecture-explorer.html#m=gemma-2-9b) | 1 : 1 (21 + 21) | 4,096 | config |
+| [Gemma 3 27B](../../explorables/05b-architecture-explorer.html#m=gemma-3-27b) | 5 : 1 (52 + 10) | 1,024 | [paper](https://arxiv.org/abs/2503.19786), §1–2 |
+| [gpt-oss-120b](../../explorables/05b-architecture-explorer.html#m=gpt-oss-120b) | 1 : 1 (18 + 18) | 128 | [card](https://arxiv.org/abs/2508.10925), §2.2 |
+| [Inkling 2 Small](../../explorables/05b-architecture-explorer.html#m=inkling-2-small) | 5 : 1 (40 + 8) | 1,024 | [config](https://huggingface.co/thinkingmachines/Inkling-2-Small/blob/main/config.json) |
+| [Llama 4 Maverick](../../explorables/05b-architecture-explorer.html#m=llama-4-maverick) | 3 : 1 (36 + 12) | chunks of 8,192 | [config](https://huggingface.co/unsloth/Llama-4-Maverick-17B-128E-Instruct/blob/main/config.json) |
+
+Llama 4's local layers are **chunked**, not sliding: the sequence is cut into
+fixed blocks of 8,192 and a token reads only its own block, so the first
+token of a block sees nothing before it, and the last sees 8,191 tokens. Its
+12 global layers also drop the rotary positions (NoPE).
+
+The Gemma 3 report (section 5.2) gives the reason for its mix. In its
+ablations, moving from Gemma 2's 1 : 1 to 5 : 1 had "minimal impact on
+perplexity". In its memory comparison, a model with only global layers
+spends 60% extra memory on its KV cache; with the mix it labels "1:3" and
+windows of 1,024 that falls below 15%. Exercise (d) counts the cache from the records: at
+131,072 tokens Gemma 3 keeps 16.8% of what an all-global stack would keep,
+and Inkling 2 Small 17.3%.
+
+**The experiment.** `src/window.py` builds module 04's GPT through
+`models.make_gpt`, as section 3 does, and overwrites the causal mask of each
+block with its window. Nothing else changes: every arm has 619,776
+parameters, and every arm keeps module 04's learned absolute positions, one
+vector for each of the 128 places. The window hides keys; it does not
+change how a token knows where it is. Six arms, each trained with this module's recipe for 1,000
+steps (the length of sections 1 and 2), two seeds:
+
+| Arm | Windows, layers 1–3 | Reach of the stack |
+|---|---|---|
+| full | all, all, all | the whole context |
+| w64 | 64, 64, 64 | 189 |
+| w32 | 32, 32, 32 | 93 |
+| w16 | 16, 16, 16 | 45 |
+| w8 | 8, 8, 8 | 21 |
+| mix8 | 8, 8, all | the whole context |
+
+Three measurements. Validation loss on the same 100 batches as sections 1
+to 3. The loss at each of the 128 positions of a window: a character at
+position t has t earlier characters to use, so the curve shows how much
+context each arm uses. And a **copy task**, trained from scratch for each
+arm: 48 random letters, a bar, then the same 48 letters. Each letter of the
+second half is the one 48 positions back, so a model must reach 48 tokens;
+only the second half is scored, and chance is ln 26 = 3.26 nats.
+
+`src/window_cost.py` then measures what the window saves, on untrained
+copies with 4,096 positions: the KV cache and the time per token while
+generating 4,096 tokens on the CPU, with a window of 64 kept as a rolling
+buffer; and one training step on sequences of 512 to 4,096 tokens on the
+Apple GPU, with the window computed two ways. As a mask on the full T × T
+score matrix, as `window.py` trains, it costs what full attention costs.
+The **banded** form cuts the sequence into blocks of w and lets each block
+read only itself and the block before: 2w keys per query instead of T. It
+gives the same output as the mask (a test checks it).
+
+**Prediction**, written before the run:
+
+1. Validation loss: full, w64 and w32 within 0.02 of each other; w16 worse by 0.02–0.05; w8 worse by 0.05–0.15; mix8 within 0.02 of full.
+2. Loss by position: full keeps falling to position 127; the windowed arms flatten past their reach.
+3. Copy at 48 back: full, w64 and mix8 below 0.1 nats. w8 and w16, whose stacks reach 21 and 45, at chance. w32, which reaches 93 only by passing each letter through a token in between, fails: above 2 nats after 1,000 steps.
+4. Cost: the windowed cache stops at 2 × 3 × 128 × 64 floats; mix64's grows at a third of full's rate. Time per generated token stays flat with the window and rises with full attention. At 4,096 tokens the masked window costs a training step what full attention costs, and the banded form is at least 5 times faster and smaller.
+
+![Validation loss of six arms, loss by position, and the copy task](figures/window.png)
+
+| Arm | Seed 0 | Seed 1 | Mean | Copy loss | Copy right |
+|---|---|---|---|---|---|
+| full | 1.847 | 1.861 | 1.854 | 0.001 | 100% |
+| w64 | 1.821 | 1.847 | 1.834 | 0.000 | 100% |
+| w32 | 1.817 | 1.841 | 1.829 | 0.047 | 99.2% |
+| w16 | 1.789 | 1.755 | 1.772 | 3.258 | 3.8% |
+| w8 | 1.672 | 1.677 | 1.675 | 3.258 | 3.8% |
+| mix8 | 1.674 | 1.670 | 1.672 | 0.001 | 100% |
+
+Validation loss in nats on tiny-shakespeare after 1,000 steps; copy loss in
+nats on the second half, and the share of its letters the model gets right.
+Every arm took 30–32 ms per step: the mask costs the same whatever w is.
+Two more seeds of full, w8 and mix8, added in review
+(`window.py --checks`, `results/window_checks.json`), gave 1.857 and 1.835
+for full, 1.676 and 1.672 for w8, 1.691 and 1.677 for mix8: over four
+seeds w8 is 0.16 to 0.18 below full.
+
+The smaller the window, the lower the loss after 1,000 steps: w8 ends 0.18
+nats below full. Every arm's loss by position flattens by about position
+30, full attention's too, so in this run no arm uses context much beyond
+30 characters. In the copy task w8 and w16 never leave chance (3.8% is 1 in
+26), as their reach says they cannot; w32 learns it through the extra hop,
+slower than the others (figure, right).
+
+**A head start, not a lasting lead.** Because the result went against the
+prediction, we added one check after the main run (`window.py --long`):
+full against w8 for 4,000 steps, seed 0, on the same recipe stretched to
+the longer run. The review repeated it at seeds 0, 1 and 2 and kept the
+training loss too (`window.py --checks`):
+
+![Full against w8 over 4,000 steps, three seeds: validation and training loss, and the gap between them](figures/window_long.png)
+
+| 4,000 steps | Validation, seeds 0 / 1 / 2 | Training, at the end | Positions 32–63 | 96–127 |
+|---|---|---|---|---|
+| full | 1.544 / 1.539 / 1.531 | 1.27–1.30 | 1.50–1.52 | 1.52 |
+| w8 | 1.567 / 1.571 / 1.561 | 1.17 | 1.54–1.55 | 1.55–1.56 |
+
+At every seed w8 leads on validation by 0.22–0.24 nats at step 400 and by
+0.11–0.12 at step 1,000; the curves cross between steps 2,800 and 3,400,
+and at 4,000 full attention is 0.023–0.032 lower. (The first `--long` run
+gave 1.538 and 1.567 at seed 0; reruns on the Apple GPU differ by up to
+0.006.)
+
+The training loss tells a different story from the validation loss. w8's
+stays lower to the end, by about 0.1 nats; its validation loss bottoms out
+between steps 2,400 and 3,200 and then rises, while full attention's keeps
+falling. Tiny-shakespeare has about 1M characters of training text, and
+4,000 steps of 64 × 128 read it more than 30 times. So full attention ends
+ahead because w8 overfits sooner, not because full attention learned to use
+more context: its loss by position stays flat past about position 30.
+
+Our reading, not tested here: with learned absolute positions, full
+attention starts with no notion of "near", and must learn from data that
+the last few characters carry most of the signal. A window builds that in.
+Positions that encode distance (rotary, ALiBi) give full attention some of
+that bias from the start, so the head start may be smaller there.
+
+![KV cache and time per generated token with a window of 64, and one training step against sequence length](figures/window_cost.png)
+
+| Generation, CPU | 256 tokens | 1,024 tokens | 4,096 tokens |
+|---|---|---|---|
+| full: floats held | 196,608 | 786,432 | 3,145,728 |
+| w64: floats held | 49,152 | 49,152 | 49,152 |
+| mix64: floats held | 98,304 | 294,912 | 1,081,344 |
+| full: tokens per s | 4,717 | 3,077 | 1,761 |
+| w64: tokens per s | 5,319 | 5,319 | 4,975 |
+| mix64: tokens per s | 5,128 | 3,774 | 3,279 |
+
+| One training step, MPS | 512 | 1,024 | 2,048 | 4,096 |
+|---|---|---|---|---|
+| full: ms | 7.5 | 12.6 | 41.8 | 162.2 |
+| window 64 as a mask: ms | 4.1 | 12.8 | 42.9 | 162.6 |
+| window 64, banded: ms | 3.4 | 5.3 | 9.5 | 18.2 |
+| full: MB allocated by the forward pass | 26.6 | 80.0 | 267.0 | 962.3 |
+| banded: MB allocated by the forward pass | 18.2 | 36.4 | 72.8 | 145.5 |
+
+The memory is what the GPU allocator gained between the start and the end
+of the forward pass: the activations the backward pass will read. The
+masked window allocates exactly what full attention does. Times are the
+median of five passes while other programs shared the Mac. The 7.5 ms of
+full attention at 512 is not the work (the masked window, the same work, took
+4.1): full attention is measured first, and a rerun in review gave 9.4
+against 4.0 again, so it is likely a warm-up cost the first timed pass
+does not absorb. The rerun matched every other time within 3% and every
+byte count exactly; the byte and float counts are exact.
+
+**Grades.**
+
+1. **Wrong.** At 1,000 steps the order is the reverse of the prediction: the smaller the window, the lower the loss, and mix8 matches w8, not full; four seeds agree. By 4,000 steps full attention is 0.023–0.032 lower on validation at three seeds, but w8 is still lower on training loss, so that late lead comes from w8 overfitting the small corpus sooner.
+2. **Wrong for full attention.** Its loss by position flattens by about position 30, like the others; it does not keep falling, at 1,000 steps or at 4,000.
+3. **Right but for w32.** full, w64 and mix8 copy perfectly; w8 and w16 sit at chance. w32 learns to copy through two hops, to 99.2%. Its reach backs this up: one window of 32 sees 31 back, two see 62. In the review's rerun (99.4%), switching off the attention of layer 1 or of layer 2 drops it to 4.7% and 3.3%, chance level; switching off layer 3 leaves 59%. (Full attention also uses its first two layers for the copy, so the ablation alone does not prove the hop; the reach does.)
+4. **Right.** The w64 cache stops at 49,152 floats; mix64's ends at 34% of full's; generation slows from 4,717 to 1,761 tokens per second with full attention and stays near 5,000 with the window. At 4,096 tokens the mask costs what full attention costs, and the banded form is 8.9 times faster and allocates 6.6 times less.
+
+**What this does and does not say.** On character-level Shakespeare, most
+of what a 3-layer model learns in a few thousand steps sits in the last few
+dozen characters. A small window is a head start there; on a corpus this
+small, a longer run ends with full attention ahead on held-out text, by
+0.023–0.032 nats, while the window still fits the training text better.
+Real text at real scale has dependencies thousands of tokens long, which is
+why every recent model in the table but Mistral 7B keeps some global
+layers, as mix8 does; the copy task shows what that one global layer buys.
+A 3-layer character model is not Gemma 3. Our runs agree in direction with
+the labs' choice of local layers mixed with a few global ones, but they
+neither confirm nor refute their ratios or windows.
+
 ## Run it
 
 Each script prints its numbers, writes `results/<name>.json`, and with
@@ -393,6 +594,26 @@ uv run python src/decode.py --figures
 uv run python src/hf_compare.py --figures
 ```
 
+```bash
+uv run python src/window.py --figures
+```
+
+```bash
+uv run python src/window.py --long --figures
+```
+
+```bash
+uv run python src/window_cost.py --figures
+```
+
+```bash
+uv run python src/window.py --checks
+```
+
+`window.py` takes about 9 minutes, `--long` about 4 more and `--checks`
+(the review's seeds, 4,000-step pairs and copy ablation) about 18, on the Apple
+GPU; take the shared GPU lock first if other jobs use the Mac.
+
 Try `--budget 30` or `--budget 120` on `compare.py`: the order of the three
 may change with the budget. Each model trains for the budget, so the script
 takes a little over three budgets.
@@ -413,7 +634,7 @@ uv run python src/export_explorable.py
 
 Skeletons with `# TODO(you):` live in [`exercises/`](exercises/); reference
 solutions are in [`solutions/`](solutions/). Each asks you to predict before
-you run. All three run on the CPU in a second or two.
+you run. All four run on the CPU in a second or two.
 
 - **(a) `exercise_a_gru_cell.py`**: one GRU step by hand, from `nn.GRU`'s
   packed weights; the test checks it against `nn.GRU` and against the GRU of
@@ -427,6 +648,7 @@ you run. All three run on the CPU in a second or two.
   fitted by least squares, misses by far more than the fixed case's rounding
   error. (One sequence alone always has a kernel that fits it exactly; it is
   sharing one kernel across inputs that fails.)
+- **(d) `exercise_d_window.py`**: the sliding-window mask, the reach of a stack of windows, and the share of the KV cache Gemma 3 27B and Inkling 2 Small keep at 131,072 tokens, counted from their records. The test checks them against `src/window.py` and the records.
 
 ## Tests
 
@@ -434,11 +656,14 @@ you run. All three run on the CPU in a second or two.
 uv run pytest
 ```
 
-Twenty-five tests, under 5 seconds, no download. They check the solutions against
+Thirty-five tests, under 10 seconds, no download. They check the solutions against
 the module's code, that every model's one-token loop matches its parallel
 form, that no model's parallel form sees a later token, the parameter
 counts and state sizes, the committed results against the
-laptop budget, and the explorable against the results.
+laptop budget, and the explorable against the results; for section 5, that
+no arm sees a later token, a window of w reaches w − 1 tokens back and no
+further, a stack hides exactly the tokens beyond its reach, that the banded form and
+the rolling cache match the mask, and the committed window results.
 
 ## Checkpoint: you should now be able to…
 
@@ -447,7 +672,8 @@ laptop budget, and the explorable against the results.
 - train a recurrence in parallel and generate with it as a loop;
 - count the KV cache of a GPT and the state of a recurrent model, for any context;
 - say what equal wall time measures, and what it favours;
-- run Mamba without its kernels, and say which numbers still hold.
+- run Mamba without its kernels, and say which numbers still hold;
+- say what a window saves, what a stack of windows can still reach, and why models keep a few global layers.
 
 ## Links
 
@@ -466,4 +692,8 @@ laptop budget, and the explorable against the results.
 - Peng et al., [RWKV-7 "Goose"](https://arxiv.org/abs/2503.14456) (2025)
 - Lahoti et al., [Mamba-3](https://arxiv.org/abs/2603.15569) (2026)
 - NVIDIA, [Nemotron-H](https://arxiv.org/abs/2504.03624) (2025) · Zuo et al., [Falcon-H1](https://arxiv.org/abs/2507.22448) (2025) · Kimi Team, [Kimi Linear](https://arxiv.org/abs/2510.26692) (2025) · Amini et al., [LFM2](https://arxiv.org/abs/2511.23404) (2025)
+- Beltagy, Peters and Cohan, [Longformer: The Long-Document Transformer](https://arxiv.org/abs/2004.05150) (2020)
+- Jiang et al., [Mistral 7B](https://arxiv.org/abs/2310.06825) (2023), sliding window and rolling cache
+- Gemma Team, [Gemma 3 Technical Report](https://arxiv.org/abs/2503.19786) (2025), section 5.2 on the local:global ratio
+- [LLM architecture explorer](../../explorables/05b-architecture-explorer.html#m=gemma-3-27b): each model's local and global layers, drawn from its config
 - [`state-spaces/mamba-130m-hf`](https://huggingface.co/state-spaces/mamba-130m-hf) · [transformers' Mamba docs](https://huggingface.co/docs/transformers/model_doc/mamba)

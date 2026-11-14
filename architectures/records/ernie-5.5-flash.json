@@ -106,6 +106,7 @@
   "expert_hidden_dim": 2048,
   "latent_dim": 2048,
   "dense_layers": "first 1",
+  "first_dense": 1,
   "router": "Multi-Router: two sigmoid routers (gate.weight, gate.weight_1), aux-loss-free bias, learnable per-expert scalars and routed scale"
  },
  "stack": {
@@ -359,18 +360,10 @@
   "Raschka's gallery lists 'Gated HCA and MLA with DeepSeek Sparse Attention, VHA, and QK-Norm'; it agrees with the README.",
   "The README says ECHO reuses the final layer with 0.36B extra parameters, but the checkpoint stores a full model.layers.43 (MLA + DSA, 512-expert MoE, e_proj/h_proj) that SGLang serves as a separate draft layer; the Hub count (286.25B) exceeds the README's 280B by about one MoE layer."
  ],
- "teaches": [
-  "hybrid",
-  "mla",
-  "sparse_topk",
-  "latent_moe",
-  "situ_glu",
-  "gated_attention",
-  "mtp"
- ],
  "layer_kinds": {
   "hca": {
    "mixer": "hca",
+   "sparse": false,
    "ffn": "latent_moe",
    "heads": 64,
    "kv_heads": 1,
@@ -385,6 +378,7 @@
   },
   "mla_dsa": {
    "mixer": "mla",
+   "sparse": true,
    "ffn": "latent_moe",
    "heads": 64,
    "head_dim": 256,

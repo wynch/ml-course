@@ -80,6 +80,7 @@
   "expert_hidden_dim": 16384,
   "latent_dim": null,
   "dense_layers": "none; every layer also runs a dense GeGLU MLP of 32768 beside the experts",
+  "first_dense": 0,
   "router": "top-2 without renormalisation; router logits tanh-capped at 30"
  },
  "stack": {
@@ -149,6 +150,7 @@
    "where": "attention"
   }
  ],
+ "logit_softcap": 50,
  "omitted_towers": [],
  "refs": {
   "cfg": {
@@ -263,6 +265,11 @@
    "cfg",
    "code",
    "kern"
+  ],
+  "logit_softcap": [
+   "cfg",
+   "code",
+   "kern"
   ]
  },
  "figure_links": [
@@ -279,12 +286,5 @@
  "notes": [
   "Config model_type is 'git' and architecture Grok1ForCausalLM; no transformers implementation, so the order rests on SGLang's code.",
   "Config rope_type 'original' with scaling_factor 16, beta_fast 8, beta_slow 1; SGLang builds a YaRN-style scaled RoPE from these."
- ],
- "teaches": [
-  "residual_moe",
-  "sandwich_norm",
-  "logit_softcap",
-  "geglu",
-  "moe"
  ]
 }

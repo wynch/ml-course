@@ -79,6 +79,7 @@
   "expert_hidden_dim": 8192,
   "latent_dim": null,
   "dense_layers": "every other layer: 0-based 0, 2, ..., 46 (24 layers) keep a dense SwiGLU of width 16384",
+  "first_dense": 0,
   "router": "top-1 of 128; the sigmoid of the chosen logit scales the token before the expert",
   "layer_step": 2
  },
@@ -332,11 +333,6 @@
  "notes": [
   "Config field no_rope_layers is named backwards: 1 marks a RoPE layer (configuration_llama4.py).",
   "use_qk_norm is false for Maverick; the code applies L2 q/k norm only when it is true (Scout)."
- ],
- "teaches": [
-  "nope",
-  "shared_expert",
-  "vision_tower"
  ],
  "layer_kinds": {
   "chunked_dense": {

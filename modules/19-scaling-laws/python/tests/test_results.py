@@ -55,3 +55,36 @@ def test_explorable_in_sync():
     out = subprocess.run([sys.executable, str(ROOT / "python" / "src" / "export_explorable.py"), "--check"],
                          capture_output=True, text=True)
     assert out.returncode == 0, out.stdout + out.stderr
+
+
+def test_moe_results():
+    r = common.read_results("moe")
+    g = r["guard"]
+    assert g["minutes"] < 20 and g["peak_mps_driver_gb"] < 8
+    for arm, v in r["arms"].items():
+        assert sorted(x["seed"] for x in v["runs"]) == [0, 1]
+        for x in v["runs"]:
+            assert x["curve"][-1]["tokens"] == common.tokens_at(common.STEPS)
+            if v["spec"]["kind"] == "moe":
+                lay = x["routing"]["layers"]
+                assert len(lay) == common.N_LAYER
+                for L in lay:
+                    assert sum(e["share"] for e in L["experts"]) == pytest.approx(1.0, abs=1e-3)
+    # the model on which section 5 builds is section 1's family: it must not drift from section 2's line
+    dense = [x["curve"][-1]["held_loss"] for x in r["arms"]["dense"]["runs"]]
+    fit = common.read_results("fit")["l_of_n_main"]
+    import math
+    n = r["arms"]["dense"]["runs"][0]["params"]["n_non_embedding"]
+    assert abs(math.log(dense[0]) - (fit["a"] - fit["exponent"] * math.log(n))) < 0.05
+
+
+def test_moe_controls_results():
+    import moe
+
+    c = common.read_results("moe_controls")
+    runs = c["runs"]
+    assert {r["arm"] for r in runs if r["seed"] == moe.CONTROL_SEED and r["lr"] == c["recipe_lr"]} >= set(moe.MAIN_ARMS)
+    gated = next(r for r in runs if r["arm"] == "dense_gated" and r["held_loss"] is not None)
+    dense = common.read_results("moe")["arms"]["dense"]["runs"][0]["params"]["n_non_embedding"]
+    assert abs(gated["params"]["n_active"] / dense - 1) < 0.03       # dense's size, plus the router
+    assert all(r["curve"][-1]["tokens"] == common.tokens_at(c["steps"]) for r in runs if r["held_loss"] is not None)

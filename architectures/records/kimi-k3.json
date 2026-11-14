@@ -58,6 +58,7 @@
   "heads": 96,
   "kv_heads": 96,
   "head_dim": 128,
+  "conv_kernel": 4,
   "window": null,
   "local_global": null,
   "position": {
@@ -97,6 +98,7 @@
   "expert_hidden_dim": 3072,
   "latent_dim": 3584,
   "dense_layers": "first 1",
+  "first_dense": 1,
   "router": "sigmoid scores, aux-loss-free bias (noaux_tc), top-16, renormalised, one group"
  },
  "stack": {
@@ -188,6 +190,7 @@
    "where": "MoE layers"
   }
  ],
+ "attn_res_block": 12,
  "omitted_towers": [
   {
    "modality": "image",
@@ -318,6 +321,13 @@
   "layer_kinds.*": [
    "cfg",
    "code"
+  ],
+  "attention.conv_kernel": [
+   "cfg"
+  ],
+  "attn_res_block": [
+   "cfg",
+   "code"
   ]
  },
  "figure_links": [
@@ -342,11 +352,6 @@
   "kv_heads 96 is nominal for MLA, as for DeepSeek-V3.",
   "Parent is Kimi Linear: the report says K3 follows its hybrid design; it compares scaling efficiency against Kimi K2.",
   "Kimi K3.1 Pro (seed) turns these 24 gated MLA layers into gated DSA; the rest of the config matches."
- ],
- "teaches": [
-  "kda",
-  "attention_residuals",
-  "latent_moe"
  ],
  "layer_kinds": {
   "kda": {

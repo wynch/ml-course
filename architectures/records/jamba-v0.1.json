@@ -58,6 +58,7 @@
   "heads": 32,
   "kv_heads": 8,
   "head_dim": 128,
+  "conv_kernel": 4,
   "window": null,
   "local_global": null,
   "position": {
@@ -89,6 +90,7 @@
   "expert_hidden_dim": 14336,
   "latent_dim": null,
   "dense_layers": "every other layer (0-based even layers)",
+  "first_dense": 0,
   "router": "softmax over 16, keep top-2, weights not renormalised",
   "layer_step": 2
  },
@@ -288,6 +290,9 @@
   "layer_kinds.*": [
    "cfg",
    "code"
+  ],
+  "attention.conv_kernel": [
+   "cfg"
   ]
  },
  "figure_links": [
@@ -301,11 +306,6 @@
  "unknowns": {},
  "notes": [
   "Paper: 'we do not use any explicit positional information'; the transformers code agrees (no rotary call in JambaAttention)."
- ],
- "teaches": [
-  "hybrid",
-  "ssm_mamba",
-  "moe"
  ],
  "layer_kinds": {
   "mamba": {

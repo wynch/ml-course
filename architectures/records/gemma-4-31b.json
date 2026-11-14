@@ -167,6 +167,7 @@
    "where": "global layers"
   }
  ],
+ "logit_softcap": 30,
  "omitted_towers": [
   {
    "modality": "image",
@@ -297,6 +298,12 @@
   "layer_kinds.*": [
    "cfg",
    "cfgcode"
+  ],
+  "logit_softcap": [
+   "cfg",
+   "code",
+   "cfgcode",
+   "paper"
   ]
  },
  "figure_links": [
@@ -317,12 +324,6 @@
  "notes": [
   "Report: values = keys on global layers 'except in E2B and E4B'; config attention_k_eq_v agrees.",
   "Hub index metadata says total_parameters 32,682,372,656, the safetensors API 31,273,088,876; record uses the API figure, which matches the report's vision + embedder + einsums sum."
- ],
- "teaches": [
-  "local_global",
-  "partial_rope",
-  "qk_norm",
-  "sandwich_norm"
  ],
  "layer_kinds": {
   "local": {

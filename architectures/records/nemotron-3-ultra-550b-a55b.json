@@ -53,6 +53,7 @@
   "heads": 64,
   "kv_heads": 2,
   "head_dim": 128,
+  "conv_kernel": 4,
   "window": null,
   "local_global": null,
   "position": {
@@ -84,6 +85,7 @@
   "expert_hidden_dim": 5120,
   "latent_dim": 2048,
   "dense_layers": "none",
+  "first_dense": 0,
   "router": "sigmoid gating with correction bias, routed scale 5.0; router reads the full-width input",
   "shared_expert_hidden_dim": 10240
  },
@@ -382,6 +384,9 @@
   "layer_kinds.*": [
    "cfg",
    "code"
+  ],
+  "attention.conv_kernel": [
+   "cfg"
   ]
  },
  "figure_links": [
@@ -405,13 +410,6 @@
  "notes": [
   "Config keeps rope_theta 10000 and num_nextn_predict_layers 1; report says two MTP heads share weights. Record follows the report for MTP.",
   "Context extension: continued pre-training at 1,048,576 tokens for 92% of the iterations, after the 20T-token main phase (report section 2.5)."
- ],
- "teaches": [
-  "hybrid",
-  "ssm_mamba",
-  "latent_moe",
-  "mtp",
-  "nope"
  ],
  "layer_kinds": {
   "mamba": {

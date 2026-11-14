@@ -180,6 +180,7 @@
    "where": "layers 24-41"
   }
  ],
+ "logit_softcap": 30,
  "omitted_towers": [
   {
    "modality": "image",
@@ -317,6 +318,12 @@
   "layer_kinds.*": [
    "cfg",
    "cfgcode"
+  ],
+  "logit_softcap": [
+   "cfg",
+   "code",
+   "cfgcode",
+   "paper"
   ]
  },
  "figure_links": [
@@ -338,12 +345,6 @@
   "Report: values = keys on global layers 'except in E2B and E4B'; config attention_k_eq_v agrees.",
   "Report Table 1 (E4B): audio 305M, vision 150M, embedder 670M + 2,820M per-layer, einsums 3,940M; derived text parts 671M + 2,846M + 3,946M (the PLE figure here adds the 27.5M model projection).",
   "Gallery calls it '35 sliding-window + 7 global' and 128K context; config agrees."
- ],
- "teaches": [
-  "per_layer_embeddings",
-  "audio_tower",
-  "vision_tower",
-  "partial_rope"
  ],
  "layer_kinds": {
   "local": {

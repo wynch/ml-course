@@ -17,8 +17,10 @@ jobs:
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
           python-version: "3.12"
-      - name: Check the architecture explorer holds every valid record
+      - name: Check every architecture record passes and the explorer holds them all
         run: uv run architectures/build.py --check
+      - name: Check the planned model list agrees with the records
+        run: uv run --with jsonschema python -I architectures/validate.py
       - name: Test the data and evaluation lab
         working-directory: modules/05a-data-evaluation/python
         run: uv run --frozen pytest -q

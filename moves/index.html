@@ -515,7 +515,8 @@ html.locked{overflow:hidden}
     "links": {
      "module": "04-attention-transformer",
      "explorable": "05-transformer-anatomy.html",
-     "quiz": "04"
+     "quiz": "04",
+     "architecture": "m=gpt-2-small"
     }
    }
   },
@@ -838,7 +839,8 @@ html.locked{overflow:hidden}
     "links": {
      "module": "18-beyond-attention",
      "explorable": "18-beyond-attention.html",
-     "quiz": "18"
+     "quiz": "18",
+     "architecture": "m=mamba-2.8b"
     }
    }
   },
@@ -855,7 +857,8 @@ html.locked{overflow:hidden}
     "links": {
      "module": "27-memory-as-a-matrix",
      "explorable": "27-memory-as-a-matrix.html",
-     "quiz": "27"
+     "quiz": "27",
+     "architecture": "m=qwen3-next-80b-a3b&k=gated_deltanet"
     }
    }
   },
@@ -2461,7 +2464,7 @@ CH.forEach(c=>{const t=TXT.chapters.find(x=>x.n===c[0]);if(t){if(t.name)c[1]=t.n
 
 /* LINK BASE: lesson routes live in the reader; explorables and quizzes sit beside moves/ on the site and in the reader. */
 const INREADER=/\/reader\/moves\/(index\.html)?$/.test(location.pathname);
-const LINKS={lesson:m=>(INREADER?'../index.html':'../reader/index.html')+'#/'+m,explorable:f=>'../explorables/'+f,quiz:q=>'../quizzes/'+q+'.html'};
+const LINKS={lesson:m=>(INREADER?'../index.html':'../reader/index.html')+'#/'+m,explorable:f=>'../explorables/'+f,quiz:q=>'../quizzes/'+q+'.html',architecture:h=>'../explorables/05b-architecture-explorer.html#'+h};
 /* /LINK BASE */
 
 const main=document.getElementById('steps');
@@ -2505,7 +2508,7 @@ function openDeep(j,btn){const b=B[j],d=b[4],ch=CH[chOf(j)];if(!d)return;
   if(d.formula)h+='<pre class="d-formula">'+esc(d.formula)+'</pre>';
   if(d.measured)h+='<p class="d-cap"><span class="lab">Measured</span>'+escB(d.measured)+'</p>';
   if(d.but)h+='<p class="d-cap d-but"><span class="lab">But</span>'+escB(d.but)+'</p>';
-  const L=d.links||{},ls=[];if(L.module)ls.push(['Lesson',LINKS.lesson(L.module)]);if(L.explorable)ls.push(['Explorable',LINKS.explorable(L.explorable)]);if(L.quiz)ls.push(['Quiz',LINKS.quiz(L.quiz)]);
+  const L=d.links||{},ls=[];if(L.module)ls.push(['Lesson',LINKS.lesson(L.module)]);if(L.explorable)ls.push(['Explorable',LINKS.explorable(L.explorable)]);if(L.quiz)ls.push(['Quiz',LINKS.quiz(L.quiz)]);if(L.architecture)ls.push(['In the architecture explorer',LINKS.architecture(L.architecture)]);
   if(ls.length)h+='<nav class="d-links" aria-label="Go further">'+ls.map(([t,u])=>'<a class="d-link" href="'+esc(u)+'">'+t+'</a>').join('')+'</nav>';
   if(d.sources&&d.sources.length)h+='<p class="d-src">'+esc(Array.isArray(d.sources)?d.sources.join('; '):d.sources)+'</p>';
   dBody.innerHTML=h;DD.scroll.scrollTop=0;openDlg(DD,btn);}

@@ -145,6 +145,7 @@
    "where": "input"
   }
  ],
+ "logit_softcap": 30,
  "omitted_towers": [],
  "refs": {
   "cfg": {
@@ -247,6 +248,11 @@
   ],
   "layer_kinds.*": [
    "cfg"
+  ],
+  "logit_softcap": [
+   "cfg",
+   "paper",
+   "code"
   ]
  },
  "figure_links": [],
@@ -256,12 +262,6 @@
  "notes": [
   "Report Table 1: feedforward dim 28672 (gate and up together), vocab 256128; config intermediate_size 14336, 256000 rows.",
   "Report: 'Global att. span 8192' and sliding window 4096 for every size; config agrees."
- ],
- "teaches": [
-  "local_global",
-  "sliding_window",
-  "logit_softcap",
-  "sandwich_norm"
  ],
  "layer_kinds": {
   "local": {

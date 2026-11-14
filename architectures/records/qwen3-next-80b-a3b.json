@@ -56,6 +56,7 @@
   "heads": 16,
   "kv_heads": 2,
   "head_dim": 256,
+  "conv_kernel": 4,
   "window": null,
   "local_global": null,
   "position": {
@@ -91,6 +92,7 @@
   "expert_hidden_dim": 512,
   "latent_dim": null,
   "dense_layers": "none",
+  "first_dense": 0,
   "router": "softmax top-10, renormalised; shared expert scaled by a sigmoid gate"
  },
  "stack": {
@@ -289,6 +291,9 @@
   ],
   "layer_kinds.*": [
    "cfg"
+  ],
+  "attention.conv_kernel": [
+   "cfg"
   ]
  },
  "figure_links": [
@@ -312,11 +317,6 @@
   "Record uses the Instruct repo named in the model list; the README says the base model pre-trained on 15T tokens.",
   "README says the context extends to 1,010,000 tokens with YaRN; config allows 262,144.",
   "Parent is Qwen3 235B-A22B as the closest Qwen3 MoE in this database; Qwen3-Next adds the hybrid mixer and a shared expert."
- ],
- "teaches": [
-  "gated_deltanet",
-  "gated_attention",
-  "hybrid"
  ],
  "layer_kinds": {
   "gated_deltanet": {

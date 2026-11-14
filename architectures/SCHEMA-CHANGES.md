@@ -1,5 +1,75 @@
 # Schema changes
 
+## 1.2.0 (2026-11-14)
+
+Every other change adds an optional field; one field, `teaches`, is removed. No record used it any more, so every 1.1.0 record without hand tags still passes the schema. `schema.json` now carries `"version": "1.2.0"`.
+
+### Parts come from the fields
+
+`parts.py` derives the set of glossary parts a record has from its own fields. `validate.py` and `build.py` both import it; `build.py` writes the sets into the page (`DATA.parts`), where they drive the "Only models with a part" filter, each definition's list of models that use the part, the lineage story and the guided paths. No rule reads free text.
+
+`teaches` held hand tags; only 4 records named fine-grained experts. A tag the fields already show is redundant, and one they do not show contradicts them, so the field is gone: the schema forbids it, and a record that still carries it fails. A part with no field goes in `specials`.
+
+| Part | Rule |
+|---|---|
+| embedding, residual_add, lm_head | every record |
+| mixer kinds | `attention.kind`, `attention.mixers[].kind`, `layer_kinds.*.mixer` |
+| linear_attention | a mixer its paper calls linear attention: gated_deltanet, kda; RWKV and mLSTM keep a similar matrix state but count as recurrent only |
+| short_conv | `attention.conv_kernel` is set (review: Jamba and both Nemotrons gain it; their Mamba layers run the convolution) |
+| hybrid | `attention.kind` is hybrid, or two or more mixer kinds |
+| sliding_window, chunked_attention | `window_kind` at top level or on a layer kind; a window with no kind counts as sliding |
+| local_global | `attention.local_global` is set, or a windowed attention kind (no `compress_ratio`) repeats in `stack.pattern` beside a kind that reads the whole context |
+| sparse kind, mla, kv_sharing | `attention.sparse.kind`; `attention.mla`; `kv_shared_layers` or any `kv_source` |
+| qk_norm, l2_clip | `attention.qk_norm` (rmsnorm counts as qk_norm) |
+| extras | each id in `attention.other` |
+| position | `position.scheme` and `scaling`, `layer_kinds.*.position`; partial_rope when a RoPE scheme has `partial_fraction` below 1 |
+| nope | scheme nope, or an attention (not recurrent) layer kind with position nope |
+| norm | `norm.kind`; `norm.placement` through pre_norm, post_norm, sandwich_norm, post_in_residual; embedding_norm when `norm.embedding_norm` is true |
+| feed-forward | `ffn.kind` (not moe or none), `ffn.activation`, `layer_kinds.*.ffn` |
+| moe, router | `moe` is set |
+| shared_expert, latent_moe | `moe.shared` > 0; `moe.latent_dim` set |
+| dense_prefix | `moe.first_dense` > 0 |
+| fine_grained_experts | `moe.experts` >= 64 and `moe.routed_per_token` >= 4; the DeepSeekMoE paper (2401.06066) defines the idea, splitting each expert into m and routing to m times as many, but sets no threshold |
+| steps, specials | each `block_order.steps[].kind` and `specials[].name` |
+| towers, tokenizer | `omitted_towers` modality (video counts as vision); `tokenizer.kind` |
+
+Four rules need a judgement; each glossary definition states its rule: fine_grained_experts, linear_attention, local_global, dense_prefix.
+
+Counts that moved, page before and after:
+
+| Part | Before | After | Why |
+|---|---|---|---|
+| fine_grained_experts | 4 | 26 | the count rule replaces hand tags |
+| router | 1 | 30 | every MoE record |
+| linear_attention | 1 | 7 | Gated DeltaNet and KDA records (review: RWKV-6 and xLSTM dropped, since their papers call them recurrent networks) |
+| embedding_norm | 2 | 5 | read from `norm.embedding_norm` |
+| nope | 15 | 10 | `nope_layers` text about recurrent or convolution layers no longer counts (LFM2.5, the four Qwen hybrids) |
+| dense_prefix | 16 | 14 | Jamba and Llama 4 Maverick alternate dense and MoE layers; that is not a prefix |
+| embedding, lm_head | 0 | 62 | every record |
+| short_conv | 11 | 14 | review: read from `attention.conv_kernel`, so Jamba and both Nemotrons count |
+
+### New fields
+
+| Field | Meaning | Records |
+|---|---|---|
+| `attention.sparse.block_size` | tokens per key block when the indexer picks blocks; `top_k` then counts blocks | minimax-m3 (128, config `sparse_block_size`) |
+| `layer_kinds.*.sparse` | this layer kind runs the top-k selection in `attention.sparse`; required on every kind when `attention.sparse` is set | deepseek-v3.2, deepseek-v4-pro, deepseek-v4.1-flash, ernie-5.5-flash, glm-5, kimi-k3.1-pro, minimax-m3, mistral-large-4 |
+| `attention.conv_kernel` | width of the short causal convolution the mixer runs | 14: inkling, inkling-2-small, jamba-v0.1, kimi-k3, kimi-k3.1-pro, kimi-linear-48b-a3b, lfm2.5-1.2b (3), mamba-2.8b, both Nemotrons, the four Qwen hybrids; 4 unless noted |
+| `moe.first_dense` | count of leading layers that keep a dense FFN; 0 when none; required on every MoE record | all 30 MoE records |
+| `attn_res_block` | layers per block of block attention residuals | inkling-2-small (6), kimi-k3 (12), kimi-k3.1-pro (12) |
+| `logit_softcap` | cap c on the final logits, c · tanh(z / c); set exactly when `specials` name logit_softcap | 8 records: 30, except grok-2.5 (50) and muse-spark-open (20) |
+
+Each new value was already in the record, in a label, note or special, with its source; the page used to read it out of that text with a regular expression. The field now holds it, and `field_sources` names the source.
+
+### Glossary
+
+The four judgement rules above are stated in their definitions as this page's rules. Module 19 (section 5, mixture of experts) now sits in the module links of moe, router, shared_expert, fine_grained_experts and dense_prefix; module 18 (section 5, sliding windows) in those of sliding_window, local_global, chunked_attention and rolling_buffer_cache.
+
+### Validation and build
+
+- `validate.py` also fails on a MoE record without `moe.first_dense`, a layer kind without `sparse` when `attention.sparse` is set (or with `sparse: true` when it is not), and a `logit_softcap` or `attn_res_block` without its special.
+- `build.py` stops when a record fails (exit 1, page untouched); `--lenient` leaves failing records out instead, for local work. `build.py --check` fails when a record fails or the page is stale; CI runs it.
+
 ## 1.1.0 (2026-11-14)
 
 Every change adds an optional field or an allowed value. No field was removed or renamed, and every 1.0 record shape still validates. `schema.json` now carries `"version": "1.1.0"`.
@@ -67,7 +137,7 @@ Removed from records: the `untied_embeddings` special (gpt-j-6b, gpt-neox-20b; u
 - a ref without a web URL, a release date outside 2017 to today, a `parent_id` that is not a record;
 - `model_list.json` name, org, date or open_weights that differ from the record.
 
-`build.py` checks only step kinds and `teaches` against the glossary. To get the rest, call `validate.record_problems(rec, gloss, alias, ids)` with `gloss, alias = validate.load_glossary(path)`.
+At 1.1.0, `build.py` checked only step kinds and `teaches` against the glossary; since then it runs `validate.record_problems` too.
 
 ### model_list.json
 

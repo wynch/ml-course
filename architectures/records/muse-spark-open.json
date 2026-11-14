@@ -80,6 +80,7 @@
   "expert_hidden_dim": 4096,
   "latent_dim": 4096,
   "dense_layers": "none",
+  "first_dense": 0,
   "router": "sigmoid scores with correction bias, top-8, renormalised; reads the full 8192-wide input"
  },
  "stack": {
@@ -172,6 +173,7 @@
    "where": "input"
   }
  ],
+ "logit_softcap": 20,
  "omitted_towers": [
   {
    "modality": "image",
@@ -297,6 +299,11 @@
   "layer_kinds.*": [
    "cfg",
    "code"
+  ],
+  "logit_softcap": [
+   "code",
+   "cfg",
+   "idx"
   ]
  },
  "figure_links": [
@@ -315,14 +322,6 @@
  "notes": [
   "Earlier scoping found the config gated with no mirror. This pass found the public README (model card) and an ungated mirror (unsloth/Muse-Spark-Open-816B-A42B) whose HF API lists the Meta repo as base_model; the transformers muse_spark code gives the block. No field rests on Raschka's YAML alone.",
   "The config and weight index come from an ungated copy whose git blob ids match the files listed by the gated Meta repo's public API, so they are Meta's own files; they agree with every figure on Meta's card."
- ],
- "teaches": [
-  "latent_moe",
-  "gated_attention",
-  "local_global",
-  "nope",
-  "sandwich_norm",
-  "logit_softcap"
  ],
  "layer_kinds": {
   "local": {

@@ -636,8 +636,8 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
       <div class="chead"><span class="mno">18</span><h3>Recurrence and SSMs</h3></div>
       <div class="fig"><img src="{{FIG18}}" alt="Module 18 figure: memory between tokens, the KV cache growing while recurrent states stay flat, and time per token on CPU and MPS"></div>
       <p class="build"><b>You build:</b> a GRU, a fixed diagonal recurrence and a selective (Mamba-style) scan against the tiny GPT on
-        tiny-shakespeare, memory per generated token, and Mamba-130M against GPT-2.</p>
-      <div class="chips"><span>SSM 1.575 vs GPT 1.629 at 60 s</span><span>KV cache 12.6 MB at 4,096 tokens</span><span>Mamba state 2.9 MB, any context</span></div>
+        tiny-shakespeare, memory per generated token, Mamba-130M against GPT-2, and sliding-window attention with local and global layers.</p>
+      <div class="chips"><span>SSM 1.575 vs GPT 1.629 at 60 s</span><span>KV cache 12.6 MB at 4,096 tokens</span><span>Mamba state 2.9 MB, any context</span><span>window 16: copy 48 back fails</span></div>
       <div class="links">
         <a href="https://wynch.github.io/ml-course/explorables/18-beyond-attention.html" target="_blank" rel="noopener">🕹 Explorable</a>
         <a href="https://wynch.github.io/ml-course/quizzes/18.html" target="_blank" rel="noopener">✅ Quiz</a>
@@ -674,8 +674,8 @@ footer.foot{max-width:1180px;margin:0 auto;padding:1.2rem clamp(.9rem,3vw,2rem) 
       <label class="donebox">done<input type="checkbox" data-mod="19" aria-label="Mark module 19 done"><span class="box"></span></label>
       <div class="chead"><span class="mno">19</span><h3>Scaling laws</h3></div>
       <div class="fig"><img src="{{FIG19}}" alt="Module 19 figure: loss against parameters at 4M tokens with the fitted power law, and loss against tokens for the two largest models"></div>
-      <p class="build"><b>You build:</b> module 04's char-GPT at six widths from 51k to 3.2M parameters on 4M characters, a power-law fitter checked on known data, L(N) and L(D) fits, and loss against compute.</p>
-      <div class="chips"><span>α = 0.074 (R² 0.962)</span><span>6 sizes, 51k–3.2M params</span><span>seed band 0.0056 nats</span></div>
+      <p class="build"><b>You build:</b> module 04's char-GPT at six widths from 51k to 3.2M parameters on 4M characters, a power-law fitter checked on known data, L(N) and L(D) fits, loss against compute, and a mixture of experts at equal active and equal total size.</p>
+      <div class="chips"><span>α = 0.074 (R² 0.962)</span><span>6 sizes, 51k–3.2M params</span><span>seed band 0.0056 nats</span><span>MoE 1.97 vs dense 2.10, same active N</span></div>
       <div class="links">
         <a href="https://wynch.github.io/ml-course/explorables/19-scaling-laws.html" target="_blank" rel="noopener">🕹 Explorable</a>
         <a href="https://wynch.github.io/ml-course/quizzes/19.html" target="_blank" rel="noopener">✅ Quiz</a>

@@ -163,6 +163,8 @@ def main() -> None:
     fig_curves()
     fig_fit()
     fig_frontier()
+    import moe
+    moe.figures()
 
 
 if __name__ == "__main__":

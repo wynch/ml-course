@@ -1,5 +1,5 @@
 {
- "_about": "Controlled vocabulary for architectures.json. `modules` lists the course modules that teach the part today (from course/README.md and module READMEs, survey of 2026-11-14); an empty list marks a gap the explorer would be first to fill. Module numbers come from a grep of module READMEs for each term, so a number means the README names the part, not that it teaches it in depth. Records use these ids in attention.kind, attention.mixers, attention.other, attention.sparse.kind, attention.position.scheme and scaling, attention.qk_norm, layer_kinds mixer/ffn/position, norm.kind, ffn.kind, ffn.activation, block_order steps, specials, tokenizer.kind and teaches; validate.py rejects any other value except the sentinels 'none' (no such part) and 'mixed' (position scheme differs by layer kind; see layer_kinds). norm.placement keeps its short values (pre, post, sandwich, post_in_residual), which map to pre_norm, post_norm, sandwich_norm, post_in_residual. `aliases` lists ids merged into a term; records must use the term's id.",
+ "_about": "Controlled vocabulary for architectures.json. `modules` lists the course modules that teach the part today (from course/README.md and module READMEs, survey of 2026-11-14); an empty list marks a gap the explorer would be first to fill. Module numbers come from a grep of module READMEs for each term, so a number means the README names the part, not that it teaches it in depth. Records use these ids in attention.kind, attention.mixers, attention.other, attention.sparse.kind, attention.position.scheme and scaling, attention.qk_norm, layer_kinds mixer/ffn/position, norm.kind, ffn.kind, ffn.activation, block_order steps, specials, tokenizer.kind and (retired) teaches; validate.py rejects any other value except the sentinels 'none' (no such part) and 'mixed' (position scheme differs by layer kind; see layer_kinds). norm.placement keeps its short values (pre, post, sandwich, post_in_residual), which map to pre_norm, post_norm, sandwich_norm, post_in_residual. `aliases` lists ids merged into a term; records must use the term's id. parts.py derives which parts each model has from its fields; where that needs a judgement (fine_grained_experts, linear_attention, local_global, dense_prefix) the term's definition states the rule.",
  "groups": {
   "block": "parts of one decoder block",
   "mixer": "how a token gathers information from other tokens",
@@ -132,14 +132,18 @@
    "group": "mixer",
    "name": "Sliding-window attention",
    "def": "A token attends only to the last W tokens, so cache and cost stop growing with length.",
-   "modules": []
+   "modules": [
+    "18"
+   ]
   },
   {
    "id": "local_global",
    "group": "mixer",
    "name": "Local/global interleave",
-   "def": "Most layers use a short window; every n-th layer sees the whole context.",
-   "modules": []
+   "def": "Some layers use a short window; the others see the whole context. This page counts a model when its record gives a local:global ratio, or when a windowed layer kind repeats in its stack pattern beside one that reads the whole context; compressed attention, which keeps a recent window but pools the rest, counts as whole-context.",
+   "modules": [
+    "18"
+   ]
   },
   {
    "id": "sparse_topk",
@@ -156,7 +160,7 @@
    "id": "linear_attention",
    "group": "mixer",
    "name": "Linear attention",
-   "def": "Replaces the attention matrix with a running summary, so cost grows linearly with length.",
+   "def": "Replaces the attention matrix with a running key-value summary, so cost grows linearly with length. This page counts the mixers whose papers call them linear attention: Gated DeltaNet and KDA. RWKV and mLSTM keep a similar matrix state, but their papers present them as recurrent networks, so they count as recurrent only.",
    "modules": [
     "18",
     "27"
@@ -228,7 +232,9 @@
    "group": "mixer",
    "name": "Chunked attention",
    "def": "Tokens attend only inside fixed blocks of C tokens; unlike a sliding window, the span restarts at each block boundary.",
-   "modules": []
+   "modules": [
+    "18"
+   ]
   },
   {
    "id": "kv_sharing",
@@ -540,6 +546,7 @@
    "def": "Many feed-forward experts; a router sends each token to a few, so only part of the model runs per token.",
    "modules": [
     "11",
+    "19",
     "23"
    ]
   },
@@ -547,29 +554,37 @@
    "id": "router",
    "group": "moe",
    "name": "Router",
-   "def": "A small layer that scores experts for each token and keeps the top k.",
-   "modules": []
+   "def": "A small layer that scores experts for each token and keeps the top k. Every mixture-of-experts model here has one; with hash routing, some layers replace it with a fixed table.",
+   "modules": [
+    "19"
+   ]
   },
   {
    "id": "shared_expert",
    "group": "moe",
    "name": "Shared expert",
    "def": "An expert every token uses, beside the routed ones.",
-   "modules": []
+   "modules": [
+    "19"
+   ]
   },
   {
    "id": "fine_grained_experts",
    "group": "moe",
    "name": "Fine-grained experts",
-   "def": "Many small experts with more chosen per token, instead of a few large ones.",
-   "modules": []
+   "def": "Many small experts with more chosen per token, instead of a few large ones. The DeepSeekMoE paper splits each of N experts into m smaller ones and routes each token to m times as many; it sets no threshold. This page's rule: a router that picks at least 4 of at least 64 experts (Llama 4 Maverick, one of 128, is not).",
+   "modules": [
+    "19"
+   ]
   },
   {
    "id": "dense_prefix",
    "group": "moe",
    "name": "Dense first layers",
-   "def": "The first one to three layers keep an ordinary FFN before MoE layers start.",
-   "modules": []
+   "def": "The first one to three layers keep an ordinary FFN before MoE layers start. This page reads it from moe.first_dense; MoE on every other layer (Jamba, Llama 4) is not a prefix.",
+   "modules": [
+    "19"
+   ]
   },
   {
    "id": "latent_moe",
@@ -771,7 +786,9 @@
    "group": "extra",
    "name": "Rolling KV cache",
    "def": "The KV cache holds only the last W positions; position i overwrites slot i mod W.",
-   "modules": []
+   "modules": [
+    "18"
+   ]
   },
   {
    "id": "grouped_output_projection",

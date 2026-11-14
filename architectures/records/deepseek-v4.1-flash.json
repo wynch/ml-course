@@ -108,6 +108,7 @@
   "expert_hidden_dim": 2304,
   "latent_dim": null,
   "dense_layers": "none",
+  "first_dense": 0,
   "router": "sqrt(softplus) scores, aux-loss-free bias with a separate bias for image tokens, top-6; routed scale 1.5"
  },
  "stack": {
@@ -373,12 +374,10 @@
   "Hash routing of V4 is absent: config has no num_hash_layers.",
   "qk_norm: V4.1-Flash normalises the query latent and the single KV head; unlike V4-Pro it applies no per-head norm to queries (inference/model.py)."
  ],
- "teaches": [
-  "engram"
- ],
  "layer_kinds": {
   "local": {
    "mixer": "sliding_window",
+   "sparse": false,
    "ffn": "moe",
    "heads": 64,
    "kv_heads": 1,
@@ -392,6 +391,7 @@
   },
   "csa2_encoder": {
    "mixer": "csa2",
+   "sparse": true,
    "ffn": "moe",
    "heads": 64,
    "kv_heads": 1,
@@ -406,6 +406,7 @@
   },
   "csa2_decoder": {
    "mixer": "csa2",
+   "sparse": true,
    "ffn": "moe",
    "heads": 64,
    "kv_heads": 1,

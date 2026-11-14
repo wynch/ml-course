@@ -56,7 +56,8 @@
    "kind": "sparse_topk",
    "top_k": 16,
    "index_heads": 4,
-   "index_head_dim": 128
+   "index_head_dim": 128,
+   "block_size": 128
   },
   "other": []
  },
@@ -80,6 +81,7 @@
   "expert_hidden_dim": 3072,
   "latent_dim": null,
   "dense_layers": "first 3",
+  "first_dense": 3,
   "router": "sigmoid gates with routing bias, routed scale 2.0"
  },
  "stack": {
@@ -268,6 +270,9 @@
   ],
   "layer_kinds.*": [
    "cfg"
+  ],
+  "attention.sparse.block_size": [
+   "cfg"
   ]
  },
  "figure_links": [
@@ -284,18 +289,10 @@
  "notes": [
   "The MSA paper's 109B test model uses 41 layers (3 dense); M3's own shape comes from its config."
  ],
- "teaches": [
-  "sparse_topk",
-  "gqa",
-  "qk_norm",
-  "partial_rope",
-  "moe",
-  "shared_expert",
-  "dense_prefix"
- ],
  "layer_kinds": {
   "global": {
    "mixer": "gqa",
+   "sparse": false,
    "ffn": "glu",
    "heads": 64,
    "kv_heads": 4,
@@ -307,6 +304,7 @@
   },
   "msa": {
    "mixer": "gqa",
+   "sparse": true,
    "ffn": "moe",
    "heads": 64,
    "kv_heads": 4,

@@ -58,6 +58,7 @@
   "heads": 24,
   "kv_heads": 4,
   "head_dim": 256,
+  "conv_kernel": 4,
   "window": null,
   "local_global": null,
   "position": {
@@ -304,6 +305,9 @@
   ],
   "layer_kinds.*": [
    "cfg"
+  ],
+  "attention.conv_kernel": [
+   "cfg"
   ]
  },
  "figure_links": [
@@ -322,7 +326,6 @@
   "Config sets output_gate_type 'swish'; the transformers qwen3_5 code read for this record applies a sigmoid gate and does not read that key. The record names the gate without fixing its function.",
   "Dense: a plain SwiGLU FFN follows every mixer; README layout 16 x (3 x (Gated DeltaNet -> FFN) -> 1 x (Gated Attention -> FFN))."
  ],
- "teaches": [],
  "layer_kinds": {
   "gated_deltanet": {
    "mixer": "gated_deltanet",

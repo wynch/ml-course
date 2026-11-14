@@ -3,13 +3,14 @@
 Big language models are planned with **scaling laws**: curves that say how the
 loss falls as you add parameters, data or compute. This module draws such
 curves from scratch, on six small models you train on this Mac, and asks how
-far they can be trusted. It has four sections, each with a figure and the
+far they can be trusted. It has five sections, each with a figure and the
 numbers beside it:
 
 1. **Six char-GPTs**: module 04's model at six widths, from 51k to 3.2M parameters, on the same 4M characters.
 2. **Fit the laws**: the exponent of L(N) at 4M tokens, L(D) for the two largest, and a check of the fitter first.
 3. **Compute-optimal size**: at each compute budget C = 6ND, which size gives the lowest loss?
 4. **Kaplan and Chinchilla**: what the published laws say, and what a toy fit cannot.
+5. **Mixture of experts**: module 04's GPT with its MLP split into experts; total against active parameters, and how a router spreads tokens.
 
 Every number in this README comes from a JSON file in [`results/`](results/),
 written by the script that measured it.
@@ -33,7 +34,8 @@ By the end you will be able to:
 - fit a power law in log-log space, after checking the fitter on data with a known answer;
 - say what a noise band from two seeds lets you claim, and what it does not;
 - find the lowest loss at each compute budget, and say why a toy grid can fake an optimum;
-- state what Kaplan et al. and Chinchilla found, and why they disagreed.
+- state what Kaplan et al. and Chinchilla found, and why they disagreed;
+- say what a mixture of experts is, count its total and active parameters, and write its router and balancing loss.
 
 ## Setup
 
@@ -47,7 +49,7 @@ uv sync
 
 | Need | Size | Where |
 |---|---|---|
-| Module 04's char-GPT code | 7 KB | copied into `src/char_gpt.py`; no weights needed, every model trains from scratch |
+| Module 04's char-GPT code | 7 KB | copied into `src/char_gpt.py`; no weights needed, every model trains from scratch. Section 5's `src/moe.py` imports module 04's own `model.py` instead |
 | wikitext-103, first 5,000,000 characters | about 12 MB read from a 157 MB file | `~/.cache/huggingface/mlcourse/`, on first run of `train.py`; reused if modules 11 or 12 already cached a longer slice |
 
 `src/corpus.py` reads wikitext the way modules 11 and 12 do: it opens the
@@ -74,6 +76,9 @@ the largest value kept) into its results file:
 | `src/train.py --d 256` | 0.87 | 0.65 GB | 1.14 GB |
 | `src/fit.py` | 0.01 | 0.32 GB | 0 (CPU only) |
 | `src/frontier.py` | 0.00 | 0.21 GB | 0 (CPU only) |
+| `src/moe.py` (six arms, two seeds) | 11.31 | 0.59 GB | 2.27 GB |
+| `src/moe.py --arms moe8_all` | 2.15 | 0.61 GB | 1.13 GB |
+| `src/moe.py --controls` (35 runs, review) | 30.57 | 0.53 GB | 2.28 GB |
 
 Measured on an Apple M5 with 16 GB, torch 2.14.1. All six sizes train in 2.8
 minutes. An earlier run of the same recipe, from a separate copy of the code on
@@ -360,6 +365,210 @@ finished learning. They neither confirm nor test either paper.
   initialisation and the learning rate of each layer with width so that the
   best rate stays put as the model grows.
 
+## 5 · Mixture of experts: total against active parameters
+
+Sections 1 to 4 count one N per model: every parameter works on every token.
+A **mixture of experts** (MoE) breaks that. It replaces the MLP of a block
+with E smaller MLPs, the **experts**, and a **router**: a linear map that
+scores the E experts for each token. Only the k best-scored experts run on
+that token, and their outputs are added, weighted by the router. So the
+model has many parameters in **total**, but each token uses only the
+**active** ones: attention, the router, and k experts. Training compute
+follows the active count, C ≈ 6 · N_active · D, while what the model can
+store grows with the total.
+
+Mixtral 8x7B, from its record: 8 experts per layer, 2 per token, 46.7B
+parameters in total and 12.9B active
+([Jiang et al., 2401.04088](https://arxiv.org/abs/2401.04088), section 2.1).
+It uses 25% of its experts but 27.6% of its parameters, since attention and
+the embeddings are shared (exercise d).
+
+**The parts, as real models use them.** Every number below is read from the
+model's record in the architecture explorer; each link opens it there.
+
+| Part | What it does | In the records |
+|---|---|---|
+| top-k routing | softmax over the experts' scores, keep the k largest, renormalise their weights | [Mixtral 8x7B](../../explorables/05b-architecture-explorer.html#m=mixtral-8x7b): top-2 of 8. [Llama 4 Maverick](../../explorables/05b-architecture-explorer.html#m=llama-4-maverick): top-1 of 128, plus one shared expert, on every other layer; 400B total, 17B active |
+| fine-grained experts | many narrow experts instead of a few wide ones, so a token picks a finer mix | [DeepSeekMoE 16B](../../explorables/05b-architecture-explorer.html#m=deepseek-moe-16b): 64 experts of width 1,408, each a quarter of a standard MLP, top-6. [Qwen3 235B-A22B](../../explorables/05b-architecture-explorer.html#m=qwen3-235b-a22b): 128 experts of width 1,536, top-8, 235.1B total, 22.2B active. [Inkling 2 Small](../../explorables/05b-architecture-explorer.html#m=inkling-2-small): 384 experts, 8 routed, 594B total, 17B active |
+| shared experts | one or two experts every token runs, for what all tokens need; the routed ones can then specialise | DeepSeekMoE 16B: 2 shared. [DeepSeek-V3](../../explorables/05b-architecture-explorer.html#m=deepseek-v3): 256 routed and 1 shared, top-8, 671B total, 37B active |
+| a balancing loss | a term added to the loss that is lowest when tokens spread evenly over the experts | Switch Transformer's (below). Qwen3 235B-A22B: a load-balancing loss computed over the global batch |
+| a balancing bias | no loss term: a bias per expert, added to its score only to choose the top k, nudged up when the expert is idle and down when it is busy | DeepSeek-V3 ([Wang et al., 2408.15664](https://arxiv.org/abs/2408.15664)). Inkling 2 Small: "a learned bias only steers the top-8 choice" |
+| dense first layers | the first blocks keep a plain MLP | DeepSeek-V3: first 3 of 61. DeepSeekMoE 16B: first 1 of 28; its paper says load balance converges slower in the first layer |
+
+The sources are each record's own: the Mixtral, DeepSeekMoE
+([2401.06066](https://arxiv.org/abs/2401.06066)), DeepSeek-V3
+([2412.19437](https://arxiv.org/abs/2412.19437)) and Qwen3
+([2505.09388](https://arxiv.org/abs/2505.09388)) papers, Meta's Llama 4 post
+and config, and Inkling 2 Small's model card and config.
+
+**Why balance at all.** A router that sends most tokens to one expert wastes
+the rest, and on many chips the busiest expert sets the pace. Worse, it feeds
+itself: the expert that gets more tokens learns faster, scores higher, and
+gets more. Shazeer et al. ([1701.06538](https://arxiv.org/abs/1701.06538),
+2017), who brought the sparsely gated layer to language models, added
+balancing losses from the start. Switch Transformer (Fedus, Zoph and
+Shazeer, [2101.03961](https://arxiv.org/abs/2101.03961), 2021) sends each
+token to one expert and uses one term, E · Σ_e f_e · P_e, where f_e is the
+share of tokens routed to expert e and P_e its mean router probability. It
+is 1 when both are even, and grows as both pile onto the same experts.
+Exercise (d) writes it.
+
+**The experiment.** `src/moe.py` imports module 04's `model.py` (by path, as
+module 18 does), builds it at width 128 with 4 layers and 4 heads, the shape
+of section 1's family, and swaps the MLP of every block. Same data, same
+recipe as section 1: 977 steps of 32 × 128 characters, a constant rate of
+3 × 10⁻⁴, two seeds per arm. N counts non-embedding parameters as in
+section 1; "active" leaves out the experts a token does not use.
+
+| Arm | Feed-forward part of each block |
+|---|---|
+| dense | module 04's MLP, 128 → 512 → 128 |
+| dense_wide | one MLP 128 → 2,048 → 128: the MoE arms' total size |
+| moe8 | 8 experts of width 256, top-2: dense's active size, dense_wide's total |
+| moe8_bal | the same, plus Switch's balancing loss at weight 0.01 |
+| moe32_bal | 32 experts of width 64, top-8, balancing loss: fine-grained |
+| moe30s_bal | 1 shared expert of width 128 and 30 routed of width 64, top-6, balancing loss |
+| moe8_all | 8 experts of width 256, all 8 run, mixed by the router's weights: no sparsity |
+
+The last arm is a control we added after the first six had run, to ask
+where their gain came from; it was not in the prediction.
+
+For speed on the Apple GPU, the script runs every expert on every token and
+multiplies the unchosen ones by zero. A dispatch that runs each expert only
+on its own tokens gives the same outputs and gradients (the tests check
+it), but ran several times slower in our trials. So the wall times below are
+not what a real MoE kernel saves; the parameter counts are what counts.
+
+**Prediction**, written before the run:
+
+1. Held-out loss: dense_wide below every MoE arm, every MoE arm below dense, at both seeds. The MoE arms close 30–60% of the gap between them.
+2. Fine-grained (moe32_bal) and shared (moe30s_bal) within 0.02 of moe8_bal, slightly lower if anything.
+3. Without the balancing term, in at least one layer the busiest of the 8 experts takes more than twice its fair share (over 25% of the slots). With it, every expert stays between 0.5 and 1.5 times its fair share.
+4. The balancing term costs at most 0.01 nats.
+5. Some expert in the first layer takes mostly spaces or punctuation, at more than twice their share of the text.
+
+We would read a gap as real above 0.02 nats, from section 1's seed gaps at
+4M tokens (0.002 to 0.006).
+
+![Held-out loss against N, MoE arms at their active (filled) and total (hollow) counts; expert load with and without the balancing term](figures/moe.png)
+
+| Arm | Active | Total | Seed 0 | Seed 1 | Seed 2 | Mean |
+|---|---|---|---|---|---|---|
+| dense | 0.79M | 0.79M | 2.111 | 2.110 | 2.085 | 2.102 |
+| dense_wide | 2.37M | 2.37M | 2.128 | 2.149 | 2.173 | 2.150 |
+| moe8 | 0.80M | 2.38M | 2.007 | 1.980 | 1.982 | 1.990 |
+| moe8_bal | 0.80M | 2.38M | 1.977 | 1.972 | 1.963 | 1.971 |
+| moe32_bal | 0.81M | 2.40M | 1.954 | 1.968 | 1.973 | 1.965 |
+| moe30s_bal | 0.81M | 2.40M | 1.936 | 1.957 | 1.959 | 1.951 |
+| moe8_all | 2.38M | 2.38M | 2.028 | 2.024 | 2.011 | 2.021 |
+
+Active and total count non-embedding parameters, N. Held-out loss is in
+nats per character after 4M tokens. Seeds 0 and 1 are in
+`results/moe.json`; seed 2 was added in review (`moe.py --controls`,
+`results/moe_controls.json`). The spread of the three seeds reaches 0.045
+(dense_wide) and is 0.014 to 0.027 for the others. A step took 21.5 ms for
+dense, 53.1 for dense_wide and 58–68 for the MoE arms, which all run every
+expert.
+
+The dense arm lands on
+section 1's curve: its 2.110 at 0.79M sits between d 96 (0.45M, 2.239) and
+d 160 (1.24M, 2.031), and within 0.05 of section 2's line in log L (a test
+checks it). The MoE arms, at the same 0.8M active, reach 1.95–1.99, a loss
+section 1 only reaches between d 160 and d 256 (3.16M, 1.855).
+
+**Checks added in review.** Two results above looked too good to take on
+trust: every MoE arm beat a dense model three times dense's size, and that
+wider dense model did worse than dense. The review asked whether the
+comparison was fair, with two controls, all in `results/moe_controls.json`:
+
+- **dense_gated**: 8 experts of width 64, all 8 run, mixed by the router's weights. That is dense's size (0.80M) with the router's gate: each expert's output is multiplied by a weight that depends on the token, a product the plain MLP does not have.
+- **The learning rate.** Section 1's rate, 3 × 10⁻⁴, was never tuned. We ran every arm again at 10⁻³ (seeds 0 and 1), and dense, dense_wide and moe8_bal at four more rates (seed 0).
+
+| Arm | 3 × 10⁻⁴, 3 seeds | 10⁻³, 2 seeds |
+|---|---|---|
+| dense | 2.102 | 1.926 |
+| dense_wide | 2.150 | 1.929 |
+| dense_gated | 2.079 | 1.845 |
+| moe8 | 1.990 | 1.842 |
+| moe8_bal | 1.971 | 1.818 |
+| moe32_bal | 1.965 | 1.777 |
+| moe30s_bal | 1.951 | 1.775 |
+| moe8_all | 2.021 | 1.840 |
+
+| Seed 0 | 10⁻⁴ | 3 × 10⁻⁴ | 6 × 10⁻⁴ | 10⁻³ | 2 × 10⁻³ |
+|---|---|---|---|---|---|
+| dense | 2.368 | 2.111 | 1.976 | 1.922 | 1.876 |
+| dense_wide | 2.349 | 2.128 | 2.018 | 1.927 | 1.828 |
+| moe8_bal | 2.310 | 1.977 | 1.864 | 1.822 | 1.778 |
+
+Three things follow. First, the recipe's rate is far too low for this
+length: every arm is 0.15–0.23 nats lower at 10⁻³, and the best rate lies at
+2 × 10⁻³ or above for all three swept arms. Second, dense_wide's poor
+showing was the rate: at 2 × 10⁻³ it is 0.048 below dense. Third, the gate
+explains most of the MoE gain at equal active size: at 10⁻³ dense_gated is
+0.081 below dense, and moe8_bal only 0.027 below dense_gated. MoE still
+beats both dense arms at every rate we tried, but its lead over dense_wide
+shrinks as the rate grows: 0.18 nats at 3 × 10⁻⁴, 0.11 at 10⁻³ (means),
+0.05 at 2 × 10⁻³ (seed 0 only).
+
+**How evenly the router spreads tokens.** Share of the routed slots each
+expert takes over every held-out token, against the fair share 1/E; the
+busiest and the least-used expert over the four layers and both seeds:
+
+| Arm | Busiest expert | Least-used expert |
+|---|---|---|
+| moe8, no term | 2.77 × fair (layer 1, seed 0) | 0.01 × fair |
+| moe8_bal | 1.30 × | 0.73 × |
+| moe32_bal | 1.46 × | 0.59 × |
+| moe30s_bal | 1.63 × | 0.60 × |
+
+No expert went fully unused, even without the term, but in layer 1 of seed
+0 one expert took 35% of the slots and another 0.1%.
+
+**What experts take.** For each expert, the input characters of the tokens
+routed to it, against the text as a whole (19.4% spaces, 27.7% lower-case
+vowels, 43.5% lower-case consonants, 3.1% punctuation), seed 0:
+
+| Arm, layer, expert | Share of slots | Its tokens | Most common |
+|---|---|---|---|
+| moe8_bal, layer 0, expert 4 | 11.2% | 86.9% spaces | space, g, 0 |
+| moe8_bal, layer 0, expert 3 | 16.3% | 71.8% vowels | e, a, i |
+| moe8_bal, layer 0, expert 2 | 13.1% | 97.6% consonants | t, n, r |
+| moe30s_bal, layer 0, expert 9 | 3.2% | 98.9% spaces | space, p, u |
+| moe30s_bal, layer 0, expert 19 | 3.7% | 99.6% vowels | e, a, o |
+| moe8 (no term), layer 1, expert 6 | 1.7% | 75.2% punctuation | , . = |
+
+The space experts' tokens sit on average 4 characters into their word: the
+space that ends a word. In layer 0 this is the easy split: the router there
+reads the character's embedding after a single attention layer, so the
+character itself is most of what it sees. Deeper layers mix more;
+`results/moe.json` lists every expert. A retrained copy of moe8_bal, seed 0,
+split layer 0 the same way, with the same expert numbers.
+
+**Grades.**
+
+1. **Wrong.** Every MoE arm beat both dense arms, at all three seeds and at both rates. dense_wide did not beat dense at 3 × 10⁻⁴ (2.150 against 2.102), but the review showed that was the rate: at 2 × 10⁻³ it is 0.048 lower. Most of the MoE gain at equal active size comes from the router's gate, not from the extra experts: dense_gated, at dense's size, takes 0.081 of moe8_bal's 0.108 lead at 10⁻³ (0.022 of 0.131 at 3 × 10⁻⁴, inside the seed spread). The control moe8_all, added after the first run, points the same way: it runs all 8 experts and still beats dense_wide.
+2. **Not shown at the recipe's rate, right at 10⁻³.** At 3 × 10⁻⁴, with three seeds, moe32_bal is 0.006 below moe8_bal and moe30s_bal 0.020 below, both inside the seed spread. At 10⁻³ both are about 0.04 below moe8_bal, twice the spread of two seeds.
+3. **Right.** Without the term the busiest expert reached 2.77 × its fair share; with it, all 8 stayed between 0.73 and 1.30 ×.
+4. **Right, and better than predicted:** the term lowered the loss, by 0.019 at 3 × 10⁻⁴ and 0.024 at 10⁻³ (means). At the first rate that is less than the seed spread; at the second, the two seeds of each arm do not overlap.
+5. **Right.** Expert 4 of layer 0 takes 86.9% spaces, 4.5 times their share.
+
+The seed gaps were larger than section 1's, up to 0.045 over three seeds,
+so the 0.02 bar we set was too fine for this run.
+
+**What this does and does not say.** A 4-layer character model on 4M
+characters is not a 600B model on trillions of tokens. Here an MoE beats a
+dense model of the same active size at every rate we tried, as the labs
+report at scale. But most of that lead is the router's gate, which a
+dense model of the same size can have too; the experts beyond it added
+0.027 nats at 10⁻³. Against a dense model of the same total size, the lead
+fell from 0.18 to 0.05 nats as the rate rose to 2 × 10⁻³, and we did not
+find the best rate for any arm, so how the two compare at their best this
+run cannot say. Large dense models already have a gate in every MLP
+(SwiGLU, module 04's table of later changes); a GELU MLP like ours does
+not, which may make the router's gate worth more here than there. One
+length, three seeds: this neither confirms nor refutes the labs' choices.
+
 ## Run it
 
 Each `train.py` call trains one size, prints its loss and writes
@@ -377,6 +586,15 @@ uv run python src/fit.py --figures
 uv run python src/frontier.py --figures
 ```
 
+```bash
+uv run python src/moe.py
+```
+
+`moe.py` trains all seven arms of section 5, two seeds each, in about 13
+minutes on the Apple GPU; `--arms moe8_all` reruns one arm and merges it in.
+`--controls` runs the review's checks (a third seed, dense_gated, five
+learning rates) in about 31 minutes; take the shared GPU lock first.
+
 Redraw every figure from the committed JSON, with no model trained:
 
 ```bash
@@ -393,7 +611,7 @@ uv run python src/export_explorable.py
 
 Skeletons with `# TODO(you):` live in [`exercises/`](exercises/); reference
 solutions are in [`solutions/`](solutions/). Each asks you to predict before
-you run. All three run on the CPU in a second.
+you run. All four run on the CPU in a second.
 
 - **(a) `exercise_a_count.py`**: count N for module 04's block by hand, and the
   compute C = 6ND. The test checks your count against the model for all six
@@ -404,6 +622,7 @@ you run. All three run on the CPU in a second.
 - **(c) `exercise_c_frontier.py`**: interpolate each size's loss at a budget
   and pick the best size. The test checks all 40 budgets against
   `results/frontier.json`.
+- **(d) `exercise_d_router.py`**: the top-k router, Switch's balancing loss, and Mixtral 8x7B's active parameters counted from its record. The test checks them against `src/moe.py` and the record.
 
 ## Tests
 
@@ -411,9 +630,12 @@ you run. All three run on the CPU in a second.
 uv run pytest
 ```
 
-Twenty-two tests, under 5 seconds, no training. They check the solutions
+Twenty-eight tests, under 10 seconds, no training. They check the solutions
 against the scripts, the committed results against the laptop budget, the
-seed band and the frontier, and the explorable against the results.
+seed band and the frontier, the explorable against the results, and, for
+section 5, that the zero-gated experts give the same outputs and gradients
+as a true dispatch, the arms' sizes, and that the dense arm sits on section
+2's line.
 
 ## Checkpoint: you should now be able to…
 
@@ -422,7 +644,8 @@ seed band and the frontier, and the explorable against the results.
 - fit a power law and say what the check on synthetic data rules out;
 - say why α = 0.074 here moves with the token budget;
 - explain why every budget's winner here is the smallest size that reaches it;
-- state Kaplan's and Chinchilla's compute-optimal answers and one reason they differ.
+- state Kaplan's and Chinchilla's compute-optimal answers and one reason they differ;
+- say why an MoE's training compute follows its active parameters, and what top-k routing, shared and fine-grained experts and a balancing term each do.
 
 ## Links
 
@@ -439,4 +662,10 @@ seed band and the frontier, and the explorable against the results.
 - Choshen, Zhang and Andreas, [A Hitchhiker's Guide to Scaling Law Estimation](https://arxiv.org/abs/2410.11840) (2024)
 - McLeish et al., [Gemstones: A Model Suite for Multi-Faceted Scaling Laws](https://arxiv.org/abs/2502.06857) (2025)
 - Yang et al., [Tensor Programs V](https://arxiv.org/abs/2203.03466) (2022), μP
+- Shazeer et al., [Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer](https://arxiv.org/abs/1701.06538) (2017)
+- Fedus, Zoph and Shazeer, [Switch Transformers](https://arxiv.org/abs/2101.03961) (2021)
+- Dai et al., [DeepSeekMoE](https://arxiv.org/abs/2401.06066) (2024)
+- Jiang et al., [Mixtral of Experts](https://arxiv.org/abs/2401.04088) (2024)
+- Wang et al., [Auxiliary-Loss-Free Load Balancing Strategy for Mixture-of-Experts](https://arxiv.org/abs/2408.15664) (2024)
+- [LLM architecture explorer](../../explorables/05b-architecture-explorer.html#m=deepseek-v3): every MoE model in the course's database, its experts drawn from its config
 - Merity et al., [Pointer Sentinel Mixture Models](https://arxiv.org/abs/1609.07843) (2016), which introduced wikitext-103

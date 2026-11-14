@@ -84,6 +84,7 @@
   "expert_hidden_dim": 2048,
   "latent_dim": null,
   "dense_layers": "first 3",
+  "first_dense": 3,
   "router": "sigmoid scores, aux-loss-free bias, top-8 within the best 4 of 8 groups, each token sent to at most 4 nodes; routed scale 2.5"
  },
  "stack": {
@@ -253,15 +254,6 @@
  "notes": [
   "Config num_key_value_heads 128 is nominal: MLA caches one 512-wide latent plus 64 RoPE dims per token, shared by all heads.",
   "attention.head_dim 128 is the value head; query and key heads are 192 wide (128 + 64 RoPE dims), see attention.mla."
- ],
- "teaches": [
-  "mla",
-  "moe",
-  "shared_expert",
-  "fine_grained_experts",
-  "dense_prefix",
-  "mtp",
-  "yarn"
  ],
  "layer_kinds": {
   "dense_ffn": {

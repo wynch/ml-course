@@ -92,6 +92,7 @@
   "expert_hidden_dim": 6144,
   "latent_dim": null,
   "dense_layers": "first 1",
+  "first_dense": 1,
   "router": "softmax over 128, keep top-4, renormalise; one expert group"
  },
  "stack": {
@@ -172,6 +173,7 @@
    "where": "after the main stack; inference only"
   }
  ],
+ "logit_softcap": 30,
  "omitted_towers": [
   {
    "modality": "image",
@@ -311,6 +313,12 @@
   "layer_kinds.*": [
    "cfg",
    "code"
+  ],
+  "logit_softcap": [
+   "report",
+   "params",
+   "code",
+   "idx"
   ]
  },
  "figure_links": [
@@ -337,16 +345,10 @@
   "The report says one in four layers was full attention and the rest SWA (window 512) before surgery; the released model has no window.",
   "Training history: pretrained as 3 sliding-window (512) layers per global layer with CLA and YOCO KV sharing; surgery before phase 2 removed the windows and CLA, kept YOCO."
  ],
- "teaches": [
-  "mla",
-  "sparse_topk",
-  "nope",
-  "moe",
-  "shared_expert"
- ],
  "layer_kinds": {
   "rope": {
    "mixer": "mla",
+   "sparse": true,
    "ffn": "moe",
    "heads": 64,
    "head_dim": 128,
@@ -356,6 +358,7 @@
   },
   "nope": {
    "mixer": "mla",
+   "sparse": true,
    "ffn": "moe",
    "heads": 64,
    "head_dim": 128,

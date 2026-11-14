@@ -7,7 +7,8 @@ Usage, from course/:
         older form: checks a {"models": [...]} file
 
 build.py imports leaves() and covered(); record_problems() holds every other check, and list_drift()
-checks that model_list.json agrees with the records.
+checks that model_list.json agrees with the records. parts.py derives the parts a model has; schema 1.2.0
+removed the hand tags in `teaches`, so a record that still has the field fails the schema check.
 """
 import datetime
 import json
@@ -19,7 +20,7 @@ import jsonschema
 
 HERE = Path(__file__).resolve().parent
 EXEMPT = {"id", "name", "organisation", "family", "parent_id", "closed", "refs",
-          "field_sources", "figure_links", "unknowns", "notes", "teaches"}
+          "field_sources", "figure_links", "unknowns", "notes"}
 ARRAY_LEAVES = {"specials", "omitted_towers", "attention.other", "attention.mixers",
                 "block_order.steps", "stack.pattern", "stack.prefix", "stack.suffix",
                 "modality.inputs", "modality.outputs"}
@@ -85,8 +86,6 @@ def vocab(rec):
         yield "block_order.steps.kind", s["kind"], ()
     for s in rec["specials"]:
         yield "specials.name", s["name"], ()
-    for t in rec.get("teaches", []):
-        yield "teaches", t, ()
     for k, v in (rec.get("layer_kinds") or {}).items():
         yield f"layer_kinds.{k}.mixer", v["mixer"], ("none",)
         if "ffn" in v:
@@ -141,6 +140,23 @@ def record_problems(rec, gloss, alias, ids=None):
         out.append(f"parent_id {rec['parent_id']} is not a record")
     if rec.get("parent_id") == rec["id"]:
         out.append("parent_id points to itself")
+
+    if rec.get("moe") and "first_dense" not in rec["moe"]:
+        out.append("moe.first_dense missing (0 when no layer keeps a dense FFN)")
+    sp = rec["attention"].get("sparse")
+    if sp and lk:
+        missing = [k for k, v in lk.items() if "sparse" not in v]
+        if missing:
+            out.append(f"layer_kinds {missing} need sparse: true or false, since attention.sparse is set")
+        elif not any(v["sparse"] for v in lk.values()):
+            out.append("attention.sparse is set but no layer kind has sparse: true")
+    names = {x["name"] for x in rec["specials"]}
+    if ("logit_softcap" in names) != (rec.get("logit_softcap") is not None):
+        out.append("logit_softcap: set the cap exactly when specials name logit_softcap")
+    if rec.get("attn_res_block") is not None and "attention_residuals" not in names:
+        out.append("attn_res_block is set but no attention_residuals special describes it")
+    if lk and not sp and any(v.get("sparse") for v in lk.values()):
+        out.append("a layer kind has sparse: true but attention.sparse is null")
     return out
 
 

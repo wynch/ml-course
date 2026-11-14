@@ -57,6 +57,7 @@
   "heads": 32,
   "kv_heads": 8,
   "head_dim": 64,
+  "conv_kernel": 3,
   "window": null,
   "local_global": null,
   "position": {
@@ -292,6 +293,9 @@
   "layer_kinds.*": [
    "cfg",
    "code"
+  ],
+  "attention.conv_kernel": [
+   "cfg"
   ]
  },
  "figure_links": [
@@ -316,10 +320,6 @@
   "Release date: Liquid AI's blog and the Hub say 2026-01-20; Raschka's gallery says 2026-05-28. Record follows the blog.",
   "The transformers module named embedding_norm runs after the last layer, so it is the final norm, not an embedding norm.",
   "Report Table 1 (LFM2-1.2B): 16 layers, d 2048, FF 8192, 32/8/64 heads, 6 attention blocks, conv kernel 3; config matches."
- ],
- "teaches": [
-  "short_conv",
-  "hybrid"
  ],
  "layer_kinds": {
   "conv": {

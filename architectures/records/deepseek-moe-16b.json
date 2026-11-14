@@ -76,6 +76,7 @@
   "expert_hidden_dim": 1408,
   "latent_dim": null,
   "dense_layers": "first 1",
+  "first_dense": 1,
   "router": "softmax scores, top-6, weights not renormalised"
  },
  "stack": {
@@ -255,11 +256,6 @@
  "unknowns": {},
  "notes": [
   "Paper trains with sequences of 4K tokens; config allows 4,096 positions."
- ],
- "teaches": [
-  "fine_grained_experts",
-  "shared_expert",
-  "dense_prefix"
  ],
  "layer_kinds": {
   "dense_ffn": {

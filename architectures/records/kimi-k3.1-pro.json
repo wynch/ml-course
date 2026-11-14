@@ -58,6 +58,7 @@
   "heads": 96,
   "kv_heads": 96,
   "head_dim": 128,
+  "conv_kernel": 4,
   "window": null,
   "local_global": null,
   "position": {
@@ -102,6 +103,7 @@
   "expert_hidden_dim": 3072,
   "latent_dim": 3584,
   "dense_layers": "first 1",
+  "first_dense": 1,
   "router": "sigmoid scores, aux-loss-free bias (noaux_tc), top-16, renormalised, one group"
  },
  "stack": {
@@ -198,6 +200,7 @@
    "where": "69 KDA layers"
   }
  ],
+ "attn_res_block": 12,
  "omitted_towers": [
   {
    "modality": "image",
@@ -327,6 +330,13 @@
    "cfg",
    "code",
    "sgl"
+  ],
+  "attention.conv_kernel": [
+   "cfg"
+  ],
+  "attn_res_block": [
+   "cfg",
+   "code"
   ]
  },
  "figure_links": [
@@ -345,17 +355,10 @@
   "kv_heads 96 is nominal for MLA, as for DeepSeek-V3.",
   "No modeling file ships in the K3.1 Pro repo; the block order comes from K3's code, which reads the same config keys, and SGLang's kimi_k3.py, which serves both."
  ],
- "teaches": [
-  "kda",
-  "hybrid",
-  "sparse_topk",
-  "attention_residuals",
-  "latent_moe",
-  "nope"
- ],
  "layer_kinds": {
   "kda": {
    "mixer": "kda",
+   "sparse": false,
    "ffn": "latent_moe",
    "heads": 96,
    "head_dim": 128,
@@ -364,6 +367,7 @@
   },
   "dsa": {
    "mixer": "mla",
+   "sparse": true,
    "ffn": "latent_moe",
    "heads": 96,
    "head_dim": 128,
