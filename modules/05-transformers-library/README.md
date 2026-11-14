@@ -20,6 +20,10 @@ picture, and every picture comes from the real model running on your Mac.
 watch a pulse carry one token up the decoder stack, hover any component for its
 real tensor shapes, and read SmolLM2's logit lens layer by layer.
 
+**🧬 Real architectures:** [LLM architecture explorer](../../explorables/05b-architecture-explorer.html) —
+the same block in real models from GPT-2 to 2026, drawn from their configs, with
+sources for every number.
+
 **✅ Quiz:** [10 questions](../../quizzes/05.html) — check yourself once you have taken SmolLM2 apart.
 
 ## Goals

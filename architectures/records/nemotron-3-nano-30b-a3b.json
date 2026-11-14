@@ -1,0 +1,383 @@
+{
+ "id": "nemotron-3-nano-30b-a3b",
+ "name": "Nemotron 3 Nano 30B-A3B",
+ "organisation": "NVIDIA",
+ "release_date": {
+  "value": "2025-12-04",
+  "precision": "day",
+  "note": "HF repo created 2025-12-04 and Raschka's gallery date; report on arXiv 2025-12-23"
+ },
+ "family": "nemotron",
+ "parent_id": null,
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "NVIDIA Nemotron Open Model License",
+  "licence_url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/",
+  "repo": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 31600000000,
+  "active": 3200000000,
+  "note": "report: 31.6B total, 3.2B active (3.6B with embeddings); index metadata total_parameters 31,577,937,344"
+ },
+ "layers": 52,
+ "d_model": 2688,
+ "vocab_size": 131072,
+ "context_length": {
+  "value": 262144,
+  "trained": "up to 1M supported; long-context phase mixed 512K and 4K sequences"
+ },
+ "attention": {
+  "kind": "hybrid",
+  "mixers": [
+   {
+    "kind": "ssm_mamba",
+    "layers": 23,
+    "note": "Mamba-2: 64 heads of 64, state 128, 8 groups, conv kernel 4"
+   },
+   {
+    "kind": "gqa",
+    "layers": 6,
+    "note": "32 query heads, 2 KV heads, no position encoding"
+   }
+  ],
+  "heads": 32,
+  "kv_heads": 2,
+  "head_dim": 128,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "nope",
+   "nope_layers": "all; attention layers have no RoPE, Mamba layers carry order"
+  },
+  "qk_norm": "none",
+  "mla": null,
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-05
+ },
+ "ffn": {
+  "kind": "moe",
+  "activation": "relu2",
+  "hidden_dim": null,
+  "config_activation": "relu2"
+ },
+ "moe": {
+  "experts": 128,
+  "routed_per_token": 6,
+  "shared": 1,
+  "expert_hidden_dim": 1856,
+  "latent_dim": null,
+  "dense_layers": "none",
+  "router": "learned MLP router, sigmoid gating, aux-loss-free bias, routed scale 2.5",
+  "shared_expert_hidden_dim": 3712
+ },
+ "stack": {
+  "pattern": [
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "attention",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   }
+  ],
+  "repeat": 5,
+  "suffix": [
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "attention",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   }
+  ],
+  "note": "config hybrid_override_pattern; each of the 52 layers is one sublayer (Mamba-2, attention or MoE): 23 + 6 + 23"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "ssm_mamba",
+    "label": "Mamba-2 mixer with gated RMSNorm inside",
+    "only_on": "mamba"
+   },
+   {
+    "kind": "gqa",
+    "label": "32 query heads, 2 KV heads, no RoPE",
+    "only_on": "attention"
+   },
+   {
+    "kind": "moe",
+    "label": "1 shared (3712) + top-6 of 128 squared-ReLU experts (1856)",
+    "only_on": "moe"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "hybrid",
+   "what": "one-sublayer blocks: Mamba-2, MoE and attention layers interleave; attention in 6 of 52",
+   "where": "whole stack"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "idx": {
+   "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16/blob/main/model.safetensors.index.json",
+   "kind": "weights_index",
+   "note": "backbone.layers.N.mixer per layer; experts up/down only; total_parameters 31,577,937,344",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2512.20848",
+   "kind": "paper",
+   "title": "Nemotron 3 Nano: Open, Efficient Mixture-of-Experts Hybrid Mamba-Transformer Model for Agentic Reasoning",
+   "note": "section 2.1 and Table 1; 2.5 long context",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/nemotron_h/modeling_nemotron_h.py",
+   "kind": "code",
+   "note": "NemotronHBlock: norm -> mixer -> residual; attention without rotary; latent-free MoE here",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16",
+   "kind": "model_card",
+   "note": "license nvidia-nemotron-open-model-license; createdAt 2025-12-04",
+   "accessed": "2026-11-14"
+  },
+  "gal": {
+   "url": "https://github.com/rasbt/llm-architecture-gallery/blob/main/models.yml",
+   "kind": "secondary",
+   "note": "entry 'Nemotron 3 Nano 30B-A3B': date, licence name, cross-check only",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "hfapi",
+   "gal"
+  ],
+  "weights.*": [
+   "hfapi",
+   "gal"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "paper",
+   "idx"
+  ],
+  "layers": [
+   "cfg",
+   "paper"
+  ],
+  "d_model": [
+   "cfg",
+   "paper"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "context_length.value": [
+   "cfg"
+  ],
+  "context_length.trained": [
+   "paper"
+  ],
+  "attention.*": [
+   "cfg",
+   "paper",
+   "code"
+  ],
+  "norm.*": [
+   "paper",
+   "code",
+   "cfg"
+  ],
+  "ffn.*": [
+   "cfg",
+   "paper"
+  ],
+  "moe.*": [
+   "cfg",
+   "paper"
+  ],
+  "stack.*": [
+   "cfg"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "paper",
+   "cfg",
+   "code"
+  ],
+  "layer_kinds.*": [
+   "cfg"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Sebastian Raschka",
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/images/architectures/nemotron-3-nano-30b-a3b.webp",
+   "title": "Nemotron 3 Nano 30B-A3B",
+   "terms": "no reuse licence stated; link only"
+  },
+  {
+   "author": "NVIDIA",
+   "url": "https://arxiv.org/abs/2512.20848",
+   "title": "Report Figure 2: layer pattern",
+   "terms": "arXiv licence; link only"
+  }
+ ],
+ "unknowns": {
+  "ffn.hidden_dim": "no dense FFN layers: every FFN layer is MoE"
+ },
+ "notes": [
+  "Report Table 1 lists 2 shared experts; config has n_shared_experts 1 with width 3712 = 2 x 1856. Record follows the config.",
+  "Config keeps rope_theta 10000, but the report says 'We do not use any positional embeddings' and the code applies no rotary. Record follows report and code.",
+  "Schema 'layers' counts 52 one-sublayer blocks, not attention+FFN pairs."
+ ],
+ "teaches": [
+  "hybrid",
+  "ssm_mamba",
+  "nope",
+  "moe",
+  "shared_expert"
+ ],
+ "layer_kinds": {
+  "mamba": {
+   "mixer": "ssm_mamba",
+   "ffn": "none",
+   "heads": 64,
+   "head_dim": 64,
+   "position": "none",
+   "note": "Mamba-2: state 128, conv kernel 4"
+  },
+  "attention": {
+   "mixer": "gqa",
+   "ffn": "none",
+   "heads": 32,
+   "kv_heads": 2,
+   "head_dim": 128,
+   "position": "nope"
+  },
+  "moe": {
+   "mixer": "none",
+   "ffn": "moe"
+  }
+ }
+}

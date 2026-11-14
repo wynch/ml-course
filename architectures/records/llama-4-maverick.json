@@ -1,0 +1,374 @@
+{
+ "id": "llama-4-maverick",
+ "name": "Llama 4 Maverick (17B active, 128 experts)",
+ "organisation": "Meta",
+ "release_date": {
+  "value": "2025-04-05",
+  "precision": "day",
+  "note": "model card 'Model Release Date'; the gallery gives the same date"
+ },
+ "family": "llama",
+ "parent_id": "llama-3.1-405b",
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "Llama 4 Community License Agreement",
+  "licence_url": "https://github.com/meta-llama/llama-models/blob/main/models/llama4/LICENSE",
+  "repo": "meta-llama/Llama-4-Maverick-17B-128E-Instruct"
+ },
+ "modality": {
+  "inputs": [
+   "text",
+   "image"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 401583781376,
+  "active": 17000000000,
+  "text_only": 400711848960,
+  "note": "total from the Hub safetensors count incl. the vision tower; card and blog: 400B total, 17B active; derived text stack 400,711,848,960 total and 17,184,691,200 active"
+ },
+ "layers": 48,
+ "d_model": 5120,
+ "vocab_size": 202048,
+ "context_length": {
+  "value": 1048576
+ },
+ "tokenizer": {
+  "kind": null
+ },
+ "attention": {
+  "kind": "gqa",
+  "heads": 40,
+  "kv_heads": 8,
+  "head_dim": 128,
+  "window": 8192,
+  "local_global": "3:1",
+  "position": {
+   "scheme": "mixed",
+   "theta": 500000.0,
+   "scaling": null,
+   "nope_layers": "every 4th layer (0-based 3, 7, ..., 47): the 12 full-attention layers"
+  },
+  "qk_norm": "none",
+  "mla": null,
+  "sparse": null,
+  "other": [],
+  "window_kind": "chunked"
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-05
+ },
+ "ffn": {
+  "kind": "moe",
+  "activation": "swiglu",
+  "hidden_dim": 16384,
+  "config_activation": "silu"
+ },
+ "moe": {
+  "experts": 128,
+  "routed_per_token": 1,
+  "shared": 1,
+  "expert_hidden_dim": 8192,
+  "latent_dim": null,
+  "dense_layers": "every other layer: 0-based 0, 2, ..., 46 (24 layers) keep a dense SwiGLU of width 16384",
+  "router": "top-1 of 128; the sigmoid of the chosen logit scales the token before the expert",
+  "layer_step": 2
+ },
+ "stack": {
+  "pattern": [
+   {
+    "type": "chunked_dense",
+    "count": 1
+   },
+   {
+    "type": "chunked_moe",
+    "count": 1
+   },
+   {
+    "type": "chunked_dense",
+    "count": 1
+   },
+   {
+    "type": "global_nope_moe",
+    "count": 1
+   }
+  ],
+  "repeat": 12,
+  "note": "chunked = RoPE + attention within 8,192-token chunks; global_nope = full attention without RoPE; MoE on odd layers (config moe_layers)"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm",
+    "label": "input_layernorm"
+   },
+   {
+    "kind": "gqa",
+    "label": "40 query heads, 8 KV heads; RoPE + 8,192-token chunks on 3 of 4 layers; NoPE + full context + query temperature scaling on every 4th"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "rmsnorm",
+    "label": "post_attention_layernorm"
+   },
+   {
+    "kind": "moe",
+    "label": "1 shared + top-1 of 128 experts (width 8192)",
+    "only_on": "chunked_moe, global_nope_moe"
+   },
+   {
+    "kind": "glu",
+    "label": "dense SwiGLU 5120 -> 16384 -> 5120",
+    "only_on": "chunked_dense"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "chunked_attention",
+   "what": "tokens attend only inside fixed 8,192-token chunks (attention_chunk_size), not a sliding window",
+   "where": "the 36 RoPE layers"
+  },
+  {
+   "name": "nope",
+   "what": "no rotary embedding on every 4th layer; Meta calls the mix iRoPE",
+   "where": "0-based layers 3, 7, ..., 47"
+  },
+  {
+   "name": "log_length_scaling",
+   "what": "queries scaled by 1 + 0.1 * log1p(floor((pos + 1) / 8192)) (attn_temperature_tuning)",
+   "where": "NoPE layers"
+  },
+  {
+   "name": "shared_expert",
+   "what": "every token also passes through one shared expert",
+   "where": "MoE layers"
+  },
+  {
+   "name": "vision_tower",
+   "what": "MetaCLIP-based encoder, early fusion of image tokens into the decoder",
+   "where": "input"
+  }
+ ],
+ "omitted_towers": [
+  {
+   "modality": "image",
+   "what": "vision encoder (34 layers, width 1408, patch 14, image 336) plus a projector to 5120",
+   "params": 871932416,
+   "layers": 34
+  }
+ ],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/unsloth/Llama-4-Maverick-17B-128E-Instruct/blob/main/config.json",
+   "kind": "config_mirror",
+   "note": "public copy of the gated https://huggingface.co/meta-llama/Llama-4-Maverick-17B-128E-Instruct/blob/main/config.json",
+   "accessed": "2026-11-14"
+  },
+  "card": {
+   "url": "https://huggingface.co/unsloth/Llama-4-Maverick-17B-128E-Instruct/blob/main/README.md",
+   "kind": "model_card",
+   "note": "copy of Meta's card: 17B activated, 400B total, text and image in, 1M context, release April 5, 2025, Llama 4 Community License",
+   "accessed": "2026-11-14"
+  },
+  "blog": {
+   "url": "https://ai.meta.com/blog/llama-4-multimodal-intelligence/",
+   "kind": "official_post",
+   "note": "alternating dense and MoE layers; 128 routed experts and a shared expert, one routed per token; iRoPE; inference-time temperature scaling; MetaCLIP-based vision encoder; early fusion",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama4/modeling_llama4.py",
+   "kind": "code",
+   "note": "Llama4TextDecoderLayer: input_layernorm, attention, residual, post_attention_layernorm, MoE or MLP, residual; Llama4TextMoe: shared_expert + routed; sigmoid router; temperature tuning on NoPE layers",
+   "accessed": "2026-11-14"
+  },
+  "ccode": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama4/configuration_llama4.py",
+   "kind": "code",
+   "note": "no_rope_layers: 1 = RoPE, 0 = NoPE; layer_types chunked_attention for RoPE layers, full_attention otherwise",
+   "accessed": "2026-11-14"
+  },
+  "idx": {
+   "url": "https://huggingface.co/unsloth/Llama-4-Maverick-17B-128E-Instruct/blob/main/model.safetensors.index.json",
+   "kind": "weights_index",
+   "note": "experts.gate_up_proj fused; shared_expert; router; dense feed_forward on non-MoE layers; vision_model.*; total_size 803,167,562,752 bytes",
+   "accessed": "2026-11-14"
+  },
+  "gal": {
+   "url": "https://github.com/rasbt/llm-architecture-gallery/blob/main/models.yml",
+   "kind": "secondary",
+   "note": "entry 'Llama 4 Maverick': date, '36 chunked + 12 full GQA', 1,000,000 context",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/unsloth/Llama-4-Maverick-17B-128E-Instruct/blob/main/config.json",
+   "kind": "derived",
+   "note": "text: 2*V*d + L*(2*d*h*hd + 2*d*kv*hd + 2d) + 24*3*d*16384 + 24*(128d + 129*3*d*8192) + d; active drops 127 experts in 24 layers; vision = index total_size/2 minus text (assumes all tensors bf16)",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+   "kind": "model_card",
+   "note": "safetensors total 401,583,781,376, all BF16 (= index total_size / 2)",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "card",
+   "gal"
+  ],
+  "weights.*": [
+   "card",
+   "cfg"
+  ],
+  "modality.*": [
+   "card",
+   "cfg"
+  ],
+  "params.total": [
+   "hfapi",
+   "card"
+  ],
+  "params.active": [
+   "card",
+   "blog"
+  ],
+  "params.text_only": [
+   "count"
+  ],
+  "params.note": [
+   "card",
+   "count"
+  ],
+  "layers": [
+   "cfg"
+  ],
+  "d_model": [
+   "cfg"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "context_length.value": [
+   "cfg",
+   "card"
+  ],
+  "attention.*": [
+   "cfg",
+   "code",
+   "ccode"
+  ],
+  "attention.position.*": [
+   "cfg",
+   "ccode",
+   "blog"
+  ],
+  "norm.*": [
+   "code",
+   "cfg"
+  ],
+  "ffn.*": [
+   "cfg",
+   "code"
+  ],
+  "moe.*": [
+   "cfg",
+   "code",
+   "blog",
+   "idx"
+  ],
+  "stack.*": [
+   "cfg",
+   "ccode",
+   "gal"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "cfg",
+   "code",
+   "blog"
+  ],
+  "omitted_towers": [
+   "cfg",
+   "count",
+   "blog",
+   "hfapi"
+  ],
+  "layer_kinds.*": [
+   "cfg",
+   "code",
+   "ccode"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Sebastian Raschka",
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/images/architectures/llama-4-maverick-400b.webp",
+   "title": "Llama 4 Maverick",
+   "terms": "no reuse licence stated; link only"
+  }
+ ],
+ "unknowns": {
+  "tokenizer.kind": "card, blog and config do not name the tokenizer algorithm"
+ },
+ "notes": [
+  "Config field no_rope_layers is named backwards: 1 marks a RoPE layer (configuration_llama4.py).",
+  "use_qk_norm is false for Maverick; the code applies L2 q/k norm only when it is true (Scout)."
+ ],
+ "teaches": [
+  "nope",
+  "shared_expert",
+  "vision_tower"
+ ],
+ "layer_kinds": {
+  "chunked_dense": {
+   "mixer": "gqa",
+   "ffn": "glu",
+   "heads": 40,
+   "kv_heads": 8,
+   "head_dim": 128,
+   "window": 8192,
+   "window_kind": "chunked",
+   "position": "rope",
+   "theta": 500000.0
+  },
+  "chunked_moe": {
+   "mixer": "gqa",
+   "ffn": "moe",
+   "heads": 40,
+   "kv_heads": 8,
+   "head_dim": 128,
+   "window": 8192,
+   "window_kind": "chunked",
+   "position": "rope",
+   "theta": 500000.0
+  },
+  "global_nope_moe": {
+   "mixer": "gqa",
+   "ffn": "moe",
+   "heads": 40,
+   "kv_heads": 8,
+   "head_dim": 128,
+   "position": "nope",
+   "note": "full context; query temperature scaling (attn_scale 0.1, floor 8192)"
+  }
+ }
+}

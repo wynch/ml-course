@@ -1,0 +1,207 @@
+{
+ "id": "chinchilla-70b",
+ "name": "Chinchilla 70B",
+ "organisation": "DeepMind",
+ "release_date": {
+  "value": "2022-03-29",
+  "precision": "day",
+  "note": "arXiv v1 of the paper; weights never released"
+ },
+ "family": "gopher",
+ "parent_id": null,
+ "closed": true,
+ "weights": {
+  "open": false,
+  "licence": null,
+  "licence_url": null,
+  "repo": null
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 70000000000,
+  "active": 70000000000,
+  "note": "paper: 70B"
+ },
+ "layers": 80,
+ "d_model": 8192,
+ "vocab_size": 32000,
+ "context_length": {
+  "value": 2048
+ },
+ "tokenizer": {
+  "kind": "sentencepiece",
+  "note": "Gopher's SentencePiece without NFKC normalisation; 94.15% of tokens shared with Gopher's"
+ },
+ "attention": {
+  "kind": "mha",
+  "heads": 64,
+  "kv_heads": 64,
+  "head_dim": 128,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "relative_bias",
+   "theta": null,
+   "scaling": null
+  },
+  "qk_norm": null,
+  "mla": null,
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": null,
+  "eps": null
+ },
+ "ffn": {
+  "kind": "mlp",
+  "activation": null,
+  "hidden_dim": 32768,
+  "config_activation": null
+ },
+ "moe": null,
+ "stack": {
+  "pattern": [
+   {
+    "type": "global",
+    "count": 1
+   }
+  ],
+  "repeat": 80
+ },
+ "block_order": {
+  "basis": "paper",
+  "steps": [
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "mha",
+    "label": "64 heads x 128, Transformer-XL relative positions"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "mlp",
+    "label": "8192 -> 32768 -> 8192"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "relative_bias",
+   "what": "relative positional encoding scheme of Transformer-XL (Dai et al., 2019), inherited from Gopher",
+   "where": "every attention layer"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "paper": {
+   "url": "https://arxiv.org/abs/2203.15556",
+   "kind": "paper",
+   "title": "Training Compute-Optimal Large Language Models",
+   "note": "section 4.1, Table 4, model card Table A8 (32,000 vocabulary); arXiv API: v1 2022-03-29",
+   "accessed": "2026-11-14"
+  },
+  "gopher": {
+   "url": "https://arxiv.org/abs/2112.11446",
+   "kind": "paper",
+   "title": "Scaling Language Models: Methods, Analysis & Insights from Training Gopher",
+   "note": "section 3.1 (GPT-2 architecture with RMSNorm and Transformer-XL relative positions), 3.2 (2048-token context)",
+   "accessed": "2026-11-14"
+  },
+  "gpt2": {
+   "url": "https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf",
+   "kind": "paper",
+   "title": "Language Models are Unsupervised Multitask Learners",
+   "note": "section 2.3: norm at sub-block input, extra norm after the last block",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "paper"
+  ],
+  "weights.open": [
+   "paper"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "paper"
+  ],
+  "layers": [
+   "paper"
+  ],
+  "d_model": [
+   "paper"
+  ],
+  "vocab_size": [
+   "paper"
+  ],
+  "context_length.value": [
+   "gopher",
+   "paper"
+  ],
+  "tokenizer.*": [
+   "paper",
+   "gopher"
+  ],
+  "attention.*": [
+   "paper"
+  ],
+  "attention.position.scheme": [
+   "gopher"
+  ],
+  "norm.*": [
+   "gopher",
+   "gpt2"
+  ],
+  "ffn.*": [
+   "paper"
+  ],
+  "stack.*": [
+   "paper"
+  ],
+  "block_order.*": [
+   "gopher",
+   "gpt2"
+  ],
+  "specials": [
+   "gopher"
+  ]
+ },
+ "figure_links": [],
+ "unknowns": {
+  "attention.qk_norm": "not mentioned",
+  "ffn.activation": "not named in the Chinchilla, Gopher or GPT-2 papers",
+  "norm.embedding_norm": "not stated",
+  "norm.eps": "not published",
+  "block_order": "order inferred from Gopher's statement that it follows GPT-2 (pre-norm) with RMSNorm; no code"
+ },
+ "notes": [
+  "Chinchilla keeps Gopher's architecture; its changes are data mix, AdamW, a tokenizer without NFKC, and float32 master weights.",
+  "Context 2048 is Gopher's training window; the Chinchilla paper says it uses the same training setup.",
+  "Glossary 'relative_bias' is the nearest id; Transformer-XL adds sinusoidal relative encodings with learned biases rather than a learned table.",
+  "A count from the stated shapes (80 layers, d_model 8192, FF 32768, vocab 32,000, untied) gives about 65B, not the paper's 70B; the paper does not explain the gap. The record keeps 70B."
+ ],
+ "teaches": []
+}

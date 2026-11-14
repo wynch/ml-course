@@ -1,0 +1,246 @@
+{
+ "id": "llama-3.1-405b",
+ "name": "Llama 3.1 405B",
+ "organisation": "Meta",
+ "release_date": {
+  "value": "2024-07-23",
+  "precision": "day",
+  "note": "model card 'Model Release Date'; the Llama 3 paper's arXiv v1 is 2024-07-31"
+ },
+ "family": "llama",
+ "parent_id": "llama-3-8b",
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "Llama 3.1 Community License",
+  "licence_url": "https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/LICENSE",
+  "repo": "meta-llama/Llama-3.1-405B"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 405853388800,
+  "active": 405853388800,
+  "note": "derived from config, untied embeddings; card and paper: 405B"
+ },
+ "layers": 126,
+ "d_model": 16384,
+ "vocab_size": 128256,
+ "context_length": {
+  "value": 131072,
+  "trained": "128K"
+ },
+ "tokenizer": {
+  "kind": "tiktoken_bpe",
+  "stated_vocab": 128000,
+  "note": "100K tokens from tiktoken plus 28K for non-English (paper)"
+ },
+ "attention": {
+  "kind": "gqa",
+  "heads": 128,
+  "kv_heads": 8,
+  "head_dim": 128,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "rope",
+   "theta": 500000.0,
+   "scaling": "llama3_rope_scaling"
+  },
+  "qk_norm": "none",
+  "mla": null,
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-05
+ },
+ "ffn": {
+  "kind": "glu",
+  "activation": "swiglu",
+  "hidden_dim": 53248,
+  "config_activation": "silu"
+ },
+ "moe": null,
+ "stack": {
+  "pattern": [
+   {
+    "type": "global",
+    "count": 1
+   }
+  ],
+  "repeat": 126
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "gqa",
+    "label": "128 query heads, 8 KV heads, RoPE theta 500,000"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "glu",
+    "label": "SwiGLU 16384 -> 53248 -> 16384"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "llama3_rope_scaling",
+   "what": "RoPE scaling factor 8, low_freq_factor 1, high_freq_factor 4, from an 8,192 original window",
+   "where": "q and k"
+  },
+  {
+   "name": "document_mask",
+   "what": "attention mask stops tokens attending across documents packed in one sequence",
+   "where": "pretraining"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/unsloth/Meta-Llama-3.1-405B-bnb-4bit/blob/main/config.json",
+   "kind": "config_mirror",
+   "note": "public copy of the gated https://huggingface.co/meta-llama/Llama-3.1-405B/blob/main/config.json; a 4-bit copy: shapes match, quantization fields added",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2407.21783",
+   "kind": "paper",
+   "title": "The Llama 3 Herd of Models",
+   "note": "section 3.2, Table 3, section 3.4.2 (context raised from 8K to 128K in six stages); arXiv API: v1 2024-07-31",
+   "accessed": "2026-11-14"
+  },
+  "card": {
+   "url": "https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/MODEL_CARD.md",
+   "kind": "model_card",
+   "note": "Model Release Date July 23, 2024; 405B; 128k context; GQA; Llama 3.1 Community License",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/modeling_llama.py",
+   "kind": "code",
+   "note": "input_layernorm and post_attention_layernorm precede their sublayers; no q/k norm",
+   "accessed": "2026-11-14"
+  },
+  "idx": {
+   "url": "https://huggingface.co/unsloth/Meta-Llama-3.1-405B-bnb-4bit/blob/main/model.safetensors.index.json",
+   "kind": "weights_index",
+   "note": "tensor names: separate lm_head, no biases",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/meta-llama/Llama-3.1-405B",
+   "kind": "model_card",
+   "note": "license tag llama3.1; gated",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/unsloth/Meta-Llama-3.1-405B-bnb-4bit/blob/main/config.json",
+   "kind": "derived",
+   "note": "2*V*d + L*(2*d*h*hd + 2*d*kv*hd + 3*d*f + 2d) + d with V 128256, d 16384, h 128, kv 8, hd 128, f 53248, L 126",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "card"
+  ],
+  "weights.*": [
+   "card",
+   "hfapi"
+  ],
+  "modality.*": [
+   "card"
+  ],
+  "params.*": [
+   "count",
+   "card"
+  ],
+  "layers": [
+   "cfg",
+   "paper"
+  ],
+  "d_model": [
+   "cfg",
+   "paper"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "context_length.*": [
+   "cfg",
+   "paper",
+   "card"
+  ],
+  "tokenizer.*": [
+   "paper"
+  ],
+  "attention.*": [
+   "cfg",
+   "paper"
+  ],
+  "attention.head_dim": [
+   "count"
+  ],
+  "attention.qk_norm": [
+   "code"
+  ],
+  "norm.*": [
+   "code",
+   "cfg"
+  ],
+  "ffn.*": [
+   "cfg",
+   "paper"
+  ],
+  "stack.*": [
+   "cfg"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "cfg",
+   "paper"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Meta",
+   "url": "https://arxiv.org/abs/2407.21783",
+   "title": "Figure 1 of the Llama 3 paper: overall architecture and training",
+   "terms": "arXiv default licence; link only"
+  }
+ ],
+ "unknowns": {},
+ "notes": [
+  "Model list gave the paper date (2024-07-31); the record follows the model card's release date.",
+  "Same block as Llama 3 8B; depth 126 and width 16,384 change."
+ ],
+ "teaches": [
+  "llama3_rope_scaling"
+ ]
+}

@@ -1,0 +1,258 @@
+{
+ "id": "gpt-2-xl",
+ "name": "GPT-2 XL (1.5B)",
+ "organisation": "OpenAI",
+ "release_date": {
+  "value": "2019-11-05",
+  "precision": "day",
+  "note": "openai/gpt-2 commits 'update readmes' and 'update model card' on 2019-11-05, the 1.5B release; the gallery gives the same date"
+ },
+ "family": "gpt",
+ "parent_id": "gpt-2-small",
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "MIT (OpenAI calls it 'Modified MIT')",
+  "licence_url": "https://github.com/openai/gpt-2",
+  "repo": "openai-community/gpt2-xl"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 1557611200,
+  "active": 1557611200,
+  "note": "derived from config with tied embeddings; the paper's Table 2 lists 1542M"
+ },
+ "layers": 48,
+ "d_model": 1600,
+ "vocab_size": 50257,
+ "context_length": {
+  "value": 1024
+ },
+ "tokenizer": {
+  "kind": "bpe_bytelevel",
+  "note": "paper section 2.2: a byte-level version of BPE"
+ },
+ "attention": {
+  "kind": "mha",
+  "heads": 25,
+  "kv_heads": 25,
+  "head_dim": 64,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "learned_absolute"
+  },
+  "qk_norm": "none",
+  "mla": null,
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "layernorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-05
+ },
+ "ffn": {
+  "kind": "mlp",
+  "activation": "gelu_tanh",
+  "hidden_dim": 6400,
+  "config_activation": "gelu_new"
+ },
+ "moe": null,
+ "stack": {
+  "pattern": [
+   {
+    "type": "global",
+    "count": 1
+   }
+  ],
+  "repeat": 48
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "layernorm"
+   },
+   {
+    "kind": "mha",
+    "label": "25 heads x 64"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "layernorm"
+   },
+   {
+    "kind": "mlp",
+    "label": "1600 -> 6400 -> 1600, GELU"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "tied_embeddings",
+   "what": "output head reuses the token embedding table",
+   "where": "lm_head"
+  },
+  {
+   "name": "residual_init_scaling",
+   "what": "residual-layer weights scaled at init by 1/sqrt(N), N = number of residual layers",
+   "where": "init only"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/openai-community/gpt2-xl/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf",
+   "kind": "paper",
+   "title": "Language Models are Unsupervised Multitask Learners",
+   "note": "section 2.2-2.3, Table 2 (1542M, 48 layers, d_model 1600)",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/gpt2/modeling_gpt2.py",
+   "kind": "code",
+   "note": "inner_dim = 4 * hidden_size when n_inner is null; ln_1 before attention, ln_2 before MLP; ln_f; tied lm_head",
+   "accessed": "2026-11-14"
+  },
+  "gh": {
+   "url": "https://api.github.com/repos/openai/gpt-2/commits?since=2019-11-01&until=2019-11-10",
+   "kind": "official_post",
+   "note": "two commits dated 2019-11-05; README links the 1.5B release post",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/openai-community/gpt2-xl",
+   "kind": "model_card",
+   "note": "license tag mit",
+   "accessed": "2026-11-14"
+  },
+  "gal": {
+   "url": "https://github.com/rasbt/llm-architecture-gallery/blob/main/models.yml",
+   "kind": "secondary",
+   "note": "entry 'GPT-2 XL 1.5B': date, licence name",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/openai-community/gpt2-xl/blob/main/config.json",
+   "kind": "derived",
+   "note": "V*d + P*d + L*(12d^2 + 13d) + 2d with V 50257, P 1024, d 1600, L 48",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "gh",
+   "gal"
+  ],
+  "weights.open": [
+   "cfg"
+  ],
+  "weights.licence": [
+   "hfapi",
+   "gal"
+  ],
+  "weights.licence_url": [
+   "gal"
+  ],
+  "weights.repo": [
+   "cfg"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "count",
+   "paper"
+  ],
+  "layers": [
+   "cfg",
+   "paper"
+  ],
+  "d_model": [
+   "cfg",
+   "paper"
+  ],
+  "vocab_size": [
+   "cfg",
+   "paper"
+  ],
+  "context_length.value": [
+   "cfg",
+   "paper"
+  ],
+  "tokenizer.*": [
+   "paper"
+  ],
+  "attention.kind": [
+   "cfg"
+  ],
+  "attention.heads": [
+   "cfg"
+  ],
+  "attention.kv_heads": [
+   "cfg"
+  ],
+  "attention.head_dim": [
+   "count"
+  ],
+  "attention.position.scheme": [
+   "code"
+  ],
+  "attention.qk_norm": [
+   "code"
+  ],
+  "norm.*": [
+   "paper",
+   "code",
+   "cfg"
+  ],
+  "ffn.*": [
+   "cfg",
+   "code"
+  ],
+  "stack.*": [
+   "cfg"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "code",
+   "paper"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Sebastian Raschka",
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/images/architectures/gpt-2-xl.webp",
+   "title": "GPT-2 XL 1.5B",
+   "terms": "no reuse licence stated; link only"
+  }
+ ],
+ "unknowns": {},
+ "notes": [
+  "Paper Table 2 says 1542M; the released checkpoint counts 1,557,611,200 parameters with tied embeddings.",
+  "Same block as GPT-2 small; only depth (48) and width (1600, 25 heads) change."
+ ],
+ "teaches": []
+}

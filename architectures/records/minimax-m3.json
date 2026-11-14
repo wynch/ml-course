@@ -1,0 +1,320 @@
+{
+ "id": "minimax-m3",
+ "name": "MiniMax M3",
+ "organisation": "MiniMax",
+ "release_date": {
+  "value": "2026-06-13",
+  "precision": "day",
+  "note": "Raschka's gallery date; HF repo created 2026-06-02; MSA report on arXiv 2026-06-11"
+ },
+ "family": "minimax",
+ "parent_id": "minimax-m2",
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "MiniMax Community License",
+  "licence_url": "https://huggingface.co/MiniMaxAI/MiniMax-M3/blob/main/LICENSE",
+  "repo": "MiniMaxAI/MiniMax-M3"
+ },
+ "modality": {
+  "inputs": [
+   "text",
+   "image",
+   "video"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 428000000000,
+  "active": 23000000000,
+  "note": "README: ~428B total, ~23B activated"
+ },
+ "layers": 60,
+ "d_model": 6144,
+ "vocab_size": 200064,
+ "context_length": {
+  "value": 1048576
+ },
+ "attention": {
+  "kind": "gqa",
+  "heads": 64,
+  "kv_heads": 4,
+  "head_dim": 128,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "rope",
+   "theta": 5000000,
+   "partial_fraction": 0.5,
+   "scaling": null
+  },
+  "qk_norm": "rmsnorm",
+  "mla": null,
+  "sparse": {
+   "kind": "sparse_topk",
+   "top_k": 16,
+   "index_heads": 4,
+   "index_head_dim": 128
+  },
+  "other": []
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-06
+ },
+ "ffn": {
+  "kind": "moe",
+  "activation": "swiglu",
+  "hidden_dim": 12288,
+  "config_activation": "swigluoai"
+ },
+ "moe": {
+  "experts": 128,
+  "routed_per_token": 4,
+  "shared": 1,
+  "expert_hidden_dim": 3072,
+  "latent_dim": null,
+  "dense_layers": "first 3",
+  "router": "sigmoid gates with routing bias, routed scale 2.0"
+ },
+ "stack": {
+  "prefix": [
+   {
+    "type": "global",
+    "count": 3
+   }
+  ],
+  "pattern": [
+   {
+    "type": "msa",
+    "count": 1
+   }
+  ],
+  "repeat": 57,
+  "note": "config moe_layer_freq and sparse_attention_freq: layers 1-3 dense FFN with full GQA, layers 4-60 MoE with MiniMax Sparse Attention"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm",
+    "label": "Gemma-style (1 + w)"
+   },
+   {
+    "kind": "sparse_topk",
+    "label": "MSA: index branch picks 16 key blocks of 128 per KV group, local block always kept",
+    "only_on": "msa"
+   },
+   {
+    "kind": "gqa",
+    "label": "64 query heads, 4 KV heads; per-head QK-norm; RoPE on 64 of 128 dims"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "moe",
+    "label": "1 shared + top-4 of 128 (dense 12288 in layers 1-3); clamped SwiGLU"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "sparse_topk",
+   "what": "MiniMax Sparse Attention: block-level selection per GQA group, block size 128, top 16 blocks, local block forced; index branch has no value path",
+   "where": "layers 4-60"
+  },
+  {
+   "name": "dense_prefix",
+   "what": "first three layers: dense FFN and full attention",
+   "where": "layers 1-3"
+  },
+  {
+   "name": "mtp",
+   "what": "config num_mtp_modules 7; no MTP tensors in the released index and the transformers code ignores mtp.*",
+   "where": "after the main stack"
+  },
+  {
+   "name": "swiglu",
+   "what": "swigluoai: gate and up clamped at 7, sigmoid(1.702 x) gate (gpt-oss form)",
+   "where": "every FFN"
+  }
+ ],
+ "omitted_towers": [
+  {
+   "modality": "image",
+   "what": "CLIP-style ViT, 1280 wide, patch 14, 3D RoPE; patch-merge 2x2; also reads video frames",
+   "params": null,
+   "layers": 32
+  }
+ ],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/MiniMaxAI/MiniMax-M3/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "idx": {
+   "url": "https://huggingface.co/MiniMaxAI/MiniMax-M3/blob/main/model.safetensors.index.json",
+   "kind": "weights_index",
+   "note": "index_q/k projections and norms from layer 3 (0-based); shared_experts; vision_tower layers",
+   "accessed": "2026-11-14"
+  },
+  "readme": {
+   "url": "https://huggingface.co/MiniMaxAI/MiniMax-M3/blob/main/README.md",
+   "kind": "model_card",
+   "note": "~428B / ~23B; 1M context; MSA; native multimodal",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2606.13392",
+   "kind": "paper",
+   "title": "MiniMax Sparse Attention",
+   "note": "MSA design; experiments on a 109B model, not M3 itself",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/minimax_m3_vl/modeling_minimax_m3_vl.py",
+   "kind": "code",
+   "note": "Gemma-style RMSNorm; indexer; clamped GLU; decoder layer order",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/MiniMaxAI/MiniMax-M3",
+   "kind": "model_card",
+   "note": "license minimax-community; createdAt 2026-06-02",
+   "accessed": "2026-11-14"
+  },
+  "gal": {
+   "url": "https://github.com/rasbt/llm-architecture-gallery/blob/main/models.yml",
+   "kind": "secondary",
+   "note": "entry 'MiniMax M3 428B': date, licence name, cross-check only",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "gal",
+   "hfapi"
+  ],
+  "weights.*": [
+   "readme",
+   "hfapi"
+  ],
+  "modality.*": [
+   "readme",
+   "cfg"
+  ],
+  "params.*": [
+   "readme"
+  ],
+  "layers": [
+   "cfg"
+  ],
+  "d_model": [
+   "cfg"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "context_length.*": [
+   "cfg",
+   "readme"
+  ],
+  "attention.*": [
+   "cfg",
+   "code",
+   "idx"
+  ],
+  "norm.*": [
+   "code",
+   "cfg"
+  ],
+  "ffn.*": [
+   "cfg",
+   "code"
+  ],
+  "moe.*": [
+   "cfg",
+   "idx"
+  ],
+  "stack.*": [
+   "cfg",
+   "idx"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "cfg",
+   "code",
+   "paper",
+   "idx"
+  ],
+  "omitted_towers": [
+   "cfg",
+   "idx"
+  ],
+  "layer_kinds.*": [
+   "cfg"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Sebastian Raschka",
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/images/architectures/minimax-m3.webp",
+   "title": "MiniMax M3 428B",
+   "terms": "no reuse licence stated; link only"
+  }
+ ],
+ "unknowns": {
+  "omitted_towers.0.params": "index gives no tensor shapes; tower size not published"
+ },
+ "notes": [
+  "The MSA paper's 109B test model uses 41 layers (3 dense); M3's own shape comes from its config."
+ ],
+ "teaches": [
+  "sparse_topk",
+  "gqa",
+  "qk_norm",
+  "partial_rope",
+  "moe",
+  "shared_expert",
+  "dense_prefix"
+ ],
+ "layer_kinds": {
+  "global": {
+   "mixer": "gqa",
+   "ffn": "glu",
+   "heads": 64,
+   "kv_heads": 4,
+   "head_dim": 128,
+   "position": "rope",
+   "theta": 5000000,
+   "partial_fraction": 0.5,
+   "note": "full attention, no indexer"
+  },
+  "msa": {
+   "mixer": "gqa",
+   "ffn": "moe",
+   "heads": 64,
+   "kv_heads": 4,
+   "head_dim": 128,
+   "position": "rope",
+   "theta": 5000000,
+   "partial_fraction": 0.5,
+   "note": "block-sparse: each KV group keeps 16 key blocks of 128, its own block always included"
+  }
+ }
+}

@@ -1,0 +1,331 @@
+{
+ "id": "jamba-v0.1",
+ "name": "Jamba v0.1",
+ "organisation": "AI21",
+ "release_date": {
+  "value": "2024-03-28",
+  "precision": "day",
+  "note": "paper on arXiv and Hugging Face repo created the same day"
+ },
+ "family": "jamba",
+ "parent_id": null,
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "Apache-2.0",
+  "licence_url": "https://www.apache.org/licenses/LICENSE-2.0",
+  "repo": "ai21labs/Jamba-v0.1"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 51570323328,
+  "active": 12110311296,
+  "note": "derived from config; total equals the Hub's safetensors count; paper rounds to 52B total, 12B active"
+ },
+ "layers": 32,
+ "d_model": 4096,
+ "vocab_size": 65536,
+ "context_length": {
+  "value": 262144,
+  "trained": "256K"
+ },
+ "tokenizer": {
+  "kind": "sentencepiece",
+  "stated_vocab": "64K",
+  "note": "paper: BPE, digits split, no dummy space; repo ships tokenizer.model (SentencePiece format)"
+ },
+ "attention": {
+  "kind": "hybrid",
+  "mixers": [
+   {
+    "kind": "ssm_mamba",
+    "layers": 28,
+    "note": "Mamba-1, inner 8192, state 16, conv 4, dt rank 256, RMSNorm on dt, B and C"
+   },
+   {
+    "kind": "gqa",
+    "layers": 4,
+    "note": "32 heads, 8 KV heads, no positional encoding"
+   }
+  ],
+  "heads": 32,
+  "kv_heads": 8,
+  "head_dim": 128,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "nope",
+   "nope_layers": "all; attention layers get no position signal, Mamba layers carry order"
+  },
+  "qk_norm": "none",
+  "mla": null,
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-06
+ },
+ "ffn": {
+  "kind": "moe",
+  "activation": "swiglu",
+  "hidden_dim": 14336,
+  "config_activation": "silu"
+ },
+ "moe": {
+  "experts": 16,
+  "routed_per_token": 2,
+  "shared": 0,
+  "expert_hidden_dim": 14336,
+  "latent_dim": null,
+  "dense_layers": "every other layer (0-based even layers)",
+  "router": "softmax over 16, keep top-2, weights not renormalised",
+  "layer_step": 2
+ },
+ "stack": {
+  "pattern": [
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "mamba_moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "mamba_moe",
+    "count": 1
+   },
+   {
+    "type": "attention",
+    "count": 1
+   },
+   {
+    "type": "mamba_moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "mamba_moe",
+    "count": 1
+   }
+  ],
+  "repeat": 4,
+  "note": "attention at 0-based layers 4, 12, 20, 28 (attn_layer_offset 4, period 8); MoE at odd layers (expert_layer_offset 1, period 2); attention layers carry a dense FFN"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm",
+    "label": "input_layernorm"
+   },
+   {
+    "kind": "ssm_mamba",
+    "label": "Mamba mixer",
+    "only_on": "mamba, mamba_moe"
+   },
+   {
+    "kind": "gqa",
+    "label": "GQA, no RoPE",
+    "only_on": "attention"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "rmsnorm",
+    "label": "pre_ff_layernorm"
+   },
+   {
+    "kind": "glu",
+    "label": "SwiGLU 4096 -> 14336 -> 4096",
+    "only_on": "mamba, attention"
+   },
+   {
+    "kind": "moe",
+    "label": "top-2 of 16 SwiGLU experts",
+    "only_on": "mamba_moe"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "hybrid",
+   "what": "Jamba block of 8 layers: 1 attention : 7 Mamba, MoE every other layer; 4 blocks",
+   "where": "whole stack"
+  },
+  {
+   "name": "rmsnorm",
+   "what": "extra RMSNorms on the time-step, B and C inside each Mamba mixer, added for stability at scale",
+   "where": "Mamba layers"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/ai21labs/Jamba-v0.1/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2403.19887",
+   "kind": "paper",
+   "title": "Jamba: A Hybrid Transformer-Mamba Language Model",
+   "note": "sections 2-3.1, Table 1, Figure 1",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/jamba/modeling_jamba.py",
+   "kind": "code",
+   "note": "JambaAttentionDecoderLayer / JambaMambaDecoderLayer; apply_rotary_pos_emb defined but never called; router top-k without renormalising",
+   "accessed": "2026-11-14"
+  },
+  "idx": {
+   "url": "https://huggingface.co/ai21labs/Jamba-v0.1/blob/main/model.safetensors.index.json",
+   "kind": "weights_index",
+   "note": "layer 4 holds self_attn and a dense feed_forward; odd layers hold 16 experts and a router",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/ai21labs/Jamba-v0.1",
+   "kind": "model_card",
+   "note": "createdAt 2024-03-28, license apache-2.0, safetensors total 51,570,323,328, ships tokenizer.model",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/ai21labs/Jamba-v0.1/blob/main/config.json",
+   "kind": "derived",
+   "note": "sum over layers of mixer (Mamba or GQA) + FFN (dense or 16 experts + router) + 2 norms, plus 2Vd and final norm; active uses 2 experts",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "paper",
+   "hfapi"
+  ],
+  "weights.*": [
+   "hfapi",
+   "paper"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "count",
+   "hfapi",
+   "paper"
+  ],
+  "layers": [
+   "cfg",
+   "paper"
+  ],
+  "d_model": [
+   "cfg"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "context_length.*": [
+   "cfg",
+   "paper"
+  ],
+  "tokenizer.*": [
+   "paper",
+   "hfapi"
+  ],
+  "attention.*": [
+   "cfg",
+   "paper",
+   "code"
+  ],
+  "norm.*": [
+   "code",
+   "cfg"
+  ],
+  "ffn.*": [
+   "cfg",
+   "paper"
+  ],
+  "moe.*": [
+   "cfg",
+   "paper",
+   "code"
+  ],
+  "stack.*": [
+   "cfg",
+   "idx",
+   "paper"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "paper",
+   "code"
+  ],
+  "layer_kinds.*": [
+   "cfg",
+   "code"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "AI21",
+   "url": "https://arxiv.org/abs/2403.19887",
+   "title": "Figure 1 of the paper: the Jamba block and its layers",
+   "terms": "arXiv default licence; link only"
+  }
+ ],
+ "unknowns": {},
+ "notes": [
+  "Paper: 'we do not use any explicit positional information'; the transformers code agrees (no rotary call in JambaAttention)."
+ ],
+ "teaches": [
+  "hybrid",
+  "ssm_mamba",
+  "moe"
+ ],
+ "layer_kinds": {
+  "mamba": {
+   "mixer": "ssm_mamba",
+   "ffn": "glu",
+   "position": "none",
+   "note": "state 16, conv kernel 4, expand 2"
+  },
+  "mamba_moe": {
+   "mixer": "ssm_mamba",
+   "ffn": "moe",
+   "position": "none"
+  },
+  "attention": {
+   "mixer": "gqa",
+   "ffn": "glu",
+   "heads": 32,
+   "kv_heads": 8,
+   "head_dim": 128,
+   "position": "nope"
+  }
+ }
+}

@@ -1,0 +1,839 @@
+{
+ "_about": "Controlled vocabulary for architectures.json. `modules` lists the course modules that teach the part today (from course/README.md and module READMEs, survey of 2026-11-14); an empty list marks a gap the explorer would be first to fill. Module numbers come from a grep of module READMEs for each term, so a number means the README names the part, not that it teaches it in depth. Records use these ids in attention.kind, attention.mixers, attention.other, attention.sparse.kind, attention.position.scheme and scaling, attention.qk_norm, layer_kinds mixer/ffn/position, norm.kind, ffn.kind, ffn.activation, block_order steps, specials, tokenizer.kind and teaches; validate.py rejects any other value except the sentinels 'none' (no such part) and 'mixed' (position scheme differs by layer kind; see layer_kinds). norm.placement keeps its short values (pre, post, sandwich, post_in_residual), which map to pre_norm, post_norm, sandwich_norm, post_in_residual. `aliases` lists ids merged into a term; records must use the term's id.",
+ "groups": {
+  "block": "parts of one decoder block",
+  "mixer": "how a token gathers information from other tokens",
+  "position": "how order enters the model",
+  "norm": "rescaling of the residual stream",
+  "ffn": "the per-token feed-forward part",
+  "moe": "mixture-of-experts parts",
+  "extra": "smaller additions",
+  "tower": "encoders for other inputs",
+  "tokenizer": "text to token ids",
+  "precision": "number formats the weights ship in"
+ },
+ "terms": [
+  {
+   "id": "embedding",
+   "group": "block",
+   "name": "Token embedding",
+   "def": "A table that turns each token id into a vector of width d_model.",
+   "modules": [
+    "04",
+    "05"
+   ]
+  },
+  {
+   "id": "tied_embeddings",
+   "group": "block",
+   "name": "Tied embeddings",
+   "def": "The output layer reuses the input embedding table, saving its parameters.",
+   "modules": []
+  },
+  {
+   "id": "residual_add",
+   "group": "block",
+   "name": "Residual connection",
+   "def": "Each sublayer adds its output to a running sum that flows through the whole stack.",
+   "modules": [
+    "04"
+   ]
+  },
+  {
+   "id": "lm_head",
+   "group": "block",
+   "name": "Output head",
+   "def": "A matrix that maps the last vector to one score per vocabulary entry.",
+   "modules": [
+    "04",
+    "05"
+   ]
+  },
+  {
+   "id": "attention_residuals",
+   "group": "block",
+   "name": "Attention residuals (depth attention)",
+   "def": "Instead of adding all earlier outputs equally, each sublayer reads a learned weighted mix of earlier block outputs.",
+   "modules": []
+  },
+  {
+   "id": "parallel_block",
+   "group": "block",
+   "name": "Parallel attention and MLP",
+   "def": "Attention and MLP read the same input and their outputs are summed, instead of running one after the other.",
+   "modules": []
+  },
+  {
+   "id": "layer_scalar",
+   "group": "block",
+   "name": "Per-layer output scalar",
+   "def": "Each layer's output is multiplied by its own stored scalar.",
+   "modules": []
+  },
+  {
+   "id": "residual_gate",
+   "group": "block",
+   "name": "Gated residual",
+   "def": "Each residual add becomes a learned per-channel weighted mix of the stream and the sublayer output.",
+   "modules": []
+  },
+  {
+   "id": "mhc",
+   "group": "block",
+   "name": "Manifold-constrained hyper-connections",
+   "def": "The residual stream is kept as several parallel copies (4 in DeepSeek V4) that a Sinkhorn-normalised matrix mixes around each sublayer.",
+   "modules": []
+  },
+  {
+   "id": "causal_encoder_decoder",
+   "group": "block",
+   "name": "Causal encoder-decoder split",
+   "def": "A decoder-only stack cut in two: the first half reads the prompt causally and its final states give the second half's global keys and values.",
+   "modules": []
+  },
+  {
+   "id": "mha",
+   "group": "mixer",
+   "name": "Multi-head attention",
+   "def": "Every head has its own queries, keys and values.",
+   "modules": [
+    "04"
+   ]
+  },
+  {
+   "id": "mqa",
+   "group": "mixer",
+   "name": "Multi-query attention",
+   "def": "All query heads share one key head and one value head, shrinking the cache.",
+   "modules": []
+  },
+  {
+   "id": "gqa",
+   "group": "mixer",
+   "name": "Grouped-query attention",
+   "def": "Query heads split into groups; each group shares one key and value head.",
+   "modules": [
+    "04",
+    "05",
+    "07"
+   ]
+  },
+  {
+   "id": "mla",
+   "group": "mixer",
+   "name": "Multi-head latent attention",
+   "def": "Keys and values are stored as one small compressed vector per token and expanded when used.",
+   "modules": [
+    "07"
+   ]
+  },
+  {
+   "id": "sliding_window",
+   "group": "mixer",
+   "name": "Sliding-window attention",
+   "def": "A token attends only to the last W tokens, so cache and cost stop growing with length.",
+   "modules": []
+  },
+  {
+   "id": "local_global",
+   "group": "mixer",
+   "name": "Local/global interleave",
+   "def": "Most layers use a short window; every n-th layer sees the whole context.",
+   "modules": []
+  },
+  {
+   "id": "sparse_topk",
+   "group": "mixer",
+   "name": "Top-k sparse attention (DSA and kin)",
+   "def": "A cheap indexer scores past tokens and full attention runs only on the best k.",
+   "modules": [],
+   "aliases": [
+    "hierarchical_sparse_indexer",
+    "msa"
+   ]
+  },
+  {
+   "id": "linear_attention",
+   "group": "mixer",
+   "name": "Linear attention",
+   "def": "Replaces the attention matrix with a running summary, so cost grows linearly with length.",
+   "modules": [
+    "18",
+    "27"
+   ]
+  },
+  {
+   "id": "gated_deltanet",
+   "group": "mixer",
+   "name": "Gated DeltaNet",
+   "def": "Linear attention whose memory matrix is corrected by a delta rule and decays through a gate.",
+   "modules": [
+    "18",
+    "27"
+   ]
+  },
+  {
+   "id": "kda",
+   "group": "mixer",
+   "name": "Kimi Delta Attention",
+   "def": "A Gated DeltaNet variant with a finer per-channel gate, used by Kimi Linear and K3.",
+   "modules": []
+  },
+  {
+   "id": "ssm_mamba",
+   "group": "mixer",
+   "name": "Selective state-space layer (Mamba)",
+   "def": "A recurrent layer with a fixed-size state whose update depends on the input.",
+   "modules": [
+    "18",
+    "27"
+   ]
+  },
+  {
+   "id": "rwkv",
+   "group": "mixer",
+   "name": "RWKV time-mix",
+   "def": "A recurrent mixer trained like a transformer and run like an RNN.",
+   "modules": [
+    "18",
+    "27"
+   ]
+  },
+  {
+   "id": "mlstm",
+   "group": "mixer",
+   "name": "mLSTM (xLSTM)",
+   "def": "An LSTM with a matrix memory and exponential gates, used in place of attention.",
+   "modules": []
+  },
+  {
+   "id": "short_conv",
+   "group": "mixer",
+   "name": "Short convolution",
+   "def": "A depthwise convolution over the last few tokens (kernel 3 or 4) that mixes local context cheaply.",
+   "modules": []
+  },
+  {
+   "id": "hybrid",
+   "group": "mixer",
+   "name": "Hybrid stack",
+   "def": "A stack that mixes attention layers with recurrent, linear, convolution or compressed-attention layers.",
+   "modules": [
+    "18",
+    "27"
+   ]
+  },
+  {
+   "id": "chunked_attention",
+   "group": "mixer",
+   "name": "Chunked attention",
+   "def": "Tokens attend only inside fixed blocks of C tokens; unlike a sliding window, the span restarts at each block boundary.",
+   "modules": []
+  },
+  {
+   "id": "kv_sharing",
+   "group": "mixer",
+   "name": "Cross-layer KV sharing",
+   "def": "Some layers reuse the keys and values of an earlier layer instead of computing their own, which shrinks the cache.",
+   "modules": []
+  },
+  {
+   "id": "csa",
+   "group": "mixer",
+   "name": "Compressed sparse attention (CSA)",
+   "def": "Groups of past keys and values are pooled into one entry each; an indexer picks the top k entries, and a short window of recent tokens stays uncompressed.",
+   "modules": [],
+   "aliases": [
+    "csa_hca"
+   ]
+  },
+  {
+   "id": "hca",
+   "group": "mixer",
+   "name": "Heavily compressed attention (HCA)",
+   "def": "Every m past tokens (128 in DeepSeek V4) are pooled into one entry and all entries are attended, plus a short uncompressed window.",
+   "modules": []
+  },
+  {
+   "id": "csa2",
+   "group": "mixer",
+   "name": "Compressed sparse attention 2 (CSA2)",
+   "def": "DeepSeek V4.1's CSA in which groups of layers share one layer's compressed keys and values and reuse or re-rank its top-k picks.",
+   "modules": []
+  },
+  {
+   "id": "token_shift",
+   "group": "mixer",
+   "name": "Token shift",
+   "def": "Each position mixes its input with the previous token's input before the projections (RWKV).",
+   "modules": []
+  },
+  {
+   "id": "data_dependent_decay",
+   "group": "mixer",
+   "name": "Data-dependent decay",
+   "def": "The per-channel decay of a recurrent state is computed from the current input instead of being fixed.",
+   "modules": []
+  },
+  {
+   "id": "learned_absolute",
+   "group": "position",
+   "name": "Learned absolute positions",
+   "def": "A trained vector per position is added to the token embedding; no use past the trained length.",
+   "modules": [
+    "04"
+   ]
+  },
+  {
+   "id": "rope",
+   "group": "position",
+   "name": "Rotary position embedding (RoPE)",
+   "def": "Rotates query and key pairs by an angle that grows with position, so scores depend on distance.",
+   "modules": [
+    "04",
+    "05"
+   ]
+  },
+  {
+   "id": "partial_rope",
+   "group": "position",
+   "name": "Partial RoPE",
+   "def": "Only a share of each head's dimensions is rotated; the rest carry no position.",
+   "modules": []
+  },
+  {
+   "id": "alibi",
+   "group": "position",
+   "name": "ALiBi",
+   "def": "Adds a penalty to attention scores in proportion to distance; no position vectors.",
+   "modules": []
+  },
+  {
+   "id": "relative_bias",
+   "group": "position",
+   "name": "Learned relative-position bias",
+   "def": "A learned term, a function of the distance between two tokens, is added to their score.",
+   "modules": []
+  },
+  {
+   "id": "nope",
+   "group": "position",
+   "name": "No positional encoding (NoPE)",
+   "def": "The layer gets no position signal; the causal mask alone tells order.",
+   "modules": [
+    "05"
+   ]
+  },
+  {
+   "id": "yarn",
+   "group": "position",
+   "name": "YaRN",
+   "def": "Rescales RoPE frequencies so a model trained short can read longer contexts.",
+   "modules": [
+    "05"
+   ]
+  },
+  {
+   "id": "linear_interpolation",
+   "group": "position",
+   "name": "Position interpolation",
+   "def": "Divides positions by a factor so a longer input maps into the trained range.",
+   "modules": []
+  },
+  {
+   "id": "llama3_rope_scaling",
+   "group": "position",
+   "name": "Llama 3 RoPE scaling",
+   "def": "Stretches low RoPE frequencies and keeps high ones, to extend context to 128K.",
+   "modules": []
+  },
+  {
+   "id": "log_length_scaling",
+   "group": "position",
+   "name": "Log-length attention scaling",
+   "def": "Multiplies attention scores by a factor that grows with the log of context length.",
+   "modules": [],
+   "aliases": [
+    "attn_temperature_len"
+   ]
+  },
+  {
+   "id": "mrope",
+   "group": "position",
+   "name": "Multimodal RoPE (M-RoPE)",
+   "def": "Rotary dimensions are split into sections for time, height and width, so image and video tokens get 2D or 3D positions.",
+   "modules": []
+  },
+  {
+   "id": "lerope",
+   "group": "position",
+   "name": "LeRoPE",
+   "def": "A learned factor per frequency rescales the RoPE frequencies.",
+   "modules": []
+  },
+  {
+   "id": "layernorm",
+   "group": "norm",
+   "name": "LayerNorm",
+   "def": "Subtracts the mean and divides by the spread of each vector, then rescales.",
+   "modules": [
+    "04",
+    "05"
+   ]
+  },
+  {
+   "id": "rmsnorm",
+   "group": "norm",
+   "name": "RMSNorm",
+   "def": "Divides each vector by its root-mean-square, with no mean subtraction; cheaper than LayerNorm.",
+   "modules": [
+    "04",
+    "05",
+    "11"
+   ]
+  },
+  {
+   "id": "post_norm",
+   "group": "norm",
+   "name": "Post-norm",
+   "def": "Normalise after adding the sublayer output to the residual (original 2017 transformer).",
+   "modules": []
+  },
+  {
+   "id": "pre_norm",
+   "group": "norm",
+   "name": "Pre-norm",
+   "def": "Normalise the sublayer input; the residual path itself is never normalised.",
+   "modules": [
+    "04"
+   ]
+  },
+  {
+   "id": "sandwich_norm",
+   "group": "norm",
+   "name": "Sandwich norm",
+   "def": "Normalise both the input and the output of each sublayer before the residual add.",
+   "modules": []
+  },
+  {
+   "id": "post_in_residual",
+   "group": "norm",
+   "name": "Post-norm inside the residual",
+   "def": "Normalise the sublayer output, then add it to an un-normalised residual (OLMo 2 style).",
+   "modules": []
+  },
+  {
+   "id": "embedding_norm",
+   "group": "norm",
+   "name": "Embedding norm",
+   "def": "A norm applied to the token embeddings before the first layer.",
+   "modules": []
+  },
+  {
+   "id": "zero_centered_rmsnorm",
+   "group": "norm",
+   "name": "Zero-centred RMSNorm",
+   "def": "RMSNorm whose weight is stored as an offset from 1 and applied as (1 + w), so weight decay pulls it toward 1.",
+   "modules": []
+  },
+  {
+   "id": "head_norm",
+   "group": "norm",
+   "name": "Per-head output norm",
+   "def": "The output of each head is normalised on its own before the heads are joined.",
+   "modules": [],
+   "aliases": [
+    "multi_head_norm"
+   ]
+  },
+  {
+   "id": "mlp",
+   "group": "ffn",
+   "name": "Plain MLP",
+   "def": "Two matrices with a nonlinearity between, usually four times wider inside.",
+   "modules": [
+    "04"
+   ]
+  },
+  {
+   "id": "glu",
+   "group": "ffn",
+   "name": "Gated linear unit",
+   "def": "Two parallel projections; one, passed through a nonlinearity, scales the other.",
+   "modules": [
+    "04",
+    "05"
+   ]
+  },
+  {
+   "id": "relu",
+   "group": "ffn",
+   "name": "ReLU",
+   "def": "Keeps positive values, zeroes negative ones.",
+   "modules": [
+    "02"
+   ]
+  },
+  {
+   "id": "gelu",
+   "group": "ffn",
+   "name": "GELU",
+   "def": "A smooth ReLU that weights each input by the chance a normal variable is below it.",
+   "modules": [
+    "04",
+    "05"
+   ]
+  },
+  {
+   "id": "gelu_tanh",
+   "group": "ffn",
+   "name": "GELU (tanh approximation)",
+   "def": "GELU computed with a tanh formula; GPT-2's gelu_new.",
+   "modules": []
+  },
+  {
+   "id": "swiglu",
+   "group": "ffn",
+   "name": "SwiGLU",
+   "def": "A gated unit whose gate uses SiLU (x times sigmoid x).",
+   "modules": [
+    "04",
+    "05",
+    "11"
+   ]
+  },
+  {
+   "id": "geglu",
+   "group": "ffn",
+   "name": "GeGLU",
+   "def": "A gated unit whose gate uses GELU (Gemma).",
+   "modules": []
+  },
+  {
+   "id": "situ_glu",
+   "group": "ffn",
+   "name": "SiTU-GLU",
+   "def": "A gated unit with Moonshot's SiTU gate function; the config names it 'situ'.",
+   "modules": []
+  },
+  {
+   "id": "mlp_softcap",
+   "group": "ffn",
+   "name": "MLP soft-capping",
+   "def": "tanh caps on the gate and up projections inside the feed-forward part.",
+   "modules": []
+  },
+  {
+   "id": "relu2",
+   "group": "ffn",
+   "name": "Squared ReLU",
+   "def": "Keeps positive values and squares them; zeroes negative ones.",
+   "modules": [],
+   "aliases": [
+    "squared_relu"
+   ]
+  },
+  {
+   "id": "moe",
+   "group": "moe",
+   "name": "Mixture of experts",
+   "def": "Many feed-forward experts; a router sends each token to a few, so only part of the model runs per token.",
+   "modules": [
+    "11",
+    "23"
+   ]
+  },
+  {
+   "id": "router",
+   "group": "moe",
+   "name": "Router",
+   "def": "A small layer that scores experts for each token and keeps the top k.",
+   "modules": []
+  },
+  {
+   "id": "shared_expert",
+   "group": "moe",
+   "name": "Shared expert",
+   "def": "An expert every token uses, beside the routed ones.",
+   "modules": []
+  },
+  {
+   "id": "fine_grained_experts",
+   "group": "moe",
+   "name": "Fine-grained experts",
+   "def": "Many small experts with more chosen per token, instead of a few large ones.",
+   "modules": []
+  },
+  {
+   "id": "dense_prefix",
+   "group": "moe",
+   "name": "Dense first layers",
+   "def": "The first one to three layers keep an ordinary FFN before MoE layers start.",
+   "modules": []
+  },
+  {
+   "id": "latent_moe",
+   "group": "moe",
+   "name": "LatentMoE",
+   "def": "Tokens are projected to a narrower width before the routed experts and back after.",
+   "modules": []
+  },
+  {
+   "id": "residual_moe",
+   "group": "moe",
+   "name": "Dense MLP beside MoE",
+   "def": "A dense MLP runs in parallel with the routed experts in every layer (Grok).",
+   "modules": []
+  },
+  {
+   "id": "hash_routing",
+   "group": "moe",
+   "name": "Hash routing",
+   "def": "Experts are chosen from a fixed table indexed by token id, not by a learned router.",
+   "modules": []
+  },
+  {
+   "id": "logit_softcap",
+   "group": "extra",
+   "name": "Logit soft-capping",
+   "def": "Squashes scores with tanh so none can grow past a fixed cap.",
+   "modules": []
+  },
+  {
+   "id": "attention_sink",
+   "group": "extra",
+   "name": "Attention sink",
+   "def": "A learned slot a head can put weight on when no real token deserves it.",
+   "modules": [
+    "04"
+   ]
+  },
+  {
+   "id": "gated_attention",
+   "group": "extra",
+   "name": "Gated attention output",
+   "def": "A sigmoid gate computed from the input scales the attention output per channel.",
+   "modules": []
+  },
+  {
+   "id": "qk_norm",
+   "group": "extra",
+   "name": "QK-norm",
+   "def": "Normalises queries and keys per head before their dot product, which steadies training.",
+   "modules": [
+    "04"
+   ]
+  },
+  {
+   "id": "l2_clip",
+   "group": "extra",
+   "name": "L2 clipping of queries and keys",
+   "def": "Caps the length of query and key vectors instead of normalising them.",
+   "modules": []
+  },
+  {
+   "id": "mtp",
+   "group": "extra",
+   "name": "Multi-token prediction",
+   "def": "Extra small layers predict tokens further ahead; used in training and as a draft model for faster decoding.",
+   "modules": [],
+   "aliases": [
+    "dspark"
+   ]
+  },
+  {
+   "id": "engram",
+   "group": "extra",
+   "name": "Engram n-gram memory",
+   "def": "Large lookup tables indexed by recent n-grams, read by a few layers (DeepSeek V4.1).",
+   "modules": []
+  },
+  {
+   "id": "per_layer_embeddings",
+   "group": "extra",
+   "name": "Per-layer embeddings",
+   "def": "Each layer gets its own small token embedding, stored off the accelerator (Gemma E models).",
+   "modules": []
+  },
+  {
+   "id": "query_pre_attn_scalar",
+   "group": "extra",
+   "name": "Custom attention scale",
+   "def": "Scores are divided by a set constant instead of the square root of head size.",
+   "modules": []
+  },
+  {
+   "id": "attn_softcap",
+   "group": "extra",
+   "name": "Attention soft-capping",
+   "def": "Squashes attention scores with tanh so none can pass a fixed cap (Gemma 2: 50, Grok: 30).",
+   "modules": [],
+   "aliases": [
+    "softcap_attn"
+   ]
+  },
+  {
+   "id": "gate_softcap",
+   "group": "extra",
+   "name": "Gate soft-capping",
+   "def": "Caps the input and forget gate pre-activations of a recurrent cell with tanh (xLSTM: 15).",
+   "modules": []
+  },
+  {
+   "id": "output_scale",
+   "group": "extra",
+   "name": "Output scaling",
+   "def": "The last hidden state or the logits are multiplied by a fixed constant before the softmax.",
+   "modules": [],
+   "aliases": [
+    "mup_output"
+   ]
+  },
+  {
+   "id": "embedding_scale",
+   "group": "extra",
+   "name": "Embedding scaling",
+   "def": "Token embeddings are multiplied by a constant, often the square root of d_model, before the first layer.",
+   "modules": [],
+   "aliases": [
+    "embedding_multiplier"
+   ]
+  },
+  {
+   "id": "no_biases",
+   "group": "extra",
+   "name": "No bias terms",
+   "def": "Linear layers carry weights only, no added bias vectors.",
+   "modules": [
+    "04",
+    "05",
+    "11"
+   ]
+  },
+  {
+   "id": "qkv_bias",
+   "group": "extra",
+   "name": "QKV bias",
+   "def": "Query, key and value projections carry bias terms while other linear layers do not.",
+   "modules": []
+  },
+  {
+   "id": "k_eq_v",
+   "group": "extra",
+   "name": "Keys reused as values",
+   "def": "A layer projects keys only and uses them as values too, so it stores one tensor instead of two.",
+   "modules": []
+  },
+  {
+   "id": "vha",
+   "group": "extra",
+   "name": "Virtual head attention",
+   "def": "A low-rank mix across attention heads, with an identity skip, applied to the head outputs.",
+   "modules": []
+  },
+  {
+   "id": "multimax",
+   "group": "extra",
+   "name": "Multimax output head",
+   "def": "The output head applies a learned temperature that changes piecewise with the logit value.",
+   "modules": []
+  },
+  {
+   "id": "residual_init_scaling",
+   "group": "extra",
+   "name": "Scaled residual initialisation",
+   "def": "Weights of layers that write into the residual stream start smaller, by 1/sqrt(N) for N such layers.",
+   "modules": []
+  },
+  {
+   "id": "document_mask",
+   "group": "extra",
+   "name": "Document masking",
+   "def": "During training, tokens may not attend across the boundary between documents packed into one sequence.",
+   "modules": []
+  },
+  {
+   "id": "z_loss",
+   "group": "extra",
+   "name": "z-loss",
+   "def": "A training penalty on the log of the softmax normaliser that keeps output logits from drifting large.",
+   "modules": []
+  },
+  {
+   "id": "qk_clip",
+   "group": "extra",
+   "name": "QK-clip (MuonClip)",
+   "def": "During training, query and key weights are scaled down whenever an attention score grows past a threshold.",
+   "modules": []
+  },
+  {
+   "id": "rolling_buffer_cache",
+   "group": "extra",
+   "name": "Rolling KV cache",
+   "def": "The KV cache holds only the last W positions; position i overwrites slot i mod W.",
+   "modules": []
+  },
+  {
+   "id": "grouped_output_projection",
+   "group": "extra",
+   "name": "Grouped output projection",
+   "def": "Attention outputs are projected in groups through a low-rank step before the final projection to d_model.",
+   "modules": []
+  },
+  {
+   "id": "vision_tower",
+   "group": "tower",
+   "name": "Vision encoder",
+   "def": "A separate network (often a ViT such as SigLIP) that turns image patches into vectors the decoder reads.",
+   "modules": [
+    "08",
+    "13"
+   ]
+  },
+  {
+   "id": "audio_tower",
+   "group": "tower",
+   "name": "Audio encoder",
+   "def": "Turns sound into vectors or discrete tokens the decoder reads.",
+   "modules": []
+  },
+  {
+   "id": "bpe_bytelevel",
+   "group": "tokenizer",
+   "name": "Byte-level BPE",
+   "def": "Merges frequent byte pairs into tokens; any text can be encoded.",
+   "modules": [
+    "03"
+   ]
+  },
+  {
+   "id": "sentencepiece",
+   "group": "tokenizer",
+   "name": "SentencePiece",
+   "def": "A tokenizer library that trains BPE or unigram vocabularies on raw text.",
+   "modules": []
+  },
+  {
+   "id": "tiktoken_bpe",
+   "group": "tokenizer",
+   "name": "tiktoken BPE",
+   "def": "OpenAI's fast byte-level BPE format, reused by Llama 3, Kimi and Inkling.",
+   "modules": []
+  },
+  {
+   "id": "mxfp4",
+   "group": "precision",
+   "name": "4-bit floats (MXFP4, NVFP4, FP4)",
+   "def": "4-bit floating-point numbers with a shared scale per small block of values; used for expert weights and, in DeepSeek V4.1, the KV cache.",
+   "modules": [
+    "07",
+    "23"
+   ],
+   "aliases": [
+    "fp4_experts",
+    "nvfp4",
+    "fp4_kv_cache"
+   ]
+  }
+ ]
+}

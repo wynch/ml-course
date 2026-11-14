@@ -1,0 +1,438 @@
+{
+ "id": "nemotron-3-ultra-550b-a55b",
+ "name": "Nemotron 3 Ultra 550B-A55B",
+ "organisation": "NVIDIA",
+ "release_date": {
+  "value": "2026-06-04",
+  "precision": "day",
+  "note": "README release line 'Hugging Face - 06/04/2026'; gallery agrees"
+ },
+ "family": "nemotron",
+ "parent_id": "nemotron-3-nano-30b-a3b",
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "OpenMDW-1.1",
+  "licence_url": "https://openmdw.ai/license/1-1/",
+  "repo": "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 550000000000,
+  "active": 55000000000,
+  "note": "README and report"
+ },
+ "layers": 108,
+ "d_model": 8192,
+ "vocab_size": 131072,
+ "context_length": {
+  "value": 262144,
+  "trained": 1048576
+ },
+ "attention": {
+  "kind": "hybrid",
+  "mixers": [
+   {
+    "kind": "ssm_mamba",
+    "layers": 48,
+    "note": "Mamba-2: 256 heads of 64, state 128, 8 groups, conv kernel 4"
+   },
+   {
+    "kind": "gqa",
+    "layers": 12,
+    "note": "64 query heads, 2 KV heads, no position encoding"
+   }
+  ],
+  "heads": 64,
+  "kv_heads": 2,
+  "head_dim": 128,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "nope",
+   "nope_layers": "all; attention layers have no RoPE in the nemotron_h code"
+  },
+  "qk_norm": "none",
+  "mla": null,
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-05
+ },
+ "ffn": {
+  "kind": "moe",
+  "activation": "relu2",
+  "hidden_dim": null,
+  "config_activation": "relu2"
+ },
+ "moe": {
+  "experts": 512,
+  "routed_per_token": 22,
+  "shared": 1,
+  "expert_hidden_dim": 5120,
+  "latent_dim": 2048,
+  "dense_layers": "none",
+  "router": "sigmoid gating with correction bias, routed scale 5.0; router reads the full-width input",
+  "shared_expert_hidden_dim": 10240
+ },
+ "stack": {
+  "pattern": [
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "attention",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "attention",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "attention",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   }
+  ],
+  "repeat": 4,
+  "suffix": [
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   },
+   {
+    "type": "mamba",
+    "count": 1
+   },
+   {
+    "type": "moe",
+    "count": 1
+   }
+  ],
+  "note": "config layers_block_type: 48 Mamba-2 + 48 LatentMoE + 12 attention, one sublayer per layer"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "ssm_mamba",
+    "label": "Mamba-2, 256 heads",
+    "only_on": "mamba"
+   },
+   {
+    "kind": "gqa",
+    "label": "64 query heads, 2 KV heads, no RoPE",
+    "only_on": "attention"
+   },
+   {
+    "kind": "latent_moe",
+    "label": "8192 -> 2048 latent, top-22 of 512 squared-ReLU experts (5120), back to 8192; + shared expert 10240 at full width",
+    "only_on": "moe"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "latent_moe",
+   "what": "routed experts work at 2048 wide (fc1/fc2_latent_proj); the shared expert works at full width",
+   "where": "48 MoE layers"
+  },
+  {
+   "name": "mtp",
+   "what": "two MTP heads sharing weights, each one attention layer then one LatentMoE layer",
+   "where": "after the main stack"
+  },
+  {
+   "name": "mxfp4",
+   "what": "pre-trained in NVFP4; the final 16 layers, latent and attention projections, MTP and embeddings kept in higher precision; Mamba output projections also stay in higher precision (report section 2.2)",
+   "where": "most linear layers"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "idx": {
+   "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4/blob/main/model.safetensors.index.json",
+   "kind": "weights_index",
+   "note": "fc1/fc2_latent_proj in MoE layers; mtp.layers.0 attention + mtp.layers.1 MoE",
+   "accessed": "2026-11-14"
+  },
+  "readme": {
+   "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4/blob/main/README.md",
+   "kind": "model_card",
+   "note": "550B / 55B; LatentMoE Mamba-2 hybrid with MTP; up to 1M; OpenMDW-1.1; 06/04/2026",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://research.nvidia.com/labs/nemotron/files/NVIDIA-Nemotron-3-Ultra-Technical-Report.pdf",
+   "kind": "paper",
+   "title": "Nemotron 3 Ultra: Open, Efficient Mixture-of-Experts Hybrid Mamba-Transformer Model for Agentic Reasoning",
+   "note": "section 2.1, Figure 2, Table 1; 2.2 NVFP4",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/nemotron_h/modeling_nemotron_h.py",
+   "kind": "code",
+   "note": "NemotronHBlock order; NemotronHMoE latent projections; attention without rotary",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4",
+   "kind": "model_card",
+   "note": "license openmdw-1.1",
+   "accessed": "2026-11-14"
+  },
+  "gal": {
+   "url": "https://github.com/rasbt/llm-architecture-gallery/blob/main/models.yml",
+   "kind": "secondary",
+   "note": "entry 'Nemotron 3 Ultra 550B-A55B': date, licence name, cross-check only",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "readme",
+   "gal"
+  ],
+  "weights.*": [
+   "readme",
+   "hfapi"
+  ],
+  "modality.*": [
+   "readme"
+  ],
+  "params.*": [
+   "readme",
+   "paper"
+  ],
+  "layers": [
+   "cfg",
+   "paper"
+  ],
+  "d_model": [
+   "cfg",
+   "paper"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "context_length.value": [
+   "cfg"
+  ],
+  "context_length.trained": [
+   "paper",
+   "readme"
+  ],
+  "attention.*": [
+   "cfg",
+   "paper",
+   "code"
+  ],
+  "norm.*": [
+   "code",
+   "cfg"
+  ],
+  "ffn.*": [
+   "cfg"
+  ],
+  "moe.*": [
+   "cfg",
+   "paper",
+   "code"
+  ],
+  "stack.*": [
+   "cfg",
+   "paper"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "paper",
+   "readme",
+   "idx",
+   "code"
+  ],
+  "layer_kinds.*": [
+   "cfg",
+   "code"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Sebastian Raschka",
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/images/architectures/nemotron-3-ultra-550b-a55b.webp",
+   "title": "Nemotron 3 Ultra 550B-A55B",
+   "terms": "no reuse licence stated; link only"
+  },
+  {
+   "author": "NVIDIA",
+   "url": "https://research.nvidia.com/labs/nemotron/files/NVIDIA-Nemotron-3-Ultra-Technical-Report.pdf",
+   "title": "Report Figure 2: layer pattern",
+   "terms": "no licence stated; link only"
+  }
+ ],
+ "unknowns": {
+  "ffn.hidden_dim": "no dense FFN layers: every FFN layer is MoE",
+  "attention.position": "the Ultra report does not state the position scheme; record follows the nemotron_h code and the Nano report"
+ },
+ "notes": [
+  "Config keeps rope_theta 10000 and num_nextn_predict_layers 1; report says two MTP heads share weights. Record follows the report for MTP.",
+  "Context extension: continued pre-training at 1,048,576 tokens for 92% of the iterations, after the 20T-token main phase (report section 2.5)."
+ ],
+ "teaches": [
+  "hybrid",
+  "ssm_mamba",
+  "latent_moe",
+  "mtp",
+  "nope"
+ ],
+ "layer_kinds": {
+  "mamba": {
+   "mixer": "ssm_mamba",
+   "ffn": "none",
+   "heads": 256,
+   "head_dim": 64,
+   "position": "none",
+   "note": "Mamba-2: state 128, 8 groups, conv kernel 4"
+  },
+  "attention": {
+   "mixer": "gqa",
+   "ffn": "none",
+   "heads": 64,
+   "kv_heads": 2,
+   "head_dim": 128,
+   "position": "nope"
+  },
+  "moe": {
+   "mixer": "none",
+   "ffn": "latent_moe"
+  }
+ }
+}

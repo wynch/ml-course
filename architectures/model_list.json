@@ -1,0 +1,784 @@
+[
+ {
+  "id": "gpt-2-small",
+  "name": "GPT-2 small (124M)",
+  "org": "OpenAI",
+  "date": "2019-02-14",
+  "open_weights": true,
+  "teaches": "baseline: learned absolute positions, pre-LN LayerNorm, GELU MLP, full MHA, tied embeddings",
+  "sources": [
+   "https://huggingface.co/openai-community/gpt2/blob/main/config.json"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "gpt-2-xl",
+  "name": "GPT-2 XL (1.5B)",
+  "org": "OpenAI",
+  "date": "2019-11-05",
+  "open_weights": true,
+  "teaches": "same recipe scaled 12x",
+  "sources": [
+   "https://huggingface.co/openai-community/gpt2-xl/blob/main/config.json"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "gpt-3-175b",
+  "name": "GPT-3 175B",
+  "org": "OpenAI",
+  "date": "2020-05-28",
+  "open_weights": false,
+  "teaches": "closed; paper gives shape; alternating dense / locally banded sparse attention",
+  "sources": [
+   "https://arxiv.org/abs/2005.14165"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "gpt-j-6b",
+  "name": "GPT-J 6B",
+  "org": "EleutherAI",
+  "date": "2021-06-04",
+  "open_weights": true,
+  "teaches": "rotary on 64 dims per head (partial RoPE); parallel block to verify",
+  "sources": [
+   "https://huggingface.co/EleutherAI/gpt-j-6b/blob/main/config.json"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "gpt-neox-20b",
+  "name": "GPT-NeoX-20B",
+  "org": "EleutherAI",
+  "date": "2022-04-14",
+  "open_weights": true,
+  "teaches": "rotary on 25% of head dims at 20B",
+  "sources": [
+   "https://huggingface.co/EleutherAI/gpt-neox-20b/blob/main/config.json",
+   "https://arxiv.org/abs/2204.06745"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "palm-540b",
+  "name": "PaLM 540B",
+  "org": "Google",
+  "date": "2022-04-05",
+  "open_weights": false,
+  "teaches": "closed; paper: SwiGLU, parallel block, multi-query attention, RoPE, no biases",
+  "sources": [
+   "https://arxiv.org/abs/2204.02311"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "chinchilla-70b",
+  "name": "Chinchilla 70B",
+  "org": "DeepMind",
+  "date": "2022-03-29",
+  "open_weights": false,
+  "teaches": "closed; compute-optimal scaling (module 19)",
+  "sources": [
+   "https://arxiv.org/abs/2203.15556"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "opt-66b",
+  "name": "OPT-66B",
+  "org": "Meta",
+  "date": "2022-05-02",
+  "open_weights": true,
+  "teaches": "GPT-3-style open replica; ReLU MLP, learned positions",
+  "sources": [
+   "https://huggingface.co/facebook/opt-66b/blob/main/config.json",
+   "https://arxiv.org/abs/2205.01068"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "bloom-176b",
+  "name": "BLOOM 176B",
+  "org": "BigScience",
+  "date": "2022-07-11",
+  "open_weights": true,
+  "teaches": "ALiBi position bias, 250k vocab",
+  "sources": [
+   "https://huggingface.co/bigscience/bloom/blob/main/config.json",
+   "https://arxiv.org/abs/2211.05100"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "llama-1-7b",
+  "name": "LLaMA 7B",
+  "org": "Meta",
+  "date": "2023-02-27",
+  "open_weights": true,
+  "teaches": "the modern recipe: pre-norm RMSNorm, SwiGLU, RoPE",
+  "sources": [
+   "https://huggingface.co/huggyllama/llama-7b/blob/main/config.json (community upload of original weights)",
+   "https://arxiv.org/abs/2302.13971"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "llama-2-7b",
+  "name": "Llama 2 7B",
+  "org": "Meta",
+  "date": "2023-07-18",
+  "open_weights": true,
+  "teaches": "4k context; MHA at 7B",
+  "sources": [
+   "https://huggingface.co/meta-llama/Llama-2-7b-hf/blob/main/config.json (gated; read via mirror NousResearch/Llama-2-7b-hf)",
+   "https://arxiv.org/abs/2307.09288"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "llama-2-70b",
+  "name": "Llama 2 70B",
+  "org": "Meta",
+  "date": "2023-07-18",
+  "open_weights": true,
+  "teaches": "GQA (8 KV heads) enters the Llama line",
+  "sources": [
+   "https://huggingface.co/meta-llama/Llama-2-70b-hf/blob/main/config.json (gated; read via mirror NousResearch/Llama-2-70b-hf)",
+   "https://arxiv.org/abs/2307.09288"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "falcon-40b",
+  "name": "Falcon 40B",
+  "org": "TII",
+  "date": "2023-05-24",
+  "open_weights": true,
+  "teaches": "parallel attention+MLP, multi-group (GQA-like) attention",
+  "sources": [
+   "https://huggingface.co/tiiuae/falcon-40b/blob/main/config.json"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "mistral-7b",
+  "name": "Mistral 7B",
+  "org": "Mistral AI",
+  "date": "2023-09-27",
+  "open_weights": true,
+  "teaches": "sliding-window attention + rolling KV cache, GQA",
+  "sources": [
+   "https://huggingface.co/mistralai/Mistral-7B-v0.1/blob/main/config.json",
+   "https://arxiv.org/abs/2310.06825"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "mixtral-8x7b",
+  "name": "Mixtral 8x7B",
+  "org": "Mistral AI",
+  "date": "2024-01-08",
+  "open_weights": true,
+  "teaches": "coarse MoE: 8 experts, top-2",
+  "sources": [
+   "https://huggingface.co/mistralai/Mixtral-8x7B-v0.1/blob/main/config.json",
+   "https://arxiv.org/abs/2401.04088"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "mamba-2.8b",
+  "name": "Mamba 2.8B",
+  "org": "Gu & Dao (state-spaces)",
+  "date": "2023-12-01",
+  "open_weights": true,
+  "teaches": "attention-free selective state-space model",
+  "sources": [
+   "https://huggingface.co/state-spaces/mamba-2.8b-hf/blob/main/config.json",
+   "https://arxiv.org/abs/2312.00752"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "deepseek-moe-16b",
+  "name": "DeepSeekMoE 16B",
+  "org": "DeepSeek",
+  "date": "2024-01-11",
+  "open_weights": true,
+  "teaches": "fine-grained experts + shared experts, dense first layer",
+  "sources": [
+   "https://huggingface.co/deepseek-ai/deepseek-moe-16b-base/blob/main/config.json",
+   "https://arxiv.org/abs/2401.06066"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "gemma-7b",
+  "name": "Gemma 7B",
+  "org": "Google",
+  "date": "2024-03-13",
+  "open_weights": true,
+  "teaches": "GELU-gated FFN, head_dim 256, 256k vocab",
+  "sources": [
+   "https://huggingface.co/google/gemma-7b/blob/main/config.json (gated; read via mirror unsloth/gemma-7b)",
+   "https://arxiv.org/abs/2403.08295"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "jamba-v0.1",
+  "name": "Jamba v0.1",
+  "org": "AI21",
+  "date": "2024-03-28",
+  "open_weights": true,
+  "teaches": "hybrid: Mamba layers + 1-in-8 attention + MoE every other layer",
+  "sources": [
+   "https://huggingface.co/ai21labs/Jamba-v0.1/blob/main/config.json",
+   "https://arxiv.org/abs/2403.19887"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "llama-3-8b",
+  "name": "Llama 3 8B",
+  "org": "Meta",
+  "date": "2024-04-18",
+  "open_weights": true,
+  "teaches": "GQA at 8B, 128k tiktoken vocab, RoPE theta 500k",
+  "sources": [
+   "https://huggingface.co/meta-llama/Meta-Llama-3-8B/blob/main/config.json (gated; read via mirror NousResearch/Meta-Llama-3-8B)",
+   "https://arxiv.org/abs/2407.21783"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "llama-3.1-405b",
+  "name": "Llama 3.1 405B",
+  "org": "Meta",
+  "date": "2024-07-23",
+  "open_weights": true,
+  "teaches": "126 layers; Llama 3 RoPE scaling to 128K",
+  "sources": [
+   "https://huggingface.co/meta-llama/Llama-3.1-405B/blob/main/config.json (gated; read via mirror unsloth/Meta-Llama-3.1-405B-bnb-4bit)",
+   "https://arxiv.org/abs/2407.21783"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "rwkv-6-7b",
+  "name": "RWKV-6 (Finch) 7B",
+  "org": "RWKV",
+  "date": "2024-07-21",
+  "open_weights": true,
+  "teaches": "linear-recurrent 'attention' with matrix-valued state",
+  "sources": [
+   "https://huggingface.co/RWKV/v6-Finch-7B-HF/blob/main/config.json",
+   "https://arxiv.org/abs/2404.05892"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "gemma-2-9b",
+  "name": "Gemma 2 9B",
+  "org": "Google",
+  "date": "2024-07-31",
+  "open_weights": true,
+  "teaches": "1:1 local/global, attention and final-logit soft-capping",
+  "sources": [
+   "https://huggingface.co/google/gemma-2-9b/blob/main/config.json (gated; read via mirror unsloth/gemma-2-9b)",
+   "https://arxiv.org/abs/2408.00118"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "qwen2.5-7b",
+  "name": "Qwen2.5 7B",
+  "org": "Alibaba (Qwen team)",
+  "date": "2024-09-19",
+  "open_weights": true,
+  "teaches": "QKV bias, 4 KV heads, 152k vocab",
+  "sources": [
+   "https://huggingface.co/Qwen/Qwen2.5-7B/blob/main/config.json",
+   "https://arxiv.org/abs/2407.10671"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "olmo-2-7b",
+  "name": "OLMo 2 7B",
+  "org": "Ai2",
+  "date": "2024-11-25",
+  "open_weights": true,
+  "teaches": "post-norm placement inside the residual + QK-norm",
+  "sources": [
+   "https://huggingface.co/allenai/OLMo-2-1124-7B/blob/main/config.json",
+   "https://arxiv.org/abs/2501.00656"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "phi-4",
+  "name": "Phi-4 14B",
+  "org": "Microsoft",
+  "date": "2024-12-12",
+  "open_weights": true,
+  "teaches": "plain pre-norm GQA stack; contrast case",
+  "sources": [
+   "https://huggingface.co/microsoft/phi-4/blob/main/config.json",
+   "https://arxiv.org/abs/2412.08905"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "deepseek-v2",
+  "name": "DeepSeek-V2",
+  "org": "DeepSeek",
+  "date": "2024-05-07",
+  "open_weights": true,
+  "teaches": "multi-head latent attention (MLA) introduced",
+  "sources": [
+   "https://huggingface.co/deepseek-ai/DeepSeek-V2/blob/main/config.json",
+   "https://arxiv.org/abs/2405.04434"
+  ],
+  "gallery": ""
+ },
+ {
+  "id": "deepseek-v3",
+  "name": "DeepSeek-V3",
+  "org": "DeepSeek",
+  "date": "2024-12-26",
+  "open_weights": true,
+  "teaches": "MLA + 256-expert MoE + shared expert + MTP; the 2025 template",
+  "sources": [
+   "https://huggingface.co/deepseek-ai/DeepSeek-V3/blob/main/config.json",
+   "https://arxiv.org/abs/2412.19437"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "xlstm-7b",
+  "name": "xLSTM 7B",
+  "org": "NXAI",
+  "date": "2025-03-17",
+  "open_weights": true,
+  "teaches": "recurrent mLSTM blocks, no attention",
+  "sources": [
+   "https://huggingface.co/NX-AI/xLSTM-7b/blob/main/config.json",
+   "https://arxiv.org/abs/2503.13427"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "gemma-3-27b",
+  "name": "Gemma 3 27B",
+  "org": "Google",
+  "date": "2025-03-11",
+  "open_weights": true,
+  "teaches": "5:1 local/global, QK-norm replaces softcap, SigLIP vision tower",
+  "sources": [
+   "https://huggingface.co/google/gemma-3-27b-it/blob/main/config.json (gated; read via mirror unsloth/gemma-3-27b-it)",
+   "https://arxiv.org/abs/2503.19786"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "llama-4-maverick",
+  "name": "Llama 4 Maverick (17B active, 128 experts)",
+  "org": "Meta",
+  "date": "2025-04-05",
+  "open_weights": true,
+  "teaches": "alternating dense/MoE blocks, 128 experts top-1, NoPE every 4th layer, chunked attention, vision tower",
+  "sources": [
+   "https://huggingface.co/meta-llama/Llama-4-Maverick-17B-128E-Instruct/blob/main/config.json (gated; read via mirror unsloth/Llama-4-Maverick-17B-128E-Instruct)"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "qwen3-8b",
+  "name": "Qwen3 8B",
+  "org": "Alibaba (Qwen team)",
+  "date": "2025-04-28",
+  "open_weights": true,
+  "teaches": "QK-norm, no QKV bias; current dense default",
+  "sources": [
+   "https://huggingface.co/Qwen/Qwen3-8B/blob/main/config.json",
+   "https://arxiv.org/abs/2505.09388"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "qwen3-235b-a22b",
+  "name": "Qwen3 235B-A22B",
+  "org": "Alibaba (Qwen team)",
+  "date": "2025-04-28",
+  "open_weights": true,
+  "teaches": "128-expert MoE without shared expert",
+  "sources": [
+   "https://huggingface.co/Qwen/Qwen3-235B-A22B/blob/main/config.json",
+   "https://arxiv.org/abs/2505.09388"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "smollm3-3b",
+  "name": "SmolLM3 3B",
+  "org": "Hugging Face",
+  "date": "2025-06-19",
+  "open_weights": true,
+  "teaches": "NoPE every 4th layer (already in module 05)",
+  "sources": [
+   "https://huggingface.co/HuggingFaceTB/SmolLM3-3B-Base/blob/main/config.json"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "kimi-k2",
+  "name": "Kimi K2",
+  "org": "Moonshot AI",
+  "date": "2025-07-10",
+  "open_weights": true,
+  "teaches": "DeepSeek-V3 shape scaled to 1T, 384 experts",
+  "sources": [
+   "https://huggingface.co/moonshotai/Kimi-K2-Base/blob/main/config.json"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "glm-4.5",
+  "name": "GLM-4.5",
+  "org": "Z.ai",
+  "date": "2025-07-28",
+  "open_weights": true,
+  "teaches": "deep (92 layers) GQA MoE with QK-norm",
+  "sources": [
+   "https://huggingface.co/zai-org/GLM-4.5/blob/main/config.json",
+   "https://arxiv.org/abs/2508.06471"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "gpt-oss-120b",
+  "name": "gpt-oss-120b",
+  "org": "OpenAI",
+  "date": "2025-08-04",
+  "open_weights": true,
+  "teaches": "alternating 128-token window / global layers, MXFP4 experts",
+  "sources": [
+   "https://huggingface.co/openai/gpt-oss-120b/blob/main/config.json",
+   "https://arxiv.org/abs/2508.10925"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "grok-2.5",
+  "name": "Grok 2.5",
+  "org": "xAI",
+  "date": "2025-08-22",
+  "open_weights": true,
+  "teaches": "coarse 8-expert MoE plus residual dense MLP, three softcaps",
+  "sources": [
+   "https://huggingface.co/xai-org/grok-2/blob/main/config.json"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "qwen3-next-80b-a3b",
+  "name": "Qwen3-Next 80B-A3B",
+  "org": "Alibaba (Qwen team)",
+  "date": "2025-09-09",
+  "open_weights": true,
+  "teaches": "3:1 Gated DeltaNet / gated attention hybrid, 512 experts",
+  "sources": [
+   "https://huggingface.co/Qwen/Qwen3-Next-80B-A3B-Instruct/blob/main/config.json"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "minimax-m2",
+  "name": "MiniMax M2",
+  "org": "MiniMax",
+  "date": "2025-10-23",
+  "open_weights": true,
+  "teaches": "full-attention MoE, per-layer QK-norm, MTP",
+  "sources": [
+   "https://huggingface.co/MiniMaxAI/MiniMax-M2/blob/main/config.json"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "kimi-linear-48b-a3b",
+  "name": "Kimi Linear 48B-A3B",
+  "org": "Moonshot AI",
+  "date": "2025-10-30",
+  "open_weights": true,
+  "teaches": "Kimi Delta Attention + MLA hybrid (NoPE)",
+  "sources": [
+   "https://huggingface.co/moonshotai/Kimi-Linear-48B-A3B-Base/blob/main/config.json",
+   "https://arxiv.org/abs/2510.26692"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "olmo-3-7b",
+  "name": "OLMo 3 7B",
+  "org": "Ai2",
+  "date": "2025-11-20",
+  "open_weights": true,
+  "teaches": "3:1 sliding/global added to OLMo",
+  "sources": [
+   "https://huggingface.co/allenai/Olmo-3-1025-7B/blob/main/config.json"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "deepseek-v3.2",
+  "name": "DeepSeek-V3.2",
+  "org": "DeepSeek",
+  "date": "2025-12-01",
+  "open_weights": true,
+  "teaches": "DeepSeek Sparse Attention: indexer picks top-2048 tokens",
+  "sources": [
+   "https://huggingface.co/deepseek-ai/DeepSeek-V3.2/blob/main/config.json"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "nemotron-3-nano-30b-a3b",
+  "name": "Nemotron 3 Nano 30B-A3B",
+  "org": "NVIDIA",
+  "date": "2025-12-04",
+  "open_weights": true,
+  "teaches": "Mamba + MoE layers with a few attention layers",
+  "sources": [
+   "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16/blob/main/config.json",
+   "https://arxiv.org/abs/2512.20848"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "glm-5",
+  "name": "GLM-5",
+  "org": "Z.ai",
+  "date": "2026-02-11",
+  "open_weights": true,
+  "teaches": "MLA + DeepSeek Sparse Attention in a 744B MoE",
+  "sources": [
+   "https://huggingface.co/zai-org/GLM-5/blob/main/config.json",
+   "https://arxiv.org/abs/2602.15763"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "qwen3.5-397b-a17b",
+  "name": "Qwen3.5 397B-A17B",
+  "org": "Alibaba (Qwen team)",
+  "date": "2026-02-16",
+  "open_weights": true,
+  "teaches": "Gated DeltaNet hybrid at flagship scale, native vision",
+  "sources": [
+   "https://huggingface.co/Qwen/Qwen3.5-397B-A17B/blob/main/config.json"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "gemma-4-e4b",
+  "name": "Gemma 4 E4B",
+  "org": "Google",
+  "date": "2026-04-02",
+  "open_weights": true,
+  "teaches": "on-device: per-layer input embeddings, audio + vision towers",
+  "sources": [
+   "https://huggingface.co/google/gemma-4-E4B-it/blob/main/config.json",
+   "https://arxiv.org/abs/2607.02770"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "gemma-4-31b",
+  "name": "Gemma 4 31B",
+  "org": "Google",
+  "date": "2026-04-02",
+  "open_weights": true,
+  "teaches": "5:1 local/global with partial RoPE on global layers",
+  "sources": [
+   "https://huggingface.co/google/gemma-4-31B-it/blob/main/config.json",
+   "https://arxiv.org/abs/2607.02770"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "qwen3.6-35b-a3b",
+  "name": "Qwen3.6 35B-A3B",
+  "org": "Alibaba (Qwen team)",
+  "date": "2026-04-15",
+  "open_weights": true,
+  "teaches": "small hybrid MoE used in course module 11",
+  "sources": [
+   "https://huggingface.co/Qwen/Qwen3.6-35B-A3B/blob/main/config.json"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "deepseek-v4-pro",
+  "name": "DeepSeek-V4-Pro",
+  "org": "DeepSeek",
+  "date": "2026-04-24",
+  "open_weights": true,
+  "teaches": "1M context: compressed sparse attention (CSA/HCA), mHC, 384 experts",
+  "sources": [
+   "https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/config.json",
+   "https://arxiv.org/abs/2606.19348"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "lfm2.5-1.2b",
+  "name": "LFM2.5 1.2B",
+  "org": "Liquid AI",
+  "date": "2026-01-20",
+  "open_weights": true,
+  "teaches": "short-convolution / attention hybrid for devices",
+  "sources": [
+   "https://huggingface.co/LiquidAI/LFM2.5-1.2B-Thinking/blob/main/config.json",
+   "https://arxiv.org/abs/2511.23404"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "nemotron-3-ultra-550b-a55b",
+  "name": "Nemotron 3 Ultra 550B-A55B",
+  "org": "NVIDIA",
+  "date": "2026-06-04",
+  "open_weights": true,
+  "teaches": "Mamba-2 / latent-MoE hybrid, 512 experts, 22 active",
+  "sources": [
+   "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4/blob/main/config.json"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "minimax-m3",
+  "name": "MiniMax M3",
+  "org": "MiniMax",
+  "date": "2026-06-13",
+  "open_weights": true,
+  "teaches": "block-sparse attention, 7 MTP modules",
+  "sources": [
+   "https://huggingface.co/MiniMaxAI/MiniMax-M3/blob/main/config.json",
+   "https://arxiv.org/abs/2606.13392"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "inkling",
+  "name": "Inkling (975B)",
+  "org": "Thinking Machines Lab",
+  "date": "2026-07-15",
+  "open_weights": true,
+  "teaches": "relative-position bias instead of RoPE, short convs, audio+vision; screenshot model",
+  "sources": [
+   "https://huggingface.co/thinkingmachines/Inkling/blob/main/config.json"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "kimi-k3",
+  "name": "Kimi K3 (2.8T)",
+  "org": "Moonshot AI",
+  "date": "2026-07-27",
+  "open_weights": true,
+  "teaches": "KDA + gated MLA, Attention Residuals, LatentMoE",
+  "sources": [
+   "https://huggingface.co/moonshotai/Kimi-K3/blob/main/config.json",
+   "https://arxiv.org/abs/2607.24653"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "qwen3.8-27b",
+  "name": "Qwen3.8 27B",
+  "org": "Alibaba (Qwen team)",
+  "date": "2026-08-14",
+  "open_weights": true,
+  "teaches": "dense hybrid: Gated DeltaNet without MoE",
+  "sources": [
+   "https://huggingface.co/Qwen/Qwen3.8-27B/blob/main/config.json"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "deepseek-v4.1-flash",
+  "name": "DeepSeek-V4.1-Flash",
+  "org": "DeepSeek",
+  "date": "2026-09-10",
+  "open_weights": true,
+  "teaches": "Engram n-gram memory layers + vision tower",
+  "sources": [
+   "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash/blob/main/config.json"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "muse-spark-open",
+  "name": "Muse Spark Open 816B-A42B",
+  "org": "Meta",
+  "date": "2026-10-15",
+  "open_weights": true,
+  "teaches": "Meta's newest open MoE (config gated; gallery only)",
+  "sources": [
+   "https://huggingface.co/meta-models/Muse-Spark-Open-816B-A42B/blob/main/config.json"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "mistral-large-4",
+  "name": "Mistral Large 4",
+  "org": "Mistral AI",
+  "date": "2026-10-29",
+  "open_weights": true,
+  "teaches": "MLA + indexed sparse attention + NoPE every 4th, 1T MoE",
+  "sources": [
+   "https://huggingface.co/mistralai/Mistral-Large-4-1T-A52B/blob/main/config.json"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "kimi-k3.1-pro",
+  "name": "Kimi K3.1 Pro (2.8T)",
+  "org": "Moonshot AI",
+  "date": "2026-11-04",
+  "open_weights": true,
+  "teaches": "K3 with gated MLA layers turned into gated DSA; screenshot model",
+  "sources": [
+   "https://huggingface.co/moonshotai/Kimi-K3.1-Pro/blob/main/config.json",
+   "https://arxiv.org/abs/2607.24653"
+  ],
+  "gallery": "yes"
+ },
+ {
+  "id": "inkling-2-small",
+  "name": "Inkling 2 Small (594B)",
+  "org": "Thinking Machines Lab",
+  "date": "2026-11-05",
+  "open_weights": true,
+  "teaches": "block attention residuals, relative positions, softcaps; screenshot model",
+  "sources": [
+   "https://huggingface.co/thinkingmachines/Inkling-2-Small/blob/main/config.json"
+  ],
+  "gallery": "live site only"
+ },
+ {
+  "id": "ernie-5.5-flash",
+  "name": "ERNIE 5.5 Flash Base",
+  "org": "Baidu",
+  "date": "2026-11-05",
+  "open_weights": true,
+  "teaches": "MLA with 1 KV head, 512 experts, SiTU activation",
+  "sources": [
+   "https://huggingface.co/baidu/ERNIE-5.5-Flash-Base/blob/main/config.json",
+   "https://arxiv.org/abs/2610.17959"
+  ],
+  "gallery": "yes"
+ }
+]

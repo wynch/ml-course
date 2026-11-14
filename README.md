@@ -265,6 +265,7 @@ python3 -m http.server        # then browse to
 | [BPE, one merge at a time](explorables/03-bpe-stepper.html) | 03 | Step through the real first 60 merges, then apply them to text you type. |
 | [Attention, one query at a time](explorables/04-attention.html) | 04 | Drive a Q·Kᵀ heatmap with causal mask and temperature — toy vectors or the real tiny-GPT heads. |
 | [Anatomy of a transformer](explorables/05-transformer-anatomy.html) | 05 | Send a pulse up the decoder stack, hover components for real shapes, read a **logit lens**. |
+| [LLM architecture explorer](explorables/05b-architecture-explorer.html) | 05 | Pick a real model, see its block drawn from its config, compare two side by side, walk a family from parent to child. |
 | [The honest scorecard](explorables/05a-evaluation-lab.html) | 05½ | Move a threshold, inspect every error, compare slices, and introduce leakage to manufacture a fake improvement. |
 | [Low rank: what LoRA actually trains](explorables/06-lora-rank.html) | 06 | Drag the rank slider and watch a real trained **ΔW** rebuild from 7 singular directions. |
 | [KV cache & int8](explorables/07-kv-cache.html) | 07 | Run the decode loop with the cache on and off, every attention cell counted, then quantize. |

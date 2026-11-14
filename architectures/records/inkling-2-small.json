@@ -1,0 +1,368 @@
+{
+ "id": "inkling-2-small",
+ "name": "Inkling 2 Small (594B)",
+ "organisation": "Thinking Machines Lab",
+ "release_date": {
+  "value": "2026-11-05",
+  "precision": "day",
+  "note": "model card; weights on Hugging Face from a 2026-11-12 update"
+ },
+ "family": "inkling",
+ "parent_id": "inkling",
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "Apache-2.0",
+  "licence_url": "https://www.apache.org/licenses/LICENSE-2.0",
+  "repo": "thinkingmachines/Inkling-2-Small"
+ },
+ "modality": {
+  "inputs": [
+   "text",
+   "image"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 594000000000,
+  "active": 17000000000,
+  "note": "model card"
+ },
+ "layers": 48,
+ "d_model": 4608,
+ "vocab_size": 201024,
+ "context_length": {
+  "value": 1048576,
+  "trained": "1M (phase H3)"
+ },
+ "tokenizer": {
+  "kind": "tiktoken_bpe",
+  "stated_vocab": 200058,
+  "note": "repo ships tiktoken/tokenizer.model; config unpadded_vocab_size 200058"
+ },
+ "attention": {
+  "kind": "gqa",
+  "heads": 48,
+  "kv_heads": 8,
+  "head_dim": 128,
+  "window": 1024,
+  "local_global": "5:1",
+  "position": {
+   "scheme": "relative_bias",
+   "theta": null,
+   "scaling": "log_length_scaling"
+  },
+  "qk_norm": "l2_clip",
+  "mla": null,
+  "sparse": null,
+  "other": [
+   "attention_sink",
+   "gated_attention"
+  ],
+  "window_kind": "sliding"
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": true,
+  "eps": 1e-06
+ },
+ "ffn": {
+  "kind": "moe",
+  "activation": "swiglu",
+  "hidden_dim": null,
+  "config_activation": null
+ },
+ "moe": {
+  "experts": 384,
+  "routed_per_token": 8,
+  "shared": 0,
+  "expert_hidden_dim": 2304,
+  "latent_dim": null,
+  "dense_layers": "none",
+  "router": "sigmoid scores; a learned bias only steers the top-8 choice; weights renormalised, times 8"
+ },
+ "stack": {
+  "pattern": [
+   {
+    "type": "local",
+    "count": 5
+   },
+   {
+    "type": "global",
+    "count": 1
+   }
+  ],
+  "repeat": 8,
+  "note": "global at 0-based layers 5, 11, ... 47 (config local_layer_ids)"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "attention_residuals",
+    "label": "attention input: learned mix of earlier block outputs (3 queries on global layers, one each for q, k, v)"
+   },
+   {
+    "kind": "rmsnorm",
+    "label": "input_layernorm (global layers: separate q, k and v input norms)"
+   },
+   {
+    "kind": "gqa",
+    "label": "k and v pass short convs (taps partly per token on global layers); q, k L2-clipped; values RMS-normed; learned relative bias; sink logit; sigmoid output gate; local: window 1024 / global: full, log-length scaling"
+   },
+   {
+    "kind": "short_conv",
+    "label": "post_attention_convolution on the attention output"
+   },
+   {
+    "kind": "residual_add",
+    "label": "skipped at a block boundary (every 6th layer), where the block input is stored instead"
+   },
+   {
+    "kind": "attention_residuals",
+    "label": "MLP input: learned mix of earlier block outputs"
+   },
+   {
+    "kind": "rmsnorm",
+    "label": "post_attention_layernorm"
+   },
+   {
+    "kind": "moe",
+    "label": "top-8 of 384 SwiGLU experts, gate and up soft-capped (4, 25), no shared expert"
+   },
+   {
+    "kind": "short_conv",
+    "label": "post_mlp_convolution on the MoE output"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "short_conv",
+   "what": "four depthwise causal convolutions of kernel 4 per layer, each with its own skip: on keys and on values, on the attention output and on the MoE output; the sum is scaled by 1/sqrt(5), or by 1/3 for the key and value convs of global layers, whose taps add a per-token part projected from the input",
+   "where": "every layer"
+  },
+  {
+   "name": "attention_residuals",
+   "what": "block attention residuals; 6 layers per block (8 blocks); attn_res queries per sublayer plus one output query",
+   "where": "between sublayers and before the head"
+  },
+  {
+   "name": "logit_softcap",
+   "what": "final logits soft-capped at 30",
+   "where": "output head"
+  },
+  {
+   "name": "mlp_softcap",
+   "what": "gate capped at 4, up projection at 25",
+   "where": "every expert"
+  },
+  {
+   "name": "relative_bias",
+   "what": "learned relative-position term: d_rel 16, extent 1024 tokens, L2-clipped at 8",
+   "where": "every attention layer"
+  },
+  {
+   "name": "log_length_scaling",
+   "what": "scores scaled with log context length (alpha 0.1, floor 128,000)",
+   "where": "attention"
+  },
+  {
+   "name": "mtp",
+   "what": "5-layer multi-token head, block size 8, reads layers 5, 11, ... 48; uses RoPE (theta 1e6)",
+   "where": "after the main stack"
+  }
+ ],
+ "omitted_towers": [
+  {
+   "modality": "image",
+   "what": "ViT based on Perception Encoder; 20x20 patches, 2x2 pooling",
+   "params": 292000000,
+   "layers": 23
+  }
+ ],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/thinkingmachines/Inkling-2-Small/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "card": {
+   "url": "https://thinkingmachines.ai/model-card/inkling-2-small/",
+   "kind": "model_card",
+   "accessed": "2026-11-14"
+  },
+  "readme": {
+   "url": "https://huggingface.co/thinkingmachines/Inkling-2-Small/blob/main/README.md",
+   "kind": "model_card",
+   "note": "'Architecture type' and 'Parameters' sections; license apache-2.0",
+   "accessed": "2026-11-14"
+  },
+  "post": {
+   "url": "https://thinkingmachines.ai/news/inkling-2-small/",
+   "kind": "official_post",
+   "note": "vision encoder, no audio, context phases, weights update 2026-11-12",
+   "accessed": "2026-11-14"
+  },
+  "idx": {
+   "url": "https://huggingface.co/thinkingmachines/Inkling-2-Small/blob/main/model.safetensors.index.json",
+   "kind": "weights_index",
+   "note": "tensor names show which parts each layer has; order is inferred",
+   "accessed": "2026-11-14"
+  },
+  "rgal": {
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/#card-inkling-2-small",
+   "kind": "secondary",
+   "note": "card listed on the live page; not in the models.yml snapshot; fact sheet not read",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/inkling2/modeling_inkling2.py",
+   "kind": "code",
+   "note": "added 2026-11-12 (PR 50682): Inkling2SlidingDecoderLayer, Inkling2FullDecoderLayer, ShortConvolution, BlockAttentionResidual, SoftcappedSwiGLU, TopKRouter",
+   "accessed": "2026-11-14"
+  },
+  "ccode": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/inkling2/configuration_inkling2.py",
+   "kind": "code",
+   "note": "defaults: hidden_act silu, scoring_func sigmoid, conv_kernel_size 4",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "card"
+  ],
+  "weights.*": [
+   "card",
+   "readme",
+   "post"
+  ],
+  "modality.*": [
+   "card",
+   "post"
+  ],
+  "params.*": [
+   "card",
+   "readme"
+  ],
+  "layers": [
+   "cfg",
+   "card"
+  ],
+  "d_model": [
+   "cfg"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "context_length.*": [
+   "cfg",
+   "card",
+   "post"
+  ],
+  "tokenizer.*": [
+   "cfg",
+   "idx"
+  ],
+  "attention.*": [
+   "cfg",
+   "idx",
+   "code"
+  ],
+  "attention.position.*": [
+   "cfg",
+   "idx"
+  ],
+  "norm.*": [
+   "cfg",
+   "idx"
+  ],
+  "moe.*": [
+   "cfg",
+   "card",
+   "code",
+   "ccode"
+  ],
+  "ffn.kind": [
+   "card"
+  ],
+  "stack.*": [
+   "cfg"
+  ],
+  "block_order.*": [
+   "code",
+   "idx"
+  ],
+  "specials": [
+   "cfg",
+   "idx",
+   "code"
+  ],
+  "omitted_towers": [
+   "cfg",
+   "post"
+  ],
+  "ffn.*": [
+   "code",
+   "card"
+  ],
+  "layer_kinds.*": [
+   "cfg",
+   "code"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Sebastian Raschka",
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/#card-inkling-2-small",
+   "title": "Inkling 2 Small (594B), the screenshot diagram",
+   "terms": "no reuse licence stated; link only"
+  }
+ ],
+ "unknowns": {
+  "ffn.hidden_dim": "no dense FFN layers: every layer holds experts",
+  "attention.position.theta": "main stack has no RoPE in config; only the MTP head lists rope_theta"
+ },
+ "notes": [
+  "Announcement first said closed weights on Tinker; a 2026-11-12 update put weights on Hugging Face. The card and README say Apache 2.0.",
+  "An earlier version of this record placed the short convolutions before the sublayers, read from tensor names; transformers' inkling2 code applies them to the sublayer outputs, as in Inkling."
+ ],
+ "teaches": [
+  "attention_residuals",
+  "short_conv",
+  "relative_bias",
+  "local_global",
+  "logit_softcap",
+  "moe"
+ ],
+ "layer_kinds": {
+  "local": {
+   "mixer": "gqa",
+   "ffn": "moe",
+   "heads": 48,
+   "kv_heads": 8,
+   "head_dim": 128,
+   "window": 1024,
+   "window_kind": "sliding",
+   "position": "relative_bias",
+   "note": "relative bias extent = window (1024)"
+  },
+  "global": {
+   "mixer": "gqa",
+   "ffn": "moe",
+   "heads": 48,
+   "kv_heads": 8,
+   "head_dim": 128,
+   "position": "relative_bias",
+   "note": "full context; relative bias extent 1024; log-length scaling; separate q/k/v input norms; key and value convs with per-token taps"
+  }
+ }
+}

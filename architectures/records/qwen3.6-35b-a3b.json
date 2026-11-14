@@ -1,0 +1,355 @@
+{
+ "id": "qwen3.6-35b-a3b",
+ "name": "Qwen3.6 35B-A3B",
+ "organisation": "Alibaba (Qwen team)",
+ "release_date": {
+  "value": "2026-04-15",
+  "precision": "day",
+  "note": "Raschka gallery date and HF repo creation"
+ },
+ "family": "qwen",
+ "parent_id": "qwen3.5-397b-a17b",
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "Apache-2.0",
+  "licence_url": "https://huggingface.co/Qwen/Qwen3.6-35B-A3B/blob/main/LICENSE",
+  "repo": "Qwen/Qwen3.6-35B-A3B"
+ },
+ "modality": {
+  "inputs": [
+   "text",
+   "image",
+   "video"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 34660610688,
+  "active": 3454988928,
+  "note": "derived from config, language stack only, embeddings counted as active; adding the MTP layer (844,640,768) and the vision tower (446,571,248) gives exactly the HF safetensors count; README: 35B total, 3B active"
+ },
+ "layers": 40,
+ "d_model": 2048,
+ "vocab_size": 248320,
+ "context_length": {
+  "value": 262144
+ },
+ "tokenizer": {
+  "kind": "bpe_bytelevel",
+  "note": "tokenizer.json: ByteLevel, 248,044 base tokens; vocab_size 248,320 is padded (README)"
+ },
+ "attention": {
+  "kind": "hybrid",
+  "mixers": [
+   {
+    "kind": "gated_deltanet",
+    "layers": 30,
+    "note": "16 QK heads, 32 V heads, head dim 128; depthwise conv kernel 4"
+   },
+   {
+    "kind": "gqa",
+    "layers": 10,
+    "note": "gated attention: 16 Q / 2 KV heads of 256, output gate, QK-norm, RoPE on 64 dims"
+   }
+  ],
+  "heads": 16,
+  "kv_heads": 2,
+  "head_dim": 256,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "rope",
+   "theta": 10000000,
+   "partial_fraction": 0.25,
+   "nope_layers": "the 30 Gated DeltaNet layers carry no position encoding"
+  },
+  "qk_norm": "rmsnorm",
+  "mla": null,
+  "sparse": null,
+  "other": [
+   "gated_attention"
+  ]
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-06
+ },
+ "ffn": {
+  "kind": "moe",
+  "activation": "swiglu",
+  "hidden_dim": null,
+  "config_activation": "silu"
+ },
+ "moe": {
+  "experts": 256,
+  "routed_per_token": 8,
+  "shared": 1,
+  "expert_hidden_dim": 512,
+  "latent_dim": null,
+  "dense_layers": "none",
+  "router": "softmax top-8, renormalised; shared expert scaled by a sigmoid gate"
+ },
+ "stack": {
+  "pattern": [
+   {
+    "type": "gated_deltanet",
+    "count": 3
+   },
+   {
+    "type": "global",
+    "count": 1
+   }
+  ],
+  "repeat": 10,
+  "note": "config layer_types: full_attention every 4th layer"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm",
+    "label": "zero-centred weight (1 + w)"
+   },
+   {
+    "kind": "gated_deltanet",
+    "label": "conv kernel 4 on q, k, v; gated RMSNorm on output",
+    "only_on": "gated_deltanet"
+   },
+   {
+    "kind": "gqa",
+    "label": "16 Q / 2 KV heads of 256, QK-norm, partial interleaved M-RoPE",
+    "only_on": "global"
+   },
+   {
+    "kind": "gated_attention",
+    "label": "gate from q_proj on the attention output",
+    "only_on": "global"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "moe",
+    "label": "1 gated shared + top-8 of 256 experts of width 512"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "gated_deltanet",
+   "what": "linear-recurrent mixer with gated delta rule; 3 of every 4 layers",
+   "where": "30 layers"
+  },
+  {
+   "name": "gated_attention",
+   "what": "full-attention output multiplied by a gate computed from the input",
+   "where": "10 attention layers"
+  },
+  {
+   "name": "short_conv",
+   "what": "depthwise convolution of kernel 4 on q, k, v inside Gated DeltaNet",
+   "where": "30 layers"
+  },
+  {
+   "name": "mrope",
+   "what": "interleaved multimodal RoPE, sections 11/11/10 (time, height, width) over the 64 rotated dims",
+   "where": "attention layers"
+  },
+  {
+   "name": "zero_centered_rmsnorm",
+   "what": "norm output scaled by (1 + weight)",
+   "where": "every norm"
+  },
+  {
+   "name": "mtp",
+   "what": "one multi-token prediction layer (mtp.* weights), trained with multiple steps",
+   "where": "after the main stack"
+  }
+ ],
+ "omitted_towers": [
+  {
+   "modality": "image",
+   "what": "ViT, 27 layers, width 1152, patch 16, temporal patch 2 (video), 2x2 spatial merge",
+   "params": 446571248,
+   "layers": 27
+  }
+ ],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/Qwen/Qwen3.6-35B-A3B/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "readme": {
+   "url": "https://huggingface.co/Qwen/Qwen3.6-35B-A3B",
+   "kind": "model_card",
+   "note": "README: 35B total, 3B active; Apache-2.0",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/qwen3_5_moe/modeling_qwen3_5_moe.py",
+   "kind": "code",
+   "note": "decoder layer: input_layernorm, linear_attn or self_attn, add, post_attention_layernorm, mlp, add; RMSNorm * (1 + weight)",
+   "accessed": "2026-11-14"
+  },
+  "tok": {
+   "url": "https://huggingface.co/Qwen/Qwen3.6-35B-A3B/blob/main/tokenizer.json",
+   "kind": "config",
+   "note": "ByteLevel, 248,044 base tokens",
+   "accessed": "2026-11-14"
+  },
+  "idx": {
+   "url": "https://huggingface.co/Qwen/Qwen3.6-35B-A3B/blob/main/model.safetensors.index.json",
+   "kind": "weights_index",
+   "note": "linear_attn.* on the DeltaNet layers, self_attn.q_norm/k_norm on the attention layers, mtp.* present",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/Qwen/Qwen3.6-35B-A3B",
+   "kind": "model_card",
+   "note": "license apache-2.0",
+   "accessed": "2026-11-14"
+  },
+  "gal": {
+   "url": "https://github.com/rasbt/llm-architecture-gallery/blob/main/models.yml",
+   "kind": "secondary",
+   "note": "entry 'Qwen3.6 35B-A3B': date, 10 gated attention + 30 DeltaNet",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/Qwen/Qwen3.6-35B-A3B/blob/main/config.json",
+   "kind": "derived",
+   "note": "same per-layer formulas as Qwen3-Next (which match its safetensors count exactly); vision tower = 27 ViT blocks + patch and position embeddings + merger",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "gal",
+   "hfapi"
+  ],
+  "weights.*": [
+   "readme",
+   "hfapi"
+  ],
+  "modality.*": [
+   "readme",
+   "cfg"
+  ],
+  "params.*": [
+   "count",
+   "hfapi",
+   "readme"
+  ],
+  "layers": [
+   "cfg",
+   "readme"
+  ],
+  "d_model": [
+   "cfg",
+   "readme"
+  ],
+  "vocab_size": [
+   "cfg",
+   "readme"
+  ],
+  "context_length.value": [
+   "cfg",
+   "readme"
+  ],
+  "tokenizer.*": [
+   "tok",
+   "readme"
+  ],
+  "attention.*": [
+   "cfg",
+   "readme",
+   "code"
+  ],
+  "norm.*": [
+   "code",
+   "cfg"
+  ],
+  "ffn.*": [
+   "cfg",
+   "readme",
+   "code"
+  ],
+  "moe.*": [
+   "cfg",
+   "readme",
+   "code"
+  ],
+  "stack.*": [
+   "cfg",
+   "readme"
+  ],
+  "block_order.*": [
+   "code",
+   "idx"
+  ],
+  "specials": [
+   "readme",
+   "code",
+   "cfg",
+   "idx"
+  ],
+  "omitted_towers": [
+   "cfg",
+   "count"
+  ],
+  "layer_kinds.*": [
+   "cfg"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Sebastian Raschka",
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/images/architectures/qwen3-6-35b-a3b.webp",
+   "title": "Qwen3.6 35B-A3B",
+   "terms": "no reuse licence stated; link only"
+  }
+ ],
+ "unknowns": {
+  "ffn.hidden_dim": "every layer is MoE; config has no dense intermediate size"
+ },
+ "notes": [
+  "README: context 262,144 natively, extensible to about 1M tokens with YaRN factor 4; config allows 262,144.",
+  "The course uses this model in module 11 (model list)."
+ ],
+ "teaches": [],
+ "layer_kinds": {
+  "gated_deltanet": {
+   "mixer": "gated_deltanet",
+   "ffn": "moe",
+   "heads": 16,
+   "head_dim": 128,
+   "v_head_dim": 128,
+   "position": "none",
+   "note": "16 query/key heads, 32 value heads; conv kernel 4"
+  },
+  "global": {
+   "mixer": "gqa",
+   "ffn": "moe",
+   "heads": 16,
+   "kv_heads": 2,
+   "head_dim": 256,
+   "position": "mrope",
+   "theta": 10000000,
+   "partial_fraction": 0.25,
+   "note": "sigmoid output gate"
+  }
+ }
+}

@@ -1,0 +1,251 @@
+{
+ "id": "bloom-176b",
+ "name": "BLOOM 176B",
+ "organisation": "BigScience",
+ "release_date": {
+  "value": "2022-07-11",
+  "precision": "day",
+  "note": "model card 'Release Date Estimate'; the paper's arXiv v1 is 2022-11-09"
+ },
+ "family": "bloom",
+ "parent_id": null,
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "BigScience RAIL License v1.0",
+  "licence_url": "https://huggingface.co/spaces/bigscience/license",
+  "repo": "bigscience/bloom"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 176247271424,
+  "active": 176247271424,
+  "note": "model card; equals the count derived from config with tied embeddings"
+ },
+ "layers": 70,
+ "d_model": 14336,
+ "vocab_size": 250880,
+ "context_length": {
+  "value": null,
+  "trained": 2048
+ },
+ "tokenizer": {
+  "kind": "bpe_bytelevel",
+  "stated_vocab": 250680,
+  "note": "byte-level BPE; 200 of the stated tokens reserved"
+ },
+ "attention": {
+  "kind": "mha",
+  "heads": 112,
+  "kv_heads": 112,
+  "head_dim": 128,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "alibi"
+  },
+  "qk_norm": "none",
+  "mla": null,
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "layernorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": true,
+  "eps": 1e-05
+ },
+ "ffn": {
+  "kind": "mlp",
+  "activation": "gelu_tanh",
+  "hidden_dim": 57344,
+  "config_activation": null
+ },
+ "moe": null,
+ "stack": {
+  "pattern": [
+   {
+    "type": "global",
+    "count": 1
+   }
+  ],
+  "repeat": 70
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "layernorm"
+   },
+   {
+    "kind": "mha",
+    "label": "112 heads x 128, ALiBi bias on scores"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "layernorm"
+   },
+   {
+    "kind": "mlp",
+    "label": "14336 -> 57344 -> 14336, GELU (tanh form)"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "embedding_norm",
+   "what": "LayerNorm right after the token embedding (StableEmbedding), for training stability",
+   "where": "after embedding"
+  },
+  {
+   "name": "alibi",
+   "what": "per-head linear distance penalty added to attention scores; no position vectors",
+   "where": "every attention layer"
+  },
+  {
+   "name": "tied_embeddings",
+   "what": "output head reuses the embedding table",
+   "where": "lm_head"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/bigscience/bloom/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2211.05100",
+   "kind": "paper",
+   "title": "BLOOM: A 176B-Parameter Open-Access Multilingual Language Model",
+   "note": "section 3.2.3 (ALiBi, embedding LayerNorm), 3.3 (tokenizer, 250,680), Table 3; arXiv API: v1 2022-11-09",
+   "accessed": "2026-11-14"
+  },
+  "card": {
+   "url": "https://huggingface.co/bigscience/bloom/blob/main/README.md",
+   "kind": "model_card",
+   "note": "release date estimate 11 July 2022; 176,247,271,424 parameters, 3,596,615,680 embedding; RAIL v1.0; sequence length 2048",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/bloom/modeling_bloom.py",
+   "kind": "code",
+   "note": "input_layernorm and post_attention_layernorm precede their sublayers; word_embeddings_layernorm; GELU via tanh formula; MLP width 4*hidden",
+   "accessed": "2026-11-14"
+  },
+  "idx": {
+   "url": "https://huggingface.co/bigscience/bloom/blob/main/model.safetensors.index.json",
+   "kind": "weights_index",
+   "note": "word_embeddings_layernorm, ln_f, no separate lm_head",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/bigscience/bloom/blob/main/config.json",
+   "kind": "derived",
+   "note": "V*d + 4d + L*(12d^2 + 13d) with V 250880, d 14336, L 70 = 176,247,271,424",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "card",
+   "paper"
+  ],
+  "weights.*": [
+   "card"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "card",
+   "count"
+  ],
+  "layers": [
+   "cfg",
+   "paper"
+  ],
+  "d_model": [
+   "cfg",
+   "paper"
+  ],
+  "vocab_size": [
+   "cfg",
+   "card"
+  ],
+  "context_length.trained": [
+   "paper",
+   "card"
+  ],
+  "tokenizer.*": [
+   "paper"
+  ],
+  "attention.*": [
+   "cfg",
+   "paper"
+  ],
+  "attention.head_dim": [
+   "count"
+  ],
+  "attention.position.scheme": [
+   "paper",
+   "code"
+  ],
+  "attention.qk_norm": [
+   "code"
+  ],
+  "norm.*": [
+   "code",
+   "cfg",
+   "paper",
+   "idx"
+  ],
+  "ffn.*": [
+   "code",
+   "paper"
+  ],
+  "stack.*": [
+   "cfg"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "paper",
+   "code",
+   "idx"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "BigScience Workshop",
+   "url": "https://arxiv.org/abs/2211.05100",
+   "title": "Figure 5 of the paper: the BLOOM architecture",
+   "terms": "arXiv default licence; link only"
+  }
+ ],
+ "unknowns": {
+  "context_length.value": "ALiBi model; config sets no position limit"
+ },
+ "notes": [
+  "Paper and card state a 250,680-token vocabulary; config pads the embedding to 250,880 rows, and the card's embedding count (3,596,615,680 = 250,880 x 14,336) matches config. The record follows config.",
+  "Model list gave the paper date (2022-11-09); the record follows the model card's release date."
+ ],
+ "teaches": [
+  "alibi"
+ ]
+}

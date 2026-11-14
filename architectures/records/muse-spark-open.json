@@ -1,0 +1,348 @@
+{
+ "id": "muse-spark-open",
+ "name": "Muse Spark Open 816B-A42B",
+ "organisation": "Meta",
+ "release_date": {
+  "value": "2026-10-15",
+  "precision": "day",
+  "note": "model card 'Date of Release October 15th, 2026'"
+ },
+ "family": "muse",
+ "parent_id": null,
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "Muse Model License",
+  "licence_url": "https://huggingface.co/meta-models/Muse-Spark-Open-816B-A42B/blob/main/LICENSE.md",
+  "repo": "meta-models/Muse-Spark-Open-816B-A42B"
+ },
+ "modality": {
+  "inputs": [
+   "text",
+   "image",
+   "video",
+   "audio"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 816000000000,
+  "active": 42000000000,
+  "note": "model card"
+ },
+ "layers": 62,
+ "d_model": 8192,
+ "vocab_size": 202048,
+ "context_length": {
+  "value": 1048576,
+  "trained": null
+ },
+ "attention": {
+  "kind": "gqa",
+  "heads": 128,
+  "kv_heads": 16,
+  "head_dim": 64,
+  "window": 2048,
+  "local_global": "3:1",
+  "position": {
+   "scheme": "mixed",
+   "theta": 500000.0,
+   "scaling": null,
+   "nope_layers": "the 16 global layers (layer_rope_theta 0); RoPE only on the 46 sliding-window layers"
+  },
+  "qk_norm": "rmsnorm",
+  "mla": null,
+  "sparse": null,
+  "other": [
+   "gated_attention"
+  ],
+  "window_kind": "sliding"
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "sandwich",
+  "final_norm": true,
+  "embedding_norm": true,
+  "eps": 1e-05
+ },
+ "ffn": {
+  "kind": "moe",
+  "activation": "swiglu",
+  "hidden_dim": null,
+  "config_activation": "silu"
+ },
+ "moe": {
+  "experts": 256,
+  "routed_per_token": 8,
+  "shared": 0,
+  "expert_hidden_dim": 4096,
+  "latent_dim": 4096,
+  "dense_layers": "none",
+  "router": "sigmoid scores with correction bias, top-8, renormalised; reads the full 8192-wide input"
+ },
+ "stack": {
+  "prefix": [
+   {
+    "type": "local",
+    "count": 1
+   }
+  ],
+  "pattern": [
+   {
+    "type": "global",
+    "count": 1
+   },
+   {
+    "type": "local",
+    "count": 3
+   }
+  ],
+  "repeat": 15,
+  "suffix": [
+   {
+    "type": "global",
+    "count": 1
+   }
+  ],
+  "note": "config layer_types: global at 0-based 1, 5, ... 61; all 62 layers MoE"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm",
+    "label": "input_layernorm (1 + w)"
+   },
+   {
+    "kind": "gqa",
+    "label": "128 query / 16 KV heads of 64; weightless QK RMSNorm, q times 5.47; local: window 2048 + RoPE / global: full, NoPE; output RMSNorm, then sigmoid gate"
+   },
+   {
+    "kind": "rmsnorm",
+    "label": "post_attention_layernorm, weightless"
+   },
+   {
+    "kind": "residual_add",
+    "label": "learned residual gate: alpha * residual + beta * output"
+   },
+   {
+    "kind": "rmsnorm",
+    "label": "pre_feedforward_layernorm"
+   },
+   {
+    "kind": "latent_moe",
+    "label": "8192 -> 4096, RMSNorm, top-8 of 256 SwiGLU experts, each output normed, -> 8192"
+   },
+   {
+    "kind": "rmsnorm",
+    "label": "post_feedforward_layernorm"
+   },
+   {
+    "kind": "residual_add",
+    "label": "learned residual gate"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "residual_gate",
+   "what": "each residual add is a learned per-channel mix: beta = sigmoid(g / 0.3), alpha = sqrt(sigmoid(-g / 0.3) * (1 + beta))",
+   "where": "after attention and after the MoE"
+  },
+  {
+   "name": "latent_moe",
+   "what": "pre_expert_proj 8192 -> 4096 with norm; post_expert_norm on each expert output; post_expert_proj back to 8192; no shared expert",
+   "where": "all 62 layers"
+  },
+  {
+   "name": "gated_attention",
+   "what": "attention output RMS-normed, then multiplied by sigmoid(gate_proj(x)) before o_proj",
+   "where": "every attention layer"
+  },
+  {
+   "name": "logit_softcap",
+   "what": "logits times 0.177, then tanh-capped at 20",
+   "where": "output head"
+  },
+  {
+   "name": "embedding_norm",
+   "what": "weightless RMSNorm on token embeddings",
+   "where": "input"
+  }
+ ],
+ "omitted_towers": [
+  {
+   "modality": "image",
+   "what": "Perception Encoder: 1536 wide, 16 heads, 14x14 patches, learned absolute + 2D RoPE; window attention with every 4th and the last layer full; also reads video",
+   "params": 1800000000,
+   "layers": 50
+  },
+  {
+   "modality": "audio",
+   "what": "convolutional audio tower, four stages (256, 512, 1024, 2048 wide), causal conv kernel 7",
+   "params": null,
+   "layers": 4
+  }
+ ],
+ "refs": {
+  "card": {
+   "url": "https://huggingface.co/meta-models/Muse-Spark-Open-816B-A42B/blob/main/README.md",
+   "kind": "model_card",
+   "note": "public README of the gated repo: 816B / 42B, 1M, vocab 202,048, 62 layers, 128/16 heads of 64, 256 experts top-8, gated attention, Perception Encoder",
+   "accessed": "2026-11-14"
+  },
+  "cfg": {
+   "url": "https://huggingface.co/unsloth/Muse-Spark-Open-816B-A42B/blob/main/config.json",
+   "kind": "config_mirror",
+   "note": "public copy of the gated https://huggingface.co/meta-models/Muse-Spark-Open-816B-A42B/blob/main/config.json; same git blob id (e6df3a8...) as the gated file, so byte-identical",
+   "accessed": "2026-11-14"
+  },
+  "idx": {
+   "url": "https://huggingface.co/unsloth/Muse-Spark-Open-816B-A42B/blob/main/model.safetensors.index.json",
+   "kind": "weights_index",
+   "note": "mirror index: residual_gate, pre/post_expert_proj, post_expert_norm, gate_proj in attention, no q/k norm weights; same git blob id as the gated file (b4f5d1c6...)",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/muse_spark/modeling_muse_spark.py",
+   "kind": "code",
+   "note": "MuseSparkTextDecoderLayer, MuseSparkTextAttention, MuseSparkMoE, NoPE where layer_rope_theta is 0, softcap",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/meta-models/Muse-Spark-Open-816B-A42B",
+   "kind": "model_card",
+   "note": "gated manual; license muse-model-license; card data",
+   "accessed": "2026-11-14"
+  },
+  "mirror": {
+   "url": "https://huggingface.co/api/models/unsloth/Muse-Spark-Open-816B-A42B",
+   "kind": "secondary",
+   "note": "gated false; base_model meta-models/Muse-Spark-Open-816B-A42B",
+   "accessed": "2026-11-14"
+  },
+  "gal": {
+   "url": "https://github.com/rasbt/llm-architecture-gallery/blob/main/models.yml",
+   "kind": "secondary",
+   "note": "entry 'Muse Spark Open 816B-A42B': date, licence name, cross-check only",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "card"
+  ],
+  "weights.*": [
+   "card",
+   "hfapi"
+  ],
+  "modality.*": [
+   "card"
+  ],
+  "params.*": [
+   "card"
+  ],
+  "layers": [
+   "card",
+   "cfg"
+  ],
+  "d_model": [
+   "card",
+   "cfg"
+  ],
+  "vocab_size": [
+   "card",
+   "cfg"
+  ],
+  "context_length.*": [
+   "cfg",
+   "card"
+  ],
+  "attention.*": [
+   "cfg",
+   "card",
+   "code"
+  ],
+  "norm.*": [
+   "code",
+   "cfg",
+   "idx"
+  ],
+  "ffn.*": [
+   "cfg",
+   "code"
+  ],
+  "moe.*": [
+   "cfg",
+   "card",
+   "code"
+  ],
+  "stack.*": [
+   "cfg"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "code",
+   "cfg",
+   "idx"
+  ],
+  "omitted_towers": [
+   "card",
+   "cfg"
+  ],
+  "layer_kinds.*": [
+   "cfg",
+   "code"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Sebastian Raschka",
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/images/architectures/muse-spark-open.webp",
+   "title": "Muse Spark Open 816B-A42B",
+   "terms": "no reuse licence stated; link only"
+  }
+ ],
+ "unknowns": {
+  "ffn.hidden_dim": "no dense FFN: mlp_layer_types is all 'sparse'; config intermediate_size 16384 goes unused",
+  "omitted_towers.1.params": "not published",
+  "context_length.trained": "the card says only '1M at inference'"
+ },
+ "notes": [
+  "Earlier scoping found the config gated with no mirror. This pass found the public README (model card) and an ungated mirror (unsloth/Muse-Spark-Open-816B-A42B) whose HF API lists the Meta repo as base_model; the transformers muse_spark code gives the block. No field rests on Raschka's YAML alone.",
+  "The config and weight index come from an ungated copy whose git blob ids match the files listed by the gated Meta repo's public API, so they are Meta's own files; they agree with every figure on Meta's card."
+ ],
+ "teaches": [
+  "latent_moe",
+  "gated_attention",
+  "local_global",
+  "nope",
+  "sandwich_norm",
+  "logit_softcap"
+ ],
+ "layer_kinds": {
+  "local": {
+   "mixer": "gqa",
+   "ffn": "latent_moe",
+   "heads": 128,
+   "kv_heads": 16,
+   "head_dim": 64,
+   "window": 2048,
+   "window_kind": "sliding",
+   "position": "rope",
+   "theta": 500000.0
+  },
+  "global": {
+   "mixer": "gqa",
+   "ffn": "latent_moe",
+   "heads": 128,
+   "kv_heads": 16,
+   "head_dim": 64,
+   "position": "nope"
+  }
+ }
+}

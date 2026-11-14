@@ -1,0 +1,300 @@
+{
+ "id": "deepseek-v3.2",
+ "name": "DeepSeek-V3.2",
+ "organisation": "DeepSeek",
+ "release_date": {
+  "value": "2025-12-01",
+  "precision": "day",
+  "note": "Raschka gallery date and HF repo creation; report on arXiv 2025-12-02"
+ },
+ "family": "deepseek",
+ "parent_id": "deepseek-v3",
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "MIT",
+  "licence_url": "https://huggingface.co/deepseek-ai/DeepSeek-V3.2/blob/main/LICENSE",
+  "repo": "deepseek-ai/DeepSeek-V3.2"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 671877944064,
+  "active": 38403807488,
+  "note": "derived from config: the V3 count plus 61 lightning indexers (13,959,424 each); MTP excluded; embeddings counted as active. Gallery: 671B total, 37B active. HF safetensors 685.4B include the MTP layer."
+ },
+ "layers": 61,
+ "d_model": 7168,
+ "vocab_size": 129280,
+ "context_length": {
+  "value": 163840,
+  "trained": "128K"
+ },
+ "tokenizer": {
+  "kind": "bpe_bytelevel",
+  "note": "tokenizer.json: ByteLevel, 128,000 base tokens plus 818 added"
+ },
+ "attention": {
+  "kind": "mla",
+  "heads": 128,
+  "kv_heads": 128,
+  "head_dim": 128,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "rope",
+   "theta": 10000,
+   "scaling": "yarn",
+   "partial_fraction": null
+  },
+  "qk_norm": "none",
+  "mla": {
+   "kv_lora_rank": 512,
+   "q_lora_rank": 1536,
+   "qk_rope_head_dim": 64,
+   "qk_nope_head_dim": 128,
+   "v_head_dim": 128
+  },
+  "sparse": {
+   "kind": "sparse_topk",
+   "top_k": 2048,
+   "index_heads": 64,
+   "index_head_dim": 128
+  },
+  "other": []
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-06
+ },
+ "ffn": {
+  "kind": "moe",
+  "activation": "swiglu",
+  "hidden_dim": 18432,
+  "config_activation": "silu"
+ },
+ "moe": {
+  "experts": 256,
+  "routed_per_token": 8,
+  "shared": 1,
+  "expert_hidden_dim": 2048,
+  "latent_dim": null,
+  "dense_layers": "first 3",
+  "router": "sigmoid scores, aux-loss-free bias (noaux_tc), top-8 within the best 4 of 8 groups"
+ },
+ "stack": {
+  "prefix": [
+   {
+    "type": "dense_ffn",
+    "count": 3
+   }
+  ],
+  "pattern": [
+   {
+    "type": "moe",
+    "count": 1
+   }
+  ],
+  "repeat": 58,
+  "note": "all 61 layers use MLA with DeepSeek Sparse Attention"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "sparse_topk",
+    "label": "lightning indexer: 64 heads x 128 score past tokens, keep the top 2048"
+   },
+   {
+    "kind": "mla",
+    "label": "MLA in MQA mode over the 2048 chosen latents"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "moe",
+    "label": "1 shared + top-8 of 256 experts (dense SwiGLU in layers 1-3)"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "sparse_topk",
+   "what": "DeepSeek Sparse Attention: a small FP8 indexer picks 2048 key-value entries per query; the only architectural change from V3.1-Terminus",
+   "where": "every layer"
+  },
+  {
+   "name": "mtp",
+   "what": "multi-token prediction module of depth 1 (num_nextn_predict_layers 1)",
+   "where": "after the main stack"
+  },
+  {
+   "name": "dense_prefix",
+   "what": "first three layers keep a dense FFN",
+   "where": "layers 1-3"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/deepseek-ai/DeepSeek-V3.2/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2512.02556",
+   "kind": "paper",
+   "title": "DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models",
+   "note": "section 2.1 (DSA, continued pre-training), appendix A",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/deepseek_v32/modeling_deepseek_v32.py",
+   "kind": "code",
+   "note": "decoder layer as V3; indexer wq_b, wk, k_norm, weights_proj",
+   "accessed": "2026-11-14"
+  },
+  "tok": {
+   "url": "https://huggingface.co/deepseek-ai/DeepSeek-V3.2/blob/main/tokenizer.json",
+   "kind": "config",
+   "note": "ByteLevel, 128,000 base tokens, 818 added",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/deepseek-ai/DeepSeek-V3.2",
+   "kind": "model_card",
+   "note": "license mit; safetensors total 685,355,329,792",
+   "accessed": "2026-11-14"
+  },
+  "gal": {
+   "url": "https://github.com/rasbt/llm-architecture-gallery/blob/main/models.yml",
+   "kind": "secondary",
+   "note": "entry 'DeepSeek V3.2': date, 671B / 37B, MIT",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/deepseek-ai/DeepSeek-V3.2/blob/main/config.json",
+   "kind": "derived",
+   "note": "DeepSeek-V3 formula plus indexer per layer: q_lora*64*128 + d*128 + LayerNorm 2*128 + d*64",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "gal",
+   "hfapi",
+   "paper"
+  ],
+  "weights.*": [
+   "hfapi",
+   "gal",
+   "cfg"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "count",
+   "gal",
+   "hfapi"
+  ],
+  "layers": [
+   "cfg"
+  ],
+  "d_model": [
+   "cfg"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "context_length.value": [
+   "cfg"
+  ],
+  "context_length.trained": [
+   "paper"
+  ],
+  "tokenizer.*": [
+   "tok"
+  ],
+  "attention.*": [
+   "cfg",
+   "paper",
+   "code"
+  ],
+  "norm.*": [
+   "code",
+   "cfg"
+  ],
+  "ffn.*": [
+   "cfg"
+  ],
+  "moe.*": [
+   "cfg"
+  ],
+  "stack.*": [
+   "cfg"
+  ],
+  "block_order.*": [
+   "code",
+   "paper"
+  ],
+  "specials": [
+   "paper",
+   "cfg"
+  ],
+  "layer_kinds.*": [
+   "cfg"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Sebastian Raschka",
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/images/architectures/deepseek-v3-2-671b.webp",
+   "title": "DeepSeek V3.2",
+   "terms": "no reuse licence stated; link only"
+  },
+  {
+   "author": "DeepSeek",
+   "url": "https://arxiv.org/abs/2512.02556",
+   "title": "Figure 2 of the report: DSA on MLA",
+   "terms": "arXiv default licence; link only"
+  }
+ ],
+ "unknowns": {},
+ "notes": [
+  "Config num_key_value_heads 128 is nominal; DSA runs MLA in MQA mode, one latent shared by all heads.",
+  "Report starts from DeepSeek-V3.1-Terminus (128K), trains the indexer alone for 2.1B tokens, then sparse training for 943.7B tokens."
+ ],
+ "teaches": [
+  "sparse_topk"
+ ],
+ "layer_kinds": {
+  "dense_ffn": {
+   "mixer": "mla",
+   "ffn": "glu"
+  },
+  "moe": {
+   "mixer": "mla",
+   "ffn": "moe"
+  }
+ }
+}

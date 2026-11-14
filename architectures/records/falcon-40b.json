@@ -1,0 +1,275 @@
+{
+ "id": "falcon-40b",
+ "name": "Falcon 40B",
+ "organisation": "TII",
+ "release_date": {
+  "value": "2023-05-24",
+  "precision": "day",
+  "note": "HF repo createdAt; the series paper's arXiv v1 is 2023-11-28"
+ },
+ "family": "falcon",
+ "parent_id": null,
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "Apache 2.0",
+  "licence_url": "https://huggingface.co/tiiuae/falcon-40b",
+  "repo": "tiiuae/falcon-40b"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 41303293952,
+  "active": 41303293952,
+  "note": "derived from config with tied embeddings; the checkpoint also stores lm_head, giving 41,835,970,560 = index total_size / 2; card: 40B"
+ },
+ "layers": 60,
+ "d_model": 8192,
+ "vocab_size": 65024,
+ "context_length": {
+  "value": null,
+  "trained": 2048
+ },
+ "tokenizer": {
+  "kind": null,
+  "stated_vocab": 65024,
+  "note": "trained by TII; vocabulary fits in 16-bit ids"
+ },
+ "attention": {
+  "kind": "gqa",
+  "heads": 128,
+  "kv_heads": 8,
+  "head_dim": 64,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "rope",
+   "theta": 10000,
+   "scaling": null
+  },
+  "qk_norm": "none",
+  "mla": null,
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "layernorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-05
+ },
+ "ffn": {
+  "kind": "mlp",
+  "activation": "gelu",
+  "hidden_dim": 32768,
+  "config_activation": null
+ },
+ "moe": null,
+ "stack": {
+  "pattern": [
+   {
+    "type": "global",
+    "count": 1
+   }
+  ],
+  "repeat": 60
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "parallel_block",
+    "label": "attention and MLP read the same input, each through its own LayerNorm"
+   },
+   {
+    "kind": "layernorm",
+    "label": "ln_attn"
+   },
+   {
+    "kind": "gqa",
+    "label": "128 query heads x 64, 8 KV heads, RoPE"
+   },
+   {
+    "kind": "layernorm",
+    "label": "ln_mlp"
+   },
+   {
+    "kind": "mlp",
+    "label": "8192 -> 32768 -> 8192, GELU"
+   },
+   {
+    "kind": "residual_add",
+    "label": "x + attn + mlp"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "parallel_block",
+   "what": "attention and MLP in parallel with two separate LayerNorms (Falcon-7B later used one)",
+   "where": "every layer"
+  },
+  {
+   "name": "tied_embeddings",
+   "what": "input and output embeddings tied",
+   "where": "lm_head"
+  },
+  {
+   "name": "no_biases",
+   "what": "no biases in linear layers; LayerNorms keep theirs",
+   "where": "every layer"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/tiiuae/falcon-40b/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2311.16867",
+   "kind": "paper",
+   "title": "The Falcon Series of Open Language Models",
+   "note": "section 5.1 summary, 5.2.1 (separate layer norms, tied embeddings), Table 16; arXiv API: v1 2023-11-28",
+   "accessed": "2026-11-14"
+  },
+  "card": {
+   "url": "https://huggingface.co/tiiuae/falcon-40b/blob/main/README.md",
+   "kind": "model_card",
+   "note": "Apache 2.0; rotary; 'multiquery' with independent keys and values per tensor-parallel degree; parallel attention/MLP with two layer norms; 60 layers, d_model 8192, vocab 65024, sequence length 2048",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/falcon/modeling_falcon.py",
+   "kind": "code",
+   "note": "new_decoder_architecture with num_ln_in_parallel_attn 2: ln_attn and ln_mlp on the same input; mlp_output += attention_output; then residual",
+   "accessed": "2026-11-14"
+  },
+  "ccode": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/falcon/configuration_falcon.py",
+   "kind": "code",
+   "note": "activation default 'gelu'; ffn_hidden_size default 4 * hidden_size; tie_word_embeddings default True",
+   "accessed": "2026-11-14"
+  },
+  "rope": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/modeling_rope_utils.py",
+   "kind": "code",
+   "note": "default_theta 10000.0 when config sets no rope_theta",
+   "accessed": "2026-11-14"
+  },
+  "idx": {
+   "url": "https://huggingface.co/tiiuae/falcon-40b/blob/main/model.safetensors.index.json",
+   "kind": "weights_index",
+   "note": "ln_attn, ln_mlp; no linear biases; total_size 83,671,941,120 bytes (bf16)",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/tiiuae/falcon-40b",
+   "kind": "model_card",
+   "note": "createdAt 2023-05-24; license tag apache-2.0",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/tiiuae/falcon-40b/blob/main/config.json",
+   "kind": "derived",
+   "note": "V*d + L*(4d + d*(nq + 2*nkv)*hd + nq*hd*d + 2*d*f) + 2d with V 65024, d 8192, nq 128, nkv 8, hd 64, f 32768, L 60",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "hfapi"
+  ],
+  "weights.*": [
+   "card",
+   "hfapi"
+  ],
+  "modality.*": [
+   "card"
+  ],
+  "params.*": [
+   "count",
+   "idx",
+   "card"
+  ],
+  "layers": [
+   "cfg",
+   "paper",
+   "card"
+  ],
+  "d_model": [
+   "cfg",
+   "paper"
+  ],
+  "vocab_size": [
+   "cfg",
+   "paper"
+  ],
+  "context_length.trained": [
+   "paper",
+   "card"
+  ],
+  "tokenizer.*": [
+   "paper"
+  ],
+  "attention.*": [
+   "cfg",
+   "paper"
+  ],
+  "attention.position.*": [
+   "card",
+   "rope"
+  ],
+  "attention.qk_norm": [
+   "code"
+  ],
+  "norm.*": [
+   "code",
+   "cfg",
+   "idx",
+   "paper"
+  ],
+  "ffn.*": [
+   "ccode",
+   "paper"
+  ],
+  "stack.*": [
+   "cfg"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "paper",
+   "idx",
+   "card"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "TII",
+   "url": "https://arxiv.org/abs/2311.16867",
+   "title": "Figure 5 of the Falcon paper: parallel attention and MLP blocks",
+   "terms": "arXiv default licence; link only"
+  }
+ ],
+ "unknowns": {
+  "context_length.value": "config sets no max_position_embeddings",
+  "tokenizer.kind": "the paper and card do not name the tokenizer algorithm"
+ },
+ "notes": [
+  "Card says 'multiquery'; config and paper Table 16 give 8 KV heads. The card explains keys and values are kept per tensor-parallel degree (TP 8). The record follows config: GQA with 8 groups.",
+  "Paper calls the scheme multigroup attention, an extension of multiquery."
+ ],
+ "teaches": [
+  "parallel_block"
+ ]
+}

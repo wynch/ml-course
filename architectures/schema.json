@@ -1,0 +1,252 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "architectures.schema.json",
+  "version": "1.1.0",
+  "title": "LLM architecture record",
+  "description": "One record per model. Numbers come from a fetched source; a number not published is null and has an entry in `unknowns`. Every non-null leaf field is covered by `field_sources` (exact path, or a prefix ending in `.*`). Component kinds use the ids in glossary.json. Version 1.1.0 adds optional fields only (see SCHEMA-CHANGES.md): layer_kinds, attention.attention_free, attention.window_kind, attention.kv_shared_layers, attention.sparse.index_shared_layers, ffn.ffn_free, moe.shared_expert_hidden_dim, moe.layer_step, params.effective, params.active_prefill, params.active_decode, and the ref kind config_mirror.",
+  "type": "object",
+  "required": ["id", "name", "organisation", "release_date", "weights", "modality", "params", "layers", "d_model", "vocab_size", "context_length", "attention", "norm", "ffn", "moe", "stack", "block_order", "specials", "omitted_towers", "refs", "field_sources", "figure_links", "unknowns"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9.-]*$", "description": "kebab-case, stable; used in URLs and parent links"},
+    "name": {"type": "string"},
+    "organisation": {"type": "string"},
+    "release_date": {
+      "type": "object",
+      "required": ["value", "precision"],
+      "additionalProperties": false,
+      "properties": {
+        "value": {"type": ["string", "null"], "pattern": "^\\d{4}(-\\d{2}(-\\d{2})?)?$"},
+        "precision": {"enum": ["day", "month", "year"]},
+        "note": {"type": "string"}
+      }
+    },
+    "family": {"type": "string", "description": "lineage name, e.g. llama, gemma, deepseek, qwen, kimi, inkling"},
+    "parent_id": {"type": ["string", "null"], "description": "id of the record this model was derived from or most closely extends"},
+    "closed": {"type": "boolean", "description": "true when no weights are public; the record then rests on a paper or official post"},
+    "weights": {
+      "type": "object",
+      "required": ["open", "licence"],
+      "additionalProperties": false,
+      "properties": {
+        "open": {"type": "boolean"},
+        "licence": {"type": ["string", "null"]},
+        "licence_url": {"type": ["string", "null"], "format": "uri"},
+        "repo": {"type": ["string", "null"], "description": "Hugging Face repo id of the official weights"}
+      }
+    },
+    "modality": {
+      "type": "object",
+      "required": ["inputs", "outputs"],
+      "additionalProperties": false,
+      "properties": {
+        "inputs": {"type": "array", "items": {"enum": ["text", "image", "audio", "video"]}},
+        "outputs": {"type": "array", "items": {"enum": ["text", "image", "audio"]}}
+      }
+    },
+    "params": {
+      "type": "object",
+      "required": ["total", "active"],
+      "additionalProperties": false,
+      "properties": {
+        "total": {"type": ["number", "null"], "description": "count, not billions"},
+        "active": {"type": ["number", "null"], "description": "per token; equals total for a dense model"},
+        "text_only": {"type": ["number", "null"], "description": "decoder stack plus embeddings, when the total includes towers"},
+        "effective": {"type": ["number", "null"], "description": "the lab's 'effective' size when it leaves out parts such as per-layer embedding tables"},
+        "active_prefill": {"type": ["number", "null"], "description": "active per token while reading the prompt, when it differs from decode"},
+        "active_decode": {"type": ["number", "null"], "description": "active per token while generating, when it differs from prefill"},
+        "note": {"type": "string"}
+      }
+    },
+    "layers": {"type": ["integer", "null"], "description": "decoder blocks in the main stack; excludes MTP and tower layers"},
+    "d_model": {"type": ["integer", "null"]},
+    "vocab_size": {"type": ["integer", "null"], "description": "rows of the embedding matrix as in config (often padded)"},
+    "context_length": {
+      "type": "object",
+      "required": ["value"],
+      "additionalProperties": false,
+      "properties": {
+        "value": {"type": ["integer", "null"], "description": "max positions the config allows"},
+        "trained": {"type": ["integer", "string", "null"], "description": "length the paper says it was trained or extended to, when it differs"}
+      }
+    },
+    "tokenizer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {"type": ["string", "null"], "description": "glossary id: bpe_bytelevel, sentencepiece, tiktoken_bpe"},
+        "stated_vocab": {"type": ["integer", "string", "null"], "description": "vocabulary the paper states, if different from vocab_size"},
+        "note": {"type": "string"}
+      }
+    },
+    "attention": {
+      "type": "object",
+      "required": ["kind", "heads", "kv_heads", "head_dim", "position"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {"type": "string", "description": "glossary id of the main token mixer: mha, mqa, gqa, mla, hybrid; for an attention-free model, the recurrent mixer (ssm_mamba, rwkv, mlstm) with attention_free true"},
+        "attention_free": {"type": "boolean", "description": "true when no layer uses softmax attention; kind then names the recurrent mixer"},
+        "mixers": {"type": "array", "description": "for hybrids: each token-mixer kind and how many layers use it", "items": {
+          "type": "object", "required": ["kind", "layers"], "additionalProperties": false,
+          "properties": {"kind": {"type": "string"}, "layers": {"type": "integer"}, "note": {"type": "string"}}}},
+        "heads": {"type": ["integer", "null"]},
+        "kv_heads": {"type": ["integer", "null"]},
+        "head_dim": {"type": ["integer", "null"]},
+        "window": {"type": ["integer", "null"], "description": "window size in tokens for local layers (see window_kind); null if none"},
+        "window_kind": {"enum": ["sliding", "chunked", null], "description": "sliding: each token sees the last `window` tokens; chunked: tokens see only their own block of `window` tokens"},
+        "kv_shared_layers": {"type": ["integer", "null"], "description": "layers that reuse another layer's keys and values instead of computing their own; layer_kinds.*.kv_source says which"},
+        "local_global": {"type": ["string", "null"], "description": "ratio as 'L:G', e.g. '5:1'; null if all layers alike"},
+        "position": {
+          "type": "object",
+          "required": ["scheme"],
+          "additionalProperties": false,
+          "properties": {
+            "scheme": {"type": "string", "description": "glossary id: learned_absolute, rope, alibi, relative_bias, nope, none, mixed"},
+            "theta": {"type": ["number", "null"]},
+            "theta_local": {"type": ["number", "null"]},
+            "partial_fraction": {"type": ["number", "null"], "description": "share of head dims rotated"},
+            "scaling": {"type": ["string", "null"], "description": "glossary id: yarn, linear_interpolation, llama3_rope_scaling, log_length_scaling"},
+            "nope_layers": {"type": ["string", "null"], "description": "which layers skip position encoding"}
+          }
+        },
+        "qk_norm": {"type": ["string", "null"], "description": "none, rmsnorm, l2_clip, other"},
+        "mla": {"type": ["object", "null"], "additionalProperties": false, "properties": {
+          "kv_lora_rank": {"type": "integer"}, "q_lora_rank": {"type": ["integer", "null"]},
+          "qk_rope_head_dim": {"type": "integer"}, "qk_nope_head_dim": {"type": "integer"}, "v_head_dim": {"type": "integer"}}},
+        "sparse": {"type": ["object", "null"], "description": "token-selection attention (DSA and kin)", "additionalProperties": false, "properties": {
+          "kind": {"type": "string"}, "top_k": {"type": "integer"}, "index_heads": {"type": ["integer", "null"]}, "index_head_dim": {"type": ["integer", "null"]},
+          "index_shared_layers": {"type": ["integer", "null"], "description": "layers that run no indexer and reuse another layer's top-k choice"}}},
+        "other": {"type": "array", "items": {"type": "string"}, "description": "glossary ids of extras: attention_sink, gated_attention, softcap_attn, query_pre_attn_scalar"}
+      }
+    },
+    "norm": {
+      "type": "object",
+      "required": ["kind", "placement"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {"type": "string", "description": "layernorm, rmsnorm"},
+        "placement": {"type": "string", "description": "post, pre, sandwich, post_in_residual"},
+        "final_norm": {"type": ["boolean", "null"]},
+        "embedding_norm": {"type": ["boolean", "null"]},
+        "eps": {"type": ["number", "null"]}
+      }
+    },
+    "ffn": {
+      "type": "object",
+      "required": ["kind", "activation", "hidden_dim"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {"type": "string", "description": "mlp, glu (gated), moe; 'none' when ffn_free"},
+        "ffn_free": {"type": "boolean", "description": "true when blocks have no feed-forward sublayer (Mamba)"},
+        "activation": {"type": ["string", "null"], "description": "glossary id: relu, gelu, gelu_tanh, swiglu, geglu, situ_glu"},
+        "hidden_dim": {"type": ["integer", "null"], "description": "dense FFN width; for an all-MoE model, null"},
+        "config_activation": {"type": ["string", "null"], "description": "raw string from config, e.g. silu, gelu_new"}
+      }
+    },
+    "moe": {
+      "type": ["object", "null"],
+      "description": "null for a dense model",
+      "required": ["experts", "routed_per_token", "shared"],
+      "additionalProperties": false,
+      "properties": {
+        "experts": {"type": ["integer", "null"], "description": "routed experts per MoE layer"},
+        "routed_per_token": {"type": ["integer", "null"]},
+        "shared": {"type": ["integer", "null"]},
+        "expert_hidden_dim": {"type": ["integer", "null"]},
+        "latent_dim": {"type": ["integer", "null"], "description": "LatentMoE: width tokens are projected to before routed experts"},
+        "dense_layers": {"type": ["string", "null"], "description": "which layers keep a dense FFN, e.g. 'first 3'"},
+        "router": {"type": ["string", "null"]},
+        "shared_expert_hidden_dim": {"type": ["integer", "null"], "description": "width of one shared expert, set only when it differs from expert_hidden_dim"},
+        "layer_step": {"type": ["integer", "null"], "description": "MoE every n-th layer after the dense prefix (2 = dense and MoE alternate); omitted when every layer is MoE"}
+      }
+    },
+    "stack": {
+      "type": "object",
+      "description": "how layer types repeat down the stack, so a drawing can show the pattern",
+      "required": ["pattern", "repeat"],
+      "additionalProperties": false,
+      "properties": {
+        "prefix": {"type": "array", "items": {"$ref": "#/$defs/run"}},
+        "pattern": {"type": "array", "items": {"$ref": "#/$defs/run"}},
+        "repeat": {"type": "integer"},
+        "suffix": {"type": "array", "items": {"$ref": "#/$defs/run"}},
+        "note": {"type": "string"}
+      }
+    },
+    "block_order": {
+      "type": "object",
+      "description": "ordered sublayers of one decoder block, top of the residual stream first",
+      "required": ["steps", "basis"],
+      "additionalProperties": false,
+      "properties": {
+        "steps": {"type": "array", "items": {"type": "object", "required": ["kind"], "additionalProperties": false, "properties": {
+          "kind": {"type": "string", "description": "glossary id"},
+          "label": {"type": "string"},
+          "only_on": {"type": "string", "description": "stack type name(s) this step applies to, joined by ', ' when several (e.g. 'chunked_moe, global_nope_moe'); for a step tied to single layers, a layer list starting with a digit"}}}},
+        "basis": {"enum": ["paper", "code", "tensor_names", "secondary"], "description": "what fixes the order; tensor_names means parts are certain, order inferred"}
+      }
+    },
+    "specials": {"type": "array", "items": {"type": "object", "required": ["name", "what", "where"], "additionalProperties": false, "properties": {
+      "name": {"type": "string", "description": "glossary id when one exists"},
+      "what": {"type": "string"},
+      "where": {"type": "string"}}}},
+    "omitted_towers": {"type": "array", "items": {"type": "object", "required": ["modality", "what"], "additionalProperties": false, "properties": {
+      "modality": {"enum": ["image", "audio", "video"]},
+      "what": {"type": "string"},
+      "params": {"type": ["number", "null"]},
+      "layers": {"type": ["integer", "null"]}}}},
+    "refs": {
+      "type": "object",
+      "description": "source list, keyed by short id; kind config_mirror is a gated config read through a public copy: url is the copy, note names the original",
+      "additionalProperties": {"type": "object", "required": ["url", "kind"], "additionalProperties": false, "properties": {
+        "url": {"type": "string", "format": "uri"},
+        "kind": {"enum": ["config", "paper", "model_card", "official_post", "code", "weights_index", "secondary", "derived", "config_mirror"]},
+        "title": {"type": "string"},
+        "note": {"type": "string"},
+        "accessed": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"}}}
+    },
+    "field_sources": {
+      "type": "object",
+      "description": "field path (dot form; prefix.* covers a subtree) -> ref ids",
+      "additionalProperties": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+    },
+    "figure_links": {"type": "array", "description": "others' diagrams of this model; linked, never copied", "items": {"type": "object", "required": ["author", "url"], "additionalProperties": false, "properties": {
+      "author": {"type": "string"}, "url": {"type": "string", "format": "uri"}, "title": {"type": "string"}, "terms": {"type": "string"}}}},
+    "unknowns": {"type": "object", "description": "field path -> why it is null or uncertain", "additionalProperties": {"type": "string"}},
+    "notes": {"type": "array", "items": {"type": "string"}, "description": "conflicts between sources, and which one the record follows"},
+    "teaches": {"type": "array", "items": {"type": "string"}, "description": "glossary ids this model is the course's example of"},
+    "layer_kinds": {"type": "object", "description": "settings per layer kind, keyed by the type names used in stack; validate.py requires it when the stack has two or more types. Top-level attention fields keep describing the main kind.", "additionalProperties": {"$ref": "#/$defs/layer_kind"}}
+  },
+  "$defs": {
+    "layer_kind": {
+      "type": "object",
+      "required": ["mixer"],
+      "additionalProperties": false,
+      "properties": {
+        "mixer": {"type": "string", "description": "glossary id of the token mixer, or 'none' (a feed-forward-only layer)"},
+        "ffn": {"type": "string", "description": "glossary id: mlp, glu, moe, latent_moe; or 'none' (a mixer-only layer)"},
+        "heads": {"type": ["integer", "null"], "description": "query heads (for linear mixers: query/key heads)"},
+        "kv_heads": {"type": ["integer", "null"]},
+        "head_dim": {"type": ["integer", "null"], "description": "query/key head size; heads x head_dim need not equal d_model"},
+        "v_head_dim": {"type": ["integer", "null"], "description": "value head size, when given apart from head_dim"},
+        "window": {"type": ["integer", "null"]},
+        "window_kind": {"enum": ["sliding", "chunked", null]},
+        "compress_ratio": {"type": ["integer", "null"], "description": "past tokens pooled into one cached entry (CSA, HCA)"},
+        "position": {"type": "string", "description": "glossary id of the position scheme on this kind, or 'none'"},
+        "theta": {"type": ["number", "null"]},
+        "partial_fraction": {"type": ["number", "null"]},
+        "kv_source": {"type": "string", "description": "which layers reuse which layer's keys and values"},
+        "note": {"type": "string"}
+      }
+    },
+    "run": {
+      "type": "object",
+      "required": ["type", "count"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {"type": "string", "description": "layer type label: global, local, kda, dsa, mamba, conv, dense_ffn, moe ..."},
+        "count": {"type": "integer", "minimum": 1}
+      }
+    }
+  }
+}

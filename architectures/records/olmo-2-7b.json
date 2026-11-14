@@ -1,0 +1,239 @@
+{
+ "id": "olmo-2-7b",
+ "name": "OLMo 2 7B",
+ "organisation": "Ai2",
+ "release_date": {
+  "value": "2024-11-25",
+  "precision": "day",
+  "note": "Raschka gallery date; the Hugging Face repo was created 2024-10-29, the paper followed 2024-12-31"
+ },
+ "family": "olmo",
+ "parent_id": null,
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "Apache-2.0",
+  "licence_url": "https://www.apache.org/licenses/LICENSE-2.0",
+  "repo": "allenai/OLMo-2-1124-7B"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 7298617344,
+  "active": 7298617344,
+  "note": "derived from config; equals the Hub's safetensors count"
+ },
+ "layers": 32,
+ "d_model": 4096,
+ "vocab_size": 100352,
+ "context_length": {
+  "value": 4096
+ },
+ "tokenizer": {
+  "kind": "bpe_bytelevel",
+  "note": "paper: pre-tokenizer and vocabulary borrowed from cl100k; repo ships GPT-2-style vocab.json and merges.txt"
+ },
+ "attention": {
+  "kind": "mha",
+  "heads": 32,
+  "kv_heads": 32,
+  "head_dim": 128,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "rope",
+   "theta": 500000.0
+  },
+  "qk_norm": "rmsnorm",
+  "mla": null,
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "post_in_residual",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-06
+ },
+ "ffn": {
+  "kind": "glu",
+  "activation": "swiglu",
+  "hidden_dim": 11008,
+  "config_activation": "silu"
+ },
+ "moe": null,
+ "stack": {
+  "pattern": [
+   {
+    "type": "global",
+    "count": 1
+   }
+  ],
+  "repeat": 32
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "mha",
+    "label": "32 heads of 128, full context"
+   },
+   {
+    "kind": "qk_norm",
+    "label": "RMSNorm over the whole q and k projections (4096 wide), before RoPE"
+   },
+   {
+    "kind": "rmsnorm",
+    "label": "post_attention_layernorm on the attention output"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "glu",
+    "label": "SwiGLU 4096 -> 11008 -> 4096"
+   },
+   {
+    "kind": "rmsnorm",
+    "label": "post_feedforward_layernorm"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "post_in_residual",
+   "what": "h = x + RMSNorm(Attn(x)); out = h + RMSNorm(MLP(h)); the residual stream itself is never normalised inside the stack",
+   "where": "every block"
+  },
+  {
+   "name": "z_loss",
+   "what": "z-loss regularisation (weight 1e-5) on the output logits",
+   "where": "training only"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/allenai/OLMo-2-1124-7B/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2501.00656",
+   "kind": "paper",
+   "title": "2 OLMo 2 Furious",
+   "note": "section 2.1 (Table 1), 2.2 tokenizer, 3.3.2 reordered norm and QK-norm",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/olmo2/modeling_olmo2.py",
+   "kind": "code",
+   "note": "Olmo2DecoderLayer: attn, post_attention_layernorm, add, MLP, post_feedforward_layernorm, add; q_norm/k_norm RMSNorm over the full q and k projections",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/allenai/OLMo-2-1124-7B",
+   "kind": "model_card",
+   "note": "createdAt 2024-10-29, license apache-2.0, safetensors total 7,298,617,344",
+   "accessed": "2026-11-14"
+  },
+  "gal": {
+   "url": "https://github.com/rasbt/llm-architecture-gallery/blob/main/models.yml",
+   "kind": "secondary",
+   "note": "entry 'OLMo 2 7B': date, licence, 'inside-residual post-norm'",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/allenai/OLMo-2-1124-7B/blob/main/config.json",
+   "kind": "derived",
+   "note": "2Vd (untied) + L*(4d^2 attn + q/k norms 2d + SwiGLU 3*d*f + 2 norms) + final norm",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "gal",
+   "hfapi"
+  ],
+  "weights.*": [
+   "hfapi",
+   "gal"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "count",
+   "hfapi"
+  ],
+  "layers": [
+   "cfg"
+  ],
+  "d_model": [
+   "cfg",
+   "paper"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "context_length.*": [
+   "cfg",
+   "paper"
+  ],
+  "tokenizer.*": [
+   "paper",
+   "hfapi"
+  ],
+  "attention.*": [
+   "cfg",
+   "code",
+   "paper"
+  ],
+  "norm.*": [
+   "code",
+   "cfg",
+   "paper"
+  ],
+  "ffn.*": [
+   "cfg",
+   "paper"
+  ],
+  "stack.*": [
+   "cfg"
+  ],
+  "block_order.*": [
+   "code",
+   "paper"
+  ],
+  "specials": [
+   "paper",
+   "code"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Sebastian Raschka",
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/images/architectures/olmo-2-7b.webp",
+   "title": "OLMo 2 7B",
+   "terms": "no reuse licence stated; link only"
+  }
+ ],
+ "unknowns": {},
+ "notes": [
+  "The paper's equation (2) as extracted reads 'h + RMSNorm(MLP(x))'; the code applies the MLP to h. Record follows the code."
+ ],
+ "teaches": [
+  "post_in_residual",
+  "qk_norm"
+ ]
+}

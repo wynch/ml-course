@@ -1,0 +1,274 @@
+{
+ "id": "deepseek-moe-16b",
+ "name": "DeepSeekMoE 16B",
+ "organisation": "DeepSeek",
+ "release_date": {
+  "value": "2024-01-11",
+  "precision": "day",
+  "note": "arXiv v1 of the paper; HF repo created 2024-01-08"
+ },
+ "family": "deepseek",
+ "parent_id": null,
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "DeepSeek License Agreement v1.0",
+  "licence_url": "https://github.com/deepseek-ai/DeepSeek-MoE/blob/main/LICENSE-MODEL",
+  "repo": "deepseek-ai/deepseek-moe-16b-base"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 16375728128,
+  "active": 2828650496,
+  "note": "derived from config, untied embeddings, embeddings and head counted as active; total equals the HF safetensors count; paper: about 16.4B total, 2.8B active"
+ },
+ "layers": 28,
+ "d_model": 2048,
+ "vocab_size": 102400,
+ "context_length": {
+  "value": 4096
+ },
+ "tokenizer": {
+  "kind": "bpe_bytelevel",
+  "stated_vocab": "100K",
+  "note": "paper: BPE trained with HF Tokenizers; tokenizer.json has a ByteLevel pre-tokenizer and decoder, 100,000 base tokens"
+ },
+ "attention": {
+  "kind": "mha",
+  "heads": 16,
+  "kv_heads": 16,
+  "head_dim": 128,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "rope",
+   "theta": 10000
+  },
+  "qk_norm": "none",
+  "mla": null,
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-06
+ },
+ "ffn": {
+  "kind": "moe",
+  "activation": "swiglu",
+  "hidden_dim": 10944,
+  "config_activation": "silu"
+ },
+ "moe": {
+  "experts": 64,
+  "routed_per_token": 6,
+  "shared": 2,
+  "expert_hidden_dim": 1408,
+  "latent_dim": null,
+  "dense_layers": "first 1",
+  "router": "softmax scores, top-6, weights not renormalised"
+ },
+ "stack": {
+  "prefix": [
+   {
+    "type": "dense_ffn",
+    "count": 1
+   }
+  ],
+  "pattern": [
+   {
+    "type": "moe",
+    "count": 1
+   }
+  ],
+  "repeat": 27,
+  "note": "all 28 layers use full multi-head attention"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "mha",
+    "label": "16 heads x 128"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "moe",
+    "label": "2 shared (held as one 2816-wide MLP) + top-6 of 64 experts of width 1408 (layer 1: dense SwiGLU 10944)"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "fine_grained_experts",
+   "what": "each expert is a quarter of a standard FFN, so 64 small experts replace a few large ones",
+   "where": "MoE layers"
+  },
+  {
+   "name": "shared_expert",
+   "what": "2 experts see every token; code stores them as one MLP of width 2 x 1408",
+   "where": "MoE layers"
+  },
+  {
+   "name": "dense_prefix",
+   "what": "first layer keeps a dense FFN; the paper says its load balance converges slower",
+   "where": "layer 1"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/deepseek-ai/deepseek-moe-16b-base/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2401.06066",
+   "kind": "paper",
+   "title": "DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models",
+   "note": "section 5.1 (16B setup)",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://huggingface.co/deepseek-ai/deepseek-moe-16b-base/blob/main/modeling_deepseek.py",
+   "kind": "code",
+   "note": "DeepseekDecoderLayer: input_layernorm, attention, add, post_attention_layernorm, MoE, add",
+   "accessed": "2026-11-14"
+  },
+  "tok": {
+   "url": "https://huggingface.co/deepseek-ai/deepseek-moe-16b-base/blob/main/tokenizer.json",
+   "kind": "config",
+   "note": "model type BPE, ByteLevel decoder",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/deepseek-ai/deepseek-moe-16b-base",
+   "kind": "model_card",
+   "note": "license other / deepseek, link to LICENSE-MODEL; safetensors total 16,375,728,128",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/deepseek-ai/deepseek-moe-16b-base/blob/main/config.json",
+   "kind": "derived",
+   "note": "2Vd + d + L(4d^2 + 2d) + 1 dense SwiGLU 3dI + 27 x (gate Ed + 64 x 3d*1408 + shared 3d*2816)",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "paper",
+   "hfapi"
+  ],
+  "weights.*": [
+   "hfapi",
+   "cfg"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "count",
+   "hfapi",
+   "paper"
+  ],
+  "layers": [
+   "cfg",
+   "paper"
+  ],
+  "d_model": [
+   "cfg",
+   "paper"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "context_length.value": [
+   "cfg",
+   "paper"
+  ],
+  "tokenizer.*": [
+   "paper",
+   "tok"
+  ],
+  "attention.*": [
+   "cfg",
+   "paper",
+   "code"
+  ],
+  "norm.*": [
+   "code",
+   "cfg"
+  ],
+  "ffn.*": [
+   "cfg",
+   "code"
+  ],
+  "moe.*": [
+   "cfg",
+   "paper",
+   "code"
+  ],
+  "stack.*": [
+   "cfg",
+   "paper"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "paper",
+   "code"
+  ],
+  "layer_kinds.*": [
+   "cfg"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "DeepSeek",
+   "url": "https://arxiv.org/abs/2401.06066",
+   "title": "Figure 2 of the paper: fine-grained and shared experts",
+   "terms": "arXiv default licence; link only"
+  }
+ ],
+ "unknowns": {},
+ "notes": [
+  "Paper trains with sequences of 4K tokens; config allows 4,096 positions."
+ ],
+ "teaches": [
+  "fine_grained_experts",
+  "shared_expert",
+  "dense_prefix"
+ ],
+ "layer_kinds": {
+  "dense_ffn": {
+   "mixer": "mha",
+   "ffn": "glu"
+  },
+  "moe": {
+   "mixer": "mha",
+   "ffn": "moe"
+  }
+ }
+}

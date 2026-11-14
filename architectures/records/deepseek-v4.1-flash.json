@@ -1,0 +1,423 @@
+{
+ "id": "deepseek-v4.1-flash",
+ "name": "DeepSeek-V4.1-Flash",
+ "organisation": "DeepSeek",
+ "release_date": {
+  "value": "2026-09-10",
+  "precision": "day",
+  "note": "Raschka gallery date and HF repo creation"
+ },
+ "family": "deepseek",
+ "parent_id": "deepseek-v4-pro",
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "MIT",
+  "licence_url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash/blob/main/LICENSE",
+  "repo": "deepseek-ai/DeepSeek-V4.1-Flash"
+ },
+ "modality": {
+  "inputs": [
+   "text",
+   "image"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 748000000000,
+  "active": 16000000000,
+  "note": "report: 552B backbone plus 196B Engram tables; 16B active per token in decode, 8B in prefill. Vision encoder and DSpark drafter excluded; HF safetensors 763.2B include them.",
+  "active_decode": 16000000000,
+  "active_prefill": 8000000000
+ },
+ "layers": 40,
+ "d_model": 5120,
+ "vocab_size": 129280,
+ "context_length": {
+  "value": 1048576,
+  "trained": "1M (sparse attention trained at 64K; context extended at 34T of 45T tokens)"
+ },
+ "tokenizer": {
+  "kind": "bpe_bytelevel",
+  "note": "tokenizer.json: ByteLevel, 128,000 base tokens plus 1,283 added"
+ },
+ "attention": {
+  "kind": "hybrid",
+  "mixers": [
+   {
+    "kind": "sliding_window",
+    "layers": 2,
+    "note": "layers 1-2: 128-token window only"
+   },
+   {
+    "kind": "csa2",
+    "layers": 18,
+    "note": "causal encoder: compression 2; 3 groups of 6 layers, each 1 Full + 5 Reuse"
+   },
+   {
+    "kind": "csa2",
+    "layers": 20,
+    "note": "decoder: compression 1, global KV projected from the final encoder states; 5 groups of 4 (Full or Reindex, then 3 Reuse); hierarchical sparse indexer"
+   }
+  ],
+  "heads": 64,
+  "kv_heads": 1,
+  "head_dim": 512,
+  "window": 128,
+  "local_global": null,
+  "position": {
+   "scheme": "rope",
+   "theta": 160000,
+   "partial_fraction": 0.125,
+   "scaling": "yarn"
+  },
+  "qk_norm": "rmsnorm",
+  "mla": null,
+  "sparse": {
+   "kind": "sparse_topk",
+   "top_k": 512,
+   "index_heads": 32,
+   "index_head_dim": 128,
+   "index_shared_layers": 30
+  },
+  "other": [
+   "attention_sink"
+  ],
+  "window_kind": "sliding",
+  "kv_shared_layers": 34
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-20
+ },
+ "ffn": {
+  "kind": "moe",
+  "activation": "swiglu",
+  "hidden_dim": null,
+  "config_activation": "silu"
+ },
+ "moe": {
+  "experts": 384,
+  "routed_per_token": 6,
+  "shared": 1,
+  "expert_hidden_dim": 2304,
+  "latent_dim": null,
+  "dense_layers": "none",
+  "router": "sqrt(softplus) scores, aux-loss-free bias with a separate bias for image tokens, top-6; routed scale 1.5"
+ },
+ "stack": {
+  "prefix": [
+   {
+    "type": "local",
+    "count": 2
+   },
+   {
+    "type": "csa2_encoder",
+    "count": 18
+   }
+  ],
+  "pattern": [
+   {
+    "type": "csa2_decoder",
+    "count": 4
+   }
+  ],
+  "repeat": 5,
+  "note": "20-layer causal encoder (2 SWA-only + 18 CSA2) then 20-layer decoder; config kv_source_layer_ids 2, 8, 14, 20 and index_source_layer_ids mark the Full and Reindex layers"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "engram",
+    "label": "n-gram hash lookup added into the 4 residual streams",
+    "only_on": "2 and 15 (0-based 1 and 14)"
+   },
+   {
+    "kind": "rmsnorm",
+    "label": "attn_norm on the mHC read-out"
+   },
+   {
+    "kind": "sliding_window",
+    "label": "128-token window only",
+    "only_on": "local"
+   },
+   {
+    "kind": "csa2",
+    "label": "ratio-2 compressed KV and top-512 picks; one Full layer per 6 computes them, 5 Reuse; plus a 128-token window",
+    "only_on": "csa2_encoder"
+   },
+   {
+    "kind": "csa2",
+    "label": "global KV projected from the encoder output at layer 21; Reindex layers re-rank a candidate pool, the rest Reuse; plus a 128-token window",
+    "only_on": "csa2_decoder"
+   },
+   {
+    "kind": "residual_add",
+    "label": "Single-Pass mHC write-back into 4 streams"
+   },
+   {
+    "kind": "rmsnorm",
+    "label": "ffn_norm"
+   },
+   {
+    "kind": "moe",
+    "label": "1 shared + top-6 of 384, SwiGLU clamped at 10"
+   },
+   {
+    "kind": "residual_add",
+    "label": "Single-Pass mHC write-back"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "causal_encoder_decoder",
+   "what": "40 layers split into a 20-layer causal encoder and a 20-layer decoder; decoder global KV comes from the final encoder hidden states, so prefill skips most decoder work",
+   "where": "whole stack"
+  },
+  {
+   "name": "csa2",
+   "what": "Compressed Sparse Attention 2: each layer is Full, Reindex or Reuse, sharing main KV and indexer keys across layers and reusing top-k indices",
+   "where": "38 CSA2 layers"
+  },
+  {
+   "name": "sparse_topk",
+   "what": "later decoder indexers score only a candidate pool of up to 2,048 blocks of 8 positions chosen by the first Full layer",
+   "where": "decoder"
+  },
+  {
+   "name": "engram",
+   "what": "two conditional-memory modules, 196B parameters in all; n-gram orders 2-4, 8 hash heads, tables of about 16M rows; short convolution omitted",
+   "where": "before layers 2 and 15"
+  },
+  {
+   "name": "mhc",
+   "what": "Single-Pass mHC: 4 residual streams; the input mix for one sublayer is computed by the previous one",
+   "where": "every sublayer"
+  },
+  {
+   "name": "mtp",
+   "what": "speculative decoding drafter: 3 blocks with a 128-token window, 5 draft positions, Markov head; trained after pre-training",
+   "where": "beside the main stack"
+  },
+  {
+   "name": "mxfp4",
+   "what": "main KV cached in FP4 (E2M1, one E4M3 scale per 16 channels); 890 bytes of global KV per token",
+   "where": "inference"
+  },
+  {
+   "name": "attention_sink",
+   "what": "learned sink logit per head",
+   "where": "every layer"
+  }
+ ],
+ "omitted_towers": [
+  {
+   "modality": "image",
+   "what": "DeepSeek-ViT, trained from scratch: 2D-RoPE, patch 14, hidden 1024, 16 heads, 3x3 pixel-unshuffle, 2-layer MLP projector",
+   "params": null,
+   "layers": 32
+  }
+ ],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "report": {
+   "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash/blob/main/DeepSeek_V41_Tech_Report.pdf",
+   "kind": "paper",
+   "title": "DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression",
+   "note": "sections 2.1, 2.4, 4.2.1",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash/blob/main/inference/model.py",
+   "kind": "code",
+   "note": "Block.forward: hc_mixes, hc_pre, attn_norm, attn, hc_post, then ffn; Engram applied before its layer in Transformer.forward",
+   "accessed": "2026-11-14"
+  },
+  "readme": {
+   "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash",
+   "kind": "model_card",
+   "note": "CED, CSA2, Engram 196B, DSpark, 1 shared + 384 routed, MIT",
+   "accessed": "2026-11-14"
+  },
+  "tok": {
+   "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash/blob/main/tokenizer.json",
+   "kind": "config",
+   "note": "ByteLevel, 128,000 base tokens, 1,283 added",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/deepseek-ai/DeepSeek-V4.1-Flash",
+   "kind": "model_card",
+   "note": "license mit; created 2026-09-10; safetensors total 763,205,315,794",
+   "accessed": "2026-11-14"
+  },
+  "gal": {
+   "url": "https://github.com/rasbt/llm-architecture-gallery/blob/main/models.yml",
+   "kind": "secondary",
+   "note": "entry 'DeepSeek V4.1-Flash': date, 20 encoder + 20 decoder, 552B + 196B Engram, 8B / 16B active",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "gal",
+   "hfapi"
+  ],
+  "weights.*": [
+   "readme",
+   "hfapi"
+  ],
+  "modality.*": [
+   "readme",
+   "report"
+  ],
+  "params.*": [
+   "report",
+   "readme",
+   "gal",
+   "hfapi"
+  ],
+  "layers": [
+   "cfg",
+   "report"
+  ],
+  "d_model": [
+   "cfg",
+   "report"
+  ],
+  "vocab_size": [
+   "cfg",
+   "gal"
+  ],
+  "context_length.*": [
+   "cfg",
+   "readme"
+  ],
+  "tokenizer.*": [
+   "tok"
+  ],
+  "attention.*": [
+   "cfg",
+   "report",
+   "code"
+  ],
+  "norm.*": [
+   "cfg",
+   "code"
+  ],
+  "ffn.*": [
+   "cfg",
+   "report"
+  ],
+  "moe.*": [
+   "cfg",
+   "report",
+   "code"
+  ],
+  "stack.*": [
+   "cfg",
+   "report"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "report",
+   "readme",
+   "cfg"
+  ],
+  "omitted_towers": [
+   "report",
+   "cfg"
+  ],
+  "layer_kinds.*": [
+   "cfg",
+   "code",
+   "report"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Sebastian Raschka",
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/images/architectures/deepseek-v4-1-flash.webp",
+   "title": "DeepSeek V4.1-Flash (text backbone)",
+   "terms": "no reuse licence stated; link only"
+  },
+  {
+   "author": "DeepSeek",
+   "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash/blob/main/DeepSeek_V41_Tech_Report.pdf",
+   "title": "Figure 3 of the report: overall architecture",
+   "terms": "MIT repository; link only"
+  }
+ ],
+ "unknowns": {
+  "ffn.hidden_dim": "no dense FFN layers: every layer holds experts",
+  "omitted_towers": "the report gives the vision encoder's shape but not its parameter count",
+  "attention.position.theta": "compressed layers use compress_rope_theta 160000 with YaRN; the two SWA-only layers use rope_theta 10000 without YaRN (code comment)"
+ },
+ "notes": [
+  "Config rms_norm_eps is 1e-20, as recorded; V4-Pro uses 1e-6.",
+  "Parent is DeepSeek-V4-Pro because V4-Flash, the closer sibling, is not in this database; the report says V4.1-Flash was trained from scratch.",
+  "Config num_nextn_predict_layers 3 holds the DSpark drafter; the report says no MTP module was used in backbone pre-training.",
+  "Hash routing of V4 is absent: config has no num_hash_layers.",
+  "qk_norm: V4.1-Flash normalises the query latent and the single KV head; unlike V4-Pro it applies no per-head norm to queries (inference/model.py)."
+ ],
+ "teaches": [
+  "engram"
+ ],
+ "layer_kinds": {
+  "local": {
+   "mixer": "sliding_window",
+   "ffn": "moe",
+   "heads": 64,
+   "kv_heads": 1,
+   "head_dim": 512,
+   "window": 128,
+   "window_kind": "sliding",
+   "position": "rope",
+   "theta": 10000,
+   "partial_fraction": 0.125,
+   "note": "no YaRN"
+  },
+  "csa2_encoder": {
+   "mixer": "csa2",
+   "ffn": "moe",
+   "heads": 64,
+   "kv_heads": 1,
+   "head_dim": 512,
+   "window": 128,
+   "window_kind": "sliding",
+   "compress_ratio": 2,
+   "position": "rope",
+   "theta": 160000,
+   "partial_fraction": 0.125,
+   "kv_source": "Full layers 3, 9 and 15 (1-based); each next 5 layers reuse their KV and top-k"
+  },
+  "csa2_decoder": {
+   "mixer": "csa2",
+   "ffn": "moe",
+   "heads": 64,
+   "kv_heads": 1,
+   "head_dim": 512,
+   "window": 128,
+   "window_kind": "sliding",
+   "compress_ratio": 1,
+   "position": "rope",
+   "theta": 160000,
+   "partial_fraction": 0.125,
+   "kv_source": "layer 21 (1-based) projects global KV from the encoder output; the other 19 reuse it",
+   "note": "layers 25, 29, 33, 37 re-rank; the rest reuse top-k"
+  }
+ }
+}

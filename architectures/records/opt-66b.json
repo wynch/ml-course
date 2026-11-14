@@ -1,0 +1,230 @@
+{
+ "id": "opt-66b",
+ "name": "OPT-66B",
+ "organisation": "Meta",
+ "release_date": {
+  "value": "2022-05-02",
+  "precision": "day",
+  "note": "arXiv v1 of the paper; the HF repo was created 2022-06-23"
+ },
+ "family": "opt",
+ "parent_id": "gpt-3-175b",
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "OPT-175B License Agreement (non-commercial)",
+  "licence_url": "https://huggingface.co/facebook/opt-66b/blob/main/LICENSE.md",
+  "repo": "facebook/opt-66b"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 65719701504,
+  "active": 65719701504,
+  "note": "derived from config with tied embeddings; the checkpoint also stores lm_head, giving 66,183,008,256 tensors' worth (= index total_size / 2)"
+ },
+ "layers": 64,
+ "d_model": 9216,
+ "vocab_size": 50272,
+ "context_length": {
+  "value": 2048
+ },
+ "tokenizer": {
+  "kind": "bpe_bytelevel",
+  "note": "GPT-2 byte-level BPE (paper section 3.1)"
+ },
+ "attention": {
+  "kind": "mha",
+  "heads": 72,
+  "kv_heads": 72,
+  "head_dim": 128,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "learned_absolute"
+  },
+  "qk_norm": "none",
+  "mla": null,
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "layernorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-05
+ },
+ "ffn": {
+  "kind": "mlp",
+  "activation": "relu",
+  "hidden_dim": 36864,
+  "config_activation": "relu"
+ },
+ "moe": null,
+ "stack": {
+  "pattern": [
+   {
+    "type": "global",
+    "count": 1
+   }
+  ],
+  "repeat": 64
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "layernorm"
+   },
+   {
+    "kind": "mha",
+    "label": "72 heads x 128"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "layernorm"
+   },
+   {
+    "kind": "mlp",
+    "label": "9216 -> 36864 -> 9216, ReLU"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "tied_embeddings",
+   "what": "lm_head tied to the token embedding",
+   "where": "lm_head"
+  },
+  {
+   "name": "learned_absolute",
+   "what": "position table of 2050 rows: positions offset by 2",
+   "where": "embedding"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/facebook/opt-66b/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2205.01068",
+   "kind": "paper",
+   "title": "OPT: Open Pre-trained Transformer Language Models",
+   "note": "Table 1, section 2.2 (ReLU, sequence length 2048), 3.1 (GPT-2 BPE); arXiv API: v1 2022-05-02",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/opt/modeling_opt.py",
+   "kind": "code",
+   "note": "do_layer_norm_before: self_attn_layer_norm and final_layer_norm precede their sublayers; OPTLearnedPositionalEmbedding offset 2; lm_head tied",
+   "accessed": "2026-11-14"
+  },
+  "idx": {
+   "url": "https://huggingface.co/facebook/opt-66b/blob/main/pytorch_model.bin.index.json",
+   "kind": "weights_index",
+   "note": "total_size 132,366,016,512 bytes (fp16); biases on q/k/v/out and fc1/fc2",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/facebook/opt-66b",
+   "kind": "model_card",
+   "note": "license tag other; LICENSE.md is the OPT-175B License Agreement; createdAt 2022-06-23",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/facebook/opt-66b/blob/main/config.json",
+   "kind": "derived",
+   "note": "V*d + 2050*d + L*(4d^2 + 4d + 2*d*f + f + d + 4d) + 2d with V 50272, d 9216, f 36864, L 64",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "paper",
+   "hfapi"
+  ],
+  "weights.*": [
+   "hfapi",
+   "cfg"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "count",
+   "idx"
+  ],
+  "layers": [
+   "cfg",
+   "paper"
+  ],
+  "d_model": [
+   "cfg",
+   "paper"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "context_length.value": [
+   "cfg",
+   "paper"
+  ],
+  "tokenizer.*": [
+   "paper"
+  ],
+  "attention.*": [
+   "cfg",
+   "paper"
+  ],
+  "attention.head_dim": [
+   "count"
+  ],
+  "attention.position.scheme": [
+   "code"
+  ],
+  "attention.qk_norm": [
+   "code"
+  ],
+  "norm.*": [
+   "cfg",
+   "code"
+  ],
+  "ffn.*": [
+   "cfg",
+   "paper"
+  ],
+  "stack.*": [
+   "cfg"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "code",
+   "idx"
+  ]
+ },
+ "figure_links": [],
+ "unknowns": {},
+ "notes": [
+  "Paper Table 1 lists 66B; the unique parameter count is 65.7B because the output head shares the embedding."
+ ],
+ "teaches": [
+  "relu"
+ ]
+}

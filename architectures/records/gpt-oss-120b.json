@@ -1,0 +1,294 @@
+{
+ "id": "gpt-oss-120b",
+ "name": "gpt-oss-120b",
+ "organisation": "OpenAI",
+ "release_date": {
+  "value": "2025-08-04",
+  "precision": "day",
+  "note": "HF repo created 2025-08-04 and Raschka's gallery date; model card on arXiv 2025-08-08"
+ },
+ "family": "gpt-oss",
+ "parent_id": null,
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "Apache-2.0",
+  "licence_url": "https://huggingface.co/openai/gpt-oss-120b/blob/main/LICENSE",
+  "repo": "openai/gpt-oss-120b"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 116830000000,
+  "active": 5130000000,
+  "note": "model card Table 1; active counts unembedding but not embedding"
+ },
+ "layers": 36,
+ "d_model": 2880,
+ "vocab_size": 201088,
+ "context_length": {
+  "value": 131072,
+  "trained": "131,072 via YaRN on dense layers (from 4,096)"
+ },
+ "tokenizer": {
+  "kind": "tiktoken_bpe",
+  "stated_vocab": 201088,
+  "note": "o200k_harmony, an o200k extension, in the TikToken library"
+ },
+ "attention": {
+  "kind": "gqa",
+  "heads": 64,
+  "kv_heads": 8,
+  "head_dim": 64,
+  "window": 128,
+  "local_global": "1:1",
+  "position": {
+   "scheme": "rope",
+   "theta": 150000,
+   "scaling": "yarn",
+   "partial_fraction": null
+  },
+  "qk_norm": "none",
+  "mla": null,
+  "sparse": null,
+  "other": [
+   "attention_sink"
+  ],
+  "window_kind": "sliding"
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-05
+ },
+ "ffn": {
+  "kind": "moe",
+  "activation": "swiglu",
+  "hidden_dim": null,
+  "config_activation": "silu"
+ },
+ "moe": {
+  "experts": 128,
+  "routed_per_token": 4,
+  "shared": 0,
+  "expert_hidden_dim": 2880,
+  "latent_dim": null,
+  "dense_layers": "none",
+  "router": "linear router with bias; softmax over the selected top-4"
+ },
+ "stack": {
+  "pattern": [
+   {
+    "type": "local",
+    "count": 1
+   },
+   {
+    "type": "global",
+    "count": 1
+   }
+  ],
+  "repeat": 18,
+  "note": "config layer_types: sliding at even 0-based layers, full at odd"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "gqa",
+    "label": "64 query heads of 64, 8 KV heads, QKV bias; local: window 128 / global: full; learned sink per head"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "moe",
+    "label": "top-4 of 128, clamped SwiGLU, MXFP4 weights"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "attention_sink",
+   "what": "learned bias in the softmax denominator per head, so a head can attend to nothing",
+   "where": "every attention layer"
+  },
+  {
+   "name": "mxfp4",
+   "what": "MoE weights post-trained in MXFP4 (about 4.25 bits per parameter)",
+   "where": "experts only; attention, router and embeddings stay BF16"
+  },
+  {
+   "name": "swiglu",
+   "what": "unusual SwiGLU: gate and up clamped at 7, sigmoid(1.702 x) gate, output (up + 1) * glu",
+   "where": "every expert"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/openai/gpt-oss-120b/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "idx": {
+   "url": "https://huggingface.co/openai/gpt-oss-120b/blob/main/model.safetensors.index.json",
+   "kind": "weights_index",
+   "note": "self_attn.sinks; experts in MXFP4 blocks and scales; router bias",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2508.10925",
+   "kind": "paper",
+   "title": "gpt-oss-120b & gpt-oss-20b Model Card",
+   "note": "section 2: Table 1, 2.1 quantization, 2.2 architecture, 2.3 tokenizer",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/gpt_oss/modeling_gpt_oss.py",
+   "kind": "code",
+   "note": "sinks concatenated to logits; clamp and alpha in expert GLU; pre-norm",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/openai/gpt-oss-120b",
+   "kind": "model_card",
+   "note": "license apache-2.0; createdAt 2025-08-04",
+   "accessed": "2026-11-14"
+  },
+  "gal": {
+   "url": "https://github.com/rasbt/llm-architecture-gallery/blob/main/models.yml",
+   "kind": "secondary",
+   "note": "entry 'GPT-OSS 120B': date, licence name, cross-check only",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "hfapi",
+   "gal"
+  ],
+  "weights.*": [
+   "hfapi",
+   "gal"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "paper"
+  ],
+  "layers": [
+   "cfg",
+   "paper"
+  ],
+  "d_model": [
+   "cfg",
+   "paper"
+  ],
+  "vocab_size": [
+   "cfg",
+   "paper"
+  ],
+  "context_length.*": [
+   "cfg",
+   "paper"
+  ],
+  "tokenizer.*": [
+   "paper"
+  ],
+  "attention.*": [
+   "cfg",
+   "paper",
+   "code"
+  ],
+  "norm.*": [
+   "paper",
+   "code",
+   "cfg"
+  ],
+  "ffn.*": [
+   "cfg",
+   "paper",
+   "code"
+  ],
+  "moe.*": [
+   "cfg",
+   "paper"
+  ],
+  "stack.*": [
+   "cfg"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "paper",
+   "code",
+   "cfg"
+  ],
+  "layer_kinds.*": [
+   "cfg"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Sebastian Raschka",
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/images/architectures/gpt-oss-120b.webp",
+   "title": "GPT-OSS 120B",
+   "terms": "no reuse licence stated; link only"
+  }
+ ],
+ "unknowns": {
+  "ffn.hidden_dim": "no dense FFN: every layer is MoE; config intermediate_size 2880 is the expert width"
+ },
+ "notes": [
+  "Paper: attention alternates banded-window and dense layers 'following GPT-3'; window 128 tokens."
+ ],
+ "teaches": [
+  "local_global",
+  "sliding_window",
+  "attention_sink",
+  "mxfp4",
+  "moe",
+  "yarn"
+ ],
+ "layer_kinds": {
+  "local": {
+   "mixer": "gqa",
+   "ffn": "moe",
+   "heads": 64,
+   "kv_heads": 8,
+   "head_dim": 64,
+   "window": 128,
+   "window_kind": "sliding",
+   "position": "rope",
+   "theta": 150000
+  },
+  "global": {
+   "mixer": "gqa",
+   "ffn": "moe",
+   "heads": 64,
+   "kv_heads": 8,
+   "head_dim": 64,
+   "position": "rope",
+   "theta": 150000
+  }
+ }
+}

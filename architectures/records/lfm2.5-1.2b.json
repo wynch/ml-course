@@ -1,0 +1,341 @@
+{
+ "id": "lfm2.5-1.2b",
+ "name": "LFM2.5 1.2B",
+ "organisation": "Liquid AI",
+ "release_date": {
+  "value": "2026-01-20",
+  "precision": "day",
+  "note": "datePublished of Liquid AI's LFM2.5-1.2B-Thinking blog post, also the repo's creation date; Raschka's gallery lists 2026-05-28"
+ },
+ "family": "lfm",
+ "parent_id": null,
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "LFM Open License v1.0",
+  "licence_url": "https://huggingface.co/LiquidAI/LFM2.5-1.2B-Thinking/blob/main/LICENSE",
+  "repo": "LiquidAI/LFM2.5-1.2B-Thinking"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 1170340608,
+  "active": 1170340608,
+  "note": "derived from config; equals the Hub's safetensors count; model card says 1.17B"
+ },
+ "layers": 16,
+ "d_model": 2048,
+ "vocab_size": 65536,
+ "context_length": {
+  "value": 128000,
+  "trained": 32768
+ },
+ "tokenizer": {
+  "kind": "bpe_bytelevel",
+  "note": "LFM2 report: byte-level BPE, 65,536 tokens"
+ },
+ "attention": {
+  "kind": "hybrid",
+  "mixers": [
+   {
+    "kind": "short_conv",
+    "layers": 10,
+    "note": "double-gated: in_proj to B, C, x; B*x; depthwise causal conv kernel 3; C*; out_proj"
+   },
+   {
+    "kind": "gqa",
+    "layers": 6,
+    "note": "32 heads, 8 KV heads, head 64, QK-norm, RoPE"
+   }
+  ],
+  "heads": 32,
+  "kv_heads": 8,
+  "head_dim": 64,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "rope",
+   "theta": 1000000.0,
+   "nope_layers": "conv layers have no position signal beyond the convolution"
+  },
+  "qk_norm": "rmsnorm",
+  "mla": null,
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-05
+ },
+ "ffn": {
+  "kind": "glu",
+  "activation": "swiglu",
+  "hidden_dim": 8192,
+  "config_activation": null
+ },
+ "moe": null,
+ "stack": {
+  "prefix": [
+   {
+    "type": "conv",
+    "count": 2
+   },
+   {
+    "type": "attention",
+    "count": 1
+   },
+   {
+    "type": "conv",
+    "count": 2
+   },
+   {
+    "type": "attention",
+    "count": 1
+   },
+   {
+    "type": "conv",
+    "count": 2
+   },
+   {
+    "type": "attention",
+    "count": 1
+   }
+  ],
+  "pattern": [
+   {
+    "type": "conv",
+    "count": 1
+   },
+   {
+    "type": "attention",
+    "count": 1
+   }
+  ],
+  "repeat": 3,
+  "suffix": [
+   {
+    "type": "conv",
+    "count": 1
+   }
+  ],
+  "note": "config layer_types: attention at 0-based layers 2, 5, 8, 10, 12, 14"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm",
+    "label": "operator_norm"
+   },
+   {
+    "kind": "short_conv",
+    "label": "gated short conv, kernel 3",
+    "only_on": "conv"
+   },
+   {
+    "kind": "gqa",
+    "label": "GQA with QK RMSNorm and RoPE",
+    "only_on": "attention"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "rmsnorm",
+    "label": "ffn_norm"
+   },
+   {
+    "kind": "glu",
+    "label": "SwiGLU 2048 -> 8192 -> 2048"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "short_conv",
+   "what": "y = out_proj(C * conv_k3(B * x)), with B, C, x from one 2048 -> 6144 projection",
+   "where": "10 of 16 layers"
+  },
+  {
+   "name": "tied_embeddings",
+   "what": "output head reuses the embedding table",
+   "where": "lm_head"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/LiquidAI/LFM2.5-1.2B-Thinking/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "readme": {
+   "url": "https://huggingface.co/LiquidAI/LFM2.5-1.2B-Thinking/blob/main/README.md",
+   "kind": "model_card",
+   "note": "1.17B parameters; 16 layers (10 double-gated conv + 6 GQA); 28T tokens; context 32,768; license lfm1.0",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2511.23404",
+   "kind": "paper",
+   "title": "LFM2 Technical Report",
+   "note": "section 2: gated short convolution block, Table 1 (LFM2-1.2B), tokenizer; describes LFM2, which LFM2.5 extends",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/lfm2/modeling_lfm2.py",
+   "kind": "code",
+   "note": "Lfm2DecoderLayer: operator_norm, conv or attention, add, ffn_norm, SwiGLU, add; Lfm2MLP width int(2*12288/3) rounded to 256; final norm is named embedding_norm",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/LiquidAI/LFM2.5-1.2B-Thinking",
+   "kind": "model_card",
+   "note": "createdAt 2026-01-20, safetensors total 1,170,340,608",
+   "accessed": "2026-11-14"
+  },
+  "blog": {
+   "url": "https://www.liquid.ai/blog/lfm2-5-1-2b-thinking-on-device-reasoning-under-1gb",
+   "kind": "official_post",
+   "note": "datePublished 2026-01-20",
+   "accessed": "2026-11-14"
+  },
+  "gal": {
+   "url": "https://github.com/rasbt/llm-architecture-gallery/blob/main/models.yml",
+   "kind": "secondary",
+   "note": "entry 'LFM2.5 1.2B': date 2026-05-28, '10 LIV conv + 6 GQA', context 128,000",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/LiquidAI/LFM2.5-1.2B-Thinking/blob/main/config.json",
+   "kind": "derived",
+   "note": "Vd (tied) + 10*(conv in 3d^2 + kernel 3d + out d^2) + 6*(GQA + QK norms) + 16*(SwiGLU 3*d*8192 + 2 norms) + final norm",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "blog",
+   "hfapi"
+  ],
+  "weights.*": [
+   "readme",
+   "hfapi"
+  ],
+  "modality.*": [
+   "readme"
+  ],
+  "params.*": [
+   "count",
+   "hfapi",
+   "readme"
+  ],
+  "layers": [
+   "cfg",
+   "readme"
+  ],
+  "d_model": [
+   "cfg"
+  ],
+  "vocab_size": [
+   "cfg",
+   "paper"
+  ],
+  "context_length.value": [
+   "cfg"
+  ],
+  "context_length.trained": [
+   "readme",
+   "paper"
+  ],
+  "tokenizer.*": [
+   "paper"
+  ],
+  "attention.*": [
+   "cfg",
+   "code",
+   "paper"
+  ],
+  "norm.*": [
+   "code",
+   "cfg",
+   "paper"
+  ],
+  "ffn.*": [
+   "cfg",
+   "code",
+   "paper"
+  ],
+  "stack.*": [
+   "cfg"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "code",
+   "paper",
+   "cfg"
+  ],
+  "layer_kinds.*": [
+   "cfg",
+   "code"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Sebastian Raschka",
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/images/architectures/lfm2-5-1-2b.webp",
+   "title": "LFM2.5 1.2B",
+   "terms": "no reuse licence stated; link only"
+  },
+  {
+   "author": "Liquid AI",
+   "url": "https://arxiv.org/abs/2511.23404",
+   "title": "LFM2 report: the backbone figure (gated short conv, GQA, SwiGLU blocks)",
+   "terms": "arXiv default licence; link only"
+  }
+ ],
+ "unknowns": {
+  "ffn.config_activation": "config gives block_use_swiglu true, not an activation string"
+ },
+ "notes": [
+  "Config max_position_embeddings is 128,000 (gallery says 128,000); the model card and LFM2 report say 32,768. Record keeps both.",
+  "Release date: Liquid AI's blog and the Hub say 2026-01-20; Raschka's gallery says 2026-05-28. Record follows the blog.",
+  "The transformers module named embedding_norm runs after the last layer, so it is the final norm, not an embedding norm.",
+  "Report Table 1 (LFM2-1.2B): 16 layers, d 2048, FF 8192, 32/8/64 heads, 6 attention blocks, conv kernel 3; config matches."
+ ],
+ "teaches": [
+  "short_conv",
+  "hybrid"
+ ],
+ "layer_kinds": {
+  "conv": {
+   "mixer": "short_conv",
+   "ffn": "glu",
+   "position": "none",
+   "note": "double-gated depthwise conv, kernel 3"
+  },
+  "attention": {
+   "mixer": "gqa",
+   "ffn": "glu",
+   "heads": 32,
+   "kv_heads": 8,
+   "head_dim": 64,
+   "position": "rope",
+   "theta": 1000000.0
+  }
+ }
+}

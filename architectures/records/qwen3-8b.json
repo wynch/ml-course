@@ -1,0 +1,223 @@
+{
+ "id": "qwen3-8b",
+ "name": "Qwen3 8B",
+ "organisation": "Alibaba (Qwen team)",
+ "release_date": {
+  "value": "2025-04-28",
+  "precision": "day",
+  "note": "Raschka gallery date; report on arXiv 2025-05-14"
+ },
+ "family": "qwen",
+ "parent_id": "qwen2.5-7b",
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "Apache-2.0",
+  "licence_url": "https://huggingface.co/Qwen/Qwen3-8B/blob/main/LICENSE",
+  "repo": "Qwen/Qwen3-8B"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 8190735360,
+  "active": 8190735360,
+  "note": "derived from config, untied embeddings"
+ },
+ "layers": 36,
+ "d_model": 4096,
+ "vocab_size": 151936,
+ "context_length": {
+  "value": 40960,
+  "trained": "128K"
+ },
+ "tokenizer": {
+  "kind": "bpe_bytelevel",
+  "stated_vocab": 151669
+ },
+ "attention": {
+  "kind": "gqa",
+  "heads": 32,
+  "kv_heads": 8,
+  "head_dim": 128,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "rope",
+   "theta": 1000000
+  },
+  "qk_norm": "rmsnorm",
+  "mla": null,
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-06
+ },
+ "ffn": {
+  "kind": "glu",
+  "activation": "swiglu",
+  "hidden_dim": 12288,
+  "config_activation": "silu"
+ },
+ "moe": null,
+ "stack": {
+  "pattern": [
+   {
+    "type": "global",
+    "count": 1
+   }
+  ],
+  "repeat": 36
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "gqa",
+    "label": "32 Q / 8 KV heads, no QKV bias"
+   },
+   {
+    "kind": "qk_norm"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "glu",
+    "label": "SwiGLU 4096 -> 12288 -> 4096"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "qk_norm",
+   "what": "RMSNorm on each query and key head; replaces Qwen2's QKV bias",
+   "where": "every attention layer"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/Qwen/Qwen3-8B/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2505.09388",
+   "kind": "paper",
+   "title": "Qwen3 Technical Report",
+   "note": "section 2, Table 1",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/qwen3/modeling_qwen3.py",
+   "kind": "code",
+   "accessed": "2026-11-14"
+  },
+  "gal": {
+   "url": "https://github.com/rasbt/llm-architecture-gallery/blob/main/models.yml",
+   "kind": "secondary",
+   "note": "entry 'Qwen3 8B'",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/Qwen/Qwen3-8B/blob/main/config.json",
+   "kind": "derived",
+   "note": "Llama formula plus 2*head_dim per layer for q/k norms",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "gal"
+  ],
+  "weights.*": [
+   "gal",
+   "cfg"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "count"
+  ],
+  "layers": [
+   "cfg",
+   "paper"
+  ],
+  "d_model": [
+   "cfg"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "context_length.value": [
+   "cfg"
+  ],
+  "context_length.trained": [
+   "paper"
+  ],
+  "tokenizer.*": [
+   "paper"
+  ],
+  "attention.*": [
+   "cfg",
+   "paper",
+   "code"
+  ],
+  "norm.*": [
+   "paper",
+   "code",
+   "cfg"
+  ],
+  "ffn.*": [
+   "cfg",
+   "paper"
+  ],
+  "stack.*": [
+   "cfg"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "paper",
+   "code"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Sebastian Raschka",
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/images/architectures/qwen3-8b.webp",
+   "title": "Qwen3 8B",
+   "terms": "no reuse licence stated; link only"
+  }
+ ],
+ "unknowns": {},
+ "notes": [
+  "Config allows 40,960 positions; report Table 1 says 128K, reached with YaRN at inference."
+ ],
+ "teaches": [
+  "qk_norm",
+  "gqa"
+ ]
+}

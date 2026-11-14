@@ -1,0 +1,244 @@
+{
+ "id": "gpt-neox-20b",
+ "name": "GPT-NeoX-20B",
+ "organisation": "EleutherAI",
+ "release_date": {
+  "value": "2022-04-14",
+  "precision": "day",
+  "note": "arXiv v1 of the paper; the HF repo was created 2022-04-07"
+ },
+ "family": "gpt-neox",
+ "parent_id": "gpt-j-6b",
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "Apache 2.0",
+  "licence_url": "https://huggingface.co/EleutherAI/gpt-neox-20b",
+  "repo": "EleutherAI/gpt-neox-20b"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 20554567680,
+  "active": 20554567680,
+  "note": "derived from config, untied embeddings; paper: 20B, of which 19.9B non-embedding (derived non-embedding 19,934,859,264)"
+ },
+ "layers": 44,
+ "d_model": 6144,
+ "vocab_size": 50432,
+ "context_length": {
+  "value": 2048
+ },
+ "tokenizer": {
+  "kind": "bpe_bytelevel",
+  "stated_vocab": 50257,
+  "note": "new BPE trained on the Pile, same size as GPT-2's; consistent space handling; whitespace tokens"
+ },
+ "attention": {
+  "kind": "mha",
+  "heads": 64,
+  "kv_heads": 64,
+  "head_dim": 96,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "rope",
+   "theta": 10000,
+   "partial_fraction": 0.25,
+   "scaling": null
+  },
+  "qk_norm": "none",
+  "mla": null,
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "layernorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-05
+ },
+ "ffn": {
+  "kind": "mlp",
+  "activation": "gelu_tanh",
+  "hidden_dim": 24576,
+  "config_activation": "gelu_fast"
+ },
+ "moe": null,
+ "stack": {
+  "pattern": [
+   {
+    "type": "global",
+    "count": 1
+   }
+  ],
+  "repeat": 44
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "parallel_block",
+    "label": "attention and MLP read the same input, each through its own LayerNorm"
+   },
+   {
+    "kind": "layernorm",
+    "label": "input_layernorm (attention branch)"
+   },
+   {
+    "kind": "mha",
+    "label": "64 heads x 96, RoPE on 25% of head dims"
+   },
+   {
+    "kind": "layernorm",
+    "label": "post_attention_layernorm (MLP branch)"
+   },
+   {
+    "kind": "mlp",
+    "label": "6144 -> 24576 -> 6144, GELU"
+   },
+   {
+    "kind": "residual_add",
+    "label": "x + attn + mlp"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "parallel_block",
+   "what": "attention and FF computed in parallel and summed; two untied LayerNorms, which the paper calls an oversight",
+   "where": "every layer"
+  },
+  {
+   "name": "partial_rope",
+   "what": "rotary on the first 25% of each head's dims",
+   "where": "q and k"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/EleutherAI/gpt-neox-20b/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2204.06745",
+   "kind": "paper",
+   "title": "GPT-NeoX-20B: An Open-Source Autoregressive Language Model",
+   "note": "sections 2, 2.1.1-2.1.4, 3.2 (tokenizer), Table 1 (training config); arXiv API: v1 2022-04-14",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/gpt_neox/modeling_gpt_neox.py",
+   "kind": "code",
+   "note": "use_parallel_residual (default True): mlp(post_attention_layernorm(x)) + attn(input_layernorm(x)) + x",
+   "accessed": "2026-11-14"
+  },
+  "idx": {
+   "url": "https://huggingface.co/EleutherAI/gpt-neox-20b/blob/main/model.safetensors.index.json",
+   "kind": "weights_index",
+   "note": "biases on qkv, dense, MLP and LayerNorms; embed_in and embed_out separate",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/EleutherAI/gpt-neox-20b",
+   "kind": "model_card",
+   "note": "license tag apache-2.0; createdAt 2022-04-07",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/EleutherAI/gpt-neox-20b/blob/main/config.json",
+   "kind": "derived",
+   "note": "2*V*d + L*(4d + 4d^2 + 4d + 2*d*f + f + d) + 2d with V 50432, d 6144, f 24576, L 44",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "paper",
+   "hfapi"
+  ],
+  "weights.*": [
+   "hfapi"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "count",
+   "paper"
+  ],
+  "layers": [
+   "cfg",
+   "paper"
+  ],
+  "d_model": [
+   "cfg",
+   "paper"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "context_length.value": [
+   "cfg",
+   "paper"
+  ],
+  "tokenizer.*": [
+   "paper"
+  ],
+  "attention.*": [
+   "cfg",
+   "paper"
+  ],
+  "attention.head_dim": [
+   "count"
+  ],
+  "attention.position.*": [
+   "cfg",
+   "paper"
+  ],
+  "attention.qk_norm": [
+   "code"
+  ],
+  "norm.*": [
+   "paper",
+   "code",
+   "cfg",
+   "idx"
+  ],
+  "ffn.*": [
+   "cfg",
+   "code"
+  ],
+  "stack.*": [
+   "cfg",
+   "paper"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "paper",
+   "code",
+   "idx"
+  ]
+ },
+ "figure_links": [],
+ "unknowns": {},
+ "notes": [
+  "Paper: architecture almost identical to GPT-J; differs by untied LayerNorms in the parallel block and by using only dense attention (no GPT-3 sparse layers).",
+  "Config vocab_size 50432 pads the 50,257-token vocabulary.",
+  "Embeddings are not tied: separate input and output embeddings (no-weight-tying True)."
+ ],
+ "teaches": [
+  "partial_rope"
+ ]
+}

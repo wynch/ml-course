@@ -1,0 +1,289 @@
+{
+ "id": "kimi-k2",
+ "name": "Kimi K2",
+ "organisation": "Moonshot AI",
+ "release_date": {
+  "value": "2025-07-10",
+  "precision": "day",
+  "note": "Raschka gallery date; HF repo created 2025-07-03; report on arXiv 2025-07-28"
+ },
+ "family": "kimi",
+ "parent_id": "deepseek-v3",
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "Modified MIT License",
+  "licence_url": "https://huggingface.co/moonshotai/Kimi-K2-Base/blob/main/LICENSE",
+  "repo": "moonshotai/Kimi-K2-Base"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 1040000000000,
+  "active": 32600000000,
+  "note": "report Table 2: 1.04T total, 32.6B active (README rounds to 1T / 32B). Derived from config: 1,026,408,232,448 total and 32,861,477,888 active with embeddings."
+ },
+ "layers": 61,
+ "d_model": 7168,
+ "vocab_size": 163840,
+ "context_length": {
+  "value": 131072,
+  "trained": "128K (pre-trained at 4K, 32K stage, YaRN to 128K)"
+ },
+ "tokenizer": {
+  "kind": "tiktoken_bpe",
+  "stated_vocab": "160K",
+  "note": "repo ships tiktoken.model and tokenization_kimi.py"
+ },
+ "attention": {
+  "kind": "mla",
+  "heads": 64,
+  "kv_heads": 64,
+  "head_dim": 128,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "rope",
+   "theta": 50000,
+   "scaling": "yarn",
+   "partial_fraction": null
+  },
+  "qk_norm": "none",
+  "mla": {
+   "kv_lora_rank": 512,
+   "q_lora_rank": 1536,
+   "qk_rope_head_dim": 64,
+   "qk_nope_head_dim": 128,
+   "v_head_dim": 128
+  },
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-06
+ },
+ "ffn": {
+  "kind": "moe",
+  "activation": "swiglu",
+  "hidden_dim": 18432,
+  "config_activation": "silu"
+ },
+ "moe": {
+  "experts": 384,
+  "routed_per_token": 8,
+  "shared": 1,
+  "expert_hidden_dim": 2048,
+  "latent_dim": null,
+  "dense_layers": "first 1",
+  "router": "sigmoid scores, aux-loss-free bias (noaux_tc), top-8, no expert grouping; routed_scaling_factor 2.827"
+ },
+ "stack": {
+  "prefix": [
+   {
+    "type": "dense_ffn",
+    "count": 1
+   }
+  ],
+  "pattern": [
+   {
+    "type": "moe",
+    "count": 1
+   }
+  ],
+  "repeat": 60,
+  "note": "all 61 layers use MLA"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "mla",
+    "label": "64 heads; latent KV 512 (+64 RoPE dims)"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "moe",
+    "label": "1 shared + top-8 of 384 experts (layer 1: dense SwiGLU 18432)"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "dense_prefix",
+   "what": "only the first layer keeps a dense FFN (DeepSeek-V3: three)",
+   "where": "layer 1"
+  },
+  {
+   "name": "qk_clip",
+   "what": "MuonClip: query and key weights rescaled during training when attention logits pass 100",
+   "where": "training only"
+  },
+  {
+   "name": "yarn",
+   "what": "context extended to 128K with YaRN (config factor 32 over 4,096)",
+   "where": "RoPE dims of MLA"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/moonshotai/Kimi-K2-Base/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2507.20534",
+   "kind": "paper",
+   "title": "Kimi K2: Open Agentic Intelligence",
+   "note": "sections 2.1, 2.3 (Table 2), 2.4 (context)",
+   "accessed": "2026-11-14"
+  },
+  "readme": {
+   "url": "https://huggingface.co/moonshotai/Kimi-K2-Base",
+   "kind": "model_card",
+   "note": "Model Summary table; Modified MIT",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/deepseek_v3/modeling_deepseek_v3.py",
+   "kind": "code",
+   "note": "config architectures DeepseekV3ForCausalLM; the repo ships only configuration_deepseek.py",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/moonshotai/Kimi-K2-Base",
+   "kind": "model_card",
+   "note": "license other / modified-mit; created 2025-07-03; safetensors total 1,026,408,235,864",
+   "accessed": "2026-11-14"
+  },
+  "gal": {
+   "url": "https://github.com/rasbt/llm-architecture-gallery/blob/main/models.yml",
+   "kind": "secondary",
+   "note": "entry 'Kimi K2': date, licence",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/moonshotai/Kimi-K2-Base/blob/main/config.json",
+   "kind": "derived",
+   "note": "DeepSeek-V3 MLA + MoE formula with 64 heads, 384 experts, 1 dense layer",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "gal",
+   "hfapi"
+  ],
+  "weights.*": [
+   "readme",
+   "gal",
+   "hfapi"
+  ],
+  "modality.*": [
+   "readme"
+  ],
+  "params.*": [
+   "paper",
+   "readme",
+   "count"
+  ],
+  "layers": [
+   "cfg",
+   "paper"
+  ],
+  "d_model": [
+   "cfg",
+   "paper"
+  ],
+  "vocab_size": [
+   "cfg",
+   "readme"
+  ],
+  "context_length.value": [
+   "cfg"
+  ],
+  "context_length.trained": [
+   "paper"
+  ],
+  "tokenizer.*": [
+   "readme",
+   "hfapi"
+  ],
+  "attention.*": [
+   "cfg",
+   "paper"
+  ],
+  "norm.*": [
+   "code",
+   "cfg"
+  ],
+  "ffn.*": [
+   "cfg",
+   "readme"
+  ],
+  "moe.*": [
+   "cfg",
+   "paper"
+  ],
+  "stack.*": [
+   "cfg",
+   "paper"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "paper",
+   "cfg"
+  ],
+  "layer_kinds.*": [
+   "cfg"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Sebastian Raschka",
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/images/architectures/kimi-k2-1-trillion.webp",
+   "title": "Kimi K2 (1 trillion)",
+   "terms": "no reuse licence stated; link only"
+  }
+ ],
+ "unknowns": {},
+ "notes": [
+  "Derived total (1.026T) sits below the report's 1.04T; HF safetensors agree with the derived count to within 3,416. The record follows the report.",
+  "Config num_key_value_heads 64 is nominal for MLA, as for DeepSeek-V3.",
+  "Config num_nextn_predict_layers 0: no MTP weights ship."
+ ],
+ "teaches": [],
+ "layer_kinds": {
+  "dense_ffn": {
+   "mixer": "mla",
+   "ffn": "glu"
+  },
+  "moe": {
+   "mixer": "mla",
+   "ffn": "moe"
+  }
+ }
+}

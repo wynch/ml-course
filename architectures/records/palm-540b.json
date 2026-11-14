@@ -1,0 +1,196 @@
+{
+ "id": "palm-540b",
+ "name": "PaLM 540B",
+ "organisation": "Google",
+ "release_date": {
+  "value": "2022-04-05",
+  "precision": "day",
+  "note": "arXiv v1 of the paper; weights never released"
+ },
+ "family": "palm",
+ "parent_id": null,
+ "closed": true,
+ "weights": {
+  "open": false,
+  "licence": null,
+  "licence_url": null,
+  "repo": null
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 540350000000,
+  "active": 540350000000,
+  "note": "paper Table 1: 540.35B"
+ },
+ "layers": 118,
+ "d_model": 18432,
+ "vocab_size": null,
+ "context_length": {
+  "value": 2048
+ },
+ "tokenizer": {
+  "kind": "sentencepiece",
+  "stated_vocab": "256k",
+  "note": "lossless; numbers split into digits; unknown Unicode split into UTF-8 bytes"
+ },
+ "attention": {
+  "kind": "mqa",
+  "heads": 48,
+  "kv_heads": 1,
+  "head_dim": 256,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "rope",
+   "theta": null,
+   "scaling": null
+  },
+  "qk_norm": null,
+  "mla": null,
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "layernorm",
+  "placement": "pre",
+  "final_norm": null,
+  "embedding_norm": null,
+  "eps": null
+ },
+ "ffn": {
+  "kind": "glu",
+  "activation": "swiglu",
+  "hidden_dim": 73728,
+  "config_activation": null
+ },
+ "moe": null,
+ "stack": {
+  "pattern": [
+   {
+    "type": "global",
+    "count": 1
+   }
+  ],
+  "repeat": 118
+ },
+ "block_order": {
+  "basis": "paper",
+  "steps": [
+   {
+    "kind": "parallel_block",
+    "label": "y = x + MLP(LN(x)) + Attention(LN(x))"
+   },
+   {
+    "kind": "layernorm",
+    "label": "LayerNorm(x) feeds both branches (shared weights implied by the fused projections, not stated)"
+   },
+   {
+    "kind": "mqa",
+    "label": "48 query heads x 256, one shared key/value head"
+   },
+   {
+    "kind": "glu",
+    "label": "SwiGLU 18432 -> 73728 -> 18432"
+   },
+   {
+    "kind": "residual_add",
+    "label": "x + attn + mlp"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "parallel_block",
+   "what": "attention and MLP read the same LayerNorm output; about 15% faster training at large scale",
+   "where": "every layer"
+  },
+  {
+   "name": "tied_embeddings",
+   "what": "input and output embeddings shared",
+   "where": "lm_head"
+  },
+  {
+   "name": "no_biases",
+   "what": "no biases in any dense kernel or layer norm",
+   "where": "everywhere"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "paper": {
+   "url": "https://arxiv.org/abs/2204.02311",
+   "kind": "paper",
+   "title": "PaLM: Scaling Language Modeling with Pathways",
+   "note": "section 2 (architecture list), Table 1, section 5 (sequence length 2048), Appendix E model card; arXiv API: v1 2022-04-05",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "paper"
+  ],
+  "weights.open": [
+   "paper"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "paper"
+  ],
+  "layers": [
+   "paper"
+  ],
+  "d_model": [
+   "paper"
+  ],
+  "context_length.value": [
+   "paper"
+  ],
+  "tokenizer.*": [
+   "paper"
+  ],
+  "attention.*": [
+   "paper"
+  ],
+  "norm.*": [
+   "paper"
+  ],
+  "ffn.*": [
+   "paper"
+  ],
+  "stack.*": [
+   "paper"
+  ],
+  "block_order.*": [
+   "paper"
+  ],
+  "specials": [
+   "paper"
+  ]
+ },
+ "figure_links": [],
+ "unknowns": {
+  "vocab_size": "paper says 256k tokens; exact embedding rows not published",
+  "attention.position.theta": "not published",
+  "attention.qk_norm": "not mentioned in the paper",
+  "norm.final_norm": "not stated",
+  "norm.embedding_norm": "not stated",
+  "norm.eps": "not published"
+ },
+ "notes": [
+  "Heads x head size (48 x 256 = 12,288) is smaller than d_model 18,432; the paper gives both (Table 1 and its caption).",
+  "ffn.hidden_dim is 4 x d_model per the Table 1 caption."
+ ],
+ "teaches": [
+  "mqa",
+  "parallel_block"
+ ]
+}

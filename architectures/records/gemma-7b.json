@@ -1,0 +1,236 @@
+{
+ "id": "gemma-7b",
+ "name": "Gemma 7B",
+ "organisation": "Google",
+ "release_date": {
+  "value": "2024-03-13",
+  "precision": "day",
+  "note": "arXiv submission of the report; the weights were public earlier (mirror unsloth/gemma-7b created 2024-02-21)"
+ },
+ "family": "gemma",
+ "parent_id": null,
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "Gemma Terms of Use",
+  "licence_url": null,
+  "repo": "google/gemma-7b"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 8537680896,
+  "active": 8537680896,
+  "note": "derived from config; the non-embedding part (7,751,248,896) matches report Table 2 to the unit; total equals the Hub count"
+ },
+ "layers": 28,
+ "d_model": 3072,
+ "vocab_size": 256000,
+ "context_length": {
+  "value": 8192
+ },
+ "tokenizer": {
+  "kind": "sentencepiece",
+  "stated_vocab": 256128,
+  "note": "report: a subset of the Gemini SentencePiece tokenizer"
+ },
+ "attention": {
+  "kind": "mha",
+  "heads": 16,
+  "kv_heads": 16,
+  "head_dim": 256,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "rope",
+   "theta": 10000.0
+  },
+  "qk_norm": "none",
+  "mla": null,
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-06
+ },
+ "ffn": {
+  "kind": "glu",
+  "activation": "geglu",
+  "hidden_dim": 24576,
+  "config_activation": "gelu"
+ },
+ "moe": null,
+ "stack": {
+  "pattern": [
+   {
+    "type": "global",
+    "count": 1
+   }
+  ],
+  "repeat": 28
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "mha",
+    "label": "16 heads of 256 (heads x head_dim = 4096 > d_model)"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "glu",
+    "label": "GeGLU 3072 -> 24576 -> 3072"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "tied_embeddings",
+   "what": "output head reuses the embedding table",
+   "where": "lm_head"
+  },
+  {
+   "name": "embedding_scale",
+   "what": "embeddings multiplied by sqrt(d_model) before the first layer",
+   "where": "input"
+  },
+  {
+   "name": "rmsnorm",
+   "what": "RMSNorm scales by (1 + weight)",
+   "where": "every norm"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/unsloth/gemma-7b/blob/main/config.json",
+   "kind": "config_mirror",
+   "note": "public copy of the gated https://huggingface.co/google/gemma-7b/blob/main/config.json; identical file",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2403.08295",
+   "kind": "paper",
+   "title": "Gemma: Open Models Based on Gemini Research and Technology",
+   "note": "section 2, Tables 1-2",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/gemma/modeling_gemma.py",
+   "kind": "code",
+   "note": "GemmaDecoderLayer pre-norm; GemmaRMSNorm (1 + weight); embed_scale hidden_size**0.5; MLP act_fn(gate) * up",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/google/gemma-7b",
+   "kind": "model_card",
+   "note": "gated (manual), license tag gemma, safetensors total 8,537,680,896",
+   "accessed": "2026-11-14"
+  },
+  "mirror": {
+   "url": "https://huggingface.co/api/models/unsloth/gemma-7b",
+   "kind": "model_card",
+   "note": "mirror createdAt 2024-02-21; tags it apache-2.0",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/unsloth/gemma-7b/blob/main/config.json",
+   "kind": "derived",
+   "note": "Vd (tied) + L*(q,o d*H*hd each, k,v d*KV*hd each, GeGLU 3*d*f, 2 norms) + final norm",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "paper",
+   "mirror"
+  ],
+  "weights.*": [
+   "hfapi"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "count",
+   "paper",
+   "hfapi"
+  ],
+  "layers": [
+   "cfg",
+   "paper"
+  ],
+  "d_model": [
+   "cfg",
+   "paper"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "context_length.*": [
+   "cfg",
+   "paper"
+  ],
+  "tokenizer.*": [
+   "paper"
+  ],
+  "attention.*": [
+   "cfg",
+   "paper"
+  ],
+  "norm.*": [
+   "code",
+   "cfg",
+   "paper"
+  ],
+  "ffn.*": [
+   "cfg",
+   "paper",
+   "code"
+  ],
+  "stack.*": [
+   "cfg"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "code",
+   "paper"
+  ]
+ },
+ "figure_links": [],
+ "unknowns": {
+  "weights.licence_url": "terms page not fetched"
+ },
+ "notes": [
+  "Report Table 1 lists vocab 256128 and 'feedforward hidden dims' 49152; config has 256000 rows and intermediate_size 24576. 49152 counts gate and up together.",
+  "Report: 'approximated' GeGLU (tanh GELU); config hidden_act says 'gelu' and current transformers code uses it as written.",
+  "The unsloth mirror tags the weights apache-2.0; the official google/gemma-7b repo tags them 'gemma'. Record follows Google."
+ ],
+ "teaches": [
+  "geglu",
+  "mha"
+ ]
+}

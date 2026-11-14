@@ -1,0 +1,219 @@
+{
+ "id": "phi-4",
+ "name": "Phi-4 14B",
+ "organisation": "Microsoft",
+ "release_date": {
+  "value": "2024-12-12",
+  "precision": "day",
+  "note": "arXiv submission of the report; Raschka gallery gives the same date"
+ },
+ "family": "phi",
+ "parent_id": null,
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "MIT",
+  "licence_url": "https://huggingface.co/microsoft/phi-4/resolve/main/LICENSE",
+  "repo": "microsoft/phi-4"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 14659507200,
+  "active": 14659507200,
+  "note": "derived from config; equals the Hub's safetensors count; report says 14B"
+ },
+ "layers": 40,
+ "d_model": 5120,
+ "vocab_size": 100352,
+ "context_length": {
+  "value": 16384,
+  "trained": "4K, extended to 16K in midtraining"
+ },
+ "tokenizer": {
+  "kind": "tiktoken_bpe",
+  "stated_vocab": 100352,
+  "note": "report: tiktoken tokenizer, vocabulary padded to 100,352 including unused tokens"
+ },
+ "attention": {
+  "kind": "gqa",
+  "heads": 40,
+  "kv_heads": 10,
+  "head_dim": 128,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "rope",
+   "theta": 250000.0
+  },
+  "qk_norm": "none",
+  "mla": null,
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-05
+ },
+ "ffn": {
+  "kind": "glu",
+  "activation": "swiglu",
+  "hidden_dim": 17920,
+  "config_activation": "silu"
+ },
+ "moe": null,
+ "stack": {
+  "pattern": [
+   {
+    "type": "global",
+    "count": 1
+   }
+  ],
+  "repeat": 40,
+  "note": "full attention in every layer (config sliding_window null)"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "gqa",
+    "label": "fused qkv projection; 40 query heads, 10 KV heads"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "glu",
+    "label": "fused gate_up projection; SwiGLU 5120 -> 17920 -> 5120"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/microsoft/phi-4/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2412.08905",
+   "kind": "paper",
+   "title": "Phi-4 Technical Report",
+   "note": "section 3 (architecture, context extension)",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/phi3/modeling_phi3.py",
+   "kind": "code",
+   "note": "Phi3DecoderLayer: Llama-style pre-norm with residual dropout; fused qkv_proj and gate_up_proj",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/microsoft/phi-4",
+   "kind": "model_card",
+   "note": "createdAt 2024-12-11, license mit, safetensors total 14,659,507,200",
+   "accessed": "2026-11-14"
+  },
+  "gal": {
+   "url": "https://github.com/rasbt/llm-architecture-gallery/blob/main/models.yml",
+   "kind": "secondary",
+   "note": "entry 'Phi-4': date, '40 GQA'",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/microsoft/phi-4/blob/main/config.json",
+   "kind": "derived",
+   "note": "2Vd (untied) + L*(qkv d*(H+2KV)*hd + o d^2 + SwiGLU 3*d*f + 2 norms) + final norm",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "paper",
+   "gal"
+  ],
+  "weights.*": [
+   "hfapi"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "count",
+   "hfapi",
+   "paper"
+  ],
+  "layers": [
+   "cfg"
+  ],
+  "d_model": [
+   "cfg"
+  ],
+  "vocab_size": [
+   "cfg",
+   "paper"
+  ],
+  "context_length.*": [
+   "cfg",
+   "paper"
+  ],
+  "tokenizer.*": [
+   "paper"
+  ],
+  "attention.*": [
+   "cfg",
+   "paper"
+  ],
+  "norm.*": [
+   "code",
+   "cfg"
+  ],
+  "ffn.*": [
+   "cfg",
+   "code"
+  ],
+  "stack.*": [
+   "cfg",
+   "paper"
+  ],
+  "block_order.*": [
+   "code"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Sebastian Raschka",
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/images/architectures/phi-4.webp",
+   "title": "Phi-4",
+   "terms": "no reuse licence stated; link only"
+  }
+ ],
+ "unknowns": {},
+ "notes": [
+  "Report: architecture 'closely follows phi-3-medium', but full attention over 4K instead of phi-3-medium's 2K sliding window."
+ ],
+ "teaches": [
+  "pre_norm",
+  "gqa",
+  "rmsnorm"
+ ]
+}

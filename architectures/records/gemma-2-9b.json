@@ -1,0 +1,289 @@
+{
+ "id": "gemma-2-9b",
+ "name": "Gemma 2 9B",
+ "organisation": "Google",
+ "release_date": {
+  "value": "2024-07-31",
+  "precision": "day",
+  "note": "arXiv submission of the report; the weights were public earlier (mirror unsloth/gemma-2-9b created 2024-06-27)"
+ },
+ "family": "gemma",
+ "parent_id": "gemma-7b",
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "Gemma Terms of Use",
+  "licence_url": null,
+  "repo": "google/gemma-2-9b"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 9241705984,
+  "active": 9241705984,
+  "note": "derived from config; non-embedding part 8,324,201,984 matches report Table 2; total equals the Hub count"
+ },
+ "layers": 42,
+ "d_model": 3584,
+ "vocab_size": 256000,
+ "context_length": {
+  "value": 8192
+ },
+ "tokenizer": {
+  "kind": "sentencepiece",
+  "stated_vocab": 256128,
+  "note": "report: same tokenizer as Gemma 1 and Gemini; split digits, byte fallback"
+ },
+ "attention": {
+  "kind": "gqa",
+  "heads": 16,
+  "kv_heads": 8,
+  "head_dim": 256,
+  "window": 4096,
+  "local_global": "1:1",
+  "position": {
+   "scheme": "rope",
+   "theta": 10000.0
+  },
+  "qk_norm": "none",
+  "mla": null,
+  "sparse": null,
+  "other": [
+   "attn_softcap",
+   "query_pre_attn_scalar"
+  ],
+  "window_kind": "sliding"
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "sandwich",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-06
+ },
+ "ffn": {
+  "kind": "glu",
+  "activation": "geglu",
+  "hidden_dim": 14336,
+  "config_activation": "gelu_pytorch_tanh"
+ },
+ "moe": null,
+ "stack": {
+  "pattern": [
+   {
+    "type": "local",
+    "count": 1
+   },
+   {
+    "type": "global",
+    "count": 1
+   }
+  ],
+  "repeat": 21,
+  "note": "starts with a sliding-window layer; 21 local + 21 global"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm",
+    "label": "input_layernorm"
+   },
+   {
+    "kind": "gqa",
+    "label": "local: window 4096 / global: full; scores soft-capped at 50"
+   },
+   {
+    "kind": "rmsnorm",
+    "label": "post_attention_layernorm"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "rmsnorm",
+    "label": "pre_feedforward_layernorm"
+   },
+   {
+    "kind": "glu",
+    "label": "GeGLU 3584 -> 14336 -> 3584"
+   },
+   {
+    "kind": "rmsnorm",
+    "label": "post_feedforward_layernorm"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "logit_softcap",
+   "what": "attention scores capped at 50 and final logits at 30 with tanh",
+   "where": "every attention layer; output head"
+  },
+  {
+   "name": "query_pre_attn_scalar",
+   "what": "scores scaled by 256**-0.5 from config query_pre_attn_scalar (here equal to head_dim)",
+   "where": "every attention layer"
+  },
+  {
+   "name": "tied_embeddings",
+   "what": "output head reuses the embedding table",
+   "where": "lm_head"
+  },
+  {
+   "name": "embedding_scale",
+   "what": "embeddings multiplied by sqrt(d_model)",
+   "where": "input"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/unsloth/gemma-2-9b/blob/main/config.json",
+   "kind": "config_mirror",
+   "note": "public copy of the gated https://huggingface.co/google/gemma-2-9b/blob/main/config.json; identical file",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2408.00118",
+   "kind": "paper",
+   "title": "Gemma 2: Improving Open Language Models at a Practical Size",
+   "note": "section 2, Tables 1-2",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/gemma2/modeling_gemma2.py",
+   "kind": "code",
+   "note": "Gemma2DecoderLayer: input, attn, post-attn norm, add, pre-ffw, MLP, post-ffw, add; softcap in eager attention; scaling query_pre_attn_scalar**-0.5",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/google/gemma-2-9b",
+   "kind": "model_card",
+   "note": "gated, license tag gemma, safetensors total 9,241,705,984",
+   "accessed": "2026-11-14"
+  },
+  "mirror": {
+   "url": "https://huggingface.co/api/models/unsloth/gemma-2-9b",
+   "kind": "model_card",
+   "note": "mirror createdAt 2024-06-27",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/unsloth/gemma-2-9b/blob/main/config.json",
+   "kind": "derived",
+   "note": "Vd (tied) + L*(q,o d*H*hd, k,v d*KV*hd, GeGLU 3*d*f, 4 norms) + final norm",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "paper",
+   "mirror"
+  ],
+  "weights.*": [
+   "hfapi"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "count",
+   "paper",
+   "hfapi"
+  ],
+  "layers": [
+   "cfg",
+   "paper"
+  ],
+  "d_model": [
+   "cfg",
+   "paper"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "context_length.*": [
+   "cfg",
+   "paper"
+  ],
+  "tokenizer.*": [
+   "paper"
+  ],
+  "attention.*": [
+   "cfg",
+   "paper",
+   "code"
+  ],
+  "norm.*": [
+   "code",
+   "cfg",
+   "paper"
+  ],
+  "ffn.*": [
+   "cfg",
+   "paper"
+  ],
+  "stack.*": [
+   "cfg",
+   "paper"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "cfg",
+   "paper",
+   "code"
+  ],
+  "layer_kinds.*": [
+   "cfg"
+  ]
+ },
+ "figure_links": [],
+ "unknowns": {
+  "weights.licence_url": "terms page not fetched"
+ },
+ "notes": [
+  "Report Table 1: feedforward dim 28672 (gate and up together), vocab 256128; config intermediate_size 14336, 256000 rows.",
+  "Report: 'Global att. span 8192' and sliding window 4096 for every size; config agrees."
+ ],
+ "teaches": [
+  "local_global",
+  "sliding_window",
+  "logit_softcap",
+  "sandwich_norm"
+ ],
+ "layer_kinds": {
+  "local": {
+   "mixer": "gqa",
+   "ffn": "glu",
+   "heads": 16,
+   "kv_heads": 8,
+   "head_dim": 256,
+   "window": 4096,
+   "window_kind": "sliding",
+   "position": "rope",
+   "theta": 10000.0
+  },
+  "global": {
+   "mixer": "gqa",
+   "ffn": "glu",
+   "heads": 16,
+   "kv_heads": 8,
+   "head_dim": 256,
+   "position": "rope",
+   "theta": 10000.0,
+   "note": "full span (8192)"
+  }
+ }
+}

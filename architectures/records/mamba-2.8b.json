@@ -1,0 +1,237 @@
+{
+ "id": "mamba-2.8b",
+ "name": "Mamba 2.8B",
+ "organisation": "Gu & Dao (state-spaces)",
+ "release_date": {
+  "value": "2023-12-01",
+  "precision": "day",
+  "note": "arXiv submission of the paper; the original state-spaces/mamba-2.8b repo was created 2023-12-03"
+ },
+ "family": "mamba",
+ "parent_id": null,
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "Apache-2.0",
+  "licence_url": "https://www.apache.org/licenses/LICENSE-2.0",
+  "repo": "state-spaces/mamba-2.8b-hf"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 2768345600,
+  "active": 2768345600,
+  "note": "derived from config; equals the Hub's safetensors count"
+ },
+ "layers": 64,
+ "d_model": 2560,
+ "vocab_size": 50280,
+ "context_length": {
+  "value": null,
+  "trained": 2048
+ },
+ "tokenizer": {
+  "kind": "bpe_bytelevel",
+  "note": "GPT-NeoX-20B tokenizer (paper section 4.2)"
+ },
+ "attention": {
+  "kind": "ssm_mamba",
+  "mixers": [
+   {
+    "kind": "ssm_mamba",
+    "layers": 64,
+    "note": "inner width 5120 (expand 2), state 16 per channel, causal conv kernel 4, dt rank 160"
+   }
+  ],
+  "heads": null,
+  "kv_heads": null,
+  "head_dim": null,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "none"
+  },
+  "qk_norm": null,
+  "mla": null,
+  "sparse": null,
+  "other": [],
+  "attention_free": true
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-05
+ },
+ "ffn": {
+  "kind": "none",
+  "activation": null,
+  "hidden_dim": null,
+  "config_activation": null,
+  "ffn_free": true
+ },
+ "moe": null,
+ "stack": {
+  "pattern": [
+   {
+    "type": "mamba",
+    "count": 1
+   }
+  ],
+  "repeat": 64,
+  "note": "one Mamba mixer per block; no attention and no separate FFN"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "ssm_mamba",
+    "label": "in_proj 2560 -> 2x5120; x branch: causal conv k4, SiLU, selective scan (state 16); z branch: SiLU gate; out_proj 5120 -> 2560"
+   },
+   {
+    "kind": "residual_add",
+    "label": "residual kept in fp32"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "short_conv",
+   "what": "depthwise causal convolution, kernel 4, on the x branch before the scan",
+   "where": "inside every Mamba mixer"
+  },
+  {
+   "name": "tied_embeddings",
+   "what": "output head reuses the embedding table",
+   "where": "lm_head"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/state-spaces/mamba-2.8b-hf/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2312.00752",
+   "kind": "paper",
+   "title": "Mamba: Linear-Time Sequence Modeling with Selective State Spaces",
+   "note": "sections 3.4 and 4.2, Table 3, appendix E.2",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/mamba/modeling_mamba.py",
+   "kind": "code",
+   "note": "MambaBlock: norm, mixer, residual add; MambaMixer in_proj/conv1d/x_proj/dt_proj/A_log/D/out_proj; lm_head tied",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/state-spaces/mamba-2.8b",
+   "kind": "model_card",
+   "note": "original repo: createdAt 2023-12-03, license apache-2.0",
+   "accessed": "2026-11-14"
+  },
+  "hfapi2": {
+   "url": "https://huggingface.co/api/models/state-spaces/mamba-2.8b-hf",
+   "kind": "model_card",
+   "note": "safetensors total 2,768,345,600; no licence tag on the -hf copy",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/state-spaces/mamba-2.8b-hf/blob/main/config.json",
+   "kind": "derived",
+   "note": "Vd + L*(in_proj d*2di + conv di*4+di + x_proj di*(r+2N) + dt_proj r*di+di + A di*N + D di + out di*d + norm d) + final norm",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "paper",
+   "hfapi"
+  ],
+  "weights.*": [
+   "hfapi",
+   "cfg"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "count",
+   "hfapi2"
+  ],
+  "layers": [
+   "cfg"
+  ],
+  "d_model": [
+   "cfg"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "context_length.trained": [
+   "paper"
+  ],
+  "tokenizer.*": [
+   "paper"
+  ],
+  "attention.*": [
+   "cfg",
+   "code",
+   "paper"
+  ],
+  "norm.*": [
+   "code",
+   "cfg"
+  ],
+  "ffn.*": [
+   "cfg",
+   "code"
+  ],
+  "stack.*": [
+   "cfg",
+   "code"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "code",
+   "cfg"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Albert Gu, Tri Dao",
+   "url": "https://arxiv.org/abs/2312.00752",
+   "title": "Figure 3 of the paper: the Mamba block next to H3 and the gated MLP",
+   "terms": "arXiv default licence; link only"
+  }
+ ],
+ "unknowns": {
+  "context_length.value": "a recurrent model has no position limit; config sets no max_position_embeddings",
+  "attention.heads": "Mamba-1 has no heads: the scan runs per channel",
+  "attention.kv_heads": "no keys or values",
+  "attention.head_dim": "no heads",
+  "attention.qk_norm": "no queries or keys",
+  "ffn.hidden_dim": "the block has no separate FFN; the Mamba mixer's gated branch plays that role",
+  "ffn.config_activation": "config hidden_act silu belongs to the Mamba mixer (conv output and gate), not to an FFN"
+ },
+ "notes": [
+  "The -hf repo is a transformers-format copy of the original checkpoint; licence taken from the original repo."
+ ],
+ "teaches": [
+  "ssm_mamba"
+ ]
+}

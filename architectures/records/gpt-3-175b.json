@@ -1,0 +1,231 @@
+{
+ "id": "gpt-3-175b",
+ "name": "GPT-3 175B",
+ "organisation": "OpenAI",
+ "release_date": {
+  "value": "2020-05-28",
+  "precision": "day",
+  "note": "arXiv v1 of the paper; weights never released"
+ },
+ "family": "gpt",
+ "parent_id": "gpt-2-xl",
+ "closed": true,
+ "weights": {
+  "open": false,
+  "licence": null,
+  "licence_url": null,
+  "repo": null
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 175000000000,
+  "active": 175000000000,
+  "note": "paper Table 2.1: 175.0B"
+ },
+ "layers": 96,
+ "d_model": 12288,
+ "vocab_size": null,
+ "context_length": {
+  "value": 2048
+ },
+ "tokenizer": {
+  "kind": "bpe_bytelevel",
+  "note": "reuses GPT-2's byte-level BPE (paper sections 2.1 and 3.3)"
+ },
+ "attention": {
+  "kind": "mha",
+  "heads": 96,
+  "kv_heads": 96,
+  "head_dim": 128,
+  "window": null,
+  "local_global": "1:1",
+  "position": {
+   "scheme": "learned_absolute"
+  },
+  "qk_norm": "none",
+  "mla": null,
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "layernorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": null,
+  "eps": null
+ },
+ "ffn": {
+  "kind": "mlp",
+  "activation": null,
+  "hidden_dim": 49152,
+  "config_activation": null
+ },
+ "moe": null,
+ "stack": {
+  "pattern": [
+   {
+    "type": "global",
+    "count": 1
+   },
+   {
+    "type": "local",
+    "count": 1
+   }
+  ],
+  "repeat": 48,
+  "note": "alternating dense (global) and locally banded sparse (local) layers; the paper does not say which comes first"
+ },
+ "block_order": {
+  "basis": "paper",
+  "steps": [
+   {
+    "kind": "layernorm"
+   },
+   {
+    "kind": "mha",
+    "label": "96 heads x 128; dense or locally banded sparse, by layer"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "layernorm"
+   },
+   {
+    "kind": "mlp",
+    "label": "12288 -> 49152 -> 12288"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "local_global",
+   "what": "attention alternates between dense and locally banded sparse patterns, as in the Sparse Transformer",
+   "where": "alternate layers"
+  },
+  {
+   "name": "residual_init_scaling",
+   "what": "GPT-2's modified initialisation, which scales residual-layer weights with depth",
+   "where": "init only"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "paper": {
+   "url": "https://arxiv.org/abs/2005.14165",
+   "kind": "paper",
+   "title": "Language Models are Few-Shot Learners",
+   "note": "Table 2.1, section 2.1; arXiv API: v1 published 2020-05-28",
+   "accessed": "2026-11-14"
+  },
+  "gpt2": {
+   "url": "https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf",
+   "kind": "paper",
+   "title": "Language Models are Unsupervised Multitask Learners",
+   "note": "section 2.3: LayerNorm at sub-block input, extra LayerNorm after the last block, learned positions",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "paper"
+  ],
+  "weights.open": [
+   "paper"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "paper"
+  ],
+  "layers": [
+   "paper"
+  ],
+  "d_model": [
+   "paper"
+  ],
+  "context_length.value": [
+   "paper"
+  ],
+  "tokenizer.*": [
+   "paper"
+  ],
+  "attention.*": [
+   "paper"
+  ],
+  "attention.position.scheme": [
+   "paper",
+   "gpt2"
+  ],
+  "attention.qk_norm": [
+   "paper",
+   "gpt2"
+  ],
+  "norm.*": [
+   "paper",
+   "gpt2"
+  ],
+  "ffn.*": [
+   "paper"
+  ],
+  "stack.*": [
+   "paper"
+  ],
+  "block_order.*": [
+   "paper",
+   "gpt2"
+  ],
+  "specials": [
+   "paper",
+   "gpt2"
+  ],
+  "layer_kinds.*": [
+   "paper"
+  ]
+ },
+ "figure_links": [],
+ "unknowns": {
+  "vocab_size": "paper says it reuses GPT-2's BPE but gives no embedding size",
+  "attention.window": "band width of the locally banded sparse layers is not published",
+  "ffn.activation": "not named in the GPT-3 or GPT-2 papers",
+  "norm.eps": "not published",
+  "norm.embedding_norm": "not published",
+  "block_order": "order taken from the paper's statement that the model follows GPT-2 with pre-normalisation; no code"
+ },
+ "notes": [
+  "Position, norm placement and qk_norm rest on the paper's statement that it uses 'the same model and architecture as GPT-2' apart from the sparse layers.",
+  "kv_heads equals heads: the paper describes no key/value sharing."
+ ],
+ "teaches": [],
+ "layer_kinds": {
+  "global": {
+   "mixer": "mha",
+   "ffn": "mlp",
+   "heads": 96,
+   "kv_heads": 96,
+   "head_dim": 128,
+   "position": "learned_absolute"
+  },
+  "local": {
+   "mixer": "mha",
+   "ffn": "mlp",
+   "heads": 96,
+   "kv_heads": 96,
+   "head_dim": 128,
+   "position": "learned_absolute",
+   "window_kind": "sliding",
+   "note": "locally banded sparse attention; band width not published"
+  }
+ }
+}

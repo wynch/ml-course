@@ -1,0 +1,287 @@
+{
+ "id": "deepseek-v2",
+ "name": "DeepSeek-V2",
+ "organisation": "DeepSeek",
+ "release_date": {
+  "value": "2024-05-07",
+  "precision": "day",
+  "note": "arXiv v1 of the report; HF repo created 2024-04-22"
+ },
+ "family": "deepseek",
+ "parent_id": "deepseek-moe-16b",
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "DeepSeek License Agreement v1.0",
+  "licence_url": "https://github.com/deepseek-ai/DeepSeek-V2/blob/main/LICENSE-MODEL",
+  "repo": "deepseek-ai/DeepSeek-V2"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 235741434880,
+  "active": 21375800320,
+  "note": "derived from config, embeddings and head counted as active; total equals the HF safetensors count; report: 236B total, 21B active"
+ },
+ "layers": 60,
+ "d_model": 5120,
+ "vocab_size": 102400,
+ "context_length": {
+  "value": 163840,
+  "trained": "128K"
+ },
+ "tokenizer": {
+  "kind": "bpe_bytelevel",
+  "stated_vocab": "100K",
+  "note": "report: the DeepSeek 67B BBPE tokenizer"
+ },
+ "attention": {
+  "kind": "mla",
+  "heads": 128,
+  "kv_heads": 128,
+  "head_dim": 128,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "rope",
+   "theta": 10000,
+   "scaling": "yarn",
+   "partial_fraction": null
+  },
+  "qk_norm": "none",
+  "mla": {
+   "kv_lora_rank": 512,
+   "q_lora_rank": 1536,
+   "qk_rope_head_dim": 64,
+   "qk_nope_head_dim": 128,
+   "v_head_dim": 128
+  },
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-06
+ },
+ "ffn": {
+  "kind": "moe",
+  "activation": "swiglu",
+  "hidden_dim": 12288,
+  "config_activation": "silu"
+ },
+ "moe": {
+  "experts": 160,
+  "routed_per_token": 6,
+  "shared": 2,
+  "expert_hidden_dim": 1536,
+  "latent_dim": null,
+  "dense_layers": "first 1",
+  "router": "softmax scores, top-6; group-limited greedy (top 3 of 8 groups), each token sent to at most 3 devices; routed_scaling_factor 16"
+ },
+ "stack": {
+  "prefix": [
+   {
+    "type": "dense_ffn",
+    "count": 1
+   }
+  ],
+  "pattern": [
+   {
+    "type": "moe",
+    "count": 1
+   }
+  ],
+  "repeat": 59,
+  "note": "all 60 layers use MLA"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "mla",
+    "label": "latent KV 512 (+64 RoPE dims), query latent 1536, RMSNorm on both latents"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "moe",
+    "label": "2 shared + top-6 of 160 experts of width 1536 (layer 1: dense SwiGLU 12288)"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "mla",
+   "what": "keys and values come from one 512-wide latent per token plus a shared 64-dim RoPE key; only these are cached",
+   "where": "every layer"
+  },
+  {
+   "name": "yarn",
+   "what": "context extended from 4K to 128K: scale 40, applied only to the decoupled RoPE key; trained at 32K",
+   "where": "RoPE dims of MLA"
+  },
+  {
+   "name": "dense_prefix",
+   "what": "first layer keeps a dense FFN",
+   "where": "layer 1"
+  },
+  {
+   "name": "shared_expert",
+   "what": "2 shared experts beside 160 routed ones",
+   "where": "MoE layers"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/deepseek-ai/DeepSeek-V2/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2405.04434",
+   "kind": "paper",
+   "title": "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model",
+   "note": "sections 2, 3.1 (hyper-parameters, long context)",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/deepseek_v2/modeling_deepseek_v2.py",
+   "kind": "code",
+   "note": "DeepseekV2DecoderLayer; q_a_layernorm and kv_a_layernorm on the latents",
+   "accessed": "2026-11-14"
+  },
+  "tok": {
+   "url": "https://huggingface.co/deepseek-ai/DeepSeek-V2/blob/main/tokenizer.json",
+   "kind": "config",
+   "note": "ByteLevel pre-tokenizer and decoder, 100,000 base tokens",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/deepseek-ai/DeepSeek-V2",
+   "kind": "model_card",
+   "note": "license other / deepseek; safetensors total 235,741,434,880",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/deepseek-ai/DeepSeek-V2/blob/main/config.json",
+   "kind": "derived",
+   "note": "MLA: d*q_lora + q_lora + q_lora*H*(nope+rope) + d*(kv_lora+rope) + kv_lora + kv_lora*H*(nope+v) + H*v*d; plus DeepSeekMoE layers",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "paper",
+   "hfapi"
+  ],
+  "weights.*": [
+   "hfapi",
+   "cfg"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "count",
+   "hfapi",
+   "paper"
+  ],
+  "layers": [
+   "cfg",
+   "paper"
+  ],
+  "d_model": [
+   "cfg",
+   "paper"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "context_length.value": [
+   "cfg"
+  ],
+  "context_length.trained": [
+   "paper"
+  ],
+  "tokenizer.*": [
+   "paper",
+   "tok"
+  ],
+  "attention.*": [
+   "cfg",
+   "paper"
+  ],
+  "norm.*": [
+   "code",
+   "cfg",
+   "paper"
+  ],
+  "ffn.*": [
+   "cfg"
+  ],
+  "moe.*": [
+   "cfg",
+   "paper"
+  ],
+  "stack.*": [
+   "cfg",
+   "paper"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "paper",
+   "cfg"
+  ],
+  "layer_kinds.*": [
+   "cfg"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "DeepSeek",
+   "url": "https://arxiv.org/abs/2405.04434",
+   "title": "Figure 2 of the report: MLA and DeepSeekMoE",
+   "terms": "arXiv default licence; link only"
+  }
+ ],
+ "unknowns": {},
+ "notes": [
+  "Config num_key_value_heads 128 is nominal: MLA caches one 512-wide latent plus 64 RoPE dims per token.",
+  "Report pre-trains at 4K, extends with YaRN at 32K and claims 128K; config allows 163,840 positions."
+ ],
+ "teaches": [
+  "mla"
+ ],
+ "layer_kinds": {
+  "dense_ffn": {
+   "mixer": "mla",
+   "ffn": "glu"
+  },
+  "moe": {
+   "mixer": "mla",
+   "ffn": "moe"
+  }
+ }
+}

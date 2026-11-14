@@ -1,0 +1,267 @@
+{
+ "id": "xlstm-7b",
+ "name": "xLSTM 7B",
+ "organisation": "NXAI",
+ "release_date": {
+  "value": "2025-03-17",
+  "precision": "day",
+  "note": "Raschka gallery date and arXiv submission; the Hugging Face repo was created 2024-12-11"
+ },
+ "family": "xlstm",
+ "parent_id": null,
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "NXAI Community License Agreement",
+  "licence_url": "https://huggingface.co/NX-AI/xLSTM-7b/blob/main/LICENSE",
+  "repo": "NX-AI/xLSTM-7b"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 6865424896,
+  "active": 6865424896,
+  "note": "paper Table 4; the derived count from config agrees to the unit"
+ },
+ "layers": 32,
+ "d_model": 4096,
+ "vocab_size": 50304,
+ "context_length": {
+  "value": null,
+  "trained": 8192
+ },
+ "tokenizer": {
+  "kind": "bpe_bytelevel",
+  "stated_vocab": 50257,
+  "note": "GPT-NeoX-20B tokenizer; config pads to 50304"
+ },
+ "attention": {
+  "kind": "mlstm",
+  "mixers": [
+   {
+    "kind": "mlstm",
+    "layers": 32,
+    "note": "8 heads; query/key 256 and value 512 per head; exponential input gate, sigmoid output gate"
+   }
+  ],
+  "heads": 8,
+  "kv_heads": 8,
+  "head_dim": 512,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "none"
+  },
+  "qk_norm": "none",
+  "mla": null,
+  "sparse": null,
+  "other": [],
+  "attention_free": true
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-06
+ },
+ "ffn": {
+  "kind": "glu",
+  "activation": "swiglu",
+  "hidden_dim": 10944,
+  "config_activation": null
+ },
+ "moe": null,
+ "stack": {
+  "pattern": [
+   {
+    "type": "mlstm",
+    "count": 1
+   }
+  ],
+  "repeat": 32,
+  "note": "32 post-up-projection blocks: mLSTM then SwiGLU MLP"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm",
+    "label": "norm_mlstm"
+   },
+   {
+    "kind": "mlstm",
+    "label": "q, k (2048), v (4096), output-gate and soft-capped input/forget-gate projections; mLSTM cell; per-head norm; times sigmoid(o); out_proj"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "rmsnorm",
+    "label": "norm_ffn"
+   },
+   {
+    "kind": "glu",
+    "label": "SwiGLU 4096 -> 10944 -> 4096"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "gate_softcap",
+   "what": "input and forget gate pre-activations soft-capped at 15 with tanh",
+   "where": "every mLSTM layer"
+  },
+  {
+   "name": "logit_softcap",
+   "what": "output logits soft-capped at 30",
+   "where": "output head"
+  },
+  {
+   "name": "head_norm",
+   "what": "the mLSTM output is normalised per head before the output gate",
+   "where": "every mLSTM layer"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/NX-AI/xLSTM-7b/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2503.13427",
+   "kind": "paper",
+   "title": "xLSTM 7B: A Recurrent LLM for Fast and Efficient Inference",
+   "note": "sections 2-3, appendix A Table 4, Figure 1",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/xlstm/modeling_xlstm.py",
+   "kind": "code",
+   "note": "native fallback: xLSTMBlock (norm_mlstm, mlstm_layer, add, norm_ffn, ffn, add), xLSTMLayer, xLSTMFeedForward (SiLU gate), out_norm, logit soft_cap",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/NX-AI/xLSTM-7b",
+   "kind": "model_card",
+   "note": "createdAt 2024-12-11, license other, safetensors total 6,865,424,896",
+   "accessed": "2026-11-14"
+  },
+  "lic": {
+   "url": "https://huggingface.co/NX-AI/xLSTM-7b/blob/main/LICENSE",
+   "kind": "official_post",
+   "note": "NXAI Community License Agreement",
+   "accessed": "2026-11-14"
+  },
+  "gal": {
+   "url": "https://github.com/rasbt/llm-architecture-gallery/blob/main/models.yml",
+   "kind": "secondary",
+   "note": "entry 'xLSTM 7B': date, '32 mLSTM', licence name",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/NX-AI/xLSTM-7b/blob/main/config.json",
+   "kind": "derived",
+   "note": "2Vd (untied) + L*(q,k d*d/2 each, v and o-gate d^2 each, i/f gates d*H+H each, head norm d, out d^2, FFN 3*d*10944, 2 norms) + out_norm",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "gal",
+   "paper"
+  ],
+  "weights.*": [
+   "lic",
+   "hfapi",
+   "gal"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "paper",
+   "count"
+  ],
+  "layers": [
+   "cfg",
+   "paper"
+  ],
+  "d_model": [
+   "cfg",
+   "paper"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "context_length.trained": [
+   "paper"
+  ],
+  "tokenizer.*": [
+   "paper",
+   "cfg"
+  ],
+  "attention.*": [
+   "cfg",
+   "code",
+   "paper"
+  ],
+  "norm.*": [
+   "code",
+   "cfg",
+   "paper"
+  ],
+  "ffn.*": [
+   "cfg",
+   "code"
+  ],
+  "stack.*": [
+   "cfg",
+   "paper"
+  ],
+  "block_order.*": [
+   "code",
+   "paper"
+  ],
+  "specials": [
+   "cfg",
+   "code",
+   "paper"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Sebastian Raschka",
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/images/architectures/xlstm-7b.webp",
+   "title": "xLSTM 7B",
+   "terms": "no reuse licence stated; link only"
+  },
+  {
+   "author": "NXAI (Beck et al.)",
+   "url": "https://arxiv.org/abs/2503.13427",
+   "title": "Figure 1 of the paper: the optimised mLSTM block",
+   "terms": "arXiv default licence; link only"
+  }
+ ],
+ "unknowns": {
+  "context_length.value": "recurrent model: no position limit in config",
+  "ffn.config_activation": "config names no activation; code hard-codes SiLU"
+ },
+ "notes": [
+  "Paper states vocabulary 50257 (GPT-NeoX-20B); config.json pads the embedding to 50304."
+ ],
+ "teaches": [
+  "mlstm"
+ ]
+}

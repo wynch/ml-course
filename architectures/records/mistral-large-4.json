@@ -1,0 +1,367 @@
+{
+ "id": "mistral-large-4",
+ "name": "Mistral Large 4",
+ "organisation": "Mistral AI",
+ "release_date": {
+  "value": "2026-10-29",
+  "precision": "day",
+  "note": "Raschka gallery date; the Hugging Face repo was created 2026-09-30"
+ },
+ "family": "mistral",
+ "parent_id": null,
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "Mistral Ecosystem Open-Weight License (modified MIT)",
+  "licence_url": "https://huggingface.co/mistralai/Mistral-Large-4-1T-A52B/blob/main/LICENSE",
+  "repo": "mistralai/Mistral-Large-4-1T-A52B"
+ },
+ "modality": {
+  "inputs": [
+   "text",
+   "image"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 1051061584128,
+  "active": 52337750272,
+  "text_only": 1049357365504,
+  "note": "derived from config (weights ship in FP8, so the Hub gives no plain count); card: about 1T total, 49B active per token, 52B with embeddings and output layer"
+ },
+ "layers": 72,
+ "d_model": 6144,
+ "vocab_size": 204800,
+ "context_length": {
+  "value": 1048576
+ },
+ "tokenizer": {
+  "kind": null,
+  "note": "repo ships tekken.json (Mistral's Tekken tokenizer)"
+ },
+ "attention": {
+  "kind": "mla",
+  "heads": 64,
+  "kv_heads": 64,
+  "head_dim": 128,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "rope",
+   "theta": 10000.0,
+   "scaling": "yarn",
+   "nope_layers": "every 4th layer (0-based 3, 7, ... 71): 18 NoPE layers, 54 RoPE layers"
+  },
+  "qk_norm": "none",
+  "mla": {
+   "kv_lora_rank": 512,
+   "q_lora_rank": null,
+   "qk_rope_head_dim": 64,
+   "qk_nope_head_dim": 64,
+   "v_head_dim": 128
+  },
+  "sparse": {
+   "kind": "sparse_topk",
+   "top_k": 2048,
+   "index_heads": 32,
+   "index_head_dim": 128,
+   "index_shared_layers": 28
+  },
+  "other": [],
+  "kv_shared_layers": 9
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-05
+ },
+ "ffn": {
+  "kind": "moe",
+  "activation": "swiglu",
+  "hidden_dim": 24576,
+  "config_activation": "silu"
+ },
+ "moe": {
+  "experts": 128,
+  "routed_per_token": 4,
+  "shared": 1,
+  "expert_hidden_dim": 6144,
+  "latent_dim": null,
+  "dense_layers": "first 1",
+  "router": "softmax over 128, keep top-4, renormalise; one expert group"
+ },
+ "stack": {
+  "pattern": [
+   {
+    "type": "rope",
+    "count": 3
+   },
+   {
+    "type": "nope",
+    "count": 1
+   }
+  ],
+  "repeat": 18,
+  "note": "all 72 layers: MLA with DSA top-2048. Layer 0 has a dense FFN, 1-71 MoE. Layers 39, 43, ... 71 reuse layer 35's latent KV (kv_source_layers). Layers 17-18, 21-22, ... 69-70 (indexer_types 'shared') run no indexer and reuse the top-k of the layer before them, so each group of three layers shares one indexer"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm",
+    "label": "input_layernorm"
+   },
+   {
+    "kind": "mla",
+    "label": "no query LoRA; latent KV 512 (+64 RoPE dims, none on NoPE layers); SSMax query scaling; DSA keeps the top 2048 keys"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "rmsnorm",
+    "label": "post_attention_layernorm"
+   },
+   {
+    "kind": "moe",
+    "label": "1 shared + top-4 of 128 SwiGLU experts, width 6144 (layer 0: dense SwiGLU 24576)"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "sparse_topk",
+   "what": "DSA indexer (32 heads x 128) keeps the top 2048 keys; in 28 layers (0-based 17-18, 21-22, ... 69-70) no indexer runs and the layer reuses the top-k of the full-indexer layer before it, so groups of three layers share one",
+   "where": "every layer; one indexer is shared by the paired former-SWA layers from layer 17"
+  },
+  {
+   "name": "kv_sharing",
+   "what": "YOCO kept from the original design: global (NoPE) layers in the second half reuse layer 35's latent KV and only own their kv_b expansion",
+   "where": "layers 39, 43, ... 71"
+  },
+  {
+   "name": "lerope",
+   "what": "LeRoPE: a learned per-frequency factor exp(alpha) scales the YaRN rotary frequencies",
+   "where": "RoPE layers"
+  },
+  {
+   "name": "log_length_scaling",
+   "what": "SSMax: per-head learned scale s*log(position+1)+b multiplies the queries",
+   "where": "every attention layer and indexer"
+  },
+  {
+   "name": "nope",
+   "what": "one layer in four has no rotary dims (the original global layers)",
+   "where": "layers 3, 7, ... 71"
+  },
+  {
+   "name": "logit_softcap",
+   "what": "final logits soft-capped at 30",
+   "where": "output head"
+  },
+  {
+   "name": "mtp",
+   "what": "DSpark speculative-decoding draft head (3 MLA layers, reads target layers 1, 18, 36, 54, 71)",
+   "where": "after the main stack; inference only"
+  }
+ ],
+ "omitted_towers": [
+  {
+   "modality": "image",
+   "what": "Pixtral-style ViT trained from scratch, 14x14 patches, 2x2 patch merger",
+   "params": 1704218624,
+   "layers": 30
+  }
+ ],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/mistralai/Mistral-Large-4-1T-A52B/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "params": {
+   "url": "https://huggingface.co/mistralai/Mistral-Large-4-1T-A52B/blob/main/params.json",
+   "kind": "config",
+   "note": "Mistral-native config: head_dim 128, nope 'rope,rope,rope,nope', lerope, ssmax_scaling, dsa, kv_sharing, mtp",
+   "accessed": "2026-11-14"
+  },
+  "readme": {
+   "url": "https://huggingface.co/mistralai/Mistral-Large-4-1T-A52B/blob/main/README.md",
+   "kind": "model_card",
+   "note": "'Key Features': ~1T total, 49B active (52B incl. embeddings), 128 experts top-4 + 1 shared, 1M context, licence",
+   "accessed": "2026-11-14"
+  },
+  "report": {
+   "url": "https://huggingface.co/mistralai/Mistral-Large-4-1T-A52B/blob/main/assets/technical_report.pdf",
+   "kind": "paper",
+   "title": "Mistral Large 4 technical report",
+   "note": "sections 2-3: granularity 4, SWA/CLA/YOCO, surgery, LeRoPE, SSMax, DSA",
+   "accessed": "2026-11-14"
+  },
+  "idx": {
+   "url": "https://huggingface.co/mistralai/Mistral-Large-4-1T-A52B/blob/main/consolidated.safetensors.index.json",
+   "kind": "weights_index",
+   "note": "layer 39 lacks wkv_a_with_mqa and kv_a_norm; layer 18 lacks an indexer; 128 experts per MoE layer",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/mistral_large4/modeling_mistral_large4.py",
+   "kind": "code",
+   "note": "MistralLarge4TextDecoderLayer and Attention: pre-norm, no Q-LoRA, KV sharing, shared indexers, learned alpha on inv_freq",
+   "accessed": "2026-11-14"
+  },
+  "gal": {
+   "url": "https://github.com/rasbt/llm-architecture-gallery/blob/main/models.yml",
+   "kind": "secondary",
+   "note": "entry 'Mistral Large 4': date, licence name, '72 MLA/DSA'",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/mistralai/Mistral-Large-4-1T-A52B/blob/main/config.json",
+   "kind": "derived",
+   "note": "shape count from config and modeling_mistral_large4.py: NoPE layers have no rope dims and a wider kv_b; 9 KV-sharing layers lack kv_a; 28 'shared' indexer layers lack an indexer; plus SSMax and router; vision tower from vision_config",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "gal"
+  ],
+  "weights.*": [
+   "readme",
+   "idx"
+  ],
+  "modality.*": [
+   "readme",
+   "cfg"
+  ],
+  "params.*": [
+   "count",
+   "readme"
+  ],
+  "layers": [
+   "cfg",
+   "params"
+  ],
+  "d_model": [
+   "cfg",
+   "params"
+  ],
+  "vocab_size": [
+   "cfg",
+   "params"
+  ],
+  "context_length.value": [
+   "cfg",
+   "readme"
+  ],
+  "tokenizer.*": [
+   "readme"
+  ],
+  "attention.*": [
+   "cfg",
+   "params",
+   "code"
+  ],
+  "attention.position.*": [
+   "cfg",
+   "params",
+   "code"
+  ],
+  "norm.*": [
+   "code",
+   "cfg"
+  ],
+  "ffn.*": [
+   "cfg",
+   "code"
+  ],
+  "moe.*": [
+   "cfg",
+   "params",
+   "readme",
+   "code"
+  ],
+  "stack.*": [
+   "cfg",
+   "idx"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "report",
+   "params",
+   "code",
+   "idx"
+  ],
+  "omitted_towers": [
+   "cfg",
+   "report",
+   "count",
+   "idx"
+  ],
+  "layer_kinds.*": [
+   "cfg",
+   "code"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Sebastian Raschka",
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/images/architectures/mistral-large-4.webp",
+   "title": "Mistral Large 4",
+   "terms": "no reuse licence stated; link only"
+  },
+  {
+   "author": "Mistral AI",
+   "url": "https://huggingface.co/mistralai/Mistral-Large-4-1T-A52B/blob/main/assets/technical_report.pdf",
+   "title": "Figure 3 of the report: the original CLA and YOCO sharing layout",
+   "terms": "no reuse licence stated; link only"
+  }
+ ],
+ "unknowns": {
+  "tokenizer.kind": "no fetched source names the algorithm behind tekken.json"
+ },
+ "notes": [
+  "config.json head_dim is 64 and is the rotary width (qk_rope_head_dim); params.json head_dim 128 is the full query/key head. The record uses 128.",
+  "Config num_key_value_heads 64 is nominal: MLA caches one 512-wide latent plus 64 RoPE dims per token.",
+  "Raschka's gallery summarises the attention as 'three LeRoPE layers with one NoPE layer'; config, params.json and code agree.",
+  "The report says one in four layers was full attention and the rest SWA (window 512) before surgery; the released model has no window.",
+  "Training history: pretrained as 3 sliding-window (512) layers per global layer with CLA and YOCO KV sharing; surgery before phase 2 removed the windows and CLA, kept YOCO."
+ ],
+ "teaches": [
+  "mla",
+  "sparse_topk",
+  "nope",
+  "moe",
+  "shared_expert"
+ ],
+ "layer_kinds": {
+  "rope": {
+   "mixer": "mla",
+   "ffn": "moe",
+   "heads": 64,
+   "head_dim": 128,
+   "position": "rope",
+   "theta": 10000.0,
+   "note": "q/k head 64 nope + 64 rope; YaRN factor 2048 over 512; LeRoPE; layer 0 has a dense FFN"
+  },
+  "nope": {
+   "mixer": "mla",
+   "ffn": "moe",
+   "heads": 64,
+   "head_dim": 128,
+   "position": "nope",
+   "kv_source": "layers 39, 43, ... 71 reuse layer 35's latent KV",
+   "note": "q/k head 128, no rope dims"
+  }
+ }
+}

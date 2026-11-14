@@ -1,0 +1,392 @@
+{
+ "id": "deepseek-v4-pro",
+ "name": "DeepSeek-V4-Pro",
+ "organisation": "DeepSeek",
+ "release_date": {
+  "value": "2026-04-24",
+  "precision": "day",
+  "note": "Raschka gallery date; HF repo created 2026-04-22; report on arXiv 2026-04-26"
+ },
+ "family": "deepseek",
+ "parent_id": "deepseek-v3.2",
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "MIT",
+  "licence_url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/LICENSE",
+  "repo": "deepseek-ai/DeepSeek-V4-Pro"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 1600000000000,
+  "active": 49000000000,
+  "note": "report section 4.2.1 and README: 1.6T total, 49B active. HF safetensors 1,598.8B include the MTP module and hash tables."
+ },
+ "layers": 61,
+ "d_model": 7168,
+ "vocab_size": 129280,
+ "context_length": {
+  "value": 1048576
+ },
+ "tokenizer": {
+  "kind": "bpe_bytelevel",
+  "stated_vocab": "128K",
+  "note": "report: the DeepSeek-V3 tokenizer plus a few special tokens"
+ },
+ "attention": {
+  "kind": "hybrid",
+  "mixers": [
+   {
+    "kind": "csa",
+    "layers": 30,
+    "note": "Compressed Sparse Attention: stride 4, each entry gated-pools an overlapping window of 8 tokens with a learned position embedding; an indexer keeps the top 1024"
+   },
+   {
+    "kind": "hca",
+    "layers": 31,
+    "note": "Heavily Compressed Attention: every 128 tokens become one KV entry, dense attention"
+   }
+  ],
+  "heads": 128,
+  "kv_heads": 1,
+  "head_dim": 512,
+  "window": 128,
+  "local_global": null,
+  "position": {
+   "scheme": "rope",
+   "theta": 160000,
+   "partial_fraction": 0.125,
+   "scaling": "yarn"
+  },
+  "qk_norm": "rmsnorm",
+  "mla": null,
+  "sparse": {
+   "kind": "sparse_topk",
+   "top_k": 1024,
+   "index_heads": 64,
+   "index_head_dim": 128
+  },
+  "other": [
+   "attention_sink"
+  ],
+  "window_kind": "sliding"
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-06
+ },
+ "ffn": {
+  "kind": "moe",
+  "activation": "swiglu",
+  "hidden_dim": null,
+  "config_activation": "silu"
+ },
+ "moe": {
+  "experts": 384,
+  "routed_per_token": 6,
+  "shared": 1,
+  "expert_hidden_dim": 3072,
+  "latent_dim": null,
+  "dense_layers": "none",
+  "router": "sqrt(softplus) scores, aux-loss-free bias, top-6; first 3 layers route by a fixed hash of the token id"
+ },
+ "stack": {
+  "prefix": [
+   {
+    "type": "hca",
+    "count": 2
+   }
+  ],
+  "pattern": [
+   {
+    "type": "csa",
+    "count": 1
+   },
+   {
+    "type": "hca",
+    "count": 1
+   }
+  ],
+  "repeat": 29,
+  "suffix": [
+   {
+    "type": "csa",
+    "count": 1
+   }
+  ],
+  "note": "config compress_ratios: 128 = HCA, 4 = CSA; every layer also attends to the last 128 tokens uncompressed"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm",
+    "label": "attn_norm, applied to the mHC read-out of 4 residual streams"
+   },
+   {
+    "kind": "csa",
+    "label": "top-1024 of 4x-compressed KV, plus a 128-token window and sink logits",
+    "only_on": "csa"
+   },
+   {
+    "kind": "hca",
+    "label": "all of the 128x-compressed KV, plus a 128-token window and sink logits",
+    "only_on": "hca"
+   },
+   {
+    "kind": "residual_add",
+    "label": "mHC write-back: 4 streams mixed by a doubly stochastic matrix"
+   },
+   {
+    "kind": "rmsnorm",
+    "label": "ffn_norm, on a fresh mHC read-out"
+   },
+   {
+    "kind": "moe",
+    "label": "1 shared + top-6 of 384, SwiGLU clamped at 10; hash routing in layers 1-3"
+   },
+   {
+    "kind": "residual_add",
+    "label": "mHC write-back"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "mhc",
+   "what": "Manifold-Constrained Hyper-Connections: residual stream widened to 4 copies; a Sinkhorn-projected 4x4 matrix (20 iterations) mixes them around each sublayer",
+   "where": "every sublayer"
+  },
+  {
+   "name": "csa",
+   "what": "two compressed-KV attention kinds interleaved (CSA and HCA); KV is one 512-wide head shared by 128 query heads",
+   "where": "attention layers"
+  },
+  {
+   "name": "hash_routing",
+   "what": "experts of the first 3 MoE layers chosen by a fixed table from token id (tid2eid)",
+   "where": "layers 1-3"
+  },
+  {
+   "name": "attention_sink",
+   "what": "one learned sink logit per head added to the softmax denominator",
+   "where": "every layer"
+  },
+  {
+   "name": "partial_rope",
+   "what": "RoPE on the last 64 of 512 dims of queries and KV; outputs get RoPE at the negative position",
+   "where": "every layer"
+  },
+  {
+   "name": "qk_norm",
+   "what": "RMSNorm on the 1536-wide query latent, a weightless per-head RMS on queries, and a weighted RMSNorm on the single KV head",
+   "where": "every layer"
+  },
+  {
+   "name": "grouped_output_projection",
+   "what": "attention output projected in 16 groups to rank 1024, then to d_model",
+   "where": "every layer"
+  },
+  {
+   "name": "mtp",
+   "what": "multi-token prediction module of depth 1, configured as in V3; uses sliding-window attention only",
+   "where": "after the main stack"
+  },
+  {
+   "name": "mxfp4",
+   "what": "routed expert weights in FP4 (E2M1) with E8M0 scales; most other weights FP8",
+   "where": "MoE layers"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2606.19348",
+   "kind": "paper",
+   "title": "DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence",
+   "note": "sections 2.1-2.3, 4.2.1",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/inference/model.py",
+   "kind": "code",
+   "note": "official reference: Block.forward (hc_pre, attn_norm, attn, hc_post, then ffn), Attention, Compressor, Indexer, Gate",
+   "accessed": "2026-11-14"
+  },
+  "hfcode": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/deepseek_v4/modeling_deepseek_v4.py",
+   "kind": "code",
+   "note": "DeepseekV4DecoderLayer.forward agrees",
+   "accessed": "2026-11-14"
+  },
+  "readme": {
+   "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro",
+   "kind": "model_card",
+   "note": "introduction: 1.6T / 49B, 1M context, CSA/HCA, mHC, Muon; MIT",
+   "accessed": "2026-11-14"
+  },
+  "tok": {
+   "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/tokenizer.json",
+   "kind": "config",
+   "note": "ByteLevel, 128,000 base tokens, 1,283 added",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/deepseek-ai/DeepSeek-V4-Pro",
+   "kind": "model_card",
+   "note": "license mit; created 2026-04-22; safetensors total 1,598,839,674,782",
+   "accessed": "2026-11-14"
+  },
+  "gal": {
+   "url": "https://github.com/rasbt/llm-architecture-gallery/blob/main/models.yml",
+   "kind": "secondary",
+   "note": "entry 'DeepSeek V4-Pro': date, 61 CSA/HCA layers, 6 routed + 1 shared of 384",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "gal",
+   "hfapi",
+   "paper"
+  ],
+  "weights.*": [
+   "readme",
+   "hfapi"
+  ],
+  "modality.*": [
+   "readme",
+   "paper"
+  ],
+  "params.*": [
+   "paper",
+   "readme",
+   "hfapi"
+  ],
+  "layers": [
+   "cfg",
+   "paper"
+  ],
+  "d_model": [
+   "cfg",
+   "paper"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "context_length.value": [
+   "cfg",
+   "readme"
+  ],
+  "tokenizer.*": [
+   "paper",
+   "tok"
+  ],
+  "attention.*": [
+   "cfg",
+   "paper",
+   "code"
+  ],
+  "norm.*": [
+   "code",
+   "cfg"
+  ],
+  "ffn.*": [
+   "cfg",
+   "code"
+  ],
+  "moe.*": [
+   "cfg",
+   "paper",
+   "code"
+  ],
+  "stack.*": [
+   "cfg",
+   "paper"
+  ],
+  "block_order.*": [
+   "code",
+   "hfcode"
+  ],
+  "specials": [
+   "paper",
+   "code",
+   "cfg"
+  ],
+  "layer_kinds.*": [
+   "cfg",
+   "code"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Sebastian Raschka",
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/images/architectures/deepseek-v4-pro.webp",
+   "title": "DeepSeek V4-Pro",
+   "terms": "no reuse licence stated; link only"
+  },
+  {
+   "author": "DeepSeek",
+   "url": "https://arxiv.org/abs/2606.19348",
+   "title": "Figures 2 and 3 of the report: overall architecture, CSA",
+   "terms": "arXiv default licence; link only"
+  }
+ ],
+ "unknowns": {
+  "ffn.hidden_dim": "no dense FFN layers: every layer holds experts (the first 3 hash-routed)",
+  "context_length.trained": "the report gives the 4K -> 16K -> 64K -> 1M schedule for V4-Flash; this record does not carry it over to Pro"
+ },
+ "notes": [
+  "Config rope_theta 10000 applies only to pure sliding-window layers (the MTP layer); the 61 compressed layers use compress_rope_theta 160000 with YaRN (factor 16 over 65,536).",
+  "Gallery calls the attention 'MLA-style'; the config has no kv_lora_rank, one 512-wide KV head and a 1536-wide query latent, so mla is left null."
+ ],
+ "teaches": [
+  "attention_sink",
+  "partial_rope"
+ ],
+ "layer_kinds": {
+  "hca": {
+   "mixer": "hca",
+   "ffn": "moe",
+   "heads": 128,
+   "kv_heads": 1,
+   "head_dim": 512,
+   "window": 128,
+   "window_kind": "sliding",
+   "compress_ratio": 128,
+   "position": "rope",
+   "theta": 160000,
+   "partial_fraction": 0.125,
+   "note": "no indexer; YaRN factor 16; layers 1-3 hash-routed"
+  },
+  "csa": {
+   "mixer": "csa",
+   "ffn": "moe",
+   "heads": 128,
+   "kv_heads": 1,
+   "head_dim": 512,
+   "window": 128,
+   "window_kind": "sliding",
+   "compress_ratio": 4,
+   "position": "rope",
+   "theta": 160000,
+   "partial_fraction": 0.125,
+   "note": "overlapping windows of 8; indexer 64 x 128 keeps 1024"
+  }
+ }
+}

@@ -1,0 +1,223 @@
+{
+ "id": "llama-2-7b",
+ "name": "Llama 2 7B",
+ "organisation": "Meta",
+ "release_date": {
+  "value": "2023-07-18",
+  "precision": "day",
+  "note": "arXiv v1 of the paper"
+ },
+ "family": "llama",
+ "parent_id": "llama-1-7b",
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "Llama 2 Community License Agreement",
+  "licence_url": "https://huggingface.co/meta-llama/Llama-2-7b-hf/blob/main/LICENSE.txt",
+  "repo": "meta-llama/Llama-2-7b-hf"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 6738415616,
+  "active": 6738415616,
+  "note": "derived from config, untied embeddings"
+ },
+ "layers": 32,
+ "d_model": 4096,
+ "vocab_size": 32000,
+ "context_length": {
+  "value": 4096
+ },
+ "tokenizer": {
+  "kind": "sentencepiece",
+  "stated_vocab": "32k",
+  "note": "same tokenizer as Llama 1"
+ },
+ "attention": {
+  "kind": "mha",
+  "heads": 32,
+  "kv_heads": 32,
+  "head_dim": 128,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "rope",
+   "theta": 10000,
+   "scaling": null
+  },
+  "qk_norm": "none",
+  "mla": null,
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-05
+ },
+ "ffn": {
+  "kind": "glu",
+  "activation": "swiglu",
+  "hidden_dim": 11008,
+  "config_activation": "silu"
+ },
+ "moe": null,
+ "stack": {
+  "pattern": [
+   {
+    "type": "global",
+    "count": 1
+   }
+  ],
+  "repeat": 32
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "mha",
+    "label": "32 query heads, 32 KV heads, RoPE"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "glu",
+    "label": "SwiGLU 4096 -> 11008 -> 4096"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/NousResearch/Llama-2-7b-hf/blob/main/config.json",
+   "kind": "config_mirror",
+   "note": "public copy of the gated https://huggingface.co/meta-llama/Llama-2-7b-hf/blob/main/config.json; identical file",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2307.09288",
+   "kind": "paper",
+   "title": "Llama 2: Open Foundation and Fine-Tuned Chat Models",
+   "note": "section 2.2, Table 1, Appendix A.2.1; arXiv API: v1 2023-07-18",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/modeling_llama.py",
+   "kind": "code",
+   "note": "input_layernorm and post_attention_layernorm precede their sublayers; no q/k norm",
+   "accessed": "2026-11-14"
+  },
+  "rope": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/modeling_rope_utils.py",
+   "kind": "code",
+   "note": "default_theta 10000.0 when config sets no rope_theta",
+   "accessed": "2026-11-14"
+  },
+  "idx": {
+   "url": "https://huggingface.co/NousResearch/Llama-2-7b-hf/blob/main/model.safetensors.index.json",
+   "kind": "weights_index",
+   "note": "mirror of the gated index; separate lm_head; no biases",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/meta-llama/Llama-2-7b-hf",
+   "kind": "model_card",
+   "note": "license tag llama2; LICENSE.txt in file list",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/NousResearch/Llama-2-7b-hf/blob/main/config.json",
+   "kind": "derived",
+   "note": "2*V*d + L*(2*d*h*hd + 2*d*kv*hd + 3*d*f + 2d) + d with V 32000, d 4096, h 32, kv 32, hd 128, f 11008, L 32",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "paper"
+  ],
+  "weights.*": [
+   "hfapi",
+   "cfg"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "count"
+  ],
+  "layers": [
+   "cfg"
+  ],
+  "d_model": [
+   "cfg"
+  ],
+  "vocab_size": [
+   "cfg",
+   "paper"
+  ],
+  "context_length.value": [
+   "cfg",
+   "paper"
+  ],
+  "tokenizer.*": [
+   "paper"
+  ],
+  "attention.*": [
+   "cfg",
+   "paper"
+  ],
+  "attention.head_dim": [
+   "count"
+  ],
+  "attention.position.*": [
+   "paper",
+   "rope"
+  ],
+  "attention.qk_norm": [
+   "code"
+  ],
+  "norm.*": [
+   "paper",
+   "code",
+   "cfg"
+  ],
+  "ffn.*": [
+   "cfg",
+   "paper"
+  ],
+  "stack.*": [
+   "cfg"
+  ],
+  "block_order.*": [
+   "code"
+  ]
+ },
+ "figure_links": [],
+ "unknowns": {},
+ "notes": [
+  "Paper: same architecture as Llama 1 except 4K context and, for 34B and 70B, grouped-query attention.",
+  "The 7B keeps full multi-head attention; Table 1 marks GQA only for 34B and 70B."
+ ],
+ "teaches": []
+}

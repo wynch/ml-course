@@ -1,0 +1,242 @@
+{
+ "id": "rwkv-6-7b",
+ "name": "RWKV-6 (Finch) 7B",
+ "organisation": "RWKV",
+ "release_date": {
+  "value": "2024-07-21",
+  "precision": "day",
+  "note": "creation of the HF-format repo RWKV/v6-Finch-7B-HF; the original checkpoint may be older. The RWKV-6 paper (2024-04-08) covers only Finch 1.6B and 3B"
+ },
+ "family": "rwkv",
+ "parent_id": null,
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "Apache-2.0",
+  "licence_url": "https://www.apache.org/licenses/LICENSE-2.0",
+  "repo": "RWKV/v6-Finch-7B-HF"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 7635746816,
+  "active": 7635746816,
+  "note": "derived from config and remote code; equals the Hub's safetensors count"
+ },
+ "layers": 32,
+ "d_model": 4096,
+ "vocab_size": 65536,
+ "context_length": {
+  "value": null
+ },
+ "tokenizer": {
+  "kind": null,
+  "note": "RWKV World tokenizer: greedy longest match over a fixed vocabulary (rwkv_vocab_v20230424.txt)"
+ },
+ "attention": {
+  "kind": "rwkv",
+  "mixers": [
+   {
+    "kind": "rwkv",
+    "layers": 32,
+    "note": "Finch time-mix: 64 heads of 64, matrix-valued state per head, data-dependent decay"
+   }
+  ],
+  "heads": 64,
+  "kv_heads": 64,
+  "head_dim": 64,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "none"
+  },
+  "qk_norm": "none",
+  "mla": null,
+  "sparse": null,
+  "other": [],
+  "attention_free": true
+ },
+ "norm": {
+  "kind": "layernorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": true,
+  "eps": 1e-05
+ },
+ "ffn": {
+  "kind": "mlp",
+  "activation": "relu2",
+  "hidden_dim": 14336,
+  "config_activation": null
+ },
+ "moe": null,
+ "stack": {
+  "pattern": [
+   {
+    "type": "rwkv",
+    "count": 1
+   }
+  ],
+  "repeat": 32,
+  "note": "time-mix then channel-mix in every block"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "layernorm",
+    "label": "ln1 (layer 0 also applies pre_ln to the embeddings first)"
+   },
+   {
+    "kind": "rwkv",
+    "label": "time-mix: token shift with data-dependent lerp (LoRA), r/k/v/g projections, WKV recurrence with LoRA decay and bonus u, per-head GroupNorm, SiLU gate, output"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "layernorm",
+    "label": "ln2"
+   },
+   {
+    "kind": "mlp",
+    "label": "channel-mix: token shift, key 4096 -> 14336, squared ReLU, value 14336 -> 4096, times sigmoid(receptance)"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "token_shift",
+   "what": "each sublayer mixes the current token with the previous one; in time-mix the mix weights depend on the input through a small LoRA (ddlerp), in channel-mix they are fixed per channel",
+   "where": "time-mix and channel-mix"
+  },
+  {
+   "name": "data_dependent_decay",
+   "what": "the per-channel decay of the WKV state is computed from the input through a LoRA (rank 128 at 7B)",
+   "where": "time-mix"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/RWKV/v6-Finch-7B-HF/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://huggingface.co/RWKV/v6-Finch-7B-HF/blob/main/modeling_rwkv6.py",
+   "kind": "code",
+   "note": "remote code: Rwkv6Block (pre_ln on layer 0, ln1, attention, add, ln2, feed_forward, add); TIME_MIX_EXTRA_DIM 64 and TIME_DECAY_EXTRA_DIM 128 for hidden 4096; FFN width int(3.5d//32*32)",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2404.05892",
+   "kind": "paper",
+   "title": "Eagle and Finch: RWKV with Matrix-Valued States and Dynamic Recurrence",
+   "note": "sections 4-5: Finch token shift, ddlerp, World tokenizer",
+   "accessed": "2026-11-14"
+  },
+  "readme": {
+   "url": "https://huggingface.co/RWKV/v6-Finch-7B-HF/blob/main/README.md",
+   "kind": "model_card",
+   "note": "'HF compatible model for Finch-7B'; license apache-2.0",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/RWKV/v6-Finch-7B-HF",
+   "kind": "model_card",
+   "note": "createdAt 2024-07-21, safetensors total 7,635,746,816, ships rwkv_vocab_v20230424.txt",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/RWKV/v6-Finch-7B-HF/blob/main/modeling_rwkv6.py",
+   "kind": "derived",
+   "note": "2Vd (untied head) + L*(time-mix 5d^2 + LoRAs + small vectors + GroupNorm, channel-mix 2*d*3.5d + d^2, 2 LayerNorms) + pre_ln + ln_out",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "hfapi",
+   "paper"
+  ],
+  "weights.*": [
+   "readme",
+   "hfapi"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "count",
+   "hfapi"
+  ],
+  "layers": [
+   "cfg"
+  ],
+  "d_model": [
+   "cfg"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "tokenizer.*": [
+   "paper",
+   "hfapi"
+  ],
+  "attention.*": [
+   "cfg",
+   "code"
+  ],
+  "norm.*": [
+   "code",
+   "cfg"
+  ],
+  "ffn.*": [
+   "code",
+   "paper"
+  ],
+  "stack.*": [
+   "cfg",
+   "code"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "code",
+   "paper"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "RWKV (Peng et al.)",
+   "url": "https://arxiv.org/abs/2404.05892",
+   "title": "Figure 1 of the paper: the Eagle and Finch time-mix and channel-mix blocks",
+   "terms": "arXiv default licence; link only"
+  }
+ ],
+ "unknowns": {
+  "context_length.value": "recurrent model: no position limit in config; Finch 7B training length not stated in the fetched sources",
+  "tokenizer.kind": "the World tokenizer is a trie with greedy matching, not one of the glossary kinds",
+  "ffn.config_activation": "config sets intermediate_size null and no activation; code hard-codes squared ReLU"
+ },
+ "notes": [
+  "Remote code lists head.weight as tied, but config tie_word_embeddings is false and the Hub count only matches with a separate head; record treats them as untied.",
+  "heads and head_dim describe the WKV state: 64 heads of 64 channels, each with a 64x64 state matrix.",
+  "ffn.activation relu2: channel-mix squares the ReLU of its key and multiplies the result by sigmoid(receptance)."
+ ],
+ "teaches": [
+  "rwkv",
+  "linear_attention"
+ ]
+}

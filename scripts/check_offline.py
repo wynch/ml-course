@@ -256,6 +256,7 @@ def check_reader() -> None:
         reader / "offline-assets.json",
         reader / "explorables" / "01-gradient-descent.html",
         reader / "explorables" / "05a-evaluation-lab.html",
+        reader / "explorables" / "05b-architecture-explorer.html",
         reader / "quizzes" / "index.html",
         reader / "quizzes" / "00a.html",
         reader / "quizzes" / "01.html",

@@ -1,0 +1,290 @@
+{
+ "id": "grok-2.5",
+ "name": "Grok 2.5",
+ "organisation": "xAI",
+ "release_date": {
+  "value": "2025-08-22",
+  "precision": "day",
+  "note": "weights published (HF repo xai-org/grok-2 created 2025-08-22); README: model trained and used at xAI in 2024"
+ },
+ "family": "grok",
+ "parent_id": null,
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "Grok 2 Community License Agreement",
+  "licence_url": "https://huggingface.co/xai-org/grok-2/blob/main/LICENSE",
+  "repo": "xai-org/grok-2"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 269515497472,
+  "active": 113822932992,
+  "note": "derived from config and tensor shapes, untied head; active counts unembedding, not the embedding lookup. No official figure; Raschka's gallery says 270B"
+ },
+ "layers": 64,
+ "d_model": 8192,
+ "vocab_size": 131072,
+ "context_length": {
+  "value": 131072,
+  "trained": "8,192 original positions scaled 16x (config)"
+ },
+ "tokenizer": {
+  "kind": "tiktoken_bpe",
+  "note": "repo ships tokenizer.tok.json; README points to SGLang's tiktoken tokenizer"
+ },
+ "attention": {
+  "kind": "gqa",
+  "heads": 64,
+  "kv_heads": 8,
+  "head_dim": 128,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "rope",
+   "theta": 208533496,
+   "scaling": "yarn",
+   "partial_fraction": null
+  },
+  "qk_norm": "none",
+  "mla": null,
+  "sparse": null,
+  "other": [
+   "attn_softcap"
+  ]
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "sandwich",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-05
+ },
+ "ffn": {
+  "kind": "moe",
+  "activation": "geglu",
+  "hidden_dim": 32768,
+  "config_activation": null
+ },
+ "moe": {
+  "experts": 8,
+  "routed_per_token": 2,
+  "shared": 0,
+  "expert_hidden_dim": 16384,
+  "latent_dim": null,
+  "dense_layers": "none; every layer also runs a dense GeGLU MLP of 32768 beside the experts",
+  "router": "top-2 without renormalisation; router logits tanh-capped at 30"
+ },
+ "stack": {
+  "pattern": [
+   {
+    "type": "moe",
+    "count": 1
+   }
+  ],
+  "repeat": 64,
+  "note": "every layer: full GQA + 8-expert MoE + dense residual MLP"
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm",
+    "label": "pre_attn_norm"
+   },
+   {
+    "kind": "gqa",
+    "label": "64 query heads, 8 KV heads; scores tanh-capped at 30"
+   },
+   {
+    "kind": "rmsnorm",
+    "label": "post_attn_norm"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "rmsnorm",
+    "label": "pre_moe_norm"
+   },
+   {
+    "kind": "residual_moe",
+    "label": "(dense GeGLU 32768 + top-2 of 8 GeGLU experts 16384) / sqrt 2"
+   },
+   {
+    "kind": "rmsnorm",
+    "label": "post_moe_norm"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "residual_moe",
+   "what": "dense MLP and routed experts run in parallel; outputs summed and divided by sqrt 2",
+   "where": "every layer"
+  },
+  {
+   "name": "logit_softcap",
+   "what": "three tanh caps: attention scores 30, router logits 30, final logits 50",
+   "where": "attention, router, head"
+  },
+  {
+   "name": "embedding_scale",
+   "what": "embeddings scaled by 90.51 (sqrt 8192); head output scaled by 0.5",
+   "where": "input and output"
+  },
+  {
+   "name": "log_length_scaling",
+   "what": "attention scores multiplied by log(pos) / log(1024) beyond position 1024 (config attn_temperature_len)",
+   "where": "attention"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/xai-org/grok-2/blob/main/config.json",
+   "kind": "config",
+   "accessed": "2026-11-14"
+  },
+  "readme": {
+   "url": "https://huggingface.co/xai-org/grok-2/blob/main/README.md",
+   "kind": "model_card",
+   "note": "trained and used at xAI in 2024; Grok 2 Community License; SGLang serving",
+   "accessed": "2026-11-14"
+  },
+  "st": {
+   "url": "https://huggingface.co/xai-org/grok-2/tree/main",
+   "kind": "weights_index",
+   "note": "no index file; tensor names and shapes read from safetensors headers (byte-range reads): pre/post attn and moe norms, mlp gate/up/down 32768, 8 experts w1/w2/w3, untied lm_head",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/sgl-project/sglang/blob/main/python/sglang/srt/models/grok.py",
+   "kind": "code",
+   "note": "Grok1DecoderLayer: four norms, moe_with_rmoe (mlp + moe)/sqrt 2, GeluAndMul tanh, router softcap, YaRN-like ScalingRotaryEmbedding",
+   "accessed": "2026-11-14"
+  },
+  "hfapi": {
+   "url": "https://huggingface.co/api/models/xai-org/grok-2",
+   "kind": "model_card",
+   "note": "createdAt 2025-08-22",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/xai-org/grok-2/blob/main/config.json",
+   "kind": "derived",
+   "note": "64*(attn 2*d*64*128 + 2*d*8*128 + dense 3*d*32768 + 8*3*d*16384 + router 8d + 4 norms d) + embed V*d + head V*d + final d; active uses 2 experts and drops the embedding",
+   "accessed": "2026-11-14"
+  },
+  "gal": {
+   "url": "https://github.com/rasbt/llm-architecture-gallery/blob/main/models.yml",
+   "kind": "secondary",
+   "note": "entry 'Grok 2.5 270B': date, licence name, cross-check only",
+   "accessed": "2026-11-14"
+  },
+  "kern": {
+   "url": "https://github.com/sgl-project/sglang/blob/main/python/sglang/kernels/ops/attention/decode_attention.py",
+   "kind": "code",
+   "note": "xai_temperature_len: scores times log2(pos)/log2(1024) once the position passes 1024",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "hfapi",
+   "gal"
+  ],
+  "weights.*": [
+   "readme",
+   "hfapi"
+  ],
+  "modality.*": [
+   "readme",
+   "code"
+  ],
+  "params.*": [
+   "count",
+   "gal"
+  ],
+  "layers": [
+   "cfg"
+  ],
+  "d_model": [
+   "cfg"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "context_length.*": [
+   "cfg",
+   "code"
+  ],
+  "tokenizer.*": [
+   "readme",
+   "hfapi"
+  ],
+  "attention.*": [
+   "cfg",
+   "code",
+   "st"
+  ],
+  "norm.*": [
+   "code",
+   "st",
+   "cfg"
+  ],
+  "ffn.*": [
+   "cfg",
+   "code",
+   "st"
+  ],
+  "moe.*": [
+   "cfg",
+   "code",
+   "st"
+  ],
+  "stack.*": [
+   "cfg"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "cfg",
+   "code",
+   "kern"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Sebastian Raschka",
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/images/architectures/grok-2-5-270b.webp",
+   "title": "Grok 2.5 270B",
+   "terms": "no reuse licence stated; link only"
+  }
+ ],
+ "unknowns": {
+  "ffn.config_activation": "config has no hidden_act; SGLang uses GELU (tanh) and-mul for the dense MLP and 'gelu' for experts"
+ },
+ "notes": [
+  "Config model_type is 'git' and architecture Grok1ForCausalLM; no transformers implementation, so the order rests on SGLang's code.",
+  "Config rope_type 'original' with scaling_factor 16, beta_fast 8, beta_slow 1; SGLang builds a YaRN-style scaled RoPE from these."
+ ],
+ "teaches": [
+  "residual_moe",
+  "sandwich_norm",
+  "logit_softcap",
+  "geglu",
+  "moe"
+ ]
+}

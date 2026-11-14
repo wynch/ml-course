@@ -1,0 +1,231 @@
+{
+ "id": "llama-3-8b",
+ "name": "Llama 3 8B",
+ "organisation": "Meta",
+ "release_date": {
+  "value": "2024-04-18",
+  "precision": "day",
+  "note": "Raschka gallery date"
+ },
+ "family": "llama",
+ "parent_id": "llama-2-7b",
+ "closed": false,
+ "weights": {
+  "open": true,
+  "licence": "Llama 3 Community License Agreement",
+  "licence_url": "https://huggingface.co/meta-llama/Meta-Llama-3-8B/blob/main/LICENSE",
+  "repo": "meta-llama/Meta-Llama-3-8B"
+ },
+ "modality": {
+  "inputs": [
+   "text"
+  ],
+  "outputs": [
+   "text"
+  ]
+ },
+ "params": {
+  "total": 8030261248,
+  "active": 8030261248,
+  "note": "derived from config, untied embeddings"
+ },
+ "layers": 32,
+ "d_model": 4096,
+ "vocab_size": 128256,
+ "context_length": {
+  "value": 8192
+ },
+ "tokenizer": {
+  "kind": "tiktoken_bpe",
+  "stated_vocab": "128K",
+  "note": "100K tokens from tiktoken plus 28K for non-English (paper)"
+ },
+ "attention": {
+  "kind": "gqa",
+  "heads": 32,
+  "kv_heads": 8,
+  "head_dim": 128,
+  "window": null,
+  "local_global": null,
+  "position": {
+   "scheme": "rope",
+   "theta": 500000.0,
+   "scaling": null
+  },
+  "qk_norm": "none",
+  "mla": null,
+  "sparse": null,
+  "other": []
+ },
+ "norm": {
+  "kind": "rmsnorm",
+  "placement": "pre",
+  "final_norm": true,
+  "embedding_norm": false,
+  "eps": 1e-05
+ },
+ "ffn": {
+  "kind": "glu",
+  "activation": "swiglu",
+  "hidden_dim": 14336,
+  "config_activation": "silu"
+ },
+ "moe": null,
+ "stack": {
+  "pattern": [
+   {
+    "type": "global",
+    "count": 1
+   }
+  ],
+  "repeat": 32
+ },
+ "block_order": {
+  "basis": "code",
+  "steps": [
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "gqa",
+    "label": "32 query heads, 8 KV heads, RoPE"
+   },
+   {
+    "kind": "residual_add"
+   },
+   {
+    "kind": "rmsnorm"
+   },
+   {
+    "kind": "glu",
+    "label": "SwiGLU 4096 -> 14336 -> 4096"
+   },
+   {
+    "kind": "residual_add"
+   }
+  ]
+ },
+ "specials": [
+  {
+   "name": "document_mask",
+   "what": "attention mask stops tokens attending across documents packed in one sequence",
+   "where": "pretraining only"
+  }
+ ],
+ "omitted_towers": [],
+ "refs": {
+  "cfg": {
+   "url": "https://huggingface.co/NousResearch/Meta-Llama-3-8B/blob/main/config.json",
+   "kind": "config_mirror",
+   "note": "public copy of the gated https://huggingface.co/meta-llama/Meta-Llama-3-8B/blob/main/config.json; identical file",
+   "accessed": "2026-11-14"
+  },
+  "paper": {
+   "url": "https://arxiv.org/abs/2407.21783",
+   "kind": "paper",
+   "title": "The Llama 3 Herd of Models",
+   "note": "Table 3; section 3.2",
+   "accessed": "2026-11-14"
+  },
+  "code": {
+   "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/modeling_llama.py",
+   "kind": "code",
+   "note": "input_layernorm and post_attention_layernorm both precede their sublayer; no q/k norm",
+   "accessed": "2026-11-14"
+  },
+  "gal": {
+   "url": "https://github.com/rasbt/llm-architecture-gallery/blob/main/models.yml",
+   "kind": "secondary",
+   "note": "entry 'Llama 3 8B': date, licence",
+   "accessed": "2026-11-14"
+  },
+  "count": {
+   "url": "https://huggingface.co/NousResearch/Meta-Llama-3-8B/blob/main/config.json",
+   "kind": "derived",
+   "note": "2*V*d + L*(d*h*hd + 2*d*kv*hd + h*hd*d + 3*d*f + 2d) + d",
+   "accessed": "2026-11-14"
+  },
+  "card": {
+   "url": "https://huggingface.co/NousResearch/Meta-Llama-3-8B/blob/main/README.md",
+   "kind": "model_card",
+   "note": "copy of Meta's model card: 'Model Release Date April 18, 2024', 8k context, license llama3",
+   "accessed": "2026-11-14"
+  }
+ },
+ "field_sources": {
+  "release_date": [
+   "card",
+   "gal"
+  ],
+  "weights.*": [
+   "card",
+   "cfg"
+  ],
+  "modality.*": [
+   "paper"
+  ],
+  "params.*": [
+   "count"
+  ],
+  "layers": [
+   "cfg",
+   "paper"
+  ],
+  "d_model": [
+   "cfg",
+   "paper"
+  ],
+  "vocab_size": [
+   "cfg"
+  ],
+  "context_length.*": [
+   "cfg",
+   "paper",
+   "card"
+  ],
+  "tokenizer.*": [
+   "paper"
+  ],
+  "attention.*": [
+   "cfg",
+   "paper",
+   "code"
+  ],
+  "norm.*": [
+   "code",
+   "cfg"
+  ],
+  "ffn.*": [
+   "cfg",
+   "paper"
+  ],
+  "stack.*": [
+   "cfg"
+  ],
+  "block_order.*": [
+   "code"
+  ],
+  "specials": [
+   "paper"
+  ]
+ },
+ "figure_links": [
+  {
+   "author": "Sebastian Raschka",
+   "url": "https://sebastianraschka.com/llm-architecture-gallery/images/architectures/llama-3-8b.webp",
+   "title": "Llama 3 8B",
+   "terms": "no reuse licence stated; link only"
+  }
+ ],
+ "unknowns": {},
+ "notes": [
+  "The model card gives the 8K context; the Herd paper (July 2024) describes the 3.1-era training. Whether the April 2024 8B already used the document mask is not stated; the document_mask special rests on the Herd paper."
+ ],
+ "teaches": [
+  "gqa",
+  "rope",
+  "rmsnorm",
+  "swiglu",
+  "tiktoken_bpe"
+ ]
+}
