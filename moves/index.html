@@ -26,8 +26,9 @@
   --bg:#0A111C; --fg:#E4EAF2; --muted:#98A6B8; --blue:#7EA2FF; --gold:#F2B23E; --faint:#36435A;
   --card:rgba(10,17,28,.8); --line:rgba(228,234,242,.13); color-scheme:dark}
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--fg);font:400 16px/1.5 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+/* Safari on a phone can still pan a page sideways when only body hides its overflow: clip it on the root too. */
+html{-webkit-text-size-adjust:100%;overflow-x:clip;overscroll-behavior-x:none}
+body{margin:0;max-width:100%;background:var(--bg);color:var(--fg);font:400 16px/1.5 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 #stage{position:fixed;top:0;left:0;width:100%;height:100vh;height:100lvh;display:block;z-index:0;touch-action:pan-y}
 .hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;

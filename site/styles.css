@@ -187,7 +187,10 @@ img { max-width: 100%; }
   font-size: 0.78rem;
   cursor: pointer;
 }
-.course-main { margin-left: var(--sidebar); min-width: 0; }
+/* Nothing inside the main column may widen the page: on a phone a decoration that
+   pokes past the edge lets the whole view swipe sideways. clip, unlike hidden,
+   keeps the sticky top bar working. Wide tables and code scroll in their own box. */
+.course-main { margin-left: var(--sidebar); min-width: 0; overflow-x: clip; }
 .topbar {
   height: 64px;
   position: sticky;
