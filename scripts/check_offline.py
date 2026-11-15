@@ -23,7 +23,7 @@ MARKDOWN_IMAGE = re.compile(r'!\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)')
 MARKDOWN_LINK = re.compile(r'(?<!!)\[[^\]]+\]\(([^)]+)\)')
 # Kept in step with VIEWABLE in build_reader.py and app.js.
 VIEWABLE = re.compile(r"\.(cfg|csv|ini|json|lock|md|py|sh|toml|txt|ya?ml|zig|zon)$", re.I)
-ASSET_ROOTS = ("explorables", "quizzes", "research", "moves", "games")
+ASSET_ROOTS = ("explorables", "quizzes", "research", "moves", "palace", "games")
 
 
 def normalize(path: str) -> str:
@@ -124,8 +124,8 @@ def check_links(reader: Path) -> int:
 
 
 # The service worker warms offline-assets.json in this order; explorables,
-# quizzes, research, moves and games must come straight after the shell.
-OFFLINE_GROUPS = ["core", "explorables", "quizzes", "research", "moves", "games", "lessons", "rest"]
+# quizzes, research, moves, the palace and games must come straight after the shell.
+OFFLINE_GROUPS = ["core", *ASSET_ROOTS, "lessons", "rest"]
 OFFLINE_BLOB = re.compile(r"\.(bin|ckpt|gguf|npz|pt|pth|safetensors)$|(^|/)uv\.lock$|\.lock$")
 # What a phone has to hold; the old list was 127 MB.
 OFFLINE_MAX_MB = 100
@@ -147,7 +147,7 @@ def check_offline_list(reader: Path) -> list[str]:
         raise RuntimeError("offline asset list repeats entries")
     listed = set(assets)
 
-    for root in ("explorables", "quizzes", "research", "moves", "games"):
+    for root in ASSET_ROOTS:
         pages = sorted(
             path.relative_to(reader).as_posix() for path in (reader / root).rglob("*.html")
         )
@@ -162,6 +162,16 @@ def check_offline_list(reader: Path) -> list[str]:
         misplaced = [path for path in files if path in listed and path not in groups[root]]
         if misplaced:
             raise RuntimeError(f"{root} files outside their priority group: {misplaced[:5]}")
+
+    # The model house is one page and the scripts it loads; offline it needs them all.
+    palace_page = (reader / "palace" / "index.html").read_text()
+    scripts = [
+        normalize(f"palace/{src}") for src in re.findall(r'<script[^>]*\ssrc="([^"]+)"', palace_page)
+        if not re.match(r"^(https?:|//)", src)
+    ]
+    missing = [path for path in ["palace/index.html", *scripts] if path not in groups["palace"]]
+    if missing:
+        raise RuntimeError(f"model house files left out of the offline list: {missing}")
 
     # <lk-review> reloads a quiz by its JSON path, so every quiz file must be saved.
     quiz_files = sorted(path.relative_to(reader).as_posix() for path in (reader / "quizzes").glob("*.json"))
@@ -278,6 +288,7 @@ def check_reader() -> None:
         reader / "research" / "jepa-field-map.html",
         reader / "research" / "assets" / "fonts.css",
         reader / "moves" / "index.html",
+        reader / "palace" / "index.html",
         reader / "games" / "index.html",
         reader / "favicon.svg",
         reader / "favicon.ico",
@@ -306,6 +317,7 @@ def check_reader() -> None:
         *quizzes,
         *(reader / "research").glob("*.html"),
         *(reader / "moves").glob("*.html"),
+        *(reader / "palace").rglob("*.html"),
         *(reader / "games").glob("*.html"),
     ]:
         text = html.read_text()

@@ -14,8 +14,8 @@ const FRESH = new Set(["./", "./index.html", "./app.js", "./course-content.js", 
 const REVALIDATE = /\.(?:html|js|css|json)$/;
 
 // Files go down a few at a time, in the order offline-assets.json lists them:
-// the shell, then explorables, quizzes, research and moves, then lessons, then the
-// rest. A phone that runs out of room or cuts the install short loses the tail
+// the shell, then explorables, quizzes, research, moves, the model house and
+// games, then lessons, then the rest. A phone that runs out of room or cuts the install short loses the tail
 // of the list, never the visualizations.
 const BATCH = 6;
 

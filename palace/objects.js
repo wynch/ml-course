@@ -7,11 +7,8 @@
    P = [[x,y,z],...], D.text(t,x,y,z,a,{c,size,align}). Units: the Moves unit square,
    about -1..1, y up; one unit is SPEC.scale metres in the room.
 
-   OBJ[id] = {make, kind, base, look, depth, note}
-     make  () => formation or [formations played in turn]; default: the data's moves_formation
-     kind  'panel' (a standing sheet of points) or '3d' (uses depth; the camera looks down at it)
-     base  height of the object's centre in metres (default 1.45)
-     depth (i,s,o,k) => extra o.z for a Moves formation given depth in the palace
+   Which formation a locus plays is the 'formation' expression in source/loci.json; OBJ (at the end)
+   says only how a locus stands: kind, base height, scale, and caption fixes for its room.
 */
 (()=>{
 'use strict';
@@ -36,7 +33,7 @@ P.sundial=()=>{const e1=[1,0,0],e2=[0,.28,-.96];const n2=Math.hypot(...e2);e2[0]
     if(i<370){const k=i-340,u=k/29;o.x=lerp(Y[0],FOOT[0],u);o.y=lerp(Y[1],FOOT[1],u);o.z=lerp(Y[2],FOOT[2],u);o.c=BL;o.r=.8;return;}
     if(i<380){const k=i-370;o.x=Y[0]+G(k,7)*.02;o.y=Y[1]+G(k,8)*.02;o.z=Y[2]+G(k,9)*.02;o.c=BL;o.r=2.2;return;}
     o.a=0;},
-  draw(s,a,D){D.line(Y[0],Y[1],Y[2],FOOT[0],FOOT[1],FOOT[2],BL,a*.8);
+  draw(s,a,D){{const c=[at(-.95,-.95),at(.95,-.95),at(.95,.95),at(-.95,.95)];D.poly([...c,c[0]],FG,a*.5);}D.line(Y[0],Y[1],Y[2],FOOT[0],FOOT[1],FOOT[2],BL,a*.8);
     const u=[.07,0,0],v=[e2[0]*.07,e2[1]*.07,e2[2]*.07];const nrm=[Y[0]-FOOT[0],Y[1]-FOOT[1],Y[2]-FOOT[2]];const L=Math.hypot(...nrm);const m=[nrm[0]/L*.07,nrm[1]/L*.07,nrm[2]/L*.07];
     D.line(FOOT[0]+u[0],FOOT[1]+u[1],FOOT[2]+u[2],FOOT[0]+u[0]+m[0],FOOT[1]+u[1]+m[1],FOOT[2]+u[2]+m[2],FG,a*.7);
     D.line(FOOT[0]+m[0],FOOT[1]+m[1],FOOT[2]+m[2],FOOT[0]+u[0]+m[0],FOOT[1]+u[1]+m[1],FOOT[2]+u[2]+m[2],FG,a*.7);
@@ -45,23 +42,6 @@ P.sundial=()=>{const e1=[1,0,0],e2=[0,.28,-.96];const n2=Math.hypot(...e2);e2[0]
     D.text('target y',Y[0]+.08,Y[1]+.1,Y[2],a,{size:.05,align:'left'});
     D.text('fit Xw',FOOT[0]+.1,FOOT[1]-.1,FOOT[2],a,{size:.05,align:'left',c:BL});
     D.text(stable?'step below the bound: settles':'step past the bound: flies off',0,-1.02,0,a,{size:.05,c:stable?FG:GD});}};};
-
-/* 00b-2 · naive Bayes on two tilted clouds: its axis-aligned ellipses and the boundary they give. */
-P.naive=()=>{const th=.62,sx=.36,sy=.07,c=Math.cos(th),sn=Math.sin(th);const M0=[-.22,-.3],M1=[.22,.3];
-  const vx=(sx*c)**2+(sy*sn)**2,vy=(sx*sn)**2+(sy*c)**2,cxy=(sx*sx-sy*sy)*c*sn;
-  const pt=i=>{const cl=i%2,m=cl?M1:M0,u=G(i,601)*sx,v=G(i,603)*sy;return[m[0]+u*c-v*sn,m[1]+u*sn+v*c,cl];};
-  const dm=[M1[0]-M0[0],M1[1]-M0[1]],mid=[0,0];
-  const wN=[dm[0]/vx,dm[1]/vy];
-  const det=vx*vy-cxy*cxy,wT=[(vy*dm[0]-cxy*dm[1])/det,(-cxy*dm[0]+vx*dm[1])/det];
-  const side=(w,x,y)=>w[0]*(x-mid[0])+w[1]*(y-mid[1]);
-  const cutLine=(w,D,col,a,lab)=>{const L=Math.hypot(w[0],w[1]),dx=-w[1]/L,dy=w[0]/L;D.line(-dx*1.1,-dy*1.1,0,dx*1.1,dy*1.1,0,col,a);D.text(lab,dx*1.02+.04,dy*1.02,0,a,{size:.048,c:col,align:'left'});};
-  return{palace:true,
-  p(i,s,o){const [x,y,cl]=pt(i);o.x=x;o.y=y;o.c=cl?GD:BL;o.r=.85;
-    if(s>.55){const wrong=(side(wN,x,y)>0)!==(cl===1);if(wrong){o.r=1.9;o.a=1;}else o.a=.55;}},
-  draw(s,a,D){const e=sstep(.05,.35,s);if(e>0){for(const m of [M0,M1]){const Q=[];for(let k=0;k<=48;k++){const t=k/48*TAU;Q.push([m[0]+Math.sqrt(vx)*1.7*Math.cos(t),m[1]+Math.sqrt(vy)*1.7*Math.sin(t),0]);}D.poly(Q,FG,a*.45*e);}}
-    if(s>.4)cutLine(wN,D,GD,a*sstep(.4,.55,s),'naive');
-    if(s>.7)cutLine(wT,D,FG,a*.6*sstep(.7,.85,s),'full covariance');
-    D.text(s<.55?'one upright bell per feature':'big points: wrong by the naive cut',0,-1.04,0,a,{size:.05});}};};
 
 /* 00b-5 · k-means: three centres walk to the mean of their points. */
 P.kmeans=()=>{const CC=[[-.55,.35],[.5,.45],[.05,-.5]];const X=[],Y=[];for(let i=0;i<N;i++){const c=CC[i%3];X.push(c[0]+G(i,611)*.17);Y.push(c[1]+G(i,613)*.17);}
@@ -88,9 +68,21 @@ P.lift=()=>{let h=0,sheet=0;return{palace:true,
 /* 03-4 and others · play two Moves formations' text over a sequence. */
 P.caption=(f,msg,c=FG)=>({prep:f.prep&&(s=>f.prep(s)),p:(i,s,o)=>f.p(i,s,o),palace:true,
   draw(s,a,D){if(f.draw)D.moves(f,s,a);D.text(msg,0,-1.0,0,a,{size:.05,c});}});
-
-/* 03-5 · tokens per word, SmolLM3 (results/fertility.json, module 03). */
-P.fertility=()=>F.vbars({max:2.2,cols:8,head:'SmolLM3 · tokens per word',bars:[{x:-.4,v:1.14,c:BL,top:'1.14',lab:'English'},{x:.4,v:1.97,c:GD,top:'1.97',lab:'Spanish'}]});
+/* 17-1 · Bradley-Terry: six items start level; each choice lifts the winner's score and lowers the loser's, and the hidden order comes out. No numbers: the motion is the lesson. */
+P.bt=()=>{const ST=[.2,-1,1.1,-.1,.6,-.5],PAIR=[[0,1],[2,3],[4,5],[1,2],[3,4],[5,0],[0,2],[1,3],[2,4],[3,5],[4,0],[5,1]];let t=0,pr=PAIR[0];const X=j=>(j-2.5)*.33,Y=j=>ST[j]*.6*t;return{palace:true,
+  prep(s){t=ease(sstep(.08,.85,s));pr=PAIR[Math.min(PAIR.length-1,Math.floor(s*PAIR.length))];},
+  p(i,s,o){const j=i%6,k=Math.floor(i/6),a=H(k,1201)*TAU,r=.075*Math.sqrt(H(k,1203));o.x=X(j)+r*Math.cos(a);o.y=Y(j)+r*Math.sin(a);const on=j===pr[0]||j===pr[1];o.c=on?(ST[pr[0]]>ST[pr[1]]===(j===pr[0])?BL:GD):FT;o.r=on?1:.75;},
+  draw(s,a,D){D.line(-.95,0,0,.95,0,0,FG,a*.3);const [p,q]=pr,w=ST[p]>ST[q]?p:q,l=w===p?q:p;D.line(X(p),Y(p),0,X(q),Y(q),0,FG,a*.6);
+    if(s<.9){D.line(X(w),Y(w)+.1,0,X(w),Y(w)+.24,0,BL,a);D.line(X(w)-.04,Y(w)+.19,0,X(w),Y(w)+.24,0,BL,a);D.line(X(w)+.04,Y(w)+.19,0,X(w),Y(w)+.24,0,BL,a);
+      D.line(X(l),Y(l)-.1,0,X(l),Y(l)-.24,0,GD,a);D.line(X(l)-.04,Y(l)-.19,0,X(l),Y(l)-.24,0,GD,a);D.line(X(l)+.04,Y(l)-.19,0,X(l),Y(l)-.24,0,GD,a);}
+    D.text('P(i beats j) = σ(sᵢ − sⱼ)',0,.95,0,a,{size:.05});D.text(s<.9?'each choice moves two scores':'the order, from choices alone',0,-.92,0,a,{size:.048});}};};
+/* 29-5 · units that go dead and stay dead under Adam; continual backprop swaps the least useful for fresh ones (module 29, section 5: 62.7% against 23.5% dead by the last task). */
+P.units=()=>{let t=0;const U=70,DA=.627,DC=.235;return{palace:true,
+  prep(s){t=sstep(.05,.8,s);},
+  p(i,s,o){const u=i%140,k=Math.floor(i/140),side=u<U?0:1,v=u%U,c=v%7,r=Math.floor(v/7),rk=H(v,1211);o.x=(side?.14:-.86)+c*.12+(k-1)*.022;o.y=.6-r*.125;
+    const dies=rk<DA*t,stays=side?rk<DC*t:dies,fresh=side&&dies&&!stays&&rk>DA*t-.07;o.c=stays?FT:(fresh?GD:BL);o.r=stays?.45:(fresh?1.2:.9);o.a=stays?.45:1;},
+  draw(s,a,D){D.text('Adam',-.5,-.72,0,a,{size:.05});D.text('continual backprop',.5,-.72,0,a,{size:.05});D.text('62.7% dead',-.5,-.86,0,a*sstep(.75,.9,s),{size:.046,c:FT});D.text('23.5% dead',.5,-.86,0,a*sstep(.75,.9,s),{size:.046,c:BL});
+    D.text(s<.8?'task after task, units stop firing':'the least useful units are swapped for fresh ones',0,.9,0,a,{size:.046});}};};
 
 /* 08-1 · a 3 × 3 kernel slides over a 14 × 14 image and fills a 12 × 12 output. */
 P.conv=()=>{const img=(r,c)=>{const x=(c-6.5)/6.5,y=(r-6.5)/6.5;return Math.exp(-((x+.2)**2+(y-.1)**2)/.25)+.6*(Math.abs(x-y)<.18?1:0);};
@@ -113,15 +105,8 @@ P.filters=()=>{const pat=(k,r,c)=>{const x=(c-2)/2,y=(r-2)/2;if(k<6){const th=k/
     const v=lerp(G(q,631)*.7,pat(k,r,c),t);const gx=k%4,gy=Math.floor(k/4);o.x=-.75+gx*.5+(c-2)*.085+(i&1)*.012;o.y=.38-gy*.62-(r-2)*.085+(i&1)*.012;o.c=v>0?BL:GD;o.r=.4+1.4*Math.min(1,Math.abs(v));o.a=.4+.6*Math.min(1,Math.abs(v));},
   draw(s,a,D){D.text(s<.4?'eight first-layer kernels at the start':'after training: edges and blobs',0,-1.06,0,a,{size:.05});}};};
 
-/* 08-4 · [CLS] attention over a ViT's 14 × 14 patches. */
-P.attnmap=()=>{const w=(r,c)=>{const x=(c-6.5)/6.5,y=(6.5-r)/6.5;const body=Math.exp(-((x+.05)**2/.12+(y+.1)**2/.06));const head=Math.exp(-((x-.42)**2+(y-.32)**2)/.025);return Math.max(body,head*1.2);};
-  return{palace:true,
-  p(i,s,o){if(i>=392){const k=i-392;o.x=-.05+(k%7)*.022;o.y=1.0+Math.floor(k/7)*.022;o.c=GD;o.r=1.2;return;}const q=i>>1,r=Math.floor(q/14),c=q%14;o.x=(c-6.5)*.126+(i&1)*.016;o.y=(6.5-r)*.126-.06+(i&1)*.016;
-    const t=ease(s),v=lerp(.25,w(r,c),t);o.r=.45+2.2*v;o.c=v>.45?GD:(v>.2?BL:FT);o.a=.35+.65*v;},
-  draw(s,a,D){D.text('[CLS]',.12,1.02,0,a,{size:.048,align:'left',c:GD});D.text('last-layer attention from [CLS]',0,-1.0,0,a,{size:.048});}};};
-
-/* 08-5 · CLIP: one image and six captions on a sphere; the nearest caption lights. */
-P.clip=()=>{const CAP=['a dog','a cat','a car','a tree','a boat','a bird'];const CP=[];for(let j=0;j<6;j++){const th=j/6*TAU+.3,ph=(H(j,641)-.5)*1.2;CP.push([Math.cos(ph)*Math.cos(th),Math.sin(ph),Math.cos(ph)*Math.sin(th)]);}
+/* 08-5 · CLIP: one bean-leaf photo and the module's three symptom prompts on a sphere; the nearest prompt lights (results/clip_zeroshot.json). */
+P.clip=()=>{const CAP=['grey angular dead patches','orange-brown rust pustules','green healthy leaf'];const CP=[];for(let j=0;j<3;j++){const th=j/3*TAU+.3,ph=(H(j,641)-.5)*1.2;CP.push([Math.cos(ph)*Math.cos(th),Math.sin(ph),Math.cos(ph)*Math.sin(th)]);}
   const IMG0=[.2,.8,-.56],IMG1=(()=>{const c=CP[0];return [c[0]*.9+.1*IMG0[0],c[1]*.9+.1*IMG0[1],c[2]*.9+.1*IMG0[2]];})();
   const nrm=v=>{const L=Math.hypot(...v);return v.map(x=>x/L);};let im=IMG0,rot=0,best=0;
   return{palace:true,
@@ -129,34 +114,13 @@ P.clip=()=>{const CAP=['a dog','a cat','a car','a tree','a boat','a bird'];const
     let bd=-2;CP.forEach((c,j)=>{const d=c[0]*im[0]+c[1]*im[1]+c[2]*im[2];if(d>bd){bd=d;best=j;}});},
   R(v){const c=Math.cos(rot),s=Math.sin(rot);return[v[0]*c-v[2]*s,v[1],v[0]*s+v[2]*c].map(x=>x*.82);},
   p(i,s,o){if(i<330){const u=(i+.5)/330,ph=Math.acos(1-2*u),th=i*2.39996;const q=this.R([Math.sin(ph)*Math.cos(th),Math.cos(ph),Math.sin(ph)*Math.sin(th)]);o.x=q[0];o.y=q[1];o.z=q[2];o.c=FT;o.r=.55;o.a=.7;return;}
-    if(i<390){const j=Math.floor((i-330)/10),k=(i-330)%10;const q=this.R(CP[j]);o.x=q[0]+.025*Math.cos(k*.63);o.y=q[1]+.025*Math.sin(k*.63);o.z=q[2];o.c=(j===best&&s>.6)?GD:FG;o.r=1.5;return;}
+    if(i<390){const j=Math.floor((i-330)/20),k=(i-330)%20;const q=this.R(CP[j]);o.x=q[0]+.03*Math.cos(k*.315);o.y=q[1]+.03*Math.sin(k*.315);o.z=q[2];o.c=(j===best&&s>.6)?GD:FG;o.r=1.5;return;}
     const k=i-390;const q=this.R(im);o.x=q[0]+.03*Math.cos(k*.21);o.y=q[1]+.03*Math.sin(k*.21);o.z=q[2]+.02*Math.sin(k);o.c=BL;o.r=1.6;},
   draw(s,a,D){const q=this.R(im);CP.forEach((c,j)=>{const p=this.R(c);const lit=j===best&&s>.6;D.line(q[0],q[1],q[2],p[0],p[1],p[2],lit?GD:FT,a*(lit?.9:.45));D.text(CAP[j],p[0]+.06,p[1]+.06,p[2],a,{size:.046,align:'left',c:lit?GD:-1});});
     D.text('photo',q[0]-.06,q[1]-.08,q[2],a,{size:.046,align:'right',c:BL});D.text('nearest caption wins',0,-1.0,0,a,{size:.048});}};};
 
-/* 05-1 · SmolLM2-360M by role: 32 layers of attention and MLP over the embedding table (results/anatomy.json). */
-P.params=()=>{const NL=8;/* 32 layers drawn as 8 slabs of 4 */const EMB=55,ATT=Math.round(.22*N/NL),MLP=Math.floor((N-EMB-ATT*NL)/NL);
-  return{palace:true,
-  p(i,s,o){const t=ease(s);let x,y,z;
-    if(i<EMB){x=-.7+(i%11)*.14;z=-.35+Math.floor(i/11)*.17;y=-.9;o.c=FG;}
-    else{const j=i-EMB,l=Math.floor(j/(ATT+MLP));const k=j%(ATT+MLP);if(l>=NL){o.a=0;return;}
-      const yl=-.62+l*.2;if(k<ATT){x=-.72+(k%5)*.06;z=-.2+Math.floor(k/5)*.09;o.c=BL;}else{const m=k-ATT;x=-.25+(m%10)*.09;z=-.33+Math.floor(m/10)*.13;o.c=GD;}y=yl;}
-    const g=G(i,651)*.6;o.x=lerp(g,x,t);o.y=lerp(G(i,653)*.6,y,t);o.z=lerp(G(i,655)*.5,z,t);o.r=1;},
-  draw(s,a,D){const e=a*sstep(.5,.9,s);D.text('embeddings ~13%',.9,-.9,0,e,{size:.046,align:'left'});D.text('attention ~22%',-.85,.95,0,e,{size:.046,c:BL});D.text('MLP ~2/3',.55,.95,0,e,{size:.046,c:GD});D.text('32 layers, drawn 4 to a slab',0,-1.12,0,e,{size:.044});}};};
-
-/* 05-5 · the logit lens: eight layer slices, each a bar chart of next-token odds. */
-P.lens=()=>{const NL=8,NB=5,TOK=['Paris','','other tokens','',''];const odds=l=>{/* results/logit_lens.json: Paris is at 0.0% through layer 25, 71% at layer 27, 98.7% at 28, 98.5% at 32. Slices show layers 4, 8, … 32. */const p0=l<6?0:l===6?.987:.985;const r=[p0];for(let b=1;b<NB;b++)r.push((1-p0)*(.15+.6*H(l*7+b,661))/(NB-1)*1.6);return r;};
-  const O=[];for(let l=0;l<NL;l++)O.push(odds(l));let shown=0;
-  return{palace:true,
-  prep(s){shown=sstep(0,.9,s)*NL;},
-  p(i,s,o){const l=Math.floor(i/52),k=i%52;if(l>=NL){o.a=0;return;}const b=Math.floor(k/10),m=k%10;if(b>=NB){o.a=0;return;}
-    const z=.75-l*.21,x=-.45+b*.22+(l-3.5)*.07,h=Math.min(1,O[l][b])*1.1,yb=-.75+(l-3.5)*.09;o.x=x+(m%2)*.03;o.y=yb+(Math.floor(m/2)/4)*h;o.z=z;
-    const top=O[l].indexOf(Math.max(...O[l]));o.c=(b===top&&l>=6)?GD:(b===0?BL:FT);o.r=.95;o.a=l<shown?1:.08;},
-  draw(s,a,D){for(let l=0;l<NL;l++){const z=.75-l*.21,dx=(l-3.5)*.07,dy=(l-3.5)*.09;D.line(-.55+dx,-.77+dy,z,.55+dx,-.77+dy,z,FT,a*.5);if(l%2===1)D.text('layer '+((l+1)*4),.6+dx,-.75+dy,z,a*(l<shown?1:.3),{size:.04,align:'left'});}
-    for(let b=0;b<NB;b++)if(TOK[b])D.text(TOK[b],-.45+b*.22+.245,-.88+.315,-.72,a,{size:.038,c:b===0?BL:-1});D.text('Paris tops from layer 27 of 32',.2,1.0,-.75,a*sstep(.75,.95,s),{size:.046,c:GD});}};};
-
 /* 07-1 · one flat ribbon of numbers splits into named tensors. */
-P.manifest=()=>{const parts=[['embed = head',112],['L0 qkv',45],['L0 out',15],['L0 mlp',90],['norm',8],['L1 qkv',45],['L1 out',15],['L1 mlp',90]];/* no head block: the LM head is wte.weight reused (module 04, EXPORT_FORMAT.md) */
+P.manifest=()=>{const parts=[['wte = head',112],['wpe',28],['L0 qkv',45],['L0 out',15],['L0 mlp',90],['L1 (same)',60],['L2 (same)',60],['ln_f',10]];/* module 07: wte, wpe, three blocks, ln_f; the LM head is wte reused. Not to scale. */
   const start=[];let acc=0;parts.forEach(p=>{start.push(acc);acc+=p[1];});
   const rowOf=j=>j<3?0:j<6?1:2;
   return{palace:true,
@@ -173,14 +137,6 @@ P.prefill=()=>{const n=20,P0=12;let rows=0,flash=0;return{palace:true,
   p(i,s,o){if(i>=400){o.a=0;return;}const r=Math.floor(i/20),c=i%20;o.x=(c-9.5)*.088;o.y=(9.5-r)*.088;
     if(c>r){o.c=FT;o.r=.4;o.a=.35;return;}if(r<P0){o.c=BL;o.r=.9;o.a=flash;return;}if(r<rows){o.c=r===rows-1?GD:BL;o.r=r===rows-1?1.3:.9;return;}o.c=FT;o.r=.4;o.a=.25;},
   draw(s,a,D){D.text(s<.3?'prefill: the prompt fills the cache':'decode: one row per token, nothing masked',0,1.0,0,a,{size:.05});}};};
-
-/* 07-6 · the engine's outputs laid over the reference's: all within tolerance. */
-P.parity=()=>{let t=0;return{palace:true,
-  prep(s){t=ease(sstep(0,.7,s));},
-  p(i,s,o){const k=i>>1,ref=i&1;const u=k/210,x=-.9+u*1.8,y=.45*Math.sin(u*9)*Math.exp(-u*.6)+G(k,671)*.05;
-    o.x=ref?x+(1-t)*.9:x;o.y=y;o.c=ref?FG:BL;o.r=ref?.6:1.2;o.a=ref?.9:.75;},
-  draw(s,a,D){D.text('engine',-.9,.75,0,a,{size:.048,c:BL,align:'left'});D.text('PyTorch',.9,.75,0,a,{size:.048,align:'right'});
-    if(s>.75)D.text('every value within tolerance',0,-.8,0,a*sstep(.75,.9,s),{size:.05,c:GD});}};};
 
 /* 18-1 · a GRU's update gate z is the share of the old state kept; 1 − z comes from the candidate (module 18: h ← (1 − z) ⊙ n + z ⊙ h). */
 P.gru=()=>{const Z=[.15,.8,.3,.05,.6,.4];const C=Z.map((_,k)=>[(H(k,681)-.5)*1.1,(H(k,683)-.5)*.6+.1]);
@@ -205,16 +161,10 @@ P.scan=(selective)=>{const T=20,X=[],A=[];for(let k=0;k<T;k++){X.push(H(k,701)<.
     if(m<19){const y=-.2+.9*Hs[k]/mx;o.x=x+(m-15)*.006;o.y=y;o.c=GD;o.r=.9;o.a=k<t?1:0;return;}
     if(selective){o.x=x+(m-19)*.01;o.y=-.95+A[k]*.15;o.c=GD;o.r=.7;return;}o.a=0;},
   draw(s,a,D){const k=Math.min(T-1,Math.floor(t));const Q=[];for(let j=0;j<=k;j++)Q.push([-.9+j*(1.8/(T-1)),-.2+.9*Hs[j]/mx,0]);D.poly(Q,GD,a*.8);
-    if(!selective){const K=[];for(let j=0;j<8;j++)K.push([.55+j*.05,.85-.3*(1-Math.pow(.8,j)),0]);D.poly(K,BL,a*.7);D.text('kernel 0.8ʲ',.72,.95,0,a,{size:.044,c:BL});
+    if(!selective){const K=[];for(let j=0;j<8;j++)K.push([.55+j*.05,.85-.3*(1-Math.pow(.8,j)),0]);D.poly(K,BL,a*.7);D.text('fading kernel',.72,.95,0,a,{size:.044,c:BL});
       D.text('kernel (blue) = step by step (gold)',0,-1.04,0,a,{size:.048});}
-    else{D.text('decay per token',-.9,-.86,0,a,{size:.042,align:'left',c:GD});D.text('no fixed kernel: a scan',0,.95,0,a,{size:.05,c:GD});}
+    else{D.text('decay per token',-.9,-.86,0,a,{size:.042,align:'left',c:GD});D.text('no fixed kernel',0,.95,0,a,{size:.05,c:GD});}
     D.text('inputs',-.9,-.65,0,a,{size:.042,align:'left'});}};};
-
-/* 18-5 · memory kept per token: the cache grows, the recurrent state stays flat. */
-P.memory=()=>({palace:true,
-  p(i,s,o){const cur=i%2,k=i>>1,u=k/209,rv=ease(s);if(u>rv){o.a=0;}o.x=-.85+u*1.7;o.y=cur?-.45:-.6+1.3*u;o.c=cur?GD:BL;o.r=.9;},
-  draw(s,a,D){D.line(-.9,-.7,0,.9,-.7,0,FG,a*.35);D.line(-.9,-.7,0,-.9,.8,0,FG,a*.35);D.text('context length →',.9,-.8,0,a,{size:.046,align:'right'});D.text('memory kept',-.88,.88,0,a,{size:.046,align:'left'});
-    D.text('KV cache',.5,.5,0,a,{size:.048,c:BL});D.text('recurrent state',.5,-.35,0,a,{size:.048,c:GD});}});
 
 /* 27 · a 20 × 20 state matrix S, written with outer products. */
 const KEYS=[],VALS=[];for(let w=0;w<16;w++){const k=[],v=[];for(let j=0;j<20;j++){k.push(G(w*20+j,711));v.push(G(w*20+j,713));}const nk=Math.hypot(...k);KEYS.push(k.map(a=>a/nk));VALS.push(v);}
@@ -243,33 +193,19 @@ P.chunks=()=>{const al=.9,be=1;const SS=[];{const S=new Float32Array(400);SS.pus
   draw(s,a,D){for(let c=0;c<4;c++){const x0=-.77+c*.44,x1=x0+.38;D.poly([[x0,-.78,0],[x1,-.78,0],[x1,-.92,0],[x0,-.92,0],[x0,-.78,0]],c<ch?GD:FT,a*(c===ch-1?1:.5));}
     D.text(ch?'chunk '+ch+' of 4: one triangular solve':'empty state',0,1.04,0,a,{size:.05});}};};
 
-/* 27-5 · recall against pairs written, 32 × 32 state, random keys (module 27 table). */
-P.recall=()=>{const NP=[8,16,32,64,128],R=[['linear',[1,1,.99,.83,.46],FG],['delta',[.99,.98,.81,.47,.22],BL],['decay',[1,1,.75,.4,.2],FT],['gated delta',[.99,.91,.56,.28,.14],GD]];
-  const X=k=>-.8+k*.4,Y=v=>-.7+v*1.4;const at=(r,u)=>{const k=Math.min(3,Math.floor(u*4)),f=u*4-k;return Y(lerp(r[1][k],r[1][k+1],f));};
-  return{palace:true,
-  p(i,s,o){const c=i%4,k=Math.floor(i/4),u=k/104;if(u>ease(s)+.001){o.a=0;}o.x=-.8+u*1.6;o.y=at(R[c],u);o.c=R[c][2];o.r=.9;},
-  draw(s,a,D){NP.forEach((n,k)=>D.text(String(n),X(k),-.82,0,a,{size:.042}));D.text('pairs written',.9,-.95,0,a,{size:.044,align:'right'});D.text('share read back right',-.9,.88,0,a,{size:.044,align:'left'});
-    R.forEach((r,j)=>D.text(r[0],.86,Y(r[1][4])+(j-1.5)*.07,0,a*sstep(.8,1,s),{size:.042,align:'left',c:r[2]===FT?-1:r[2]}));}};};
-
 /* 09 · the diffusion formations in a 3-D fog: noise spreads in depth as well. */
 function abOf(mode,s){return mode==='forward'?1-.98*ease(s):mode==='reverse'?.02+.98*ease(s):.02;}
 const fogDepth=mode=>(i,s,o)=>Math.sqrt(1-abOf(mode,s))*G(i,117)*.38+Math.sqrt(abOf(mode,s))*(((i*.618)%1)-.5)*.12;
 
-/* 09-4 · many short steps against few long strides, from the same noise to the same spiral. */
+/* the spiral every diffusion object clears toward */
 function spiralPt(i){const u=(i+.5)/N;const th=u*4.4*Math.PI+.4;const r=.1+.86*u;return [r*Math.cos(th)+G(i,101)*.012,r*Math.sin(th)+G(i,103)*.012];}
-P.strides=()=>({palace:true,
-  p(i,s,o){const [x,y]=spiralPt(i);const ex=G(i,113)*.32,ey=G(i,115)*.32;const ddim=i%2;let t=ease(s),jx=0,jy=0;
-    if(ddim){const k=Math.min(9,Math.floor(t*10)),f=t*10-k;t=t>=1?1:(k+sstep(.55,1,f))/10;}
-    else{const k=Math.floor(t*50);const w=(1-t)*.03;jx=G(i,731+k)*w;jy=G(i,733+k)*w;}
-    const ab=.02+.98*clamp(t);const a=Math.sqrt(ab),b=Math.sqrt(1-ab);o.x=a*x+b*ex+jx;o.y=a*y+b*ey+jy;o.c=ddim?GD:BL;o.r=.9;},
-  draw(s,a,D){D.text('blue: many short steps · gold: 10 strides',0,-1.04,0,a,{size:.048});}});
 
 /* 09-5 · guidance bends the clearing toward one labelled cloud. */
 P.guide=()=>{const CAT=[-.45,.25],DOG=[.45,-.2];let w=0;return{palace:true,
   prep(s){w=s<.35?0:lerp(1,3,ease((s-.35)/.65));},
-  p(i,s,o){const t=s<.35?ease(s/.35):1;const toCat=i%2===0||w>0;const tgt=(i%2===0||(w>0&&H(i,741)<sig(2*w-2.5)))?CAT:DOG;
-    const spread=.16/(1+w*.12);const gx=tgt[0]+G(i,743)*spread,gy=tgt[1]+G(i,745)*spread;const nx=G(i,747)*.5,ny=G(i,749)*.5;
-    o.x=lerp(nx,gx,t);o.y=lerp(ny,gy,t);o.c=tgt===CAT?GD:BL;o.r=.9;},
+  p(i,s,o){const t=s<.35?ease(s/.35):1;const spread=.16/(1+w*.25);const own=i%2===0?CAT:DOG;const mv=i%2===0?0:sstep(.35,.6,s);/* w = 0: both clouds; w ≥ 1: every point goes to the prompted one (module 09, exercise c) */
+    const gx=lerp(own[0],CAT[0],mv)+G(i,743)*spread,gy=lerp(own[1],CAT[1],mv)+G(i,745)*spread;const nx=G(i,747)*.5,ny=G(i,749)*.5;
+    o.x=lerp(nx,gx,t);o.y=lerp(ny,gy,t);o.c=mv>.5||i%2===0?GD:BL;o.r=.9;},
   draw(s,a,D){D.text('"a cat"',CAT[0],CAT[1]+.32,0,a,{size:.05,c:GD});D.text('"a dog"',DOG[0],DOG[1]-.34,0,a,{size:.05,c:BL});D.text(w?'guidance w = '+w.toFixed(1)+': prompt "a cat"':'no guidance',0,-1.02,0,a,{size:.05});}};};
 
 /* 33-1 · flow matching: straight strings from noise to data; one step lands on the average. */
@@ -280,7 +216,7 @@ P.flow=()=>({palace:true,
     else D.text('one step: every point lands on the average',0,-1.02,0,a,{size:.05,c:GD});}});
 
 /* 33-3 · the same line filled in 1, 8 and 128 steps. */
-P.dial=()=>{const L=[['128 steps','the cat sat down',''],['8 steps','the cat sat dwwn','..............x.'],['1 step','noe aedwe ttEres','xxxxxxxxxxxxxxxx']];
+P.dial=()=>{const L=[['128 steps',' tit obody waide',''],['8 steps','ounds kng in he ',''],['1 step','noe aedwe ttEres','']];/* 16-character cuts of module 33's samples (section 3) */
   const ORD=[...Array(16).keys()].sort((p,q)=>H(p,761)-H(q,761));const RK=new Array(16);ORD.forEach((j,r)=>RK[j]=r);
   const steps=[128,8,1];let t=0;return{palace:true,
   prep(s){t=ease(sstep(.05,.85,s));},
@@ -288,7 +224,7 @@ P.dial=()=>{const L=[['128 steps','the cat sat down',''],['8 steps','the cat sat
     o.x=-.72+j*.1+(m%4-1.5)*.016;o.y=.45-row*.55-.12-Math.floor(m/4)*.016;const shownAt=Math.ceil((RK[j]+1)/16*steps[row])/steps[row];const on=t>=shownAt;o.c=on?(L[row][2][j]==='x'?GD:BL):FT;o.r=.7;o.a=on?1:.4;},
   draw(s,a,D){for(let row=0;row<3;row++){D.text(L[row][0],-.78,.45-row*.55+.1,0,a,{size:.044,align:'right'});
       for(let j=0;j<16;j++){const shownAt=Math.ceil((RK[j]+1)/16*steps[row])/steps[row];const on=t>=shownAt;const ch=L[row][1][j];D.text(on?(ch===' '?'·':ch):'_',-.72+j*.1,.45-row*.55,0,a,{size:.06,c:on?(L[row][2][j]==='x'?GD:FG):-1});}}
-    D.text('gold: wrong letters',0,-1.02,0,a*sstep(.85,1,s),{size:.046,c:GD});}};};
+    D.text('the same model, three step counts',0,-1.02,0,a*sstep(.85,1,s),{size:.046});}};};
 
 /* 33-4 · block diffusion: four blocks of four tiles, each unmasked in place, then cached. */
 P.blocks=()=>{const TX='the cat sat down';const ORD=[...Array(16).keys()].sort((p,q)=>H(p,771)-H(q,771));const RK=new Array(16);ORD.forEach((j,r)=>RK[j]=r%4);
@@ -301,64 +237,93 @@ P.blocks=()=>{const TX='the cat sat down';const ORD=[...Array(16).keys()].sort((
       D.text(rev?(TX[j]===' '?'·':TX[j]):'_',-.8+j*.1+blk*.04,(done?-.45:.2)+.12,0,a,{size:.06,c:done?-1:FG});}
     D.text('KV cache: finished blocks',-.85,-.72,0,a,{size:.044,align:'left'});D.text(cur<4?'block '+(cur+1)+': unmask in place':'line done',0,.72,0,a,{size:.05,c:BL});}};};
 
-/* 33-5 · held-out loss against epochs on 100,000 characters (module 33, section 5). */
-P.repeat=()=>{const LX=e=>-.85+Math.log(e)/Math.log(200)*1.7,LY=v=>-.75+(v-2.2)/1.65*1.5;
-  const ar=e=>e<=64?2.287+1.45*Math.pow(1-Math.log(e)/Math.log(64),1.6):2.287+.251*Math.pow((e-64)/136,1.3);
-  const dm=e=>e<=30?3.77-.41*Math.log(e)/Math.log(30):3.36-(3.36-2.498)*Math.pow((Math.log(e)-Math.log(30))/(Math.log(200)-Math.log(30)),.9);
-  return{palace:true,
-  p(i,s,o){const c=i%2,k=i>>1,e=Math.exp(k/209*Math.log(200));if(k/209>ease(s)+.001)o.a=0;o.x=LX(e);o.y=LY(c?dm(e):ar(e));o.c=c?GD:BL;o.r=.9;},
-  draw(s,a,D){[1,10,64,200].forEach(e=>D.text(String(e),LX(e),-.87,0,a,{size:.042}));D.text('epochs (log) →',.85,-1.0,0,a,{size:.044,align:'right'});D.text('held-out loss',-.85,.9,0,a,{size:.044,align:'left'});
-    D.text('left to right',LX(20),LY(ar(20))+.12,0,a,{size:.044,c:BL});D.text('diffusion',LX(12),LY(3.36)+.1,0,a,{size:.044,c:GD});
-    if(s>.85)D.text('they cross at 200; the stopped twin still leads',0,.62,0,a*sstep(.85,1,s),{size:.044});}};};
-
-/* Placeholder for rooms furnished in a later phase: a slow ring and a post. */
-P.marker=()=>({palace:true,placeholder:true,
-  p(i,s,o){if(i>=48){o.a=0;return;}const th=i/48*TAU+s*TAU*.25;o.x=.32*Math.cos(th);o.z=.32*Math.sin(th);o.y=-.4;o.c=FT;o.r=.9;o.a=.9;},
-  draw(s,a,D){D.line(0,-.9,0,0,-.4,0,FT,a*.6);}});
-
 /* Prologue at the garden gate: the Moves page's first four moves. Epilogue at the lookout: its motifs. */
 P.prologue=()=>[F.scatter(),F.grid(),F.clouds('plain'),F.clouds('wrong')];
 
+/* 01-4 · two ways to the same slope, side by side: labels from the room (module 01: backward() and a finite difference). */
+P.parity=(L={a:'engine',b:'PyTorch',done:'every value within tolerance'})=>{let t=0;return{palace:true,
+  prep(s){t=ease(sstep(0,.7,s));},
+  p(i,s,o){const k=i>>1,ref=i&1;const u=k/210,x=-.9+u*1.8,y=.45*Math.sin(u*9)*Math.exp(-u*.6)+G(k,671)*.05;
+    o.x=ref?x+(1-t)*.9:x;o.y=y;o.c=ref?FG:BL;o.r=ref?.6:1.2;o.a=ref?.9:.75;},
+  draw(s,a,D){D.text(L.a,-.9,.75,0,a,{size:.048,c:BL,align:'left'});D.text(L.b,.9,.75,0,a,{size:.048,align:'right'});
+    if(s>.75)D.text(L.done,0,-.8,0,a*sstep(.75,.9,s),{size:.05,c:GD});}};};
+
+/* 02-2 · softmax then cross-entropy: the slope on each score is p − y, down on the true class, up on the rest. No numbers: the shape is the lesson. */
+P.softgrad=()=>{const PR=[.1,.18,.5,.14,.08],TRUE=2;let g=0;return{palace:true,
+  prep(s){g=ease(sstep(.35,.85,s));},
+  p(i,s,o){const b=i%5,k=Math.floor(i/5);if(k>=80){o.a=0;return;}const x=(b-2)*.38,h=PR[b]*1.6*ease(sstep(0,.3,s));const c=k%4,r=Math.floor(k/4);
+    o.x=x+(c-1.5)*.035;o.y=-.55+(r/19)*h;o.c=b===TRUE?GD:BL;o.r=.85;},
+  draw(s,a,D){for(let b=0;b<5;b++){const x=(b-2)*.38,top=-.55+PR[b]*1.6,d=(PR[b]-(b===TRUE?1:0))*g*.9;if(Math.abs(d)<.005)continue;
+      const y1=top+.06,y2=y1-d;D.line(x,y1,0,x,y2,0,b===TRUE?GD:FG,a);const s2=Math.sign(-d)*.05;D.line(x,y2,0,x-.04,y2-s2,0,b===TRUE?GD:FG,a);D.line(x,y2,0,x+.04,y2-s2,0,b===TRUE?GD:FG,a);}
+    D.text('true class',.0,-.68,0,a,{size:.046,c:GD});D.text(g>.5?'gradient on each score = p − y':'softmax odds p',0,.95,0,a,{size:.05});}};};
+
+/* 05-6 · a chat template: special tokens wrap each turn (module 05: <|im_start|>, <|im_end|>; role names are ordinary tokens). */
+P.chat=()=>{const T=[['<|im_start|>',1],['user',0],['your words',2],['<|im_end|>',1],['<|im_start|>',1],['assistant',0],['the reply …',2]];
+  const W=T.map(t=>.1+t[0].length*.034);const pos=[];{let x=-.95,y=.35;T.forEach((t,j)=>{if(j===4){x=-.95;y=-.25;}pos.push([x+W[j]/2,y]);x+=W[j]+.05;});}
+  let k=0;return{palace:true,
+  prep(s){k=ease(sstep(0,.85,s))*T.length;},
+  p(i,s,o){const j=Math.floor(i/60),m=i%60;if(j>=T.length){o.a=0;return;}const [cx,cy]=pos[j],w=W[j],h=.18;const u=m/60*2*(w+h);let x,y;
+    if(u<w){x=cx-w/2+u;y=cy+h/2;}else if(u<w+h){x=cx+w/2;y=cy+h/2-(u-w);}else if(u<2*w+h){x=cx+w/2-(u-w-h);y=cy-h/2;}else{x=cx-w/2;y=cy-h/2+(u-2*w-h);}
+    o.x=x;o.y=y;o.c=T[j][1]===1?GD:(T[j][1]===0?BL:FG);o.r=.7;o.a=clamp(k-j);},
+  draw(s,a,D){T.forEach((t,j)=>D.text(t[0],pos[j][0],pos[j][1],0,a*clamp(k-j),{size:.042,c:t[1]===1?GD:(t[1]===0?BL:-1)}));
+    D.text('special tokens mark each turn',0,-.75,0,a*sstep(.85,1,s),{size:.05,c:GD});}};};
+
+/* 19 · the six runs of module 19 (results/train_d*.json, held-out loss against tokens seen); N without embeddings (results/fit.json). */
+const C19=[[[32768,4.937],[61440,4.902],[126976,4.751],[249856,4.503],[376832,4.149],[499712,3.799],[749568,3.357],[999424,3.132],[1499136,2.847],[1998848,2.683],[2998272,2.547],[4001792,2.492]],[[32768,4.917],[61440,4.839],[126976,4.627],[249856,4.302],[376832,3.856],[499712,3.471],[749568,3.064],[999424,2.857],[1499136,2.647],[1998848,2.553],[2998272,2.469],[4001792,2.43]],[[32768,4.905],[61440,4.79],[126976,4.566],[249856,4.172],[376832,3.642],[499712,3.244],[749568,2.857],[999424,2.693],[1499136,2.551],[1998848,2.485],[2998272,2.424],[4001792,2.38]],[[32768,4.844],[61440,4.631],[126976,4.373],[249856,3.807],[376832,3.229],[499712,2.889],[749568,2.635],[999424,2.554],[1499136,2.469],[1998848,2.429],[2998272,2.34],[4001792,2.239]],[[32768,4.619],[61440,4.281],[126976,3.958],[249856,3.231],[376832,2.769],[499712,2.595],[749568,2.497],[999424,2.451],[1499136,2.404],[1998848,2.302],[2998272,2.147],[4001792,2.031]],[[32768,4.351],[61440,3.904],[126976,3.395],[249856,2.763],[376832,2.556],[499712,2.49],[749568,2.436],[999424,2.387],[1499136,2.261],[1998848,2.122],[2998272,1.977],[4001792,1.855]]];
+const N19=[50880,113184,200064,447552,1237440,3159552],AL19=.0737734;/* α from results/fit.json; the line passes through the points' mean in log space, as least squares does */
+const A19=Math.exp(C19.reduce((s,c,j)=>s+Math.log(c[11][1])+AL19*Math.log(N19[j]),0)/6);
+const L10=Math.log10,COL19=j=>j<2?FT:(j<4?FG:BL);
+function along19(P,u){/* P: [[x,y]...] in plot units; u in [0,1] by index */const f=u*(P.length-1),k=Math.min(P.length-2,Math.floor(f)),t=f-k;return[lerp(P[k][0],P[k+1][0],t),lerp(P[k][1],P[k+1][1],t)];}
+P.power19=(mode)=>{const LY=v=>-.62+(v-1.8)/(5-1.8)*1.4;let curves,env=null,head,xl;
+  if(mode==='curves'){const X=t=>-.88+(L10(t)-4.5)/(6.65-4.5)*1.76;curves=C19.map(c=>c.map(([t,l])=>[X(t),LY(l)]));xl='tokens seen (log) →';head='six sizes, held-out loss: none has stopped falling';}
+  else if(mode==='envelope'){const X=c=>-.88+(L10(c)-9.9)/(13.15-9.9)*1.76;curves=C19.map((c,j)=>c.map(([t,l])=>[X(6*N19[j]*t),LY(l)]));xl='compute 6·N·D (log) →';head='best size at each budget: a staircase where runs end';
+    env=[];for(let x=-.88;x<=.88;x+=.01){let m=null;curves.forEach(P=>{if(x<P[0][0]||x>P[P.length-1][0])return;for(let k=0;k<P.length-1;k++)if(x>=P[k][0]&&x<=P[k+1][0]){const y=lerp(P[k][1],P[k+1][1],(x-P[k][0])/(P[k+1][0]-P[k][0]));if(m===null||y<m)m=y;}});if(m!==null)env.push([x,m]);}}
+  const NX=n=>-.75+(L10(n)-4.6)/(6.6-4.6)*1.5,NY=l=>-.55+(L10(l)-L10(1.8))/(L10(2.6)-L10(1.8))*1.3;
+  return{palace:true,
+  p(i,s,o){const j=i%6,k=Math.floor(i/6),u=k/69;o.r=.85;o.c=COL19(j);
+    if(mode==='line'){const t=ease(s);const L=C19[j][11][1];const a=k/69*TAU;const tx=NX(N19[j])+.03*Math.cos(a*3),ty=NY(L)+.03*Math.sin(a*3);
+      const P=curves19(j);const q=along19(P,u);o.x=lerp(q[0],tx,t);o.y=lerp(q[1],ty,t);if(t>.5)o.r=1.1;return;}
+    const P=curves[j];const rv=mode==='curves'?ease(s):1;const q=along19(P,Math.min(u,rv));o.x=q[0];o.y=q[1];if(u>rv)o.a=0;
+    if(env){const e=env.find(p=>Math.abs(p[0]-q[0])<.006);o.c=(e&&q[1]-e[1]<.01)?GD:FT;}},
+  draw(s,a,D){const ax=(x,y)=>{D.line(-.9,-.66,0,.92,-.66,0,FG,a*.4);D.line(-.9,-.66,0,-.9,.82,0,FG,a*.4);D.text(x,.92,-.88,0,a,{size:.044,align:'right'});D.text(y,-.88,.88,0,a,{size:.044,align:'left'});};
+    if(mode==='line'){ax('size N (log) →','loss at 4M tokens (log)');const t=ease(s);const y=n=>NY(A19*Math.pow(n,-AL19));D.line(NX(40000),y(40000),0,NX(4e6),y(4e6),0,GD,a*t);
+      N19.forEach((n,j)=>D.text(j===0?'51k':j===5?'3.2M':'',NX(n),-.74,0,a,{size:.042}));D.text('slope α = 0.074, R² 0.962: the points bend about the line',0,.98,0,a*sstep(.6,.9,s),{size:.044,c:GD});return;}
+    ax(xl,'held-out loss');curves.forEach((P,j)=>{const rv=mode==='curves'?ease(s):1;const Q=[];for(let k=0;k<=40*rv;k++){const q=along19(P,k/40);Q.push([q[0],q[1],0]);}D.poly(Q,COL19(j),a*.6);});
+    if(env)D.poly(env.map(p=>[p[0],p[1],0]),GD,a*.9);D.text(head,0,.98,0,a*sstep(.5,.9,s),{size:.044});}};
+  function curves19(j){const X=t=>-.88+(L10(t)-4.5)/(6.65-4.5)*1.76;return C19[j].map(([t,l])=>[X(t),LY(l)]);}};
+
+/* 13-1 · one unit among its neighbours: 21 lenses, channels 45 to 65 of InceptionV1's layer 4e, hang from one rail. Each drops by
+   its gap (median on drawn Vs minus the larger of the cat and car medians, over the pooled spread): every gap is below zero,
+   and 4e:55, the unit read as a V detector, hangs lowest of all. Gaps: module 13, results/v_neuron.json, gap_by_channel. */
+P.lenses=()=>{const GAP=[-1.5761,-3.2873,-1.6241,-.4816,-3.4195,-.4974,-1.7052,-.2089,-1.7011,-3.1674,-3.482,-1.8311,-.5496,-3.2291,-1.4336,-2.0971,-.7487,-2.7397,-.6552,-1.2193,-.3272];
+  const RAIL=.62,X=i=>-.9+i*1.8/20,Y=i=>RAIL-.16+GAP[i]*.35;let t=0;return{palace:true,
+  prep(s){t=ease(sstep(.05,.7,s));},
+  p(i,s,o){const j=Math.floor(i/20),k=i%20;if(j>20){o.a=0;return;}const a=k/20*TAU,r=.038;o.x=X(j)+r*Math.cos(a);o.y=lerp(RAIL-.16,Y(j),t)+r*1.25*Math.sin(a);o.c=j===10?GD:FT;o.r=j===10?1.15:.8;o.a=j===10?1:.8;},
+  draw(s,a,D){D.line(-.97,RAIL,0,.97,RAIL,0,FG,a*.7);D.text('gap 0',-.97,RAIL+.07,0,a,{size:.042,align:'left'});
+    for(let j=0;j<21;j++)D.line(X(j),RAIL,0,X(j),lerp(RAIL-.16,Y(j),t)+.048,0,j===10?GD:FT,a*(j===10?.9:.5));
+    D.text('4e:55',X(10)+.06,Y(10)-.02,0,a*sstep(.6,.85,s),{size:.046,c:GD,align:'left'});
+    D.text('InceptionV1 4e · channels 45 to 65',0,.9,0,a,{size:.046});D.text('lower: photos beat drawn Vs by more',0,-1.05,0,a*sstep(.5,.8,s),{size:.044});}};};
+
+/* 13-5 · bars that may go below zero: the zero line sits at spec.base (module 13: two R² below zero). */
+P.vbarsz=(spec)=>{const nb=spec.bars.length,per=Math.floor(N/nb),cols=spec.cols||6,rows=Math.ceil(per/cols),Y0=spec.base;let hs=[];const SC=.9;return{palace:true,
+  prep(s){const t=ease(s);hs=spec.bars.map(b=>b.v*t/spec.max);},
+  p(i,s,o){const b=Math.floor(i/per);if(b>=nb){o.a=0;o.x=0;o.y=Y0;return;}const k=i%per,c=k%cols,r=Math.floor(k/cols);const B0=spec.bars[b];
+    o.x=B0.x+(c-(cols-1)/2)*.032;o.y=Y0+hs[b]*SC*(r/(rows-1));o.c=B0.c;o.r=.85;},
+  draw(s,a,D){D.line(-.95,Y0,0,.95,Y0,0,FG,a*.45);D.text('0',-.97,Y0,0,a,{size:.04,align:'right'});
+    spec.bars.forEach((B0,j)=>{const y=Y0+hs[j]*SC;D.text(B0.top,B0.x,y+(B0.v<0?-.08:.08),0,a*sstep(.6,.95,s),{size:.048,c:B0.c===FT?-1:B0.c});if(B0.lab)D.text(B0.lab,B0.x,-.74,0,a,{size:.042});});
+    (spec.groups||[]).forEach(g=>D.text(g[1],g[0],-.88,0,a,{size:.046}));if(spec.head)D.text(spec.head,0,.95,0,a,{size:.046});}};};
+
+/* How each locus stands in its room, keyed by its phase 1 id ('from' in source/loci.json). The formation itself is the
+   'formation' expression in the data. kind '3d' (the camera looks down at it, it turns slowly) is kept for the two ideas
+   that are spatial: least squares as a projection, and the kernel lift. Everything else is a standing panel.
+   relabel: [[pattern, replacement or null to drop]] applied to the formation's captions in this room only. */
 const OBJ={
-  '00a-4':{make:()=>P.sundial(),kind:'3d',base:1.15},
-  '00b-2':{make:()=>P.naive()},
-  '00b-5':{make:()=>P.kmeans()},
-  '00c-1':{make:()=>P.caption(F.clouds('margin'),'three stones hold the plank')},
-  '00c-2':{make:()=>P.lift(),kind:'3d',base:1.0},
-  '00c-3':{kind:'3d',base:.9,floor:{h:(x,y)=>{const e=1-.95*Math.exp(-((x+.48)**2+(y-.05)**2)/.16)-.85*Math.exp(-((x-.55)**2+(y+.2)**2)/.13);return e*.75-.3;}},note:'basins() laid on the floor and lifted by a two-well energy'},
-  '00c-5':{},
-  '03-4':{make:()=>[P.caption(F.tokens(0,3),'encode: merge'),P.caption(F.tokens(3,0),'decode: the same 16 bytes',GD)]},
-  '03-5':{make:()=>P.caption(P.fertility(),'pangrams: 1.72× a word · five plain sentences: 1.36×')},
-  '08-1':{make:()=>P.conv()},
-  '08-2':{make:()=>P.filters()},
-  '08-4':{make:()=>P.attnmap()},
-  '08-5':{make:()=>P.clip(),kind:'3d',base:1.35},
-  '05-1':{make:()=>P.params(),kind:'3d',base:1.3},
-  '05-2':{kind:'3d',depth:(i,s,o)=>G(i,45)*.16+[.3,-.25,.1,-.35,.4,-.1][i%6]},
-  '05-5':{make:()=>P.lens(),kind:'3d',base:1.35},
-  '05-6':{make:()=>P.caption(F.tokline(),'the model was trained on this exact wrapper')},
-  '07-1':{make:()=>P.manifest()},
-  '07-3':{make:()=>P.prefill()},
-  '07-4':{make:()=>P.caption(F.bars('temp'),'trim the bag, then draw')},
-  '07-5':{make:()=>P.caption(F.quant('hist'),'255 shades per row')},
-  '07-6':{make:()=>P.parity()},
-  '18-1':{make:()=>P.gru()},
-  '18-3':{make:()=>P.scan(false)},
-  '18-4':{make:()=>P.scan(true)},
-  '18-5':{make:()=>P.memory()},
-  '27-1':{make:()=>P.slate()},
-  '27-2':{make:()=>P.chalk()},
-  '27-4':{make:()=>P.chunks()},
-  '27-5':{make:()=>P.recall()},
-  '09-1':{kind:'3d',depth:fogDepth('forward')},
-  '09-2':{kind:'3d',depth:fogDepth('noise')},
-  '09-3':{kind:'3d',depth:fogDepth('reverse')},
-  '09-4':{make:()=>P.strides()},
-  '09-5':{make:()=>P.guide()},
-  '33-1':{make:()=>P.flow()},
-  '33-3':{make:()=>P.dial()},
-  '33-4':{make:()=>P.blocks()},
-  '33-5':{make:()=>P.repeat()}
+  '00a-4':{kind:'3d',base:1.2,scale:1.25},
+  '00c-2':{kind:'3d',base:1.05,scale:1.25},
+  '08-5':{base:1.4},
+  '13-3':{relabel:[[/^layer (\d+) of 32$/,m=>'block '+Math.max(1,Math.round(m[1]*12/32))+' of 12']]},
+  '34-4':{relabel:[[/candidates$/,null]]},
+  '21-1':{relabel:[[/·/,null]]}
 };
 
 window.PalaceObjects={P,OBJ};

@@ -41,8 +41,9 @@ device.
 The original files under [`explorables/`](explorables/) also work independently
 and contain no remote runtime assets.
 The research companion under [`research/`](research/) is bundled the same
-way, at `research/` inside the reader, and so is the scroll summary under
-[`moves/`](moves/), at `moves/`.
+way, at `research/` inside the reader, and so are the scroll summary under
+[`moves/`](moves/), at `moves/`, and the model house under
+[`palace/`](palace/), at `palace/`.
 
 ### Updates
 

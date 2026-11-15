@@ -275,6 +275,28 @@ def route_module_links(directory: Path) -> int:
     return rewritten
 
 
+IN_READER = re.compile(r"const INREADER=[^;\n]*;")
+
+
+def pin_reader_layout(directory: Path) -> None:
+    """Tell a bundled page it sits inside the reader.
+
+    Moves and the palace link lessons to the reader's hash routes. They used to
+    guess the layout from a /reader/ in the address, which fails when the reader
+    is served as the root of a server. The build knows the layout, so it says so.
+    """
+    pinned = 0
+    for page in sorted(directory.rglob("*")):
+        if page.suffix not in (".html", ".js"):
+            continue
+        updated, count = IN_READER.subn("const INREADER=true;", page.read_text())
+        if count:
+            page.write_text(updated)
+            pinned += count
+    if not pinned:
+        raise SystemExit(f"build_reader: no INREADER line found under {directory}")
+
+
 def page_payload() -> dict:
     guides = []
     for page_id, title, short_title, path in GUIDES:
@@ -325,10 +347,12 @@ BLOB_SUFFIXES = {
     ".bin", ".ckpt", ".gguf", ".h5", ".npy", ".npz", ".onnx", ".pkl",
     ".pickle", ".pt", ".pth", ".safetensors",
 }
-# Warm order. Explorables, quizzes, research and moves come straight after the shell,
-# so a phone that runs out of room or cuts the install short loses the long
-# tail of source files, never the visualizations.
-OFFLINE_GROUPS = ("core", "explorables", "quizzes", "research", "moves", "games", "lessons", "rest")
+# Folders copied whole to the reader root; each is its own offline group.
+ASSET_ROOTS = ("explorables", "quizzes", "research", "moves", "palace", "games")
+# Warm order. Explorables, quizzes, research, moves and the palace come straight
+# after the shell, so a phone that runs out of room or cuts the install short
+# loses the long tail of source files, never the visualizations.
+OFFLINE_GROUPS = ("core", *ASSET_ROOTS, "lessons", "rest")
 # Reader paths under content/ map back to these source folders and files.
 CONTENT_SOURCES = ("modules", "docs", "offline")
 MARKDOWN_IMAGE = re.compile(r'!\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)')
@@ -354,7 +378,7 @@ def tracked_files() -> set[str] | None:
 def source_of(asset: str) -> str | None:
     """The tracked source path a copied reader file came from, if any."""
     parts = asset.split("/")
-    if parts[0] in ("explorables", "quizzes", "research", "moves", "games"):
+    if parts[0] in ASSET_ROOTS:
         return asset
     if parts[0] == "content":
         rest = "/".join(parts[1:])
@@ -371,7 +395,7 @@ def referenced_assets(root: Path, payload: dict) -> set[str]:
         for source in MARKDOWN_IMAGE.findall(page["markdown"]):
             if not re.match(r"^(https?:|data:|/)", source):
                 found.add(f"content/{normalize(f'{base}/{source}')}")
-    for folder in ("explorables", "quizzes", "research", "moves", "games"):
+    for folder in ASSET_ROOTS:
         for html in (root / folder).rglob("*.html"):
             directory = html.parent.relative_to(root).as_posix()
             for href in PAGE_REFERENCE.findall(html.read_text()):
@@ -432,7 +456,7 @@ def offline_group(asset: str, lesson_files: set[str]) -> str:
     top = asset.split("/")[0]
     if "/" not in asset or top == "learnkit":
         return "core"
-    if top in ("explorables", "quizzes", "research", "moves", "games"):
+    if top in ASSET_ROOTS:
         return top
     if asset in lesson_files:
         return "lessons"
@@ -499,7 +523,7 @@ def offline_manifest(root: Path, payload: dict, views: set[Path]) -> dict:
         for module, figures in lessons.items()
     }
     # Within a group, pages first, so a half-finished group still opens.
-    for group in ("explorables", "quizzes", "research", "moves", "games"):
+    for group in ASSET_ROOTS:
         groups[group].sort(key=lambda asset: (not asset.endswith(".html"), asset))
     groups["lessons"].sort(key=lambda asset: (not asset.endswith("README.md.html"), asset))
     return {
@@ -770,11 +794,18 @@ def main() -> None:
     # One Hundred Moves, the scroll summary, loads the research fonts as
     # ../research/assets/ and links home with ../index.html, like the research pages.
     copy_filtered(ROOT / "moves", READER / "moves")
+    # The model house, a memory palace of the course, does the same; its links
+    # to lessons go to ../index.html#/<module> when it sits under reader/. Its
+    # tools/ build and test it and are never loaded by the page.
+    copy_filtered(ROOT / "palace", READER / "palace")
+    shutil.rmtree(READER / "palace" / "tools", ignore_errors=True)
     # The games link home with ../index.html too, and carry no assets of their own.
     copy_filtered(ROOT / "games", READER / "games")
     # Explorables and quizzes from module 34 on load the vendored learnkit as
     # ../learnkit/, so it sits beside them at the reader root.
     copy_filtered(ROOT / "learnkit", READER / "learnkit")
+    pin_reader_layout(READER / "moves")
+    pin_reader_layout(READER / "palace")
     routed = route_module_links(READER / "explorables") + route_module_links(READER / "quizzes")
     for filename in ("README.md", "SETUP.md", "OFFLINE.md", "RESOURCES.md", "CLOUD.md"):
         shutil.copy2(ROOT / filename, READER / "content" / filename)

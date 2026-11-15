@@ -35,6 +35,8 @@ jobs:
           rsync -a --exclude=.git --exclude=_site --exclude=dist ./ _site/
           test -f _site/.nojekyll
           test -f _site/reader/index.html
+          test -f _site/reader/palace/index.html
+          test -f _site/palace/index.html
           test -f _site/explorables/index.html
           du -sh _site
 

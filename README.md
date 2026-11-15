@@ -359,6 +359,13 @@ each, laid out for a phone first. It is a single HTML file with no network
 calls; it borrows the research fonts and the reader bundles it at
 `reader/moves/`.
 
+### The model house
+
+[`palace/index.html`](palace/index.html) is a memory palace of the course: a
+house you walk through, one room per module and one object per key idea. Each
+floor says what happens to the weights, from the old garden to the tower. It
+has no network calls, and the reader bundles it at `reader/palace/`.
+
 ---
 
 ## Games

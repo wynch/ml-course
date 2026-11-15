@@ -864,7 +864,7 @@ html.locked{overflow:hidden}
   },
   "a69": {
    "deeper": {
-    "text": "If loss falls as a power of model size N, then log loss falls along a straight line in log N, and its slope is −α. One least-squares fit in log space reads α, and the line predicts the next size up. The fitter was first checked on made-up data with a known exponent.",
+    "text": "If loss falls as a power of model size N, then log loss falls along a straight line in log N, and its slope is −α. One least-squares fit in log space reads α. The fitter was first checked on made-up data with a known exponent.",
     "formula": "L(N) ≈ A·N^(−α)",
     "measured": "α = 0.074 (R² 0.962) over six sizes from 50,880 to 3,159,552 parameters, at 4M tokens: character models, module 19.",
     "but": "α moved from 0.053 to 0.121 with the token budget, since no model had finished learning.",
@@ -910,7 +910,7 @@ html.locked{overflow:hidden}
   },
   "a72": {
    "deeper": {
-    "text": "Train a small transformer on prompts that each hold pairs (x, w·x) for a fresh random w, and ask it to guess y for a new x. Give the same pairs to classic rules: least squares, ridge, nearest neighbours, one gradient step. The net’s error falls with each pair added, far faster than one gradient step’s.",
+    "text": "Train a small transformer on prompts that each hold pairs (x, w·x) for a fresh random w, and ask it to guess y for a new x. Give the same pairs to classic rules: least squares, ridge, nearest neighbours, one gradient step. The net’s error falls as pairs are added, far faster than one gradient step’s.",
     "measured": "Error 0.075 with 10 pairs, against 0.372 for one gradient step and 0.000 for least squares: 2-block transformer, 5-dimensional linear rules, module 20.",
     "but": "It missed all three bars set before the run and levelled off near 0.03, where least squares is exact.",
     "sources": [
@@ -1021,7 +1021,7 @@ html.locked{overflow:hidden}
   },
   "a82": {
    "deeper": {
-    "text": "BitNet b1.58 rounds every weight to −1, 0 or 1, times one scale per matrix, during training. Rounding has no useful slope, so the backward pass treats it as if it were not there and updates hidden float weights; only the codes ship. The model learns weights that survive the rounding.",
+    "text": "BitNet b1.58 rounds each weight matrix inside the blocks to −1, 0 or 1, times one scale per matrix, during training. Rounding has no useful slope, so the backward pass treats it as if it were not there and updates hidden float weights; only the codes ship. The model learns weights that survive the rounding.",
     "formula": "code = clamp(round(W/g), −1, 1),  g = mean|W|",
     "measured": "Held-out loss 1.617 nats per character for ternary against 1.648 for the best rounded 4-bit model, both 1.5 MB: char GPTs, module 28.",
     "but": "Most of the planned 0.168 lead came from a poorly tuned baseline: tuning one shape took away 0.137 of it.",
@@ -1114,7 +1114,7 @@ html.locked{overflow:hidden}
     "measured": "Goals reached within 20 steps: 75.7% with the learned model, 89.0% with the true world as the model, 3.7% with random moves; 300 test arenas, module 25.",
     "but": "A JEPA world model reached a loss of 3 × 10⁻⁶ yet planned no better than random, 3.7%: its latent held no linear trace of where the agent was.",
     "sources": [
-     "Hafner et al., 2019"
+     "Nagabandi et al., 2018"
     ],
     "links": {
      "module": "25-world-models-and-planning",
@@ -1169,7 +1169,7 @@ html.locked{overflow:hidden}
   },
   "a93": {
    "deeper": {
-    "text": "Remove the checker and accept every child untested. Asked each time for a better version, the model raised its own numbers: a power of 12, then 400, then 10,000, until the scores overflowed. One run wrote a better rule along the way, and the next child replaced it.",
+    "text": "Remove the checker and accept every child untested. Asked each time for a better version, in one run the model kept raising its own numbers, a power of 12, then 400, then 10,000, and the scores overflowed early. The other run wrote a better rule along the way; the next child replaced it, and that run overflowed too.",
     "measured": "Best child 4.345% above the lower bound, against best fit’s 4.781%, then lost; every child failed from child 281: no-checker run, seed 1, module 35.",
     "links": {
      "module": "35-evolution-with-an-llm-mutator",
@@ -1729,6 +1729,7 @@ F.clouds=(mode)=>{let nx=1,ny=0,b=0,show=mode!=='plain',sep=1,layer=1;return{
     if(mode==='probe'){sep=lerp(.12,1,ease(s));layer=Math.round(lerp(1,32,ease(s)));}
     nx=Math.cos(th*Math.PI/180);ny=Math.sin(th*Math.PI/180);},
   p(i,s,o){const [x,y,cl]=cloudPt(i,sep);o.x=x;o.y=y;o.c=cl?GD:BL;
+    if(mode==='margin'){const d=Math.abs(nx*x+ny*y);if(d<.2){o.a=0;return;}if(d<.235){o.r=2.1;return;}}
     if(show){const side=nx*x+ny*y+b;const wrong=cl===0?side<0:side>0;if(wrong)o.r=1.9;else o.a=.8;}},
   draw(s,a){if(!show)return;cut(nx,ny,b,a);
     if(mode==='margin'){cut(nx,ny,-.2,a*.6,FT,[5,5]);cut(nx,ny,.2,a*.6,FT,[5,5]);}
@@ -1756,7 +1757,7 @@ F.pca=()=>{const phi=30*Math.PI/180,c=Math.cos(phi),sn=Math.sin(phi);let ang=0;r
     const pr=x*Math.cos(ang)+y*Math.sin(ang);if(s>.5&&Math.abs(pr)>.45){o.c=BL;}},
   draw(s,a){const dx=Math.cos(ang),dy=Math.sin(ang);arrow(-dx*1.05,-dy*1.05,dx*1.05,dy*1.05,GD,a,2.5);}};};
 
-F.bowl=(mode)=>{const P=mode==='bounce'?gdPath(.42,0,14):mode==='momentum'?gdPath(.05,.8,30):gdPath(.12,0,14);let t=0;return{
+F.bowl=(mode)=>{const P=mode==='bounce'?gdPath(.42,0,14):mode==='momentum'?gdPath(.05,.9,30):gdPath(.12,0,14);let t=0;return{
   prep(s){t=mode==='still'?0:ease(s)*(P.length-1);},
   p(i,s,o){if(i===0){const q=along(P,t);o.x=q[0];o.y=q[1];o.c=GD;o.r=3.2;return;}const [x,y,j]=ring(i);o.x=x;o.y=y;o.c=j<2?BL:FT;o.r=.8;o.a=.45+.55*(1-j/7);},
   draw(s,a){if(mode!=='still')poly(P,t,GD,a*.85,2);}};};
@@ -1782,10 +1783,10 @@ F.graph=(mode)=>{let front=0;return{
       line(A[0],A[1],B[0],B[1],c,a*al,1.2);}
     if(mode!=='all'&&front>-1.1&&front<1.1)line(front,-.85,front,.85,mode==='fwd'?BL:GD,a*.5,1,[3,5]);}};};
 
-const LY=[5,8,8,8,3],LN=[];LY.forEach((n,l)=>{for(let k=0;k<n;k++)LN.push([-.9+l*.45,(k-(n-1)/2)*.2]);});
-F.layers=()=>({p(i,s,o){const n=i%LN.length,k=Math.floor(i/LN.length);const [x,y]=LN[n];const a=k/14*TAU;o.x=x+.035*Math.cos(a);o.y=y+.035*Math.sin(a);
-    const l=Math.round((x+.9)/.45);const wave=Math.exp(-Math.pow(l-(s*5.5-.5),2)*1.2);o.c=wave>.5?BL:FG;o.a=.3+.7*wave;o.r=.7+.5*wave;},
-  draw(s,a){let off=0;for(let l=0;l<LY.length-1;l++){for(let p=0;p<LY[l];p++)for(let q=0;q<LY[l+1];q++){const A=LN[off+p],B=LN[off+LY[l]+q];line(A[0],A[1],B[0],B[1],FT,a*.35,.8);}off+=LY[l];}}});
+/* LY: units drawn per layer. The default is a deep stack; [5,9,3] is module 02's net, one hidden layer (784 → 256 → 10, not to scale). */
+F.layers=(LY=[5,8,8,8,3])=>{const LN=[],dx=1.8/(LY.length-1);LY.forEach((n,l)=>{for(let k=0;k<n;k++)LN.push([-.9+l*dx,(k-(n-1)/2)*.2]);});return{p(i,s,o){const n=i%LN.length,k=Math.floor(i/LN.length);const [x,y]=LN[n];const a=k/14*TAU;o.x=x+.035*Math.cos(a);o.y=y+.035*Math.sin(a);
+    const l=Math.round((x+.9)/dx);const wave=Math.exp(-Math.pow(l-(s*(LY.length+.5)-.5),2)*1.2);o.c=wave>.5?BL:FG;o.a=.3+.7*wave;o.r=.7+.5*wave;},
+  draw(s,a){let off=0;for(let l=0;l<LY.length-1;l++){for(let p=0;p<LY[l];p++)for(let q=0;q<LY[l+1];q++){const A=LN[off+p],B=LN[off+LY[l]+q];line(A[0],A[1],B[0],B[1],FT,a*.35,.8);}off+=LY[l];}}};};
 
 const RL=[];for(let j=0;j<14;j++){const th=H(j,71)*TAU;RL.push([Math.cos(th),Math.sin(th),(H(j,73)-.5)*1.1]);}
 F.relu=(k0,k1)=>{let k=1;return{
@@ -1799,7 +1800,7 @@ const TS="low lower lowest";
 const TLV=[TS.split('').map((_,j)=>[j,j]),
  [[0,1],[2,2],[3,3],[4,5],[6,6],[7,7],[8,8],[9,9],[10,11],[12,12],[13,13],[14,14],[15,15]],
  [[0,2],[3,3],[4,6],[7,7],[8,8],[9,9],[10,12],[13,13],[14,14],[15,15]],
- [[0,2],[3,3],[4,7],[8,8],[9,9],[10,13],[14,14],[15,15]]];
+ [[0,2],[3,6],[7,7],[8,8],[9,12],[13,13],[14,14],[15,15]]];
 const TCX=j=>(j-7.5)*.118;
 function tokPos(i,lv,out){const j=Math.floor(i/26);const k=i%26;const tok=TLV[lv].find(t=>j>=t[0]&&j<=t[1]);const start=j===tok[0],end=j===tok[1];
   const x0=TCX(j)-.059,x1=TCX(j)+.059,L=TCX(tok[0])-.052,R=TCX(tok[1])+.052,yb=-.06,yt=.3;
@@ -1813,7 +1814,7 @@ F.tokens=(l0,l1)=>{const A=[0,0,0],B=[0,0,0];let t=0;return{
   draw(s,a){for(let j=0;j<16;j++)text(TS[j]===' '?'·':TS[j],TCX(j),.12,a,{c:FG,size:.085});
     const lv=t>.5?l1:l0;text(TLV[lv].length+' tokens',0,-.32,a,{size:.055});}};};
 
-const EC=[[-.55,.5,'cat','dog'],[.45,.6,'Paris','Rome'],[-.72,-.12,'run','walk'],[.62,-.02,'red','blue'],[-.2,-.62,'one','two'],[.3,-.58,'king','queen']];
+const EC=[[-.55,.5,'June','July'],[.45,.6,'France','Spain'],[-.72,-.12,'def','return'],[.62,-.02,'red','blue'],[-.2,-.62,'one','two'],[.3,-.58,'','']];
 function embPt(i){const c=i%6,w=Math.floor(i/6)%2;const [cx,cy]=EC[c];return [cx+(w?.09:-.09)+G(i,41)*.05,cy+(w?.02:-.02)+G(i,43)*.05,c];}
 const AN=[[-.55,-.45],[-.25,.32],[.35,-.45],[.65,.32]], ANL=['man','woman','king','queen'];
 F.embed=(mode)=>({p(i,s,o){const [ex,ey,c]=embPt(i);o.c=[BL,GD,FG][c%3];o.r=.85;
@@ -1824,11 +1825,11 @@ F.embed=(mode)=>({p(i,s,o){const [ex,ey,c]=embPt(i);o.c=[BL,GD,FG][c%3];o.r=.85;
     if(mode==='analogy'){arrow(AN[0][0],AN[0][1]+.06,AN[1][0],AN[1][1]-.08,FG,a*.7,2);arrow(AN[2][0],AN[2][1]+.06,AN[3][0],AN[3][1]-.08,FG,a*.7,2);
       AN.forEach((p,k)=>text(ANL[k],p[0],p[1]+(k%2?.13:-.14),a,{c:k%2?GD:BL,size:.058}));}}});
 
-const BLB=['Paris','Lyon','the','France','a','Rome','Nice'],BLG=[5,1.6,1.2,1,.6,.5,.2];
+const BLB=['Paris','located','a','the','*'],BLG=[.9113,.0334,.0076,.0062,.005,.0365].map(Math.log);
 F.bars=(mode)=>{let p=[],T=1;return{
-  prep(s){T=mode==='prob'?1:(s<.5?lerp(1,.35,ease(s*2)):lerp(.35,3,ease((s-.5)*2)));p=softmax(BLG,T);},
-  p(i,s,o){const j=i%7,k=Math.floor(i/7);const x=(j-3)*.27;const h=.05+1.3*p[j];const col=k%3,row=Math.floor(k/3);o.x=x+(col-1)*.035;o.y=-.6+(row/19)*h;o.c=j===0?BL:(p[j]>.15?FG:FT);o.r=.85;},
-  draw(s,a){BLB.forEach((l,j)=>text(l,(j-3)*.27,-.72,a,{size:.048}));text(Math.round(p[0]*100)+'%',-.81,-.6+.05+1.3*p[0]+.1,a,{c:BL,size:.06});text('T = '+T.toFixed(2),.95,.9,a,{align:'right'});}};};
+  prep(s){T=mode==='prob'?1:(s<.5?lerp(1,.35,ease(s*2)):lerp(.35,3,ease((s-.5)*2)));p=softmax(mode==='prob'?BLG:BLG.slice(0,5),T);},
+  p(i,s,o){const j=i%5,k=Math.floor(i/5);const x=(j-2)*.36;const h=.05+1.3*p[j];const col=k%3,row=Math.floor(k/3);o.x=x+(col-1)*.035;o.y=-.6+(row/27)*h;o.c=j===0?BL:(p[j]>.15?FG:FT);o.r=.85;},
+  draw(s,a){BLB.forEach((l,j)=>text(l,(j-2)*.36,-.72,a,{size:.048}));text(Math.round(p[0]*100)+'%',-.72,-.6+.05+1.3*p[0]+.1,a,{c:BL,size:.06});text('T = '+T.toFixed(2),.95,.9,a,{align:'right'});if(mode!=='prob')text('shares among these five',.95,.78,a,{align:'right',size:.045});}};};
 
 const RA=[];for(let j=0;j<14;j++)RA.push(j/14*TAU+(H(j,51)-.5)*.3);
 F.rays=(mode)=>{let q=.7,w=new Array(14).fill(1/14),wm=1/14,out=[0,0];return{
@@ -1842,7 +1843,7 @@ F.rays=(mode)=>{let q=.7,w=new Array(14).fill(1/14),wm=1/14,out=[0,0];return{
 F.matrix=(mode)=>{const W=new Float32Array(400);let hi=-1,fill=20;return{
   prep(s){hi=-1;fill=20;
     for(let r=0;r<20;r++){
-      if(mode==='patch'){for(let c=0;c<20;c++)W[r*20+c]=Math.min(1,Math.exp(-((r-15)**2/8+(c-4)**2/2))+.85*Math.exp(-((r-3)**2/10+(c-19)**2/1.5))+.05*H(r*20+c,63));continue;}
+      if(mode==='patch'){for(let c=0;c<20;c++)W[r*20+c]=Math.min(1,(r>=4?1:Math.exp(-((r-4)**2)/2))*Math.exp(-((c-4)**2)/2)+.85*Math.exp(-((r-3)**2/10+(c-19)**2/1.5))+.05*H(r*20+c,63));continue;}
       const mask=mode==='full'?0:mode==='causal'?ease(s):1;const e=[];
       for(let c=0;c<20;c++){let v=mode==='head'?(c===r-1?4.5:0)+(c===0?1.8:0)+H(r*20+c,61)*.8:H(r*20+c,61)*2.2+(c===r?1.2:0)+(c===0?1:0);e.push(c>r?Math.exp(v)*(1-mask):Math.exp(v));}
       const mx=Math.max(...e);for(let c=0;c<20;c++)W[r*20+c]=e[c]/mx;}
@@ -1871,7 +1872,7 @@ F.patches=()=>({p(i,s,o){if(i>=400){o.a=0;return;}const r=Math.floor(i/20),c=i%2
     const ax=gx+(pc-1.5)*.08*g1,ay=gy-(pr-1.5)*.08*g1;
     const sx=-.93+pi*.118+lc*.019,sy=.04-lr*.019;
     o.x=lerp(ax,sx,t2);o.y=lerp(ay,sy,t2)+Math.sin(t2*Math.PI)*.25*((pi%2)?1:-1);o.r=lerp(1.05,.75,t2);},
-  draw(s,a){if(s>.75)text('16 patches, read as 16 tokens',0,-.3,a*sstep(.75,1,s),{size:.055});}});
+  draw(s,a){if(s>.75)text('16 here; a real ViT reads 196 + [CLS]',0,-.3,a*sstep(.75,1,s),{size:.055});}});
 
 F.spiral=(mode)=>({p(i,s,o){const [x,y]=spiralPt(i);o.x=x;o.y=y;o.c=BL;o.r=.95;
     if(mode==='data'){const u=i/N;o.a=.55+.45*(.5+.5*Math.sin(u*30-s*8));}
@@ -1929,7 +1930,7 @@ F.curves=(spec)=>({p(i,s,o){const cur=i%2,k=Math.floor(i/2);const u=k/209;const 
     text(spec.la,-.9+rv*1.8,-.6+1.2*spec.a(rv)+.1,a,{c:BL,size:.052,align:rv>.7?'right':'left'});
     text(spec.lb,-.9+rv*1.8,-.6+1.2*spec.b(rv)-.1,a,{c:GD,size:.052,align:rv>.7?'right':'left'});}});
 const GROK={a:u=>sig((u-.12)*28),b:u=>.03+.95*sig((u-.66)*26),la:'train',lb:'test',xl:'training steps (log) →',yl:'accuracy'};
-const CLIP={a:u=>.04+.92*sig((u-.4)*11),b:u=>u<.36?.04+.92*sig((u-.18)*22):lerp(.04+.92*sig(.18*22),.05,sstep(.4,.62,u)),la:'clipped',lb:'no clip',xl:'training →',yl:'reward'};
+const CLIP={a:u=>.04+.92*sig((u-.4)*11),b:u=>u<.36?.04+.92*sig((u-.18)*22):lerp(.04+.92*sig(.18*22),.05,sstep(.4,.62,u)),la:'clipped',lb:'no clip',xl:'training →',yl:'return'};
 
 F.decay=()=>({p(i,s,o){const n=i%97;const t=ease(s);const a=n/97*TAU;o.x=lerp(G(i,201)*.4,.72*Math.cos(a)+G(i,205)*.015,t);o.y=lerp(G(i,203)*.4,.72*Math.sin(a)+G(i,207)*.015,t);
     o.c=t>.6?(n<33?BL:n<66?GD:FG):FT;o.r=.85;}});
@@ -1963,25 +1964,25 @@ F.delta=()=>{const S=new Float32Array(400);let mx=1,w=0;return{
   p(i,s,o){if(i>=400){o.a=0;return;}const r=Math.floor(i/20),c=i%20;o.x=(c-9.5)*.09;o.y=(9.5-r)*.09;const v=S[i]/mx;o.r=.3+2*Math.pow(Math.abs(v),.7);o.c=v>0?BL:GD;o.a=.3+.7*Math.abs(v);},
   draw(s,a){const n=Math.min(5,Math.ceil(w-.001));text(n>0?'write '+n+' of 5':'empty memory',0,1.06,a,{size:.055});if(w>4.2)text('same key as write 2: old value replaced',0,-1.06,a,{c:GD,size:.048});}};};
 
-const PF=j=>.35-j*.17, PX=j=>-.75+j*.3;
+const PF=j=>.35-j*.17, PX=j=>-.75+j*.3, PR=[-.087,.012,.072,.067,0,-.061];
 function envAt(c){let m=9;for(let j=0;j<6;j++){const c0=-.95+j*.2;if(c>=c0)m=Math.min(m,PF(j)+(.75-PF(j))*Math.exp(-(c-c0)*3));}return m;}
 F.power=(mode)=>({p(i,s,o){const j=i%6,k=Math.floor(i/6);const u=k/69;o.c=j<2?FT:(j<4?FG:BL);o.r=.85;
     if(mode==='envelope'){const c0=-.95+j*.2;const c=c0+u*(.9-c0);const y=PF(j)+(.75-PF(j))*Math.exp(-(c-c0)*3);o.x=c;o.y=y;o.c=(y-envAt(c)<.015)?GD:FT;return;}
-    const x=-.9+u*1.8,y=PF(j)+(.7-PF(j))*Math.exp(-u*4.2);
-    if(mode==='curves'){const rv=ease(s);o.x=x;o.y=y;if(u>rv){o.a=0;o.x=-.9+rv*1.8;o.y=PF(j)+(.7-PF(j))*Math.exp(-rv*4.2);}}
-    else{const t=ease(s);o.x=lerp(x,PX(j)+G(i,261)*.025,t);o.y=lerp(y,PF(j)+G(i,263)*.025,t);}},
+    const x=-.9+u*1.8,y=PF(j)+(.7-PF(j))*Math.exp(-u*2);
+    if(mode==='curves'){const rv=ease(s);o.x=x;o.y=y;if(u>rv){o.a=0;o.x=-.9+rv*1.8;o.y=PF(j)+(.7-PF(j))*Math.exp(-rv*2);}}
+    else{const t=ease(s);o.x=lerp(x,PX(j)+G(i,261)*.025,t);o.y=lerp(y,PF(j)+PR[j]+G(i,263)*.025,t);}},
   draw(s,a){if(mode==='curves')axes('data seen (log) →','loss (log)',a);
     else if(mode==='line'){axes('model size (log) →','loss (log)',a);const t=ease(s);line(PX(-.4),PF(-.4),PX(5.4),PF(5.4),GD,a*t,2.5);}
     else{axes('compute (log) →','loss (log)',a);const P=[];for(let c=-.95;c<=.9;c+=.02)P.push([c,envAt(c)]);poly(P,P.length,GD,a*.9,2.5);}}});
 
-const IX=[],IY=[];for(let j=0;j<24;j++){const x=(H(j,251)-.5)*1.8;IX.push(x);IY.push(.55*x-.1+G(j,253)*.09);}
+const IX=[],IY=[];for(let j=0;j<24;j++){const x=(H(j,251)-.5)*1.8;IX.push(x);IY.push(.55*x-.1);}
 function fitK(k){if(k<1)return[0,0];if(k<2)return[0,IY[0]];let sx=0,sy=0,sxx=0,sxy=0;for(let j=0;j<k;j++){sx+=IX[j];sy+=IY[j];sxx+=IX[j]*IX[j];sxy+=IX[j]*IY[j];}const d=k*sxx-sx*sx;const m=(k*sxy-sx*sy)/d;return[m,(sy-m*sx)/k];}
 F.icl=(k0,k1)=>{let kf=0,m=0,b=0;return{
   prep(s){kf=lerp(k0,k1,ease(s));const a=Math.floor(kf),f=kf-a;const A=fitK(a),B=fitK(Math.min(24,a+1));m=lerp(A[0],B[0],f);b=lerp(A[1],B[1],f);},
   p(i,s,o){if(i<24){o.x=IX[i];o.y=IY[i];o.c=GD;const v=clamp(kf-i);o.r=.5+1.7*v;o.a=v;return;}const u=(i-24)/395;const x=-.95+u*1.9;o.x=x;o.y=m*x+b;o.c=BL;o.r=.6;o.a=.85;},
   draw(s,a){text(Math.round(kf)+(Math.round(kf)===1?' example':' examples')+' in the prompt',-.95,.92,a,{align:'left',size:.052});}};};
 
-const CE=[.25,.25,.7,.25,-.45,.25,-.78,.25],CHA={'.25':'42','.7':'48','-.45':'36','-.78':'40'};
+const CE=[.25,.25,.7,.25,-.45,.25,-.78,.25],CHA={'.25':'42','.7':'6','-.45':'60','-.78':'120'};
 F.chains=(mode)=>({p(i,s,o){if(i>=400){o.a=0;return;}const j=i%8,k=Math.floor(i/8);const t=k/49;const rv=mode==='think'?ease(s):1;
     const yE=CE[j];const yf=u=>lerp(0,yE,sstep(0,1,u))+.1*Math.sin(u*Math.PI*3+j*1.3)*Math.sin(Math.PI*u)*(j%2?1:-1);
     o.x=lerp(-.9,.8,t);o.y=yf(t);o.r=.75;
@@ -1996,7 +1997,7 @@ let PBEST=0,PBHO=0;for(let i=0;i<N;i++){if(PSC[i]>PSC[PBEST])PBEST=i;if(PHO[i]>P
 F.prompts=(mode)=>({p(i,s,o){const g=Math.floor(i/60);
     if(mode==='search'){const gv=ease(s)*6.99;o.x=-.9+PSC[i]*1.8;o.y=-.7+g*.22+(H(i,325)-.5)*.08;const best=PBG[g]===i;o.c=best?BL:FT;o.r=best?1.8:.8;o.a=g>gv?0:(g>gv-1?1:.55);if(g>gv){o.x=-.9;}}
     else{o.x=-.9+PSC[i]*1.8;o.y=-.65+PHO[i]*1.4;o.c=i===PBEST?GD:(i===PBHO?BL:FT);o.r=(i===PBEST||i===PBHO)?2.2:.75;}},
-  draw(s,a){if(mode==='search'){axes('score on 60 questions →',null,a);const gv=Math.floor(ease(s)*6.99);text('round '+(gv+1),-.95,.85,a,{align:'left',size:.052});}
+  draw(s,a){if(mode==='search'){axes('score on 60 questions →',null,a);}
     else{axes('score on the 60 →','score on fresh questions',a);line(-.9,-.65,.86,.72,FT,a*.8,1,[4,5]);
       text('best on the 60',-.9+PSC[PBEST]*1.8,-.65+PHO[PBEST]*1.4-.1,a,{c:GD,size:.048,align:'right'});}}});
 
@@ -2015,7 +2016,7 @@ function stackPos(binOf,centerOf,cols,dx){const cnt={};return QW.map(x=>{const b
 const QMAX=Math.max(...QW.map(Math.abs)),QMEAN=QW.reduce((a,x)=>a+Math.abs(x),0)/N;
 const QH=stackPos(x=>Math.round(x/.035),b=>b*.035,1,0);
 const Q16=stackPos(x=>Math.round((x+QMAX)/(2*QMAX)*15),l=>-QMAX+l*(2*QMAX/15),3,.02);
-const Q3L=x=>Math.abs(x)<QMEAN*.7?0:(x>0?1:-1);const Q3=stackPos(Q3L,l=>l*QMEAN*2.2,10,.02);
+const Q3L=x=>Math.abs(x)<QMEAN*.5?0:(x>0?1:-1);const Q3=stackPos(Q3L,l=>l*QMEAN*2.2,10,.02);
 const QTHR=[...QW].map(Math.abs).sort((a,b)=>a-b)[42];
 F.quant=(mode)=>({p(i,s,o){const t=ease(s);let A=QH[i],B=QH[i];if(mode==='q16'){B=Q16[i];}if(mode==='q3'){A=Q16[i];B=Q3[i];}
     o.x=lerp(A[0],B[0],t);o.y=lerp(A[1],B[1],t);o.r=.85;
@@ -2037,13 +2038,14 @@ F.bandit=(n0,n1)=>{let n=0;return{
   draw(s,a){['A','B','C','D','E'].forEach((l,j)=>text(l,-.72+j*.36,-.8,a,{c:FG,size:.062}));text(Math.round(n)+' pulls',.95,.92,a,{align:'right',size:.052});}};};
 
 F.policy=()=>{let p=[];return{
-  prep(s){const t=ease(s)*3.2;p=softmax([0,.2,-.1,.3,0,-.2,1.2,.1,-.3].map(v=>v*t),1);},
-  p(i,s,o){const j=i%9,k=Math.floor(i/9);const h=.12+1.6*p[j];const col=k%2,row=Math.floor(k/2);o.x=(j-4)*.2+(col-.5)*.04;o.y=-.62+(row/22)*h;o.c=j===6?BL:FT;o.r=.85;},
-  draw(s,a){text('nine possible actions',0,-.76,a,{size:.052});}};};
+  prep(s){const t=ease(s)*3.2;p=softmax([0,1.2].map(v=>v*t),1);},
+  p(i,s,o){const j=i%2,k=Math.floor(i/2);const h=.12+1.4*p[j];const col=k%6,row=Math.floor(k/6);o.x=(j-.5)*.7+(col-2.5)*.04;o.y=-.62+(row/34)*h;o.c=j===1?BL:FT;o.r=.85;},
+  draw(s,a){text('push left',-.35,-.76,a,{size:.052});text('push right',.35,-.76,a,{size:.052});}};};
 
-const GW=(()=>{const wall=new Set();for(let r=2;r<=5;r++)wall.add(r*8+4);const start=[5,1],goal=[2,6];const mv=[[0,1],[0,-1],[1,0],[-1,0]];
+/* walls scattered as in module 25's arenas (each cell with chance 0.2); plans scored by summed Manhattan distance to the goal */
+const GW=(()=>{const wall=new Set();const start=[5,1],goal=[2,6];for(let c=0;c<64;c++)if(c!==start[0]*8+start[1]&&c!==goal[0]*8+goal[1]&&H(c,1112)<.2)wall.add(c);const mv=[[0,1],[0,-1],[1,0],[-1,0]];
   const step=(p,a)=>{const r=p[0]+mv[a][0],c=p[1]+mv[a][1];if(r<0||r>7||c<0||c>7||wall.has(r*8+c))return p;return[r,c];};
-  const dist=p=>Math.hypot(p[0]-goal[0],p[1]-goal[1]);const A=[start],RO=[],BEST=[];let cur=start,seed=1;
+  const dist=p=>Math.abs(p[0]-goal[0])+Math.abs(p[1]-goal[1]);const A=[start],RO=[],BEST=[];let cur=start,seed=1;
   for(let t=0;t<24;t++){const ros=[];let bi=0,bs=1e9;for(let q=0;q<56;q++){let p=cur,sc=0;const path=[];for(let h=0;h<6;h++){p=step(p,Math.floor(H(seed++,301)*4));path.push(p);sc+=dist(p);}if(sc<bs){bs=sc;bi=q;}ros.push(path);}
     RO.push(ros);BEST.push(bi);cur=ros[bi][0];A.push(cur);if(cur[0]===goal[0]&&cur[1]===goal[1])break;}
   return{wall,start,goal,A,RO,BEST};})();
@@ -2078,8 +2080,8 @@ F.evo=(mode)=>{let g=0;return{
     if(mode==='run'){if(gen>g){o.a=0;return;}const cur=gen>g-1;o.c=cur?BL:FT;o.a=cur?1:Math.exp(-(g-gen)*.35)*.8+.1;}
     else{if(gen>=12&&i%2){const t=ease(s);o.y=lerp(y,.85+(H(i,327)-.5)*.1,t);o.c=GD;}else{o.c=gen>=18?BL:FT;o.a=gen>=12?1:.3;}}},
   draw(s,a){const P=[];for(let x=-1;x<=1.001;x+=.02)P.push([x,EVY(x)]);poly(P,P.length,FG,a*.35,1.5);
-    if(mode==='run')text('generation '+Math.round(g),-.95,.92,a,{align:'left',size:.052});
-    else{text('real score',.95,-.68,a,{align:'right',c:BL,size:.05});text('score it claims',.95,1.0,a*sstep(.2,.7,s),{align:'right',c:GD,size:.05});}}};};
+    if(mode==='run')text(20*Math.round(g)+' candidates',-.95,.92,a,{align:'left',size:.052});
+    else{text('real score',.95,-.68,a,{align:'right',c:BL,size:.05});text('its numbers, growing',.95,1.0,a*sstep(.2,.7,s),{align:'right',c:GD,size:.05});}}};};
 
 F.motifs=()=>{const sub=[F.spiral('data'),F.graph('all'),F.rays('rotate'),F.chains('vote'),F.panels('tidy')];const L=['hide, predict','one local rule','lookup','propose, keep','controls'];const tmp={};let rot=0;return{
   prep(s){rot=ease(s)*.5;sub.forEach(f=>f.prep&&f.prep(.5));},
@@ -2117,8 +2119,10 @@ F.polyfit=(mode)=>{let c0=PFC[1],c1=PFC[1],f=0,deg=1,lam=0;return{
     if(mode==='penalty'){const t=ease(s);text('weight penalty',-.95,.92,a,{align:'left',size:.048});rect(-.95,.76,-.25,.8,FT,a*.8,true);rect(-.95,.76,-.95+.7*Math.max(.02,t),.8,GD,a,true);}}};};
 
 /* Module 02: validation loss lowest at epoch 17 (0.360); train loss ends at 0.216 (epoch 25). */
-const LTR=e=>.216+.38*(Math.exp(-(e-1)/6)-Math.exp(-4))/(1-Math.exp(-4));
-const LVA=e=>e>=17?.36+.051*((e-17)/8)**2:.36+.25*((17-e)/16)**2;
+const LTRA=[.673,.491,.416,.402,.374,.365,.354,.333,.33,.31,.297,.3,.289,.294,.291,.273,.262,.26,.251,.234,.236,.236,.23,.221,.216],LVAA=[.488,.478,.44,.459,.389,.424,.403,.418,.398,.412,.437,.376,.396,.449,.388,.366,.36,.379,.363,.386,.433,.364,.448,.375,.411];
+const LIP=(A,e)=>{const k=Math.max(0,Math.min(A.length-2,Math.floor(e-1))),f=e-1-k;return A[k]+(A[k+1]-A[k])*f;};
+const LTR=e=>LIP(LTRA,e);
+const LVA=e=>LIP(LVAA,e);
 const LSX=e=>-.9+(e-1)/24*1.8, LSY=v=>-.6+1.2*(v-.15)/.55;
 F.losses=(mode)=>{let em=1;return{
   prep(s){em=lerp(1,17,ease(s));},
@@ -2188,8 +2192,8 @@ F.leak=()=>({p(i,s,o){const lit=sstep(.15,.55,s);
     const sc=lerp(.4,.92,sstep(.35,.85,s));text('test score',.15,.94,a,{align:'left',size:.048});rect(.15,.74,.95,.8,FT,a*.7,true);rect(.15,.74,.15+.8*sc,.8,sc>.7?GD:BL,a,true);}});
 
 /* Confusion counts: 120 true positives, 40 false negatives, 60 false positives, 200 true negatives. */
-const CFN=[120,40,60,200],CFC=[[-.42,.36],[.42,.36],[-.42,-.44],[.42,-.44]],CFL=['true positive','false negative','false positive','true negative'];
-F.confusion=()=>({p(i,s,o){let k=0,j=i;while(j>=CFN[k]){j-=CFN[k];k++;}const n=CFN[k],cols=Math.ceil(Math.sqrt(n)),sp=.6/cols;const r=Math.floor(j/cols),c=j%cols;
+const CFN=[64,18,15,63],CFC=[[-.42,.36],[.42,.36],[-.42,-.44],[.42,-.44]],CFL=['true positive','false negative','false positive','true negative'];
+F.confusion=()=>({p(i,s,o){if(i>=160){o.a=0;return;}let k=0,j=i;while(j>=CFN[k]){j-=CFN[k];k++;}const n=CFN[k],cols=Math.ceil(Math.sqrt(n)),sp=.6/cols;const r=Math.floor(j/cols),c=j%cols;
     const tx=CFC[k][0]+(c-(cols-1)/2)*sp,ty=CFC[k][1]+.3-sp/2-r*sp;const a0=H(i,1)*TAU,r0=Math.sqrt(H(i,2))*1.02;const t=ease(s);
     o.x=lerp(r0*Math.cos(a0),tx,t);o.y=lerp(r0*Math.sin(a0),ty,t);o.c=t<.3?FT:(k===0||k===3?BL:GD);o.r=.85;},
   draw(s,a){const b=sstep(.5,.9,s);CFC.forEach((p,k)=>{rect(p[0]-.36,p[1]-.36,p[0]+.36,p[1]+.36,FG,a*b*.25);text(CFL[k],p[0],p[1]-.44,a*b,{c:k===0||k===3?BL:GD,size:.045});});
@@ -2257,7 +2261,7 @@ F.lora=(mode)=>({p(i,s,o){
     o.a=0;o.x=0;o.y=0;},
   draw(s,a){text('W, frozen',-.48,-.62,a,{size:.05});text('B',.225,-.62,a,{c:BL,size:.055});text('A',.68,.9,a,{c:BL,size:.055});text('+',.09,0,a,{c:FG,size:.08});
     if(mode==='zero')text('B = 0, so B·A adds nothing',0,-.86,a,{c:GD,size:.05});
-    else text('8.7M trainable, 2.3%, rank 16',0,-.86,a,{c:BL,size:.05});}});
+    else text('8.7M trainable, 2.3%: rank 16, drawn as 2',0,-.86,a,{c:BL,size:.05});}});
 
 /* Bar charts drawn with points. spec.bars: {x, v, v0?, c, top, lab}. */
 F.vbars=(spec)=>{const nb=spec.bars.length,per=Math.floor(N/nb),cols=spec.cols||6;const rows=Math.ceil(per/cols);let hs=[];return{
@@ -2281,9 +2285,9 @@ F.distill=(mode)=>{let L=DST,R=DTE;return{
     else{text('label',-.5,.92,a,{c:FG,size:.052});text('teacher',.5,.92,a,{c:BL,size:.052});text('1',-.5-.3,-.55+1.3+.09,a,{c:FG,size:.04});}}};};
 
 F.prefs=()=>({p(i,s,o){const g=Math.floor(i/14),m=i%14,ch=m<7,k=m%7;const t=ease(s);const x=-.9+g*(1.8/29);const base=(H(g,521)-.5)*.25;
-    const lift=(.32+.15*H(g,523))*t;o.x=x+(ch?-.014:.014);o.y=base+(ch?lift:-lift)+(k-3)*.022;o.c=ch?BL:GD;o.r=.75;},
+    const lift=(.32+.15*H(g,523))*t;o.x=x+(ch?-.014:.014);o.y=base+.25-(ch?lift*.1:lift)+(k-3)*.022;o.c=ch?BL:GD;o.r=.75;},
   draw(s,a){const t=ease(s);text('chosen',-.95,.75,a*sstep(.3,.7,s),{align:'left',c:BL,size:.05});text('rejected',-.95,-.75,a*sstep(.3,.7,s),{align:'left',c:GD,size:.05});
-    if(t>.05)for(let g=0;g<30;g+=3){const x=-.9+g*(1.8/29),base=(H(g,521)-.5)*.25,lift=(.32+.15*H(g,523))*t;line(x,base+lift,x,base-lift,FT,a*.6,1,[2,3]);}}});
+    if(t>.05)for(let g=0;g<30;g+=3){const x=-.9+g*(1.8/29),base=(H(g,521)-.5)*.25,lift=(.32+.15*H(g,523))*t;line(x,base+.25-lift*.1,x,base+.25-lift,FT,a*.6,1,[2,3]);}}});
 
 /* Agents. */
 const TKW=['It','can','only','write','the','next','word','…'];
@@ -2352,10 +2356,10 @@ const OLD=[
 [F.bowl('bounce'),'Step size decides a lot','Too small and you crawl. Too large and you bounce from wall to wall.'],
 [F.bowl('momentum'),'Keep some of the last step','Momentum carries speed through flat stretches and damps the bounce.'],
 [F.basins(),'Real landscapes have many valleys','Where you end up depends on where you start. In large networks most valleys turn out good enough.'],
-[F.graph('fwd'),'A network has a slope per weight','Millions of them. Measuring each one by trial would never finish.'],
+[F.graph('fwd'),'A network has a slope per weight','Millions of them. Measuring each one by trial costs a full pass per weight.'],
 [F.graph('back'),'So send the error backwards','Each node multiplies the signal it receives by its own local slope and passes it on.'],
 [F.graph('all'),'One pass gives every slope','That is backpropagation: one small rule, run in reverse order through the graph.'],
-[F.layers(),'Stack the pieces into layers','Weighted sums, each followed by a bend. A neural network is nothing more.'],
+[F.layers([5,9,3]),'Stack the pieces into layers','Weighted sums, each followed by a bend. A neural network is nothing more.'],
 [F.relu(1,4),'Each bend is a cut','A ReLU unit switches on along a straight line. Four units, and the plane breaks into pieces.'],
 [F.relu(4,14),'Inside each piece, a plain map','Add units and the pieces multiply. Within any one piece the network is linear.'],
 [F.tokens(0,0),'Text must become numbers too','Start from single characters. Here, “low lower lowest” is sixteen symbols.'],
@@ -2366,12 +2370,12 @@ const OLD=[
 [F.embed('analogy'),'Directions carry meaning','The step from one word to a related one often points the same way across many pairs.'],
 [F.bars('prob'),'Guess the next token','A language model scores every token it knows. A softmax turns the scores into odds.'],
 [F.bars('temp'),'Temperature sets the boldness','Divide the scores before the softmax. Low temperature backs the favourite; high spreads the bets.'],
-[F.rays('query'),'How does a token use the others?','It sends out a query, and every other token offers a key.'],
+[F.rays('query'),'How does a token use the others?','It sends out a query, and every token offers a key.'],
 [F.rays('rotate'),'Match by dot product','The better a key lines up with the query, the larger its weight.'],
 [F.rays('blend'),'Then blend the values','The answer is an average of the tokens’ values, weighted by those matches. Every part can be learned.'],
 [F.matrix('full'),'Every token asks at once','One row per query, one column per key: a grid of weights.'],
 [F.matrix('causal'),'No peeking ahead','Mask the upper triangle so each token reads only what came before it.'],
-[F.matrix('head'),'Each head learns a habit','This one looks one step back. Others find the subject, or the opening bracket.'],
+[F.matrix('head'),'Each head learns a habit','This one looks one step back. Others look to the start of the line, or spread over recent text.'],
 [F.stack(),'Repeat the block','Attention, then a small network, a few dozen times over. That is a transformer.'],
 [F.matrix('cache'),'Keep what you already computed','Store each token’s key and value as you go. Writing token 100 no longer redoes tokens 0 to 99.'],
 [F.patches(),'Pictures become tokens too','Cut an image into patches, line them up, and the same transformer reads them.'],
@@ -2389,12 +2393,12 @@ const OLD=[
 [F.dict(),'Read them with a dictionary','Rewrite each activation as a few directions from a long list. The few that fire are a guess at what the model sees.'],
 [F.clouds('probe'),'Ask with a straight line','Train a line to read one fact from one layer. Deeper layers often make the fact plain.'],
 [F.matrix('patch'),'Or swap a piece and watch','Copy one activation from a clean run into a broken one. If the answer returns, you found where it lives.'],
-[F.steer(),'Push along a feature','Add a direction to the model’s state, and its replies lean toward that topic.'],
+[F.steer(),'Push along a feature','Add a direction to the model’s state, and its replies lean toward that tone.'],
 [F.panels('reveal'),'Would a random network do the same?','Run the same tool on an untrained copy. Often it looks just as tidy.'],
 [F.panels('tidy'),'The control is the result','Without a random baseline, a clean picture proves nothing about learning.'],
 [F.truth(),'Grade the tool on known answers','Build a model whose features you chose, then count how many the tool finds.'],
 [F.curves(Object.assign({r0:0,r1:.5},GROK)),'Fit first, understand later','A small network scores 100% on its training set long before it finds the rule.'],
-[F.curves(Object.assign({r0:.5,r1:1},GROK)),'Then, late, it generalizes','With weight decay, test accuracy passed 95% about 45 times later than the training fit. Without decay, never.'],
+[F.curves(Object.assign({r0:.5,r1:1},GROK)),'Then, late, it generalizes','With weight decay, test accuracy passed 95% about 45 times later than the training fit. Without decay, not within 20,000 steps.'],
 [F.decay(),'Small weights win','Decay shrinks every weight a little each step. Of all the answers that fit, the simple one lasts.'],
 [F.forget('full'),'New learning can erase old','Fine-tune on new text and the old skill drifts away.'],
 [F.forget('replay'),'Mix in a little of the old','Replaying old examples while learning new ones keeps most of what was there.'],
@@ -2402,12 +2406,12 @@ const OLD=[
 [F.mezo('step'),'Two forward passes, one slope','The gap estimates the slope along that direction. Memory stays at what running the model costs.'],
 [F.state(),'Memory need not grow','Instead of keeping every past token, carry one fixed-size state and update it at each step.'],
 [F.delta(),'Write by correcting','Store a value under a key by fixing what the memory now returns for it. That is one step of gradient descent.'],
-[F.power('curves'),'Bigger models, lower loss','Train one recipe at six sizes and watch each loss curve settle.'],
-[F.power('line'),'A straight line on log axes','Loss falls as a power of size. One fit predicts the next size up.'],
-[F.power('envelope'),'Each budget has a best size','Too large and it sees too little data; too small and it stops improving. The lower edge is the plan.'],
+[F.power('curves'),'Bigger models, lower loss','Train one recipe at six sizes and watch each loss curve fall.'],
+[F.power('line'),'A straight line on log axes','Loss falls roughly as a power of size. One fit reads the exponent.'],
+[F.power('envelope'),'Each budget has a best size','Too large and it sees too little data. Plot loss against compute: the lower edge names the best size at each budget.'],
 [F.icl(1,4),'Learning inside the prompt','Show a trained model a few examples of a new rule. It continues the pattern, with no weight changed.'],
-[F.icl(4,12),'It acts like a fit','On simple tasks its guesses follow least squares on the examples in front of it.'],
-[F.icl(12,24),'More examples, better guesses','Error falls with each pair added, as if a small learner ran inside one forward pass.'],
+[F.icl(4,12),'It acts like a fit','On simple tasks its guesses come close to least squares on the examples in front of it.'],
+[F.icl(12,24),'More examples, better guesses','Error falls as pairs are added, as if a small learner ran inside one forward pass.'],
 [F.chains('think'),'Let it think out loud','Asked to write its steps first, a small model went from <b>15%</b> to <b>61.5%</b> on 200 school maths problems.'],
 [F.chains('vote'),'Sample many, take the vote','Wrong chains scatter across answers; right ones agree. Eight votes lifted accuracy to <b>69.5%</b>.'],
 [F.prompts('search'),'Tune the prompt like a weight','Freeze the model. Let another model propose instructions, score each, and keep the best.'],
@@ -2427,7 +2431,7 @@ const OLD=[
 [F.checker('grade'),'Grade with a program','Sample eight replies, mark each right or wrong, and push the right ones up against the group’s mean.'],
 [F.checker('noise'),'Noise is not neutral','Train on coin-flip grades and the model does not stay put. Its accuracy fell from <b>59.1%</b> to <b>4.6%</b>.'],
 [F.evo('run'),'Evolve programs','A language model proposes changes to code. A checker keeps what works. The best become parents.'],
-[F.evo('cheat'),'Without a checker, it cheats','The search learned to inflate its own scores, and lost a better rule it had found.'],
+[F.evo('cheat'),'Without a checker, it drifts','The model kept raising its own numbers until the scores overflowed, and lost a better rule it had found.'],
 [F.motifs(),'Five ideas kept coming back','Read the whole field at once and the same few moves show up again and again.'],
 [F.spiral('mask'),'Hide part, predict it','Text, images, sound and worlds all train on this one move.'],
 [F.graph('back'),'One local rule, run everywhere','From the perceptron to backprop, each weight moves against a slope it can measure nearby.'],
@@ -2474,7 +2478,7 @@ B.forEach((b,j)=>{const ci=chOf(j),ch=CH[ci];const sec=document.createElement('s
   if(ch[2]===j&&ch[3])extra+='<p class="take">'+esc(ch[3])+'</p>';
   if(b[4])extra+='<button class="deep" type="button" aria-haspopup="dialog" aria-controls="deep" data-j="'+j+'">Deeper</button>';
   if(j===0)extra+='<p class="hint"><i></i>Scroll</p>';
-  if(j===B.length-1)extra+='<button class="again" id="again" type="button">Back to the first move</button><br><a class="home" href="../index.html">Back to the course</a>';
+  if(j===B.length-1)extra+='<button class="again" id="again" type="button">Back to the first move</button><br><a class="home" href="../index.html">Back to the course</a><br><a class="home" href="../palace/index.html">Walk the model house</a>';
   sec.innerHTML='<div class="card"><p class="kicker"><span>'+ch[0]+' · '+esc(ch[1])+'</span><span>'+pad(j+1)+'</span></p><h2>'+words+'</h2><p class="body">'+b[2]+'</p>'+extra+'</div>';
   main.appendChild(sec);});
 const steps=[...main.children], cards=steps.map(s=>s.firstChild), WD=cards.map(c=>[...c.querySelectorAll('.w')]), BD=cards.map(c=>c.querySelector('.body'));
